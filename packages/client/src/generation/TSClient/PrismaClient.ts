@@ -615,7 +615,7 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient<T extends Prisma.DefaultPrismaClient<> = Prisma.DefaultPrismaClient> = Omit<T, runtime.ITXClientDenyList>
 `
   }
 
