@@ -75,7 +75,7 @@ export async function handleNpsSurveyImpl(
 
   if (result.rating) {
     await submitSurveyEvent({ rating: result.rating, ...result }, eventCapture)
-    process.stdout.write('Thank you for your feedback!\n')
+    rl.write('Thank you for your feedback!\n')
   }
 
   await writeConfig({ acknowledgedTimeframe: status.currentTimeframe })

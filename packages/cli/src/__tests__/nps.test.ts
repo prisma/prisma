@@ -143,6 +143,7 @@ describe('nps survey', () => {
     )
     expect(status).toHaveBeenCalledTimes(1)
     expect(readline.question).toHaveBeenCalledTimes(2)
+    expect(readline.write).toHaveBeenCalledWith('Thank you for your feedback!\n')
     expect(capture).toHaveBeenCalledWith(expect.anything(), 'NPS feedback', { rating: 5, feedback: 'Great!' })
   })
 
@@ -167,6 +168,7 @@ describe('nps survey', () => {
     )
     expect(status).toHaveBeenCalledTimes(1)
     expect(readline.question).toHaveBeenCalledTimes(1)
+    expect(readline.write).toHaveBeenCalledWith('Not received a valid rating. Exiting.\n')
     expect(capture).toHaveBeenCalledTimes(0)
   })
 })
