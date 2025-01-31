@@ -1051,11 +1051,14 @@ export namespace Prisma {
   // cause typescript not to expand types and preserve names
   type NoExpand<T> = T extends unknown ? T : never;
 
+  // This utility type is useful for conditionally checking the inclusion of a specific key or type within a type union or intersection.
+  type In<T, U> = T extends U ? true : false;
+
   // this type assumes the passed object is entirely optional
   type AtLeast<O extends object, K extends string> = NoExpand<
     O extends unknown
     ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-      | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
+      | ({ [P in keyof O as In<P, K> extends true ? P : never]-?: O[P] } & O)
     : never>;
 
   type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
