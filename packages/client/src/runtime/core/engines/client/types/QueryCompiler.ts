@@ -8,7 +8,7 @@ export type QueryCompiler = {
 
 export type QueryCompilerOptions = {
   datamodel: string
-  flavour: Provider
+  provider: Provider
   connectionInfo: ConnectionInfo
 }
 
