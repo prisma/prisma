@@ -138,22 +138,7 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
   return fnc
 }
 
-export const commonCodeTS = ({
-  runtimeBase,
-  runtimeNameTs,
-  clientVersion,
-  engineVersion,
-  generator,
-}: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
-import $Types = runtime.Types // general types
-import $Public = runtime.Types.Public
-import $Utils = runtime.Types.Utils
-import $Extensions = runtime.Types.Extensions
-import $Result = runtime.Types.Result
-
-export type PrismaPromise<T> = $Public.PrismaPromise<T>
-`,
+export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions) => ({
   ts: () => `export import DMMF = runtime.DMMF
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
