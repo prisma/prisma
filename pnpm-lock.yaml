@@ -766,8 +766,8 @@ importers:
         specifier: 3.3.1
         version: 3.3.1
       memfs:
-        specifier: 4.15.0
-        version: 4.15.0
+        specifier: 4.17.0
+        version: 4.17.0
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -5499,8 +5499,8 @@ packages:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
     engines: {node: '>= 0.6'}
 
-  memfs@4.15.0:
-    resolution: {integrity: sha512-q9MmZXd2rRWHS6GU3WEm3HyiXZyyoA1DqdOhEq0lxPBmKb5S7IAOwX0RgUCwJfqjelDCySa5h8ujOy24LqsWcw==}
+  memfs@4.17.0:
+    resolution: {integrity: sha512-4eirfZ7thblFmqFjywlTmuWVSvccHAJbn1r8qQLzmTO11qcqpohOjmY2mFce6x7x7WtskzRqApPD0hv+Oa74jg==}
     engines: {node: '>= 4.0.0'}
 
   memory-pager@1.5.0:
@@ -12084,7 +12084,7 @@ snapshots:
 
   media-typer@0.3.0: {}
 
-  memfs@4.15.0:
+  memfs@4.17.0:
     dependencies:
       '@jsonjoy.com/json-pack': 1.0.3(tslib@2.6.3)
       '@jsonjoy.com/util': 1.5.0(tslib@2.6.3)
