@@ -81,6 +81,11 @@ testMatrix.setupTestSuite(
       expect(result[0].id).toEqual(id)
     })
 
+    test('string - input with doc comment', async () => {
+      const result = await prisma.$queryRawTyped(sql.withDocComment('hello'))
+      expect(result[0].id).toEqual(id)
+    })
+
     test('BigInt - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBigInt(id))
       expect(result[0].bigInt).toEqual(bigInt)
