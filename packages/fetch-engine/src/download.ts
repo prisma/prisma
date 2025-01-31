@@ -306,10 +306,14 @@ async function binaryNeedsToBeDownloaded(
         return true
       }
     } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-      // If the env var is truthy we do not error if the checksum file is missing
-      debug(
-        `The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`,
-      )
+      if (!targetExists) {
+        if (cachedFile) {
+            debug(`copying ${cachedFile} to ${job.targetFilePath}`)
+            await overwriteFile(cachedFile, job.targetFilePath)
+            return false
+          }
+        return true
+      }
       return false
     } else {
       return true
