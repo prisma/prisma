@@ -464,14 +464,7 @@ export class PrismaClientClass implements Generable {
   public toTSWithoutNamespace(): string {
     const { dmmf } = this.context
 
-    return `
-import * as runtime from './runtime/library.js'
-import $Utils = runtime.Types.Utils
-import $Extensions = runtime.Types.Extensions
-
-import type * as Prisma from './common'
-
-${this.jsDoc}
+    return `${this.jsDoc}
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,

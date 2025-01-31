@@ -11,5 +11,12 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
     options.browser,
   )
 
-  return prismaClientClass.toTSWithoutNamespace()
+  return `import * as runtime from '${context.runtimeJsPath}'
+import $Utils = runtime.Types.Utils
+import $Extensions = runtime.Types.Extensions
+
+import type * as Prisma from './common'
+  
+${prismaClientClass.toTSWithoutNamespace()}
+`
 }
