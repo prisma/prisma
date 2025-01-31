@@ -41,12 +41,19 @@ export async function handleNpsSurvey() {
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
-  // we don't want to propagate NPS survey errors to the user, so we catch them here and log them
-  await handleNpsSurveyImpl(now, status, rl, eventCapture)
+  const rlClose = new Promise((resolve) => {
+    rl.once('close', resolve)
+  })
+
+  const survey = await handleNpsSurveyImpl(now, status, rl, eventCapture)
     .catch((err) => {
+      // we don't want to propagate NPS survey errors, so we catch them here and log them
       debug(`An error occurred while handling NPS survey: ${err}`)
     })
     .finally(() => rl.close())
+
+  // wait for either the survey or the readline interface to close
+  await Promise.race([survey, rlClose])
 }
 
 export async function handleNpsSurveyImpl(
@@ -55,7 +62,7 @@ export async function handleNpsSurveyImpl(
   rl: ReadlineInterface,
   eventCapture: EventCapture,
 ) {
-  if (isCi() || !process.stdin.isTTY) {
+  if (isCi()) {
     return
   }
 
@@ -104,7 +111,7 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
   const feedbackAnswer = await rl.question(
     'If you would like to provide any additional feedback, enter it below or press "Enter" to ' +
       'skip.\n' +
-      'Feedback: ',
+      'Additional feedback: ',
   )
   const feedback = feedbackAnswer.trim() === '' ? undefined : feedbackAnswer
 
