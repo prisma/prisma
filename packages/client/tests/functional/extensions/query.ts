@@ -580,7 +580,7 @@ testMatrix.setupTestSuite(
       `)
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 9 : 7)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -595,6 +595,8 @@ testMatrix.setupTestSuite(
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
+          [{ query: expect.stringContaining('BEGIN') }],
+          [{ query: expect.stringContaining('SELECT') }],
         ]
         if (isSqlServer) {
           expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
@@ -678,7 +680,7 @@ testMatrix.setupTestSuite(
 
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 9 : 7)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -692,8 +694,10 @@ testMatrix.setupTestSuite(
           const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
           ]
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])

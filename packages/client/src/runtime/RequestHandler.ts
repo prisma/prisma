@@ -106,13 +106,43 @@ export class RequestHandler {
       }),
 
       singleLoader: async (request) => {
+        const traceparent = this.client._tracingHelper.getTraceParent()
+        const isWriteAction = isWrite(request.protocolQuery.action)
+
+        if (request.transaction?.kind === 'batch') {
+          // if it's a single request within a batch transaction, we execute using the `batch` endpoint kind,
+          // because a single `request` cannnot start transactions or set the isolation level.
+
+          const response = await this.client._engine.requestBatch([request.protocolQuery], {
+            traceparent,
+            containsWrite: isWriteAction,
+            customDataProxyFetch: request.customDataProxyFetch,
+            transaction: {
+              kind: 'batch',
+              options: {
+                isolationLevel: request.transaction.isolationLevel,
+              },
+            },
+          })
+
+          const result = response[0]
+
+          // This refines the type of `result` to exclude `Error` instances, making it compatible
+          // with the input type of `this.mapQueryEngineResult`.
+          if (result instanceof Error) {
+            throw result
+          }
+
+          return this.mapQueryEngineResult(request, result)
+        }
+
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
         const response = await this.client._engine.request(request.protocolQuery, {
-          traceparent: this.client._tracingHelper.getTraceParent(),
+          traceparent,
           interactiveTransaction,
-          isWrite: isWrite(request.protocolQuery.action),
+          isWrite: isWriteAction,
           customDataProxyFetch: request.customDataProxyFetch,
         })
         return this.mapQueryEngineResult(request, response)
