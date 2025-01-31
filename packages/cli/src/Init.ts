@@ -465,20 +465,32 @@ ${blue('info')} Please manually update your .env file with the new DATABASE_URL 
 
     const databaseUrl = prismaPostgresDatabaseUrl || url
     const warnings: string[] = []
-    const envPath = path.join(outputDir, '.env')
-    if (!fs.existsSync(envPath)) {
-      fs.writeFileSync(envPath, defaultEnv(databaseUrl))
-    } else {
-      const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
-      const config = dotenv.parse(envFile) // will return an object
-      if (Object.keys(config).includes('DATABASE_URL')) {
-        warnings.push(
-          `${yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${bold(
-            path.relative(outputDir, envPath),
-          )}`,
-        )
+    const setupEnvFile = (fileName: string) => {
+      const envPath = path.join(outputDir, fileName)
+      if (!fs.existsSync(envPath)) {
+        fs.writeFileSync(envPath, defaultEnv(databaseUrl))
       } else {
-        fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(databaseUrl))
+        const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
+        const config = dotenv.parse(envFile) // will return an object
+        if (Object.keys(config).includes('DATABASE_URL')) {
+          warnings.push(
+            `${yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${bold(
+              path.relative(outputDir, envPath),
+            )}`,
+          )
+        } else {
+          fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(databaseUrl))
+        }
+      }
+    }
+
+    setupEnvFile('.env')
+
+    const extraEnvFiles = ['.env.example', '.example.env']
+
+    for (const extraEnvFile of extraEnvFiles) {
+      if (fs.existsSync(path.join(outputDir, extraEnvFile))) {
+        setupEnvFile(extraEnvFile)
       }
     }
 
