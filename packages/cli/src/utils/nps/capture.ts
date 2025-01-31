@@ -1,12 +1,5 @@
 import fetch from 'node-fetch'
 
-type PosthogCapture<Props> = {
-  api_key: string
-  event: string
-  distinct_id: string
-  properties: Props
-}
-
 export interface EventCapture {
   capture<Event>(id: string, name: string, payload: Event): Promise<void>
 }
@@ -19,6 +12,13 @@ export class EventCaptureError extends Error {
 
 const posthogCaptureUrl = new URL('https://proxyhog.prisma-data.net/capture')
 const posthogKey = 'phc_gr2e9OTFh5iwE6IOuHPngwVm9jDtbC04nBjb8gcVG9a'
+
+type PosthogCapture<Props> = {
+  api_key: string
+  event: string
+  distinct_id: string
+  properties: Props
+}
 
 export class PosthogEventCapture implements EventCapture {
   async capture<Event>(id: string, name: string, payload: Event) {

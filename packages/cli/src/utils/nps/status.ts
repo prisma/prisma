@@ -20,6 +20,8 @@ export class ProdNpsStatusLookup implements NpsStatusLookup {
     const resp = await fetch(npsStatusUrl.href)
     return await (resp.ok
       ? ((await resp.json()) as NpsStatus)
+      : resp.status === 404
+      ? Promise.resolve({})
       : Promise.reject(new Error(`Failed to fetch NPS survey status: ${resp.statusText}`)))
   }
 }

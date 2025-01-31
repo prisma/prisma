@@ -26,7 +26,7 @@ describe('nps survey', () => {
     mockWrite?.mockRestore()
   })
 
-  it('should exit immediately in CI', async () => {
+  it('should exit immediately if running in CI', async () => {
     mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
     mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
 
@@ -74,7 +74,7 @@ describe('nps survey', () => {
     expect(capture).toHaveBeenCalledTimes(0)
   })
 
-  it('should check status if there is no config and exit if there is no survey', async () => {
+  it('should check the status if there is no config and exit if there is no survey', async () => {
     mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
     mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
 
@@ -96,7 +96,7 @@ describe('nps survey', () => {
     expect(capture).toHaveBeenCalledTimes(0)
   })
 
-  it('should check status if the acknowledged survey has expired', async () => {
+  it('should check the status if the acknowledged survey has expired', async () => {
     mockRead = jest
       .spyOn(fs.promises, 'readFile')
       .mockResolvedValue(
@@ -112,6 +112,26 @@ describe('nps survey', () => {
       write: jest.fn(),
     }
     const capture = jest.fn()
+
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+
+    expect(mockRead).toHaveBeenCalledTimes(1)
+    expect(mockWrite).toHaveBeenCalledTimes(0)
+    expect(status).toHaveBeenCalledTimes(1)
+    expect(readline.question).toHaveBeenCalledTimes(0)
+    expect(capture).toHaveBeenCalledTimes(0)
+  })
+
+  it('should exit if the status is undefined', async () => {
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+
+    const status = jest.fn().mockResolvedValue({})
+    const readline = {
+      question: jest.fn(),
+      write: jest.fn(),
+    }
+    const capture = jest.fn().mockReturnValue(Promise.resolve())
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
 
