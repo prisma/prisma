@@ -136,8 +136,10 @@ class PrismaPlugin {
     // copy prisma files to output as the final step (for all users)
     compiler.hooks.done.tapPromise('PrismaPlugin', async () => {
       const asyncActions = Object.entries(fromDestPrismaMap).map(async ([from, dest]) => {
-        // only copy if file doesn't exist, necessary for watch mode
+        // only copy if file doesn't exist, necessary for watch mode	
         if ((await fs.access(dest).catch(() => false)) === false) {
+          // making sure that directory the file is being copied to exists, otherwise create it
+          await fs.mkdir(path.resolve(dest, '..'), { recursive: true })
           return fs.copyFile(from, dest)
         }
       })
