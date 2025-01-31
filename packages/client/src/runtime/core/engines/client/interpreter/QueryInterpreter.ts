@@ -2,8 +2,8 @@ import { Query, Queryable } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../../common/types/Events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
-import { Env, PrismaObject, Value } from './env'
 import { renderQuery } from './renderQuery'
+import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serializer'
 
 export type QueryInterpreterOptions = {
@@ -27,7 +27,7 @@ export class QueryInterpreter {
     return this.interpretNode(queryPlan, this.#placeholderValues)
   }
 
-  private async interpretNode(node: QueryPlanNode, env: Env): Promise<Value> {
+  private async interpretNode(node: QueryPlanNode, env: ScopeBindings): Promise<Value> {
     switch (node.type) {
       case 'seq': {
         const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
@@ -39,7 +39,7 @@ export class QueryInterpreter {
       }
 
       case 'let': {
-        const bindings: Env = Object.create(env)
+        const bindings: ScopeBindings = Object.create(env)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
             bindings[binding.name] = await this.interpretNode(binding.expr, env)

@@ -1,4 +1,4 @@
-import { ConnectionInfo, Flavour } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 
 import { EngineConfig } from '../../common/Engine'
 
@@ -8,7 +8,7 @@ export type QueryCompiler = {
 
 export type QueryCompilerOptions = {
   datamodel: string
-  flavour: Flavour
+  flavour: Provider
   connectionInfo: ConnectionInfo
 }
 

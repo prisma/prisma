@@ -1,10 +1,10 @@
 import { ArgType, Query } from '@prisma/driver-adapter-utils'
 
 import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
-import { Env } from './env'
 import { renderQueryTemplate } from './renderQueryTemplate'
+import { ScopeBindings } from './scope'
 
-export function renderQuery({ query, params }: QueryPlanDbQuery, env: Env): Query {
+export function renderQuery({ query, params }: QueryPlanDbQuery, env: ScopeBindings): Query {
   const substitutedParams = params.map((param) => {
     if (!isPrismaValuePlaceholder(param)) {
       return param
