@@ -22,6 +22,7 @@ import { downloadZip } from './downloadZip'
 import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
+import { fetchEngineWithNix, getDownloadableBinaryTarget, isNixOsTarget } from './nixos'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
@@ -158,24 +159,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
-    const promises = binariesToDownload.map((job) => {
-      const downloadUrl = getDownloadUrl({
-        channel: 'all_commits',
-        version: opts.version,
-        binaryTarget: job.binaryTarget,
-        binaryName: job.binaryName,
-      })
-
-      debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
-
-      return downloadBinary({
-        ...job,
-        downloadUrl,
-        version: opts.version,
-        failSilent: opts.failSilent,
-        progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-      })
-    })
+    const promises = binariesToDownload.map((job) =>
+      executeJob(job, opts, setProgress ? setProgress(job.targetFilePath) : undefined),
+    )
 
     await Promise.all(promises)
 
@@ -200,6 +186,42 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   return binaryPaths
+}
+
+async function executeJob(
+  job: BinaryDownloadJob,
+  opts: DownloadOptions & Required<Pick<DownloadOptions, 'binaryTargets' | 'version'>>,
+  progressCb: ((progress: number) => void) | undefined,
+) {
+  const downloadUrl = getDownloadUrl({
+    channel: 'all_commits',
+    version: opts.version,
+    binaryTarget: getDownloadableBinaryTarget(job.binaryTarget),
+    binaryName: job.binaryName,
+  })
+
+  if (isNixOsTarget(job.binaryTarget)) {
+    await fetchEngineWithNix({
+      binaryName: job.binaryName,
+      version: opts.version,
+      fileName: job.fileName,
+      binaryTarget: job.binaryTarget,
+      downloadUrl,
+      progressCb,
+    })
+    // todo remove, just for debugging
+    process.exit(1)
+  }
+
+  debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
+
+  return downloadBinary({
+    ...job,
+    downloadUrl,
+    version: opts.version,
+    failSilent: opts.failSilent,
+    progressCb,
+  })
 }
 
 function getCollectiveBar(options: DownloadOptions): {
