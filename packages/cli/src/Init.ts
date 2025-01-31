@@ -17,7 +17,7 @@ import {
 } from '@prisma/internals'
 import dotenv from 'dotenv'
 import fs from 'fs'
-import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
@@ -247,36 +247,6 @@ export class Init implements Command {
       throw Error('The init command does not take any argument.')
     }
 
-    const outputDir = process.cwd()
-    const prismaFolder = path.join(outputDir, 'prisma')
-
-    if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
-      console.log(
-        printError(`File ${bold('schema.prisma')} already exists in your project.
-        Please try again in a project that is not yet using Prisma.
-      `),
-      )
-      process.exit(1)
-    }
-
-    if (fs.existsSync(prismaFolder)) {
-      console.log(
-        printError(`A folder called ${bold('prisma')} already exists in your project.
-        Please try again in a project that is not yet using Prisma.
-      `),
-      )
-      process.exit(1)
-    }
-
-    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
-      console.log(
-        printError(`File ${bold('prisma/schema.prisma')} already exists in your project.
-        Please try again in a project that is not yet using Prisma.
-      `),
-      )
-      process.exit(1)
-    }
-
     const { datasourceProvider, url } = await match(args)
       .with(
         {
@@ -350,6 +320,10 @@ export class Init implements Command {
     let workspaceId = ``
     let projectId = ``
     let environmentId = ``
+
+    const outputDir = process.cwd()
+    const prismaFolder = path.join(outputDir, 'prisma')
+
     if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
 
@@ -424,8 +398,46 @@ export class Init implements Command {
         displayName: `database-setup-prismaPostgres-api-key`,
       })
 
-      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}://accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       console.log(successMessage('Prisma Postgres® is ready to be used! 🚀'))
+    }
+
+    if (
+      (isPpgCommand && (fs.existsSync(path.join(outputDir, 'schema.prisma')) || fs.existsSync(prismaFolder))) ||
+      fs.existsSync(path.join(prismaFolder, 'schema.prisma'))
+    ) {
+      console.info(`
+${blue('info')} A ${bold('prisma folder or prisma schema')} file already exists in the project.
+${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
+
+      return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+    }
+
+    if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
+      console.log(
+        printError(`File ${bold('schema.prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `),
+      )
+      process.exit(1)
+    }
+
+    if (fs.existsSync(prismaFolder)) {
+      console.log(
+        printError(`A folder called ${bold('prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `),
+      )
+      process.exit(1)
+    }
+
+    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
+      console.log(
+        printError(`File ${bold('prisma/schema.prisma')} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `),
+      )
+      process.exit(1)
     }
 
     /**
