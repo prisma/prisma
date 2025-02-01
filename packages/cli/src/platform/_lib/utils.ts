@@ -114,7 +114,6 @@ ${
   ${green(databaseUrl)}`
     : ''
 }
-}
 
 ${bold('--- Next steps ---')}
 

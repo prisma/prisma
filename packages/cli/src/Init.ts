@@ -397,7 +397,7 @@ export class Init implements Command {
 
       prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
       spinner.succeed()
-      console.log(successMessage('Success! Your Prisma Postgres database is ready ✅'))
+      console.log(successMessage('Your Prisma Postgres database is ready ✅'))
     }
 
     if (
@@ -408,7 +408,13 @@ export class Init implements Command {
 ${blue('info')} A ${bold('prisma folder or prisma schema')} file already exists in the project.
 ${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
 
-      return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+      return printPpgInitOutput({
+        databaseUrl: prismaPostgresDatabaseUrl!,
+        workspaceId,
+        projectId,
+        environmentId,
+        shouldPrintDatabaseUrl: true,
+      })
     }
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
