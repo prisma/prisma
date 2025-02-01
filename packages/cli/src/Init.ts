@@ -17,7 +17,7 @@ import {
 } from '@prisma/internals'
 import dotenv from 'dotenv'
 import fs from 'fs'
-import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
+import { bold, dim, green, red, yellow } from 'kleur/colors'
 import ora from 'ora'
 import path from 'path'
 import { match, P } from 'ts-pattern'
@@ -364,7 +364,7 @@ export class Init implements Command {
         default: 'My Prisma Project',
       })
 
-      const spinner = ora(`Creating project ${projectDisplayNameAnswer}...`).start()
+      const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 
       try {
         const project = await PlatformCommands.Project.createProjectOrThrow({
@@ -374,6 +374,9 @@ export class Init implements Command {
           allowRemoteDatabases: false,
           ppgRegion: ppgRegionSelection,
         })
+
+        spinner.text = `Waiting for your Prisma Postgres database to be ready...`
+
         workspaceId = defaultWorkspace.id
         projectId = project.id
         environmentId = project.defaultEnvironment.id
@@ -397,8 +400,8 @@ export class Init implements Command {
         })
 
         prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
-        spinner.succeed()
-        console.log(successMessage('Your Prisma Postgres database is ready ✅'))
+
+        spinner.succeed(successMessage('Your Prisma Postgres database is ready ✅'))
       } catch (error) {
         spinner.fail(error instanceof Error ? error.message : 'Something went wrong')
         throw error
@@ -409,10 +412,6 @@ export class Init implements Command {
       (isPpgCommand && (fs.existsSync(path.join(outputDir, 'schema.prisma')) || fs.existsSync(prismaFolder))) ||
       fs.existsSync(path.join(prismaFolder, 'schema.prisma'))
     ) {
-      console.info(`
-${blue('info')} A ${bold('prisma folder or prisma schema')} file already exists in the project.
-${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
-
       return printPpgInitOutput({
         databaseUrl: prismaPostgresDatabaseUrl!,
         workspaceId,
@@ -546,21 +545,19 @@ ${blue('info')} Please manually update your .env file with the new DATABASE_URL 
       )
     }
 
-    const defaultOutput = `Next steps:
+    const defaultOutput = `
+✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
+You can now open it in your favorite editor.
+${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
+Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
 ${link('https://pris.ly/d/getting-started')}\n`
 
-    return `
-✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
-  You can now open it in your favorite editor.
-${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
-${
-  isPpgCommand
-    ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
-    : defaultOutput
-}`
+    return isPpgCommand
+      ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+      : defaultOutput
   }
 
   // help message
