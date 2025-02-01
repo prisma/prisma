@@ -18,6 +18,7 @@ import {
 import dotenv from 'dotenv'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
+import ora from 'ora'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
@@ -184,7 +185,7 @@ export class Init implements Command {
   ${bold('Options')}
 
              -h, --help   Display this help message
-                   --db   Provisions a fully managed Prisma Postgres® database on the Prisma Data Platform.
+                   --db   Provisions a fully managed Prisma Postgres database on the Prisma Data Platform.
   --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
    --generator-provider   Define the generator provider to use. Default: \`prisma-client-js\`
       --preview-feature   Define a preview feature to use.
@@ -336,13 +337,13 @@ export class Init implements Command {
           message: 'Would you like to authenticate?',
         })
         if (!authAnswer) {
-          return 'Project creation aborted. You need to authenticate to use Prisma Postgres®'
+          return 'Project creation aborted. You need to authenticate to use Prisma Postgres'
         }
         const authenticationResult = await PlatformCommands.loginOrSignup()
         console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
       }
 
-      console.log("Let's set up your Prisma Postgres® database!")
+      console.log("Let's set up your Prisma Postgres database!")
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
@@ -363,43 +364,45 @@ export class Init implements Command {
         default: 'My Prisma Project',
       })
 
-      console.log(`Creating project ${projectDisplayNameAnswer}...`)
-      const project = await PlatformCommands.Project.createProjectOrThrow({
-        token: platformToken,
-        displayName: projectDisplayNameAnswer,
-        workspaceId: defaultWorkspace.id,
-        allowRemoteDatabases: false,
-        ppgRegion: ppgRegionSelection,
-      })
-      workspaceId = defaultWorkspace.id
-      projectId = project.id
-      environmentId = project.defaultEnvironment.id
-      console.log(successMessage(`Project ${project.displayName} created`))
+      const spinner = ora(`Creating project ${projectDisplayNameAnswer}...`).start()
 
-      console.log(`Checking the status of Prisma Postgres® instance...`)
-      await poll(
-        () =>
-          PlatformCommands.Environment.getEnvironmentOrThrow({
-            environmentId: project.defaultEnvironment.id,
-            token: platformToken,
-          }),
-        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
-          environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
-        5000, // Poll every 5 seconds
-        120000, // if it takes more than two minutes, bail with an error
-        'Checking the status of Prisma Postgres® instance...',
-      )
-      console.log(successMessage('Prisma Postgres® provisioning complete'))
+      try {
+        const project = await PlatformCommands.Project.createProjectOrThrow({
+          token: platformToken,
+          displayName: projectDisplayNameAnswer,
+          workspaceId: defaultWorkspace.id,
+          allowRemoteDatabases: false,
+          ppgRegion: ppgRegionSelection,
+        })
+        workspaceId = defaultWorkspace.id
+        projectId = project.id
+        environmentId = project.defaultEnvironment.id
 
-      console.log('Creating Prisma Postgres® API key...')
-      const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
-        token: platformToken,
-        environmentId: project.defaultEnvironment.id,
-        displayName: `database-setup-prismaPostgres-api-key`,
-      })
+        await poll(
+          () =>
+            PlatformCommands.Environment.getEnvironmentOrThrow({
+              environmentId: project.defaultEnvironment.id,
+              token: platformToken,
+            }),
+          (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
+            environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
+          5000, // Poll every 5 seconds
+          120000, // if it takes more than two minutes, bail with an error
+        )
 
-      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
-      console.log(successMessage('Prisma Postgres® is ready to be used! 🚀'))
+        const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
+          token: platformToken,
+          environmentId: project.defaultEnvironment.id,
+          displayName: `database-setup-prismaPostgres-api-key`,
+        })
+
+        prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+        spinner.succeed()
+        console.log(successMessage('Your Prisma Postgres database is ready ✅'))
+      } catch (error) {
+        spinner.fail(error instanceof Error ? error.message : 'Something went wrong')
+        throw error
+      }
     }
 
     if (
@@ -410,7 +413,13 @@ export class Init implements Command {
 ${blue('info')} A ${bold('prisma folder or prisma schema')} file already exists in the project.
 ${blue('info')} Please manually update your .env file with the new DATABASE_URL shown below.`)
 
-      return printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
+      return printPpgInitOutput({
+        databaseUrl: prismaPostgresDatabaseUrl!,
+        workspaceId,
+        projectId,
+        environmentId,
+        shouldPrintDatabaseUrl: true,
+      })
     }
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
