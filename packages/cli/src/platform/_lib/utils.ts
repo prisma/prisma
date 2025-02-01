@@ -100,17 +100,21 @@ export const printPpgInitOutput = ({
   workspaceId,
   projectId,
   environmentId,
+  shouldPrintDatabaseUrl = false,
 }: {
   databaseUrl: string
   workspaceId: string
   projectId: string
   environmentId: string
+  shouldPrintDatabaseUrl?: boolean
 }) => `
-Database URL:
-${green(databaseUrl)}
-
-Project link:
-${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/dashboard`)}
+${
+  shouldPrintDatabaseUrl
+    ? `Database URL:
+  ${green(databaseUrl)}`
+    : ''
+}
+}
 
 ${bold('--- Next steps ---')}
 
@@ -131,7 +135,6 @@ ${green('npx prisma studio')}
 
 ...or online in Console:
 ${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`)}
-
 
 ${bold(`4. Send queries from your app`)}
 To access your database from a JavaScript/TypeScript app, you need to use Prisma ORM. Go here for step-by-step instructions: ${link(
