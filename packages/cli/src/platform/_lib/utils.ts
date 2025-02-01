@@ -112,25 +112,29 @@ ${green(databaseUrl)}
 Project link:
 ${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/dashboard`)}
 
-${bold('Next steps')}
+${bold('--- Next steps ---')}
+
+Go to ${link('https://pris.ly/ppg-init')} for detailed instructions.
+
 ${bold('1. Define your database schema')}
-Open the ${green('schema.prisma')} file and define your first models. Go to ${link(
-  'https://pris.ly/ppg-quickstart',
-)} if you need inspiration.
+Open the ${green('schema.prisma')} file and define your first models. Check the docs if you need inspiration: ${link(
+  'https://pris.ly/ppg-init',
+)}.
 
 ${bold('2. Apply migrations')}
 Run the following command to create and apply a migration:
 ${green('npx prisma migrate dev --name init')}
 
-${bold(`3. Send queries with Prisma Client`)}
-As a next step, you can instantiate Prisma Client and start sending queries to your database from your application.
+${bold(`3. Manage your data`)}
+View and edit your data locally by running this command:
+${green('npx prisma studio')}
 
-${bold(`4. Manage your data`)}
-View your database in Studio via Console: ${link(
-  `https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`,
-)}.
-Or run Studio locally with: ${green('npx prisma studio')}
+...or online in Console:
+${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`)}
 
-Find more information in our documentation:
-${link('https://pris.ly/d/getting-started')}
+
+${bold(`4. Send queries from your app`)}
+To access your database from a JavaScript/TypeScript app, you need to use Prisma ORM. Go here for step-by-step instructions: ${link(
+  'https://pris.ly/ppg-init',
+)}
 `
