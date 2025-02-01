@@ -1,15 +1,30 @@
-import { Queryable } from '@prisma/driver-adapter-utils'
+import { Query, Queryable } from '@prisma/driver-adapter-utils'
 
+import { QueryEvent } from '../../common/types/Events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { Env, PrismaObject, Value } from './env'
 import { renderQuery } from './renderQuery'
 import { serialize } from './serializer'
 
+export type QueryInterpreterOptions = {
+  queryable: Queryable
+  placeholderValues: Record<string, unknown>
+  onQuery?: (event: QueryEvent) => void
+}
+
 export class QueryInterpreter {
-  constructor(private queryable: Queryable, private params: Record<string, unknown>) {}
+  #queryable: Queryable
+  #placeholderValues: Record<string, unknown>
+  #onQuery?: (event: QueryEvent) => void
+
+  constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
+    this.#queryable = queryable
+    this.#placeholderValues = placeholderValues
+    this.#onQuery = onQuery
+  }
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
-    return this.interpretNode(queryPlan, this.params)
+    return this.interpretNode(queryPlan, this.#placeholderValues)
   }
 
   private async interpretNode(node: QueryPlanNode, env: Env): Promise<Value> {
@@ -54,21 +69,27 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const result = await this.queryable.executeRaw(renderQuery(node.args, env))
-        if (result.ok) {
-          return result.value
-        } else {
-          throw result.error
-        }
+        const query = renderQuery(node.args, env)
+        return this.#withQueryEvent(query, async () => {
+          const result = await this.#queryable.executeRaw(query)
+          if (result.ok) {
+            return result.value
+          } else {
+            throw result.error
+          }
+        })
       }
 
       case 'query': {
-        const result = await this.queryable.queryRaw(renderQuery(node.args, env))
-        if (result.ok) {
-          return serialize(result.value)
-        } else {
-          throw result.error
-        }
+        const query = renderQuery(node.args, env)
+        return this.#withQueryEvent(query, async () => {
+          const result = await this.#queryable.queryRaw(query)
+          if (result.ok) {
+            return serialize(result.value)
+          } else {
+            throw result.error
+          }
+        })
       }
 
       case 'reverse': {
@@ -125,6 +146,31 @@ export class QueryInterpreter {
         throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
       }
     }
+  }
+
+  async #withQueryEvent<T>(query: Query, execute: () => Promise<T>): Promise<T> {
+    const timestamp = new Date()
+    const startInstant = performance.now()
+    const result = await execute()
+    const endInstant = performance.now()
+
+    this.#onQuery?.({
+      timestamp,
+      duration: endInstant - startInstant,
+      query: query.sql,
+      // TODO: we should probably change the interface to contain a proper array in the next major version.
+      params: JSON.stringify(query.args),
+      // TODO: this field only exists for historical reasons as we grandfathered it from the time
+      // when we emitted `tracing` events to stdout in the engine unchanged, and then described
+      // them in the public API as TS types. Thus this field used to contain the name of the Rust
+      // module in which an event originated. When using library engine, which uses a different
+      // mechanism with a JavaScript callback for logs, it's normally just an empty string instead.
+      // This field is definitely not useful and should be removed from the public types (but it's
+      // technically a breaking change, even if a tiny and inconsequential one).
+      target: 'QueryInterpreter',
+    })
+
+    return result
   }
 }
 

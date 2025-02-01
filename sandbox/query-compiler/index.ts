@@ -6,6 +6,7 @@ import util from 'node:util'
 
 async function main() {
   const prisma = new PrismaClient({
+    log: ['query'],
     adapter: new PrismaPg(
       new Pool({
         connectionString: process.env.TEST_POSTGRES_URI
@@ -14,22 +15,19 @@ async function main() {
   })
 
   const email = `user.${Date.now()}@prisma.io`
-  const user =  await prisma.user.create({
+  const user = await prisma.user.create({
     data: { email },
   })
-
-  // TODO: `create` currently returns an array instead of a single record, this is a bug
-  const userId = user[0].id
 
   await prisma.post.createMany({
     data: [
       {
         title: 'First post',
-        userId,
+        userId: user.id,
       },
       {
         title: 'Second post',
-        userId,
+        userId: user.id,
       },
     ]
   })
