@@ -111,7 +111,7 @@ export const printPpgInitOutput = ({
 ${
   shouldPrintDatabaseUrl
     ? `Database URL:
-  ${green(databaseUrl)}`
+${green(databaseUrl)}`
     : ''
 }
 

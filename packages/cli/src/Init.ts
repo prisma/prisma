@@ -366,38 +366,43 @@ export class Init implements Command {
 
       const spinner = ora(`Creating project ${projectDisplayNameAnswer}...`).start()
 
-      const project = await PlatformCommands.Project.createProjectOrThrow({
-        token: platformToken,
-        displayName: projectDisplayNameAnswer,
-        workspaceId: defaultWorkspace.id,
-        allowRemoteDatabases: false,
-        ppgRegion: ppgRegionSelection,
-      })
-      workspaceId = defaultWorkspace.id
-      projectId = project.id
-      environmentId = project.defaultEnvironment.id
+      try {
+        const project = await PlatformCommands.Project.createProjectOrThrow({
+          token: platformToken,
+          displayName: projectDisplayNameAnswer,
+          workspaceId: defaultWorkspace.id,
+          allowRemoteDatabases: false,
+          ppgRegion: ppgRegionSelection,
+        })
+        workspaceId = defaultWorkspace.id
+        projectId = project.id
+        environmentId = project.defaultEnvironment.id
 
-      await poll(
-        () =>
-          PlatformCommands.Environment.getEnvironmentOrThrow({
-            environmentId: project.defaultEnvironment.id,
-            token: platformToken,
-          }),
-        (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
-          environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
-        5000, // Poll every 5 seconds
-        120000, // if it takes more than two minutes, bail with an error
-      )
+        await poll(
+          () =>
+            PlatformCommands.Environment.getEnvironmentOrThrow({
+              environmentId: project.defaultEnvironment.id,
+              token: platformToken,
+            }),
+          (environment: Awaited<ReturnType<typeof PlatformCommands.Environment.getEnvironmentOrThrow>>) =>
+            environment.ppg.status === 'healthy' && environment.accelerate.status.enabled,
+          5000, // Poll every 5 seconds
+          120000, // if it takes more than two minutes, bail with an error
+        )
 
-      const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
-        token: platformToken,
-        environmentId: project.defaultEnvironment.id,
-        displayName: `database-setup-prismaPostgres-api-key`,
-      })
+        const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
+          token: platformToken,
+          environmentId: project.defaultEnvironment.id,
+          displayName: `database-setup-prismaPostgres-api-key`,
+        })
 
-      prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
-      spinner.succeed()
-      console.log(successMessage('Your Prisma Postgres database is ready ✅'))
+        prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
+        spinner.succeed()
+        console.log(successMessage('Your Prisma Postgres database is ready ✅'))
+      } catch (error) {
+        spinner.fail(error instanceof Error ? error.message : 'Something went wrong')
+        throw error
+      }
     }
 
     if (
