@@ -92,7 +92,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
         const parsed = parseErrorMessage(error.message)
         if (parsed) {
           return err({
-            kind: 'Mysql',
+            kind: 'mysql',
             ...parsed,
           })
         }
