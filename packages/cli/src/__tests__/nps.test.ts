@@ -13,7 +13,7 @@ describe('nps survey', () => {
   let mockRead: jest.SpyInstance
   let mockWrite: jest.SpyInstance
 
-  beforeAll(() => {
+  beforeEach(() => {
     process.env = {}
   })
 
