@@ -1,1 +1,1 @@
-export { PrismaLibSQL } from './libsql'
+export { createDriver, PrismaLibSQL, type LibSQLDriverInput } from './libsql'
