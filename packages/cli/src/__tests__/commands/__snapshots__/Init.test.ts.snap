@@ -13,8 +13,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`appends when .env present 2`] = `
@@ -61,8 +60,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`is schema and env written on disk replace 2`] = `
@@ -98,8 +96,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`warns when DATABASE_URL present in .env  2`] = `
@@ -132,8 +129,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with --with-model param cockroachdb 2`] = `
@@ -172,8 +168,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with --with-model param mongodb 2`] = `
@@ -213,8 +208,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with --with-model param postgresql 2`] = `
@@ -254,8 +248,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with custom output 2`] = `
@@ -290,8 +283,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with generator param - \`go run github.com/steebchen/prisma-client-go\` 2`] = `
@@ -325,8 +317,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with preview features - mock test 2`] = `
@@ -361,8 +352,7 @@ Next steps:
 5. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with preview features - multiple 2`] = `
@@ -396,8 +386,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider and url params - cockroachdb 2`] = `
@@ -430,8 +419,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - MongoDB 2`] = `
@@ -464,8 +452,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - SQLITE 2`] = `
@@ -495,8 +482,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - SqlServer 2`] = `
@@ -529,8 +515,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - cockroachdb 2`] = `
@@ -563,8 +548,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - mysql 2`] = `
@@ -597,8 +581,7 @@ Next steps:
 4. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with provider param - postgresql 2`] = `
@@ -630,8 +613,7 @@ Next steps:
 3. Tip: Explore how you can extend the ORM with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm
 
 More information in our documentation:
-https://pris.ly/d/getting-started
-"
+https://pris.ly/d/getting-started"
 `;
 
 exports[`works with url param 2`] = `
