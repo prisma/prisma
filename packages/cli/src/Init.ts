@@ -555,8 +555,7 @@ Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
 More information in our documentation:
-${link('https://pris.ly/d/getting-started')}
-  `
+${link('https://pris.ly/d/getting-started')}\n`
 
     return isPpgCommand
       ? printPpgInitOutput({ databaseUrl: prismaPostgresDatabaseUrl!, workspaceId, projectId, environmentId })
