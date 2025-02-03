@@ -104,7 +104,7 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       const { message } = e
 
       return err({
-        kind: 'Sqlite',
+        kind: 'sqlite',
         extendedCode: matchSQLiteErrorCode(message),
         message,
       })
