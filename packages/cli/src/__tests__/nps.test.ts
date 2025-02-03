@@ -55,9 +55,7 @@ describe('nps survey', () => {
       )
     mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest
-      .fn()
-      .mockResolvedValue({ currentTimeframe: { start: evenEarlierDate.toISOString(), end: earlierDate.toISOString() } })
+    const status = jest.fn()
     const readline = {
       question: jest.fn(),
       write: jest.fn(),
@@ -96,16 +94,14 @@ describe('nps survey', () => {
   })
 
   it('should check the status if the acknowledged survey has expired', async () => {
-    mockRead = jest
-      .spyOn(fs.promises, 'readFile')
-      .mockResolvedValue(
-        JSON.stringify({ acknowledgedTimeframe: { start: earlierDate.toISOString(), end: earlierDate.toISOString() } }),
-      )
+    mockRead = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(
+      JSON.stringify({
+        acknowledgedTimeframe: { start: evenEarlierDate.toISOString(), end: earlierDate.toISOString() },
+      }),
+    )
     mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest
-      .fn()
-      .mockResolvedValue({ currentTimeframe: { start: evenEarlierDate.toISOString(), end: earlierDate.toISOString() } })
+    const status = jest.fn().mockResolvedValue({})
     const readline = {
       question: jest.fn(),
       write: jest.fn(),
