@@ -34,9 +34,9 @@ export class ProdNpsStatusLookup implements NpsStatusLookup {
   }
 
   checkSchema(obj: any): obj is NpsStatus {
-    if (obj.currentTimeframe !== undefined) {
-      return typeof obj.currentTimeframe.start === 'string' && typeof obj.currentTimeframe.end === 'string'
-    }
-    return true
+    return (
+      obj.currentTimeframe === undefined ||
+      (typeof obj.currentTimeframe.start === 'string' && typeof obj.currentTimeframe.end === 'string')
+    )
   }
 }
