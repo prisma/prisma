@@ -96,7 +96,7 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
   )
   const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)
   if (ratingAnswer === undefined) {
-    rl.write(`No response received within ${promptTimeoutSecs} seconds. Exiting.\n`)
+    rl.write(`No response received within ${promptTimeoutSecs} seconds. Exiting the survey.\n`)
     return {}
   }
 
@@ -120,14 +120,24 @@ function getConfigPath(): string {
   return path.join(paths('prisma').config, 'nps.json')
 }
 
-function readConfig(): Promise<NpsConfig | undefined> {
-  return (
-    fs.promises
-      .readFile(getConfigPath(), 'utf-8')
-      .then((data) => JSON.parse(data))
-      // treat missing config file as no config
-      .catch((err) => (err.code === 'ENOENT' ? Promise.resolve(undefined) : Promise.reject(err)))
-  )
+async function readConfig(): Promise<NpsConfig | undefined> {
+  const data = await fs.promises
+    .readFile(getConfigPath(), 'utf-8')
+    .catch((err) => (err.code === 'ENOENT' ? Promise.resolve(undefined) : Promise.reject(err)))
+  if (data === undefined) {
+    return undefined
+  }
+
+  const obj = JSON.parse(data)
+  if (
+    obj.acknowledgedTimeframe &&
+    typeof obj.acknowledgedTimeframe.start === 'string' &&
+    typeof obj.acknowledgedTimeframe.end === 'string'
+  ) {
+    return obj
+  } else {
+    throw new Error('Invalid NPS config schema')
+  }
 }
 
 async function writeConfig(config: NpsConfig) {
@@ -159,5 +169,5 @@ function timeout<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
 }
 
 function isWithinTimeframe(date: Date, timeframe: Timeframe): boolean {
-  return new Date(timeframe.start) < date && new Date(timeframe.end) > date
+  return new Date(timeframe.start) <= date && new Date(timeframe.end) >= date
 }

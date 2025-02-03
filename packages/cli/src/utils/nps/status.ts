@@ -18,10 +18,25 @@ const npsStatusUrl = new URL(
 export class ProdNpsStatusLookup implements NpsStatusLookup {
   async status(): Promise<NpsStatus> {
     const resp = await fetch(npsStatusUrl.href)
-    return await (resp.ok
-      ? ((await resp.json()) as NpsStatus)
-      : resp.status === 404
-      ? Promise.resolve({})
-      : Promise.reject(new Error(`Failed to fetch NPS survey status: ${resp.statusText}`)))
+
+    if (resp.status === 404) {
+      return {}
+    }
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch NPS survey status: ${resp.statusText}`)
+    }
+
+    const obj = await resp.json()
+    if (!this.checkSchema(obj)) {
+      throw new Error('Invalid NPS status schema')
+    }
+    return obj
+  }
+
+  checkSchema(obj: any): obj is NpsStatus {
+    if (obj.currentTimeframe !== undefined) {
+      return typeof obj.currentTimeframe.start === 'string' && typeof obj.currentTimeframe.end === 'string'
+    }
+    return true
   }
 }

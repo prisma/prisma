@@ -1,7 +1,5 @@
-import fetch from 'node-fetch'
-
 export interface EventCapture {
-  capture<Event>(id: string, name: string, payload: Event): Promise<void>
+  capture(id: string, name: string, payload: unknown): Promise<void>
 }
 
 export class EventCaptureError extends Error {
@@ -21,7 +19,7 @@ type PosthogCapture<Props> = {
 }
 
 export class PosthogEventCapture implements EventCapture {
-  async capture<Event>(id: string, name: string, payload: Event) {
+  async capture(id: string, name: string, payload: Event) {
     const capture: PosthogCapture<Event> = {
       api_key: posthogKey,
       event: name,

@@ -39,7 +39,7 @@ describe('nps survey', () => {
 
     process.env.CI = 'true'
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
-    delete process.env.CI
+    process.env.CI = originalEnv.CI
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
