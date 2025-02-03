@@ -1,0 +1,24 @@
+{
+  "name": "@prisma/client-engine-runtime",
+  "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/accelerate-contract"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false
+}
