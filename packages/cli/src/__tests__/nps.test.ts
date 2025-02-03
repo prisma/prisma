@@ -17,13 +17,13 @@ describe('nps survey', () => {
     process.env = {}
   })
 
-  afterAll(() => {
-    process.env = originalEnv
-  })
-
   afterEach(() => {
     mockRead?.mockRestore()
     mockWrite?.mockRestore()
+  })
+
+  afterAll(() => {
+    process.env = originalEnv
   })
 
   it('should exit immediately if running in CI', async () => {
@@ -39,7 +39,6 @@ describe('nps survey', () => {
 
     process.env.CI = 'true'
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
-    process.env.CI = originalEnv.CI
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
