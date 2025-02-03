@@ -4,13 +4,13 @@ import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../Quer
 import { renderQueryTemplate } from './renderQueryTemplate'
 import { ScopeBindings } from './scope'
 
-export function renderQuery({ query, params }: QueryPlanDbQuery, env: ScopeBindings): Query {
+export function renderQuery({ query, params }: QueryPlanDbQuery, scope: ScopeBindings): Query {
   const substitutedParams = params.map((param) => {
     if (!isPrismaValuePlaceholder(param)) {
       return param
     }
 
-    const value = env[param.prisma__value.name]
+    const value = scope[param.prisma__value.name]
     if (value === undefined) {
       throw new Error(`Missing value for query variable ${param.prisma__value.name}`)
     }
