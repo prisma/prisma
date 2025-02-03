@@ -2,10 +2,10 @@ import 'jest-extended'
 import 'jest'
 
 declare global {
-  declare function testIf(condition: boolean): jest.It
-  declare function describeIf(condition: boolean): jest.Describe
-  declare function skipTestIf(condition: boolean): jest.It
-  declare function testRepeat(times: number): jest.It
+  function testIf(condition: boolean): jest.It
+  function describeIf(condition: boolean): jest.Describe
+  function skipTestIf(condition: boolean): jest.It
+  function testRepeat(times: number): jest.It
 }
 
 declare module 'jest' {
