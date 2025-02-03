@@ -19,8 +19,8 @@ type PosthogCapture<Props> = {
 }
 
 export class PosthogEventCapture implements EventCapture {
-  async capture(id: string, name: string, payload: Event) {
-    const capture: PosthogCapture<Event> = {
+  async capture(id: string, name: string, payload: unknown) {
+    const capture: PosthogCapture<unknown> = {
       api_key: posthogKey,
       event: name,
       distinct_id: id,
