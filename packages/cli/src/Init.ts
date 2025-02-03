@@ -419,7 +419,7 @@ export class Init implements Command {
           workspaceId,
           projectId,
           environmentId,
-          shouldPrintDatabaseUrl: true,
+          isExistingPrismaProject: true,
         })
       }
     }
