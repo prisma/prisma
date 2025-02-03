@@ -14,6 +14,7 @@ import {
   validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
+import { loadConfigFromFile } from '@prisma/config'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -61,6 +62,8 @@ ${bold('Examples')}
     if (args['--help']) {
       return this.help()
     }
+
+    await loadConfigFromFile()
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
 
