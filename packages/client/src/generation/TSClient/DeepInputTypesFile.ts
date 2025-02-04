@@ -18,7 +18,7 @@ import InputJsonObject = runtime.InputJsonObject
 import InputJsonArray = runtime.InputJsonArray
 import InputJsonValue = runtime.InputJsonValue
 
-import type * as $Enums from '../enums'
+${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from '../enums'` : ''}
 import type * as Prisma from '../common';
     
     ${context.dmmf.inputObjectTypes.prisma
