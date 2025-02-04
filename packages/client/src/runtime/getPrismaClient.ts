@@ -328,7 +328,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
@@ -508,8 +507,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -1029,15 +1026,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    get $metrics(): MetricsClient {
-      if (!this._hasPreviewFlag('metrics')) {
-        throw new PrismaClientValidationError(
-          '`metrics` preview feature must be enabled in order to access metrics API',
-          { clientVersion: this._clientVersion },
-        )
-      }
-      return this._metrics
-    }
+    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag
