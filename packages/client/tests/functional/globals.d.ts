@@ -7,7 +7,7 @@ declare global {
   function skipTestIf(condition: boolean): jest.It
   function testRepeat(times: number): jest.It
   namespace jest {
-    interface Matchers<R, T = {}> extends jest.Matchers<R, T> {
+    interface Matchers<R> {
       toMatchPrismaErrorSnapshot(): R
       toMatchPrismaErrorInlineSnapshot(snapshot?: string): R
     }
