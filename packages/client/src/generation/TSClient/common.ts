@@ -207,14 +207,6 @@ export const prismaVersion: PrismaVersion
  * Utility Types
  */
 
-
-export import JsonObject = runtime.JsonObject
-export import JsonArray = runtime.JsonArray
-export import JsonValue = runtime.JsonValue
-export import InputJsonObject = runtime.InputJsonObject
-export import InputJsonArray = runtime.InputJsonArray
-export import InputJsonValue = runtime.InputJsonValue
-
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
  *
