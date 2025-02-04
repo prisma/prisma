@@ -294,9 +294,20 @@ Object.assign(exports, Prisma)
     modelsFileMap['deepInputTypes.d.ts'] = createDeepInputTypesFile(context)
     modelsFileMap['countTypes.d.ts'] = createCountTypesFile(context)
 
-    const modelsBarrelFileContent = Object.keys(modelsFileMap)
-      .map((m) => `export type * from './models/${m}'`)
-      .join('\n')
+    const modelsBarrelFileContent = `
+import * as runtime from '${context.runtimeJsPath}'
+
+export import JsonObject = runtime.JsonObject
+export import JsonArray = runtime.JsonArray
+export import JsonValue = runtime.JsonValue
+export import InputJsonObject = runtime.InputJsonObject
+export import InputJsonArray = runtime.InputJsonArray
+export import InputJsonValue = runtime.InputJsonValue
+
+${Object.keys(modelsFileMap)
+  .map((m) => `export type * from './models/${m}'`)
+  .join('\n')}
+`
 
     return {
       'models.d.ts': modelsBarrelFileContent,
