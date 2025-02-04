@@ -212,7 +212,7 @@ export const prismaVersion: PrismaVersion
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-declare namespace NullTypes {
+export namespace NullTypes {
 ${buildNullClass('DbNull')}
 
 ${buildNullClass('JsonNull')}
