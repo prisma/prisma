@@ -37,7 +37,7 @@ export function applyModelsAndClientExtensions(client: Client) {
 }
 
 function rootLayer(client: Client): CompositeProxyLayer {
-  const prototype = Object.getPrototypeOf(client._originalClient)
+  const prototype = Object.getPrototypeOf(client)
   const allKeys = [...new Set(Object.getOwnPropertyNames(prototype))]
 
   return {
