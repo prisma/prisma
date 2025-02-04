@@ -6,11 +6,10 @@ declare global {
   function describeIf(condition: boolean): jest.Describe
   function skipTestIf(condition: boolean): jest.It
   function testRepeat(times: number): jest.It
-}
-
-declare module 'jest' {
-  interface Matchers<R, T = {}> extends jest.Matchers<R, T> {
-    toMatchPrismaErrorSnapshot(): R
-    toMatchPrismaErrorInlineSnapshot(snapshot?: string): R
+  namespace jest {
+    interface Matchers<R, T = {}> extends jest.Matchers<R, T> {
+      toMatchPrismaErrorSnapshot(): R
+      toMatchPrismaErrorInlineSnapshot(snapshot?: string): R
+    }
   }
 }
