@@ -646,11 +646,11 @@ function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelActi
     return makeParameter(type).optional()
   }
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return makeParameter(ts.namedType(getModelArgName(modelName, actionName))).optional()
+    return makeParameter(ts.namedType(`Prisma.${getModelArgName(modelName, actionName)}`)).optional()
   }
 
   const type = ts
-    .namedType('Prisma.SelectSubset') // TODO: correct way to add Prisma namespace?
+    .namedType('Prisma.SelectSubset')
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(
       ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument()),
@@ -712,7 +712,7 @@ export function getReturnType({
   }
 
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return ts.prismaPromise(ts.namedType('JsonObject'))
+    return ts.prismaPromise(ts.namedType('Prisma.JsonObject'))
   }
 
   if (
@@ -720,7 +720,7 @@ export function getReturnType({
     actionName === DMMF.ModelAction.updateMany ||
     actionName === DMMF.ModelAction.createMany
   ) {
-    return ts.prismaPromise(ts.namedType('Prisma.BatchPayload')) // TODO: correct way to add Prisma namespace?
+    return ts.prismaPromise(ts.namedType('Prisma.BatchPayload'))
   }
 
   const isList =
