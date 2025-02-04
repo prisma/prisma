@@ -214,7 +214,7 @@ import $Result = runtime.Types.Result
 import type * as Prisma from './common'
 ${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
 
-export type * as Prisma from './common'
+export * as Prisma from './common'
 ${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
 
 export { PrismaClient } from './client'
