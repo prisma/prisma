@@ -400,10 +400,6 @@ importers:
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
-    optionalDependencies:
-      fsevents:
-        specifier: 2.3.3
-        version: 2.3.3
     devDependencies:
       '@antfu/ni':
         specifier: 0.21.12
@@ -549,6 +545,10 @@ importers:
       zx:
         specifier: 7.2.3
         version: 7.2.3
+    optionalDependencies:
+      fsevents:
+        specifier: 2.3.3
+        version: 2.3.3
 
   packages/client:
     devDependencies:
