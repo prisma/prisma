@@ -815,13 +815,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
-      return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
-          addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-          addProperty(TX_ID, () => transaction.id),
-          removeProperties(itxClientDenyList),
-        ]),
+      return createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
+            addProperty(TX_ID, () => transaction.id),
+          ]),
+        ),
+        [removeProperties(itxClientDenyList)],
       )
     }
 
