@@ -1,4 +1,4 @@
-import { Value } from './env'
+import { Value } from './scope'
 
 /**
  * A `QueryPlanDbQuery` in which all placeholders have been substituted with
