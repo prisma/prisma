@@ -11,9 +11,7 @@ export interface NpsStatusLookup {
   status: () => Promise<NpsStatus>
 }
 
-const npsStatusUrl = new URL(
-  'https://raw.githubusercontent.com/jacek-prisma/nps-timeframe/refs/heads/main/timeframe.json',
-)
+const npsStatusUrl = new URL('https://pub-833f4cf4b3dc4d17a6db4981affc9fbb.r2.dev/timeframe.json')
 
 export class ProdNpsStatusLookup implements NpsStatusLookup {
   async status(): Promise<NpsStatus> {
