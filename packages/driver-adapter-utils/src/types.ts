@@ -87,7 +87,7 @@ export type Error =
       type: string
     }
   | {
-      kind: 'Postgres'
+      kind: 'postgres'
       code: string
       severity: string
       message: string
@@ -96,13 +96,13 @@ export type Error =
       hint: string | undefined
     }
   | {
-      kind: 'Mysql'
+      kind: 'mysql'
       code: number
       message: string
       state: string
     }
   | {
-      kind: 'Sqlite'
+      kind: 'sqlite'
       /**
        * Sqlite extended error code: https://www.sqlite.org/rescode.html
        */
@@ -115,7 +115,7 @@ export type ConnectionInfo = {
   maxBindValues?: number
 }
 
-export type Flavour = 'mysql' | 'postgres' | 'sqlite'
+export type Provider = 'mysql' | 'postgres' | 'sqlite'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
@@ -130,7 +130,7 @@ const officialPrismaAdapters = [
 ] as const
 
 export interface Queryable {
-  readonly provider: Flavour
+  readonly provider: Provider
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
   /**

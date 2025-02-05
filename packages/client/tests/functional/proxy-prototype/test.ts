@@ -11,7 +11,14 @@ testMatrix.setupTestSuite(
     test('prototype of proxies is object prototype', () => {
       expect(Object.getPrototypeOf(prisma)).toBe(Object.prototype)
       expect(Object.getPrototypeOf(prisma.user)).toBe(Object.prototype)
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(Object.getPrototypeOf(prisma.user.findFirst)).toBe(Function.prototype)
+    })
+
+    test('all properties are enumerable', () => {
+      const keys = Object.keys(prisma)
+      expect(keys).toInclude('user')
+      expect(keys).toInclude('$transaction')
     })
   },
   {

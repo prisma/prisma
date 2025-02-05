@@ -1,41 +1,56 @@
-import { Queryable } from '@prisma/driver-adapter-utils'
+import { Query, Queryable } from '@prisma/driver-adapter-utils'
 
+import { QueryEvent } from '../../common/types/Events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
-import { Env, PrismaObject, Value } from './env'
 import { renderQuery } from './renderQuery'
+import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serializer'
 
-export class QueryInterpreter {
-  constructor(private queryable: Queryable, private params: Record<string, unknown>) {}
+export type QueryInterpreterOptions = {
+  queryable: Queryable
+  placeholderValues: Record<string, unknown>
+  onQuery?: (event: QueryEvent) => void
+}
 
-  async run(queryPlan: QueryPlanNode): Promise<unknown> {
-    return this.interpretNode(queryPlan, this.params)
+export class QueryInterpreter {
+  #queryable: Queryable
+  #placeholderValues: Record<string, unknown>
+  #onQuery?: (event: QueryEvent) => void
+
+  constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
+    this.#queryable = queryable
+    this.#placeholderValues = placeholderValues
+    this.#onQuery = onQuery
   }
 
-  private async interpretNode(node: QueryPlanNode, env: Env): Promise<Value> {
+  async run(queryPlan: QueryPlanNode): Promise<unknown> {
+    return this.interpretNode(queryPlan, this.#placeholderValues)
+  }
+
+  private async interpretNode(node: QueryPlanNode, scope: ScopeBindings): Promise<Value> {
     switch (node.type) {
       case 'seq': {
-        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
+        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
         return results[results.length - 1]
       }
 
       case 'get': {
-        return env[node.args.name]
+        return scope[node.args.name]
       }
 
       case 'let': {
-        const bindings: Env = Object.create(env)
+        const nestedScope: ScopeBindings = Object.create(scope)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
-            bindings[binding.name] = await this.interpretNode(binding.expr, env)
+            nestedScope[binding.name] = await this.interpretNode(binding.expr, scope)
           }),
         )
-        return this.interpretNode(node.args.expr, bindings)
+        return this.interpretNode(node.args.expr, nestedScope)
       }
 
       case 'getFirstNonEmpty': {
         for (const name of node.args.names) {
-          const value = env[name]
+          const value = scope[name]
           if (!isEmpty(value)) {
             return value
           }
@@ -44,40 +59,46 @@ export class QueryInterpreter {
       }
 
       case 'concat': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
         return parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), [])
       }
 
       case 'sum': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, env)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
         return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
       }
 
       case 'execute': {
-        const result = await this.queryable.executeRaw(renderQuery(node.args, env))
-        if (result.ok) {
-          return result.value
-        } else {
-          throw result.error
-        }
+        const query = renderQuery(node.args, scope)
+        return this.#withQueryEvent(query, async () => {
+          const result = await this.#queryable.executeRaw(query)
+          if (result.ok) {
+            return result.value
+          } else {
+            throw result.error
+          }
+        })
       }
 
       case 'query': {
-        const result = await this.queryable.queryRaw(renderQuery(node.args, env))
-        if (result.ok) {
-          return serialize(result.value)
-        } else {
-          throw result.error
-        }
+        const query = renderQuery(node.args, scope)
+        return this.#withQueryEvent(query, async () => {
+          const result = await this.#queryable.queryRaw(query)
+          if (result.ok) {
+            return serialize(result.value)
+          } else {
+            throw result.error
+          }
+        })
       }
 
       case 'reverse': {
-        const value = await this.interpretNode(node.args, env)
+        const value = await this.interpretNode(node.args, scope)
         return Array.isArray(value) ? value.reverse() : value
       }
 
       case 'unique': {
-        const value = await this.interpretNode(node.args, env)
+        const value = await this.interpretNode(node.args, scope)
         if (!Array.isArray(value)) {
           return value
         }
@@ -88,7 +109,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const value = await this.interpretNode(node.args, env)
+        const value = await this.interpretNode(node.args, scope)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -96,17 +117,17 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const value = await this.interpretNode(node.args.records, env)
+        const value = await this.interpretNode(node.args.records, scope)
         return mapField(value, node.args.field)
       }
 
       case 'join': {
-        const parent = await this.interpretNode(node.args.parent, env)
+        const parent = await this.interpretNode(node.args.parent, scope)
 
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: await this.interpretNode(joinExpr.child, env),
+            childRecords: await this.interpretNode(joinExpr.child, scope),
           })),
         )) satisfies JoinExpressionWithRecords[]
 
@@ -125,6 +146,31 @@ export class QueryInterpreter {
         throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
       }
     }
+  }
+
+  async #withQueryEvent<T>(query: Query, execute: () => Promise<T>): Promise<T> {
+    const timestamp = new Date()
+    const startInstant = performance.now()
+    const result = await execute()
+    const endInstant = performance.now()
+
+    this.#onQuery?.({
+      timestamp,
+      duration: endInstant - startInstant,
+      query: query.sql,
+      // TODO: we should probably change the interface to contain a proper array in the next major version.
+      params: JSON.stringify(query.args),
+      // TODO: this field only exists for historical reasons as we grandfathered it from the time
+      // when we emitted `tracing` events to stdout in the engine unchanged, and then described
+      // them in the public API as TS types. Thus this field used to contain the name of the Rust
+      // module in which an event originated. When using library engine, which uses a different
+      // mechanism with a JavaScript callback for logs, it's normally just an empty string instead.
+      // This field is definitely not useful and should be removed from the public types (but it's
+      // technically a breaking change, even if a tiny and inconsequential one).
+      target: 'QueryInterpreter',
+    })
+
+    return result
   }
 }
 
