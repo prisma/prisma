@@ -9,7 +9,7 @@ export class EventCaptureError extends Error {
 }
 
 const posthogCaptureUrl = new URL('https://proxyhog.prisma-data.net/capture')
-const posthogKey = 'phc_gr2e9OTFh5iwE6IOuHPngwVm9jDtbC04nBjb8gcVG9a'
+const posthogKey = 'phc_FqVrvxCRz9v4n6Zds8zCvF8tkUnMOum1Jx7To5LCRas'
 
 type PosthogCapture<Props> = {
   api_key: string
