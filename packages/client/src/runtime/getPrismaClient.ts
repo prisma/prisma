@@ -333,6 +333,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
+    /**
+     * @remarks This is used internally by Policy, do not rename or remove
+     */
     _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
