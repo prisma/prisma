@@ -80,7 +80,7 @@ export async function handleNpsSurveyImpl(
 
   if (result.rating) {
     await submitSurveyEvent({ rating: result.rating, ...result }, eventCapture)
-    rl.write('Thank you for your feedback!\n')
+    rl.write('Thanks for your feedback!\n')
   }
 
   await writeConfig({ acknowledgedTimeframe: status.currentTimeframe })
@@ -88,10 +88,8 @@ export async function handleNpsSurveyImpl(
 
 async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> {
   const question = rl.question(
-    'If you would like to rate how likely you are to recommend Prisma to a friend or colleague, ' +
-      'enter a number from 0 to 10, where 0 means "not likely at all" and 10 means ' +
-      '"extremely likely" and then press "Enter". This prompt will close automatically after ' +
-      `${promptTimeoutSecs} seconds.\n` +
+    'Rate how likely you are to recommend Prisma (0 = "not likely" to 10 = "extremely likely") ' +
+      `and press Enter. This prompt will close in ${promptTimeoutSecs} seconds.\n` +
       'Rating: ',
   )
   const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)
@@ -107,9 +105,7 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
   }
 
   const feedbackAnswer = await rl.question(
-    'If you would like to provide any additional feedback, enter it below or press "Enter" to ' +
-      'skip.\n' +
-      'Additional feedback: ',
+    'Optional: Provide additional feedback or press Enter to skip.\n' + 'Additional feedback: ',
   )
   const feedback = feedbackAnswer.trim() === '' ? undefined : feedbackAnswer
 
