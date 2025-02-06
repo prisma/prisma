@@ -85,9 +85,13 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   else if (accelerateConfigured && TARGET_BUILD_TYPE === 'wasm') return new AccelerateEngine(engineConfig)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
-
+  // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
+  else if (TARGET_BUILD_TYPE === 'edge') return new AccelerateEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
-  if (TARGET_BUILD_TYPE === 'wasm') {
+  else if (TARGET_BUILD_TYPE === 'wasm') {
     const message = [
       `PrismaClient failed to initialize because it wasn't configured to run in this environment (${
         getRuntime().prettyName
@@ -102,7 +106,5 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     })
   }
 
-  throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
-    clientVersion: engineConfig.clientVersion,
-  })
+  TARGET_BUILD_TYPE satisfies never
 }
