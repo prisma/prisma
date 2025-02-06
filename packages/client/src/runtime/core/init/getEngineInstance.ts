@@ -106,5 +106,5 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     })
   }
 
-  TARGET_BUILD_TYPE satisfies never
+  return TARGET_BUILD_TYPE satisfies never
 }
