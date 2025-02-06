@@ -1,9 +1,10 @@
+import { finished } from 'node:stream/promises'
+
 import { arg } from '@prisma/internals'
 import { createReadStream, existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
-import { pipeline } from 'stream/promises'
 import { $, ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
@@ -165,7 +166,8 @@ async function main() {
 
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
-      console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
+      console.log(`\n\n🛑🛑🛑 Test "${result.name}" failed with exit code ${result.exitCode} 🛑🛑🛑\n\n`)
+      console.log(`\t\t⬇️ Container Log output below ⬇️\n\n`)
 
       const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
       const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
@@ -176,6 +178,8 @@ async function main() {
         await printFile(dockerLogsPath)
       }
       await sleep(50) // give some time for the logs to be printed (CI issue)
+
+      console.log(`\n\n🛑 ⬆️ Container Log output of test failure "${result.name}" above ⬆️ 🛑\n\n`)
     }
   }
 
@@ -198,7 +202,13 @@ async function restoreOriginalState() {
 }
 
 async function printFile(filePath: string) {
-  await pipeline(createReadStream(filePath), process.stdout)
+  try {
+    const fileStream = createReadStream(filePath)
+    fileStream.pipe(process.stdout, { end: false })
+    await finished(fileStream)
+  } catch (err) {
+    console.error(`Error trying to print log file "${filePath}":`, err)
+  }
 }
 
 async function isFile(filePath: string) {
