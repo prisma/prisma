@@ -8,11 +8,8 @@
   },
   "devDependencies": {
     "@types/jest": "29.5.12",
-    "@types/node": "18.19.50"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client"
-    ]
+    "@types/node": "18.19.50",
+    "prisma": "/tmp/prisma-0.0.0.tgz",
+    "typescript": "5.7.3"
   }
 }
