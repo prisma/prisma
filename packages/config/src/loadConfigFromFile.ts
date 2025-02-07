@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 import { Debug } from '@prisma/driver-adapter-utils'
-import { register as esbuildRegister } from 'esbuild-register'
+import { register as esbuildRegister } from 'esbuild-register/dist/node'
 import { PrismaConfig } from './defineConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
