@@ -130,7 +130,7 @@ jobs:
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Success
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'prisma/prisma Release ${{ needs.release.outputs.prismaVersion }} succeeded :white_check_mark:'
           SLACK_COLOR: '#55ff55'
@@ -148,7 +148,7 @@ jobs:
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Failure
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'prisma/prisma Release from ${{ github.ref_name }} to dev/integration failed :x:'
           SLACK_COLOR: '#FF0000'

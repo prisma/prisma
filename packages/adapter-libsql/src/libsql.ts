@@ -92,7 +92,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
       const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
       if (typeof rawCode === 'number') {
         return err({
-          kind: 'Sqlite',
+          kind: 'sqlite',
           extendedCode: rawCode,
           message: error.message,
         })
