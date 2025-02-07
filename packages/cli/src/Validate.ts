@@ -1,5 +1,6 @@
 import path from 'node:path'
 
+import { loadConfigFromFile } from '@prisma/config'
 import {
   arg,
   Command,
@@ -14,7 +15,6 @@ import {
   validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import { loadConfigFromFile } from '@prisma/config'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -68,6 +68,7 @@ ${bold('Examples')}
       return this.help()
     }
 
+    // TODO: deal with the possible error cases returned.
     const { config } = await loadConfigFromFile({ configFile: args['--config'] })
 
     if (config?.env) {
