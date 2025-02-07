@@ -50,7 +50,7 @@ function desugarCountInUserArgs(args: UserArgs = {}) {
  */
 export function createUnpacker(args: UserArgs = {}) {
   return (data: object) => {
-    if (typeof args['_count'] === 'boolean' && data['_count'] === undefined) {
+    if (typeof args['_count'] === 'boolean' && data['_count'] && data['_count']['_all']) {
       data['_count'] = data['_count']['_all']
     }
 
