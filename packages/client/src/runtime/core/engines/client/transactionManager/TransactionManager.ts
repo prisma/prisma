@@ -185,6 +185,12 @@ export class TransactionManager {
     return transaction
   }
 
+  async cancelAllTransactions(): Promise<void> {
+    // TODO: call `map` on the iterator directly without collecting it into an array first
+    // once we drop support for Node.js 18 and 20.
+    await Promise.allSettled([...this.transactions.values()].map((tx) => this.closeTransaction(tx, 'rolled_back')))
+  }
+
   private startTransactionTimeout(transactionId: string, timeout: number): NodeJS.Timeout {
     const timeoutStartedAt = Date.now()
     return setTimeout(async () => {
