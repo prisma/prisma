@@ -1,11 +1,9 @@
 import type {
   Client as LibSqlClientRaw,
-  Config as LibSQLDriverInput,
   InStatement,
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
-import { createClient as createLibSQLClient } from '@libsql/client'
 import type {
   DriverAdapter,
   Query,
@@ -21,13 +19,6 @@ import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
-
-export type { LibSQLDriverInput }
-
-export function createDriver(input: LibSQLDriverInput): DriverAdapter {
-  const libsqlClient = createLibSQLClient(input)
-  return new PrismaLibSQL(libsqlClient)
-}
 
 const debug = Debug('prisma:driver-adapter:libsql')
 

@@ -19,14 +19,6 @@ import pg from 'pg'
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
-import type { PoolConfig as PgDriverInput } from 'pg'
-export type { PgDriverInput }
-
-export function createDriver(input: PgDriverInput): DriverAdapter {
-  const pgClient = new pg.Pool(input)
-  return new PrismaPg(pgClient)
-}
-
 const types = pg.types
 
 const debug = Debug('prisma:driver-adapter:pg')

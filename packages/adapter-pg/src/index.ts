@@ -1,1 +1,1 @@
-export { createDriver, PrismaPg, type PgDriverInput } from './pg'
+export { PrismaPg } from './pg'
