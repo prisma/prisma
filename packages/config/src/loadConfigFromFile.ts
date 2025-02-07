@@ -18,17 +18,17 @@ export async function loadConfigFromFile(
     configRoot = process.cwd(),
   }: LoadConfigFromFileInput
 ): Promise<{
-  resolvedPath: string,
-  config: PrismaConfig,
-} | null> {
+  resolvedPath: string | null,
+  config?: PrismaConfig,
+}> {
   const start = performance.now()
   const getTime = () => `${(performance.now() - start).toFixed(2)}ms`
 
   let resolvedPath: string | undefined
 
   if (configFile) {
-    // explicit config path is always resolved from cwd
-    resolvedPath = path.resolve(configRoot, configFile)
+      // explicit config path is always resolved from cwd
+      resolvedPath = path.resolve(configRoot, configFile)
   } else {
     // TODO: add support for `.config/prisma.ts`?
     const defaultConfigFiles = ['prisma.config.ts']
@@ -44,8 +44,9 @@ export async function loadConfigFromFile(
   }
 
   if (!resolvedPath) {
-    debug(`No config file found in %s`, configRoot)
-    return null
+    debug(`No config file found in the given path %s`, configRoot)
+
+    return { resolvedPath: null }
   }
 
   // TODO: we might want to parse the `configExport` value to determine if it matches our expectations,
@@ -74,8 +75,9 @@ function safeTypeScriptRegisterLoader() {
       format: 'cjs',
       loader: 'ts',
     })
-  } catch (_) {
+  } catch (error) {
     debug('esbuild-register registration failed')
+    console.error(error)
     // fallback
     res = defaultResult
   }
