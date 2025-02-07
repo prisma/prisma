@@ -18,6 +18,11 @@ export type QueryEngineInstance = {
   metrics?(options: string): Promise<string>
   applyPendingMigrations?(): Promise<void>
   trace(requestId: string): Promise<string | null>
+
+  /**
+   * Deallocates the engine instance. This is only present in the WASM engine and is provided by `wasm-bindgen`.
+   */
+  free?(): void
 }
 
 export interface QueryEngineConstructor {

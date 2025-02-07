@@ -4,6 +4,7 @@ import { EngineConfig } from '../../common/Engine'
 
 export type QueryCompiler = {
   compile(request: string): Promise<string>
+  free(): void
 }
 
 export type QueryCompilerOptions = {

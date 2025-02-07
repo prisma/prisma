@@ -161,6 +161,7 @@ export class ClientEngine implements Engine<undefined> {
 
   async stop(): Promise<void> {
     await this.instantiateQueryCompilerPromise
+    this.queryCompiler?.free()
     await this.transactionManager.cancelAllTransactions()
   }
 
