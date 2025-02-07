@@ -20,6 +20,10 @@ export type PrismaConfigEnvLoad<Env = any> = {
 
 export type PrismaConfig<Env = any> = {
   /**
+   * Whether experimental features are enabled.
+   */
+  experimental: true
+  /**
    * The environment-variable configuration strategy.
    */
   env: PrismaConfigEnvSkip | PrismaConfigEnvLoad<Env>

@@ -1,6 +1,6 @@
 import { Debug } from '@prisma/driver-adapter-utils'
 import type { DriverAdapter as QueryableDriverAdapter} from '@prisma/driver-adapter-utils'
-import type { PrismaConfig } from './prismaConfig'
+import type { PrismaConfig } from './PrismaConfig'
 export type { PrismaConfig }
 
 const debug = Debug('prisma:config:defineConfig')
@@ -9,6 +9,11 @@ const debug = Debug('prisma:config:defineConfig')
  * Define the configuration for the Prisma Development Kit.
  */
 export type PrismaConfigInput<Env> = {
+  /**
+   * Whether to enable experimental features.
+   * Currently, every feature is considered experimental.
+   */
+  experimental: true
   /**
    * The environment-variable loading strategy.
    */
@@ -28,6 +33,8 @@ export type PrismaConfigInput<Env> = {
 
 export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaConfig<Env> {
   const config: PrismaConfig<Env> = {
+    // Currently, every feature is considered experimental.
+    experimental: true,
     // If no `loadEnv` function is provided, don't load any environment variables.
     env: {
       kind: 'skip',
