@@ -72,6 +72,7 @@
     "@antfu/ni": "0.21.12",
     "@inquirer/prompts": "5.0.5",
     "@prisma/client": "workspace:*",
+    "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
