@@ -15,11 +15,6 @@
     "@prisma/driver-adapter-utils": "workspace:*"
   },
   "dependencies": {
-    "@effect/schema": "0.75.5",
-    "@prisma/adapter-d1": "workspace:*",
-    "@prisma/adapter-libsql": "workspace:*",
-    "@prisma/adapter-pg": "workspace:*",
-    "effect": "3.12.7",
     "esbuild-register": "3.6.0"
   },
   "scripts": {

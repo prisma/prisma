@@ -34,6 +34,7 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
+    --config   Custom path to your Prisma config file
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
@@ -41,6 +42,9 @@ ${bold('Examples')}
 
   With an existing Prisma schema
     ${dim('$')} prisma validate
+
+  With a Prisma config file
+    ${dim('$')} prisma validate --config=./prisma.config.ts
 
   Or specify a Prisma schema path
     ${dim('$')} prisma validate --schema=./schema.prisma
@@ -50,6 +54,7 @@ ${bold('Examples')}
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
+      '--config': String,
       '-h': '--help',
       '--schema': String,
       '--telemetry-information': String,
@@ -63,9 +68,15 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadConfigFromFile()
+    const { config } = await loadConfigFromFile({ configFile: args['--config'] })
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    if (config?.env?.load) {
+      const env = await config.env.load()
+      process.env = env
+      console.debug(`Environment variables loaded via Prisma config`)
+    } else {
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    }
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
