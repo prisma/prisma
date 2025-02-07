@@ -1,7 +1,11 @@
-import { defineConfig } from '../defineConfig'
-import type { PrismaConfig, PrismaConfigEnvLoad } from '../prismaConfig'
+import { defineConfig, type PrismaConfigInput } from '../defineConfig'
+import type { PrismaConfig, PrismaConfigEnvLoad } from '../PrismaConfig'
 
 describe('defineConfig', () => {
+  const baselineConfig = {
+    experimental: true,
+  } satisfies PrismaConfigInput<unknown>
+
   describe('loadEnv', () => {
     function assertKindLoad(
       configEnv: PrismaConfig['env'],
@@ -10,12 +14,13 @@ describe('defineConfig', () => {
     }
 
     test('if no `loadEnv` function is provided, it should skip loading any environment variables', () => {
-      const config = defineConfig({})
+      const config = defineConfig(baselineConfig)
       expect(config.env).toEqual({ kind: 'skip' })
     })
 
     test('if a `loadEnv` function is provided, it should load environment variables using the provided function', async () => {
       const config = defineConfig({
+        experimental: true,
         loadEnv: async () => {
           return {
             TEST_CONNECTION_STRING: 'postgresql://something',
@@ -35,13 +40,14 @@ describe('defineConfig', () => {
 
   describe('studio', () => {
     test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {
-      const config = defineConfig({})
+      const config = defineConfig(baselineConfig)
       expect(config.studio).toBeUndefined()
     })
 
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
       const adapter = jest.fn()
       const config = defineConfig({
+        experimental: true,
         studio: {
           adapter: adapter,
         },
