@@ -846,6 +846,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      '@prisma/get-platform':
+        specifier: workspace:*
+        version: link:../get-platform
       '@swc/core':
         specifier: 1.10.11
         version: 1.10.11
