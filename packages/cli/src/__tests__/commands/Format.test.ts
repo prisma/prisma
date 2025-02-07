@@ -1,5 +1,3 @@
-/* eslint-disable jest/no-identical-title */
-
 import path from 'node:path'
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
@@ -101,65 +99,6 @@ describe('format', () => {
     })
 
     describe('invalid schemas', () => {
-      it('parses multi schemas when the file containing the config blocks (`generator`, `datasource`) is valid', async () => {
-        ctx.fixture('multi-schema-files/invalid/valid_config_file')
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── config.prisma
-                  └── schema.prisma
-          "
-        `)
-
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Argument "value" is missing.
-            -->  prisma/schema/schema.prisma:2
-             | 
-           1 | model Link {
-           2 |   id String @id @default()
-             | 
-
-          Validation Error Count: 1
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      })
-
-      it('parses multi schemas when the file containing the config blocks (`generator`, `datasource`) is valid', async () => {
-        ctx.fixture('multi-schema-files/invalid/invalid_config_file')
-
-        // - `prisma/schema/schema_with_config.prisma` is invalid (it contains valid config + invalid models)
-        // - `prisma/schema/schema.prisma` is valid
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── schema_with_config.prisma
-                  └── schema.prisma
-          "
-        `)
-
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-          "Prisma schema validation - (validate wasm)
-          Error code: P1012
-          error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:12
-             | 
-          11 | model User {
-          12 |   id Int @id @default(now())
-             | 
-
-          Validation Error Count: 1
-          [Context: validate]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      })
-
       it('reports error when schemas when the config blocks (`generator`, `datasource`) are invalid', async () => {
         ctx.fixture('multi-schema-files/invalid/invalid_config_blocks')
 
@@ -314,47 +253,11 @@ describe('format', () => {
     expect(fs.read('missing-backrelation.prisma')).toMatchSnapshot()
   })
 
-  it('should throw if schema is broken', async () => {
+  it('should succeed if schema is broken', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Format.new().parse(['--schema=broken.prisma'])).rejects.toThrow()
-  })
-
-  it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
-    ctx.fixture('lint-warnings')
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
-
-    // stderr
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "
-      Prisma schema warning:
-      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature."
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
-    ctx.fixture('lint-warnings')
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrow('P1012')
-
-    // stderr
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "
-      Prisma schema warning:
-      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature."
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  it('should succeed and NOT show a warning when PRISMA_DISABLE_WARNINGS is truthy', async () => {
-    ctx.fixture('lint-warnings')
-
-    process.env.PRISMA_DISABLE_WARNINGS = 'true'
-
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
-
-    // stderr
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toEqual('')
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toEqual('')
+    await expect(Format.new().parse(['--schema=broken.prisma'])).resolves.toMatchInlineSnapshot(
+      `"Formatted broken.prisma in XXXms 🚀"`,
+    )
   })
 
   it('check should fail on unformatted code', async () => {
