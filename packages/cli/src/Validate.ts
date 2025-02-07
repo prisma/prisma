@@ -70,10 +70,16 @@ ${bold('Examples')}
 
     const { config } = await loadConfigFromFile({ configFile: args['--config'] })
 
-    if (config?.env?.load) {
-      const env = await config.env.load()
-      process.env = env
-      console.debug(`Environment variables loaded via Prisma config`)
+    if (config?.env) {
+      if (config.env.kind === 'skip') {
+        console.debug(`Prisma config detected, skipping environment variable loading`)
+      } else if (config.env.kind === 'load') {
+        const env = await config.env.loadEnv()
+
+        // Note: Prisma currently relies on accessing `process.env` directly
+        process.env = { ...process.env, ...env }
+        console.debug(`Environment variables loaded via Prisma config`)
+      }
     } else {
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
     }
