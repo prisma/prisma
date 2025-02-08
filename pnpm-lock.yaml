@@ -1172,8 +1172,8 @@ importers:
         specifier: 8.11.6
         version: 8.11.6
       '@types/sqlite3':
-        specifier: 3.1.11
-        version: 3.1.11
+        specifier: 5.1.0
+        version: 5.1.0(encoding@0.1.13)
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
@@ -1450,8 +1450,8 @@ importers:
         specifier: 2.4.9
         version: 2.4.9
       '@types/sqlite3':
-        specifier: 3.1.11
-        version: 3.1.11
+        specifier: 5.1.0
+        version: 5.1.0(encoding@0.1.13)
       arg:
         specifier: 5.0.2
         version: 5.0.2
@@ -3293,8 +3293,9 @@ packages:
   '@types/shimmer@1.2.0':
     resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
 
-  '@types/sqlite3@3.1.11':
-    resolution: {integrity: sha512-KYF+QgxAnnAh7DWPdNDroxkDI3/MspH1NMx6m/N/6fT1G6+jvsw4/ZePt8R8cr7ta58aboeTfYFBDxTJ5yv15w==}
+  '@types/sqlite3@5.1.0':
+    resolution: {integrity: sha512-w25Gd6OzcN0Sb6g/BO7cyee0ugkiLgonhgGYfG+H0W9Ub6PUsC2/4R+KXy2tc80faPIWO3Qytbvr8gP1fU4siA==}
+    deprecated: This is a stub types definition. sqlite3 provides its own type definitions, so you do not need this installed.
 
   '@types/stack-utils@2.0.1':
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
@@ -5409,6 +5410,7 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -9161,9 +9163,13 @@ snapshots:
 
   '@types/shimmer@1.2.0': {}
 
-  '@types/sqlite3@3.1.11':
+  '@types/sqlite3@5.1.0(encoding@0.1.13)':
     dependencies:
-      '@types/node': 20.12.7
+      sqlite3: 5.1.2(encoding@0.1.13)
+    transitivePeerDependencies:
+      - bluebird
+      - encoding
+      - supports-color
 
   '@types/stack-utils@2.0.1': {}
 
