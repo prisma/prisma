@@ -68,20 +68,14 @@ ${bold('Examples')}
       return this.help()
     }
 
-    console.log('[before] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
-
     // TODO: deal with the possible error cases returned.
     const { config } = await loadConfigFromFile({ configFile: args['--config'] })
 
-    console.log('[after 1] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
-    
     if (config) {
       console.debug(`Prisma config detected, skipping environment variable loading`)
     } else {
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
     }
-
-    console.log('[after 2] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
