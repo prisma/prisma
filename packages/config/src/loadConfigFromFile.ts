@@ -11,12 +11,12 @@ const debug = Debug('prisma:config:loadConfigFromFile')
 
 type LoadConfigFromFileInput = {
   /**
-   * The path to the config file to load. If not provided, we will attempt to find a config file in the given directory.
+   * The path to the config file to load. If not provided, we will attempt to find a config file in the `configRoot` directory.
    */
   configFile?: string
 
   /**
-   * The working directory to search for the config file in.
+   * The directory to search for the config file in. Defaults to the current working directory.
    */
   configRoot?: string
 }
