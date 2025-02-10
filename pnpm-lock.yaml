@@ -477,6 +477,9 @@ importers:
       dotenv:
         specifier: 16.4.7
         version: 16.4.7
+      env-paths:
+        specifier: 2.2.1
+        version: 2.2.1
       esbuild:
         specifier: 0.24.2
         version: 0.24.2
