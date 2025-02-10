@@ -131,6 +131,29 @@ test('transaction is rolled back', async () => {
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
 })
 
+test('transactions are rolled back when shutting down', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
+
+  const id1 = await startTransaction(transactionManager)
+  const id2 = await startTransaction(transactionManager)
+
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
+
+  await transactionManager.cancelAllTransactions()
+
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+
+  await expect(transactionManager.commitTransaction(id1)).rejects.toBeInstanceOf(TransactionRolledBackError)
+  await expect(transactionManager.rollbackTransaction(id1)).rejects.toBeInstanceOf(TransactionRolledBackError)
+  await expect(transactionManager.commitTransaction(id2)).rejects.toBeInstanceOf(TransactionRolledBackError)
+  await expect(transactionManager.rollbackTransaction(id2)).rejects.toBeInstanceOf(TransactionRolledBackError)
+})
+
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
   const transactionManager = new TransactionManager({ driverAdapter, clientVersion: '1.0.0' })
