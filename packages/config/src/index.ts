@@ -1,2 +1,2 @@
 export { defineConfig } from './defineConfig'
-export { loadConfigFromFile, type ConfigFromFile, type LoadConfigFromFileError } from './loadConfigFromFile'
+export { type ConfigFromFile, loadConfigFromFile, type LoadConfigFromFileError } from './loadConfigFromFile'

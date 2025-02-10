@@ -1,25 +1,27 @@
 import path from 'node:path'
+
 import { jestContext } from '@prisma/get-platform'
+
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
 
 const ctx = jestContext.new().assemble()
 
 describe('loadConfigFromFile', () => {
+  function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
+    _tag: 'TypeScriptImportFailed'
+    error: Error
+  } {
+    expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
+  }
+
+  function assertErrorConfigFileParseError(error: LoadConfigFromFileError | undefined): asserts error is {
+    _tag: 'ConfigFileParseError'
+    error: Error
+  } {
+    expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
+  }
+
   describe('invalid', () => {
-    function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
-      _tag: 'TypeScriptImportFailed'
-      error: Error
-    } {
-      expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
-    }
-
-    function assertErrorConfigFileParseError(error: LoadConfigFromFileError | undefined): asserts error is {
-      _tag: 'ConfigFileParseError'
-      error: Error
-    } {
-      expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
-    }
-
     it('fails when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
 
@@ -59,10 +61,6 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toMatchObject({
         experimental: true,
-        env: {
-          kind: 'load',
-          loadEnv: expect.any(Function),
-        },
       })
       expect(error).toBeUndefined()
     })
@@ -102,10 +100,6 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), customConfigPath))
       expect(config).toMatchObject({
         experimental: true,
-        env: {
-          kind: 'load',
-          loadEnv: expect.any(Function),
-        },
       })
       expect(error).toBeUndefined()
     })
@@ -153,5 +147,64 @@ describe('loadConfigFromFile', () => {
     const adapter = await config.studio.createAdapter({})
     expect(adapter).toBeDefined()
     expect(adapter.provider).toEqual('postgres')
+  })
+
+  describe('environment variables', () => {
+    let processEnvBackup: NodeJS.ProcessEnv
+
+    beforeEach(() => {
+      processEnvBackup = { ...process.env }
+    })
+
+    afterEach(() => {
+      process.env = processEnvBackup
+    })
+
+    function assertLoadConfigFromFileErrorIsUndefined(
+      error: LoadConfigFromFileError | undefined,
+    ): asserts error is undefined {
+      expect(error).toBeUndefined()
+    }
+
+    test('if no custom env-var loading function is imported, it should skip loading any environment variables', async () => {
+      ctx.fixture('loadConfigFromFile/env-baseline')
+      const { config, error } = await loadConfigFromFile({})
+      assertLoadConfigFromFileErrorIsUndefined(error)
+      expect(config).toMatchObject({
+        experimental: true,
+      })
+
+      expect(process.env).toMatchObject(processEnvBackup)
+      expect(process.env.TEST_CONNECTION_STRING).toBeUndefined()
+    })
+
+    test('if a sync custom env-var loading function is imported, it should load environment variables using the provided function', async () => {
+      ctx.fixture('loadConfigFromFile/env-load-cjs')
+      const { config, error } = await loadConfigFromFile({})
+      assertLoadConfigFromFileErrorIsUndefined(error)
+      expect(config).toMatchObject({
+        experimental: true,
+      })
+
+      expect(process.env).toMatchObject({
+        ...processEnvBackup,
+        TEST_CONNECTION_STRING: 'postgres://test-connection-string-from-env',
+      })
+    })
+
+    test('if an async custom env-var loading function is used, it should fail loading environment variables using the provided function', async () => {
+      ctx.fixture('loadConfigFromFile/env-load-esm')
+      const { config, error } = await loadConfigFromFile({})
+
+      expect(config).toBeUndefined()
+      assertErrorTypeScriptImportFailed(error)
+      expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
+      expect(error.error).toMatchInlineSnapshot(
+        `[SyntaxError: await is only valid in async functions and the top level bodies of modules]`,
+      )
+
+      expect(process.env).toMatchObject(processEnvBackup)
+      expect(process.env.TEST_CONNECTION_STRING).toBeUndefined()
+    })
   })
 })

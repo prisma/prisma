@@ -1,6 +1,8 @@
+import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
-import type { DriverAdapter as QueryableDriverAdapter} from '@prisma/driver-adapter-utils'
+
 import type { PrismaConfig } from './PrismaConfig'
+
 export type { PrismaConfig }
 
 const debug = Debug('prisma:config:defineConfig')
@@ -14,10 +16,6 @@ export type PrismaConfigInput<Env> = {
    * Currently, every feature is considered experimental.
    */
   experimental: true
-  /**
-   * The environment-variable loading strategy.
-   */
-  loadEnv?: () => Promise<Env>
   /**
    * The configuration for the Prisma Studio.
    */
@@ -35,20 +33,7 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
   const config: PrismaConfig<Env> = {
     // Currently, every feature is considered experimental.
     experimental: true,
-    // If no `loadEnv` function is provided, don't load any environment variables.
-    env: {
-      kind: 'skip',
-    }
   }
-
-  if (configInput.loadEnv) {
-    config.env = {
-      kind: 'load',
-      loadEnv: configInput.loadEnv,
-    }
-  }
-  
-  debug('Prisma config [env]: %o', config.env)
 
   if (configInput.studio) {
     config.studio = {

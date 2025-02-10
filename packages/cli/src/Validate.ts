@@ -68,22 +68,20 @@ ${bold('Examples')}
       return this.help()
     }
 
+    console.log('[before] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
+
     // TODO: deal with the possible error cases returned.
     const { config } = await loadConfigFromFile({ configFile: args['--config'] })
 
-    if (config?.env) {
-      if (config.env.kind === 'skip') {
-        console.debug(`Prisma config detected, skipping environment variable loading`)
-      } else if (config.env.kind === 'load') {
-        const env = await config.env.loadEnv()
-
-        // Note: Prisma currently relies on accessing `process.env` directly
-        process.env = { ...process.env, ...env }
-        console.debug(`Environment variables loaded via Prisma config`)
-      }
+    console.log('[after 1] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
+    
+    if (config) {
+      console.debug(`Prisma config detected, skipping environment variable loading`)
     } else {
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
     }
+
+    console.log('[after 2] process.env.TEST_CONNECTION_STRING', process.env.TEST_CONNECTION_STRING)
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 

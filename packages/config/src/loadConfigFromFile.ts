@@ -1,8 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
+
 import { Debug } from '@prisma/driver-adapter-utils'
 import { register as esbuildRegister } from 'esbuild-register/dist/node'
+
 import { PrismaConfig } from './defineConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
@@ -21,40 +23,42 @@ type LoadConfigFromFileInput = {
 
 export type LoadConfigFromFileError =
   | {
-    _tag: 'ConfigFileNotFound'
-  }
+      _tag: 'ConfigFileNotFound'
+    }
   | {
-    _tag: 'TypeScriptImportFailed'
-    error: Error
-  }
+      _tag: 'TypeScriptImportFailed'
+      error: Error
+    }
   | {
-    _tag: 'ConfigFileParseError'
-  }
+      _tag: 'ConfigFileParseError'
+    }
   | {
-    _tag: 'UnknownError'
-    error: Error
-  }
+      _tag: 'UnknownError'
+      error: Error
+    }
 
 export type ConfigFromFile =
   | {
-    resolvedPath: string,
-    config: PrismaConfig
-    error?: never
-  }
+      resolvedPath: string
+      config: PrismaConfig
+      error?: never
+    }
   | {
-    resolvedPath: string | null
-    config?: never
-    error?: LoadConfigFromFileError
-  }
+      resolvedPath: string | null
+      config?: never
+      error?: LoadConfigFromFileError
+    }
 
 /**
  * Load a Prisma config file from the given directory.
  * This function may fail, but it will never throw.
  * The possible error is returned in the result object, so the caller can handle it as needed.
  */
-export async function loadConfigFromFile(
-  { configFile, configRoot = process.cwd() }: LoadConfigFromFileInput
-): Promise<ConfigFromFile> {
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function loadConfigFromFile({
+  configFile,
+  configRoot = process.cwd(),
+}: LoadConfigFromFileInput): Promise<ConfigFromFile> {
   const start = performance.now()
   const getTime = () => `${(performance.now() - start).toFixed(2)}ms`
 
@@ -70,9 +74,8 @@ export async function loadConfigFromFile(
     }
   } else {
     // We attempt to find a config file in the given directory. If none is found, we should return early, without errors.
-    resolvedPath = ['prisma.config.ts']
-        .map(file => path.resolve(configRoot, file))
-        .find(file => fs.existsSync(file)) ?? null
+    resolvedPath =
+      ['prisma.config.ts'].map((file) => path.resolve(configRoot, file)).find((file) => fs.existsSync(file)) ?? null
 
     if (!resolvedPath) {
       debug(`No config file found in the current working directory %s`, configRoot)
@@ -81,18 +84,18 @@ export async function loadConfigFromFile(
     }
   }
 
-  try {
-    const { required, error } = requireTypeScriptFile(resolvedPath)
+  const { required, error } = requireTypeScriptFile(resolvedPath)
 
-    if (error) {
-      return {
-        resolvedPath,
-        error,
-      }
+  if (error) {
+    return {
+      resolvedPath,
+      error,
     }
+  }
 
-    debug(`Config file loaded in %s`, getTime())
+  debug(`Config file loaded in %s`, getTime())
 
+  try {
     // TODO: We should parse `configExport` to ensure it conforms to `PrismaConfig`'s shape at runtime
     if (required['default'] === undefined) {
       return {
@@ -125,13 +128,14 @@ export async function loadConfigFromFile(
 // via `c12`.
 function requireTypeScriptFile(resolvedPath: string) {
   try {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { unregister } = esbuildRegister({
       format: 'cjs',
       loader: 'ts',
     })
     const configExport = require(resolvedPath)
     unregister()
-  
+
     return {
       required: configExport,
       error: null,
@@ -144,7 +148,7 @@ function requireTypeScriptFile(resolvedPath: string) {
       error: {
         _tag: 'TypeScriptImportFailed',
         error,
-      } as const
+      } as const,
     }
   }
 }
