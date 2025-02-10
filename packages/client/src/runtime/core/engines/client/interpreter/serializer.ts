@@ -14,7 +14,7 @@ export function serialize(resultSet: ResultSet): Record<string, unknown>[] {
           if (nested[key] === undefined) {
             nested[key] = {}
           }
-          nested = acc[key]
+          nested = nested[key]
         }
       }
       return acc
