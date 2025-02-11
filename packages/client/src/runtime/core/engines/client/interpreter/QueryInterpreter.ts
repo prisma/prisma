@@ -102,10 +102,10 @@ export class QueryInterpreter {
         if (!Array.isArray(value)) {
           return value
         }
-        if (value.length !== 1) {
-          throw new Error(`Expected exactly one element, got ${value.length}`)
+        if (value.length > 1) {
+          throw new Error(`Expected zero or one element, got ${value.length}`)
         }
-        return value[0]
+        return value[0] ?? null
       }
 
       case 'required': {
