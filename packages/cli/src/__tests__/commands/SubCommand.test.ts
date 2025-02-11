@@ -38,6 +38,10 @@ test('@<version>', async () => {
           [
             "--help",
           ],
+          {
+            "experimental": true,
+            "loadedFromFile": null,
+          },
         ],
       ],
     ]
@@ -64,6 +68,10 @@ test('@latest', async () => {
           [
             "--help",
           ],
+          {
+            "experimental": true,
+            "loadedFromFile": null,
+          },
         ],
       ],
     ]
@@ -88,17 +96,21 @@ test('autoinstall', async () => {
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
+    [
       [
+        "sub-command",
         [
-          "sub-command",
           [
-            [
-              "--help",
-            ],
+            "--help",
           ],
+          {
+            "experimental": true,
+            "loadedFromFile": null,
+          },
         ],
-      ]
-    `)
+      ],
+    ]
+  `)
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   expect(execa.command).toHaveBeenCalled()
