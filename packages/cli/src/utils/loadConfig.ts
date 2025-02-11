@@ -18,7 +18,7 @@ export async function loadConfig(configFilePath?: string): Promise<PrismaConfig 
       case 'UnknownError':
         return new HelpError(`Unknown error during config file loading: ${error.error}`)
       default:
-        assertNever(error, `Unhandled error tag ${(error as any)._tag} in 'loadConfigFromFile'.`)
+        assertNever(error, `Unhandled error '${JSON.stringify(error)}' in 'loadConfigFromFile'.`)
     }
   }
 

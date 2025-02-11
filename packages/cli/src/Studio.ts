@@ -79,7 +79,7 @@ ${bold('Examples')}
    * @param argv Array of all arguments
    * @param _config The loaded Prisma config
    */
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

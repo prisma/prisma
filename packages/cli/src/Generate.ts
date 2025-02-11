@@ -103,7 +103,7 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -145,7 +145,7 @@ ${bold('Examples')}
 
     const { schemas, schemaPath } = schemaResult
     printSchemaLoadedMessage(schemaPath)
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -267,13 +267,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+          hint = `${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
