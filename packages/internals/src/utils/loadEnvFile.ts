@@ -1,7 +1,10 @@
 import { PrismaConfig } from '@prisma/config'
+import Debug from '@prisma/debug'
 
 import { getEnvPaths } from './getEnvPaths'
 import { tryLoadEnvs } from './tryLoadEnvs'
+
+const debug = Debug('prisma:cli:loadEnvFile')
 
 /**
  * Read .env file only if next to schema.prisma
@@ -17,7 +20,7 @@ export async function loadEnvFile({
   config: PrismaConfig
 }) {
   if (config.loadedFromFile) {
-    console.debug(`Prisma config detected, skipping environment variable loading`)
+    debug(`Prisma config detected, skipping environment variable loading`)
     return
   }
 
