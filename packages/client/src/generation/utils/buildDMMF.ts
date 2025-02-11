@@ -26,7 +26,7 @@ export function buildRuntimeDataModel(datamodel: DMMF.Datamodel, runtimeNameJs: 
   const runtimeDataModel = dmmfToRuntimeDataModel(datamodel)
 
   let prunedDataModel: PrunedRuntimeDataModel | RuntimeDataModel
-  if (runtimeNameJs === 'wasm') {
+  if (runtimeNameJs === 'wasm' || runtimeNameJs === 'client') {
     prunedDataModel = pruneRuntimeDataModel(runtimeDataModel)
   } else {
     prunedDataModel = runtimeDataModel
