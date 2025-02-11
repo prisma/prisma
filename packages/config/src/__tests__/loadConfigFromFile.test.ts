@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { jestContext } from '@prisma/get-platform'
+import type { ParseError } from 'effect/ParseResult'
 
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
 
@@ -16,13 +17,13 @@ describe('loadConfigFromFile', () => {
 
   function assertErrorConfigFileParseError(error: LoadConfigFromFileError | undefined): asserts error is {
     _tag: 'ConfigFileParseError'
-    error: Error
+    error: ParseError
   } {
     expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
   }
 
   describe('invalid', () => {
-    it('fails when the Prisma config file has a syntax error', async () => {
+    it('fails with `TypeScriptImportFailed` when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
@@ -43,13 +44,31 @@ describe('loadConfigFromFile', () => {
       `)
     })
 
-    it('fails when the Prisma config file has no default export', async () => {
+    it('fails with `ConfigFileParseError` when the Prisma config file has no default export', async () => {
       ctx.fixture('loadConfigFromFile/invalid/no-default-export')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
+      expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
+        `"Expected { readonly experimental: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined }, actual undefined"`,
+      )
+    })
+
+    it(`fails with \`ConfigFileParseError\` when the default export in the Prisma config file does
+        not conform to the expected schema shape`, async () => {
+      ctx.fixture('loadConfigFromFile/invalid/no-schema-shape-conformance')
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
+      expect(config).toBeUndefined()
+      assertErrorConfigFileParseError(error)
+      expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
+        "{ readonly experimental: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined }
+        └─ ["thisShouldFail"]
+           └─ is unexpected, expected: "experimental" | "studio""
+      `)
     })
   })
 

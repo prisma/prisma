@@ -1,5 +1,6 @@
 import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
+import type { DeepMutable } from 'effect/Types'
 
 import type { PrismaConfig } from './PrismaConfig'
 
@@ -30,7 +31,11 @@ export type PrismaConfigInput<Env> = {
 }
 
 export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaConfig<Env> {
-  const config: PrismaConfig<Env> = {
+  /**
+   * We temporarily cast the config to a mutable type, to simplify the implementation
+   * of this function.
+   */
+  const config: DeepMutable<PrismaConfig<Env>> = {
     // Currently, every feature is considered experimental.
     experimental: true,
   }
@@ -43,5 +48,9 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
     debug('Prisma config [studio]: %o', config.studio)
   }
 
-  return config
+  /**
+   * We cast the type of `config` back to its original, deeply-nested
+   * `Readonly` type
+   */
+  return config as PrismaConfig<Env>
 }
