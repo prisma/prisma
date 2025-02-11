@@ -83,7 +83,7 @@ ${bold('Examples')}
     --url="mysql://root:root@localhost/mydb"
 `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -108,7 +108,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {

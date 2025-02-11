@@ -136,7 +136,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()

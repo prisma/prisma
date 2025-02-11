@@ -55,7 +55,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -80,7 +80,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
 

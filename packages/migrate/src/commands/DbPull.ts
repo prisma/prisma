@@ -98,7 +98,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -134,12 +134,12 @@ Set composite types introspection depth to 2 levels
       process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
     }
 
     const fromD1 = Boolean(args['--local-d1'])

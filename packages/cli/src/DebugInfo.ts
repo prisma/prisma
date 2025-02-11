@@ -37,7 +37,7 @@ export class DebugInfo implements Command {
     --schema       Custom path to your Prisma schema
 `)
 
-  async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -53,7 +53,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]

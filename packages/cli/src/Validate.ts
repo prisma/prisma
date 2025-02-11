@@ -67,9 +67,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    if (!config.loadedFrom) {
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
-    }
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 

@@ -47,7 +47,7 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -65,7 +65,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: !args['--json'] })
+    await loadEnvFile({ printMessage: !args['--json'], config })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()

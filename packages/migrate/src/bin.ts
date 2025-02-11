@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { defaultConfig, loadConfigFromFile } from '@prisma/config/src'
+import { defaultConfig, loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
@@ -69,10 +69,14 @@ async function main(): Promise<number> {
     }),
   })
 
-  const { config } = await loadConfigFromFile({ configFile: args['--config'] })
+  const { config, error } = await loadConfigFromFile({ configFile: args['--config'] })
+  if (error) {
+    console.error(`Failed to load config file: ${error._tag}`)
+    return 1
+  }
 
   // Execute the command
-  const result = await cli.parse(commandArray, config || defaultConfig())
+  const result = await cli.parse(commandArray, { ...defaultConfig(), ...config })
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result)

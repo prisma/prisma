@@ -8,7 +8,7 @@ export type PrismaConfig<Env = any> = {
   /**
    * The path from where the config was loaded. `null` if no config file was found and only default config is applied.
    */
-  loadedFrom: string | null
+  loadedFromFile: string | null
   /**
    * The configuration for Prisma Studio.
    */

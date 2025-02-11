@@ -6,6 +6,6 @@ import { PrismaConfig } from './PrismaConfig'
 export function defaultTestConfig(): PrismaConfig {
   return {
     experimental: true,
-    loadedFrom: null,
+    loadedFromFile: null,
   }
 }

@@ -70,7 +70,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -95,7 +95,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
 

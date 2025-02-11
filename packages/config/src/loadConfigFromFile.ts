@@ -108,7 +108,7 @@ export async function loadConfigFromFile({
     return {
       config: {
         ...(required['default'] as PrismaConfig),
-        loadedFrom: resolvedPath,
+        loadedFromFile: resolvedPath,
       },
       resolvedPath,
     }

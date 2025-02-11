@@ -41,7 +41,7 @@ import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
-import { loadConfigAndFallbackEnvs } from './utils/loadConfigAndFallbackEnvs'
+import { loadConfig } from './utils/loadConfig'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -158,10 +158,11 @@ async function main(): Promise<number> {
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
-  const { config } = await loadConfigAndFallbackEnvs({
-    configFileArg: args['--config'],
-    schemaPathArg: args['--schema'],
-  })
+  const config = await loadConfig(args['--config'])
+  if (config instanceof HelpError) {
+    console.error(config.message)
+    return 1
+  }
 
   const startCliExec = performance.now()
   // Execute the command

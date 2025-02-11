@@ -9,6 +9,6 @@ export function defaultConfig(): PrismaConfig {
   return {
     experimental: true,
     studio: undefined,
-    loadedFrom: null,
+    loadedFromFile: null,
   }
 }

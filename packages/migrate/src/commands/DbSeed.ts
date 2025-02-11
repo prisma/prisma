@@ -28,7 +28,7 @@ ${bold('Examples')}
     ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -53,7 +53,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 

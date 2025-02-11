@@ -145,7 +145,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -228,14 +228,14 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
         argumentName: '--from-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const engineConfig = await getConfig({ datamodel: schema.schemas })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, config),
+        ...toSchemasWithConfigDir(schema, engineConfig),
       }
     } else if (args['--from-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
@@ -270,14 +270,14 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
         argumentName: '--to-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const engineConfig = await getConfig({ datamodel: schema.schemas })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, config),
+        ...toSchemasWithConfigDir(schema, engineConfig),
       }
     } else if (args['--to-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
