@@ -12,6 +12,12 @@ export type QueryWithSubstitutedPlaceholders = {
 const BEGIN_REPEAT = '/* prisma-comma-repeatable-start */'
 const END_REPEAT = '/* prisma-comma-repeatable-end */'
 
+const enum State {
+  Normal,
+  Quoted,
+  Repeating,
+}
+
 // Renders a query template by expanding the repetition macros, renumbering
 // the SQL parameters accordingly, and flattening the corresponding array
 // parameter values into scalars.
@@ -38,50 +44,119 @@ export function renderQueryTemplate({
   query,
   params,
 }: QueryWithSubstitutedPlaceholders): QueryWithSubstitutedPlaceholders {
-  const flattened: Value[] = []
+  if (!query.includes(BEGIN_REPEAT)) {
+    return { query, params }
+  }
+
+  const flattenedParams: Value[] = []
   let lastParamId = 1
   let result = ''
   let templatePos = 0
 
+  let state = State.Normal
+  let stateBeforeQuote = State.Normal
+
   while (templatePos < query.length) {
+    const nextChar = query[templatePos]
+
+    if (state === State.Quoted && nextChar !== '"') {
+      result += nextChar
+      templatePos++
+      continue
+    }
+
+    if (nextChar === '"') {
+      if (state === State.Quoted) {
+        state = stateBeforeQuote
+      } else {
+        stateBeforeQuote = state
+        state = State.Quoted
+      }
+
+      result += nextChar
+      templatePos++
+      continue
+    }
+
     if (query.slice(templatePos, templatePos + BEGIN_REPEAT.length) === BEGIN_REPEAT) {
+      if (state === State.Repeating) {
+        throw new Error('Nested repetition is not allowed')
+      }
+
+      state = State.Repeating
       templatePos += BEGIN_REPEAT.length
       result += '('
 
-      const paramNum = parseInt(query.slice(templatePos).match(/^\$(\d+)/)?.[1] ?? '0')
-      const arrParam = params[paramNum - 1] as Value[]
-
-      const expanded = arrParam.map((_, idx) => '$' + (lastParamId + idx)).join(', ')
-      result += expanded
-      flattened.push(...arrParam)
-      lastParamId += arrParam.length
-
-      templatePos += query.slice(templatePos).indexOf(END_REPEAT) + END_REPEAT.length
-      result += ')'
-    } else if (query[templatePos] === '$') {
-      const paramMatch = query.slice(templatePos + 1).match(/^\d+/)
-      if (paramMatch) {
-        const paramNum = parseInt(paramMatch[0])
-        const paramValue = params[paramNum - 1]
-
-        if (!Array.isArray(paramValue)) {
-          result += '$' + lastParamId
-          flattened.push(paramValue)
-          lastParamId++
-          templatePos += paramMatch[0].length + 1
-        }
-      } else {
-        result += query[templatePos]
-        templatePos++
-      }
-    } else {
-      result += query[templatePos]
-      templatePos++
+      continue
     }
+
+    if (query.slice(templatePos, templatePos + END_REPEAT.length) === END_REPEAT) {
+      if (state === State.Normal) {
+        throw new Error('Unmatched repetition end')
+      }
+
+      state = State.Normal
+      templatePos += END_REPEAT.length
+      result += ')'
+
+      continue
+    }
+
+    if (nextChar === '$') {
+      const paramMatch = query.slice(templatePos + 1).match(/^\d+/)
+
+      if (!paramMatch) {
+        result += '$'
+        templatePos++
+        continue
+      }
+
+      templatePos += paramMatch[0].length + 1
+
+      const originalParamIdx = parseInt(paramMatch[0])
+      const paramValue = params[originalParamIdx - 1]
+
+      switch (state) {
+        case State.Normal: {
+          flattenedParams.push(paramValue)
+          result += `$${lastParamId++}`
+          break
+        }
+
+        case State.Repeating: {
+          const paramArray = Array.isArray(paramValue) ? paramValue : [paramValue]
+
+          if (paramArray.length === 0) {
+            result += 'NULL'
+            break
+          }
+
+          paramArray.forEach((value, idx) => {
+            flattenedParams.push(value)
+            result += `$${lastParamId++}`
+
+            if (idx !== paramArray.length - 1) {
+              result += ', '
+            }
+          })
+
+          break
+        }
+
+        default: {
+          throw new Error(`Unexpected state: ${state}`)
+        }
+      }
+
+      continue
+    }
+
+    result += nextChar
+    templatePos++
   }
 
   return {
     query: result,
-    params: flattened,
+    params: flattenedParams,
   }
 }
