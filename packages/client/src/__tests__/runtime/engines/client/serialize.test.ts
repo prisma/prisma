@@ -8,7 +8,7 @@ test('should serialize empty rows', () => {
     columnNames: ['id', 'name'],
     rows: [],
   })
-  expect(result).toMatchInlineSnapshot(`[]`)
+  expect(result).toEqual([])
 })
 
 test('should serialize a flat list of rows', () => {
