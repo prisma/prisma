@@ -627,6 +627,9 @@ importers:
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -1255,6 +1258,9 @@ importers:
 
   packages/internals:
     dependencies:
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -1439,6 +1445,9 @@ importers:
 
   packages/migrate:
     dependencies:
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
