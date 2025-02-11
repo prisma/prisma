@@ -33,6 +33,7 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
   const config: PrismaConfig<Env> = {
     // Currently, every feature is considered experimental.
     experimental: true,
+    loadedFrom: null, // will be overwritten after loading the config file from disk
   }
 
   if (configInput.studio) {

@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -35,6 +36,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
        -h, --help   Display this help message
+         --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
@@ -52,7 +54,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

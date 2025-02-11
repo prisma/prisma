@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { loadConfigFromFile } from '@prisma/config'
+import { PrismaConfig } from '@prisma/config'
 import {
   arg,
   Command,
@@ -34,8 +34,8 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-    --config   Custom path to your Prisma config file
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -51,10 +51,9 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
-      '--config': String,
       '-h': '--help',
       '--schema': String,
       '--telemetry-information': String,
@@ -68,12 +67,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    // TODO: deal with the possible error cases returned.
-    const { config } = await loadConfigFromFile({ configFile: args['--config'] })
-
-    if (config) {
-      console.debug(`Prisma config detected, skipping environment variable loading`)
-    } else {
+    if (!config.loadedFrom) {
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
     }
 

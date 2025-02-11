@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -32,6 +33,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
+  --config                 Custom path to your Prisma config file
   -o, --output             Writes to a file instead of stdout
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
@@ -143,7 +145,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {

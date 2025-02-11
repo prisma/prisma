@@ -1,4 +1,5 @@
 import * as ni from '@antfu/ni'
+import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
 import { rm } from 'fs/promises'
 import { copy } from 'fs-extra'
@@ -27,7 +28,7 @@ test('@<version>', async () => {
   const copyDest = join(tmpdir(), `sub-command@0.0.0`)
   await copy(copySrc, copyDest, { recursive: true })
 
-  await cmd.parse(['@0.0.0', '--help'])
+  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
     [
@@ -53,7 +54,7 @@ test('@latest', async () => {
   const copyDest = join(tmpdir(), `sub-command@latest-${getDayMillis()}`)
   await copy(copySrc, copyDest, { recursive: true })
 
-  await cmd.parse(['--help'])
+  await cmd.parse(['--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
     [
@@ -84,7 +85,7 @@ test('autoinstall', async () => {
     await copy(copySrc, copyDest, { recursive: true })
   }) as () => any)
 
-  await cmd.parse(['@0.0.0', '--help'])
+  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
       [

@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator-helper'
 import {
@@ -54,6 +55,7 @@ ${bold('Usage')}
 
 ${bold('Options')}
           -h, --help   Display this help message
+            --config   Custom path to your Prisma config file
             --schema   Custom path to your Prisma schema
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
@@ -101,7 +103,7 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

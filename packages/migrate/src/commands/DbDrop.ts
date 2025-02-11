@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -40,6 +41,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
    -h, --help   Display this help message
+     --config   Custom path to your Prisma config file
      --schema   Custom path to your Prisma schema
   -f, --force   Skip the confirmation prompt
 
@@ -55,7 +57,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db drop --preview-feature --force
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

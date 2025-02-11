@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -60,6 +61,7 @@ ${bold('Flags')}
 
 ${bold('Options')}
 
+                --config   Custom path to your Prisma config file
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
@@ -96,7 +98,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

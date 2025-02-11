@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -49,6 +50,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
        -h, --help   Display this help message
+         --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
@@ -68,7 +70,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

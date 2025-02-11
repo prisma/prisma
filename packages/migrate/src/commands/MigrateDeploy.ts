@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -25,6 +26,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -37,7 +39,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {

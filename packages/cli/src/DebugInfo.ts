@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -32,10 +33,11 @@ export class DebugInfo implements Command {
   ${bold('Options')}
 
     -h, --help     Display this help message
+    --config       Custom path to your Prisma config file
     --schema       Custom path to your Prisma schema
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

@@ -41,6 +41,7 @@ import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
+import { loadConfigAndFallbackEnvs } from './utils/loadConfigAndFallbackEnvs'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -63,6 +64,7 @@ const args = arg(
   commandArray,
   {
     '--schema': String,
+    '--config': String,
     '--telemetry-information': String,
   },
   false,
@@ -156,9 +158,14 @@ async function main(): Promise<number> {
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
+  const { config } = await loadConfigAndFallbackEnvs({
+    configFileArg: args['--config'],
+    schemaPathArg: args['--schema'],
+  })
+
   const startCliExec = performance.now()
   // Execute the command
-  const result = await cli.parse(commandArray)
+  const result = await cli.parse(commandArray, config)
   const endCliExec = performance.now()
   const cliExecElapsedTime = endCliExec - startCliExec
   debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)

@@ -1,8 +1,9 @@
 #!/usr/bin/env tsx
 
+import { defaultConfig, loadConfigFromFile } from '@prisma/config/src'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { handlePanic, HelpError, isError } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
 
 import { CLI } from './CLI'
@@ -34,6 +35,15 @@ process.once('SIGINT', () => {
 
 const commandArray = process.argv.slice(2)
 
+const args = arg(
+  commandArray,
+  {
+    '--config': String,
+  },
+  false,
+  true,
+)
+
 const packageJson = eval(`require('../package.json')`)
 
 /**
@@ -59,8 +69,10 @@ async function main(): Promise<number> {
     }),
   })
 
+  const { config } = await loadConfigFromFile({ configFile: args['--config'] })
+
   // Execute the command
-  const result = await cli.parse(commandArray)
+  const result = await cli.parse(commandArray, config || defaultConfig())
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result)

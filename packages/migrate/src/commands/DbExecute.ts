@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
@@ -27,6 +28,7 @@ ${dim('$')} prisma db execute [options]
 ${bold('Options')}
 
 -h, --help            Display this help message
+--config              Custom path to your Prisma config file
 
 ${italic('Datasource input, only 1 must be provided:')}
 --url                 URL of the datasource to run the command on
@@ -81,7 +83,7 @@ ${bold('Examples')}
     --url="mysql://root:root@localhost/mydb"
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {

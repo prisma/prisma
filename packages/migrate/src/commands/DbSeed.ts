@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { arg, Command, format, getSchemaWithPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
@@ -19,6 +20,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
 
 ${bold('Examples')}
 
@@ -26,7 +28,7 @@ ${bold('Examples')}
     ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {

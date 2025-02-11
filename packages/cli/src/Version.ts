@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
@@ -46,7 +47,7 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
