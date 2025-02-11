@@ -5,7 +5,7 @@ export function serialize(resultSet: ResultSet): Record<string, unknown>[] {
     row.reduce<Record<string, unknown>>((acc, value, index) => {
       const splitByDot = resultSet.columnNames[index].split('.')
 
-      let nested: any = acc
+      let nested: {} = acc
       for (let i = 0; i < splitByDot.length; i++) {
         const key = splitByDot[i]
         if (i === splitByDot.length - 1) {
