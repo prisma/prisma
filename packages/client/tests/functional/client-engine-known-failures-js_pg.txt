@@ -255,6 +255,7 @@ fluent-api-null (provider=postgresql, js_pg) regular client create with select
 fluent-api-null (provider=postgresql, js_pg) regular client findFirst
 fluent-api-null (provider=postgresql, js_pg) regular client findFirst with include
 fluent-api-null (provider=postgresql, js_pg) regular client findFirst with select
+fluent-api-null (provider=postgresql, js_pg) regular client findFirstOrThrow
 fluent-api-null (provider=postgresql, js_pg) regular client findFirstOrThrow with select
 fluent-api-null (provider=postgresql, js_pg) regular client findUnique
 fluent-api-null (provider=postgresql, js_pg) regular client findUnique with include
