@@ -5,7 +5,7 @@ export default defineConfig({
   experimental: true,
   studio: {
     adapter: async () => {
-      return mockAdapter('postgres') 
+      return mockAdapter('postgres')
     },
   },
 })
