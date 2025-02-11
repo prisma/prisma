@@ -61,6 +61,7 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toMatchObject({
         experimental: true,
+        loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
       })
       expect(error).toBeUndefined()
     })
@@ -100,6 +101,7 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), customConfigPath))
       expect(config).toMatchObject({
         experimental: true,
+        loadedFromFile: path.join(ctx.fs.cwd(), customConfigPath),
       })
       expect(error).toBeUndefined()
     })
@@ -115,6 +117,7 @@ describe('loadConfigFromFile', () => {
       studio: {
         createAdapter: expect.any(Function),
       },
+      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
     })
     expect(error).toBeUndefined()
 
@@ -137,6 +140,7 @@ describe('loadConfigFromFile', () => {
       studio: {
         createAdapter: expect.any(Function),
       },
+      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
     })
     expect(error).toBeUndefined()
 

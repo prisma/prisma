@@ -1,5 +1,6 @@
 // describeIf is making eslint unhappy about the test names
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import prompt from 'prompts'
@@ -38,7 +39,7 @@ describe('push', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
@@ -54,7 +55,7 @@ describe('push', () => {
 
   it('should fail if nativeTypes VarChar on sqlite', async () => {
     ctx.fixture('nativeTypes-sqlite')
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P1012
 
@@ -71,7 +72,7 @@ describe('push', () => {
 
   it('already in sync', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -87,7 +88,7 @@ describe('push', () => {
     ctx.fs.remove('prisma/dev.db')
     const schemaPath = 'prisma/schema.prisma'
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -108,7 +109,7 @@ describe('push', () => {
     ctx.fs.remove('prisma/dev.db')
     const schemaPath = 'prisma/schema'
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
@@ -131,7 +132,7 @@ describe('push', () => {
     const newSchemaPath = 'something/schema.prisma'
     ctx.fs.move(oldSchemaPath, newSchemaPath)
 
-    const result = DbPush.new().parse(['--schema', newSchemaPath])
+    const result = DbPush.new().parse(['--schema', newSchemaPath], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from something/schema.prisma
@@ -153,7 +154,7 @@ describe('push', () => {
     ctx.fixture('existing-db-warnings')
     process.env.GITHUB_ACTIONS = '1'
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(
       `"Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss"`,
     )
@@ -164,7 +165,7 @@ describe('push', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -190,7 +191,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -211,7 +212,7 @@ describe('push', () => {
 
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = DbPush.new().parse(['--accept-data-loss'])
+    const result = DbPush.new().parse(['--accept-data-loss'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -233,7 +234,7 @@ describe('push', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
 
     const sqliteDbSizeBefore = ctx.fs.inspect('prisma/dev.db')!.size
 
@@ -270,7 +271,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -291,7 +292,7 @@ describe('push', () => {
 
   it('unexecutable - --force-reset should succeed and print a log', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = DbPush.new().parse(['--force-reset'])
+    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -308,7 +309,7 @@ describe('push', () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     process.env.GITHUB_ACTIONS = '1'
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "
       ⚠️ We found changes that cannot be executed:
@@ -361,7 +362,7 @@ describe('postgresql', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--force-reset'])
+    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -380,7 +381,7 @@ describe('postgresql', () => {
 
     prompt.inject(['n'])
 
-    const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
@@ -442,7 +443,7 @@ describe('postgresql-multischema', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--force-reset'])
+    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
@@ -488,7 +489,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--force-reset'])
+    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -510,7 +511,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -533,7 +534,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -552,7 +553,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
 
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
-    const result = DbPush.new().parse(['--accept-data-loss'])
+    const result = DbPush.new().parse(['--accept-data-loss'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

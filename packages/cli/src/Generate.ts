@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator-helper'
 import {
@@ -54,6 +55,7 @@ ${bold('Usage')}
 
 ${bold('Options')}
           -h, --help   Display this help message
+            --config   Custom path to your Prisma config file
             --schema   Custom path to your Prisma schema
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
@@ -101,7 +103,7 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -134,7 +136,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
@@ -143,7 +145,7 @@ ${bold('Examples')}
 
     const { schemas, schemaPath } = schemaResult
     printSchemaLoadedMessage(schemaPath)
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -265,13 +267,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+          hint = `${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
