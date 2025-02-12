@@ -3,16 +3,16 @@ import { Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
-import type { PrismaConfig, PrismaSchemaConfigSchema } from './PrismaConfig'
+import type { PrismaConfigInternal, PrismaSchemaConfigShape } from './PrismaConfig'
 
-export type { PrismaConfig }
+export type { PrismaConfigInternal }
 
 const debug = Debug('prisma:config:defineConfig')
 
 /**
- * Define the configuration for the Prisma Development Kit.
+ * Define the input configuration for the Prisma Development Kit.
  */
-export type PrismaConfigInput<Env> = {
+export type PrismaConfig<Env> = {
   /**
    * Whether to enable experimental features.
    * Currently, every feature is considered experimental.
@@ -21,7 +21,7 @@ export type PrismaConfigInput<Env> = {
   /**
    * The location of the Prisma schema file(s).
    */
-  schema?: PrismaSchemaConfigSchema
+  schema?: PrismaSchemaConfigShape
   /**
    * The configuration for the Prisma Studio.
    */
@@ -38,37 +38,35 @@ export type PrismaConfigInput<Env> = {
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaConfig<Env> {
+export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigInternal<Env> {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
   const config = defaultConfig<Env>()
 
   defineSchemaConfig<Env>(config, configInput)
-  debug('Prisma config [schema]: %o', config.schema)
-
   defineStudioConfig<Env>(config, configInput)
-  debug('Prisma config [studio]: %o', config.studio)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
    * `Readonly` type
    */
-  return config as PrismaConfig<Env>
+  return config as PrismaConfigInternal<Env>
 }
 
 function defineSchemaConfig<Env>(
-  config: DeepMutable<PrismaConfig<Env>>,
-  configInput: PrismaConfigInput<Env>,
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
 ) {
   if (!configInput.schema) {
     return
   }
 
   config.schema = configInput.schema
+  debug('Prisma config [schema]: %o', config.schema)
 }
 
-function defineStudioConfig<Env>(config: DeepMutable<PrismaConfig<Env>>, configInput: PrismaConfigInput<Env>) {
+function defineStudioConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>, configInput: PrismaConfig<Env>) {
   if (!configInput.studio) {
     return
   }
@@ -76,4 +74,5 @@ function defineStudioConfig<Env>(config: DeepMutable<PrismaConfig<Env>>, configI
   config.studio = {
     createAdapter: configInput.studio.adapter,
   }
+  debug('Prisma config [studio]: %o', config.studio)
 }
