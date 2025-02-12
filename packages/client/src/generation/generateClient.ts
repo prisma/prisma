@@ -47,6 +47,7 @@ export class DenylistError extends Error {
     this.stack = undefined
   }
 }
+
 setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
@@ -209,8 +210,6 @@ export async function buildClient({
   }
 
   const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
-
-  // TODO: adjust below code
 
   if (usesWasmRuntime) {
     const usesClientEngine = clientEngineType === ClientEngineType.Client

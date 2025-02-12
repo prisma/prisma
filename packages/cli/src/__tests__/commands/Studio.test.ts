@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
@@ -47,8 +48,8 @@ describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY
 
       const studio = Studio.new()
 
-      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
-      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
+      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'], defaultTestConfig())
+      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], defaultTestConfig())
 
       await expect(result).resolves.not.toThrow()
 
@@ -84,11 +85,11 @@ describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY
 
       ctx.fixture('schema-only-data-proxy')
 
-      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'], defaultTestConfig())
       delete process.env.DATABASE_URL
 
       const studio = Studio.new()
-      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
+      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], defaultTestConfig())
 
       await expect(result).resolves.not.toThrow()
 
@@ -134,14 +135,17 @@ describe('studio with default schema.prisma filename', () => {
     rimraf.sync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
-    await studio.parse([
-      '--schema',
-      path.join(__dirname, '../fixtures/studio-test-project/schema.prisma'),
-      '--port',
-      `${STUDIO_TEST_PORT}`,
-      '--browser',
-      'none',
-    ])
+    await studio.parse(
+      [
+        '--schema',
+        path.join(__dirname, '../fixtures/studio-test-project/schema.prisma'),
+        '--port',
+        `${STUDIO_TEST_PORT}`,
+        '--browser',
+        'none',
+      ],
+      defaultTestConfig(),
+    )
 
     // Give Studio time to start
     await new Promise((r) => setTimeout(() => r(null), 2_000))
@@ -317,14 +321,17 @@ describe('studio with custom schema.prisma filename', () => {
     rimraf.sync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
-    await studio.parse([
-      '--schema',
-      path.join(__dirname, '../fixtures/studio-test-project-custom-filename/schema1.prisma'),
-      '--port',
-      `${STUDIO_TEST_PORT}`,
-      '--browser',
-      'none',
-    ])
+    await studio.parse(
+      [
+        '--schema',
+        path.join(__dirname, '../fixtures/studio-test-project-custom-filename/schema1.prisma'),
+        '--port',
+        `${STUDIO_TEST_PORT}`,
+        '--browser',
+        'none',
+      ],
+      defaultTestConfig(),
+    )
 
     // Give Studio time to start
     await new Promise((r) => setTimeout(() => r(null), 2_000))
@@ -500,14 +507,17 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
     rimraf.sync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
-    await studio.parse([
-      '--schema',
-      path.join(__dirname, '../fixtures/studio-test-project-schema-folder/schema'),
-      '--port',
-      `${STUDIO_TEST_PORT}`,
-      '--browser',
-      'none',
-    ])
+    await studio.parse(
+      [
+        '--schema',
+        path.join(__dirname, '../fixtures/studio-test-project-schema-folder/schema'),
+        '--port',
+        `${STUDIO_TEST_PORT}`,
+        '--browser',
+        'none',
+      ],
+      defaultTestConfig(),
+    )
 
     // Give Studio time to start
     await new Promise((r) => setTimeout(() => r(null), 2_000))

@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
@@ -79,7 +79,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with cockroachdb provider)', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
+    const result = introspect.parse(['--print'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -89,7 +89,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with postgresql provider) should fail', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
@@ -102,7 +102,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (no schema) --url', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -112,7 +112,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with cockroach provider) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -122,13 +122,10 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with postgresql provider) --url should fail', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--url',
-      setupParams.connectionString,
-      '--schema',
-      'with-postgresql-provider.prisma',
-    ])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schema', 'with-postgresql-provider.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
