@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'

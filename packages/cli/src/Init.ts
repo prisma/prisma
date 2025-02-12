@@ -1,5 +1,5 @@
 import { confirm, input, select } from '@inquirer/prompts'
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import type { ConnectorType } from '@prisma/generator-helper'
 import {
   arg,

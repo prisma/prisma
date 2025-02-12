@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import {
   arg,
   Command,

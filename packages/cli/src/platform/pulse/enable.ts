@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import { arg, Command, isError, link } from '@prisma/internals'
 
 import { getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
