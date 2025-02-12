@@ -85,7 +85,7 @@ type PackageJsonLookupResult =
 
 export type GetSchemaResult = {
   /**
-   * A path from which schema was loaded
+   * A path from which schema was loaded.
    * Can be either folder or a single file
    */
   schemaPath: string

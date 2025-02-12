@@ -22,6 +22,149 @@ describe('loadConfigFromFile', () => {
     expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
   }
 
+  describe('schema', () => {
+    describe('single', () => {
+      it('loads a single Prisma schema file from the filesystem when it exists', async () => {
+        ctx.fixture('loadConfigFromFile/schema/single-exists')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'single',
+            getPSLSchema: expect.any(Function),
+          },
+        })
+        expect(error).toBeUndefined()
+
+        if (!config?.schema) {
+          throw new Error('Expected config.schema to be defined')
+        }
+
+        const pslSchemaResult = await config.schema.getPSLSchema()
+
+        expect(pslSchemaResult).toMatchObject({
+          schemaPath: path.join(cwd, 'prisma', 'schema.prisma'),
+          schemaRootDir: path.join(cwd, 'prisma'),
+        })
+        expect(pslSchemaResult.schemas).toHaveLength(1)
+
+        expect(pslSchemaResult.schemas[0][0 /* filePath */]).toEqual('schema.prisma')
+        expect(pslSchemaResult.schemas[0][1 /* content */]).toMatchInlineSnapshot(`
+          "generator client {
+              provider        = "prisma-client-js"
+              previewFeatures = ["prismaSchemaFolder"]
+          }
+          "
+        `)
+      })
+
+      it('fails to load a single Prisma schema file from the filesystem when it does not exists', async () => {
+        ctx.fixture('loadConfigFromFile/schema/single-does-not-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'single',
+            getPSLSchema: expect.any(Function),
+          },
+        })
+        expect(error).toBeUndefined()
+
+        if (!config?.schema) {
+          throw new Error('Expected config.schema to be defined')
+        }
+
+        await expect(config.schema.getPSLSchema()).rejects.toMatchObject({
+          code: 'ENOENT',
+          errno: -2,
+          path: path.join(cwd, 'prisma', 'schema.prisma'),
+        })
+      })
+    })
+
+    describe('multi', () => {
+      it('loads multiple Prisma schema files from the filesystem when they exist', async () => {
+        ctx.fixture('loadConfigFromFile/schema/multi-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'multi',
+            getPSLSchema: expect.any(Function),
+          },
+        })
+        expect(error).toBeUndefined()
+
+        if (!config?.schema) {
+          throw new Error('Expected config.schema to be defined')
+        }
+
+        const pslSchemaResult = await config.schema.getPSLSchema()
+
+        expect(pslSchemaResult).toMatchObject({
+          schemaPath: path.join(cwd, 'prisma', 'schema'),
+          schemaRootDir: path.join(cwd, 'prisma', 'schema'),
+        })
+        expect(pslSchemaResult.schemas).toHaveLength(2)
+
+        expect(pslSchemaResult.schemas[0][0 /* filePath */]).toEqual(path.join(cwd, 'prisma', 'schema', 'a.prisma'))
+        expect(pslSchemaResult.schemas[0][1 /* content */]).toMatchInlineSnapshot(`
+          "// a.prisma
+          "
+        `)
+
+        expect(pslSchemaResult.schemas[1][0 /* filePath */]).toEqual(path.join(cwd, 'prisma', 'schema', 'b.prisma'))
+        expect(pslSchemaResult.schemas[1][1 /* content */]).toMatchInlineSnapshot(`
+          "// b.prisma
+          "
+        `)
+      })
+
+      it('fails to load multiple Prisma schema files from the filesystem when they do not exists', async () => {
+        ctx.fixture('loadConfigFromFile/schema/multi-do-not-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'multi',
+            getPSLSchema: expect.any(Function),
+          },
+        })
+        expect(error).toBeUndefined()
+
+        if (!config?.schema) {
+          throw new Error('Expected config.schema to be defined')
+        }
+
+        await expect(config.schema.getPSLSchema()).rejects.toMatchObject({
+          code: 'ENOENT',
+          errno: -2,
+          path: path.join(cwd, 'prisma', 'schema'),
+        })
+      })
+    })
+  })
+
   describe('invalid', () => {
     it('fails with `TypeScriptImportFailed` when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
@@ -52,7 +195,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly getPSLSchema: GetPSLSchema; readonly kind: "single" | "multi" } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -65,9 +208,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: { readonly getPSLSchema: GetPSLSchema; readonly kind: "single" | "multi" } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "earlyAccess" | "studio" | "loadedFromFile""
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "loadedFromFile""
       `)
     })
   })
