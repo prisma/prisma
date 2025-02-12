@@ -7,7 +7,7 @@ import { Either } from 'effect'
 import { ParseError } from 'effect/ParseResult'
 
 import type { PrismaConfig } from './defineConfig'
-import { parsePrismaConfig } from './PrismaConfig'
+import { parsePrismaConfigShape } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -105,8 +105,9 @@ export async function loadConfigFromFile({
     debug(`Config file loaded in %s`, getTime())
 
     // Ensure the config file conforms to the expected PrismaConfig schema.
-    const parseResultEither = parsePrismaConfig(required['default'])
+    const parseResultEither = parsePrismaConfigShape(required['default'])
 
+    // Failure case
     if (Either.isLeft(parseResultEither)) {
       return {
         resolvedPath,
@@ -117,6 +118,7 @@ export async function loadConfigFromFile({
       }
     }
 
+    // Success case
     const prismaConfig = parseResultEither.right
 
     return {
