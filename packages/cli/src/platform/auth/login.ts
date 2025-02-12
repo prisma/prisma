@@ -1,5 +1,5 @@
 import { select } from '@inquirer/prompts'
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'

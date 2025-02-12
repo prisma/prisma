@@ -3,8 +3,11 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
+import { Either } from 'effect'
+import { ParseError } from 'effect/ParseResult'
 
-import { PrismaConfig } from './defineConfig'
+import type { PrismaConfig } from './defineConfig'
+import { parsePrismaConfig } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -30,6 +33,7 @@ export type LoadConfigFromFileError =
     }
   | {
       _tag: 'ConfigFileParseError'
+      error: ParseError
     }
   | {
       _tag: 'UnknownError'
@@ -39,13 +43,18 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfig
+      config: PrismaConfig<any>
       error?: never
     }
   | {
-      resolvedPath: string | null
+      resolvedPath: string
       config?: never
-      error?: LoadConfigFromFileError
+      error: LoadConfigFromFileError
+    }
+  | {
+      resolvedPath: null
+      config?: never
+      error?: never
     }
 
 /**
@@ -53,7 +62,7 @@ export type ConfigFromFile =
  * This function may fail, but it will never throw.
  * The possible error is returned in the result object, so the caller can handle it as needed.
  */
-// eslint-disable-next-line @typescript-eslint/require-await
+
 export async function loadConfigFromFile({
   configFile,
   configRoot = process.cwd(),
@@ -76,43 +85,49 @@ export async function loadConfigFromFile({
     resolvedPath =
       ['prisma.config.ts'].map((file) => path.resolve(configRoot, file)).find((file) => fs.existsSync(file)) ?? null
 
-    if (!resolvedPath) {
+    if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
       return { resolvedPath }
     }
   }
 
-  const { required, error } = await requireTypeScriptFile(resolvedPath)
-
-  if (error) {
-    return {
-      resolvedPath,
-      error,
-    }
-  }
-
-  debug(`Config file loaded in %s`, getTime())
-
   try {
-    // TODO: We should parse `configExport` to ensure it conforms to `PrismaConfig`'s shape at runtime
-    if (required['default'] === undefined) {
+    const { required, error } = await requireTypeScriptFile(resolvedPath)
+
+    if (error) {
+      return {
+        resolvedPath,
+        error,
+      }
+    }
+
+    debug(`Config file loaded in %s`, getTime())
+
+    // Ensure the config file conforms to the expected PrismaConfig schema.
+    const parseResultEither = parsePrismaConfig(required['default'])
+
+    if (Either.isLeft(parseResultEither)) {
       return {
         resolvedPath,
         error: {
           _tag: 'ConfigFileParseError',
+          error: parseResultEither.left,
         },
       }
     }
 
+    const prismaConfig = parseResultEither.right
+
     return {
       config: {
-        ...(required['default'] as PrismaConfig),
+        ...prismaConfig,
         loadedFromFile: resolvedPath,
       },
       resolvedPath,
     }
   } catch (e) {
+    // As far as we know, this branch should be unreachable.
     const error = e as Error
 
     return {

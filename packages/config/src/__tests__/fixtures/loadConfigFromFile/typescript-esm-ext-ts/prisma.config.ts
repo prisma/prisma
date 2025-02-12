@@ -1,7 +1,7 @@
 import { defineConfig } from 'src/index'
 
 export default defineConfig({
-  experimental: true,
+  earlyAccess: true,
   studio: {
     adapter: async () => {
       const { mockAdapter } = await import('test-utils/mock-adapter')

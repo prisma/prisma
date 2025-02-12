@@ -9,5 +9,5 @@ for (const line of env.split('\n')) {
 }
 
 export default defineConfig({
-  experimental: true,
+  earlyAccess: true,
 })

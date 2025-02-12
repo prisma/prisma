@@ -1,5 +1,5 @@
 import { getCommand } from '@antfu/ni'
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
 import { existsSync } from 'fs'
