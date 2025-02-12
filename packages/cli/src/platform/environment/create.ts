@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { Command } from '@prisma/internals'
 
 import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -10,7 +11,7 @@ export class Create implements Command {
     return new Create()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = argOrThrow(argv, {
       ...platformParameters.project,
       '--name': String,

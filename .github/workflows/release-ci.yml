@@ -16,7 +16,6 @@ on:
       - '.dockerignore'
       # - 'scripts/ci/publish.ts' -> should not be ignored in this workflow
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'

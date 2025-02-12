@@ -30,7 +30,6 @@ module.exports = [
       '.prisma',
       '.github',
       'helpers/blaze/**',
-      '.github/renovate.json',
       '**/dist/**',
       '**/esm/**',
       '**/build/**',
