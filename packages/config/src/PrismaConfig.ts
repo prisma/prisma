@@ -21,7 +21,7 @@ const createAdapterSchema = <Env>() =>
 const createPrismaStudioConfigSchema = <Env>() =>
   Schema.Struct({
     /**
-     * Istantiates the Prisma driver adapter to use for Prisma Studio.
+     * Instantiates the Prisma driver adapter to use for Prisma Studio.
      */
     createAdapter: createAdapterSchema<Env>(),
   })
@@ -37,12 +37,17 @@ const createPrismaConfigSchema = <Env = any>() =>
      * The configuration for Prisma Studio.
      */
     studio: Schema.optional(createPrismaStudioConfigSchema<Env>()),
+    /**
+     * The path from where the config was loaded.
+     * It's set to `null` if no config file was found and only default config is applied.
+     */
+    loadedFromFile: Schema.NullOr(Schema.String),
   })
 
 /**
  * The configuration for the Prisma Development Kit.
  */
-export type PrismaConfig<Env> = ReturnType<typeof createPrismaConfigSchema<Env>>['Type']
+export type PrismaConfig<Env = any> = ReturnType<typeof createPrismaConfigSchema<Env>>['Type']
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type schema.

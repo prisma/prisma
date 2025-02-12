@@ -38,6 +38,7 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
   const config: DeepMutable<PrismaConfig<Env>> = {
     // Currently, every feature is considered experimental.
     experimental: true,
+    loadedFromFile: null, // will be overwritten after loading the config file from disk
   }
 
   if (configInput.studio) {

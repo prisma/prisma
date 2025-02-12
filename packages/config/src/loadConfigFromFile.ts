@@ -47,9 +47,14 @@ export type ConfigFromFile =
       error?: never
     }
   | {
-      resolvedPath: string | null
+      resolvedPath: string
       config?: never
-      error?: LoadConfigFromFileError
+      error: LoadConfigFromFileError
+    }
+  | {
+      resolvedPath: string
+      config?: never
+      error?: never
     }
 
 /**
@@ -115,7 +120,10 @@ export async function loadConfigFromFile({
     const prismaConfig = parseResultEither.right
 
     return {
-      config: prismaConfig,
+      config: {
+        ...prismaConfig,
+        loadedFromFile: resolvedPath,
+      },
       resolvedPath,
     }
   } catch (e) {
