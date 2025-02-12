@@ -1,30 +1,9 @@
 import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
-import type { LoadedFile } from '@prisma/schema-files-loader'
+import type { GetSchemaResult } from '@prisma/schema-files-loader'
 import { Schema } from 'effect'
 import type { Either } from 'effect/Either'
 import { identity } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
-
-// Note: This is a duplicate of `GetSchemaResult` in `packages/internals/src/cli/getSchema.ts`.
-// TODO: move this in `@prisma/schema-files-loader`, and import it from there.
-type GetSchemaResult = {
-  /**
-   * A path from which schema was loaded.
-   * Can be either folder or a single file
-   */
-  schemaPath: string
-  /**
-   * Base dir for all of the schema files.
-   * In-multi file mode, this is equal to `schemaPath`.
-   * In single-file mode, this is a parent directory of
-   * a file
-   */
-  schemaRootDir: string
-  /**
-   * All loaded schema files
-   */
-  schemas: Array<LoadedFile>
-}
 
 // Define a schema for the `createAdapter` function
 const createAdapterSchema = <Env>() =>

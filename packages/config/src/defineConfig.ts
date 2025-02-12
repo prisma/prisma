@@ -97,6 +97,10 @@ function defineSchemaConfig<Env>(
     config.schema = {
       getPSLSchema: async () => {
         const schemas = await loadSchemaFiles(schemaPath)
+
+        // We're purposedly ignoring whether the user has enabled the `prismaSchemaFolder` preview feature.
+        // NOTE: I need access to `getConfig` from '@prisma/internals'.
+
         return {
           schemaPath,
           schemaRootDir: schemaPath,
