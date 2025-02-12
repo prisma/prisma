@@ -15,7 +15,7 @@ describe('loadConfig', () => {
 
     expect(config).toMatchObject({
       experimental: true,
-      loadedFromFile: path.join(ctx.fs.cwd(), './prisma.config.ts'),
+      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
     })
   })
 
