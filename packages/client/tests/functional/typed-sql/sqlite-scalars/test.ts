@@ -13,9 +13,11 @@ declare let sql: typeof Sql
 const id = '1234'
 const bigInt = BigInt('12345')
 const dateTime = new Date('2024-07-31T14:37:36.570Z')
-const bytes = Buffer.from('hello')
+const bytes = Uint8Array.of(1, 2, 3)
+const json = { hello: 'world' }
+
 testMatrix.setupTestSuite(
-  ({ clientRuntime }) => {
+  () => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -27,6 +29,7 @@ testMatrix.setupTestSuite(
           bigInt,
           dateTime,
           bytes,
+          json,
           decimal: new Prisma.Decimal('12.34'),
         },
       })
@@ -106,14 +109,23 @@ testMatrix.setupTestSuite(
 
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
-      if (clientRuntime === 'node') {
-        expect(result[0].bytes).toEqual(bytes)
-      }
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Buffer>()
+      expect(result[0].bytes).toEqual(bytes)
+      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array>()
     })
 
     test('bytes - input', async () => {
       const result = await prisma.$queryRawTyped(sql.findBytes(bytes))
+      expect(result[0].id).toEqual(id)
+    })
+
+    test('json - output', async () => {
+      const result = await prisma.$queryRawTyped(sql.getJson(id))
+      expect(result[0].json).toEqual(json)
+      expectTypeOf(result[0].json).toEqualTypeOf<PrismaNamespace.JsonValue>()
+    })
+
+    test('json - input', async () => {
+      const result = await prisma.$queryRawTyped(sql.findJson(json))
       expect(result[0].id).toEqual(id)
     })
   },

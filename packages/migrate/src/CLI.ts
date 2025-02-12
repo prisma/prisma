@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
@@ -10,10 +11,10 @@ export class CLI implements Command {
   static new(cmds: Commands): CLI {
     return new CLI(cmds)
   }
+
   private constructor(private readonly cmds: Commands) {}
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -48,7 +49,7 @@ export class CLI implements Command {
         argsForCmd = args._.slice(1)
       }
 
-      return cmd.parse(argsForCmd)
+      return cmd.parse(argsForCmd, config)
     }
     // unknown command
     return unknownCommand(this.help() as string, args._[0])

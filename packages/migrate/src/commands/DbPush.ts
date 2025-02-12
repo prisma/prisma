@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -36,6 +37,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
            -h, --help   Display this help message
+             --config   Custom path to your Prisma config file
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push 
@@ -53,7 +55,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -78,7 +80,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
 
@@ -262,7 +264,7 @@ ${bold(red('All data will be lost.'))}
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await migrate.tryToRunGenerate(datasourceInfo)
     }
 
     return ``

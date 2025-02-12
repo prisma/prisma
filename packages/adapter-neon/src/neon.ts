@@ -135,7 +135,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
       debug('Error in performIO: %O', e)
       if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
-          kind: 'Postgres',
+          kind: 'postgres',
           code: e.code,
           severity: e.severity,
           message: e.message,
@@ -235,7 +235,22 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
       await this.client(sql, values, {
         arrayMode: true,
         fullResults: true,
-      }),
+        // pass type parsers to neon() HTTP client, same as in WS client above
+        //
+        // requires @neondatabase/serverless >= 0.9.5
+        // - types option added in https://github.com/neondatabase/serverless/pull/92
+        types: {
+          getTypeParser: (oid: number, format?) => {
+            if (format === 'text' && customParsers[oid]) {
+              return customParsers[oid]
+            }
+
+            return neon.types.getTypeParser(oid, format)
+          },
+        },
+        // type `as` cast required until neon types are corrected:
+        // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
+      } as neon.HTTPQueryOptions<true, true>),
     )
   }
 

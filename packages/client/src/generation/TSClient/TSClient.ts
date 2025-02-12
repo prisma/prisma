@@ -7,7 +7,7 @@ import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import { DMMFHelper } from '../dmmf'
+import { datamodelEnumToSchemaEnum, DMMFHelper } from '../dmmf'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
@@ -16,6 +16,7 @@ import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
@@ -23,7 +24,6 @@ import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
-import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import { type Generable } from './Generable'
@@ -32,11 +32,22 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
+type RuntimeName =
+  | 'binary'
+  | 'library'
+  | 'wasm'
+  | 'edge'
+  | 'edge-esm'
+  | 'index-browser'
+  | 'react-native'
+  | 'client'
+  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
-  runtimeNameJs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | String
+  runtimeNameJs: RuntimeName
   /** More granular way to define TS runtime name */
-  runtimeNameTs: 'binary' | 'library' | 'wasm' | 'edge' | 'edge-esm' | 'index-browser' | 'react-native' | String
+  runtimeNameTs: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
@@ -133,7 +144,9 @@ ${buildRequirePath(edge)}
  * Enums
  */
 ${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.datamodel.enums
+  .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
+  .join('\n\n')}
 
 ${new Enum(
   {
@@ -149,6 +162,7 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
@@ -159,6 +173,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 `
     return code
   }
+
   public toTS(): string {
     const { reusedTs } = this.options
 
@@ -173,7 +188,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      defaultArgsAliases: new DefaultArgsAliases(),
     })
 
     const prismaClientClass = new PrismaClientClass(
@@ -198,12 +212,14 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const datamodelEnum of this.dmmf.datamodel.enums) {
+      modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
       modelEnumsAliases.push(
-        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
-          ts.moduleExport(ts.constDeclaration(enumType.name, ts.namedType(`typeof $Enums.${enumType.name}`))),
+          ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
+        ),
+        ts.stringify(
+          ts.moduleExport(ts.constDeclaration(datamodelEnum.name, ts.namedType(`typeof $Enums.${datamodelEnum.name}`))),
         ),
       )
     }
@@ -307,11 +323,6 @@ ${this.dmmf.inputObjectTypes.prisma
   .join('\n')}
 
 ${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
-
-/**
- * Aliases for legacy arg types
- */
-${context.defaultArgsAliases.generateAliases()}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany

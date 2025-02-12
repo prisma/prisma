@@ -18,6 +18,7 @@ import { throwValidationException } from '../errorRendering/throwValidationExcep
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
+import { isParam } from '../model/Param'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
 import { isSkip, Skip } from '../types'
 import {
@@ -44,6 +45,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
+  updateManyAndReturn: 'updateManyAndReturn',
   upsert: 'upsertOne',
   delete: 'deleteOne',
   deleteMany: 'deleteMany',
@@ -117,11 +119,8 @@ function serializeFieldSelection(
   { select, include, ...args }: JsArgs = {},
   context: SerializeContext,
 ): JsonFieldSelection {
-  let omit: Omission | undefined
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omit = args.omit
-    delete args.omit
-  }
+  const omit = args.omit
+  delete args.omit
   return {
     arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
@@ -142,7 +141,7 @@ function serializeSelectionSet(
         secondField: 'select',
         selectionPath: context.getSelectionPath(),
       })
-    } else if (omit && context.isPreviewFeatureOn('omitApi')) {
+    } else if (omit) {
       context.throwValidationError({
         kind: 'MutuallyExclusiveFields',
         firstField: 'omit',
@@ -172,9 +171,7 @@ function createImplicitSelection(
     addIncludedRelations(selectionSet, include, context)
   }
 
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omitFields(selectionSet, omit, context)
-  }
+  omitFields(selectionSet, omit, context)
 
   return selectionSet
 }
@@ -299,6 +296,10 @@ function serializeArgumentsValue(
     }
   }
 
+  if (isParam(jsValue)) {
+    return { $type: 'Param', value: jsValue.name }
+  }
+
   if (isFieldRef(jsValue)) {
     return { $type: 'FieldRef', value: { _ref: jsValue.name, _container: jsValue.modelName } }
   }
@@ -308,7 +309,8 @@ function serializeArgumentsValue(
   }
 
   if (ArrayBuffer.isView(jsValue)) {
-    return { $type: 'Bytes', value: Buffer.from(jsValue).toString('base64') }
+    const { buffer, byteOffset, byteLength } = jsValue
+    return { $type: 'Bytes', value: Buffer.from(buffer, byteOffset, byteLength).toString('base64') }
   }
 
   if (isRawParameters(jsValue)) {
@@ -532,6 +534,7 @@ class SerializeContext {
       case 'createManyAndReturn':
       case 'create':
       case 'update':
+      case 'updateManyAndReturn':
       case 'delete':
         return true
       case 'executeRaw':

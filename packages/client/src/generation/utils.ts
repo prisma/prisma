@@ -12,6 +12,10 @@ export function getSelectCreateManyAndReturnName(modelName: string): string {
   return `${modelName}SelectCreateManyAndReturn`
 }
 
+export function getSelectUpdateManyAndReturnName(modelName: string): string {
+  return `${modelName}SelectUpdateManyAndReturn`
+}
+
 export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
@@ -20,8 +24,16 @@ export function getIncludeCreateManyAndReturnName(modelName: string): string {
   return `${modelName}IncludeCreateManyAndReturn`
 }
 
+export function getIncludeUpdateManyAndReturnName(modelName: string): string {
+  return `${modelName}IncludeUpdateManyAndReturn`
+}
+
 export function getCreateManyAndReturnOutputType(modelName: string): string {
   return `CreateMany${modelName}AndReturnOutputType`
+}
+
+export function getUpdateManyAndReturnOutputType(modelName: string): string {
+  return `UpdateMany${modelName}AndReturnOutputType`
 }
 
 export function getOmitName(modelName: string): string {
@@ -97,10 +109,6 @@ export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string
   return `${modelName}$${field.name}Args`
 }
 
-export function getLegacyModelArgName(modelName: string) {
-  return `${modelName}Args`
-}
-
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {
@@ -124,6 +132,8 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return `${modelName}UpdateArgs`
     case DMMF.ModelAction.updateMany:
       return `${modelName}UpdateManyArgs`
+    case DMMF.ModelAction.updateManyAndReturn:
+      return `${modelName}UpdateManyAndReturnArgs`
     case DMMF.ModelAction.delete:
       return `${modelName}DeleteArgs`
     case DMMF.ModelAction.create:

@@ -239,7 +239,7 @@ testMatrix.setupTestSuite(
                 ?   createdAt?: DateTimeFilter | DateTime,
                 ?   published?: BoolFilter | Boolean,
                 ?   organizationId?: StringFilter | String,
-                ?   organization?: OrganizationRelationFilter | OrganizationWhereInput
+                ?   organization?: OrganizationScalarRelationFilter | OrganizationWhereInput
                   }
                 })
 
@@ -458,7 +458,7 @@ testMatrix.setupTestSuite(
                 ?   name?: StringFilter | String,
                 ?   createdAt?: DateTimeFilter | DateTime,
                 ?   published?: BoolFilter | Boolean,
-                ?   organization?: OrganizationRelationFilter | OrganizationWhereInput
+                ?   organization?: OrganizationScalarRelationFilter | OrganizationWhereInput
                   }
                 })
 

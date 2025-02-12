@@ -48,12 +48,18 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
     }
   }
 
-  if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
+  if (isArrayBufferLike(parameter)) {
     return {
       prisma__type: 'bytes',
-      // TODO Can we change this now in v16?
-      // TODO: node typings do not include ArrayBufferView as of 14.x
-      prisma__value: Buffer.from(parameter as ArrayBuffer).toString('base64'),
+      prisma__value: Buffer.from(parameter).toString('base64'),
+    }
+  }
+
+  if (ArrayBuffer.isView(parameter)) {
+    const { buffer, byteOffset, byteLength } = parameter
+    return {
+      prisma__type: 'bytes',
+      prisma__value: Buffer.from(buffer, byteOffset, byteLength).toString('base64'),
     }
   }
 

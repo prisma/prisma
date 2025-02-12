@@ -8,7 +8,8 @@ import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const wasmEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
+const wasmQueryEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
+const wasmQueryCompilerDir = path.dirname(require.resolve('@prisma/query-compiler-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
@@ -27,7 +28,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetBuildType === 'library',
+    emitTypes: ['library', 'client'].includes(targetBuildType),
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
@@ -38,11 +39,11 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
   }
 }
 
-function wasmBindgenRuntimeConfig(provider: DriverAdapterSupportedProvider): BuildOptions {
+function wasmBindgenRuntimeConfig(type: 'engine' | 'compiler', provider: DriverAdapterSupportedProvider): BuildOptions {
   return {
-    name: `query_engine_bg.${provider}`,
-    entryPoints: [`@prisma/query-engine-wasm/${provider}/query_engine_bg.js`],
-    outfile: `runtime/query_engine_bg.${provider}`,
+    name: `query_${type}_bg.${provider}`,
+    entryPoints: [`@prisma/query-${type}-wasm/${provider}/query_${type}_bg.js`],
+    outfile: `runtime/query_${type}_bg.${provider}`,
     minify: true,
     plugins: [
       fillPlugin({
@@ -124,27 +125,33 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 }
 
 // we define the config for wasm
-const wasmRuntimeBuildConfig: BuildOptions = {
-  ...runtimesCommonBuildConfig,
-  target: 'ES2022',
-  name: 'wasm',
-  outfile: 'runtime/wasm',
-  define: {
-    ...runtimesCommonBuildConfig.define,
-    TARGET_BUILD_TYPE: '"wasm"',
-  },
-  plugins: [
-    fillPlugin({
-      // not yet enabled in edge build while driverAdapters is not GA
-      fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
-    }),
-    copyFilePlugin(
-      DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
-        from: path.join(wasmEngineDir, provider, 'query_engine_bg.wasm'),
-        to: path.join(runtimeDir, `query_engine_bg.${provider}.wasm`),
-      })),
-    ),
-  ],
+function wasmRuntimeBuildConfig(type: 'engine' | 'compiler'): BuildOptions {
+  return {
+    ...runtimesCommonBuildConfig,
+    target: 'ES2022',
+    name: 'wasm',
+    outfile: 'runtime/wasm',
+    define: {
+      ...runtimesCommonBuildConfig.define,
+      TARGET_BUILD_TYPE: '"wasm"',
+    },
+    plugins: [
+      fillPlugin({
+        // not yet enabled in edge build while driverAdapters is not GA
+        fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
+      }),
+      copyFilePlugin(
+        DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
+          from: path.join(
+            type === 'compiler' ? wasmQueryCompilerDir : wasmQueryEngineDir,
+            provider,
+            `query_${type}_bg.wasm`,
+          ),
+          to: path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`),
+        })),
+      ),
+    ],
+  }
 }
 
 // React Native is similar to edge in the sense it doesn't have the node API/libraries
@@ -201,6 +208,15 @@ const accelerateContractBuildConfig: BuildOptions = {
   emitTypes: true,
 }
 
+const clientEngineRuntimeBuildConfig: BuildOptions = {
+  name: 'client-engine-runtime',
+  entryPoints: ['src/runtime/core/engines/client/external-bundle-entrypoint.ts'],
+  outfile: '../client-engine-runtime/dist/index',
+  format: 'esm',
+  bundle: true,
+  emitTypes: true,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -209,16 +225,22 @@ void build([
   generatorBuildConfig,
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),
+  nodeRuntimeBuildConfig(ClientEngineType.Client),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
-  wasmRuntimeBuildConfig,
-  wasmBindgenRuntimeConfig('postgresql'),
-  wasmBindgenRuntimeConfig('mysql'),
-  wasmBindgenRuntimeConfig('sqlite'),
+  wasmRuntimeBuildConfig('engine'),
+  wasmRuntimeBuildConfig('compiler'),
+  wasmBindgenRuntimeConfig('engine', 'postgresql'),
+  wasmBindgenRuntimeConfig('engine', 'mysql'),
+  wasmBindgenRuntimeConfig('engine', 'sqlite'),
+  wasmBindgenRuntimeConfig('compiler', 'postgresql'),
+  wasmBindgenRuntimeConfig('compiler', 'mysql'),
+  wasmBindgenRuntimeConfig('compiler', 'sqlite'),
   defaultIndexConfig,
   reactNativeBuildConfig,
   accelerateContractBuildConfig,
+  clientEngineRuntimeBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

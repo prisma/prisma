@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { arg, Command, isError } from '@prisma/internals'
 
 import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -10,7 +11,7 @@ export class Show implements Command {
     return new Show()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       ...platformParameters.workspace,
     })

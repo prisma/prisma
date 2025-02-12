@@ -20,13 +20,16 @@ import {
   getGroupByName,
   getGroupByPayloadName,
   getIncludeCreateManyAndReturnName,
+  getIncludeUpdateManyAndReturnName,
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
   getModelFieldArgsName,
   getPayloadName,
   getSelectCreateManyAndReturnName,
+  getSelectUpdateManyAndReturnName,
   getSumAggregateName,
+  getUpdateManyAndReturnOutputType,
 } from '../utils'
 import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
@@ -44,6 +47,7 @@ import { getModelActions } from './utils/getModelActions'
 export class Model implements Generable {
   protected type: DMMF.OutputType
   protected createManyAndReturnType: undefined | DMMF.OutputType
+  protected updateManyAndReturnType: undefined | DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
   constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
@@ -51,6 +55,7 @@ export class Model implements Generable {
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
     this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getCreateManyAndReturnOutputType(model.name)]
+    this.updateManyAndReturnType = this.context.dmmf.outputTypeMap.model[getUpdateManyAndReturnOutputType(model.name)]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 
@@ -88,6 +93,19 @@ export class Model implements Generable {
           args.addIncludeArgIfHasRelations(
             getIncludeCreateManyAndReturnName(this.model.name),
             this.createManyAndReturnType,
+          )
+        }
+        argsTypes.push(args.createExport())
+      } else if (action === 'updateManyAndReturn') {
+        const args = new ArgsTypeBuilder(this.type, this.context, action as DMMF.ModelAction)
+          .addSelectArg(getSelectUpdateManyAndReturnName(this.type.name))
+          .addOmitArg()
+          .addSchemaArgs(field.args)
+
+        if (this.updateManyAndReturnType) {
+          args.addIncludeArgIfHasRelations(
+            getIncludeUpdateManyAndReturnName(this.model.name),
+            this.updateManyAndReturnType,
           )
         }
         argsTypes.push(args.createExport())
@@ -152,7 +170,6 @@ export class Model implements Generable {
     }
 
     const groupByArgsName = getGroupByArgsName(model.name)
-    this.context.defaultArgsAliases.registerArgName(groupByArgsName)
 
     return `
 
@@ -235,7 +252,6 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
     }
 
     const aggregateArgsName = getAggregateArgsName(model.name)
-    this.context.defaultArgsAliases.registerArgName(aggregateArgsName)
 
     const aggregateName = getAggregateName(model.name)
 
@@ -330,11 +346,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const { model } = this
     const isComposite = this.dmmf.isComposite(model.name)
 
-    const omitType = this.context.isPreviewFeatureOn('omitApi')
-      ? ts.stringify(buildOmitType({ modelName: this.model.name, context: this.context, fields: this.type.fields }), {
-          newLine: 'leading',
-        })
-      : ''
+    const omitType = ts.stringify(
+      buildOmitType({ modelName: this.model.name, context: this.context, fields: this.type.fields }),
+      {
+        newLine: 'leading',
+      },
+    )
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -354,6 +371,21 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
               modelName: this.model.name,
               context: this.context,
               fields: this.createManyAndReturnType.fields,
+            }),
+            {
+              newLine: 'leading',
+            },
+          )
+        : ''
+
+    const updateManyAndReturnIncludeType =
+      hasRelationField && this.updateManyAndReturnType
+        ? ts.stringify(
+            buildIncludeType({
+              typeName: getIncludeUpdateManyAndReturnName(this.model.name),
+              modelName: this.model.name,
+              context: this.context,
+              fields: this.updateManyAndReturnType.fields,
             }),
             {
               newLine: 'leading',
@@ -384,10 +416,23 @@ ${
       )
     : ''
 }
+${
+  this.updateManyAndReturnType
+    ? ts.stringify(
+        buildSelectType({
+          modelName: this.model.name,
+          fields: this.updateManyAndReturnType.fields,
+          context: this.context,
+          typeName: getSelectUpdateManyAndReturnName(this.model.name),
+        }),
+        { newLine: 'leading' },
+      )
+    : ''
+}
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields, context: this.context }), {
   newLine: 'leading',
 })}
-${omitType}${includeType}${createManyAndReturnIncludeType}
+${omitType}${includeType}${createManyAndReturnIncludeType}${updateManyAndReturnIncludeType}
 
 ${ts.stringify(buildModelPayload(this.model, this.context), { newLine: 'none' })}
 
@@ -433,24 +478,20 @@ export class ModelDelegate implements Generable {
     const nonAggregateActions = this.getNonAggregateActions(availableActions)
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
-    this.context.defaultArgsAliases.registerArgName(countArgsName)
 
-    const genericDelegateParams = [extArgsParam]
+    const genericDelegateParams = [extArgsParam, ts.genericParameter('ClientOptions').default(ts.objectType())]
 
-    const excludedArgsForCount = ['select', 'include', 'distinct']
-    if (this.context.isPreviewFeatureOn('omitApi')) {
-      excludedArgsForCount.push('omit')
-      genericDelegateParams.push(ts.genericParameter('ClientOptions').default(ts.objectType()))
-    }
+    const excludedArgsForCount = ['select', 'include', 'distinct', 'omit']
     if (this.context.isPreviewFeatureOn('relationJoins')) {
       excludedArgsForCount.push('relationLoadStrategy')
     }
+
     const excludedArgsForCountType = excludedArgsForCount.map((name) => `'${name}'`).join(' | ')
 
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, ${excludedArgsForCountType}> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
@@ -574,7 +615,7 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
     .method(actionName)
     .setDocComment(ts.docComment(getMethodJSDocBody(actionName, mapping, modelOrType)))
     .addParameter(getNonAggregateMethodArgs(modelName, actionName))
-    .setReturnType(getReturnType({ modelName, actionName, context }))
+    .setReturnType(getReturnType({ modelName, actionName }))
 
   const generic = getNonAggregateMethodGenericParam(modelName, actionName)
   if (generic) {
@@ -584,7 +625,6 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
 }
 
 function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
-  getReturnType
   const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
   if (actionName === DMMF.ModelAction.count) {
     const type = ts.omit(
@@ -640,7 +680,6 @@ function getNonAggregateMethodGenericParam(modelName: string, actionName: DMMF.M
 type GetReturnTypeOptions = {
   modelName: string
   actionName: DMMF.ModelAction
-  context: GenerateContext
   isChaining?: boolean
   isNullable?: boolean
 }
@@ -653,7 +692,6 @@ type GetReturnTypeOptions = {
 export function getReturnType({
   modelName,
   actionName,
-  context,
   isChaining = false,
   isNullable = false,
 }: GetReturnTypeOptions): ts.TypeBuilder {
@@ -676,13 +714,16 @@ export function getReturnType({
     return ts.prismaPromise(ts.namedType('BatchPayload'))
   }
 
-  const isList = actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.createManyAndReturn
+  const isList =
+    actionName === DMMF.ModelAction.findMany ||
+    actionName === DMMF.ModelAction.createManyAndReturn ||
+    actionName === DMMF.ModelAction.updateManyAndReturn
 
   /**
    * Important: We handle findMany or isList special, as we don't want chaining from there
    */
   if (isList) {
-    let result: ts.TypeBuilder = getResultType(modelName, actionName, context)
+    let result: ts.TypeBuilder = getResultType(modelName, actionName)
     if (isChaining) {
       result = ts.unionType(result).addVariant(ts.namedType('Null'))
     }
@@ -692,45 +733,34 @@ export function getReturnType({
 
   if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
     const nullType = isNullable ? ts.nullType : ts.namedType('Null')
-    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(nullType)
-    return getFluentWrapper(modelName, context, result, nullType)
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(nullType)
+    return getFluentWrapper(modelName, result, nullType)
   }
 
   if (actionName === DMMF.ModelAction.findFirst || actionName === DMMF.ModelAction.findUnique) {
-    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName, context)).addVariant(ts.nullType)
-    return getFluentWrapper(modelName, context, result, ts.nullType)
+    const result = ts.unionType<ts.TypeBuilder>(getResultType(modelName, actionName)).addVariant(ts.nullType)
+    return getFluentWrapper(modelName, result, ts.nullType)
   }
 
-  return getFluentWrapper(modelName, context, getResultType(modelName, actionName, context))
+  return getFluentWrapper(modelName, getResultType(modelName, actionName))
 }
 
-function getFluentWrapper(
-  modelName: string,
-  context: GenerateContext,
-  resultType: ts.TypeBuilder,
-  nullType: ts.TypeBuilder = ts.neverType,
-) {
-  const result = ts
+function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullType: ts.TypeBuilder = ts.neverType) {
+  return ts
     .namedType(fluentWrapperName(modelName))
     .addGenericArgument(resultType)
     .addGenericArgument(nullType)
     .addGenericArgument(extArgsParam.toArgument())
-  if (context.isPreviewFeatureOn('omitApi')) {
-    result.addGenericArgument(ts.namedType('ClientOptions'))
-  }
-  return result
+    .addGenericArgument(ts.namedType('ClientOptions'))
 }
 
-function getResultType(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
-  const result = ts
+function getResultType(modelName: string, actionName: DMMF.ModelAction) {
+  return ts
     .namedType('$Result.GetResult')
     .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(ts.stringLiteral(actionName))
-  if (context.isPreviewFeatureOn('omitApi')) {
-    result.addGenericArgument(ts.namedType('ClientOptions'))
-  }
-  return result
+    .addGenericArgument(ts.namedType('ClientOptions'))
 }
 
 function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.OutputType, context: GenerateContext) {
@@ -739,11 +769,8 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
     .addGenericParameter(ts.genericParameter('T'))
     .addGenericParameter(ts.genericParameter('Null').default(ts.neverType))
     .addGenericParameter(extArgsParam)
+    .addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
     .extends(ts.prismaPromise(ts.namedType('T')))
-
-  if (context.isPreviewFeatureOn('omitApi')) {
-    definition.addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
-  }
 
   definition.add(ts.property(ts.toStringTag, ts.stringLiteral('PrismaPromise')).readonly())
   definition.addMultiple(
@@ -769,7 +796,6 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
               modelName: field.outputType.type,
               actionName: field.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
               isChaining: true,
-              context: context,
               isNullable: field.isNullable,
             }),
           )

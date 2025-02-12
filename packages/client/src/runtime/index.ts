@@ -8,7 +8,6 @@ export { Public }
 
 export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
 export { type JsonBatchQuery, type JsonQuery } from './core/engines'
-export { NotFoundError } from './core/errors/NotFoundError'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
@@ -23,6 +22,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { createParam } from './core/model/Param'
 export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
@@ -33,6 +33,7 @@ export { makeTypedQueryFactory } from './core/types/exported/TypedSql'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { makeStrictEnum } from './strictEnum'
+export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'
