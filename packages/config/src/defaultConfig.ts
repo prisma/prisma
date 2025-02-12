@@ -10,8 +10,6 @@ import type { PrismaConfig } from './PrismaConfig'
 export function defaultConfig<Env = any>(): DeepMutable<PrismaConfig<Env>> {
   return {
     earlyAccess: true,
-    schema: undefined,
-    studio: undefined,
     loadedFromFile: null,
   }
 }
