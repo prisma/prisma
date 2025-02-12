@@ -51,6 +51,7 @@ const PrismaConfigSchemaMultiSchema = Schema.Struct({
 
 // Define the schema for the `schema` property
 const PrismaSchemaConfigSchema = Schema.Union(PrismaConfigSchemaSingleSchema, PrismaConfigSchemaMultiSchema)
+export type PrismaSchemaConfigSchema = typeof PrismaSchemaConfigSchema.Type
 
 // Define the schema for the `PrismaConfig` type
 const createPrismaConfigSchema = <Env = any>() =>

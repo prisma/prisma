@@ -3,7 +3,7 @@ import { Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
-import type { PrismaConfig } from './PrismaConfig'
+import type { PrismaConfig, PrismaSchemaConfigSchema } from './PrismaConfig'
 
 export type { PrismaConfig }
 
@@ -21,7 +21,7 @@ export type PrismaConfigInput<Env> = {
   /**
    * The location of the Prisma schema file(s).
    */
-  schema?: PrismaConfigInputSchemaSingle | PrismaConfigInputSchemaMulti
+  schema?: PrismaSchemaConfigSchema
   /**
    * The configuration for the Prisma Studio.
    */
@@ -76,28 +76,4 @@ function defineStudioConfig<Env>(config: DeepMutable<PrismaConfig<Env>>, configI
   config.studio = {
     createAdapter: configInput.studio.adapter,
   }
-}
-
-type PrismaConfigInputSchemaSingle = {
-  /**
-   * Tell Prisma to use a single `.prisma` schema file.
-   */
-  kind: 'single'
-  /**
-   * The path to a single `.prisma` schema file.
-   */
-  filenamePath: string
-}
-
-type PrismaConfigInputSchemaMulti = {
-  /**
-   * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
-   * Note: this doesn't check whether the `prismaSchemaFolder` preview feature is actually enabled.
-   */
-  kind: 'multi'
-  /**
-   * The path to a folder containing multiple `.prisma` schema files.
-   * All of the files in this folder will be used.
-   */
-  folder: string
 }
