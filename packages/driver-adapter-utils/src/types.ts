@@ -129,17 +129,20 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg-worker',
 ] as const
 
-export interface Queryable {
-  readonly provider: Provider
-  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
+type ErrorCapturingInterface<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
+    ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
+    : T[K]
+}
 
+export interface SqlConnection {
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
    *
    * This is the preferred way of executing `SELECT` queries.
    */
-  queryRaw(params: Query): Promise<Result<ResultSet>>
+  queryRaw(params: Query): Promise<ResultSet>
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -148,33 +151,61 @@ export interface Queryable {
    * This is the preferred way of executing `INSERT`, `UPDATE`, `DELETE` queries,
    * as well as transactional queries.
    */
-  executeRaw(params: Query): Promise<Result<number>>
+  executeRaw(params: Query): Promise<number>
+
+  /**
+   * Execute multiple SQL statements separated by semicolon.
+   */
+  executeScript(script: string): Promise<void>
+
+  /**
+   * Dispose of the connection and release any resources.
+   */
+  dispose(): Promise<void>
 }
 
-export interface TransactionContext extends Queryable {
+export interface SqlAdapter {
+  readonly provider: Provider
+  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
+}
+
+export interface SqlQueryAdapter extends SqlConnection, SqlAdapter {
   /**
    * Starts new transaction.
    */
-  startTransaction(): Promise<Result<Transaction>>
-}
-
-export interface DriverAdapter extends Queryable {
-  /**
-   * Starts new transaction.
-   */
-  transactionContext(): Promise<Result<TransactionContext>>
+  transactionContext(): Promise<TransactionContext>
 
   /**
    * Optional method that returns extra connection info
    */
-  getConnectionInfo?(): Result<ConnectionInfo>
+  getConnectionInfo?(): ConnectionInfo
+}
+
+export interface SqlMigrationAdapter extends SqlAdapter {
+  /**
+   * Creates a connection to the database that the adapter is configured to connect to.
+   */
+  connect(): Promise<SqlConnection>
+
+  /**
+   * Creates a connection to the shadow database that the adapter is configured to connect to or
+   * a transient database if no shadow database is configured.
+   */
+  connectToShadowDb(): Promise<SqlConnection>
+}
+
+export interface TransactionContext extends SqlAdapter, SqlConnection {
+  /**
+   * Starts new transaction.
+   */
+  startTransaction(): Promise<Transaction>
 }
 
 export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
-export interface Transaction extends Queryable {
+export interface Transaction extends SqlAdapter, SqlConnection {
   /**
    * Transaction options.
    */
@@ -182,16 +213,22 @@ export interface Transaction extends Queryable {
   /**
    * Commit the transaction.
    */
-  commit(): Promise<Result<void>>
+  commit(): Promise<void>
   /**
    * Rolls back the transaction.
    */
-  rollback(): Promise<Result<void>>
+  rollback(): Promise<void>
 }
 
-export interface ErrorCapturingDriverAdapter extends DriverAdapter {
+export interface ErrorCapturingDriverAdapter extends ErrorCapturingInterface<SqlQueryAdapter> {
   readonly errorRegistry: ErrorRegistry
 }
+
+export type ErrorCapturingTransactionContext = ErrorCapturingInterface<TransactionContext>
+
+export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
+
+export type ErrorCapturingQueryable = ErrorCapturingInterface<SqlConnection>
 
 export interface ErrorRegistry {
   consumeError(id: number): ErrorRecord | undefined

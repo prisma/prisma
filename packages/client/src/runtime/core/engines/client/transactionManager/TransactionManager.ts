@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { DriverAdapter, Query, Transaction } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingDriverAdapter, ErrorCapturingTransaction, Query } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import crypto from 'crypto'
 
@@ -33,7 +33,7 @@ type TransactionWrapper = {
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
-  transaction?: Transaction
+  transaction?: ErrorCapturingTransaction
 }
 
 const debug = Debug('prisma:client:transactionManager')
@@ -52,10 +52,10 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: DriverAdapter
+  private readonly driverAdapter: ErrorCapturingDriverAdapter
   private readonly clientVersion: string
 
-  constructor({ driverAdapter, clientVersion }: { driverAdapter: DriverAdapter; clientVersion: string }) {
+  constructor({ driverAdapter, clientVersion }: { driverAdapter: ErrorCapturingDriverAdapter; clientVersion: string }) {
     this.driverAdapter = driverAdapter
     this.clientVersion = clientVersion
   }
@@ -140,7 +140,7 @@ export class TransactionManager {
     await this.closeTransaction(txw, 'rolled_back')
   }
 
-  getTransaction(txInfo: Tx.InteractiveTransactionInfo<unknown>, operation: string): Transaction {
+  getTransaction(txInfo: Tx.InteractiveTransactionInfo<unknown>, operation: string): ErrorCapturingTransaction {
     const tx = this.getActiveTransaction(txInfo.id, operation)
     if (!tx.transaction) throw new TransactionNotFoundError({ clientVersion: this.clientVersion })
     return tx.transaction

@@ -1,4 +1,4 @@
-import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { SqlQueryAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
 
 import type { PrismaConfig } from './PrismaConfig'

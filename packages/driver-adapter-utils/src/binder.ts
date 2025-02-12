@@ -1,9 +1,11 @@
-import { err, Result } from './result'
+import { err, ok, Result } from './result'
 import type {
-  DriverAdapter,
   ErrorCapturingDriverAdapter,
+  ErrorCapturingTransaction,
+  ErrorCapturingTransactionContext,
   ErrorRecord,
   ErrorRegistry,
+  SqlQueryAdapter,
   Transaction,
   TransactionContext,
 } from './types'
@@ -27,7 +29,7 @@ class ErrorRegistryInternal implements ErrorRegistry {
 
 // *.bind(adapter) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter => {
+export const bindAdapter = (adapter: SqlQueryAdapter): ErrorCapturingDriverAdapter => {
   const errorRegistry = new ErrorRegistryInternal()
 
   const createTransactionContext = wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
@@ -37,15 +39,17 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
     executeRaw: wrapAsync(errorRegistry, adapter.executeRaw.bind(adapter)),
+    executeScript: wrapAsync(errorRegistry, adapter.executeScript.bind(adapter)),
+    dispose: wrapAsync(errorRegistry, adapter.dispose.bind(adapter)),
     provider: adapter.provider,
     transactionContext: async (...args) => {
       const ctx = await createTransactionContext(...args)
-      return ctx.map((tx) => bindTransactionContext(errorRegistry, tx))
+      return ctx.map((ctx) => bindTransactionContext(errorRegistry, ctx))
     },
   }
 
   if (adapter.getConnectionInfo) {
-    boundAdapter.getConnectionInfo = wrapSync(errorRegistry, adapter.getConnectionInfo.bind(adapter))
+    boundAdapter.getConnectionInfo = adapter.getConnectionInfo.bind(adapter)
   }
 
   return boundAdapter
@@ -53,7 +57,10 @@ export const bindAdapter = (adapter: DriverAdapter): ErrorCapturingDriverAdapter
 
 // *.bind(ctx) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-const bindTransactionContext = (errorRegistry: ErrorRegistryInternal, ctx: TransactionContext): TransactionContext => {
+const bindTransactionContext = (
+  errorRegistry: ErrorRegistryInternal,
+  ctx: TransactionContext,
+): ErrorCapturingTransactionContext => {
   const startTransaction = wrapAsync(errorRegistry, ctx.startTransaction.bind(ctx))
 
   return {
@@ -61,6 +68,8 @@ const bindTransactionContext = (errorRegistry: ErrorRegistryInternal, ctx: Trans
     provider: ctx.provider,
     queryRaw: wrapAsync(errorRegistry, ctx.queryRaw.bind(ctx)),
     executeRaw: wrapAsync(errorRegistry, ctx.executeRaw.bind(ctx)),
+    executeScript: wrapAsync(errorRegistry, ctx.executeScript.bind(ctx)),
+    dispose: wrapAsync(errorRegistry, ctx.dispose.bind(ctx)),
     startTransaction: async (...args) => {
       const result = await startTransaction(...args)
       return result.map((tx) => bindTransaction(errorRegistry, tx))
@@ -70,13 +79,15 @@ const bindTransactionContext = (errorRegistry: ErrorRegistryInternal, ctx: Trans
 
 // *.bind(transaction) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Transaction): Transaction => {
+const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Transaction): ErrorCapturingTransaction => {
   return {
     adapterName: transaction.adapterName,
     provider: transaction.provider,
     options: transaction.options,
     queryRaw: wrapAsync(errorRegistry, transaction.queryRaw.bind(transaction)),
     executeRaw: wrapAsync(errorRegistry, transaction.executeRaw.bind(transaction)),
+    executeScript: wrapAsync(errorRegistry, transaction.executeScript.bind(transaction)),
+    dispose: wrapAsync(errorRegistry, transaction.dispose.bind(transaction)),
     commit: wrapAsync(errorRegistry, transaction.commit.bind(transaction)),
     rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
   }
@@ -84,25 +95,11 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
 
 function wrapAsync<A extends unknown[], R>(
   registry: ErrorRegistryInternal,
-  fn: (...args: A) => Promise<Result<R>>,
+  fn: (...args: A) => Promise<R>,
 ): (...args: A) => Promise<Result<R>> {
   return async (...args) => {
     try {
-      return await fn(...args)
-    } catch (error) {
-      const id = registry.registerNewError(error)
-      return err({ kind: 'GenericJs', id })
-    }
-  }
-}
-
-function wrapSync<A extends unknown[], R>(
-  registry: ErrorRegistryInternal,
-  fn: (...args: A) => Result<R>,
-): (...args: A) => Result<R> {
-  return (...args) => {
-    try {
-      return fn(...args)
+      return ok(await fn(...args))
     } catch (error) {
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJs', id })

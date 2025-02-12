@@ -1,4 +1,4 @@
-import { DriverAdapter } from '@prisma/driver-adapter-utils'
+import { SqlQueryAdapter } from '@prisma/driver-adapter-utils'
 
 export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),
@@ -9,7 +9,7 @@ export const mockAdapterErrors = {
 /**
  * Create an adapter stub for testing.
  */
-export function mockAdapter(provider: 'mysql' | 'sqlite' | 'postgres'): DriverAdapter {
+export function mockAdapter(provider: 'mysql' | 'sqlite' | 'postgres'): SqlQueryAdapter {
   return {
     provider,
     adapterName: '@prisma/adapter-mock',

@@ -1,4 +1,4 @@
-import { Query, Queryable } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingQueryable, Query } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../../common/types/Events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
@@ -7,13 +7,13 @@ import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serializer'
 
 export type QueryInterpreterOptions = {
-  queryable: Queryable
+  queryable: ErrorCapturingQueryable
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
 }
 
 export class QueryInterpreter {
-  #queryable: Queryable
+  #queryable: ErrorCapturingQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
 

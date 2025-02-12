@@ -5,16 +5,15 @@
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  DriverAdapter,
   Query,
-  Queryable,
-  Result,
   ResultSet,
+  SqlConnection,
+  SqlQueryAdapter,
   Transaction,
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
@@ -34,7 +33,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements Queryable
+  implements SqlConnection
 {
   readonly provider = 'mysql'
   readonly adapterName = packageName
@@ -44,20 +43,18 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: Query): Promise<ResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const ioResult = await this.performIO(query)
-    return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
-      const columns = fields.map((field) => field.name)
-      return {
-        columnNames: columns,
-        columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-        rows: rows as ResultSet['rows'],
-        lastInsertId,
-      }
-    })
+    const { fields, insertId: lastInsertId, rows } = await this.performIO(query)
+    const columns = fields.map((field) => field.name)
+    return {
+      columnNames: columns,
+      columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
+      rows: rows as ResultSet['rows'],
+      lastInsertId,
+    }
   }
 
   /**
@@ -65,11 +62,19 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: Query): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ rowsAffected }) => rowsAffected)
+    return (await this.performIO(query)).rowsAffected
+  }
+
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  dispose(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 
   /**
@@ -77,7 +82,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<planetScale.ExecutedQuery>> {
+  private async performIO(query: Query): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -85,16 +90,16 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
         as: 'array',
         cast,
       })
-      return ok(result)
+      return result
     } catch (e) {
       const error = e as Error
       if (error.name === 'DatabaseError') {
         const parsed = parseErrorMessage(error.message)
         if (parsed) {
-          return err({
+          throw {
             kind: 'mysql',
             ...parsed,
-          })
+          }
         }
       }
       debug('Error in performIO: %O', error)
@@ -131,18 +136,18 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     super(tx)
   }
 
-  async commit(): Promise<Result<void>> {
+  async commit(): Promise<void> {
     debug(`[js::commit]`)
 
     this.txDeferred.resolve()
-    return ok(await this.txResultPromise)
+    return await this.txResultPromise
   }
 
-  async rollback(): Promise<Result<void>> {
+  async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
     this.txDeferred.reject(new RollbackError())
-    return ok(await this.txResultPromise)
+    return await this.txResultPromise
   }
 }
 
@@ -151,7 +156,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
     super(conn)
   }
 
-  async startTransaction() {
+  async startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -159,13 +164,13 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new Promise<Result<Transaction>>((resolve, reject) => {
+    return new Promise<Transaction>((resolve, reject) => {
       const txResultPromise = this.conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
 
-          resolve(ok(txWrapper))
+          resolve(txWrapper)
           return deferredPromise
         })
         .catch((error) => {
@@ -181,7 +186,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlQueryAdapter {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
@@ -195,17 +200,17 @@ const adapter = new PrismaPlanetScale(client)
     super(client)
   }
 
-  getConnectionInfo(): Result<ConnectionInfo> {
+  getConnectionInfo(): ConnectionInfo {
     const url = this.client.connection()['url'] as string
     const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
-    return ok({
+    return {
       schemaName: dbName,
-    })
+    }
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<TransactionContext> {
     const conn = this.client.connection()
     const ctx = new PlanetScaleTransactionContext(conn)
-    return ok(ctx)
+    return ctx
   }
 }

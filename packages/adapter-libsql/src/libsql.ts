@@ -1,20 +1,19 @@
-import type {
-  Client as LibSqlClientRaw,
-  InStatement,
-  ResultSet as LibSqlResultSet,
-  Transaction as LibSqlTransactionRaw,
+import {
+  type Client as LibSqlClientRaw,
+  type InStatement,
+  type ResultSet as LibSqlResultSet,
+  type Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
 import type {
-  DriverAdapter,
   Query,
-  Queryable,
-  Result,
   ResultSet,
+  SqlConnection,
+  SqlQueryAdapter,
   Transaction,
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
@@ -27,7 +26,7 @@ type TransactionClient = LibSqlTransactionRaw
 
 const LOCK_TAG = Symbol()
 
-class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements Queryable {
+class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements SqlConnection {
   readonly provider = 'sqlite'
   readonly adapterName = packageName;
 
@@ -38,21 +37,19 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: Query): Promise<ResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const ioResult = await this.performIO(query)
+    const { columns, rows, columnTypes: declaredColumnTypes } = await this.performIO(query)
 
-    return ioResult.map(({ columns, rows, columnTypes: declaredColumnTypes }) => {
-      const columnTypes = getColumnTypes(declaredColumnTypes, rows)
+    const columnTypes = getColumnTypes(declaredColumnTypes, rows)
 
-      return {
-        columnNames: columns,
-        columnTypes,
-        rows: rows.map((row) => mapRow(row, columnTypes)),
-      }
-    })
+    return {
+      columnNames: columns,
+      columnTypes,
+      rows: rows.map((row) => mapRow(row, columnTypes)),
+    }
   }
 
   /**
@@ -60,11 +57,19 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: Query): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ rowsAffected }) => rowsAffected ?? 0)
+    return (await this.performIO(query)).rowsAffected ?? 0
+  }
+
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
+
+  dispose(): Promise<void> {
+    throw new Error('Method not implemented.')
   }
 
   /**
@@ -72,21 +77,21 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<LibSqlResultSet>> {
+  private async performIO(query: Query): Promise<LibSqlResultSet> {
     const release = await this[LOCK_TAG].acquire()
     try {
       const result = await this.client.execute(query as InStatement)
-      return ok(result)
+      return result
     } catch (e) {
       const error = e as Error
       debug('Error in performIO: %O', error)
       const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
       if (typeof rawCode === 'number') {
-        return err({
+        throw {
           kind: 'sqlite',
           extendedCode: rawCode,
           message: error.message,
-        })
+        }
       }
       throw error
     } finally {
@@ -100,7 +105,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     super(client)
   }
 
-  async commit(): Promise<Result<void>> {
+  async commit(): Promise<void> {
     debug(`[js::commit]`)
 
     try {
@@ -108,11 +113,9 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     } finally {
       this.unlockParent()
     }
-
-    return ok(undefined)
   }
 
-  async rollback(): Promise<Result<void>> {
+  async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
     try {
@@ -122,8 +125,6 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     } finally {
       this.unlockParent()
     }
-
-    return ok(undefined)
   }
 }
 
@@ -132,7 +133,7 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
     super(client)
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
+  async startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -142,7 +143,7 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
 
     try {
       const tx = await this.client.transaction('deferred')
-      return ok(new LibSqlTransaction(tx, options, this.release))
+      return new LibSqlTransaction(tx, options, this.release)
     } catch (e) {
       // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
       // hence `catch` and rethrowing the error and not `finally`.
@@ -152,13 +153,13 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
   }
 }
 
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAdapter {
+export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlQueryAdapter {
   constructor(client: StdClient) {
     super(client)
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
+  async transactionContext(): Promise<TransactionContext> {
     const release = await this[LOCK_TAG].acquire()
-    return ok(new LibSqlTransactionContext(this.client, release))
+    return new LibSqlTransactionContext(this.client, release)
   }
 }
