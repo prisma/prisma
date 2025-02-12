@@ -1,5 +1,5 @@
 import { defineConfig } from '@prisma/config/src'
 
 export default defineConfig({
-  experimental: true,
+  earlyAccess: true,
 })

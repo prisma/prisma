@@ -16,7 +16,7 @@ export type PrismaConfigInput<Env> = {
    * Whether to enable experimental features.
    * Currently, every feature is considered experimental.
    */
-  experimental: true
+  earlyAccess: true
   /**
    * The configuration for the Prisma Studio.
    */
@@ -37,7 +37,7 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
    */
   const config: DeepMutable<PrismaConfig<Env>> = {
     // Currently, every feature is considered experimental.
-    experimental: true,
+    earlyAccess: true,
     loadedFromFile: null, // will be overwritten after loading the config file from disk
   }
 

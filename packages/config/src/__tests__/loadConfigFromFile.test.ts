@@ -34,7 +34,7 @@ describe('loadConfigFromFile', () => {
         "  [31m×[0m Unexpected eof
            ╭─[[36;1;4m<prisma-config>.ts[0m:5:3]
          [2m3[0m │ export default defineConfig({
-         [2m4[0m │   experimental: true,
+         [2m4[0m │   earlyAccess: true,
          [2m5[0m │ }
            ╰────
 
@@ -52,7 +52,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly experimental: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -65,9 +65,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly experimental: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined }
+        "{ readonly earlyAccess: true; readonly studio?: { readonly createAdapter: createAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "experimental" | "studio""
+           └─ is unexpected, expected: "earlyAccess" | "studio" | "loadedFromFile""
       `)
     })
   })
@@ -79,8 +79,8 @@ describe('loadConfigFromFile', () => {
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toMatchObject({
-        experimental: true,
-        loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
       })
       expect(error).toBeUndefined()
     })
@@ -119,8 +119,8 @@ describe('loadConfigFromFile', () => {
       })
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), customConfigPath))
       expect(config).toMatchObject({
-        experimental: true,
-        loadedFromFile: path.join(ctx.fs.cwd(), customConfigPath),
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
       })
       expect(error).toBeUndefined()
     })
@@ -132,11 +132,11 @@ describe('loadConfigFromFile', () => {
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
-      experimental: true,
+      earlyAccess: true,
       studio: {
         createAdapter: expect.any(Function),
       },
-      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+      loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
 
@@ -155,11 +155,11 @@ describe('loadConfigFromFile', () => {
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
-      experimental: true,
+      earlyAccess: true,
       studio: {
         createAdapter: expect.any(Function),
       },
-      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+      loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
 
@@ -194,7 +194,7 @@ describe('loadConfigFromFile', () => {
       const { config, error } = await loadConfigFromFile({})
       assertLoadConfigFromFileErrorIsUndefined(error)
       expect(config).toMatchObject({
-        experimental: true,
+        earlyAccess: true,
       })
 
       expect(process.env).toMatchObject(processEnvBackup)
@@ -206,7 +206,7 @@ describe('loadConfigFromFile', () => {
       const { config, error } = await loadConfigFromFile({})
       assertLoadConfigFromFileErrorIsUndefined(error)
       expect(config).toMatchObject({
-        experimental: true,
+        earlyAccess: true,
       })
 
       expect(process.env).toMatchObject({

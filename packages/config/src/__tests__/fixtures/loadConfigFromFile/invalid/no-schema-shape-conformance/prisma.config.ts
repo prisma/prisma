@@ -1,6 +1,6 @@
 const config = {
   // `experimental` should only be set to `true`
-  experimental: true,
+  earlyAccess: true,
 
   // This is an extra, unexpected property
   thisShouldFail: true,

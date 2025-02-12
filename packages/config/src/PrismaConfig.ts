@@ -30,9 +30,9 @@ const createPrismaStudioConfigSchema = <Env>() =>
 const createPrismaConfigSchema = <Env = any>() =>
   Schema.Struct({
     /**
-     * Whether experimental features are enabled.
+     * Whether features with an unstable API are enabled.
      */
-    experimental: Schema.Literal(true),
+    earlyAccess: Schema.Literal(true),
     /**
      * The configuration for Prisma Studio.
      */

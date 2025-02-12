@@ -1,4 +1,4 @@
-import { PrismaConfig } from './PrismaConfig'
+import type { PrismaConfig } from './PrismaConfig'
 
 /**
  * All default values for the config shall be set here.
@@ -7,7 +7,7 @@ import { PrismaConfig } from './PrismaConfig'
  */
 export function defaultConfig(): PrismaConfig {
   return {
-    experimental: true,
+    earlyAccess: true,
     studio: undefined,
     loadedFromFile: null,
   }
