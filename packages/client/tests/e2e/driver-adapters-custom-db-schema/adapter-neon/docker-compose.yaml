@@ -26,7 +26,7 @@ services:
       retries: 20
 
   postgres:
-    image: postgres:16
+    image: postgres:17
     restart: unless-stopped
     # Uncomment the following line to enable query logging
     # Then restart the container.
