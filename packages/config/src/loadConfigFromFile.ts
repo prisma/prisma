@@ -6,7 +6,7 @@ import { Debug } from '@prisma/driver-adapter-utils'
 import { Either } from 'effect'
 import { ParseError } from 'effect/ParseResult'
 
-import { PrismaConfig } from './defineConfig'
+import type { PrismaConfig } from './defineConfig'
 import { parsePrismaConfig } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
@@ -52,7 +52,7 @@ export type ConfigFromFile =
       error: LoadConfigFromFileError
     }
   | {
-      resolvedPath: string
+      resolvedPath: null
       config?: never
       error?: never
     }
@@ -85,7 +85,7 @@ export async function loadConfigFromFile({
     resolvedPath =
       ['prisma.config.ts'].map((file) => path.resolve(configRoot, file)).find((file) => fs.existsSync(file)) ?? null
 
-    if (!resolvedPath) {
+    if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
       return { resolvedPath }
