@@ -177,14 +177,12 @@ Learn more about the available operations in the [Prisma Client docs](https://ww
 ##### Retrieve all `User` records from the database
 
 ```ts
-// Run inside `async` function or as is in ES Modules(Top-level await)
 const allUsers = await prisma.user.findMany()
 ```
 
 ##### Include the `posts` relation on each returned `User` object
 
 ```ts
-// Run inside `async` function or as is in ES Modules(Top-level await)
 const allUsers = await prisma.user.findMany({
   include: { posts: true },
 })
@@ -193,7 +191,6 @@ const allUsers = await prisma.user.findMany({
 ##### Filter all `Post` records that contain `"prisma"`
 
 ```ts
-// Run inside `async` function or as is in ES Modules(Top-level await)
 const filteredPosts = await prisma.post.findMany({
   where: {
     OR: [{ title: { contains: 'prisma' } }, { content: { contains: 'prisma' } }],
@@ -204,7 +201,6 @@ const filteredPosts = await prisma.post.findMany({
 ##### Create a new `User` and a new `Post` record in the same query
 
 ```ts
-// Run inside `async` function or as is in ES Modules(Top-level await)
 const user = await prisma.user.create({
   data: {
     name: 'Alice',
@@ -219,7 +215,6 @@ const user = await prisma.user.create({
 ##### Update an existing `Post` record
 
 ```ts
-// Run inside `async` function or as is in ES Modules(Top-level await)
 const post = await prisma.post.update({
   where: { id: 42 },
   data: { published: true },
@@ -280,7 +275,7 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mai
 
 ## Tests Status
 
-- Prisma Tests Status:  
+- Prisma Tests Status:
   [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
-- Ecosystem Tests Status:  
+- Ecosystem Tests Status:
   [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)
