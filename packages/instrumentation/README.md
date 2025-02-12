@@ -29,7 +29,6 @@ Don't forget to set `previewFeatures`:
 ```prisma
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 ```
 

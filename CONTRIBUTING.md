@@ -12,7 +12,7 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 
 ## General Prerequisites
 
-1. Install Node.js `>=16.13` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Install Node.js `>=18.18` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
 
@@ -25,7 +25,7 @@ Copy paste these commands to install the global dependencies:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 nvm install 18
-npm install --global pnpm@8.15.5 ts-node
+npm install --global pnpm@9 ts-node
 ```
 
 ## General Setup
@@ -93,33 +93,34 @@ To add breakpoints use either DevTools UI or add [`debugger`](https://developer.
 
 <details>
   <summary><b>Alternatives</b></summary>
-  
-  #### Detailed steps for a manually creating a locally-linked sandbox
-  ```sh
-  cd sandbox
-  mkdir my-repro
-  cd my-repro
-  pnpm init
-  pnpm add ../../packages/client
-  pnpm add -D ../../packages/cli
-  pnpm add -D typescript ts-node
-  pnpm add -D @types/node
-  touch index.ts
-  pnpm tsc --init
-  pnpm prisma init
-  # > Manually populate the schema.prisma
-  # > Manually add 👇 to the generator block
-  #   output = "../node_modules/.prisma/client"
-  # > Manually populate the index.ts
-  pnpm prisma db push --skip-generate
-  pnpm prisma generate && pnpm ts-node index.ts # Try it out
-  ```
+
+#### Detailed steps for a manually creating a locally-linked sandbox
+
+```sh
+cd sandbox
+mkdir my-repro
+cd my-repro
+pnpm init
+pnpm add ../../packages/client
+pnpm add -D ../../packages/cli
+pnpm add -D typescript ts-node
+pnpm add -D @types/node
+touch index.ts
+pnpm tsc --init
+pnpm prisma init
+# > Manually populate the schema.prisma
+# > Manually add 👇 to the generator block
+#   output = "../node_modules/.prisma/client"
+# > Manually populate the index.ts
+pnpm prisma db push --skip-generate
+pnpm prisma generate && pnpm ts-node index.ts # Try it out
+```
 
 #### Developing and working in the fixture folder
 
 ```sh
 cd packages/client
-ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+ts-node fixtures/generate.ts ./fixtures/blog/
 cd fixtures/blog
 npx prisma db push --skip-generate
 ts-node main.ts # Try it out

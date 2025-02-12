@@ -1,8 +1,8 @@
-import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, isPrismaPostgres, warnOnce } from '@prisma/internals'
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
-import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
+import { BinaryEngine, ClientEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
@@ -30,7 +30,9 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  if (copyEngine && url?.startsWith('prisma://')) {
+  const isAccelerateUrlScheme = Boolean(url?.startsWith('prisma://') || isPrismaPostgres(url))
+
+  if (copyEngine && isAccelerateUrlScheme) {
     warnOnce(
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
@@ -39,10 +41,11 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
 
   const engineType = getClientEngineType(engineConfig.generator!)
 
-  const accelerateConfigured = Boolean(url?.startsWith('prisma://') || !copyEngine)
+  const accelerateConfigured = isAccelerateUrlScheme || !copyEngine
   const driverAdapterConfigured = Boolean(engineConfig.adapter)
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
+  const clientEngineConfigured = engineType === ClientEngineType.Client
 
   if ((accelerateConfigured && driverAdapterConfigured) || (driverAdapterConfigured && TARGET_BUILD_TYPE === 'edge')) {
     let message: string[]
@@ -81,9 +84,14 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   else if (accelerateConfigured && TARGET_BUILD_TYPE === 'wasm') return new AccelerateEngine(engineConfig)
-
+  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
+  // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
+  else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
-  if (TARGET_BUILD_TYPE === 'wasm') {
+  else if (TARGET_BUILD_TYPE === 'wasm') {
     const message = [
       `PrismaClient failed to initialize because it wasn't configured to run in this environment (${
         getRuntime().prettyName
@@ -98,7 +106,5 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     })
   }
 
-  throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
-    clientVersion: engineConfig.clientVersion,
-  })
+  return TARGET_BUILD_TYPE satisfies never
 }

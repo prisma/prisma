@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineSpanEvent } from '@prisma/internals'
+import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -49,9 +49,20 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
+const MAX_REQUEST_ID = 0xffffffffffffffffn
+let NEXT_REQUEST_ID = 1n
+
+function nextRequestId(): bigint {
+  const requestId = NEXT_REQUEST_ID++
+  if (NEXT_REQUEST_ID > MAX_REQUEST_ID) {
+    NEXT_REQUEST_ID = 1n
+  }
+  return requestId
+}
+
 export class LibraryEngine implements Engine<undefined> {
   name = 'LibraryEngine' as const
-  engine?: QueryEngineInstance
+  engine?: ReturnType<typeof this.wrapEngine>
   libraryInstantiationPromise?: Promise<void>
   libraryStartingPromise?: Promise<void>
   libraryStoppingPromise?: Promise<void>
@@ -70,6 +81,7 @@ export class LibraryEngine implements Engine<undefined> {
   logLevel: QueryEngineLogLevel
   lastQuery?: string
   loggerRustPanic?: any
+  tracingHelper: TracingHelper
 
   versionInfo?: {
     commit: string
@@ -98,6 +110,7 @@ export class LibraryEngine implements Engine<undefined> {
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = config.logEmitter
     this.datamodel = config.inlineSchema
+    this.tracingHelper = config.tracingHelper
 
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -113,10 +126,44 @@ export class LibraryEngine implements Engine<undefined> {
     this.libraryInstantiationPromise = this.instantiateLibrary()
   }
 
+  private wrapEngine(engine: QueryEngineInstance) {
+    return {
+      applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
+      commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
+      connect: this.withRequestId(engine.connect.bind(engine)),
+      disconnect: this.withRequestId(engine.disconnect.bind(engine)),
+      metrics: engine.metrics?.bind(engine),
+      query: this.withRequestId(engine.query.bind(engine)),
+      rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
+      sdlSchema: engine.sdlSchema?.bind(engine),
+      startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
+      trace: engine.trace.bind(engine),
+    }
+  }
+
+  private withRequestId<T extends unknown[], U>(
+    fn: (...args: [...T, string]) => Promise<U>,
+  ): (...args: T) => Promise<U> {
+    return async (...args) => {
+      const requestId = nextRequestId().toString()
+      try {
+        return await fn(...args, requestId)
+      } finally {
+        if (this.tracingHelper.isEnabled()) {
+          const traceJson = await this.engine?.trace(requestId)
+          if (traceJson) {
+            const trace = JSON.parse(traceJson) as EngineTrace
+            this.tracingHelper.dispatchEngineSpans(trace.spans)
+          }
+        }
+      }
+    }
+  }
+
   async applyPendingMigrations(): Promise<void> {
     if (TARGET_BUILD_TYPE === 'react-native') {
       await this.start()
-      await this.engine?.applyPendingMigrations()
+      await this.engine?.applyPendingMigrations!()
     } else {
       throw new Error('Cannot call this method from this type of engine instance')
     }
@@ -169,6 +216,10 @@ export class LibraryEngine implements Engine<undefined> {
         clientVersion: this.config.clientVersion as string,
         meta: response.meta,
       })
+    } else if (typeof response.message === 'string') {
+      throw new PrismaClientUnknownRequestError(response.message, {
+        clientVersion: this.config.clientVersion!,
+      })
     }
 
     return response as Tx.InteractiveTransactionInfo<undefined> | undefined
@@ -186,7 +237,7 @@ export class LibraryEngine implements Engine<undefined> {
 
     this.binaryTarget = await this.getCurrentBinaryTarget()
 
-    await this.loadEngine()
+    await this.tracingHelper.runInChildSpan('load_engine', () => this.loadEngine())
 
     this.version()
   }
@@ -194,7 +245,9 @@ export class LibraryEngine implements Engine<undefined> {
   private async getCurrentBinaryTarget() {
     if (TARGET_BUILD_TYPE === 'library') {
       if (this.binaryTarget) return this.binaryTarget
-      const binaryTarget = await getBinaryTargetForCurrentPlatform()
+      const binaryTarget = await this.tracingHelper.runInChildSpan('detect_platform', () =>
+        getBinaryTargetForCurrentPlatform(),
+      )
       if (!knownBinaryTargets.includes(binaryTarget)) {
         throw new PrismaClientInitializationError(
           `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(binaryTarget))}. Possible binaryTargets: ${green(
@@ -248,21 +301,24 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         debug('Using driver adapter: %O', adapter)
       }
 
-      this.engine = new this.QueryEngineConstructor(
-        {
-          datamodel: this.datamodel,
-          env: process.env,
-          logQueries: this.config.logQueries ?? false,
-          ignoreEnvVarErrors: true,
-          datasourceOverrides: this.datasourceOverrides ?? {},
-          logLevel: this.logLevel,
-          configDir: this.config.cwd,
-          engineProtocol: 'json',
-        },
-        (log) => {
-          weakThis.deref()?.logger(log)
-        },
-        adapter,
+      this.engine = this.wrapEngine(
+        new this.QueryEngineConstructor(
+          {
+            datamodel: this.datamodel,
+            env: process.env,
+            logQueries: this.config.logQueries ?? false,
+            ignoreEnvVarErrors: true,
+            datasourceOverrides: this.datasourceOverrides ?? {},
+            logLevel: this.logLevel,
+            configDir: this.config.cwd,
+            engineProtocol: 'json',
+            enableTracing: this.tracingHelper.isEnabled(),
+          },
+          (log) => {
+            weakThis.deref()?.logger(log)
+          },
+          adapter,
+        ),
       )
     } catch (_e) {
       const e = _e as Error
@@ -278,12 +334,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
-
-    if ('span' in event) {
-      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
-
-      return
-    }
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {
@@ -356,7 +406,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       try {
         const headers = {
-          traceparent: this.config.tracingHelper.getTraceParent(),
+          traceparent: this.tracingHelper.getTraceParent(),
         }
 
         await this.engine?.connect(JSON.stringify(headers))
@@ -379,7 +429,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
     }
 
-    this.libraryStartingPromise = this.config.tracingHelper.runInChildSpan('connect', startFn)
+    this.libraryStartingPromise = this.tracingHelper.runInChildSpan('connect', startFn)
 
     return this.libraryStartingPromise
   }
@@ -403,7 +453,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopping')
 
       const headers = {
-        traceparent: this.config.tracingHelper.getTraceParent(),
+        traceparent: this.tracingHelper.getTraceParent(),
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
@@ -414,7 +464,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopped')
     }
 
-    this.libraryStoppingPromise = this.config.tracingHelper.runInChildSpan('disconnect', stopFn)
+    this.libraryStoppingPromise = this.tracingHelper.runInChildSpan('disconnect', stopFn)
 
     return this.libraryStoppingPromise
   }
@@ -433,7 +483,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async request<T>(
     query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<{ data: T; elapsed: number }> {
+  ): Promise<{ data: T }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
@@ -457,8 +507,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
-      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      return { data, elapsed: 0 }
+      return { data }
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
@@ -514,7 +563,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
         return {
           data: result,
-          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
         }
       })
     } else {
@@ -555,7 +603,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async metrics(options: MetricsOptionsPrometheus): Promise<string>
   async metrics(options: EngineMetricsOptions): Promise<Metrics | string> {
     await this.start()
-    const responseString = await this.engine!.metrics(JSON.stringify(options))
+    // TODO: add `metrics` method stub in c-abi engine and make it non-optional.
+    // The stub should return an error like in WASM so we handle this gracefully.
+    const responseString = await this.engine!.metrics!(JSON.stringify(options))
     if (options.format === 'prometheus') {
       return responseString
     }

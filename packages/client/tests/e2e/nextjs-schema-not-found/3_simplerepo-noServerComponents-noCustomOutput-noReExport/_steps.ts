@@ -9,7 +9,7 @@ void executeSteps({
     await $`pnpm exec prisma db push --force-reset`
   },
   test: async () => {
-    await testNonServerComponents()
+    await testNonServerComponents({ monorepo: false })
   },
   finish: async () => {},
 })

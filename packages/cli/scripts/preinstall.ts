@@ -2,28 +2,29 @@ import process from 'node:process'
 
 import { drawBox } from '@prisma/internals'
 
+type MajorMinor = `${number}.${number}`
+type MajorMinorPatch = `${MajorMinor}.${number}`
+
 export function main() {
-  printMessageAndExitIfUnsupportedNodeVersion(process.version)
+  printMessageAndExitIfUnsupportedNodeVersion(process.versions.node as MajorMinorPatch)
 }
 
-function extractSemanticVersionParts(version) {
+function extractSemanticVersionParts(version: MajorMinor | MajorMinorPatch) {
   return version
     .split('.')
     .slice(0, 2) // only major and minor version
-    .map((v) => parseInt(v, 10))
+    .map((v) => parseInt(v, 10)) as [number, number]
 }
 
 /**
  * Given a Node.js version (e.g. `v16.13.0`), prints an error and exits the process
  * if the Node.js version is not supported by Prisma.
  */
-export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion) {
-  // Node.js version, without the `v` prefix (e.g. `16.13.0`)
-  const semanticNodeVersion = nodeVersion.slice(1)
-  const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(semanticNodeVersion)
+export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion: MajorMinorPatch) {
+  const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(nodeVersion)
 
   // Minimum Node.js version supported by Prisma
-  const MIN_NODE_VERSION = '16.13'
+  const MIN_NODE_VERSION = '18.18'
   const [MIN_NODE_MAJOR_VERSION, MIN_NODE_MINOR_VERSION] = extractSemanticVersionParts(MIN_NODE_VERSION)
 
   if (

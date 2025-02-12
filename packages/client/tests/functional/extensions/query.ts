@@ -24,6 +24,8 @@ jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter }) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -49,7 +51,6 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -477,13 +478,17 @@ testMatrix.setupTestSuite(
           ]
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -518,13 +523,17 @@ testMatrix.setupTestSuite(
           }
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -571,7 +580,7 @@ testMatrix.setupTestSuite(
       `)
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -581,12 +590,17 @@ testMatrix.setupTestSuite(
           calls.pop()
         }
 
-        expect(calls).toMatchObject([
+        const expectation = [
           [{ query: expect.stringContaining('BEGIN') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
-        ])
+        ]
+        if (isSqlServer) {
+          expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+        }
+
+        expect(calls).toMatchObject(expectation)
       })
     })
 
@@ -664,7 +678,7 @@ testMatrix.setupTestSuite(
 
       await waitFor(() => {
         // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
+        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
@@ -675,12 +689,17 @@ testMatrix.setupTestSuite(
         }
 
         if (provider !== Providers.MONGODB) {
-          expect(calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+
+          expect(calls).toMatchObject(expectation)
         }
       })
     })
@@ -752,6 +771,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -809,7 +829,7 @@ testMatrix.setupTestSuite(
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
 
-              expectTypeOf(operation).toMatchTypeOf<
+              expectTypeOf(operation).toMatchTypeOf <
                 | 'findFirst'
                 | 'findFirstOrThrow'
                 | 'findUnique'
@@ -820,6 +840,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -1360,6 +1381,18 @@ testMatrix.setupTestSuite(
 
                 return data
               },
+              async updateManyAndReturn({ args, query, operation }) {
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                return data
+              },
               async upsert({ args, query, operation }) {
                 const data = await query(args)
 
@@ -1519,6 +1552,20 @@ testMatrix.setupTestSuite(
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1687,6 +1734,20 @@ testMatrix.setupTestSuite(
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (model === 'User' && operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1880,6 +1941,20 @@ testMatrix.setupTestSuite(
                 expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              async updateManyAndReturn({ args, query, operation, model }) {
+                if (model !== 'User') return query(args)
+
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },

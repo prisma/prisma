@@ -1,9 +1,11 @@
 import type { D1Database } from '@cloudflare/workers-types'
+import { SqlQueryOutput } from '@prisma/generator-helper'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
+import { introspectSql } from '../../../../cli/src/generate/introspectSql'
 import { generateClient } from '../../../src/generation/generateClient'
 import { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
@@ -12,6 +14,7 @@ import {
   getTestSuitePreviewFeatures,
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
+  testSuiteHasTypedSql,
 } from './getTestSuiteInfo'
 import { AdapterProviders } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
@@ -24,7 +27,7 @@ const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
  * Does the necessary setup to get a test suite client ready to run.
  * @param suiteMeta
  * @param suiteConfig
- * @returns loaded client module
+ * @returns tuple of loaded client folder + loaded sql folder
  */
 export async function setupTestSuiteClient({
   cliMeta,
@@ -46,11 +49,13 @@ export async function setupTestSuiteClient({
   cfWorkerBindings?: Record<string, unknown>
 }) {
   const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
+  const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
   const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
-  const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
+  const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]], previewFeatures })
+  const config = await getConfig({ datamodel: [[schemaPath, schema]], ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
   await setupTestSuiteFiles({ suiteMeta, suiteConfig })
   await setupTestSuiteSchema({ suiteMeta, suiteConfig, schema })
@@ -62,6 +67,11 @@ export async function setupTestSuiteClient({
     await setupTestSuiteDatabase({ suiteMeta, suiteConfig, alterStatementCallback, cfWorkerBindings })
   }
 
+  let typedSql: SqlQueryOutput[] | undefined
+  if (hasTypedSql) {
+    typedSql = await introspectSql(schemaPath)
+  }
+
   if (clientMeta.dataProxy === true) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
   } else {
@@ -70,7 +80,7 @@ export async function setupTestSuiteClient({
 
   await generateClient({
     datamodel: schema,
-    schemaPath: getTestSuiteSchemaPath({ suiteMeta, suiteConfig }),
+    schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
@@ -83,15 +93,35 @@ export async function setupTestSuiteClient({
     activeProvider: suiteConfig.matrixOptions.provider,
     runtimeBase: runtimeBase,
     copyEngine: !clientMeta.dataProxy,
+    typedSql,
   })
 
-  const clientPathForRuntime: Record<ClientRuntime, string> = {
-    node: 'node_modules/@prisma/client',
-    edge: 'node_modules/@prisma/client/edge',
-    wasm: 'node_modules/@prisma/client/wasm',
+  const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
+    node: {
+      client: 'node_modules/@prisma/client',
+      sql: 'node_modules/@prisma/client/sql',
+    },
+    edge: {
+      client: 'node_modules/@prisma/client/edge',
+      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+    },
+    wasm: {
+      client: 'node_modules/@prisma/client/wasm',
+      sql: 'node_modules/@prisma/client/sql/index.wasm.js',
+    },
+    client: {
+      client: 'node_modules/@prisma/client',
+      sql: 'node_modules/@prisma/client/sql',
+    },
   }
 
-  return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+  const clientModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime].client))
+  let sqlModule = undefined
+  if (hasTypedSql) {
+    sqlModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime].sql))
+  }
+
+  return [clientModule, sqlModule]
 }
 
 /**
@@ -127,6 +157,19 @@ export function setupTestSuiteClientDriverAdapter({
           const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
           return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+        },
+      }
+      return config
+    }
+  } else if (clientMeta.runtime === 'client') {
+    __internal.configOverride = (config) => {
+      config.compilerWasm = {
+        getRuntime: () => require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`)),
+        getQueryCompilerWasmModule: async () => {
+          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm`)
+          const queryCompilerWasmFileBytes = await readFile(queryCompilerWasmFilePath)
+
+          return new globalThis.WebAssembly.Module(queryCompilerWasmFileBytes)
         },
       }
       return config

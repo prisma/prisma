@@ -9,7 +9,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider, clientRuntime, driverAdapter }, suiteMeta, clientMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, clientMeta) => {
     let dbURL: string
     beforeAll(() => {
       dbURL = process.env[`DATABASE_URI_${provider}`]!
@@ -21,8 +21,7 @@ testMatrix.setupTestSuite(
     })
 
     describeIf(driverAdapter === undefined)('default case: no Driver Adapter', () => {
-      // TODO: Fails with Expected PrismaClientInitError, Received Error
-      skipTestIf(clientRuntime === 'wasm')('verify that connect fails without override', async () => {
+      test('verify that connect fails without override', async () => {
         // this a smoke to verify that our beforeAll setup worked correctly and right
         // url won't be picked up by Prisma client anymore.
         // If this test fails, subsequent tests can't be trusted regardless of whether or not they pass or not.

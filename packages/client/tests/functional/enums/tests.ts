@@ -1,7 +1,8 @@
 import { expectTypeOf } from 'expect-type'
 
-import testMatrix from './_matrix'
 // @ts-ignore
+import { Providers } from '../_utils/providers'
+import testMatrix from './_matrix'
 import type * as imports from './node_modules/@prisma/client'
 
 declare let prisma: imports.PrismaClient
@@ -10,7 +11,7 @@ declare let loaded: {
 }
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     test('can create data with an enum value', async () => {
       const { Plan } = loaded
 
@@ -51,10 +52,42 @@ testMatrix.setupTestSuite(
       expectTypeOf(value).toEqualTypeOf<'CUSTOM'>()
       expectTypeOf<imports.Plan>().toEqualTypeOf<'CUSTOM' | 'FREE' | 'PAID'>()
     })
+
+    testIf(provider == Providers.SQLITE)(
+      'fails at runtime when an invalid entry is entered manually in SQLite',
+      async () => {
+        // @ts-test-if: provider !== Providers.MONGODB
+        await prisma.$executeRaw`INSERT INTO "User" ("id", "plan") VALUES ('2', 'NONFREE')`
+        const result = await prisma.user.findMany().catch((e) => e)
+
+        expect(result).toBeInstanceOf(Error)
+        expect(result.message).toMatch(/Value 'NONFREE' not found in enum 'Plan'/)
+      },
+    )
+
+    testIf(provider == Providers.MONGODB)(
+      'fails at runtime when an invalid entry is entered manually in Mongo',
+      async () => {
+        // @ts-test-if: provider === Providers.MONGODB
+        await prisma.$runCommandRaw({
+          insert: 'User',
+          documents: [
+            {
+              _id: '2',
+              plan: 'NONFREE',
+            },
+          ],
+        })
+        const result = await prisma.user.findMany().catch((e) => e)
+
+        expect(result).toBeInstanceOf(Error)
+        expect(result.message).toMatch(/Value 'NONFREE' not found in enum 'Plan'/)
+      },
+    )
   },
   {
     optOut: {
-      from: ['sqlite', 'sqlserver'],
+      from: ['sqlserver'],
       reason: 'enum values are not supported',
     },
   },

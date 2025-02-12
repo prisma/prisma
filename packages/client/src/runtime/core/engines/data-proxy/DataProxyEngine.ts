@@ -1,11 +1,13 @@
 import Debug from '@prisma/debug'
-import { EngineSpan, TracingHelper } from '@prisma/internals'
+import { PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
 
+import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
+  CustomDataProxyFetch,
   EngineConfig,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -15,10 +17,15 @@ import { Engine } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
+import {
+  QueryEngineBatchResult,
+  QueryEngineResult,
+  QueryEngineResultData,
+  QueryEngineResultExtensions,
+} from '../common/types/QueryEngine'
+import { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { LogLevel } from '../common/utils/log'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -28,9 +35,9 @@ import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { toBase64 } from './utils/base64'
 import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
-import { dateFromEngineTimestamp, EngineTimestamp } from './utils/EngineTimestamp'
+import { dateFromEngineTimestamp } from './utils/EngineTimestamp'
 import { getClientVersion } from './utils/getClientVersion'
-import { Fetch, request } from './utils/request'
+import { request } from './utils/request'
 
 const MAX_RETRIES = 3
 
@@ -44,22 +51,9 @@ type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
 type RequestInternalOptions = {
   body: Record<string, unknown>
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
-}
-
-type DataProxyLog = {
-  span_id: string
-  name: string
-  level: LogLevel
-  timestamp: EngineTimestamp
-  attributes: Record<string, unknown> & { duration_ms: number; params: string; target: string }
-}
-
-type DataProxyExtensions = {
-  logs?: DataProxyLog[]
-  traces?: EngineSpan[]
 }
 
 type DataProxyHeaders = {
@@ -72,6 +66,18 @@ type DataProxyHeaders = {
 type HeaderBuilderOptions = {
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
+}
+
+type StartTransactionResult = {
+  id: string
+  'data-proxy': {
+    endpoint: string
+  }
+  extensions?: QueryEngineResultExtensions
+}
+
+type CloseTransactionResult = {
+  extensions?: QueryEngineResultExtensions
 }
 
 class DataProxyHeaderBuilder {
@@ -218,44 +224,47 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
   async stop() {}
 
-  private propagateResponseExtensions(extensions: DataProxyExtensions): void {
+  private propagateResponseExtensions(extensions: QueryEngineResultExtensions): void {
     if (extensions?.logs?.length) {
       extensions.logs.forEach((log) => {
         switch (log.level) {
           case 'debug':
-          case 'error':
           case 'trace':
-          case 'warn':
-          case 'info':
-            // TODO these are propagated into the response.errors key
+            debug(log)
             break
+
+          case 'error':
+          case 'warn':
+          case 'info': {
+            this.logEmitter.emit(log.level, {
+              timestamp: dateFromEngineTimestamp(log.timestamp),
+              message: log.attributes.message ?? '',
+              target: log.target,
+            })
+            break
+          }
+
           case 'query': {
-            let dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
-
-            if (!this.tracingHelper.isEnabled()) {
-              // The engine uses tracing to consolidate logs
-              //  - and so we should strip the generated traceparent
-              //  - if tracing is disabled.
-              // Example query: 'SELECT /* traceparent=00-123-0-01 */'
-              const [query] = dbQuery.split('/* traceparent')
-              dbQuery = query
-            }
-
             this.logEmitter.emit('query', {
-              query: dbQuery,
+              query: log.attributes.query ?? '',
               // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
               timestamp: dateFromEngineTimestamp(log.timestamp),
-              duration: Number(log.attributes.duration_ms),
-              params: log.attributes.params,
-              target: log.attributes.target,
+              duration: log.attributes.duration_ms ?? 0,
+              params: log.attributes.params ?? '',
+              target: log.target,
             })
+
+            break
           }
+
+          default:
+            log.level satisfies never
         }
       })
     }
 
     if (extensions?.traces?.length) {
-      this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
+      this.tracingHelper.dispatchEngineSpans(extensions.traces)
     }
   }
 
@@ -310,7 +319,6 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     query: JsonQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
-    // TODO: `elapsed`?
     return this.requestInternal<T>({
       body: query,
       traceparent,
@@ -327,7 +335,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     const body = getBatchRequestPayload(queries, transaction)
 
-    const { batchResult, elapsed } = await this.requestInternal<T, true>({
+    const batchResult = await this.requestInternal<T, true>({
       body,
       customDataProxyFetch,
       interactiveTransaction,
@@ -335,13 +343,15 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     })
 
     return batchResult.map((result) => {
-      if ('errors' in result && result.errors.length > 0) {
-        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
+      if (result.extensions) {
+        this.propagateResponseExtensions(result.extensions)
       }
-      return {
-        data: result as T,
-        elapsed,
+
+      if ('errors' in result) {
+        return this.convertProtocolErrorsToClientError(result.errors)
       }
+
+      return result
     })
   }
 
@@ -350,9 +360,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     traceparent,
     customDataProxyFetch,
     interactiveTransaction,
-  }: RequestInternalOptions): Promise<
-    Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
-  > {
+  }: RequestInternalOptions): Promise<Batch extends true ? QueryEngineResult<T>[] : QueryEngineResultData<T>> {
     return this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
@@ -379,24 +387,33 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
         await this.handleError(await responseToError(response, this.clientVersion))
 
-        const json = await response.json()
+        const result = (await response.json()) as Batch extends true ? QueryEngineBatchResult<T> : QueryEngineResult<T>
 
-        const extensions = json.extensions as DataProxyExtensions | undefined
-        if (extensions) {
-          this.propagateResponseExtensions(extensions)
+        if (result.extensions) {
+          this.propagateResponseExtensions(result.extensions)
         }
 
-        // TODO: headers contain `x-elapsed` and it needs to be returned
-
-        if (json.errors) {
-          if (json.errors.length === 1) {
-            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!, this.config.activeProvider!)
-          } else {
-            throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
-          }
+        if ('errors' in result) {
+          throw this.convertProtocolErrorsToClientError(result.errors)
         }
 
-        return json
+        if ('batchResult' in result) {
+          // TODO: TypeScript 5.8+ should be able to narrow the expected result type correctly,
+          // so this will be assignable (https://github.com/microsoft/TypeScript/pull/56941).
+          // Since these are internal types, we should be able to rely on it once TypeScript 5.8
+          // is released, and change this to just `return result.batchResult`.
+          return result.batchResult as QueryEngineResult<T>[] as Batch extends true
+            ? QueryEngineResult<T>[]
+            : QueryEngineResultData<T>
+        }
+
+        // TODO: TypeScript 5.8+ should be able to narrow the expected result type correctly,
+        // so this will be assignable (https://github.com/microsoft/TypeScript/pull/56941).
+        // Since these are internal types, we should be able to rely on it once TypeScript 5.8
+        // is released, and change this to just `return result`.
+        return result as QueryEngineResultData<T> as Batch extends true
+          ? QueryEngineResult<T>[]
+          : QueryEngineResultData<T>
       },
     })
   }
@@ -441,15 +458,15 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
           await this.handleError(await responseToError(response, this.clientVersion))
 
-          const json = await response.json()
+          const result = (await response.json()) as StartTransactionResult
 
-          const extensions = json.extensions as DataProxyExtensions | undefined
+          const { extensions } = result
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
 
-          const id = json.id as string
-          const endpoint = json['data-proxy'].endpoint as string
+          const id = result.id as string
+          const endpoint = result['data-proxy'].endpoint as string
 
           return { id, payload: { endpoint } }
         } else {
@@ -465,9 +482,9 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
           await this.handleError(await responseToError(response, this.clientVersion))
 
-          const json = await response.json()
+          const result = (await response.json()) as CloseTransactionResult
 
-          const extensions = json.extensions as DataProxyExtensions | undefined
+          const { extensions } = result
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
@@ -500,7 +517,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
     const { protocol, host, searchParams } = url
 
-    if (protocol !== 'prisma:') {
+    if (protocol !== 'prisma:' && protocol !== PRISMA_POSTGRES_PROTOCOL) {
       throw new InvalidDatasourceError(
         `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
         errorInfo,
@@ -578,6 +595,19 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       })
     } else if (error) {
       throw error
+    }
+  }
+
+  private convertProtocolErrorsToClientError(
+    errors: RequestError[],
+  ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+    // TODO: handle Rust panics and driver adapter errors correctly. See `LibraryEngine#buildQueryError`.
+    if (errors.length === 1) {
+      return prismaGraphQLToJSError(errors[0], this.config.clientVersion, this.config.activeProvider!)
+    } else {
+      return new PrismaClientUnknownRequestError(JSON.stringify(errors), {
+        clientVersion: this.config.clientVersion,
+      })
     }
   }
 

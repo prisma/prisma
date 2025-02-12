@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
@@ -12,9 +13,10 @@ export class CLI implements Command {
   static new(cmds: Commands, ensureBinaries: string[]): CLI {
     return new CLI(cmds, ensureBinaries)
   }
+
   private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -33,7 +35,7 @@ export class CLI implements Command {
 
     if (args['--version']) {
       await ensureBinariesExist()
-      return Version.new().parse(argv)
+      return Version.new().parse(argv, config)
     }
 
     // display help for help flag or no subcommand
@@ -76,7 +78,7 @@ export class CLI implements Command {
         argsForCmd = args._.slice(1)
       }
 
-      return cmd.parse(argsForCmd)
+      return cmd.parse(argsForCmd, config)
     }
     // unknown command
     return unknownCommand(this.help() as string, args._[0])

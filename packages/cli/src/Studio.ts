@@ -1,3 +1,4 @@
+import { PrismaConfig } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import {
@@ -24,7 +25,7 @@ import path from 'path'
 // See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
 const debug = Debug('prisma:cli:studio')
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 export class Studio implements Command {
   public instance?: StudioServer
@@ -46,6 +47,7 @@ ${bold('Options')}
   -p, --port        Port to start Studio on
   -b, --browser     Browser to open Studio in
   -n, --hostname    Hostname to bind the Express server to
+  --config          Custom path to your Prisma config file
   --schema          Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -66,17 +68,22 @@ ${bold('Examples')}
 
   Specify a schema
     ${dim('$')} prisma studio --schema=./schema.prisma
+    
+  Specify a custom prisma config file
+    ${dim('$')} prisma studio --config=./prisma.config.ts
 `)
 
   /**
    * Parses arguments passed to this command, and starts Studio
    *
    * @param argv Array of all arguments
+   * @param _config The loaded Prisma config
    */
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--port': Number,
       '-p': '--port',
       '--browser': String,
@@ -95,7 +102,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
 
@@ -109,7 +116,7 @@ ${bold('Examples')}
       schemas,
     })
 
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
@@ -122,7 +129,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: resolveUrl(getDirectUrl(config.datasources[0])),
+        directUrl: resolveUrl(getDirectUrl(engineConfig.datasources[0])),
       },
       versions: {
         prisma: packageJson.version,

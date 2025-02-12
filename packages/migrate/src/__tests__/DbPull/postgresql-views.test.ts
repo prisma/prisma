@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getSchema, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
@@ -206,7 +206,7 @@ describe('postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspectWithViews = new DbPull()
-      const resultWithViews = introspectWithViews.parse([])
+      const resultWithViews = introspectWithViews.parse([], defaultTestConfig())
       await expect(resultWithViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithViews = await ctx.fs.listAsync('views')
@@ -236,7 +236,7 @@ describe('postgresql-views', () => {
       await runQueryPostgres(setupParams, dropViewsSQL!)
 
       const introspectWithoutViews = new DbPull()
-      const resultWithoutViews = introspectWithoutViews.parse([])
+      const resultWithoutViews = introspectWithoutViews.parse([], defaultTestConfig())
       await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithoutViews = await ctx.fs.listAsync('views')
@@ -285,7 +285,7 @@ describe('postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -368,7 +368,7 @@ describe('postgresql-views', () => {
 
         const introspect = new DbPull()
         const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
-        const result = introspect.parse(args)
+        const result = introspect.parse(args, defaultTestConfig())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
         // the folders in `views` match the database schema names (public, work) of the views
@@ -440,7 +440,7 @@ describe('postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       // the folders in `views` match the database schema names (public, work) of the views
@@ -476,7 +476,7 @@ describe('postgresql-views', () => {
       ctx.fixture(path.join(fixturePath))
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -516,7 +516,7 @@ describe('postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')

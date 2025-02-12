@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/require-await */
+
 import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
@@ -8,6 +10,7 @@ import type {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
@@ -132,7 +135,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
       debug('Error in performIO: %O', e)
       if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
-          kind: 'Postgres',
+          kind: 'postgres',
           code: e.code,
           severity: e.severity,
           message: e.message,
@@ -166,6 +169,23 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
+class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {
+  constructor(readonly conn: neon.PoolClient) {
+    super(conn)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new NeonTransaction(this.conn, options))
+  }
+}
+
 export type PrismaNeonOptions = {
   schema?: string
 }
@@ -190,16 +210,9 @@ const adapter = new PrismaNeon(pool)
     })
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
-    const connection = await this.client.connect()
-    return ok(new NeonTransaction(connection, options))
+  async transactionContext(): Promise<Result<TransactionContext>> {
+    const conn = await this.client.connect()
+    return ok(new NeonTransactionContext(conn))
   }
 
   async close() {
@@ -222,11 +235,26 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
       await this.client(sql, values, {
         arrayMode: true,
         fullResults: true,
-      }),
+        // pass type parsers to neon() HTTP client, same as in WS client above
+        //
+        // requires @neondatabase/serverless >= 0.9.5
+        // - types option added in https://github.com/neondatabase/serverless/pull/92
+        types: {
+          getTypeParser: (oid: number, format?) => {
+            if (format === 'text' && customParsers[oid]) {
+              return customParsers[oid]
+            }
+
+            return neon.types.getTypeParser(oid, format)
+          },
+        },
+        // type `as` cast required until neon types are corrected:
+        // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
+      } as neon.HTTPQueryOptions<true, true>),
     )
   }
 
-  startTransaction(): Promise<Result<Transaction>> {
+  transactionContext(): Promise<Result<TransactionContext>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 }

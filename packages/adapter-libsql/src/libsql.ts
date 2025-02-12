@@ -11,6 +11,7 @@ import type {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
@@ -82,7 +83,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
       const rawCode = error['rawCode'] ?? e.cause?.['rawCode']
       if (typeof rawCode === 'number') {
         return err({
-          kind: 'Sqlite',
+          kind: 'sqlite',
           extendedCode: rawCode,
           message: error.message,
         })
@@ -126,8 +127,8 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAdapter {
-  constructor(client: StdClient) {
+class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext {
+  constructor(readonly client: StdClient, readonly release: () => void) {
     super(client)
   }
 
@@ -137,18 +138,27 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAd
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
-    const release = await this[LOCK_TAG].acquire()
+    debug('%s options: %O', tag, options)
 
     try {
       const tx = await this.client.transaction('deferred')
-      return ok(new LibSqlTransaction(tx, options, release))
+      return ok(new LibSqlTransaction(tx, options, this.release))
     } catch (e) {
       // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
       // hence `catch` and rethrowing the error and not `finally`.
-      release()
+      this.release()
       throw e
     }
+  }
+}
+
+export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements DriverAdapter {
+  constructor(client: StdClient) {
+    super(client)
+  }
+
+  async transactionContext(): Promise<Result<TransactionContext>> {
+    const release = await this[LOCK_TAG].acquire()
+    return ok(new LibSqlTransactionContext(this.client, release))
   }
 }
