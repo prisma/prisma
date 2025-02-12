@@ -4,7 +4,7 @@ import type { Either } from 'effect/Either'
 import { identity } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
 
-// Define a schema for the `createAdapter` function
+// Define the shape for the `createAdapter` function
 const createAdapterShape = <Env>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<QueryableDriverAdapter> => {
@@ -17,8 +17,8 @@ const createAdapterShape = <Env>() =>
     },
   )
 
-// Define the schema for the `studio` property
-const createPrismaStudioConfigShape = <Env>() =>
+// Define the shape for the `studio` property
+const createPrismaStudioConfigInternalShape = <Env>() =>
   Shape.Struct({
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Studio.
@@ -49,12 +49,13 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
   folder: Shape.String,
 })
 
-// Define the schema for the `schema` property
+// Define the shape for the `schema` property.
+// This is shared between `PrismaConfig` and `PrismaConfigInput`.
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
 export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
 
-// Define the schema for the `PrismaConfig` type
-const createPrismaConfigShape = <Env = any>() =>
+// Define the shape for the `PrismaConfigInternal` type
+const createPrismaConfigInternalShape = <Env = any>() =>
   Shape.Struct({
     /**
      * Whether features with an unstable API are enabled.
@@ -67,7 +68,7 @@ const createPrismaConfigShape = <Env = any>() =>
     /**
      * The configuration for Prisma Studio.
      */
-    studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
+    studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
     /**
      * The path from where the config was loaded.
      * It's set to `null` if no config file was found and only default config is applied.
@@ -76,16 +77,17 @@ const createPrismaConfigShape = <Env = any>() =>
   })
 
 /**
- * The configuration for the Prisma Development Kit.
+ * The configuration for the Prisma Development Kit, after it has been parsed and processed
+ * by the `defineConfig` function.
  */
-export type PrismaConfig<Env = any> = ReturnType<typeof createPrismaConfigShape<Env>>['Type']
+export type PrismaConfigInternal<Env = any> = ReturnType<typeof createPrismaConfigInternalShape<Env>>['Type']
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigShape<Env = any>(input: unknown): Either<PrismaConfig<Env>, ParseError> {
-  return Shape.decodeUnknownEither(createPrismaConfigShape<Env>(), {})(input, {
+export function parsePrismaConfigInternalShape<Env = any>(input: unknown): Either<PrismaConfigInternal<Env>, ParseError> {
+  return Shape.decodeUnknownEither(createPrismaConfigInternalShape<Env>(), {})(input, {
     onExcessProperty: 'error',
   })
 }
