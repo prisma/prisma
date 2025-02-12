@@ -1,5 +1,4 @@
 import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
-import type { GetSchemaResult } from '@prisma/schema-files-loader'
 import { Schema } from 'effect'
 import type { Either } from 'effect/Either'
 import { identity } from 'effect/Function'
@@ -18,18 +17,6 @@ const createAdapterSchema = <Env>() =>
     },
   )
 
-// Define a schema for the `getPSLSchema` function
-const GetPSLSchemaSchema = Schema.declare(
-  (input: any): input is () => Promise<GetSchemaResult> => {
-    return input instanceof Function
-  },
-  {
-    identifier: 'GetPSLSchema',
-    encode: identity,
-    decode: identity,
-  },
-)
-
 // Define the schema for the `studio` property
 const createPrismaStudioConfigSchema = <Env>() =>
   Schema.Struct({
@@ -39,19 +26,31 @@ const createPrismaStudioConfigSchema = <Env>() =>
     createAdapter: createAdapterSchema<Env>(),
   })
 
-// Define the schema for the `schema` property
-const PrismaSchemaConfigSchema = Schema.Struct({
+const PrismaConfigSchemaSingleSchema = Schema.Struct({
   /**
-   * Loads the schema, throws an error if it is not found.
-   * If provided, Prisma will use this function rather than using `getSchema` from `@prisma/internals`.
+   * Tell Prisma to use a single `.prisma` schema file.
    */
-  getPSLSchema: GetPSLSchemaSchema,
-
+  kind: Schema.Literal('single'),
   /**
-   * Describe whether the schema returned by `getPSLSchema` is a single file or a multi-file schema.
+   * The path to a single `.prisma` schema file.
    */
-  kind: Schema.Literal('single', 'multi'),
+  filenamePath: Schema.String,
 })
+
+const PrismaConfigSchemaMultiSchema = Schema.Struct({
+  /**
+   * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
+   */
+  kind: Schema.Literal('multi'),
+  /**
+   * The path to a folder containing multiple `.prisma` schema files.
+   * All of the files in this folder will be used.
+   */
+  folder: Schema.String,
+})
+
+// Define the schema for the `schema` property
+const PrismaSchemaConfigSchema = Schema.Union(PrismaConfigSchemaSingleSchema, PrismaConfigSchemaMultiSchema)
 
 // Define the schema for the `PrismaConfig` type
 const createPrismaConfigSchema = <Env = any>() =>

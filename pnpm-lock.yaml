@@ -860,9 +860,6 @@ importers:
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
-      '@prisma/schema-files-loader':
-        specifier: workspace:*
-        version: link:../schema-files-loader
       '@swc/core':
         specifier: 1.10.11
         version: 1.10.11

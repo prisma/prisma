@@ -1,10 +1,5 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import process from 'node:process'
-
 import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
-import { loadSchemaFiles } from '@prisma/schema-files-loader'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
@@ -44,14 +39,12 @@ export type PrismaConfigInput<Env> = {
  * Define the configuration for the Prisma Development Kit.
  */
 export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaConfig<Env> {
-  const cwd = process.cwd()
-
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
   const config = defaultConfig<Env>()
 
-  defineSchemaConfig<Env>(config, configInput, { cwd })
+  defineSchemaConfig<Env>(config, configInput)
   debug('Prisma config [schema]: %o', config.schema)
 
   defineStudioConfig<Env>(config, configInput)
@@ -67,49 +60,12 @@ export function defineConfig<Env>(configInput: PrismaConfigInput<Env>): PrismaCo
 function defineSchemaConfig<Env>(
   config: DeepMutable<PrismaConfig<Env>>,
   configInput: PrismaConfigInput<Env>,
-  { cwd }: { cwd: string },
 ) {
   if (!configInput.schema) {
     return
   }
 
-  const { kind } = configInput.schema
-
-  if (kind === 'single') {
-    const schemaPath = path.resolve(cwd, configInput.schema.filenamePath)
-    const schemaRootDir = path.dirname(schemaPath)
-
-    config.schema = {
-      getPSLSchema: async () => {
-        const filename = path.basename(schemaPath)
-        const content = await fs.readFile(schemaPath, 'utf-8')
-        return {
-          schemaPath,
-          schemaRootDir,
-          schemas: [[filename, content]],
-        }
-      },
-      kind,
-    }
-  } else if (kind === 'multi') {
-    const schemaPath = path.resolve(cwd, configInput.schema.folder)
-
-    config.schema = {
-      getPSLSchema: async () => {
-        const schemas = await loadSchemaFiles(schemaPath)
-
-        // We're purposedly ignoring whether the user has enabled the `prismaSchemaFolder` preview feature.
-        // NOTE: I need access to `getConfig` from '@prisma/internals'.
-
-        return {
-          schemaPath,
-          schemaRootDir: schemaPath,
-          schemas,
-        }
-      },
-      kind,
-    }
-  }
+  config.schema = configInput.schema
 }
 
 function defineStudioConfig<Env>(config: DeepMutable<PrismaConfig<Env>>, configInput: PrismaConfigInput<Env>) {
