@@ -5,7 +5,6 @@ export {
   getSchema,
   getSchemaDir,
   type GetSchemaOptions,
-  type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
 } from './cli/getSchema'
@@ -108,3 +107,4 @@ export * as wasm from './wasm'
 export type { EnvPaths } from '@prisma/generator-helper'
 export type { BinaryTarget } from '@prisma/get-platform'
 export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+export type { GetSchemaResult } from '@prisma/schema-files-loader'
