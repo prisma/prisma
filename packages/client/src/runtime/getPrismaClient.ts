@@ -20,7 +20,7 @@ import {
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
+import { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -76,7 +76,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -301,7 +301,8 @@ export type GetPrismaClientConfig = {
   /**
    * Optional wasm loading configuration
    */
-  engineWasm?: WasmLoadingConfig
+  engineWasm?: EngineWasmLoadingConfig
+  compilerWasm?: CompilerWasmLoadingConfig
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -327,12 +328,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
+    /**
+     * @remarks This is used internally by Policy, do not rename or remove
+     */
     _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
@@ -456,6 +459,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           env: loadedEnv?.parsed ?? {},
           flags: [],
           engineWasm: config.engineWasm,
+          compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -506,8 +510,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -518,6 +520,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
@@ -816,13 +819,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
-      return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
-          addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-          addProperty(TX_ID, () => transaction.id),
-          removeProperties(itxClientDenyList),
-        ]),
+      return createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
+            addProperty(TX_ID, () => transaction.id),
+          ]),
+        ),
+        [removeProperties(itxClientDenyList)],
       )
     }
 
@@ -1027,15 +1032,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    get $metrics(): MetricsClient {
-      if (!this._hasPreviewFlag('metrics')) {
-        throw new PrismaClientValidationError(
-          '`metrics` preview feature must be enabled in order to access metrics API',
-          { clientVersion: this._clientVersion },
-        )
-      }
-      return this._metrics
-    }
+    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag

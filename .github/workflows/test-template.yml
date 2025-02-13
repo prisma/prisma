@@ -286,6 +286,69 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
+  # CLIENT (functional tests with client engine, query compiler and driver adapters)
+  #
+  client-query-compiler:
+    name: Client (func/query-compiler)
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: ['js_pg'] # TODO: add more flavors once we want to target SQLite and MySQL support
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [20]
+        previewFeatures: ['driverAdapters']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE: true
+          JEST_ALWAYS_EXIT_WITH_CODE_ZERO: true # TODO: only needed while we know jest tests are failing and do the checkAgainstKnownFailures step below
+
+      # Checks failed jest tests against known failures => fails build only if non known tests fail
+      - run: pnpm run test:knownQueryCompilerFailures:check ${{ matrix.flavor }}
+        working-directory: packages/client
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
   # CLIENT (memory tests)
   #
   client-memory:

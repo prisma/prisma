@@ -18,6 +18,7 @@ import { throwValidationException } from '../errorRendering/throwValidationExcep
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
+import { isParam } from '../model/Param'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
 import { isSkip, Skip } from '../types'
 import {
@@ -293,6 +294,10 @@ function serializeArgumentsValue(
         underlyingError: 'Provided Date object is invalid',
       })
     }
+  }
+
+  if (isParam(jsValue)) {
+    return { $type: 'Param', value: jsValue.name }
   }
 
   if (isFieldRef(jsValue)) {
