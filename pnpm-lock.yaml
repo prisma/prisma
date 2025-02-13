@@ -439,11 +439,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/studio':
-        specifier: 0.508.0
-        version: 0.508.0
+        specifier: 0.508.1-integration-orm-578-adapters-3.0
+        version: 0.508.1-integration-orm-578-adapters-3.0
       '@prisma/studio-server':
-        specifier: 0.508.0
-        version: 0.508.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
+        specifier: 0.508.1-integration-orm-578-adapters-3.0
+        version: 0.508.1-integration-orm-578-adapters-3.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
       '@swc/core':
         specifier: 1.10.11
         version: 1.10.11
@@ -871,10 +871,10 @@ importers:
         version: 3.12.10
       esbuild-register:
         specifier: 3.6.0
-        version: 3.6.0
+        version: 3.6.0(esbuild@0.24.2)
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)
+        version: 29.7.0(@types/node@20.14.1)(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.14.1)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -2901,25 +2901,25 @@ packages:
   '@prisma/query-engine-wasm@6.4.0-22.6b762f68259116818698cc00c29790aebfc0e55e':
     resolution: {integrity: sha512-nYUJz69mducGCxF8eDSKlnsltd0Ywb7z+gnY+gJt/PX83nwv0up+Q4RHasdKAbpCaBnnvYKmvCasgImnr2JkwA==}
 
-  '@prisma/studio-common@0.508.0':
-    resolution: {integrity: sha512-DN49PRVy85JusjoUtTz8oZJcUWLoF5sgIFbJAoaGUapRc+hk9aYU2+QGsStcuPHTD944E73UfLMyxcJZTyO2/A==}
+  '@prisma/studio-common@0.508.1-integration-orm-578-adapters-3.0':
+    resolution: {integrity: sha512-M28vlCk7Q2p9mxjcwU7hlNChvKMsAufZZ2EWaytIg03ze3mubcxdKoIXPbZO8duIel9XDRainX1BqfskXWNqNQ==}
     engines: {node: '>= 16.13'}
 
-  '@prisma/studio-pcw@0.508.0':
-    resolution: {integrity: sha512-Z/YsR5hOCSmyqfZcVYm6TeapxgO6n5X/0mergmx+7XaVHc5lop2lYV8S28DK3zVEbp7WJyymjIDuBN09eQcy2A==}
+  '@prisma/studio-pcw@0.508.1-integration-orm-578-adapters-3.0':
+    resolution: {integrity: sha512-+5AUxgzLU0FB49PVNtQ87uWBCtPttF9WtZQ8V2EhQOLxOzE7UykU17qckHkEQSK1oKFmOz6xjT5aGr4AlR1C1g==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/internals': '*'
 
-  '@prisma/studio-server@0.508.0':
-    resolution: {integrity: sha512-jXP4GgsiVCrVq7193CpXhdjWRZ0C1z0OTdcgKW3AJBCpVckfmoiPwFnumHPTIRb19edmhiiRid7m6M0vdqWxGg==}
+  '@prisma/studio-server@0.508.1-integration-orm-578-adapters-3.0':
+    resolution: {integrity: sha512-Hn5gTlWA7ckySi0RuoGdhZk09wEoqNeMgbN6SA3MHmSax8v+Zkhc8TEgzp6SYM/D4g43bKO+mv2YS3pALYujGA==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
 
-  '@prisma/studio@0.508.0':
-    resolution: {integrity: sha512-2igk2grcBvcFk3tn/5j+apmr61rWMcDuMS94TJo2jkXXcd2nrol2BUTibIguJWl3AINVO2bRwpjKgIdu1thhtg==}
+  '@prisma/studio@0.508.1-integration-orm-578-adapters-3.0':
+    resolution: {integrity: sha512-IIcrmBQyBqfXbrBAqemj5l0aCxqWwtP6guAk1zJGnSAjfI5Oe0pNmE7KHzc2ZPBx9ZkjEBPyJnxecccFlJpv+A==}
 
   '@rushstack/node-core-library@5.11.0':
     resolution: {integrity: sha512-I8+VzG9A0F3nH2rLpPd7hF8F7l5Xb7D+ldrWVZYegXM6CsKkvWc670RlgK3WX8/AseZfXA/vVrh0bpXe2Y2UDQ==}
@@ -5458,7 +5458,6 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -8180,41 +8179,6 @@ snapshots:
       jest-util: 29.7.0
       slash: 3.0.0
 
-  '@jest/core@29.7.0':
-    dependencies:
-      '@jest/console': 29.7.0
-      '@jest/reporters': 29.7.0
-      '@jest/test-result': 29.7.0
-      '@jest/transform': 29.7.0
-      '@jest/types': 29.6.3
-      '@types/node': 20.12.7
-      ansi-escapes: 4.3.2
-      chalk: 4.1.2
-      ci-info: 3.9.0
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@20.12.7)
-      jest-haste-map: 29.7.0
-      jest-message-util: 29.7.0
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-resolve-dependencies: 29.7.0
-      jest-runner: 29.7.0
-      jest-runtime: 29.7.0
-      jest-snapshot: 29.7.0
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      jest-watcher: 29.7.0
-      micromatch: 4.0.8
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-ansi: 6.0.1
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
   '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@18.19.31)(typescript@5.4.5))':
     dependencies:
       '@jest/console': 29.7.0
@@ -8797,11 +8761,11 @@ snapshots:
 
   '@prisma/query-engine-wasm@6.4.0-22.6b762f68259116818698cc00c29790aebfc0e55e': {}
 
-  '@prisma/studio-common@0.508.0':
+  '@prisma/studio-common@0.508.1-integration-orm-578-adapters-3.0':
     dependencies:
       buffer: 6.0.3
 
-  '@prisma/studio-pcw@0.508.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
+  '@prisma/studio-pcw@0.508.1-integration-orm-578-adapters-3.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
     dependencies:
       '@prisma/client': link:packages/client
       '@prisma/internals': link:packages/internals
@@ -8810,12 +8774,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@prisma/studio-server@0.508.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
+  '@prisma/studio-server@0.508.1-integration-orm-578-adapters-3.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.508.0
-      '@prisma/studio-common': 0.508.0
-      '@prisma/studio-pcw': 0.508.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.508.1-integration-orm-578-adapters-3.0
+      '@prisma/studio-common': 0.508.1-integration-orm-578-adapters-3.0
+      '@prisma/studio-pcw': 0.508.1-integration-orm-578-adapters-3.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.33(encoding@0.1.13)
       cors: 2.8.5
       debug: 4.3.3
@@ -8826,7 +8790,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@prisma/studio@0.508.0': {}
+  '@prisma/studio@0.508.1-integration-orm-578-adapters-3.0': {}
 
   '@rushstack/node-core-library@5.11.0(@types/node@20.12.7)':
     dependencies:
@@ -10081,21 +10045,6 @@ snapshots:
       - supports-color
       - ts-node
 
-  create-jest@29.7.0(@types/node@20.12.7):
-    dependencies:
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      exit: 0.1.2
-      graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@20.12.7)
-      jest-util: 29.7.0
-      prompts: 2.4.2
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
   create-jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.12.7)(typescript@5.4.5)):
     dependencies:
       '@jest/types': 29.6.3
@@ -10356,12 +10305,6 @@ snapshots:
       is-callable: 1.2.7
       is-date-object: 1.0.5
       is-symbol: 1.0.4
-
-  esbuild-register@3.6.0:
-    dependencies:
-      debug: 4.3.7
-    transitivePeerDependencies:
-      - supports-color
 
   esbuild-register@3.6.0(esbuild@0.24.2):
     dependencies:
@@ -11472,25 +11415,6 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-cli@29.7.0(@types/node@20.12.7):
-    dependencies:
-      '@jest/core': 29.7.0
-      '@jest/test-result': 29.7.0
-      '@jest/types': 29.6.3
-      chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@20.12.7)
-      exit: 0.1.2
-      import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@20.12.7)
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      yargs: 17.6.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
   jest-cli@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.12.7)(typescript@5.4.5)):
     dependencies:
       '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.12.7)(typescript@5.4.5))
@@ -11588,36 +11512,6 @@ snapshots:
     optionalDependencies:
       '@types/node': 18.19.31
       ts-node: 10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5)
-    transitivePeerDependencies:
-      - babel-plugin-macros
-      - supports-color
-
-  jest-config@29.7.0(@types/node@20.12.7):
-    dependencies:
-      '@babel/core': 7.21.8
-      '@jest/test-sequencer': 29.7.0
-      '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.21.8)
-      chalk: 4.1.2
-      ci-info: 3.9.0
-      deepmerge: 4.2.2
-      glob: 7.2.3
-      graceful-fs: 4.2.11
-      jest-circus: 29.7.0
-      jest-environment-node: 29.7.0
-      jest-get-type: 29.6.3
-      jest-regex-util: 29.6.3
-      jest-resolve: 29.7.0
-      jest-runner: 29.7.0
-      jest-util: 29.7.0
-      jest-validate: 29.7.0
-      micromatch: 4.0.8
-      parse-json: 5.2.0
-      pretty-format: 29.7.0
-      slash: 3.0.0
-      strip-json-comments: 3.1.1
-    optionalDependencies:
-      '@types/node': 20.12.7
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -12035,18 +11929,6 @@ snapshots:
       '@jest/types': 29.6.3
       import-local: 3.1.0
       jest-cli: 29.7.0(@types/node@18.19.31)(ts-node@10.9.2(@swc/core@1.2.204)(@types/node@18.19.31)(typescript@5.4.5))
-    transitivePeerDependencies:
-      - '@types/node'
-      - babel-plugin-macros
-      - supports-color
-      - ts-node
-
-  jest@29.7.0(@types/node@20.12.7):
-    dependencies:
-      '@jest/core': 29.7.0
-      '@jest/types': 29.6.3
-      import-local: 3.1.0
-      jest-cli: 29.7.0(@types/node@20.12.7)
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
