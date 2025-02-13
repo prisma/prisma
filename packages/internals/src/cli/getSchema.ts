@@ -1,5 +1,12 @@
 import { Debug } from '@prisma/debug'
-import { loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
+import type {
+  GetSchemaResult,
+  LookupResult,
+  NonFatalLookupError,
+  PathType,
+  SuccessfulLookupResult,
+} from '@prisma/schema-files-loader'
+import { ensureType, loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
 import fs from 'fs'
 import { green } from 'kleur/colors'
 import path from 'path'
@@ -14,7 +21,6 @@ const stat = promisify(fs.stat)
 
 const debug = Debug('prisma:getSchema')
 
-type PathType = 'file' | 'directory'
 type DefaultLocationPath = {
   path: string
   kind: PathType
@@ -24,38 +30,6 @@ type DefaultLookupRule = {
   schemaPath: DefaultLocationPath
   conflictsWith?: DefaultLocationPath
 }
-
-type SuccessfulLookupResult = {
-  ok: true
-  schema: GetSchemaResult
-}
-
-/// Non fatal error does not cause
-/// abort of the lookup process and usually
-/// means we should try next option. It will be turned into exception
-/// only if all options are exhausted
-type NonFatalLookupError =
-  | {
-      kind: 'NotFound'
-      expectedType?: PathType
-      path: string
-    }
-  | {
-      kind: 'WrongType'
-      path: string
-      expectedTypes: PathType[]
-    }
-  | {
-      kind: 'FolderPreviewNotEnabled'
-      path: string
-    }
-
-type LookupResult =
-  | SuccessfulLookupResult
-  | {
-      ok: false
-      error: NonFatalLookupError
-    }
 
 type DefaultLookupRuleFailure = {
   rule: DefaultLookupRule
@@ -82,25 +56,6 @@ type PackageJsonLookupResult =
         kind: 'PackageJsonNotConfigured'
       }
     }
-
-export type GetSchemaResult = {
-  /**
-   * A path from which schema was loaded
-   * Can be either folder or a single file
-   */
-  schemaPath: string
-  /**
-   * Base dir for all of the schema files.
-   * In-multi file mode, this is equal to `schemaPath`.
-   * In single-file mode, this is a parent directory of
-   * a file
-   */
-  schemaRootDir: string
-  /**
-   * All loaded schema files
-   */
-  schemas: MultipleSchemas
-}
 
 export type GetSchemaOptions = {
   cwd?: string
@@ -185,26 +140,6 @@ async function readSchemaFromDirectory(schemaPath: string): Promise<LookupResult
   return { ok: true, schema: { schemaPath, schemaRootDir: schemaPath, schemas: files } }
 }
 
-async function ensureType(entryPath: string, expectedType: PathType): Promise<NonFatalLookupError | undefined> {
-  try {
-    const pathStat = await stat(entryPath)
-    if (expectedType === 'file' && pathStat.isFile()) {
-      return undefined
-    }
-
-    if (expectedType === 'directory' && pathStat.isDirectory()) {
-      return undefined
-    }
-
-    return { kind: 'WrongType', path: entryPath, expectedTypes: [expectedType] }
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      return { kind: 'NotFound', path: entryPath, expectedType }
-    }
-    throw e
-  }
-}
-
 async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<LookupResult> {
   let stats: fs.Stats
   try {
@@ -238,6 +173,7 @@ async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<Lookup
  */
 async function getSchemaWithPathInternal(
   schemaPathFromArgs: string | undefined,
+  // config: PrismaConfig,
   { cwd, argumentName }: GetSchemaInternalOptions,
 ) {
   // 1. Try the user custom path, when provided.
@@ -256,11 +192,15 @@ async function getSchemaWithPathInternal(
     return customSchemaResult
   }
 
+  // 2. Try the `schema` from `PrismaConfig`
+
+  // 3. Use the "prisma"."schema" attribute from the project's package.json
   const pkgJsonResult = await getSchemaFromPackageJson(cwd)
   if (pkgJsonResult.ok) {
     return pkgJsonResult
   }
 
+  // 4. Look into the default, "canonical" locations in the cwd (e.g., `./schema.prisma` or `./prisma/schema.prisma`)
   const defaultResult = await getDefaultSchema(cwd)
   if (defaultResult.ok) {
     return defaultResult
