@@ -30,6 +30,7 @@
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
+    "@eslint-community/eslint-plugin-eslint-comments": "4.4.0",
     "@eslint/compat": "1.2.5",
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.19.0",
@@ -58,8 +59,7 @@
     "esbuild-register": "3.6.0",
     "eslint": "9.19.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-import-x": "3.1.0",
     "eslint-plugin-jest": "28.10.0",
     "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "4.2.1",
