@@ -1,10 +1,10 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 
 /**
  * Command interface
  */
 export interface Command {
-  parse(argv: string[], config: PrismaConfig): Promise<string | Error>
+  parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error>
 }
 
 /**
