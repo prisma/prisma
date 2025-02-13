@@ -15,7 +15,7 @@ describe('loadConfig', () => {
 
     expect(config).toMatchObject({
       earlyAccess: true,
-      loadedFromFile: path.join(ctx.fs.cwd(), './prisma.config.ts'),
+      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
     })
   })
 
