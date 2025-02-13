@@ -1,6 +1,6 @@
 import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
-import { serialize } from '../../../../runtime/core/engines/client/interpreter/serializer'
+import { serialize } from './serialize'
 
 test('should serialize empty rows', () => {
   const result = serialize({

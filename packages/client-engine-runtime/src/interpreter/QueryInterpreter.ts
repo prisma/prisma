@@ -1,10 +1,10 @@
 import { Query, Queryable } from '@prisma/driver-adapter-utils'
 
-import { QueryEvent } from '../../common/types/Events'
+import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
-import { serialize } from './serializer'
+import { serialize } from './serialize'
 
 export type QueryInterpreterOptions = {
   queryable: Queryable
@@ -158,16 +158,7 @@ export class QueryInterpreter {
       timestamp,
       duration: endInstant - startInstant,
       query: query.sql,
-      // TODO: we should probably change the interface to contain a proper array in the next major version.
-      params: JSON.stringify(query.args),
-      // TODO: this field only exists for historical reasons as we grandfathered it from the time
-      // when we emitted `tracing` events to stdout in the engine unchanged, and then described
-      // them in the public API as TS types. Thus this field used to contain the name of the Rust
-      // module in which an event originated. When using library engine, which uses a different
-      // mechanism with a JavaScript callback for logs, it's normally just an empty string instead.
-      // This field is definitely not useful and should be removed from the public types (but it's
-      // technically a breaking change, even if a tiny and inconsequential one).
-      target: 'QueryInterpreter',
+      params: query.args,
     })
 
     return result

@@ -208,15 +208,6 @@ const accelerateContractBuildConfig: BuildOptions = {
   emitTypes: true,
 }
 
-const clientEngineRuntimeBuildConfig: BuildOptions = {
-  name: 'client-engine-runtime',
-  entryPoints: ['src/runtime/core/engines/client/external-bundle-entrypoint.ts'],
-  outfile: '../client-engine-runtime/dist/index',
-  format: 'esm',
-  bundle: true,
-  emitTypes: true,
-}
-
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -240,7 +231,6 @@ void build([
   defaultIndexConfig,
   reactNativeBuildConfig,
   accelerateContractBuildConfig,
-  clientEngineRuntimeBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
 })

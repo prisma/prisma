@@ -206,6 +206,7 @@
     "@prisma/adapter-pg-worker": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/config": "workspace:*",
+    "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",

@@ -1,1 +1,4 @@
-// this package is actually built by `@prisma/client`
+import { build } from '../../../helpers/compile/build'
+import { adapterConfig } from '../../../helpers/compile/configs'
+
+void build(adapterConfig)
