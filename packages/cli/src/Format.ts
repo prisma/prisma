@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
