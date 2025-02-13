@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfig } from '@prisma/config'
 import { Commands, HelpError, link } from '@prisma/internals'
 
 export const dispatchToSubCommand = async (commands: Commands, argv: string[], config: PrismaConfig) => {
