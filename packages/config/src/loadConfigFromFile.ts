@@ -6,8 +6,8 @@ import { Debug } from '@prisma/driver-adapter-utils'
 import { Either } from 'effect'
 import { ParseError } from 'effect/ParseResult'
 
-import type { PrismaConfig } from './defineConfig'
-import { parsePrismaConfig } from './PrismaConfig'
+import type { PrismaConfigInternal } from './defineConfig'
+import { parsePrismaConfigInternalShape } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -43,7 +43,7 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfig<any>
+      config: PrismaConfigInternal<any>
       error?: never
     }
   | {
@@ -105,8 +105,9 @@ export async function loadConfigFromFile({
     debug(`Config file loaded in %s`, getTime())
 
     // Ensure the config file conforms to the expected PrismaConfig schema.
-    const parseResultEither = parsePrismaConfig(required['default'])
+    const parseResultEither = parsePrismaConfigInternalShape(required['default'])
 
+    // Failure case
     if (Either.isLeft(parseResultEither)) {
       return {
         resolvedPath,
@@ -117,6 +118,7 @@ export async function loadConfigFromFile({
       }
     }
 
+    // Success case
     const prismaConfig = parseResultEither.right
 
     return {
