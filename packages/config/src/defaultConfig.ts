@@ -1,6 +1,6 @@
 import type { DeepMutable } from 'effect/Types'
 
-import type { PrismaConfigInternal } from './PrismaConfig'
+import { createPrismaConfigInternalShape, type PrismaConfigInternal } from './PrismaConfig'
 
 /**
  * All default values for the config shall be set here.
@@ -8,8 +8,8 @@ import type { PrismaConfigInternal } from './PrismaConfig'
  * => Consistent defaults and centralized top-level control of configuration via the CLI.
  */
 export function defaultConfig<Env = any>(): DeepMutable<PrismaConfigInternal<Env>> {
-  return {
+  return createPrismaConfigInternalShape<Env>().make({
     earlyAccess: true,
     loadedFromFile: null,
-  }
+  })
 }

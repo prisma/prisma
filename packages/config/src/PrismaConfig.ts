@@ -1,7 +1,7 @@
 import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Schema as Shape } from 'effect'
 import type { Either } from 'effect/Either'
-import { identity } from 'effect/Function'
+import { identity, pipe } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
 
 // Define the shape for the `createAdapter` function
@@ -54,31 +54,36 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
 export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
 
-// Define the shape for the `PrismaConfigInternal` type
-const createPrismaConfigInternalShape = <Env = any>() =>
-  Shape.Struct({
-    /**
-     * Whether features with an unstable API are enabled.
-     */
-    earlyAccess: Shape.Literal(true),
-    /**
-     * The configuration for the Prisma schema file(s).
-     */
-    schema: Shape.optional(PrismaSchemaConfigShape),
-    /**
-     * The configuration for Prisma Studio.
-     */
-    studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
-    /**
-     * The path from where the config was loaded.
-     * It's set to `null` if no config file was found and only default config is applied.
-     */
-    loadedFromFile: Shape.NullOr(Shape.String),
-  })
+// Define the shape for the `PrismaConfigInternal` type.
+// We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
+export const createPrismaConfigInternalShape = <Env = any>() =>
+  pipe(
+    Shape.Struct({
+      /**
+       * Whether features with an unstable API are enabled.
+       */
+      earlyAccess: Shape.Literal(true),
+      /**
+       * The configuration for the Prisma schema file(s).
+       */
+      schema: Shape.optional(PrismaSchemaConfigShape),
+      /**
+       * The configuration for Prisma Studio.
+       */
+      studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
+      /**
+       * The path from where the config was loaded.
+       * It's set to `null` if no config file was found and only default config is applied.
+       */
+      loadedFromFile: Shape.NullOr(Shape.String),
+    }),
+    Shape.brand('PrismaConfigInternal'),
+  )
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
  * by the `defineConfig` function.
+ * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
 export type PrismaConfigInternal<Env = any> = ReturnType<typeof createPrismaConfigInternalShape<Env>>['Type']
 
