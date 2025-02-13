@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
@@ -37,7 +37,7 @@ Or specify a Prisma schema path
 
   `)
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const before = Math.round(performance.now())
     const args = arg(argv, {
       '--help': Boolean,

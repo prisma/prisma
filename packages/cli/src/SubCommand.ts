@@ -1,5 +1,5 @@
 import { getCommand } from '@antfu/ni'
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
 import { existsSync } from 'fs'
@@ -9,7 +9,7 @@ import { tmpdir } from 'os'
  * Sub-CLIs that are installed on demand need to implement this interface
  */
 type Runnable = {
-  run: (args: string[], config: PrismaConfig) => Promise<void>
+  run: (args: string[], config: PrismaConfigInternal) => Promise<void>
 }
 
 /**
@@ -22,7 +22,7 @@ export class SubCommand implements Command {
     this.pkg = pkg
   }
 
-  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     // we accept forcing a version with @, eg. prisma policy @1.0.0 --help
     const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
     const pkg = `${this.pkg}${version}`
