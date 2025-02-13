@@ -17,6 +17,10 @@ export interface CreateErrorReportInput {
   kind: ErrorKind
   liftRequest?: string
   operatingSystem: string
+  // We wanted to rename this to `binaryTarget` but we had to skip the rename here
+  // because we didn't want to create more work
+  // as the error handling backend would need to be updated and re-deployed
+  // https://github.com/prisma/error-handling-backend
   platform: string
   rustStackTrace: string
   schemaFile?: string
@@ -76,7 +80,7 @@ async function request(query: string, variables: any): Promise<any> {
       if (!response.ok) {
         throw new Error(`Error during request: ${response.status} ${response.statusText} - Query: ${query}`)
       }
-      return response.json()
+      return response.json() as any
     })
     .then((responseAsJson) => {
       if (responseAsJson.errors) {

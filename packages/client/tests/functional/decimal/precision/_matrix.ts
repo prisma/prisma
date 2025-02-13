@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { Providers } from '../../_utils/providers'
 
 const maxPrecisionByProvider = {
   sqlserver: 38,
@@ -9,16 +10,16 @@ export default defineMatrix(
   () => [
     [
       {
-        provider: 'postgresql',
+        provider: Providers.POSTGRESQL,
       },
       {
-        provider: 'mysql',
+        provider: Providers.MYSQL,
       },
       {
-        provider: 'cockroachdb',
+        provider: Providers.COCKROACHDB,
       },
       {
-        provider: 'sqlserver',
+        provider: Providers.SQLSERVER,
       },
     ],
     [

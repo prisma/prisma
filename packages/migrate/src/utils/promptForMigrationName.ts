@@ -29,7 +29,7 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
   // An alternative would be to find a way to capture the prompt message from jest tests
   // (attempted without success)
   if (Boolean((prompt as any)._injected?.length) === true) {
-    console.info(messageForPrompt)
+    process.stdout.write(messageForPrompt + '\n')
   }
   const response = await prompt({
     type: 'text',

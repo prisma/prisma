@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
@@ -23,9 +23,11 @@ import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
+import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
@@ -35,14 +37,17 @@ import { Init } from './Init'
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
 import { Studio } from './Studio'
+import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
+import { loadConfig } from './utils/loadConfig'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const debug = Debug('prisma:cli:bin')
+
 const packageJson = require('../package.json')
 
 const commandArray = process.argv.slice(2)
@@ -59,6 +64,7 @@ const args = arg(
   commandArray,
   {
     '--schema': String,
+    '--config': String,
     '--telemetry-information': String,
   },
   false,
@@ -81,6 +87,47 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
+      platform: Platform.$.new({
+        policy: new SubCommand('@prisma/cli-policy'),
+
+        workspace: Platform.Workspace.$.new({
+          show: Platform.Workspace.Show.new(),
+        }),
+        auth: Platform.Auth.$.new({
+          login: Platform.Auth.Login.new(),
+          logout: Platform.Auth.Logout.new(),
+          show: Platform.Auth.Show.new(),
+        }),
+        environment: Platform.Environment.$.new({
+          create: Platform.Environment.Create.new(),
+          delete: Platform.Environment.Delete.new(),
+          show: Platform.Environment.Show.new(),
+        }),
+        project: Platform.Project.$.new({
+          create: Platform.Project.Create.new(),
+          delete: Platform.Project.Delete.new(),
+          show: Platform.Project.Show.new(),
+        }),
+        pulse: Platform.Pulse.$.new({
+          enable: Platform.Pulse.Enable.new(),
+          disable: Platform.Pulse.Disable.new(),
+        }),
+        accelerate: Platform.Accelerate.$.new({
+          enable: Platform.Accelerate.Enable.new(),
+          disable: Platform.Accelerate.Disable.new(),
+        }),
+        serviceToken: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(),
+          delete: Platform.ServiceToken.Delete.new(),
+          show: Platform.ServiceToken.Show.new(),
+        }),
+        // Alias to "serviceToken". This will be removed in a future ORM release.
+        apikey: Platform.ServiceToken.$.new({
+          create: Platform.ServiceToken.Create.new(true),
+          delete: Platform.ServiceToken.Delete.new(true),
+          show: Platform.ServiceToken.Show.new(true),
+        }),
+      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -106,24 +153,24 @@ async function main(): Promise<number> {
       validate: Validate.new(),
       format: Format.new(),
       telemetry: Telemetry.new(),
+      debug: DebugInfo.new(),
     },
-    [
-      'version',
-      'init',
-      'migrate',
-      'db',
-      'introspect',
-      'studio',
-      'generate',
-      'validate',
-      'format',
-      'doctor',
-      'telemetry',
-    ],
+    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
+  const config = await loadConfig(args['--config'])
+  if (config instanceof HelpError) {
+    console.error(config.message)
+    return 1
+  }
+
+  const startCliExec = performance.now()
   // Execute the command
-  const result = await cli.parse(commandArray)
+  const result = await cli.parse(commandArray, config)
+  const endCliExec = performance.now()
+  const cliExecElapsedTime = endCliExec - startCliExec
+  debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
+
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result.message)

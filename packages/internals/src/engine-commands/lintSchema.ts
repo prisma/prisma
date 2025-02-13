@@ -1,9 +1,10 @@
 import { yellow } from 'kleur/colors'
 
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
+import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 
-type LintSchemaParams = { schema: string }
+type LintSchemaParams = { schemas: MultipleSchemas }
 
 type LintDiagnosticBase = {
   start: number
@@ -20,13 +21,13 @@ export type LintDiagnostic = LintWarning | LintError
  * Diagnose the given schema, returning a list either errors or warnings.
  * This function may panic, but it won't throw any standard error.
  */
-export function lintSchema({ schema }: LintSchemaParams): LintDiagnostic[] {
-  const lintResult = prismaSchemaWasm.lint(schema)
+export function lintSchema({ schemas }: LintSchemaParams): LintDiagnostic[] {
+  const lintResult = prismaSchemaWasm.lint(JSON.stringify(schemas))
   const lintDiagnostics = JSON.parse(lintResult) as LintDiagnostic[]
   return lintDiagnostics
 }
 
-export function handleLintPanic<T>(tryCb: () => T, { schema }: LintSchemaParams) {
+export function handleLintPanic<T>(tryCb: () => T, { schemas }: LintSchemaParams) {
   try {
     return tryCb()
   } catch (e: unknown) {
@@ -37,8 +38,8 @@ export function handleLintPanic<T>(tryCb: () => T, { schema }: LintSchemaParams)
       /* rustStack */ stack,
       /* request */ '@prisma/prisma-schema-wasm lint',
       ErrorArea.FMT_CLI,
-      undefined,
-      schema,
+      /* schemaPath */ debugMultipleSchemaPaths(schemas),
+      /* schema */ schemas,
     )
 
     throw panic

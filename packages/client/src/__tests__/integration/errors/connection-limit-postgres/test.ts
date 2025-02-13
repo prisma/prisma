@@ -14,9 +14,7 @@ describeIf(process.platform === 'linux')('connection-limit-postgres', () => {
         await Promise.all(clients.map((c) => c.$disconnect()))
       } catch (e) {
         // When using the binary engine the error is thrown here :thinking:
-        expect(e.message).toMatchInlineSnapshot(
-          `Error querying the database: db error: FATAL: sorry, too many clients already`,
-        )
+        expect(e.message).toMatchInlineSnapshot(`Error querying the database: FATAL: sorry, too many clients already`)
       }
     } else {
       await Promise.all(clients.map((c) => c.$disconnect()))
@@ -42,7 +40,7 @@ describeIf(process.platform === 'linux')('connection-limit-postgres', () => {
         await client.$connect()
       }
     } catch (e) {
-      expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
+      expect(e.message).toMatch('Error querying the database: FATAL: sorry, too many clients already')
     }
   }, 200_000)
 })

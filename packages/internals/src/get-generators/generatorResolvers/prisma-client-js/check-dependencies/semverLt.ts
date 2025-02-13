@@ -5,8 +5,8 @@
  * @param {string} b
  */
 export function semverLt(a, b) {
-  const [major1, minor1, patch1] = a.split('.')
-  const [major2, minor2, patch2] = b.split('.')
+  const [major1, minor1, patch1] = a.split('.').map(Number)
+  const [major2, minor2, patch2] = b.split('.').map(Number)
 
   if (major1 < major2) {
     return true

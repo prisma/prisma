@@ -27,4 +27,11 @@ const prisma = new PrismaClient({
       },
     }),
   )
+
+  // See https://github.com/prisma/prisma/issues/19598
+  expectError(
+    await prisma.user.count({
+      distinct: ['name'],
+    }),
+  )
 })()

@@ -1,15 +1,16 @@
 import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider'
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   const fields: string[] = []
   const declarations: string[] = []
 
-  if (provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb') {
+  if (provider === Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.MONGODB) {
     fields.push('list String[]')
   }
 
-  if (provider !== 'sqlite' && provider !== 'sqlserver') {
+  if (provider !== Providers.SQLITE && provider !== Providers.SQLSERVER) {
     declarations.push(/* Prisma */ `
     enum Enum {
       A
@@ -18,12 +19,12 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
 
     fields.push('enum Enum')
 
-    if (provider !== 'mysql') {
+    if (provider !== Providers.MYSQL) {
       fields.push('enumList Enum[]')
     }
   }
 
-  if (provider === 'mongodb') {
+  if (provider === Providers.MONGODB) {
     declarations.push(/* Prisma */ `
     type Composite {
       value String
@@ -35,7 +36,6 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
-    previewFeatures = [${previewFeatures}]
   }
   
   datasource db {

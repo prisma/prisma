@@ -1,8 +1,8 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -17,7 +17,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', 'foreignKeys' as const)
 
@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
                 },
               }),
             )
@@ -150,13 +150,14 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
               },
             }),
           )
@@ -175,7 +176,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
                 },
               }),
             )
@@ -225,13 +226,14 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
+                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
               },
             }),
           )
@@ -243,7 +245,11 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
+      reason: 'Only testing relational databases using foreign keys.',
+    },
+    skipDriverAdapter: {
+      from: ['js_planetscale'],
       reason: 'Only testing relational databases using foreign keys.',
     },
   },

@@ -23,7 +23,7 @@ function addPackageJSON(pth) {
 
 /**
  * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
- * @param {string} startPath - Path to Start At
+ * @param {string | null} startPath - Path to Start At
  * @param {number} limit - Find Up limit
  * @returns {string | null}
  */
@@ -176,11 +176,11 @@ function run(cmd, params, cwd = process.cwd()) {
 
   return new Promise((resolve, reject) => {
     child.on('close', () => {
-      resolve()
+      resolve(undefined)
     })
     child.on('exit', (code) => {
       if (code === 0) {
-        resolve()
+        resolve(undefined)
       } else {
         reject(code)
       }
@@ -201,40 +201,46 @@ function run(cmd, params, cwd = process.cwd()) {
 async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
-    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
-    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
-    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
-    const defaultDenoClientDir = path.join(dotPrismaClientDir, 'deno')
-    const defaultDenoEdgeIndexPath = path.join(defaultDenoClientDir, 'edge.ts')
+    const denoPrismaClientDir = path.join(__dirname, '../../../.prisma/client/deno')
+
     await makeDir(dotPrismaClientDir)
-    await makeDir(defaultDenoClientDir)
+    await makeDir(denoPrismaClientDir)
 
-    // `default-index.js` may not exist in scripts yet when the postinstall script is running
-    // in Prisma repo itself. It will always exist in the published package.
-    if (!fs.existsSync(defaultNodeIndexPath) && fs.existsSync(path.join(__dirname, 'default-index.js'))) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
+    const defaultFileConfig = {
+      js: path.join(__dirname, 'default-index.js'),
+      ts: path.join(__dirname, 'default-index.d.ts'),
     }
 
-    if (!fs.existsSync(defaultBrowserIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    /**
+     * @type {Record<string, { js?: string; ts?: string } | undefined>}
+     */
+    const defaultFiles = {
+      index: defaultFileConfig,
+      edge: defaultFileConfig,
+      default: defaultFileConfig,
+      wasm: defaultFileConfig,
+      'index-browser': {
+        js: path.join(__dirname, 'default-index.js'),
+        ts: undefined,
+      },
+      'deno/edge': {
+        js: undefined,
+        ts: path.join(__dirname, 'default-deno-edge.ts'),
+      },
     }
 
-    if (!fs.existsSync(defaultNodeIndexDtsPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
-    }
+    for (const file of Object.keys(defaultFiles)) {
+      const { js, ts } = defaultFiles[file] ?? {}
+      const dotPrismaJsFilePath = path.join(dotPrismaClientDir, `${file}.js`)
+      const dotPrismaTsFilePath = path.join(dotPrismaClientDir, `${file}.d.ts`)
 
-    if (!fs.existsSync(defaultEdgeIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
-    }
+      if (js && !fs.existsSync(dotPrismaJsFilePath) && fs.existsSync(js)) {
+        await fs.promises.copyFile(js, dotPrismaJsFilePath)
+      }
 
-    if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
-    }
-
-    if (!fs.existsSync(defaultDenoEdgeIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-deno-edge.ts'), defaultDenoEdgeIndexPath)
+      if (ts && !fs.existsSync(dotPrismaTsFilePath) && fs.existsSync(ts)) {
+        await fs.promises.copyFile(ts, dotPrismaTsFilePath)
+      }
     }
   } catch (e) {
     console.error(e)

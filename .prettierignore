@@ -1,0 +1,14 @@
+pnpm-lock.yaml
+dist/
+/.prisma
+/packages/cli/build
+/packages/cli/prisma-client
+/packages/cli/preinstall
+/packages/client/runtime
+/packages/client/generator-build
+/packages/client/declaration
+/packages/client/scripts/default-index.js
+/packages/config/src/__tests__/fixtures/loadConfigFromFile/invalid/syntax-error/prisma.config.ts
+/sandbox
+.idea/
+.vscode/

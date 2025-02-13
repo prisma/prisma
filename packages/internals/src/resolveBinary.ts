@@ -1,6 +1,6 @@
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType, engineEnvVarMap, getBinaryEnvVarPath } from '@prisma/fetch-engine'
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -13,13 +13,13 @@ import { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 export { BinaryType, engineEnvVarMap }
 
 async function getBinaryName(name: BinaryType): Promise<string> {
-  const platform = await getPlatform()
-  const extension = platform === 'windows' ? '.exe' : ''
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
+  const extension = binaryTarget === 'windows' ? '.exe' : ''
 
   if (name === BinaryType.QueryEngineLibrary) {
-    return getNodeAPIName(platform, 'fs')
+    return getNodeAPIName(binaryTarget, 'fs')
   }
-  return `${name}-${platform}${extension}`
+  return `${name}-${binaryTarget}${extension}`
 }
 
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {

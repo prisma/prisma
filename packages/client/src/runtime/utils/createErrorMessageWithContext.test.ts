@@ -20,6 +20,14 @@ function mockFile(mockedPath: string, content: string) {
   })
 }
 
+beforeAll(() => {
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'library'
+})
+
+afterAll(() => {
+  delete (globalThis as any).TARGET_BUILD_TYPE
+})
+
 afterEach(() => vol.reset())
 
 test('basic', () => {
@@ -30,12 +38,12 @@ test('basic', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation:
 
-                                    Invalid \`prisma.model.findFirst()\` invocation:
 
-
-                                    What a terrible failure!
-                  `)
+    What a terrible failure!"
+  `)
 })
 
 test('basic panic', () => {
@@ -47,13 +55,13 @@ test('basic panic', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Oops, an unknown error occurred! This is on us, you did nothing wrong.
+    It occurred in the \`prisma.model.findFirst()\` invocation:
 
-                                    Oops, an unknown error occurred! This is on us, you did nothing wrong.
-                                    It occurred in the \`prisma.model.findFirst()\` invocation:
 
-
-                                    What a terrible failure!
-                  `)
+    What a terrible failure!"
+  `)
 })
 
 test('without callsite', () => {
@@ -63,12 +71,12 @@ test('without callsite', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation:
 
-                                    Invalid \`prisma.model.findFirst()\` invocation:
 
-
-                                    What a terrible failure!
-                  `)
+    What a terrible failure!"
+  `)
 })
 
 test('with matching source file', () => {
@@ -80,13 +88,13 @@ test('with matching source file', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                                    Invalid \`prisma.model.findFirst()\` invocation in
-                                    /project/some-file.js:1:1
-
-                                    → 1 prisma.model.findFirst(
-                                    What a terrible failure!
-                  `)
+    → 1 prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('panic with matching source file', () => {
@@ -99,14 +107,14 @@ test('panic with matching source file', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Oops, an unknown error occurred! This is on us, you did nothing wrong.
+    It occurred in the \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                Oops, an unknown error occurred! This is on us, you did nothing wrong.
-                It occurred in the \`prisma.model.findFirst()\` invocation in
-                /project/some-file.js:1:1
-
-                → 1 prisma.model.findFirst({})
-                What a terrible failure!
-        `)
+    → 1 prisma.model.findFirst({})
+    What a terrible failure!"
+  `)
 })
 
 test('with matching source file, but without matching call at the line', () => {
@@ -118,12 +126,12 @@ test('with matching source file, but without matching call at the line', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation:
 
-                                    Invalid \`prisma.model.findFirst()\` invocation:
 
-
-                                    What a terrible failure!
-                  `)
+    What a terrible failure!"
+  `)
 })
 
 test('with matching source file, but non-existing line number', () => {
@@ -135,11 +143,11 @@ test('with matching source file, but non-existing line number', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
-
+    "
     Invalid \`prisma.model.findFirst()\` invocation:
 
 
-    What a terrible failure!
+    What a terrible failure!"
   `)
 })
 
@@ -152,13 +160,13 @@ test('with matching source line, but without {', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                Invalid \`prisma.model.findFirst()\` invocation in
-                /project/some-file.js:1:1
-
-                → 1 prisma.model.findFirst(
-                What a terrible failure!
-        `)
+    → 1 prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with matching source line, wrapped', () => {
@@ -170,13 +178,13 @@ test('with matching source line, wrapped', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`wrap(prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                Invalid \`wrap(prisma.model.findFirst()\` invocation in
-                /project/some-file.js:1:1
-
-                → 1 wrap(prisma.model.findFirst(
-                What a terrible failure!
-        `)
+    → 1 wrap(prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with indentation in source file', () => {
@@ -188,13 +196,13 @@ test('with indentation in source file', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                Invalid \`prisma.model.findFirst()\` invocation in
-                /project/some-file.js:1:1
-
-                → 1 prisma.model.findFirst(
-                What a terrible failure!
-        `)
+    → 1 prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with different prisma variable name', () => {
@@ -206,13 +214,13 @@ test('with different prisma variable name', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`this.db.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-                Invalid \`this.db.model.findFirst()\` invocation in
-                /project/some-file.js:1:1
-
-                → 1 this.db.model.findFirst(
-                What a terrible failure!
-        `)
+    → 1 this.db.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with context lines before', () => {
@@ -233,16 +241,16 @@ prisma.model.findFirst({
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:5:1
 
-                Invalid \`prisma.model.findFirst()\` invocation in
-                /project/some-file.js:5:1
-
-                  2 lineTwo();
-                  3 lineThree();
-                  4 lineFour();
-                → 5 prisma.model.findFirst(
-                What a terrible failure!
-        `)
+      2 lineTwo();
+      3 lineThree();
+      4 lineFour();
+    → 5 prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with double-digit context line numbers', () => {
@@ -268,16 +276,16 @@ prisma.model.findFirst({
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:10:1
 
-                Invalid \`prisma.model.findFirst()\` invocation in
-                /project/some-file.js:10:1
-
-                   7 seven();
-                   8 eight();
-                   9 nine();
-                → 10 prisma.model.findFirst(
-                What a terrible failure!
-        `)
+       7 seven();
+       8 eight();
+       9 nine();
+    → 10 prisma.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with context and indentation', () => {
@@ -296,15 +304,15 @@ if (someCondition) {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prima.model.findFirst()\` invocation in
+    /project/some-file.js:3:1
 
-                Invalid \`prima.model.findFirst()\` invocation in
-                /project/some-file.js:3:1
-
-                  1 
-                  2 if (someCondition) {
-                → 3     prima.model.findFirst(
-                What a terrible failure!
-        `)
+      1 
+      2 if (someCondition) {
+    → 3     prima.model.findFirst(
+    What a terrible failure!"
+  `)
 })
 
 test('with arguments', () => {
@@ -317,14 +325,14 @@ test('with arguments', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-            Invalid \`prisma.model.findFirst()\` invocation in
-            /project/some-file.js:1:1
+    → 1 prisma.model.findFirst({foo: "bar"})
 
-            → 1 prisma.model.findFirst({foo: "bar"})
-
-            What a terrible failure!
-      `)
+    What a terrible failure!"
+  `)
 })
 
 test('with arguments, but with no matching invocation', () => {
@@ -336,13 +344,13 @@ test('with arguments, but with no matching invocation', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation:
 
-                                    Invalid \`prisma.model.findFirst()\` invocation:
+    {foo: "bar"}
 
-                                    {foo: "bar"}
-
-                                    What a terrible failure!
-                  `)
+    What a terrible failure!"
+  `)
 })
 
 test('with multiline arguments', () => {
@@ -357,16 +365,16 @@ test('with multiline arguments', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:1:1
 
-            Invalid \`prisma.model.findFirst()\` invocation in
-            /project/some-file.js:1:1
+    → 1 prisma.model.findFirst({
+          foo: "bar"
+        })
 
-            → 1 prisma.model.findFirst({
-                  foo: "bar"
-                })
-
-            What a terrible failure!
-      `)
+    What a terrible failure!"
+  `)
 })
 
 test('with indentation and multiline arguments', () => {
@@ -388,18 +396,18 @@ if (condition) {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
+    "
+    Invalid \`prisma.model.findFirst()\` invocation in
+    /project/some-file.js:3:1
 
-            Invalid \`prisma.model.findFirst()\` invocation in
-            /project/some-file.js:3:1
+      1 
+      2 if (condition) {
+    → 3   prisma.model.findFirst({
+            foo: "bar"
+          })
 
-              1 
-              2 if (condition) {
-            → 3   prisma.model.findFirst({
-                    foo: "bar"
-                  })
-
-            What a terrible failure!
-      `)
+    What a terrible failure!"
+  `)
 })
 
 test('with windows lines endings', () => {
@@ -414,7 +422,7 @@ test('with windows lines endings', () => {
       message: 'What a terrible failure!',
     }),
   ).toMatchInlineSnapshot(`
-
+    "
     Invalid \`prisma.model.findFirst()\` invocation in
     C:/project/some-file.js:4:1
 
@@ -422,7 +430,7 @@ test('with windows lines endings', () => {
       2 lineTwo();
       3 lineThree();
     → 4 prisma.model.findFirst(
-    What a terrible failure!
+    What a terrible failure!"
   `)
 })
 

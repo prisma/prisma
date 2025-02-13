@@ -1,15 +1,14 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   ClientEngineType,
   extractPreviewFeatures,
   getClientEngineType,
   getConfig,
   getEnvPaths,
-  getRelativeSchemaPath,
+  getSchemaWithPath,
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
-import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 
@@ -27,8 +26,9 @@ import { generateInFolder } from './generateInFolder'
 export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
-  const schemaPath = await getRelativeSchemaPath(absSchemaDir)
-  const datamodel = await fs.promises.readFile(schemaPath!, 'utf-8')
+
+  const { schemaPath, schemas: datamodel } = (await getSchemaWithPath(undefined, { cwd: absSchemaDir }))!
+
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
@@ -36,30 +36,32 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
   const previewFeatures = extractPreviewFeatures(config)
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
-  ;(global as any).TARGET_ENGINE_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
+  ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
 
-  await ensureTestClientQueryEngine(clientEngineType, platform)
+  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
   const document = await getDMMF({
     datamodel,
     previewFeatures,
   })
   const outputDir = absSchemaDir
-  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
+  const relativeEnvPaths = await getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
     generator,
     dirname: absSchemaDir,
     relativePath: path.relative(outputDir, absSchemaDir),
-    clientVersion: 'client-test-version',
-    engineVersion: 'engine-test-version',
+    clientVersion: '0.0.0',
+    engineVersion: '0000000000000000000000000000000000000000',
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
-    dataProxy: Boolean(process.env.TEST_DATA_PROXY),
+    inlineDatasources: { db: { url: config.datasources[0].url } },
+    inlineSchema: datamodel[0][1], // TODO: merge schemas
+    inlineSchemaHash: '',
   }
 
   return getPrismaClient(options)
@@ -79,22 +81,12 @@ type GenerateTestClientOptions = {
    * the `PRISMA_CLIENT_ENGINE_TYPE` environment variable and `engineType` schema field.
    */
   engineType?: ClientEngineType
-
-  /**
-   * Forces generating the Data Proxy client, overrides the `TEST_DATA_PROXY`
-   * environment variable.
-   */
-  dataProxy?: boolean
 }
 
 /**
  * Actually generates a test client with its own query-engine into ./@prisma/client
  */
-export async function generateTestClient({
-  projectDir,
-  engineType,
-  dataProxy,
-}: GenerateTestClientOptions = {}): Promise<any> {
+export async function generateTestClient({ projectDir, engineType }: GenerateTestClientOptions = {}): Promise<any> {
   if (!projectDir) {
     const callsite = parse(new Error('').stack!)
     projectDir = path.dirname(callsite[1].file!)
@@ -102,10 +94,6 @@ export async function generateTestClient({
 
   await generateInFolder({
     projectDir,
-    useLocalRuntime: false,
-    transpile: true,
-    useBuiltRuntime: false,
     overrideEngineType: engineType,
-    overrideDataProxy: dataProxy,
   })
 }

@@ -16,6 +16,7 @@ export const database = {
       user: credentials.user,
       password: credentials.password,
       multipleStatements: true,
+      allowPublicKeyRetrieval: true,
     })
   },
   beforeEach: async (db, sqlScenario, ctx) => {
@@ -30,8 +31,7 @@ export const database = {
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_MYSQL_BASE_URI!
-  const connectionString = `${serviceConnectionString}/${ctx.id}`
+  const connectionString = process.env.TEST_MYSQL_URI!.replace('tests', ctx.id)
   const credentials = uriToCredentials(connectionString)
 
   return {

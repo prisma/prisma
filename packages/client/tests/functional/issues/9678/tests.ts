@@ -1,6 +1,7 @@
 // @ts-ignore
 import crypto from 'crypto'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
@@ -19,7 +20,7 @@ jest.retryTimes(3)
  * Reproduction for issue #9678
  */
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     test('concurrent deleteMany/createMany', async () => {
       let hasRetried = false
       const MAX_RETRIES = 5
@@ -37,6 +38,7 @@ testMatrix.setupTestSuite(
             )
             return result
           } catch (e) {
+            // P2034 = Transaction failed due to a write conflict or a deadlock. Please retry your transaction
             if (e.code === 'P2034') {
               hasRetried = true
               retries++
@@ -48,7 +50,17 @@ testMatrix.setupTestSuite(
       }
 
       await Promise.all([fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn()])
-      expect(hasRetried).toBe(true)
+      // Before https://github.com/prisma/prisma-engines/pull/4249
+      // The expectation for all providers that `hasRetried` would be set as `true`
+      // It has changed for MySQL and SQL Server only
+      // and also for cockroachdb, but not deterministic
+      if (provider === Providers.COCKROACHDB) {
+        // no expectation, it looks flaky
+      } else if (provider === Providers.MYSQL || provider === Providers.SQLSERVER) {
+        expect(hasRetried).toBe(false)
+      } else {
+        expect(hasRetried).toBe(true)
+      }
     })
   },
   {

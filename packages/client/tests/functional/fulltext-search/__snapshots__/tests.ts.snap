@@ -1,27 +1,66 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`fulltext-search (provider=mysql) bad query 1`] = `
-
+"
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:0:0
 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+  XX testIf(process.platform !== 'win32')('bad query', async () => {
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })"
+`;
+
+exports[`fulltext-search (provider=mysql, js_planetscale) bad query 1`] = `
+"
+Invalid \`.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:0:0
+
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "target: test-0000-00000000.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-' (errno 1064) (sqlstate 42000) (CallerID: userData1): Sql: \\"select \`User\`.id, \`User\`.email, \`User\`.\`name\` from \`User\` where match(\`User\`.\`name\`) against (:vtg1 /* VARCHAR */ in boolean mode)\\", BindVars: {#maxLimit: \\"type:INT64 value:\\\\\\"10001\\\\\\"\\"vtg1: \\"type:VARCHAR value:\\\\\\"John <--> Smith\\\\\\"\\"}", state: "42000" })), transient: false })"
 `;
 
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
-
+"
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:0:0
 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+  XX testIf(process.platform !== 'win32')('bad query', async () => {
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error in tsquery: \\"John Smith\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }), transient: false })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
+`;
+
+exports[`fulltext-search (provider=postgresql, js_neon) bad query 1`] = `
+"
+Invalid \`.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:0:0
+
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
+`;
+
+exports[`fulltext-search (provider=postgresql, js_pg) bad query 1`] = `
+"
+Invalid \`.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:0:0
+
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
 `;

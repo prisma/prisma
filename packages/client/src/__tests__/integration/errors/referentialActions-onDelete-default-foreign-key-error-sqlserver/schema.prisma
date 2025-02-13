@@ -1,6 +1,6 @@
 datasource my_db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI")
+  url      = env("DATABASE_URL")
 }
 
 generator client {

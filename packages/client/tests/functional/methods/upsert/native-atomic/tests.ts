@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
+import { waitFor } from '../../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
 
@@ -12,10 +13,10 @@ class UpsertChecker {
 
   constructor(client: PrismaClient) {
     this.logs = []
-    this.capturelogs(client)
+    this.captureLogs(client)
   }
 
-  capturelogs(client: PrismaClient) {
+  captureLogs(client: PrismaClient) {
     // @ts-expect-error
     client.$on('query', (data) => {
       if ('query' in data) {
@@ -25,17 +26,12 @@ class UpsertChecker {
     })
   }
 
-  usedNative() {
-    const result = this.logs.some((log) => log.includes('ON CONFLICT'))
+  async expectUsedNativeUpsert(didUse: boolean) {
+    await waitFor(() => {
+      expect(this.logs.some((log) => log.includes('ON CONFLICT'))).toBe(didUse)
+    })
 
-    // always clear the logs after asserting
     this.reset()
-
-    return result
-  }
-
-  notUsedNative() {
-    return !this.usedNative()
   }
 
   reset() {
@@ -102,7 +98,7 @@ testMatrix.setupTestSuite(
           },
         },
       })
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This will 'not' use ON CONFLICT
       await client.user.upsert({
@@ -122,7 +118,7 @@ testMatrix.setupTestSuite(
           },
         },
       })
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This will 'not' use ON CONFLICT
       await client.user.upsert({
@@ -148,7 +144,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This will 'not' use ON CONFLICT
       await client.user.upsert({
@@ -168,7 +164,7 @@ testMatrix.setupTestSuite(
           },
         },
       })
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This 'will' use ON CONFLICT
       await client.user.upsert({
@@ -184,7 +180,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
@@ -207,7 +203,7 @@ testMatrix.setupTestSuite(
           name,
         },
       })
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This 'will' use ON CONFLICT
       await client.user.upsert({
@@ -222,7 +218,7 @@ testMatrix.setupTestSuite(
           name,
         },
       })
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments', async () => {
@@ -244,7 +240,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(checker.notUsedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(false)
 
       // This 'will' use ON CONFLICT
       await client.user.upsert({
@@ -260,7 +256,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should perform an upsert using ON CONFLICT', async () => {
@@ -282,7 +278,7 @@ testMatrix.setupTestSuite(
 
       expect(user.name).toEqual(name)
 
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
 
       const userUpdated = await client.user.upsert({
         where: {
@@ -297,7 +293,7 @@ testMatrix.setupTestSuite(
       })
 
       expect(userUpdated.name).toEqual(`${name}-updated`)
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should perform an upsert using ON CONFLICT with id', async () => {
@@ -320,7 +316,7 @@ testMatrix.setupTestSuite(
 
       expect(user.name).toEqual(name)
 
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
 
       const userUpdated = await client.user.upsert({
         where: {
@@ -335,7 +331,7 @@ testMatrix.setupTestSuite(
       })
 
       expect(userUpdated.name).toEqual(`${name}-updated`)
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should perform an upsert using ON CONFLICT with compound id', async () => {
@@ -362,7 +358,7 @@ testMatrix.setupTestSuite(
 
       expect(compound.val).toEqual(1)
 
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
 
       compound = await client.compound.upsert({
         where: {
@@ -384,7 +380,7 @@ testMatrix.setupTestSuite(
       })
 
       expect(compound.val).toEqual(2)
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
 
     test('should perform an upsert using ON CONFLICT with compound uniques', async () => {
@@ -410,7 +406,7 @@ testMatrix.setupTestSuite(
       })
 
       expect(compound.val).toEqual(1)
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
 
       compound = await client.compound.upsert({
         where: {
@@ -432,7 +428,7 @@ testMatrix.setupTestSuite(
       })
 
       expect(compound.val).toEqual(2)
-      expect(checker.usedNative()).toBeTruthy()
+      await checker.expectUsedNativeUpsert(true)
     })
   },
   {

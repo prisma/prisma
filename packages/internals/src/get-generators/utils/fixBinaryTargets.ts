@@ -1,19 +1,21 @@
 import { BinaryTargetsEnvValue } from '@prisma/generator-helper'
-import { Platform } from '@prisma/get-platform'
+import { BinaryTarget } from '@prisma/get-platform'
 
-function transformPlatformToEnvValue(platform: Platform | string): BinaryTargetsEnvValue {
-  return { fromEnvVar: null, value: platform }
+// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+function transformBinaryTargetToEnvValue(binaryTarget: BinaryTarget | string): BinaryTargetsEnvValue {
+  return { fromEnvVar: null, value: binaryTarget }
 }
 
 export function fixBinaryTargets(
-  binaryTargets: BinaryTargetsEnvValue[],
-  platform: Platform | string,
+  schemaBinaryTargets: BinaryTargetsEnvValue[],
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  runtimeBinaryTarget: BinaryTarget | string,
 ): BinaryTargetsEnvValue[] {
-  binaryTargets = binaryTargets || []
+  schemaBinaryTargets = schemaBinaryTargets || []
 
-  if (!binaryTargets.find((object) => object.native === true)) {
-    return [transformPlatformToEnvValue('native'), ...binaryTargets]
+  if (!schemaBinaryTargets.find((object) => object.native === true)) {
+    return [transformBinaryTargetToEnvValue('native'), ...schemaBinaryTargets]
   }
 
-  return [...binaryTargets, transformPlatformToEnvValue(platform)]
+  return [...schemaBinaryTargets, transformBinaryTargetToEnvValue(runtimeBinaryTarget)]
 }

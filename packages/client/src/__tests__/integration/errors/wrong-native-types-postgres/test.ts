@@ -8,8 +8,8 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 /* eslint-disable @typescript-eslint/require-await */
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-wrong-native-types-tests'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+  process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-wrong-native-types-tests')
+  await tearDownPostgres(process.env.DATABASE_URL)
   await migrateDb({
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })

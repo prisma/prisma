@@ -1,11 +1,11 @@
 node_modules
 
 yarn-error.log
+declaration
 dist
 build
 tmp
 pnpm-debug.log
-sandbox
 .DS_Store
 
 query-engine*
@@ -22,22 +22,25 @@ dist/
 .prisma
 .pnpm-store
 
-.vscode
+.vscode/*
 !.vscode/launch.json.default
+!.vscode/extensions.json
 coverage
 
 .eslintcache
 
 .pnpm-debug.log
 
-.envrc
-
 esm
-reproductions/*
-!reproductions/basic-sqlite
-!reproductions/tracing
-!reproductions/pnpm-workspace.yaml
 
 dev.db
 junit.xml
 /output.txt
+
+.envrc.local
+
+.idea/
+
+package.copy.json
+
+*.tgz

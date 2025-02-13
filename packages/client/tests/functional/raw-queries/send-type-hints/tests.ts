@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -6,12 +7,12 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
-    test('Buffer ($queryRaw)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
-        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Buffer.from('hello')})`
+  ({ provider }) => {
+    test('Uint8Array ($queryRaw)', async () => {
+      if (provider === Providers.MYSQL) {
+        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Uint8Array.from([1, 2, 3])})`
       } else {
-        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Buffer.from('hello')})`
+        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Uint8Array.from([1, 2, 3])})`
       }
 
       const record = await prisma.entry.findUnique({
@@ -20,14 +21,14 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($executeRaw)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
-        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Buffer.from('hello')})`
+    test('Uint8Array ($executeRaw)', async () => {
+      if (provider === Providers.MYSQL) {
+        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Uint8Array.from([1, 2, 3])})`
       } else {
-        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Buffer.from('hello')})`
+        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Uint8Array.from([1, 2, 3])})`
       }
 
       const record = await prisma.entry.findUnique({
@@ -36,16 +37,18 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($queryRaw + Prisma.sql)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+    test('Uint8Array ($queryRaw + Prisma.sql)', async () => {
+      if (provider === Providers.MYSQL) {
         await prisma.$queryRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Uint8Array.from([1, 2, 3])})`,
         )
       } else {
-        await prisma.$queryRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('3', ${Buffer.from('hello')})`)
+        await prisma.$queryRaw(
+          Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('3', ${Uint8Array.from([1, 2, 3])})`,
+        )
       }
 
       const record = await prisma.entry.findUnique({
@@ -54,16 +57,18 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
 
-    test('Buffer ($executeRaw + Prisma.sql)', async () => {
-      if (suiteConfig['provider'] === 'mysql') {
+    test('Uint8Array ($executeRaw + Prisma.sql)', async () => {
+      if (provider === Providers.MYSQL) {
         await prisma.$executeRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Uint8Array.from([1, 2, 3])})`,
         )
       } else {
-        await prisma.$executeRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('4', ${Buffer.from('hello')})`)
+        await prisma.$executeRaw(
+          Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('4', ${Uint8Array.from([1, 2, 3])})`,
+        )
       }
 
       const record = await prisma.entry.findUnique({
@@ -72,22 +77,13 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(record?.binary).toEqual(Buffer.from('hello'))
+      expect(record?.binary).toEqual(Uint8Array.from([1, 2, 3]))
     })
   },
   {
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: '$queryRaw only works on SQL based providers',
-    },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: `
-        This test is broken with the edge client. It needs to be updated to
-        send ArrayBuffers and expect them as results, and the client might need
-        to be fixed to return ArrayBuffers and not polyfilled Buffers in
-        query results.
-      `,
     },
   },
 )

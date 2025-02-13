@@ -1,13 +1,16 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
   Command,
   format,
   getCommandWithExecutor,
-  getSchemaPath,
+  getConfig,
+  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
+  toSchemasWithConfigDir,
 } from '@prisma/internals'
 import fs from 'fs'
 import getStdin from 'get-stdin'
@@ -25,6 +28,7 @@ ${dim('$')} prisma db execute [options]
 ${bold('Options')}
 
 -h, --help            Display this help message
+--config              Custom path to your Prisma config file
 
 ${italic('Datasource input, only 1 must be provided:')}
 --url                 URL of the datasource to run the command on
@@ -79,7 +83,7 @@ ${bold('Examples')}
     --url="mysql://root:root@localhost/mydb"
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -104,7 +108,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile(args['--schema'], false)
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
@@ -164,13 +168,13 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaPath = await getSchemaPath(args['--schema'])
+      const schemaWithPath = (await getSchemaWithPath(args['--schema']))!
+      const config = await getConfig({ datamodel: schemaWithPath.schemas })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        // if schemaPath is undefined, getSchemaPath will error
-        schema: schemaPath!,
+        ...toSchemasWithConfigDir(schemaWithPath, config),
       }
     }
 

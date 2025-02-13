@@ -4,5 +4,4 @@
 ./node_modules
 ./runtime
 ./runtime-dist
-./sandbox
 ./dist

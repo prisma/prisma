@@ -21,6 +21,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
     user: credentials.user,
     password: credentials.password,
     multipleStatements: true,
+    allowPublicKeyRetrieval: true,
   })
   await dbDefault.query(`
 CREATE DATABASE IF NOT EXISTS \`${credentials.database}-shadowdb\`;
@@ -36,6 +37,7 @@ CREATE DATABASE IF NOT EXISTS \`${credentials.database}\`;
       user: credentials.user,
       password: credentials.password,
       multipleStatements: true,
+      allowPublicKeyRetrieval: true,
     })
     await db.query(fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8'))
     await db.end()
@@ -57,6 +59,7 @@ export async function tearDownMysql(options: SetupParams) {
     user: credentialsClone.user,
     password: credentialsClone.password,
     multipleStatements: true,
+    allowPublicKeyRetrieval: true,
   })
 
   await db.query(`

@@ -1,84 +1,99 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
+import type { BinaryTarget } from '@prisma/get-platform'
+import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
+import crypto from 'crypto'
 import indent from 'indent-string'
-import { klona } from 'klona'
 import path from 'path'
+import type { O } from 'ts-toolbelt'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { DMMFHelper } from '../dmmf'
-import type { DMMF } from '../dmmf-types'
+import { datamodelEnumToSchemaEnum, DMMFHelper } from '../dmmf'
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
+import type { buildClient } from '../generateClient'
+import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
+import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
-import { buildInlineDatasource } from '../utils/buildInlineDatasources'
-import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
-import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
-import type { Generatable } from './Generatable'
+import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-export interface TSClientOptions {
-  projectRoot: string
-  clientVersion: string
-  engineVersion: string
-  document: DMMF.Document
-  runtimeDir: string
-  runtimeName: string
-  browser?: boolean
-  datasources: InternalDatasource[]
-  generator?: GeneratorConfig
-  platforms?: Platform[] // TODO: consider making it non-nullable
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
-  schemaPath: string
-  outputDir: string
-  activeProvider: string
-  dataProxy: boolean
-  deno?: boolean
-  postinstall?: boolean
+type RuntimeName =
+  | 'binary'
+  | 'library'
+  | 'wasm'
+  | 'edge'
+  | 'edge-esm'
+  | 'index-browser'
+  | 'react-native'
+  | 'client'
+  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+
+export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
+  /** More granular way to define JS runtime name */
+  runtimeNameJs: RuntimeName
+  /** More granular way to define TS runtime name */
+  runtimeNameTs: RuntimeName
+  /** When generating the browser client */
+  browser: boolean
+  /** When generating via the Deno CLI */
+  deno: boolean
+  /** When we are generating an /edge client */
+  edge: boolean
+  /** When we are generating a /wasm client */
+  wasm: boolean
+  /** When types don't need to be regenerated */
+  reusedTs?: string // the entrypoint to reuse
+  /** When js doesn't need to be regenerated */
+  reusedJs?: string // the entrypoint to reuse
+
+  /** result of getEnvPaths call */
+  envPaths: EnvPaths
 }
 
-export class TSClient implements Generatable {
+export class TSClient implements Generable {
   protected readonly dmmf: DMMFHelper
-  protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
-
-  static enabledPreviewFeatures: string[]
+  protected readonly genericsInfo: GenericArgsInfo
 
   constructor(protected readonly options: TSClientOptions) {
-    this.dmmf = new DMMFHelper(klona(options.document))
-
-    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
+    this.dmmf = new DMMFHelper(options.dmmf)
+    this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
-  public async toJS(edge = false): Promise<string> {
+  public toJS(): string {
     const {
-      platforms,
+      edge,
+      wasm,
+      binaryPaths,
       generator,
-      sqliteDatasourceOverrides,
       outputDir,
-      schemaPath,
-      runtimeDir,
-      runtimeName,
+      datamodel: inlineSchema,
+      runtimeBase,
+      runtimeNameJs,
       datasources,
-      dataProxy,
       deno,
+      copyEngine = true,
+      reusedJs,
+      envPaths,
     } = this.options
-    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
+
+    if (reusedJs) {
+      return `module.exports = { ...require('${reusedJs}') }`
+    }
 
     const relativeEnvPaths = {
       rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
@@ -86,23 +101,36 @@ export class TSClient implements Generatable {
     }
 
     // This ensures that any engine override is propagated to the generated clients config
-    const engineType = getClientEngineType(generator!)
-    if (generator) {
-      generator.config.engineType = engineType
-    }
+    const clientEngineType = getClientEngineType(generator)
+    generator.config.engineType = clientEngineType
 
+    const binaryTargets =
+      clientEngineType === ClientEngineType.Library
+        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
+        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
+
+    const inlineSchemaHash = crypto
+      .createHash('sha256')
+      .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
+      .digest('hex')
+
+    const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      sqliteDatasourceOverrides,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
+      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      dataProxy: this.options.dataProxy,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
+      inlineDatasources: datasources.reduce((acc, ds) => {
+        return (acc[ds.name] = { url: ds.url }), acc
+      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineSchema,
+      inlineSchemaHash,
+      copyEngine,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -115,8 +143,10 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.datamodel.enums
+  .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
+  .join('\n\n')}
 
 ${new Enum(
   {
@@ -130,40 +160,42 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${buildRuntimeDataModel(this.dmmf.datamodel)}
-
-${await buildInlineSchema(dataProxy, schemaPath)}
-${buildInlineDatasource(dataProxy, datasources)}
+${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
+${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }
-  public toTS(edge = false): string {
-    // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index'`
 
-    const context: GenerateContext = {
+  public toTS(): string {
+    const { reusedTs } = this.options
+
+    // in some cases, we just re-export the existing types
+    if (reusedTs) {
+      const topExports = ts.moduleExportFrom(`./${reusedTs}`)
+
+      return ts.stringify(topExports)
+    }
+
+    const context = new GenerateContext({
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      defaultArgsAliases: new DefaultArgsAliases(),
-    }
+    })
 
     const prismaClientClass = new PrismaClientClass(
-      this.dmmf,
+      context,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeName,
+      this.options.runtimeNameTs,
       this.options.browser,
-      this.options.generator,
-      this.options.sqliteDatasourceOverrides,
-      path.dirname(this.options.schemaPath),
     )
 
     const commonCode = commonCodeTS(this.options)
@@ -176,16 +208,18 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
-    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      modelEnums.push(new Enum(enumType, false).toTS())
+    for (const datamodelEnum of this.dmmf.datamodel.enums) {
+      modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
       modelEnumsAliases.push(
-        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
         ts.stringify(
-          ts.moduleExport(ts.constDeclaration(enumType.name, ts.namedType(`typeof $Enums.${enumType.name}`))),
+          ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
+        ),
+        ts.stringify(
+          ts.moduleExport(ts.constDeclaration(datamodelEnum.name, ts.namedType(`typeof $Enums.${datamodelEnum.name}`))),
         ),
       )
     }
@@ -193,7 +227,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
-      .filter((t) => t.name.endsWith('CountOutputType'))
+      ?.filter((t) => t.name.endsWith('CountOutputType'))
       .map((t) => new Count(t, context))
 
     const code = `
@@ -251,7 +285,7 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
  * Enums
  */
 
-${prismaEnums.join('\n\n')}
+${prismaEnums?.join('\n\n')}
 ${
   fieldRefs.length > 0
     ? `
@@ -267,9 +301,9 @@ ${fieldRefs.join('\n\n')}`
  */
 
 ${this.dmmf.inputObjectTypes.prisma
-  .reduce((acc, inputType) => {
+  ?.reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.inputTypeNeedsGenericModelArg(inputType)
+      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
       const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
@@ -280,23 +314,15 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, context).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${
-  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
-  ''
-}
-
-/**
- * Aliases for legacy arg types
- */
-${context.defaultArgsAliases.generateAliases(this.dmmf)}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
@@ -320,14 +346,14 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeName: 'index-browser',
+      runtimeNameJs: 'index-browser',
       browser: true,
     })}
 /**
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
@@ -339,16 +365,32 @@ ${new Enum(
 ).toJS()}
 
 /**
- * Create the Client
+ * This is a stub Prisma Client that will error at runtime if called.
  */
 class PrismaClient {
   constructor() {
-    throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
-    )
+    return new Proxy(this, {
+      get(target, prop) {
+        let message
+        const runtime = getRuntime()
+        if (runtime.isEdge) {
+          message = \`PrismaClient is not configured to run in \${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters
+\`;
+        } else {
+          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
+        }
+        
+        message += \`
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report\`
+
+        throw new Error(message)
+      }
+    })
   }
 }
+
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)

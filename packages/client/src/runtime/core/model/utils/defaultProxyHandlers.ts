@@ -7,6 +7,7 @@ export const defaultPropertyDescriptor = {
 export function defaultProxyHandlers<T extends object>(ownKeys: (string | symbol)[]) {
   const _ownKeys = new Set(ownKeys)
   return {
+    getPrototypeOf: () => Object.prototype,
     getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
     has: (target: T, prop: string | symbol) => _ownKeys.has(prop),
     set: (target: T, prop: string | symbol, value: any) => {

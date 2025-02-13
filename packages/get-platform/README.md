@@ -10,7 +10,7 @@ If you are using this package, it would be helpful if you could help us gain an 
 ## Usage
 
 ```ts
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 
-const platform = await getPlatform()
+const binaryTarget = await getBinaryTargetForCurrentPlatform()
 ```

@@ -36,7 +36,7 @@ export const getFilesInDir =
  * @param meta any additional metadata about what caused the error
  */
 function createTaggedSystemError<Tag extends string, Meta extends Record<string, unknown>>(type: Tag, meta: Meta) {
-  return (e: Error | unknown /* untyped error */) =>
+  return (e: unknown /* untyped error */) =>
     ({
       type,
       error: e as Error & { code: string },

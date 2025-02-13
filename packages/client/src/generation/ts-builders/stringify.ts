@@ -9,7 +9,7 @@ type StringifyOptions = {
 }
 
 export function stringify(builder: BasicBuilder, { indentLevel = 0, newLine = 'none' }: StringifyOptions = {}) {
-  const str = new Writer(indentLevel).write(builder).toString()
+  const str = new Writer(indentLevel, undefined).write(builder).toString()
   switch (newLine) {
     case 'none':
       return str

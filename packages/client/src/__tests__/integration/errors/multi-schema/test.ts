@@ -7,7 +7,6 @@ import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres
 import type { PrismaClient } from './node_modules/.prisma/client'
 
 let prisma: PrismaClient
-const baseUri = process.env.TEST_POSTGRES_URI
 
 const email = faker.internet.email()
 const title = faker.person.jobTitle()
@@ -16,11 +15,10 @@ const newTitle = faker.person.jobTitle()
 
 describe('multischema', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-multischema'
-
-    await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-multischema')
+    await tearDownPostgres(process.env.DATABASE_URL)
     const SetupParams: SetupParams = {
-      connectionString: process.env.TEST_POSTGRES_URI!,
+      connectionString: process.env.DATABASE_URL,
       dirname: __dirname,
     }
     await setupPostgres(SetupParams).catch((e) => console.error(e))
@@ -34,7 +32,6 @@ describe('multischema', () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_POSTGRES_URI = baseUri
   })
 
   test('create', async () => {

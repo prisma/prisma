@@ -9,7 +9,7 @@ import { getGitHubIssueUrl } from './util'
 
 export function getErrorMessageWithLink({
   version,
-  platform,
+  binaryTarget,
   title,
   description,
   engineVersion,
@@ -26,7 +26,7 @@ export function getErrorMessageWithLink({
 | Name            | Version            |
 |-----------------|--------------------|
 | Node            | ${process.version?.padEnd(19)}| 
-| OS              | ${platform?.padEnd(19)}|
+| OS              | ${binaryTarget?.padEnd(19)}|
 | Prisma Client   | ${version?.padEnd(19)}|
 | Query Engine    | ${engineVersion?.padEnd(19)}|
 | Database        | ${database?.padEnd(19)}|

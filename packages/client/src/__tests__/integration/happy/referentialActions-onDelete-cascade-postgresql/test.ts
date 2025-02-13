@@ -5,12 +5,14 @@ import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-const baseUri = process.env.TEST_POSTGRES_URI
 
 describe('referentialActions(postgresql)', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-referentialActions-onDelete-Cascade'
-    await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace(
+      'tests',
+      'tests-referentialActions-onDelete-Cascade',
+    )
+    await tearDownPostgres(process.env.DATABASE_URL)
     await migrateDb({
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
@@ -22,7 +24,6 @@ describe('referentialActions(postgresql)', () => {
   afterAll(async () => {
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_POSTGRES_URI = baseUri
   })
 
   test('delete 1 user, should cascade', async () => {

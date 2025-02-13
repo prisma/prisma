@@ -6,8 +6,8 @@ import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
-  process.env.TEST_MYSQL_URI += '-native-types'
-  await tearDownMysql(process.env.TEST_MYSQL_URI!)
+  process.env.DATABASE_URL = process.env.TEST_MYSQL_URI!.replace('tests', 'tests-native-types')
+  await tearDownMysql(process.env.DATABASE_URL)
   await migrateDb({
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
@@ -184,13 +184,13 @@ test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, 
   await prisma.e.deleteMany()
 
   const data = {
-    bit: Buffer.from([0x62]),
-    bin: Buffer.from('1234'),
-    vBin: Buffer.from('12345'),
-    blob: Buffer.from('hi'),
-    tBlob: Buffer.from('tbob'),
-    mBlob: Buffer.from('mbob'),
-    lBlob: Buffer.from('longbob'),
+    bit: Uint8Array.from([0x62]),
+    bin: new Uint8Array(Buffer.from('1234')),
+    vBin: new Uint8Array(Buffer.from('12345')),
+    blob: new Uint8Array(Buffer.from('hi')),
+    tBlob: new Uint8Array(Buffer.from('tbob')),
+    mBlob: new Uint8Array(Buffer.from('mbob')),
+    lBlob: new Uint8Array(Buffer.from('longbob')),
   }
 
   const e = await prisma.e.create({

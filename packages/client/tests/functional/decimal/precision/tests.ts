@@ -1,4 +1,4 @@
-import { fc, testProp } from '@fast-check/jest'
+import { fc, test } from '@fast-check/jest'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -40,9 +40,8 @@ const decimalArbitrary = (precision: number, scale: number) => {
 
 testMatrix.setupTestSuite(
   ({ precision, scale }) => {
-    testProp(
+    test.prop([decimalArbitrary(Number(precision), Number(scale))])(
       'decimals should not lose precision when written to db',
-      [decimalArbitrary(Number(precision), Number(scale))],
       async (decimalString) => {
         if (process.env.TEST_GENERATE_ONLY === 'true') return
 

@@ -1,8 +1,9 @@
 import { idForProvider } from '../../../_utils/idForProvider'
+import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, fieldType, wrongFieldType }) => {
-  const foreignKeyType = provider === 'mongodb' ? 'String @db.ObjectId' : 'String'
+  const foreignKeyType = provider === Providers.MONGODB ? 'String @db.ObjectId' : 'String'
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"

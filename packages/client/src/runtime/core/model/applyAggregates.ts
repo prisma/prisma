@@ -1,6 +1,6 @@
 import type { Client } from '../../getPrismaClient'
 import type { UserArgs } from '../request/UserArgs'
-import { Action } from '../types/JsApi'
+import { Action } from '../types/exported/JsApi'
 import { aggregate } from './aggregates/aggregate'
 import { count } from './aggregates/count'
 import { groupBy } from './aggregates/groupBy'

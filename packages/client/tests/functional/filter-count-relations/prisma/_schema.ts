@@ -1,4 +1,5 @@
 import { idForProvider } from '../../_utils/idForProvider'
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -6,7 +7,7 @@ export default testMatrix.setupSchema(({ provider }) => {
   let manyToManyGroup
   let manyToManyUser
 
-  if (provider === 'mongodb') {
+  if (provider === Providers.MONGODB) {
     foreignKeyType = 'String @db.ObjectId'
     manyToManyGroup = `
       userIds String[] @db.ObjectId

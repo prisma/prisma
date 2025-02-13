@@ -1,5 +1,5 @@
 import { Writer } from '../../../generation/ts-builders/Writer'
-import { JsArgs } from '../types/JsApi'
+import { JsArgs } from '../types/exported/JsApi'
 import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { inactiveColors } from './base'
 

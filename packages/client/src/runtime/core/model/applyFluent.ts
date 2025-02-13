@@ -50,11 +50,7 @@ function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
  * // }
  * ```
  */
-function getNextUserArgs(
-  callArgs: UserArgs | undefined,
-  prevArgs: UserArgs | undefined,
-  nextDataPath: string[],
-): UserArgs {
+function getNextUserArgs(callArgs: UserArgs, prevArgs: UserArgs, nextDataPath: string[]): UserArgs {
   if (prevArgs === undefined) return callArgs ?? {}
 
   return deepSet(prevArgs, nextDataPath, callArgs || true)

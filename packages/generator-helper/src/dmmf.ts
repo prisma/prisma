@@ -1,72 +1,85 @@
+export type ReadonlyDeep<O> = {
+  +readonly [K in keyof O]: ReadonlyDeep<O[K]>
+}
+
+export function datamodelEnumToSchemaEnum(datamodelEnum: DMMF.DatamodelEnum): DMMF.SchemaEnum {
+  return {
+    name: datamodelEnum.name,
+    values: datamodelEnum.values.map((v) => v.name),
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
-  export interface Document {
+  export type Document = ReadonlyDeep<{
     datamodel: Datamodel
     schema: Schema
     mappings: Mappings
-  }
+  }>
 
-  export interface Mappings {
+  export type Mappings = ReadonlyDeep<{
     modelOperations: ModelMapping[]
     otherOperations: {
       read: string[]
       write: string[]
     }
-  }
+  }>
 
-  export interface OtherOperationMappings {
+  export type OtherOperationMappings = ReadonlyDeep<{
     read: string[]
     write: string[]
-  }
+  }>
 
-  export interface DatamodelEnum {
+  export type DatamodelEnum = ReadonlyDeep<{
     name: string
     values: EnumValue[]
     dbName?: string | null
     documentation?: string
-  }
+  }>
 
-  export interface SchemaEnum {
+  export type SchemaEnum = ReadonlyDeep<{
     name: string
     values: string[]
-  }
+  }>
 
-  export interface EnumValue {
+  export type EnumValue = ReadonlyDeep<{
     name: string
     dbName: string | null
-  }
+  }>
 
-  export interface Datamodel {
+  export type Datamodel = ReadonlyDeep<{
     models: Model[]
     enums: DatamodelEnum[]
     types: Model[]
-  }
+    indexes: Index[]
+  }>
 
-  export interface uniqueIndex {
+  export type uniqueIndex = ReadonlyDeep<{
     name: string
     fields: string[]
-  }
-  export interface PrimaryKey {
+  }>
+  export type PrimaryKey = ReadonlyDeep<{
     name: string | null
     fields: string[]
-  }
-  export interface Model {
+  }>
+  export type Model = ReadonlyDeep<{
     name: string
     dbName: string | null
+    schema: string | null
     fields: Field[]
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
     isGenerated?: boolean
-  }
+  }>
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
   export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes' | 'fieldRefTypes'
 
-  export interface Field {
+  export type Field = ReadonlyDeep<{
     kind: FieldKind
     name: string
     isRequired: boolean
@@ -81,25 +94,53 @@ export namespace DMMF {
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
+    /**
+     * Native database type, if specified.
+     * For example, `@db.VarChar(191)` is encoded as `['VarChar', ['191']]`,
+     * `@db.Text` is encoded as `['Text', []]`.
+     */
+    nativeType?: [string, string[]] | null
     dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
-    relationToFields?: any[]
+    relationToFields?: string[]
     relationOnDelete?: string
+    relationOnUpdate?: string
     relationName?: string
     documentation?: string
-    [key: string]: any // safe net for additional new props
-  }
+  }>
 
-  export interface FieldDefault {
+  export type FieldDefault = ReadonlyDeep<{
     name: string
-    args: any[]
-  }
+    args: Array<string | number>
+  }>
 
   export type FieldDefaultScalar = string | boolean | number
 
-  export interface Schema {
+  export type Index = ReadonlyDeep<{
+    model: string
+    type: IndexType
+    isDefinedOnField: boolean
+    name?: string
+    dbName?: string
+    algorithm?: string
+    clustered?: boolean
+    fields: IndexField[]
+  }>
+
+  export type IndexType = 'id' | 'normal' | 'unique' | 'fulltext'
+
+  export type IndexField = ReadonlyDeep<{
+    name: string
+    sortOrder?: SortOrder
+    length?: number
+    operatorClass?: string
+  }>
+
+  export type SortOrder = 'asc' | 'desc'
+
+  export type Schema = ReadonlyDeep<{
     rootQueryType?: string
     rootMutationType?: string
     inputObjectTypes: {
@@ -119,82 +160,61 @@ export namespace DMMF {
       // model?: FieldRefType[]
       prisma?: FieldRefType[]
     }
-  }
+  }>
 
-  export interface Query {
+  export type Query = ReadonlyDeep<{
     name: string
     args: SchemaArg[]
     output: QueryOutput
-  }
+  }>
 
-  export interface QueryOutput {
+  export type QueryOutput = ReadonlyDeep<{
     name: string
     isRequired: boolean
     isList: boolean
-  }
+  }>
 
-  export type ArgType = string | InputType | SchemaEnum
-
-  export interface SchemaArgInputType {
+  export type TypeRef<AllowedLocations extends FieldLocation> = {
     isList: boolean
-    type: ArgType
-    location: FieldLocation
+    type: string
+    location: AllowedLocations
     namespace?: FieldNamespace
   }
 
-  export interface SchemaArg {
+  export type InputTypeRef = TypeRef<'scalar' | 'inputObjectTypes' | 'enumTypes' | 'fieldRefTypes'>
+
+  export type SchemaArg = ReadonlyDeep<{
     name: string
     comment?: string
     isNullable: boolean
     isRequired: boolean
-    inputTypes: SchemaArgInputType[]
+    inputTypes: InputTypeRef[]
     deprecation?: Deprecation
-  }
+  }>
 
-  export interface OutputType {
+  export type OutputType = ReadonlyDeep<{
     name: string
     fields: SchemaField[]
-    fieldMap?: Record<string, SchemaField>
-  }
+  }>
 
-  export interface SchemaField {
+  export type SchemaField = ReadonlyDeep<{
     name: string
     isNullable?: boolean
     outputType: OutputTypeRef
     args: SchemaArg[]
     deprecation?: Deprecation
     documentation?: string
-  }
+  }>
 
-  export type TypeRefCommon = {
-    isList: boolean
-    namespace?: FieldNamespace
-  }
+  export type OutputTypeRef = TypeRef<'scalar' | 'outputObjectTypes' | 'enumTypes'>
 
-  export type TypeRefScalar = TypeRefCommon & {
-    location: 'scalar'
-    type: string
-  }
-
-  export type TypeRefOutputObject = TypeRefCommon & {
-    location: 'outputObjectTypes'
-    type: OutputType | string
-  }
-
-  export type TypeRefEnum = TypeRefCommon & {
-    location: 'enumTypes'
-    type: SchemaEnum | string
-  }
-
-  export type OutputTypeRef = TypeRefScalar | TypeRefOutputObject | TypeRefEnum
-
-  export interface Deprecation {
+  export type Deprecation = ReadonlyDeep<{
     sinceVersion: string
     reason: string
     plannedRemovalVersion?: string
-  }
+  }>
 
-  export interface InputType {
+  export type InputType = ReadonlyDeep<{
     name: string
     constraints: {
       maxNumFields: number | null
@@ -205,18 +225,17 @@ export namespace DMMF {
       source?: string
     }
     fields: SchemaArg[]
-    fieldMap?: Record<string, SchemaArg>
-  }
+  }>
 
-  export interface FieldRefType {
+  export type FieldRefType = ReadonlyDeep<{
     name: string
     allowTypes: FieldRefAllowType[]
     fields: SchemaArg[]
-  }
+  }>
 
-  export type FieldRefAllowType = TypeRefScalar | TypeRefEnum
+  export type FieldRefAllowType = TypeRef<'scalar' | 'enumTypes'>
 
-  export interface ModelMapping {
+  export type ModelMapping = ReadonlyDeep<{
     model: string
     plural: string
     findUnique?: string | null
@@ -226,8 +245,10 @@ export namespace DMMF {
     findMany?: string | null
     create?: string | null
     createMany?: string | null
+    createManyAndReturn?: string | null
     update?: string | null
     updateMany?: string | null
+    updateManyAndReturn?: string | null
     upsert?: string | null
     delete?: string | null
     deleteMany?: string | null
@@ -236,7 +257,7 @@ export namespace DMMF {
     count?: string | null
     findRaw?: string | null
     aggregateRaw?: string | null
-  }
+  }>
 
   export enum ModelAction {
     findUnique = 'findUnique',
@@ -246,8 +267,10 @@ export namespace DMMF {
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',
+    createManyAndReturn = 'createManyAndReturn',
     update = 'update',
     updateMany = 'updateMany',
+    updateManyAndReturn = 'updateManyAndReturn',
     upsert = 'upsert',
     delete = 'delete',
     deleteMany = 'deleteMany',

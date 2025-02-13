@@ -1,9 +1,10 @@
 import { idForProvider } from '../../../_utils/idForProvider'
+import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
   const compatibleTypes =
-    provider !== 'sqlite'
+    provider !== Providers.SQLITE
       ? `
           date DateTime @db.Date 
           time DateTime @db.Time

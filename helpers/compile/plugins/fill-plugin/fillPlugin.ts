@@ -8,11 +8,17 @@ type LoadCache = { [K in string]: string }
 
 type Fillers = {
   [k in string]: {
+    imports?: string
+    globals?: string
     contents?: string
-    path?: string
     define?: string
-    inject?: string
   }
+}
+
+type FillPluginOptions = {
+  fillerOverrides: Fillers
+  defaultFillers?: boolean
+  triggerPredicate?: (options: esbuild.BuildOptions) => boolean
 }
 
 /**
@@ -77,8 +83,8 @@ function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOpt
       options.define[fillerName] = filler.define
     }
 
-    if (filler.inject) {
-      options.inject.push(filler.inject)
+    if (filler.globals) {
+      options.inject.push(filler.globals)
     }
   }
 }
@@ -91,20 +97,20 @@ function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOpt
  * @param args from esbuild
  * @returns
  */
-function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnResolveResult {
+function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs, namespace: string): esbuild.OnResolveResult {
   // removes trailing slashes in imports paths
   const path = args.path.replace(/\/$/, '')
   const item = fillers[path]
 
   // if a path is provided, we just replace it
-  if (item.path !== undefined) {
-    return { path: item.path }
+  if (item.imports !== undefined) {
+    return { path: item.imports }
   }
 
   // if not, we defer action to the loaders cb
   return {
+    namespace,
     path: path,
-    namespace: 'fill-plugin',
     pluginData: args.importer,
   }
 }
@@ -125,7 +131,81 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-const load = loader({})
+export const load = loader({})
+
+const defaultFillersConfig: Fillers = {
+  // enabled
+  events: { imports: path.join(__dirname, 'fillers', 'events.ts') },
+  path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
+  tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
+  util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
+
+  // disabled
+  constants: { contents: '' },
+  crypto: { contents: '' },
+  domain: { contents: '' },
+  http: { contents: '' },
+  https: { contents: '' },
+  inherits: { contents: '' },
+  os: { contents: '' },
+  punycode: { contents: '' },
+  querystring: { contents: '' },
+  stream: { contents: '' },
+  string_decoder: { contents: '' },
+  sys: { contents: '' },
+  timers: { contents: '' },
+  url: { contents: '' },
+  vm: { contents: '' },
+  zlib: { contents: '' },
+
+  // no shims
+  async_hooks: { contents: '' },
+  child_process: { contents: '' },
+  cluster: { contents: '' },
+  dns: { contents: '' },
+  dgram: { contents: '' },
+  fs: { imports: path.join(__dirname, 'fillers', 'fs.ts') },
+  http2: { contents: '' },
+  module: { contents: '' },
+  net: { contents: '' },
+  perf_hooks: { imports: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
+  readline: { contents: '' },
+  repl: { contents: '' },
+  tls: { contents: '' },
+
+  // globals
+  buffer: {
+    imports: load('buffer'),
+    globals: path.join(__dirname, 'fillers', 'buffer.ts'),
+  },
+  process: {
+    globals: path.join(__dirname, 'fillers', 'process.ts'),
+    imports: path.join(__dirname, 'fillers', 'process.ts'),
+  },
+  performance: {
+    globals: path.join(__dirname, 'fillers', 'perf_hooks.ts'),
+  },
+  __dirname: { define: '"/"' },
+  __filename: { define: '"index.js"' },
+
+  global: {
+    define: 'globalThis',
+  },
+}
+
+export const smallBuffer = {
+  buffer: {
+    imports: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+    globals: path.join(__dirname, 'fillers', 'buffer-small.ts'),
+  },
+}
+
+export const smallDecimal = {
+  'decimal.js': {
+    imports: path.join(__dirname, 'fillers', 'decimal-small.ts'),
+    globals: path.join(__dirname, 'fillers', 'decimal-small.ts'),
+  },
+}
 
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
@@ -135,93 +215,15 @@ const load = loader({})
  * @param fillerOverrides override default fillers
  * @returns
  */
-const fillPlugin = (
-  fillerOverrides: Fillers,
-  triggerPredicate: (options: esbuild.BuildOptions) => boolean = () => true,
-): esbuild.Plugin => ({
+const fillPlugin = ({ fillerOverrides, defaultFillers = true }: FillPluginOptions): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
-    // in some cases, we just want to run this once (eg. on esm)
-    if (triggerPredicate(build.initialOptions) === false) return
+    const uid = Math.random().toString(36).substring(7) + ''
+    const namespace = `fill-plugin-${uid}`
 
-    const fillers: Fillers = {
-      // enabled
-      // assert: { path: load('assert-browserify') },
-      buffer: { path: load('buffer') },
-      // constants: { path: load('constants-browserify') },
-      // crypto: { path: load('crypto-browserify') },
-      // domain: { path: load('domain-browser') },
-      events: { path: load('eventemitter3') },
-      // http: { path: load('stream-http') },
-      // https: { path: load('https-browserify') },
-      // inherits: { path: load('inherits') },
-      // os: { path: load('os-browserify') },
-      path: { path: load('path-browserify') },
-      // punycode: { path: load('punycode') },
-      // querystring: { path: load('querystring-es3') },
-      // stream: { path: load('readable-stream') },
-      // string_decoder: { path: load('string_decoder') },
-      // sys: { path: load('util') },
-      // timers: { path: load('timers-browserify') },
-      tty: { path: load('tty-browserify') },
-      // url: { path: load('url') },
-      util: { path: load('util') },
-      // vm: { path: load('vm-browserify') },
-      // zlib: { path: load('browserify-zlib') },
-
-      // disabled
-      constants: { contents: '' },
-      crypto: { contents: '' },
-      domain: { contents: '' },
-      http: { contents: '' },
-      https: { contents: '' },
-      inherits: { contents: '' },
-      os: { contents: '' },
-      punycode: { contents: '' },
-      querystring: { contents: '' },
-      stream: { contents: '' },
-      string_decoder: { contents: '' },
-      sys: { contents: '' },
-      timers: { contents: '' },
-      url: { contents: '' },
-      vm: { contents: '' },
-      zlib: { contents: '' },
-
-      // no shims
-      async_hooks: { contents: '' },
-      child_process: { contents: '' },
-      cluster: { contents: '' },
-      dns: { contents: '' },
-      dgram: { contents: '' },
-      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
-      http2: { contents: '' },
-      module: { contents: '' },
-      net: { contents: '' },
-      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
-      readline: { contents: '' },
-      repl: { contents: '' },
-      tls: { contents: '' },
-
-      // globals
-      Buffer: {
-        inject: path.join(__dirname, 'fillers', 'buffer.ts'),
-      },
-      process: {
-        inject: path.join(__dirname, 'fillers', 'process.ts'),
-        path: path.join(__dirname, 'fillers', 'process.ts'),
-      },
-      __dirname: { define: '"/"' },
-      __filename: { define: '"index.js"' },
-
-      // not needed
-      // global: {
-      //   define: '{}',
-      // },
-      // globalThis: {
-      //   define: '{}',
-      // },
-
-      // overrides
+    // overrides
+    const fillers = {
+      ...(defaultFillers ? defaultFillersConfig : {}),
       ...fillerOverrides,
     }
 
@@ -230,11 +232,11 @@ const fillPlugin = (
 
     // allows us to change the path of a filtered import by another
     build.onResolve({ filter: createImportFilter(fillers) }, (args) => {
-      return onResolve(fillers, args)
+      return onResolve(fillers, args, namespace)
     })
 
     // if no path was provided it defers to virtual nsp `fill-plugin`
-    build.onLoad({ filter: /.*/, namespace: 'fill-plugin' }, (args) => {
+    build.onLoad({ filter: /.*/, namespace }, (args) => {
       return onLoad(fillers, args)
     })
   },

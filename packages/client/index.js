@@ -1,3 +1,4 @@
 module.exports = {
-  ...require('.prisma/client/index'),
+  // https://github.com/prisma/prisma/pull/12907
+  ...require('.prisma/client/default'),
 }

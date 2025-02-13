@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.build.bundle.json",
+  "compilerOptions": {
+    "emitDeclarationOnly": false,
+    "noEmit": true
+  }
+}

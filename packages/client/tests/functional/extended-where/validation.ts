@@ -15,7 +15,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.delete()\` invocation in
       /client/tests/functional/extended-where/validation.ts:0:0
 
@@ -31,12 +31,12 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                ?   OR?: UserWhereInput[],
                ?   NOT?: UserWhereInput | UserWhereInput[],
                ?   posts?: PostListRelationFilter,
-               ?   profile?: ProfileNullableRelationFilter | ProfileWhereInput | Null,
-               ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
+               ?   profile?: ProfileNullableScalarRelationFilter | ProfileWhereInput | Null,
+               ?   payment?: PaymentNullableScalarRelationFilter | PaymentWhereInput | Null
                  }
                })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?."
     `)
   })
 
@@ -49,7 +49,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+      "
       Invalid \`prisma.user.delete()\` invocation in
       /client/tests/functional/extended-where/validation.ts:0:0
 
@@ -66,11 +66,11 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
              ?   OR?: UserWhereInput[],
              ?   NOT?: UserWhereInput | UserWhereInput[],
              ?   posts?: PostListRelationFilter,
-             ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
+             ?   payment?: PaymentNullableScalarRelationFilter | PaymentWhereInput | Null
                }
              })
 
-      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are marked with ?."
     `)
   })
 

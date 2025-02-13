@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -190,7 +191,7 @@ testMatrix.setupTestSuite(
       await prisma.resource.upsert({ where: { id }, create: {}, update: {} })
     })
 
-    testIf(provider === 'mongodb')('middleware with runCommandRaw', async () => {
+    testIf(provider === Providers.MONGODB)('middleware with runCommandRaw', async () => {
       expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'runCommandRaw') {
@@ -204,7 +205,7 @@ testMatrix.setupTestSuite(
         return next(params)
       })
 
-      // @ts-test-if: provider === 'mongodb'
+      // @ts-test-if: provider === Providers.MONGODB
       await prisma.$runCommandRaw({
         aggregate: 'Resource',
         pipeline: [{ $match: { id } }, { $project: { _id: true } }],

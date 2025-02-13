@@ -11,8 +11,8 @@ const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
 
 type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
 
-const onUpdate: ReferentialActions | string = 'DEFAULT'
-const onDelete: ReferentialActions | string = 'SetNull'
+const onUpdate: ReferentialActions = 'DEFAULT'
+const onDelete: ReferentialActions = 'SetNull'
 
 // TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [

@@ -1,3 +1,3 @@
 # Readme
 
-This test tests next typescript nightly build
+This is testing the nightly build of TypeScript

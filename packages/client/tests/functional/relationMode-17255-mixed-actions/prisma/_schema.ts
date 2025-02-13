@@ -2,8 +2,8 @@ import { computeSchemaHeader } from '../../_utils/relationMode/computeSchemaHead
 import testMatrix from '../_matrix'
 import { schema_mixed_action } from './_schema_mixed_actions'
 
-export default testMatrix.setupSchema(({ provider, providerFlavor, relationMode, id }) => {
-  const schemaHeader = computeSchemaHeader({ provider, providerFlavor, relationMode })
+export default testMatrix.setupSchema(({ provider, relationMode, id }) => {
+  const schemaHeader = computeSchemaHeader({ provider, relationMode })
 
   return /* Prisma */ `
 ${schemaHeader}

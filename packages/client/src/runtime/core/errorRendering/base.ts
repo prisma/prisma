@@ -9,6 +9,8 @@ export type Colors = {
   red: ColorFn
   green: ColorFn
   dim: ColorFn
+  // if false, all color functions are useless
+  readonly enabled: boolean
 }
 
 const noop = (str: string) => str
@@ -18,6 +20,7 @@ export const inactiveColors: Colors = {
   red: noop,
   green: noop,
   dim: noop,
+  enabled: false,
 }
 
 export const activeColors: Colors = {
@@ -25,6 +28,7 @@ export const activeColors: Colors = {
   red,
   green,
   dim,
+  enabled: true,
 }
 
 export type ErrorRenderContext = {

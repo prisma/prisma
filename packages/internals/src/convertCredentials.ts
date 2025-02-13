@@ -3,6 +3,7 @@ import path from 'path'
 import * as NodeURL from 'url'
 
 import type { DatabaseCredentials } from './types'
+import { PRISMA_POSTGRES_PROTOCOL } from './utils/prismaPostgres'
 
 // opposite of uriToCredentials
 // only used for internal tests
@@ -157,8 +158,6 @@ function databaseTypeToProtocol(databaseType: ConnectorType) {
       return 'file:'
     case 'sqlserver':
       return 'sqlserver:'
-    case 'jdbc:sqlserver':
-      return 'jdbc:sqlserver:'
   }
 
   throw new Error(`Unknown databaseType ${databaseType}`)
@@ -173,6 +172,7 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
+    case PRISMA_POSTGRES_PROTOCOL:
       return 'postgresql'
     case 'mongodb+srv:':
     case 'mongodb:':
@@ -182,7 +182,6 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
     case 'file:':
       return 'sqlite'
     case 'sqlserver:':
-    case 'jdbc:sqlserver:':
       return 'sqlserver'
   }
 

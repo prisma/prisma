@@ -14,8 +14,8 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('attempt to use $metrics a run-time error', () => {
-    expect(() => (prisma as any).$metrics).toThrowErrorMatchingInlineSnapshot(
-      `\`metrics\` preview feature must be enabled in order to access metrics API`,
+    expect(() => (prisma as any).$metrics.json()).toThrowErrorMatchingInlineSnapshot(
+      `"\`metrics\` preview feature must be enabled in order to access metrics API"`,
     )
   })
 })

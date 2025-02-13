@@ -15,8 +15,6 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/blog/">Blog</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://slack.prisma.io/">Slack</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://pris.ly/discord">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
@@ -26,7 +24,7 @@
 
 **Prisma Migrate** is an imperative database schema migration tool that enables you to make changes to your database schema. Migrations are auto-generated based on the Prisma schema changes but are fully customizable.
 
-> Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
+> Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://pris.ly/discord/) with us.
 
 ---
 
@@ -41,7 +39,7 @@ You can find more info about Prisma Migrate in the [Prisma documentation](https:
 
 - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - [Add Prisma Migrate to an existing project](https://www.prisma.io/docs/guides/prisma-guides/prisma-migrate-guides/add-prisma-migrate-to-a-project)
-- [Set up a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres) (15 min)
+- [Set up a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql) (15 min)
 - [Prisma schema](https://www.prisma.io/docs/concepts/components/prisma-schema)
 - [Data model](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model)
 - [Relations](https://www.prisma.io/docs/concepts/components/prisma-schema/relations)

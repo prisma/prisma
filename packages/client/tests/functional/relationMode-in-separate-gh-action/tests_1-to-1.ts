@@ -1,10 +1,9 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -40,22 +39,22 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
-      .with('providerFlavor', suiteConfig.providerFlavor)
+      .with('driverAdapter', suiteConfig.driverAdapter)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
+
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === RelationModes.PRISMA
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     // Looking at CI results
     // 30s was often not enough for vitess
     // so we put it back to 60s for now in this case
-    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+    if (suiteConfig.driverAdapter === AdapterProviders.VITESS_8) {
       jest.setTimeout(60_000)
     }
 
@@ -116,16 +115,15 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint failed on the field:`
+                  `Foreign key constraint violated:`
                 : conditionalError.snapshot({
                     foreignKeys: {
-                      [Providers.POSTGRESQL]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                      [Providers.SQLSERVER]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
             )
@@ -501,16 +499,15 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @map/@@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint failed on the field:`
+                  `Foreign key constraint violated:`
                 : conditionalError.snapshot({
                     foreignKeys: {
-                      [Providers.POSTGRESQL]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                      [Providers.SQLSERVER]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
@@ -585,11 +582,11 @@ testMatrix.setupTestSuite(
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['Restrict', 'NoAction'].includes(onUpdate)
                         ? // Restrict / NoAction
-                          'Foreign key constraint failed on the field: `userId`'
+                          'Foreign key constraint violated: `userId`'
                         : // DEFAULT / SetNull
                           /*
                       Error occurred during query execution:
-                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { 
                         code: 1761,
                         message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                         key 'ProfileOneToOne_userId_key'\",
@@ -610,7 +607,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   })
 
@@ -691,7 +688,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [AdapterProviders.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                       }),
                 )
@@ -872,18 +869,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint failed on the field:`
+                  `Foreign key constraint violated:`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.MONGODB]:
                         "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                      [Providers.POSTGRESQL]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                      [Providers.SQLSERVER]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
@@ -939,16 +935,15 @@ testMatrix.setupTestSuite(
             isSchemaUsingMap && isRelationMode_foreignKeys
               ? // The snaphsot changes when using @map/@@map, though only the name of the table/field is different
                 // So we can be less specific here
-                `Foreign key constraint failed on the field:`
+                `Foreign key constraint violated:`
               : conditionalError.snapshot({
                   foreignKeys: {
-                    [Providers.POSTGRESQL]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                    [Providers.SQLSERVER]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                    [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                    [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
+                    [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                    [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                   },
                   prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683 ',
                 })
@@ -1082,7 +1077,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },

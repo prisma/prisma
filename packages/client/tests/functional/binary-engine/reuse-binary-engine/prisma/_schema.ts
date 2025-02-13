@@ -4,7 +4,6 @@ import testMatrix from '../_matrix'
 export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     generator client {
-      engineType = "binary"
       provider = "prisma-client-js"
     }
     

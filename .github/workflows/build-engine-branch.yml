@@ -1,0 +1,98 @@
+name: Build custom engine branch if needed
+on:
+  workflow_call:
+    outputs:
+      branchName:
+        description: The name of the branch of checked out engine
+        value: ${{ jobs.parseCommand.outputs.branchName }}
+      engineHash:
+        description: Commit hash of the checked out engine
+        value: ${{ jobs.build.outputs.engineHash }}
+
+jobs:
+  parseCommand:
+    name: Parse "/engine-branch" command in PR body
+    runs-on: ubuntu-latest
+    outputs:
+      branchName: ${{ steps.detectCustomEngineBranch.outputs.branchName }}
+    steps:
+      - name: Extract custom engine branch name from PR body
+        id: detectCustomEngineBranch
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        if: |
+          github.event_name == 'pull_request' &&
+          contains(env.PR_BODY, '/engine-branch') &&
+          (
+            github.event.pull_request.author_association == 'OWNER' ||
+            github.event.pull_request.author_association == 'MEMBER' ||
+            github.event.pull_request.author_association == 'COLLABORATOR' ||
+            github.event.pull_request.author_association == 'CONTRIBUTOR'
+          )
+        run: |
+          BRANCH_NAME=$(echo "$PR_BODY" | grep -o '/engine-branch \S*' | awk '{print $2}')
+          if [ -z "$BRANCH_NAME" ]; then
+            echo "Branch name not specified in /engine-branch command."
+            exit 1
+          fi
+
+          echo "Requested custom engine from branch: $BRANCH_NAME"
+          echo "branchName=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+    runs-on: ${{ matrix.os }}
+    needs: parseCommand
+    if: ${{ needs.parseCommand.outputs.branchName != '' }}
+    outputs:
+      engineHash: ${{ steps.engine-hash.outputs.engineHash }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: prisma/prisma-engines
+          ref: ${{ needs.parseCommand.outputs.branchName }}
+      - name: Get current engine hash
+        id: engine-hash
+        shell: bash
+        run: echo "engineHash=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache@v4
+        name: Artifacts cache
+        id: artifacts-cache
+        with:
+          path: |
+            target/release/schema-engine
+            target/release/schema-engine.exe
+            target/release/query-engine
+            target/release/query-engine.exe
+            target/release/libquery_engine.so
+            target/release/libquery_engine.dylib
+            target/release/query_engine.dll
+          key: ${{ runner.os }}-engine-${{ steps.engine-hash.outputs.engineHash }}-${{ github.event.number }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+
+      - uses: actions/cache@v4
+        name: Dependencies cache
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build custom engines with cargo
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cargo build --release \
+            -p query-engine \
+            -p query-engine-node-api \
+            -p schema-engine-cli

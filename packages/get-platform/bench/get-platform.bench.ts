@@ -1,14 +1,14 @@
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
 
-import { getos, getPlatformInternal } from '../src/getPlatform'
+import { getBinaryTargetForCurrentPlatformInternal, getos } from '../src/getPlatform'
 
 void withCodSpeed(new Benchmark.Suite('get-platform'))
-  .add('getPlatform', {
+  .add('getBinaryTargetForCurrentPlatform', {
     defer: true,
     fn: async (deferred: Benchmark.Deferred) => {
       const os = await getos()
-      getPlatformInternal(os)
+      getBinaryTargetForCurrentPlatformInternal(os)
       deferred.resolve()
     },
   })

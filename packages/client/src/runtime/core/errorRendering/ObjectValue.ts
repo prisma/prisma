@@ -1,5 +1,7 @@
 import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
+import { ArrayValue } from './ArrayValue'
 import { ErrorWriter, fieldsSeparator } from './base'
+import { Field } from './Field'
 import { FormattedString } from './FormattedString'
 import { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
@@ -46,18 +48,21 @@ export class ObjectValue extends Value {
     return this.fields[key]
   }
 
-  getDeepField(path: string[]): ObjectField | undefined {
+  getDeepField(path: string[]): Field | undefined {
     const [head, ...tail] = path
     const firstField = this.getField(head)
     if (!firstField) {
       return undefined
     }
-    let field = firstField
+    let field: Field = firstField
     for (const segment of tail) {
-      if (!(field.value instanceof ObjectValue)) {
-        return undefined
+      let nextField: Field | undefined
+
+      if (field.value instanceof ObjectValue) {
+        nextField = field.value.getField(segment)
+      } else if (field.value instanceof ArrayValue) {
+        nextField = field.value.getField(Number(segment))
       }
-      const nextField = field.value.getField(segment)
       if (!nextField) {
         return undefined
       }
@@ -140,14 +145,14 @@ export class ObjectValue extends Value {
   }
 
   getSelectionParent(): SelectionParent | undefined {
-    const select = this.getField('select')
-    if (select?.value instanceof ObjectValue) {
-      return { kind: 'select', value: select.value }
+    const select = this.getField('select')?.value.asObject()
+    if (select) {
+      return { kind: 'select', value: select }
     }
 
-    const include = this.getField('include')
-    if (include?.value instanceof ObjectValue) {
-      return { kind: 'include', value: include.value }
+    const include = this.getField('include')?.value.asObject()
+    if (include) {
+      return { kind: 'include', value: include }
     }
     return undefined
   }
@@ -173,6 +178,10 @@ export class ObjectValue extends Value {
     }
 
     this.writeWithContents(writer, fields)
+  }
+
+  override asObject(): ObjectValue {
+    return this
   }
 
   private writeEmpty(writer: ErrorWriter) {

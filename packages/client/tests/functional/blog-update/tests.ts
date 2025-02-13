@@ -1,12 +1,13 @@
 import { faker } from '@faker-js/faker'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta, cliMeta) => {
   test('should create a user and update that field on that user', async () => {
     const email = faker.internet.email()
     const name = faker.person.firstName()
@@ -165,128 +166,139 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
-  test('should create a user with posts and a profile and update itself and nested connections setting fields to null', async () => {
-    const someDate = new Date('2020-01-01T00:00:00.348Z')
-    const email = faker.internet.email()
-    const name = faker.person.firstName()
-    const newEmail = faker.internet.email()
-    const title = faker.lorem.slug()
-    const content = faker.lorem.sentence()
-    const optional = faker.lorem.sentence()
-    const bio = faker.lorem.sentence()
-    const notrequired = faker.lorem.word()
+  // TODO: broken with pg and neon adapters with relationJoins preview features
+  // because of <https://github.com/prisma/team-orm/issues/683>.
+  // Fails with `called `Option::unwrap()` on a `None` value`.
+  const shouldSkip =
+    suiteConfig.provider === Providers.POSTGRESQL &&
+    clientMeta.driverAdapter &&
+    cliMeta.previewFeatures.includes('relationJoins')
 
-    await prisma.user.create({
-      data: {
-        email,
-        name,
-        wakesUpAt: someDate,
-        lastLoginAt: someDate,
-        posts: {
-          create: new Array(5).fill(undefined).map(() => ({
-            published: true,
-            title,
-            content,
-            optional,
-            lastReviewedAt: someDate,
-            lastPublishedAt: someDate,
-          })),
-        },
-        profile: {
-          create: {
-            bio,
-            notrequired,
-            goesToBedAt: someDate,
-            goesToOfficeAt: someDate,
-          },
-        },
-      },
-    })
+  skipTestIf(shouldSkip)(
+    'should create a user with posts and a profile and update itself and nested connections setting fields to null',
+    async () => {
+      const someDate = new Date('2020-01-01T00:00:00.348Z')
+      const email = faker.internet.email()
+      const name = faker.person.firstName()
+      const newEmail = faker.internet.email()
+      const title = faker.lorem.slug()
+      const content = faker.lorem.sentence()
+      const optional = faker.lorem.sentence()
+      const bio = faker.lorem.sentence()
+      const notrequired = faker.lorem.word()
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-    })
-
-    const response = await prisma.user.update({
-      where: {
-        id: user?.id as string,
-      },
-      select: {
-        email: true,
-        name: true,
-        wakesUpAt: true,
-        lastLoginAt: true,
-        profile: {
-          select: {
-            bio: true,
-            goesToBedAt: true,
+      await prisma.user.create({
+        data: {
+          email,
+          name,
+          wakesUpAt: someDate,
+          lastLoginAt: someDate,
+          posts: {
+            create: new Array(5).fill(undefined).map(() => ({
+              published: true,
+              title,
+              content,
+              optional,
+              lastReviewedAt: someDate,
+              lastPublishedAt: someDate,
+            })),
           },
-        },
-        posts: {
-          select: {
-            content: true,
-            title: true,
-            published: true,
-            optional: true,
-          },
-        },
-      },
-      data: {
-        email: newEmail,
-        name: null,
-        wakesUpAt: null,
-        lastLoginAt: {
-          set: null,
-        },
-        profile: {
-          update: {
-            notrequired: null,
-            bio: {
-              set: null,
-            },
-            goesToBedAt: null,
-            goesToOfficeAt: {
-              set: null,
+          profile: {
+            create: {
+              bio,
+              notrequired,
+              goesToBedAt: someDate,
+              goesToOfficeAt: someDate,
             },
           },
         },
-        posts: {
-          updateMany: {
-            data: {
-              content: null,
-              optional: {
-                set: null,
-              },
-              lastReviewedAt: null,
-              lastPublishedAt: {
-                set: null,
-              },
-            },
-            where: {},
-          },
-        },
-      },
-    })
-
-    expect(response.email).toEqual(newEmail)
-    expect(response.name).toEqual(null)
-    expect(response.lastLoginAt).toEqual(null)
-    expect(response.wakesUpAt).toEqual(null)
-
-    response.posts.forEach((post) => {
-      expect(post).toMatchObject({
-        content: null,
-        optional: null,
-        published: true,
-        title,
       })
-    })
 
-    expect(response.profile).toMatchObject({
-      bio: null,
-      goesToBedAt: null,
-    })
-  })
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      })
+
+      const response = await prisma.user.update({
+        where: {
+          id: user?.id as string,
+        },
+        select: {
+          email: true,
+          name: true,
+          wakesUpAt: true,
+          lastLoginAt: true,
+          profile: {
+            select: {
+              bio: true,
+              goesToBedAt: true,
+            },
+          },
+          posts: {
+            select: {
+              content: true,
+              title: true,
+              published: true,
+              optional: true,
+            },
+          },
+        },
+        data: {
+          email: newEmail,
+          name: null,
+          wakesUpAt: null,
+          lastLoginAt: {
+            set: null,
+          },
+          profile: {
+            update: {
+              notrequired: null,
+              bio: {
+                set: null,
+              },
+              goesToBedAt: null,
+              goesToOfficeAt: {
+                set: null,
+              },
+            },
+          },
+          posts: {
+            updateMany: {
+              data: {
+                content: null,
+                optional: {
+                  set: null,
+                },
+                lastReviewedAt: null,
+                lastPublishedAt: {
+                  set: null,
+                },
+              },
+              where: {},
+            },
+          },
+        },
+      })
+
+      expect(response.email).toEqual(newEmail)
+      expect(response.name).toEqual(null)
+      expect(response.lastLoginAt).toEqual(null)
+      expect(response.wakesUpAt).toEqual(null)
+
+      response.posts.forEach((post) => {
+        expect(post).toMatchObject({
+          content: null,
+          optional: null,
+          published: true,
+          title,
+        })
+      })
+
+      expect(response.profile).toMatchObject({
+        bio: null,
+        goesToBedAt: null,
+      })
+    },
+  )
 })

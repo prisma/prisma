@@ -1,6 +1,6 @@
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
@@ -10,14 +10,14 @@ import path from 'path'
  * normally the downloading of the required engine is done in `getGenerators`. As the test
  * clients bypass this we need to ensure the correct engine is present.
  * @param clientEngineType
- * @param platform
+ * @param binaryTarget
  */
-export async function ensureTestClientQueryEngine(clientEngineType: ClientEngineType, platform: Platform) {
+export async function ensureTestClientQueryEngine(clientEngineType: ClientEngineType, binaryTarget: BinaryTarget) {
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
+  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
   const queryEngineBinaryPath = path.join(
     enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+    `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`,
   )
 
   if (clientEngineType === ClientEngineType.Library && !fs.existsSync(queryEngineLibraryPath)) {

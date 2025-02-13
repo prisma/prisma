@@ -8,7 +8,6 @@ void executeSteps({
     await $`pnpm exec prisma generate --data-proxy`
   },
   test: async () => {
-    await $`pnpm exec prisma -v`
     await $`ts-node src/index.ts`
     await $`pnpm exec jest`
     await $`pnpm exec tsc`

@@ -1,5 +1,6 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import { getPlatform } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -9,18 +10,20 @@ import {
   getConfig,
   getEnginesMetaInfo,
   getSchema,
-  getSchemaPath,
+  getSchemaWithPath,
+  getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
+import os from 'os'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 /**
  * $ prisma version
@@ -44,7 +47,7 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -62,33 +65,41 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile(undefined, true)
+    await loadEnvFile({ printMessage: !args['--json'], config })
 
-    const platform = await getPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
 
     const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
-      return match(engineMetaInfo)
-        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
-          return [
-            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
-            currEngineInfo,
-          ]
-        })
-        .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
-          return ['Schema Engine', currEngineInfo]
-        })
-        .exhaustive()
+      return (
+        match(engineMetaInfo)
+          .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+            return [
+              `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
+              currEngineInfo,
+            ]
+          })
+          // @ts-ignore TODO @jkomyno, as affects the type of rows
+          .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
+            return ['Schema Engine', currEngineInfo]
+          })
+          .exhaustive()
+      )
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const typescriptVersion = await getTypescriptVersion()
 
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Current platform', platform],
+      ['Computed binaryTarget', binaryTarget],
+      ['Operating System', os.platform()],
+      ['Architecture', os.arch()],
+      ['Node.js', process.version],
+      ['TypeScript', typescriptVersion],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
@@ -106,13 +117,18 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = await getSchemaPath()
+    let schemaPath: string | null = null
+    try {
+      schemaPath = (await getSchemaWithPath()).schemaPath
+    } catch {
+      schemaPath = null
+    }
     const featureFlags = await this.getFeatureFlags(schemaPath)
-
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
 
+    // @ts-ignore TODO @jkomyno, as affects the type of rows
     return formatTable(rows, { json: args['--json'] })
   }
 

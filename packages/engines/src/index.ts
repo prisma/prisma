@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import type { Platform } from '@prisma/get-platform'
+import type { BinaryTarget } from '@prisma/get-platform'
 import path from 'path'
 
 const debug = Debug('prisma:engines')
@@ -13,7 +13,7 @@ export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrar
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType.QueryEngineLibrary | BinaryType.QueryEngineBinary {
+export function getCliQueryEngineBinaryType(): BinaryType {
   const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
   if (envCliQueryEngineType) {
     if (envCliQueryEngineType === 'binary') {
@@ -44,7 +44,7 @@ export async function ensureBinariesExist() {
     showProgress: true,
     version: enginesVersion,
     failSilent: false,
-    binaryTargets: binaryTargets as Platform[],
+    binaryTargets: binaryTargets as BinaryTarget[],
   })
 }
 

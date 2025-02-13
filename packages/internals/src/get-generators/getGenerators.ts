@@ -2,15 +2,28 @@ import Debug from '@prisma/debug'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/get-platform'
-import { getPlatform, platforms } from '@prisma/get-platform'
-import fs from 'fs'
+import type {
+  BinaryTargetsEnvValue,
+  EngineType,
+  GeneratorConfig,
+  GeneratorOptions,
+  SqlQueryOutput,
+} from '@prisma/generator-helper'
+import type { BinaryTarget } from '@prisma/get-platform'
+import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF, vercelPkgPathRegex } from '..'
+import {
+  getConfig,
+  getDMMF,
+  getEnvPaths,
+  GetSchemaResult,
+  getSchemaWithPath,
+  mergeSchemas,
+  vercelPkgPathRegex,
+} from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -41,18 +54,20 @@ type BinaryPathsOverride = {
 // version: enginesVersion,
 // cliVersion: pkg.version,
 export type GetGeneratorOptions = {
+  // schemas: MultipleSchemas
   schemaPath: string
   providerAliases?: ProviderAliases
   cliVersion?: string
   version?: string
   printDownloadProgress?: boolean
-  baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-  dataProxy: boolean
   generatorNames?: string[]
   postinstall?: boolean
+  noEngine?: boolean
+  allowNoModels?: boolean
+  typedSql?: SqlQueryOutput[]
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -68,23 +83,30 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     version,
     cliVersion,
     printDownloadProgress,
-    baseDir = path.dirname(schemaPath),
     overrideGenerators,
     skipDownload,
     binaryPathsOverride,
-    dataProxy,
     generatorNames = [],
     postinstall,
+    noEngine,
+    allowNoModels,
+    typedSql,
   } = options
 
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
 
-  if (!fs.existsSync(schemaPath)) {
+  let schemaResult: GetSchemaResult | null = null
+
+  try {
+    schemaResult = await getSchemaWithPath(schemaPath)
+  } catch (_) {
     throw new Error(`${schemaPath} does not exist`)
   }
-  const platform = await getPlatform()
+
+  const { schemas } = schemaResult
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   const queryEngineBinaryType = getCliQueryEngineBinaryType()
 
@@ -100,21 +122,19 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         binaries: {
           [queryEngineBinaryType]: potentialPath,
         },
-        binaryTargets: [platform],
+        binaryTargets: [binaryTarget],
         showProgress: false,
         version,
         skipDownload,
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
+      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![binaryTarget]
     }
   }
 
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
-
   const config = await getConfig({
-    datamodel,
+    datamodel: schemas,
     datamodelPath: schemaPath,
     prismaPath,
     ignoreEnvVarErrors: true,
@@ -129,13 +149,13 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
-    datamodel,
+    datamodel: schemas,
     datamodelPath: schemaPath,
     prismaPath,
     previewFeatures,
   })
 
-  if (dmmf.datamodel.models.length === 0) {
+  if (dmmf.datamodel.models.length === 0 && !allowNoModels) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId
     if (config.datasources.some((d) => d.provider === 'mongodb')) {
       throw new Error(missingModelMessageMongoDB)
@@ -158,6 +178,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
       async (generator, index) => {
         let generatorPath = parseEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
+        const baseDir = path.dirname(generator.sourceFilePath ?? schemaPath)
 
         // as of now mostly used by studio
         const providerValue = parseEnvValue(generator.provider)
@@ -204,6 +225,9 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           }
         }
 
+        const datamodel = mergeSchemas({ schemas })
+        const envPaths = await getEnvPaths(schemaPath, { cwd: generator.output.value! })
+
         const options: GeneratorOptions = {
           datamodel,
           datasources: config.datasources,
@@ -212,8 +236,11 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
-          dataProxy,
           postinstall,
+          noEngine,
+          allowNoModels,
+          envPaths,
+          typedSql,
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -286,7 +313,7 @@ generator gen {
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
     const binaryPathsByVersion = await getBinaryPathsByVersion({
       neededVersions,
-      platform,
+      binaryTarget,
       version,
       printDownloadProgress,
       skipDownload,
@@ -308,12 +335,12 @@ generator gen {
           generator.options &&
           generator.manifest.requiresEngines.includes(queryEngineType) &&
           generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[platform]
+          generatorBinaryPaths[queryEngineType]?.[binaryTarget]
         ) {
           const customDmmf = await getDMMF({
-            datamodel,
+            datamodel: schemas,
             datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
+            prismaPath: generatorBinaryPaths[queryEngineType]?.[binaryTarget],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
@@ -342,7 +369,7 @@ type NeededVersions = {
 
 export type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
-  platform: Platform
+  binaryTarget: BinaryTarget
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
@@ -365,7 +392,7 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
 }
 
-export const knownBinaryTargets: Platform[] = [...platforms, 'native']
+export const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
 
 const oldToNewBinaryTargetsMapping = {
   'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
@@ -374,7 +401,7 @@ const oldToNewBinaryTargetsMapping = {
 }
 
 async function validateGenerators(generators: GeneratorConfig[]): Promise<void> {
-  const platform = await getPlatform()
+  const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   for (const generator of generators) {
     if (generator.config.platforms) {
@@ -398,7 +425,7 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
 
       const resolvedBinaryTargets: string[] = binaryTargets
         .flatMap((object) => parseBinaryTargetsEnvValue(object))
-        .map((p) => (p === 'native' ? platform : p))
+        .map((p) => (p === 'native' ? binaryTarget : p))
 
       for (const resolvedBinaryTarget of resolvedBinaryTargets) {
         if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
@@ -408,7 +435,7 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
             )} instead.`,
           )
         }
-        if (!knownBinaryTargets.includes(resolvedBinaryTarget as Platform)) {
+        if (!knownBinaryTargets.includes(resolvedBinaryTarget as BinaryTarget)) {
           throw new Error(
             `Unknown binary target ${red(resolvedBinaryTarget)} in generator ${bold(generator.name)}.
 Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
@@ -418,11 +445,11 @@ Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
 
       // Only show warning if resolvedBinaryTargets
       // is missing current platform
-      if (!resolvedBinaryTargets.includes(platform)) {
+      if (!resolvedBinaryTargets.includes(binaryTarget)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
         console.log(`${yellow('Warning:')} Your current platform \`${bold(
-          platform,
+          binaryTarget,
         )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
           originalBinaryTargetsConfig,
         )}.
@@ -430,11 +457,11 @@ To fix it, use this generator config in your ${bold('schema.prisma')}:
 ${green(
   printGeneratorConfig({
     ...generator,
-    binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
+    binaryTargets: fixBinaryTargets(generator.binaryTargets, binaryTarget),
   }),
 )}
 ${gray(
-  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${binaryTarget}\`.
 Read more about deploying Prisma Client: ${underline(
     'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,

@@ -1,9 +1,10 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 
 export default defineMatrix(() => [
   [
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       previewFeatures: '"fullTextSearch"',
       index: '',
       andQuery: 'John & Smith',
@@ -13,7 +14,7 @@ export default defineMatrix(() => [
       badQuery: 'John Smith',
     },
     {
-      provider: 'mysql',
+      provider: Providers.MYSQL,
       previewFeatures: '"fullTextSearch", "fullTextIndex"',
       index: `
       @@fulltext([name])

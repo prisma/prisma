@@ -1,4 +1,5 @@
 import { idForProvider } from '../../_utils/idForProvider'
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -24,7 +25,7 @@ export default testMatrix.setupSchema(({ provider }) => {
       id ${idForProvider(provider)}
       bio       String
       user      User      @relation(fields: [userId], references: [id])
-      userId    ${provider === 'mongodb' ? 'String @db.ObjectId' : 'String'} @unique
+      userId    ${provider === Providers.MONGODB ? 'String @db.ObjectId' : 'String'} @unique
     }
 
     view UserInfo {

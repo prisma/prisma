@@ -8,7 +8,6 @@ import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 
 let prisma: PrismaClient
 let PrismaUtil: typeof Prisma
-const baseUri = process.env.TEST_POSTGRES_URI
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -17,8 +16,8 @@ if (isMacOrWindowsCI) {
 
 describe('json-filtering(postgres)', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-json-filtering'
-    await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-json-filtering')
+    await tearDownPostgres(process.env.DATABASE_URL)
     await migrateDb({
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
@@ -64,7 +63,6 @@ describe('json-filtering(postgres)', () => {
   afterAll(async () => {
     await prisma.user.deleteMany()
     await prisma.$disconnect()
-    process.env.TEST_POSTGRES_URI = baseUri
   })
 
   test('lt(2)', async () => {

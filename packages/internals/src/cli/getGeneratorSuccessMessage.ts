@@ -1,7 +1,7 @@
 import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
-import { getClientEngineType } from '../client/getClientEngineType'
+import { ClientEngineType, getClientEngineType } from '../client/getClientEngineType'
 import type { Generator } from '../Generator'
 import { formatms } from '../utils/formatms'
 import { parseEnvValue } from '../utils/parseEnvValue'
@@ -23,8 +23,18 @@ function formatVersion(generator: Generator): string | undefined {
 
   if (generator.getProvider() === 'prisma-client-js') {
     const engineType = getClientEngineType(generator.config)
-    const engineMode = generator.options?.dataProxy ? 'dataproxy' : engineType
-    return version ? `${version} | ${engineMode}` : engineMode
+
+    let engineHint = ''
+    if (generator.options?.noEngine) {
+      engineHint = ', engine=none'
+    } else if (engineType === ClientEngineType.Binary) {
+      engineHint = ', engine=binary'
+    } else if (engineType === ClientEngineType.Library) {
+      engineHint = ''
+    }
+
+    // version is always defined for prisma-client-js
+    return `v${version ?? '?.?.?'}${engineHint}`
   }
 
   return version

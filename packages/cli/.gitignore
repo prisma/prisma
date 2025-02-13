@@ -12,7 +12,6 @@ prisma-client
 preinstall
 install
 
-prisma
 .envrc
 test
 /prisma-client

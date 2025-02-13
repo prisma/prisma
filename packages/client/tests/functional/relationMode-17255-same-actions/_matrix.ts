@@ -1,4 +1,5 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
 // const RelationModeEnv = process.env.RELATION_MODE
@@ -24,7 +25,7 @@ export default defineMatrix(() => [
   //
   // SQLite fails, only in Windows CI with
   // https://github.com/prisma/prisma/actions/runs/4068097706/jobs/7006246193
-  // ● relationMode-17255-same-actions (relationMode=foreignKeys,provider=sqlite,providerFlavor=sqlite,onUpdate=NoAction,onDelete=NoAction,id=String @id) › not-original › onUpdate: Restrict, NoAction, SetNull › relationMode=foreignKeys [update] main with nested delete alice should fail
+  // ● relationMode-17255-same-actions (relationMode=foreignKeys,provider=sqlite,driverAdapter=sqlite,onUpdate=NoAction,onDelete=NoAction,id=String @id) › not-original › onUpdate: Restrict, NoAction, SetNull › relationMode=foreignKeys [update] main with nested delete alice should fail
   //   SQLite database error
   //   unable to open database file
   //      0: sql_migration_connector::apply_migration::apply_migration
@@ -39,7 +40,7 @@ export default defineMatrix(() => [
   [
     ...computeMatrix({ relationMode: 'foreignKeys' }).filter((entry) => {
       const isSetNull = entry.onDelete === 'SetNull' && entry.onUpdate === 'SetNull'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite
@@ -49,7 +50,7 @@ export default defineMatrix(() => [
     }),
     ...computeMatrix({ relationMode: 'prisma' }).filter((entry) => {
       const isSetNull = entry.onDelete === 'SetNull' && entry.onUpdate === 'SetNull'
-      const isSQLite = entry.provider === 'sqlite'
+      const isSQLite = entry.provider === Providers.SQLITE
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite

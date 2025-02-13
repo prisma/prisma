@@ -6,9 +6,17 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
-import { LibraryLoader } from './types/Library'
+import { LibraryLoader, QueryEngineInstance } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
+
+beforeAll(() => {
+  ;(globalThis as any).TARGET_BUILD_TYPE = 'library'
+})
+
+afterAll(() => {
+  delete (globalThis as any).TARGET_BUILD_TYPE
+})
 
 function setupMockLibraryEngine() {
   const rustEngineMock = {
@@ -19,7 +27,9 @@ function setupMockLibraryEngine() {
     startTransaction: jest.fn().mockResolvedValue('{}'),
     commitTransaction: jest.fn().mockResolvedValue('{}'),
     rollbackTransaction: jest.fn().mockResolvedValue('{}'),
-  }
+    trace: jest.fn().mockResolvedValue('{}'),
+    metrics: jest.fn().mockResolvedValue('{}'),
+  } satisfies QueryEngineInstance
 
   const loader: LibraryLoader = {
     loadLibrary() {
@@ -40,6 +50,16 @@ function setupMockLibraryEngine() {
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
+      clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )
@@ -110,6 +130,16 @@ test('responds to initialization error with PrismaClientInitializationError', as
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
+      clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )

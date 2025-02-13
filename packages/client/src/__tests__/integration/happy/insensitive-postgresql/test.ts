@@ -4,12 +4,10 @@ import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres
 
 test('insensitive-postgresql', async () => {
   const PrismaClient = await getTestClient()
-  let originalConnectionString = process.env.TEST_POSTGRES_URI!
-
-  originalConnectionString += '-insensitive-postgresql'
+  const connectionString = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-insensitive-postgresql')
 
   const SetupParams: SetupParams = {
-    connectionString: originalConnectionString,
+    connectionString: connectionString,
     dirname: __dirname,
   }
 
@@ -17,7 +15,7 @@ test('insensitive-postgresql', async () => {
 
   const prisma = new PrismaClient({
     datasources: {
-      db: { url: originalConnectionString },
+      db: { url: connectionString },
     },
   })
 

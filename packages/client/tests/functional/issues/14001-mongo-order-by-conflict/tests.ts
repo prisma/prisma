@@ -42,7 +42,7 @@ testMatrix.setupTestSuite(
 
       await expect(result).resolves.toMatchInlineSnapshot(`
         {
-          _count: 0,
+          "_count": 0,
         }
       `)
     })

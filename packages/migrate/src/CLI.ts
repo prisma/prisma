@@ -1,7 +1,7 @@
+import type { PrismaConfigInternal } from '@prisma/config'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
-
-import type { Command, Commands } from '../../internals/src'
-import { arg, format, HelpError, isError, unknownCommand } from '../../internals/src'
 
 /**
  * Convenient Migrate CLI command, not public facing
@@ -11,17 +11,17 @@ export class CLI implements Command {
   static new(cmds: Commands): CLI {
     return new CLI(cmds)
   }
+
   private constructor(private readonly cmds: Commands) {}
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
+      '--early-access': Boolean,
       '--telemetry-information': String,
     })
 
@@ -43,13 +43,13 @@ export class CLI implements Command {
         argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
         argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
-      } else if (args['--early-access-feature']) {
-        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
+      } else if (args['--early-access']) {
+        argsForCmd = [...args._.slice(1), `--early-access=${args['--early-access']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
 
-      return cmd.parse(argsForCmd)
+      return cmd.parse(argsForCmd, config)
     }
     // unknown command
     return unknownCommand(this.help() as string, args._[0])
