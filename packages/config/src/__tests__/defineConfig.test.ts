@@ -1,9 +1,9 @@
-import { defineConfig, type PrismaConfigInput } from '../defineConfig'
+import { defineConfig, type PrismaConfig } from '../defineConfig'
 
 describe('defineConfig', () => {
   const baselineConfig = {
     earlyAccess: true,
-  } satisfies PrismaConfigInput<unknown>
+  } satisfies PrismaConfig<unknown>
 
   describe('studio', () => {
     test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {

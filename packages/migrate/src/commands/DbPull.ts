@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -98,7 +98,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

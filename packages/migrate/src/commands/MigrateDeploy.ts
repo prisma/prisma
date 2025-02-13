@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -39,7 +39,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {

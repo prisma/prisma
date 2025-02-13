@@ -173,7 +173,7 @@ async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<Lookup
  */
 async function getSchemaWithPathInternal(
   schemaPathFromArgs: string | undefined,
-  // config: PrismaConfig,
+  // config: PrismaConfigInternal,
   { cwd, argumentName }: GetSchemaInternalOptions,
 ) {
   // 1. Try the user custom path, when provided.

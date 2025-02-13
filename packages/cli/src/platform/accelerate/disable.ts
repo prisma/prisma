@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command } from '@prisma/internals'
 
 import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -11,7 +11,7 @@ export class Disable implements Command {
     return new Disable()
   }
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = argOrThrow(argv, {
       ...platformParameters.environment,
     })
