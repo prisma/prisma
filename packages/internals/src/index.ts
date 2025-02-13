@@ -5,10 +5,10 @@ export {
   getSchema,
   getSchemaDir,
   type GetSchemaOptions,
-  type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
 } from './cli/getSchema'
+export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
 export { HelpError } from './cli/Help'
@@ -74,6 +74,7 @@ export { isCi } from './utils/isCi'
 export { isCurrentBinInstalledGlobally } from './utils/isCurrentBinInstalledGlobally'
 export { isInteractive } from './utils/isInteractive'
 export { isPromiseLike } from './utils/isPromiseLike'
+export { isValidJsIdentifier } from './utils/isValidJsIdentifier'
 export { keyBy } from './utils/keyBy'
 export { link } from './utils/link'
 export { loadLibrary as load } from './utils/load'
@@ -87,6 +88,7 @@ export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue
 export { longestCommonPathPrefix, pathToPosix } from './utils/path'
 export { pick } from './utils/pick'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { isPrismaPostgres, PRISMA_POSTGRES_PROTOCOL, PRISMA_POSTGRES_PROVIDER } from './utils/prismaPostgres'
 export {
   debugMultipleSchemaPaths,
   debugMultipleSchemas,
@@ -105,3 +107,4 @@ export * as wasm from './wasm'
 export type { EnvPaths } from '@prisma/generator-helper'
 export type { BinaryTarget } from '@prisma/get-platform'
 export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+export type { GetSchemaResult } from '@prisma/schema-files-loader'

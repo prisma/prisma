@@ -6,15 +6,14 @@ on:
       - main
       - '*.*.x'
     paths-ignore:
-      # Any update here needs to be done for `pull_request`, see below
-      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      # Any update here needs to be done for `pull_request` (see below) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -23,15 +22,14 @@ on:
       - 'sandbox/**'
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for `push`, see above
-      # and all files (test.yml, benchmark.yml, release-ci.yml)
+      # Any update here needs to be done for `branches` (see above) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -93,7 +91,7 @@ jobs:
         # - the PR author has permissions to trigger the workflow (must be part of the org or a collaborator)
         if: |
           github.event_name == 'pull_request' &&
-          contains(env.PR_BODY, '/integration') && 
+          contains(env.PR_BODY, '/integration') &&
           (
             github.event.pull_request.author_association == 'OWNER' ||
             github.event.pull_request.author_association == 'MEMBER' ||
@@ -133,8 +131,8 @@ jobs:
           body: |
             <!-- custom-engine -->
             🔴 **CUSTOM ENGINE IS USED**
-            This PR is using custom engine: 
-              
+            This PR is using custom engine:
+
             Branch: [`${{ needs.build_custom_engine.outputs.branchName }}`](https://github.com/prisma/prisma-engines/tree/${{ needs.build_custom_engine.outputs.branchName }})
             Commit: [`${{ needs.build_custom_engine.outputs.engineHash }}`](https://github.com/prisma/prisma-engines/commit/${{ needs.build_custom_engine.outputs.engineHash }}).
 

@@ -31,12 +31,12 @@ jobs:
 
       - uses: pnpm/action-setup@v4.0.0
         with:
-          version: 8.15.5
+          version: 9
 
       - uses: actions/setup-node@v4
         with:
           cache: 'pnpm'
-          node-version: '16'
+          node-version: '18'
 
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version of @prisma/engines-version is available on npm
@@ -56,6 +56,12 @@ jobs:
         run: |
           echo 'Checking that @prisma/query-engine-wasm have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/query-engine-wasm -u ${{ github.event.inputs.version }}
+
+      # Note: @prisma/query-compiler-wasm might take a few minutes before it's available too
+      - name: Check if version of @prisma/query-compiler-wasm is available on npm
+        run: |
+          echo 'Checking that @prisma/query-compiler-wasm have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/query-compiler-wasm -u ${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/engines-version)
         uses: nick-fields/retry@v3
@@ -83,6 +89,15 @@ jobs:
           command: |
             echo 'Updating @prisma/query-engine-wasm to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/query-engine-wasm@${{ github.event.inputs.version }}
+
+      - name: Update the dependencies (@prisma/query-compiler-wasm)
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 7
+          max_attempts: 3
+          command: |
+            echo 'Updating @prisma/query-compiler-wasm to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/query-compiler-wasm@${{ github.event.inputs.version }}
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
@@ -120,6 +135,7 @@ jobs:
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
             |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             |`@prisma/query-engine-wasm`| https://npmjs.com/package/@prisma/query-engine-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/query-compiler-wasm`| https://npmjs.com/package/@prisma/query-compiler-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -166,6 +182,7 @@ jobs:
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
             |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             |`@prisma/query-engine-wasm`| https://npmjs.com/package/@prisma/query-engine-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/query-compiler-wasm`| https://npmjs.com/package/@prisma/query-compiler-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -208,6 +225,7 @@ jobs:
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
             |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             |`@prisma/query-engine-wasm`| https://npmjs.com/package/@prisma/query-engine-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/query-compiler-wasm`| https://npmjs.com/package/@prisma/query-compiler-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -221,7 +239,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'Update Engines Version failed :x:'
           SLACK_COLOR: '#FF0000'

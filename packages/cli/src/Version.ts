@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
@@ -10,6 +11,7 @@ import {
   getEnginesMetaInfo,
   getSchema,
   getSchemaWithPath,
+  getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
@@ -21,7 +23,7 @@ import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 /**
  * $ prisma version
@@ -45,7 +47,7 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -63,7 +65,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: true })
+    await loadEnvFile({ printMessage: !args['--json'], config })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -88,6 +90,7 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const typescriptVersion = await getTypescriptVersion()
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -96,6 +99,7 @@ export class Version implements Command {
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
+      ['TypeScript', typescriptVersion],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],

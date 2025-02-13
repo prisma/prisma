@@ -321,6 +321,13 @@ function normalize_money(money: string): string {
   return money.slice(1)
 }
 
+/******************/
+/* XML handling */
+/******************/
+function normalize_xml(xml: string): string {
+  return xml
+}
+
 /*****************/
 /* JSON handling */
 /*****************/
@@ -401,6 +408,7 @@ export const customParsers = {
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
   [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
 // https://github.com/brianc/node-postgres/pull/2930

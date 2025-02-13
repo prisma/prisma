@@ -2,6 +2,7 @@ import type { DataSource, DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
+import { ClientOtherOps } from '../../runtime'
 import { Operation } from '../../runtime/core/types/exported/Result'
 import * as ts from '../ts-builders'
 import {
@@ -15,7 +16,7 @@ import {
   getPayloadName,
 } from '../utils'
 import { lowerCase } from '../utils/common'
-import { runtimeImport } from '../utils/runtimeImport'
+import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
@@ -83,6 +84,7 @@ function clientTypeMapModelsResultDefinition(
   if (action === 'createMany') return ts.namedType('BatchPayload')
   if (action === 'createManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'updateMany') return ts.namedType('BatchPayload')
+  if (action === 'updateManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'findMany') return ts.array(payloadToResult(modelName))
   if (action === 'findFirst') return ts.unionType([payloadToResult(modelName), ts.nullType])
   if (action === 'findUnique') return ts.unionType([payloadToResult(modelName), ts.nullType])
@@ -101,12 +103,17 @@ function payloadToResult(modelName: string) {
 }
 
 function clientTypeMapOthersDefinition(context: GenerateContext) {
-  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((n) => {
-    if (n === 'executeRaw' || n === 'queryRaw') {
-      return [`$${n}Unsafe`, `$${n}`]
+  const otherOperationsNames = context.dmmf.getOtherOperationNames().flatMap((name) => {
+    const results = [`$${name}`]
+    if (name === 'executeRaw' || name === 'queryRaw') {
+      results.push(`$${name}Unsafe`)
     }
 
-    return `$${n}`
+    if (name === 'queryRaw' && context.isPreviewFeatureOn('typedSql')) {
+      results.push(`$queryRawTyped`)
+    }
+
+    return results
   })
 
   const argsResultMap = {
@@ -115,7 +122,8 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-  }
+    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
+  } satisfies Record<keyof ClientOtherOps, { args: string; result: string }>
 
   return `{
   other: {
@@ -159,22 +167,19 @@ function clientExtensionsDefinitions(context: GenerateContext) {
   return [typeMap, ts.stringify(define)].join('\n')
 }
 
-function extendsPropertyDefinition(context: GenerateContext) {
+function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('$Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
     .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
     .addGenericArgument(ts.namedType('ExtArgs'))
-  if (context.isPreviewFeatureOn('omitApi')) {
-    extendsDefinition
-      .addGenericArgument(
-        ts
-          .namedType('$Utils.Call')
-          .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
-          .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
-      )
-      .addGenericArgument(ts.namedType('ClientOptions'))
-  }
+    .addGenericArgument(
+      ts
+        .namedType('$Utils.Call')
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
+        .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
+    )
+    .addGenericArgument(ts.namedType('ClientOptions'))
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
 }
 
@@ -255,7 +260,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -267,7 +272,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
@@ -286,7 +291,7 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -298,10 +303,46 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
+}
+
+function queryRawTypedDefinition(context: GenerateContext) {
+  if (!context.isPreviewFeatureOn('typedSql')) {
+    return ''
+  }
+  if (!context.dmmf.mappings.otherOperations.write.includes('queryRaw')) {
+    return ''
+  }
+
+  const param = ts.genericParameter('T')
+  const method = ts
+    .method('$queryRawTyped')
+    .setDocComment(
+      ts.docComment`
+        Executes a typed SQL query and returns a typed result
+        @example
+        \`\`\`
+        import { myQuery } from '@prisma/client/sql'
+
+        const result = await prisma.$queryRawTyped(myQuery())
+        \`\`\`
+      `,
+    )
+    .addGenericParameter(param)
+    .addParameter(
+      ts.parameter(
+        'typedSql',
+        runtimeImportedType('TypedSql')
+          .addGenericArgument(ts.array(ts.unknownType))
+          .addGenericArgument(param.toArgument()),
+      ),
+    )
+    .setReturnType(ts.prismaPromise(ts.array(param.toArgument())))
+
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 function metricDefinition(context: GenerateContext) {
@@ -314,7 +355,7 @@ function metricDefinition(context: GenerateContext) {
     .setDocComment(
       ts.docComment`
         Gives access to the client metrics in json or prometheus format.
-        
+
         @example
         \`\`\`
         const metrics = await prisma.$metrics.json()
@@ -347,7 +388,7 @@ function runCommandRawDefinition(context: GenerateContext) {
         explain: false,
       })
       \`\`\`
-   
+
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
@@ -402,7 +443,7 @@ export class PrismaClientClass implements Generable {
 
     return `/**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -411,7 +452,7 @@ export class PrismaClientClass implements Generable {
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
@@ -451,12 +492,13 @@ export class PrismaClient<
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),
+  queryRawTypedDefinition(this.context),
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
   applyPendingMigrationsDefinition.bind(this)(),
-  extendsPropertyDefinition(this.context),
+  extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
   .join('\n')
@@ -470,10 +512,7 @@ ${[
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
-          const generics = ['ExtArgs']
-          if (this.context.isPreviewFeatureOn('omitApi')) {
-            generics.push('ClientOptions')
-          }
+          const generics = ['ExtArgs', 'ClientOptions']
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
@@ -492,14 +531,13 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   }
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
-    const isOmitEnabled = this.context.isPreviewFeatureOn('omitApi')
 
     return `${new Datasources(this.internalDatasources).toTS()}
 ${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${ts.stringify(ts.moduleExport(clientOptions))}
-${isOmitEnabled ? ts.stringify(globalOmitConfig(this.context.dmmf)) : ''}
+${ts.stringify(globalOmitConfig(this.context.dmmf))}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -540,6 +578,7 @@ export type PrismaAction =
   | 'createManyAndReturn'
   | 'update'
   | 'updateMany'
+  | 'updateManyAndReturn'
   | 'upsert'
   | 'delete'
   | 'deleteMany'
@@ -608,7 +647,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
              \`\`\`
              // Defaults to stdout
              log: ['query', 'info', 'warn', 'error']
-            
+
              // Emit as events
              log: [
                { emit: 'stdout', level: 'query' },
@@ -638,7 +677,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
     )
 
-    if (this.runtimeNameTs === 'library.js' && this.context.isPreviewFeatureOn('driverAdapters')) {
+    if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
@@ -649,24 +688,23 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       )
     }
 
-    if (this.context.isPreviewFeatureOn('omitApi')) {
-      clientOptions.add(
-        ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
-            Global configuration for omitting model fields by default.
+    clientOptions.add(
+      ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+        Global configuration for omitting model fields by default.
 
-            @example
-            \`\`\`
-            const prisma = new PrismaClient({
-              omit: {
-                user: {
-                  password: true
-                }
-              }
-            })
-            \`\`\`
-          `),
-      )
-    }
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          omit: {
+            user: {
+              password: true
+            }
+          }
+        })
+        \`\`\`
+      `),
+    )
+
     return clientOptions
   }
 }

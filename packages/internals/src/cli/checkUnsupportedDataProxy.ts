@@ -1,6 +1,7 @@
+import { defaultTestConfig } from '@prisma/config'
 import fs from 'fs'
 import { green } from 'kleur/colors'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import { getConfig, getEffectiveUrl, getSchemaWithPath, link } from '..'
 import { resolveUrl } from '../engine-commands/getConfig'
@@ -57,7 +58,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
     // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
-      await loadEnvFile({ schemaPath: argValue, printMessage: false })
+      await loadEnvFile({ schemaPath: argValue, printMessage: false, config: defaultTestConfig() })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })

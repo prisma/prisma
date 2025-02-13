@@ -1,13 +1,6 @@
 import { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
-import {
-  extArgsParam,
-  getIncludeName,
-  getLegacyModelArgName,
-  getModelArgName,
-  getOmitName,
-  getSelectName,
-} from '../utils'
+import { extArgsParam, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { buildInputField } from './Input'
@@ -35,7 +28,7 @@ export class ArgsTypeBuilder {
 
   addSchemaArgs(args: readonly DMMF.SchemaArg[]): this {
     for (const arg of args) {
-      const inputField = buildInputField(arg, this.context.genericArgsInfo)
+      const inputField = buildInputField(arg, this.context)
 
       const docComment = getArgFieldJSDoc(this.type, this.action, arg)
       if (docComment) {
@@ -80,9 +73,6 @@ export class ArgsTypeBuilder {
   }
 
   addOmitArg(): this {
-    if (!this.context.isPreviewFeatureOn('omitApi')) {
-      return this
-    }
     this.addProperty(
       ts
         .property(
@@ -110,13 +100,6 @@ export class ArgsTypeBuilder {
   }
 
   createExport() {
-    if (!this.action && this.hasDefaultName) {
-      this.context.defaultArgsAliases.addPossibleAlias(
-        getModelArgName(this.type.name),
-        getLegacyModelArgName(this.type.name),
-      )
-    }
-    this.context.defaultArgsAliases.registerArgName(this.moduleExport.declaration.name)
     return this.moduleExport
   }
 }

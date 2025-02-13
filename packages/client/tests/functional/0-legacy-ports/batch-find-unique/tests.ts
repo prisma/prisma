@@ -62,7 +62,10 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
     expect.assertions(2)
 
     prisma.$on('query', (event) => {
-      executedBatchQuery = event.query.replace(mySqlSchemaIdRegex, '').trim()
+      executedBatchQuery = event.query
+        .replace(` /* traceparent='00-00000000000000000000000000000010-0000000000000010-01' */`, '')
+        .replace(mySqlSchemaIdRegex, '')
+        .trim()
     })
 
     const results = await Promise.all([
@@ -83,7 +86,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.COCKROACHDB:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT "t1"."id", "t1"."email", "t1"."age", "t1"."name" FROM "public"."User" AS "t1" WHERE "t1"."email" IN ($1,$2,$3,$4)"`,
+            `"SELECT "t0"."id", "t0"."email", "t0"."age", "t0"."name" FROM "public"."User" AS "t0" WHERE "t0"."email" IN ($1,$2,$3,$4)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
@@ -95,7 +98,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       case Providers.MYSQL:
         if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
-            `"SELECT \`t1\`.\`id\`, \`t1\`.\`email\`, \`t1\`.\`age\`, \`t1\`.\`name\` FROM \`\`.\`User\` AS \`t1\` WHERE \`t1\`.\`email\` IN (?,?,?,?)"`,
+            `"SELECT \`t0\`.\`id\`, \`t0\`.\`email\`, \`t0\`.\`age\`, \`t0\`.\`name\` FROM \`\`.\`User\` AS \`t0\` WHERE \`t0\`.\`email\` IN (?,?,?,?)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(

@@ -9,7 +9,7 @@ declare let Prisma: typeof PrismaNamespace
 // Note: Test inspired by ./raw-queries/typed-results/tests.ts
 
 testMatrix.setupTestSuite(
-  ({ clientRuntime, driverAdapter, provider }) => {
+  ({ driverAdapter, provider }) => {
     const isD1 = driverAdapter === 'js_d1'
 
     beforeEach(async () => {
@@ -117,7 +117,7 @@ testMatrix.setupTestSuite(
           int: 42,
           bInt: BigInt('12345'),
           float: 0.125,
-          bytes: Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: new Prisma.Decimal('0.0625'),
@@ -137,10 +137,7 @@ testMatrix.setupTestSuite(
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bInt: expect.anything(),
           float: 0.125,
-          // TODO: The buffer binary data does not match the expected one
-          // testModel![0].bytes.constructor shows different things
-          // see client/tests/functional/raw-queries/typed-results/tests.ts
-          bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: isD1 || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
@@ -156,10 +153,7 @@ testMatrix.setupTestSuite(
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bInt: expect.anything(),
           float: 0.125,
-          // TODO: The buffer binary data does not match the expected one
-          // testModel![0].bytes.constructor shows different things
-          // see client/tests/functional/raw-queries/typed-results/tests.ts
-          bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           // -> Diff, value is a Boolean, which is correct.
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
@@ -210,7 +204,7 @@ testMatrix.setupTestSuite(
           int: 42,
           bInt: BigInt('12345'),
           float: 0.125,
-          bytes: Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: new Prisma.Decimal('0.0625'),
@@ -241,10 +235,7 @@ testMatrix.setupTestSuite(
           // see client/tests/functional/raw-queries/typed-results/tests.ts
           bInt: expect.anything(),
           float: 0.125,
-          // TODO: The buffer binary data does not match the expected one
-          // testModel![0].bytes.constructor shows different things
-          // see client/tests/functional/raw-queries/typed-results/tests.ts
-          bytes: clientRuntime === 'wasm' ? expect.anything() : Buffer.from([1, 2, 3]),
+          bytes: Uint8Array.from([1, 2, 3]),
           bool: isD1 || provider === Providers.MYSQL ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: isD1 ? 0.0625 : new Prisma.Decimal('0.0625'),
@@ -287,15 +278,6 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: `
         $queryRaw only works on SQL based providers
-      `,
-    },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: `
-        This test is broken with the edge client. It needs to be updated to
-        send ArrayBuffers and expect them as results, and the client might need
-        to be fixed to return buffer and not polyfilled Buffers in
-        query results.
       `,
     },
   },

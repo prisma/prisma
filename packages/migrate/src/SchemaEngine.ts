@@ -260,6 +260,15 @@ export class SchemaEngine {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
 
+  /**
+   * SQL introspection that powers TypedSQL feature
+   * @param args
+   * @returns
+   */
+  public introspectSql(args: EngineArgs.IntrospectSqlParams): Promise<EngineResults.IntrospectSqlOutput> {
+    return this.runCommand(this.getRPCPayload('introspectSql', args))
+  }
+
   public stop(): void {
     if (this.child) {
       this.child.kill()
@@ -283,7 +292,8 @@ export class SchemaEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}`)
+
+      console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}. Error: ${e.message}`)
     }
 
     // See https://www.jsonrpc.org/specification for the expected shape of messages.

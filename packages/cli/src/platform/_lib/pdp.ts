@@ -4,7 +4,6 @@ import { getUserAgent } from './userAgent'
 
 const platformAPIEndpoint = new URL('https://console.prisma.io/api')
 export const consoleUrl = new URL('https://console.prisma.io')
-export const optimizeUrl = new URL('https://optimize.prisma.io')
 
 /**
  *

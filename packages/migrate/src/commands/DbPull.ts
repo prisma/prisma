@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -60,6 +61,7 @@ ${bold('Flags')}
 
 ${bold('Options')}
 
+                --config   Custom path to your Prisma config file
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
@@ -96,7 +98,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -132,12 +134,12 @@ Set composite types introspection depth to 2 levels
       process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
     }
 
     const fromD1 = Boolean(args['--local-d1'])

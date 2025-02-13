@@ -28,26 +28,29 @@
   ],
   "devDependencies": {
     "@antfu/ni": "0.21.12",
+    "@babel/helper-validator-identifier": "7.24.7",
     "@opentelemetry/api": "1.9.0",
     "@swc/core": "1.2.204",
-    "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
+    "@swc/jest": "0.2.37",
+    "@types/babel__helper-validator-identifier": "7.15.2",
+    "@types/jest": "29.5.14",
     "@types/node": "18.19.31",
     "@types/resolve": "1.20.6",
     "archiver": "6.0.2",
     "checkpoint-client": "1.1.33",
     "cli-truncate": "2.1.0",
-    "dotenv": "16.0.3",
-    "esbuild": "0.23.0",
+    "dotenv": "16.4.7",
+    "esbuild": "0.24.2",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
-    "fast-glob": "3.3.2",
+    "fast-glob": "3.3.3",
     "find-up": "5.0.0",
-    "fp-ts": "2.16.8",
+    "fp-ts": "2.16.9",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
     "global-dirs": "4.0.0",
     "globby": "11.1.0",
+    "identifier-regex": "1.0.0",
     "indent-string": "4.0.0",
     "is-windows": "1.0.2",
     "is-wsl": "3.1.0",
@@ -62,7 +65,7 @@
     "p-map": "4.0.0",
     "read-package-up": "11.0.0",
     "replace-string": "3.1.0",
-    "resolve": "1.22.8",
+    "resolve": "1.22.10",
     "string-width": "4.2.3",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
@@ -71,20 +74,30 @@
     "terminal-link": "2.1.1",
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
-    "ts-pattern": "5.2.0",
+    "ts-pattern": "5.6.2",
+    "ts-toolbelt": "9.6.0",
     "typescript": "5.4.5",
     "yarn": "1.22.22"
   },
   "dependencies": {
+    "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.18.0-15.a6977e518975c6a4e6ae77bf7faf8afc08b97e7d",
+    "@prisma/prisma-schema-wasm": "6.4.0-22.6b762f68259116818698cc00c29790aebfc0e55e",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   },
   "sideEffects": false
 }

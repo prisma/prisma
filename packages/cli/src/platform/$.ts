@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
@@ -22,6 +23,8 @@ export class $ implements Command {
       // ['serviceToken', 'Manage service tokens'],
       ['accelerate', 'Manage Prisma Accelerate'],
       ['pulse', 'Manage Prisma Pulse'],
+      // TODO: undo comment before EA
+      // ['policy', 'Manage Prisma Policy'],
     ],
     options: [
       ['--early-access', '', 'Enable early access features'],
@@ -34,7 +37,7 @@ export class $ implements Command {
     ],
   })
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access/)))
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
 
@@ -52,7 +55,7 @@ export class $ implements Command {
       return this.help()
     }
 
-    const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess)
+    const result = await dispatchToSubCommand(this.commands, argvWithoutEarlyAccess, config)
 
     return result
   }

@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "../../packages/client",
+    "@prisma/config": "../../packages/config",
     "cross-env": "^7.0.3"
   },
   "devDependencies": {
