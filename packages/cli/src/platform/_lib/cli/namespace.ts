@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, Commands } from '@prisma/internals'
 
 import { dispatchToSubCommand } from './dispatchToSubCommand'
@@ -11,7 +11,7 @@ export const createNamespace = () => {
 
     private constructor(public readonly commands: Commands) {}
 
-    public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+    public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
       return await dispatchToSubCommand(this.commands, argv, config)
     }
   }

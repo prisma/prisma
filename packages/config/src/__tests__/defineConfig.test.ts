@@ -1,9 +1,9 @@
-import { defineConfig, type PrismaConfigInput } from '../defineConfig'
+import { defineConfig, type PrismaConfig } from '../defineConfig'
 
 describe('defineConfig', () => {
   const baselineConfig = {
-    experimental: true,
-  } satisfies PrismaConfigInput<unknown>
+    earlyAccess: true,
+  } satisfies PrismaConfig<unknown>
 
   describe('studio', () => {
     test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {
@@ -14,7 +14,7 @@ describe('defineConfig', () => {
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', () => {
       const adapter = jest.fn()
       const config = defineConfig({
-        experimental: true,
+        earlyAccess: true,
         studio: {
           adapter: adapter,
         },

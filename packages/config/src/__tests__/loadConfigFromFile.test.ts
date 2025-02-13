@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import { jestContext } from '@prisma/get-platform'
+import type { ParseError } from 'effect/ParseResult'
 
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
 
@@ -16,13 +17,91 @@ describe('loadConfigFromFile', () => {
 
   function assertErrorConfigFileParseError(error: LoadConfigFromFileError | undefined): asserts error is {
     _tag: 'ConfigFileParseError'
-    error: Error
+    error: ParseError
   } {
     expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
   }
 
+  describe('schema', () => {
+    describe('single', () => {
+      it('succeeds when it points to a single Prisma schema file that exists', async () => {
+        ctx.fixture('loadConfigFromFile/schema/single-exists')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'single',
+            filenamePath: path.join(cwd, 'prisma', 'schema.prisma'),
+          },
+        })
+        expect(error).toBeUndefined()
+      })
+
+      it('succeeds when it points to a single Prisma schema file that does not exists', async () => {
+        ctx.fixture('loadConfigFromFile/schema/single-does-not-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'single',
+            filenamePath: path.join(cwd, 'prisma', 'schema.prisma'),
+          },
+        })
+        expect(error).toBeUndefined()
+      })
+    })
+
+    describe('multi', () => {
+      it('succeeds when it points to multiple Prisma schema files that exist', async () => {
+        ctx.fixture('loadConfigFromFile/schema/multi-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'multi',
+            folder: path.join(cwd, 'prisma', 'schema'),
+          },
+        })
+        expect(error).toBeUndefined()
+      })
+
+      it('succeeds when it points to multiple Prisma schema files that do not exist', async () => {
+        ctx.fixture('loadConfigFromFile/schema/multi-do-not-exist')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'multi',
+            folder: path.join(cwd, 'prisma', 'schema'),
+          },
+        })
+        expect(error).toBeUndefined()
+      })
+    })
+  })
+
   describe('invalid', () => {
-    it('fails when the Prisma config file has a syntax error', async () => {
+    it('fails with `TypeScriptImportFailed` when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
@@ -33,7 +112,7 @@ describe('loadConfigFromFile', () => {
         "  [31m×[0m Unexpected eof
            ╭─[[36;1;4m<prisma-config>.ts[0m:5:3]
          [2m3[0m │ export default defineConfig({
-         [2m4[0m │   experimental: true,
+         [2m4[0m │   earlyAccess: true,
          [2m5[0m │ }
            ╰────
 
@@ -43,13 +122,31 @@ describe('loadConfigFromFile', () => {
       `)
     })
 
-    it('fails when the Prisma config file has no default export', async () => {
+    it('fails with `ConfigFileParseError` when the Prisma config file has no default export', async () => {
       ctx.fixture('loadConfigFromFile/invalid/no-default-export')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
+      expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
+        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filenamePath: string } | { readonly kind: "multi"; readonly folder: string } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+      )
+    })
+
+    it(`fails with \`ConfigFileParseError\` when the default export in the Prisma config file does
+        not conform to the expected schema shape`, async () => {
+      ctx.fixture('loadConfigFromFile/invalid/no-schema-shape-conformance')
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
+      expect(config).toBeUndefined()
+      assertErrorConfigFileParseError(error)
+      expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
+        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filenamePath: string } | { readonly kind: "multi"; readonly folder: string } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        └─ ["thisShouldFail"]
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "loadedFromFile""
+      `)
     })
   })
 
@@ -60,8 +157,8 @@ describe('loadConfigFromFile', () => {
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toMatchObject({
-        experimental: true,
-        loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
       })
       expect(error).toBeUndefined()
     })
@@ -100,8 +197,8 @@ describe('loadConfigFromFile', () => {
       })
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), customConfigPath))
       expect(config).toMatchObject({
-        experimental: true,
-        loadedFromFile: path.join(ctx.fs.cwd(), customConfigPath),
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
       })
       expect(error).toBeUndefined()
     })
@@ -113,11 +210,11 @@ describe('loadConfigFromFile', () => {
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
-      experimental: true,
+      earlyAccess: true,
       studio: {
         createAdapter: expect.any(Function),
       },
-      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+      loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
 
@@ -136,11 +233,11 @@ describe('loadConfigFromFile', () => {
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
-      experimental: true,
+      earlyAccess: true,
       studio: {
         createAdapter: expect.any(Function),
       },
-      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
+      loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
 
@@ -175,7 +272,7 @@ describe('loadConfigFromFile', () => {
       const { config, error } = await loadConfigFromFile({})
       assertLoadConfigFromFileErrorIsUndefined(error)
       expect(config).toMatchObject({
-        experimental: true,
+        earlyAccess: true,
       })
 
       expect(process.env).toMatchObject(processEnvBackup)
@@ -187,7 +284,7 @@ describe('loadConfigFromFile', () => {
       const { config, error } = await loadConfigFromFile({})
       assertLoadConfigFromFileErrorIsUndefined(error)
       expect(config).toMatchObject({
-        experimental: true,
+        earlyAccess: true,
       })
 
       expect(process.env).toMatchObject({

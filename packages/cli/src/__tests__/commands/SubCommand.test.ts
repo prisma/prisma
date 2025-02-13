@@ -39,7 +39,7 @@ test('@<version>', async () => {
             "--help",
           ],
           {
-            "experimental": true,
+            "earlyAccess": true,
             "loadedFromFile": null,
           },
         ],
@@ -69,7 +69,7 @@ test('@latest', async () => {
             "--help",
           ],
           {
-            "experimental": true,
+            "earlyAccess": true,
             "loadedFromFile": null,
           },
         ],
@@ -104,7 +104,7 @@ test('autoinstall', async () => {
             "--help",
           ],
           {
-            "experimental": true,
+            "earlyAccess": true,
             "loadedFromFile": null,
           },
         ],
