@@ -1,4 +1,4 @@
-import { SqlResultSet } from '@prisma/driver-adapter-utils'
+import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
 export function serialize(resultSet: SqlResultSet): Record<string, unknown>[] {
   return resultSet.rows.map((row) =>

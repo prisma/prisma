@@ -7,9 +7,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
 
-import { PrismaClientKnownRequestError } from '../../../errors/PrismaClientKnownRequestError'
-import type * as Tx from '../../common/types/Transaction'
-import { IsolationLevel } from '../../common/types/Transaction'
+import { IsolationLevel, Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,
@@ -89,7 +87,7 @@ class MockDriverAdapter implements SqlConnection {
   }
 }
 
-async function startTransaction(transactionManager: TransactionManager, options: Partial<Tx.Options> = {}) {
+async function startTransaction(transactionManager: TransactionManager, options: Partial<Options> = {}) {
   const [{ id }] = await Promise.all([
     transactionManager.startTransaction({
       timeout: TRANSACTION_EXECUTION_TIMEOUT,
@@ -105,7 +103,6 @@ test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
     driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
   })
 
   const id = await startTransaction(transactionManager)
@@ -126,7 +123,6 @@ test('transaction is rolled back', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
     driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
   })
 
   const id = await startTransaction(transactionManager)
@@ -147,7 +143,6 @@ test('transactions are rolled back when shutting down', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
     driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
   })
 
   const id1 = await startTransaction(transactionManager)
@@ -173,7 +168,6 @@ test('when driver adapter requires phantom queries does not execute transaction 
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
   const transactionManager = new TransactionManager({
     driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
   })
 
   const id = await startTransaction(transactionManager)
@@ -192,7 +186,6 @@ test('with explicit isolation level', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
     driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
   })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
@@ -213,8 +206,7 @@ test('with explicit isolation level', async () => {
 test('for MySQL with explicit isolation level requires isolation level set before BEGIN', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
@@ -228,8 +220,7 @@ test('for MySQL with explicit isolation level requires isolation level set befor
 test('for SQLite with unsupported isolation level', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   await expect(
@@ -240,8 +231,7 @@ test('for SQLite with unsupported isolation level', async () => {
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   await expect(
@@ -252,8 +242,7 @@ test('with isolation level only supported in MS SQL Server, "snapshot"', async (
 test('transaction times out during starting', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
@@ -264,8 +253,7 @@ test('transaction times out during starting', async () => {
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   const id = await startTransaction(transactionManager)
@@ -279,8 +267,7 @@ test('transaction times out during execution', async () => {
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-    clientVersion: '1.0.0',
+    driverAdapter: bindAdapter(driverAdapter)
   })
 
   await expect(transactionManager.commitTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)
@@ -291,12 +278,10 @@ test('trying to commit or rollback invalid transaction id fails with Transaction
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 })
 
-test('TransactionManagerErrors are PrismaClientKnownRequestError', () => {
-  const error = new TransactionManagerError('test message', { clientVersion: '1.0.0', meta: { foo: 'bar' } })
+test('TransactionManagerErrors have common structure', () => {
+  const error = new TransactionManagerError('test message', { foo: 'bar' })
 
-  expect(error).toBeInstanceOf(PrismaClientKnownRequestError)
   expect(error.code).toEqual('P2028')
   expect(error.message).toEqual('Transaction API error: test message')
-  expect(error.clientVersion).toEqual('1.0.0')
   expect(error.meta).toEqual({ foo: 'bar' })
 })

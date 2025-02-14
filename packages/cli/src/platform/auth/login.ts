@@ -1,5 +1,5 @@
 import { select } from '@inquirer/prompts'
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
@@ -29,7 +29,7 @@ export class Login implements Command {
     return new Login()
   }
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       // internal optimize flag to track signup attribution
       '--optimize': Boolean,

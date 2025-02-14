@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
@@ -14,7 +14,7 @@ export class CLI implements Command {
 
   private constructor(private readonly cmds: Commands) {}
 
-  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

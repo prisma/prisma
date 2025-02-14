@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
@@ -37,7 +37,7 @@ export class $ implements Command {
     ],
   })
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const isHasEarlyAccessFeatureFlag = Boolean(argv.find((_) => _.match(/early-access/)))
     if (!isHasEarlyAccessFeatureFlag) throw new EarlyAccessFlagError()
 

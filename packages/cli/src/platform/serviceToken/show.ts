@@ -1,4 +1,4 @@
-import { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, isError } from '@prisma/internals'
 
 import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -13,7 +13,7 @@ export class Show implements Command {
 
   constructor(private readonly legacy: boolean = false) {}
 
-  public async parse(argv: string[], _config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       ...platformParameters.environment,
     })
