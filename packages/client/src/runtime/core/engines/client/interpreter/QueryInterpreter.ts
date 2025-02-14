@@ -1,4 +1,4 @@
-import { ErrorCapturingQueryable, Query } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlQueryable, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../../common/types/Events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
@@ -7,13 +7,13 @@ import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serializer'
 
 export type QueryInterpreterOptions = {
-  queryable: ErrorCapturingQueryable
+  queryable: ErrorCapturingSqlQueryable
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
 }
 
 export class QueryInterpreter {
-  #queryable: ErrorCapturingQueryable
+  #queryable: ErrorCapturingSqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
 
@@ -148,7 +148,7 @@ export class QueryInterpreter {
     }
   }
 
-  async #withQueryEvent<T>(query: Query, execute: () => Promise<T>): Promise<T> {
+  async #withQueryEvent<T>(query: SqlQuery, execute: () => Promise<T>): Promise<T> {
     const timestamp = new Date()
     const startInstant = performance.now()
     const result = await execute()

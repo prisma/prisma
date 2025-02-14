@@ -5,10 +5,10 @@
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  Query,
-  ResultSet,
   SqlConnection,
-  SqlQueryAdapter,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -33,7 +33,7 @@ class RollbackError extends Error {
 }
 
 class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
-  implements SqlConnection
+  implements SqlQueryable
 {
   readonly provider = 'mysql'
   readonly adapterName = packageName
@@ -43,7 +43,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<ResultSet> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -52,7 +52,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
     return {
       columnNames: columns,
       columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-      rows: rows as ResultSet['rows'],
+      rows: rows as SqlResultSet['rows'],
       lastInsertId,
     }
   }
@@ -62,19 +62,11 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<number> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
     return (await this.performIO(query)).rowsAffected
-  }
-
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.')
   }
 
   /**
@@ -82,7 +74,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<planetScale.ExecutedQuery> {
+  private async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -186,7 +178,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlQueryAdapter {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlConnection {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
@@ -198,6 +190,10 @@ const adapter = new PrismaPlanetScale(client)
 `)
     }
     super(client)
+  }
+
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
   }
 
   getConnectionInfo(): ConnectionInfo {
@@ -213,4 +209,6 @@ const adapter = new PrismaPlanetScale(client)
     const ctx = new PlanetScaleTransactionContext(conn)
     return ctx
   }
+
+  async dispose(): Promise<void> {}
 }

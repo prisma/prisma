@@ -1,4 +1,10 @@
-import type { Query, ResultSet, SqlQueryAdapter, Transaction, TransactionContext } from '@prisma/driver-adapter-utils'
+import type {
+  SqlConnection,
+  SqlQuery,
+  SqlResultSet,
+  Transaction,
+  TransactionContext,
+} from '@prisma/driver-adapter-utils'
 import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
 
 import { PrismaClientKnownRequestError } from '../../../errors/PrismaClientKnownRequestError'
@@ -20,25 +26,25 @@ jest.useFakeTimers()
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
 
-class MockDriverAdapter implements SqlQueryAdapter {
+class MockDriverAdapter implements SqlConnection {
   adapterName = 'mock-adapter'
-  provider: SqlQueryAdapter['provider']
+  provider: SqlConnection['provider']
   private readonly usePhantomQuery: boolean
 
-  executeRawMock: jest.MockedFn<(params: Query) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
+  executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
-  constructor({ provider = 'postgres' as SqlQueryAdapter['provider'], usePhantomQuery = false } = {}) {
+  constructor({ provider = 'postgres' as SqlConnection['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
   }
 
-  executeRaw(params: Query): Promise<number> {
+  executeRaw(params: SqlQuery): Promise<number> {
     return this.executeRawMock(params)
   }
 
-  queryRaw(_params: Query): Promise<ResultSet> {
+  queryRaw(_params: SqlQuery): Promise<SqlResultSet> {
     throw new Error('Not implemented for test')
   }
 
@@ -61,8 +67,6 @@ class MockDriverAdapter implements SqlQueryAdapter {
       provider: this.provider,
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
-      executeScript: jest.fn().mockRejectedValue('Not implemented for test'),
-      dispose: jest.fn().mockRejectedValue('Not implemented for test'),
       startTransaction(): Promise<Transaction> {
         const mockTransaction: Transaction = {
           adapterName: 'mock-adapter',
@@ -70,8 +74,6 @@ class MockDriverAdapter implements SqlQueryAdapter {
           options: { usePhantomQuery },
           queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
           executeRaw: executeRawMock,
-          executeScript: jest.fn().mockRejectedValue('Not implemented for test'),
-          dispose: jest.fn().mockRejectedValue('Not implemented for test'),
           commit: commitMock,
           rollback: rollbackMock,
         }

@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import { type ErrorCapturingSqlConnection } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -40,7 +40,7 @@ export class ClientEngine implements Engine<undefined> {
   config: EngineConfig
   datamodel: string
 
-  driverAdapter: ErrorCapturingDriverAdapter
+  driverAdapter: ErrorCapturingSqlConnection
   transactionManager: TransactionManager
 
   logEmitter: LogEmitter

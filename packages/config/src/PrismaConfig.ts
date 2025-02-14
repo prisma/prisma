@@ -1,4 +1,4 @@
-import type { SqlQueryAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { SqlConnection as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 
 export type PrismaConfig<Env = any> = {
   /**

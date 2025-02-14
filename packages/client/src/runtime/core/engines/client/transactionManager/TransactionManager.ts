@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorCapturingDriverAdapter, ErrorCapturingTransaction, Query } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import crypto from 'crypto'
 
@@ -38,9 +38,9 @@ type TransactionWrapper = {
 
 const debug = Debug('prisma:client:transactionManager')
 
-const COMMIT_QUERY = (): Query => ({ sql: 'COMMIT', args: [], argTypes: [] })
-const ROLLBACK_QUERY = (): Query => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): Query => ({
+const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
+const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
+const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SqlQuery => ({
   sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
   args: [],
   argTypes: [],
@@ -52,10 +52,10 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: ErrorCapturingDriverAdapter
+  private readonly driverAdapter: ErrorCapturingSqlConnection
   private readonly clientVersion: string
 
-  constructor({ driverAdapter, clientVersion }: { driverAdapter: ErrorCapturingDriverAdapter; clientVersion: string }) {
+  constructor({ driverAdapter, clientVersion }: { driverAdapter: ErrorCapturingSqlConnection; clientVersion: string }) {
     this.driverAdapter = driverAdapter
     this.clientVersion = clientVersion
   }

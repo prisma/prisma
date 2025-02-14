@@ -4,10 +4,10 @@ import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
-  Query,
-  ResultSet,
   SqlConnection,
-  SqlQueryAdapter,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -26,14 +26,14 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
 /**
  * Base class for http client, ws client and ws transaction
  */
-abstract class NeonQueryable implements SqlConnection {
+abstract class NeonQueryable implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<ResultSet> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -65,7 +65,7 @@ abstract class NeonQueryable implements SqlConnection {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<number> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -78,9 +78,7 @@ abstract class NeonQueryable implements SqlConnection {
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  abstract performIO(query: Query): Promise<PerformIOResult>
-  abstract executeScript(script: string): Promise<void>
-  abstract dispose(): Promise<void>
+  abstract performIO(query: SqlQuery): Promise<PerformIOResult>
 }
 
 /**
@@ -91,7 +89,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     super()
   }
 
-  override async performIO(query: Query): Promise<PerformIOResult> {
+  override async performIO(query: SqlQuery): Promise<PerformIOResult> {
     const { sql, args: values } = query
 
     try {
@@ -127,28 +125,24 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 
       return result
     } catch (e) {
-      debug('Error in performIO: %O', e)
-      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-        throw {
-          kind: 'postgres',
-          code: e.code,
-          severity: e.severity,
-          message: e.message,
-          detail: e.detail,
-          column: e.column,
-          hint: e.hint,
-        }
-      }
-      throw e
+      this.onError(e)
     }
   }
 
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.')
+  protected onError(e: any): never {
+    debug('Error in onError: %O', e)
+    if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
+      throw {
+        kind: 'postgres',
+        code: e.code,
+        severity: e.severity,
+        message: e.message,
+        detail: e.detail,
+        column: e.column,
+        hint: e.hint,
+      }
+    }
+    throw e
   }
 }
 
@@ -193,7 +187,7 @@ export type PrismaNeonOptions = {
   schema?: string
 }
 
-export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlQueryAdapter {
+export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlConnection {
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
@@ -207,6 +201,10 @@ const adapter = new PrismaNeon(pool)
     super(pool)
   }
 
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
+  }
+
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
@@ -218,7 +216,7 @@ const adapter = new PrismaNeon(pool)
     return new NeonTransactionContext(conn)
   }
 
-  async close() {
+  async dispose(): Promise<void> {
     if (this.isRunning) {
       await this.client.end()
       this.isRunning = false
@@ -226,12 +224,16 @@ const adapter = new PrismaNeon(pool)
   }
 }
 
-export class PrismaNeonHTTP extends NeonQueryable implements SqlQueryAdapter {
+export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
   constructor(private client: neon.NeonQueryFunction<any, any>) {
     super()
   }
 
-  override async performIO(query: Query): Promise<PerformIOResult> {
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
+  }
+
+  override async performIO(query: SqlQuery): Promise<PerformIOResult> {
     const { sql, args: values } = query
     return await this.client(sql, values, {
       arrayMode: true,
@@ -254,14 +256,9 @@ export class PrismaNeonHTTP extends NeonQueryable implements SqlQueryAdapter {
     } as neon.HTTPQueryOptions<true, true>)
   }
 
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
   transactionContext(): Promise<TransactionContext> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
+
+  async dispose(): Promise<void> {}
 }

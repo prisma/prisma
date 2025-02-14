@@ -3,10 +3,11 @@
 import type {
   ColumnType,
   ConnectionInfo,
-  Query,
-  ResultSet,
   SqlConnection,
-  SqlQueryAdapter,
+  SqlMigrationAwareDriverAdapter,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -25,7 +26,7 @@ const debug = Debug('prisma:driver-adapter:pg')
 type StdClient = pg.Pool
 type TransactionClient = pg.PoolClient
 
-class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlConnection {
+class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -34,7 +35,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlC
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<ResultSet> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -67,7 +68,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlC
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<number> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -75,20 +76,12 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlC
     return (await this.performIO(query)).rowCount ?? 0
   }
 
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
   /**
    * Run a query against the database, returning the result set.
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<pg.QueryArrayResult<any>> {
+  private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
     const { sql, args: values } = query
 
     try {
@@ -124,21 +117,29 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlC
 
       return result
     } catch (e) {
-      const error = e as Error
-      debug('Error in performIO: %O', error)
-      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-        throw {
-          kind: 'postgres',
-          code: e.code,
-          severity: e.severity,
-          message: e.message,
-          detail: e.detail,
-          column: e.column,
-          hint: e.hint,
-        }
-      }
-      throw error
+      this.onError(e)
     }
+  }
+
+  protected onError(error: any): never {
+    debug('Error in performIO: %O', error)
+    if (
+      error &&
+      typeof error.code === 'string' &&
+      typeof error.severity === 'string' &&
+      typeof error.message === 'string'
+    ) {
+      throw {
+        kind: 'postgres',
+        code: error.code,
+        severity: error.severity,
+        message: error.message,
+        detail: error.detail,
+        column: error.column,
+        hint: error.hint,
+      }
+    }
+    throw error
   }
 }
 
@@ -181,8 +182,8 @@ export type PrismaPgOptions = {
   schema?: string
 }
 
-export class PrismaPg extends PgQueryable<StdClient> implements SqlQueryAdapter {
-  constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
+  constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
     if (!(client instanceof pg.Pool)) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
 import { Pool } from 'pg'
@@ -191,6 +192,17 @@ const adapter = new PrismaPg(pool)
 `)
     }
     super(client)
+  }
+
+  async executeScript(script: string): Promise<void> {
+    // TODO: crude implementation for now, might need to refine it
+    for (const stmt of script.split(';')) {
+      try {
+        await this.client.query(stmt)
+      } catch (error) {
+        this.onError(error)
+      }
+    }
   }
 
   getConnectionInfo(): ConnectionInfo {
@@ -202,5 +214,32 @@ const adapter = new PrismaPg(pool)
   async transactionContext(): Promise<TransactionContext> {
     const conn = await this.client.connect()
     return new PgTransactionContext(conn)
+  }
+
+  async dispose(): Promise<void> {
+    await this.release?.()
+    return await this.client.end()
+  }
+}
+
+export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapter {
+  readonly provider = 'sqlite'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
+
+  async connect(): Promise<SqlConnection> {
+    return new PrismaPg(new pg.Pool(this.config), this.options, async () => {})
+  }
+
+  async connectToShadowDb(): Promise<SqlConnection> {
+    const conn = await this.connect()
+    const database = `prisma_migrate_shadow_db_${crypto.randomUUID()}`
+    await conn.executeScript(`CREATE DATABASE ${database}`)
+
+    return new PrismaPg(new pg.Pool({ ...this.config, database }), undefined, async () => {
+      await conn.executeScript(`DROP DATABASE ${database}`)
+      await conn.dispose()
+    })
   }
 }

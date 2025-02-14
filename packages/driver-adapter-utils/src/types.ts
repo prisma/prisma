@@ -3,7 +3,7 @@ import { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
-export interface ResultSet {
+export interface SqlResultSet {
   /**
    * List of column types appearing in a database query, in the same order as `columnNames`.
    * They are used within the Query Engine to convert values from JS to Quaint values.
@@ -71,7 +71,7 @@ export type ArgType =
   // A time value.
   | 'Time'
 
-export type Query = {
+export type SqlQuery = {
   sql: string
   args: Array<unknown>
   argTypes: Array<ArgType>
@@ -129,49 +129,51 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg-worker',
 ] as const
 
-type ErrorCapturingInterface<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
-    ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
-    : T[K]
+/**
+ * A generic driver adapter that allows the user to connect to a
+ * database. The query and result types are specific to the adapter.
+ */
+export interface DriverAdapter<Query, Result> extends AdapterInfo {
+  /**
+   * Connect to the database.
+   */
+  connect(): Promise<Queryable<Query, Result>>
 }
 
-export interface SqlConnection {
+export interface SqlDriverAdapter extends DriverAdapter<SqlQuery, SqlResultSet> {
+  connect(): Promise<SqlConnection>
+}
+
+/**
+ * An SQL migration adapter that is aware of the notion of a shadow database
+ * and can create a connection to it.
+ */
+export interface SqlMigrationAwareDriverAdapter extends SqlDriverAdapter {
+  connectToShadowDb(): Promise<SqlConnection>
+}
+
+interface Queryable<Query, Result> extends AdapterInfo {
   /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the type-aware result set of the query.
-   *
-   * This is the preferred way of executing `SELECT` queries.
+   * Execute a query and return its result.
    */
-  queryRaw(params: Query): Promise<ResultSet>
+  queryRaw(params: Query): Promise<Result>
 
   /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the number of affected rows.
-   *
-   * This is the preferred way of executing `INSERT`, `UPDATE`, `DELETE` queries,
-   * as well as transactional queries.
+   * Execute a query and return the number of affected rows.
    */
   executeRaw(params: Query): Promise<number>
+}
 
+export interface SqlQueryable extends Queryable<SqlQuery, SqlResultSet> {}
+
+export interface SqlConnection extends SqlQueryable {
   /**
    * Execute multiple SQL statements separated by semicolon.
    */
   executeScript(script: string): Promise<void>
 
   /**
-   * Dispose of the connection and release any resources.
-   */
-  dispose(): Promise<void>
-}
-
-export interface SqlAdapter {
-  readonly provider: Provider
-  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
-}
-
-export interface SqlQueryAdapter extends SqlConnection, SqlAdapter {
-  /**
-   * Starts new transaction.
+   * Start new transaction.
    */
   transactionContext(): Promise<TransactionContext>
 
@@ -179,22 +181,14 @@ export interface SqlQueryAdapter extends SqlConnection, SqlAdapter {
    * Optional method that returns extra connection info
    */
   getConnectionInfo?(): ConnectionInfo
-}
-
-export interface SqlMigrationAdapter extends SqlAdapter {
-  /**
-   * Creates a connection to the database that the adapter is configured to connect to.
-   */
-  connect(): Promise<SqlConnection>
 
   /**
-   * Creates a connection to the shadow database that the adapter is configured to connect to or
-   * a transient database if no shadow database is configured.
+   * Dispose of the connection and release any resources.
    */
-  connectToShadowDb(): Promise<SqlConnection>
+  dispose(): Promise<void>
 }
 
-export interface TransactionContext extends SqlAdapter, SqlConnection {
+export interface TransactionContext extends AdapterInfo, SqlQueryable {
   /**
    * Starts new transaction.
    */
@@ -205,7 +199,7 @@ export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
-export interface Transaction extends SqlAdapter, SqlConnection {
+export interface Transaction extends AdapterInfo, SqlQueryable {
   /**
    * Transaction options.
    */
@@ -220,7 +214,22 @@ export interface Transaction extends SqlAdapter, SqlConnection {
   rollback(): Promise<void>
 }
 
-export interface ErrorCapturingDriverAdapter extends ErrorCapturingInterface<SqlQueryAdapter> {
+/**
+ * An interface that exposes some basic information about the
+ * adapter like its name and provider type.
+ */
+export interface AdapterInfo {
+  readonly provider: Provider
+  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
+}
+
+type ErrorCapturingInterface<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
+    ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
+    : T[K]
+}
+
+export interface ErrorCapturingSqlConnection extends ErrorCapturingInterface<SqlConnection> {
   readonly errorRegistry: ErrorRegistry
 }
 
@@ -228,7 +237,7 @@ export type ErrorCapturingTransactionContext = ErrorCapturingInterface<Transacti
 
 export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
 
-export type ErrorCapturingQueryable = ErrorCapturingInterface<SqlConnection>
+export type ErrorCapturingSqlQueryable = ErrorCapturingInterface<SqlQueryable>
 
 export interface ErrorRegistry {
   consumeError(id: number): ErrorRecord | undefined

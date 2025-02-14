@@ -4,10 +4,11 @@ import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   ConnectionInfo,
   Debug,
-  Query,
-  ResultSet,
   SqlConnection,
-  SqlQueryAdapter,
+  SqlMigrationAwareDriverAdapter,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
   TransactionContext,
   TransactionOptions,
@@ -24,7 +25,7 @@ type D1ResultsWithColumnNames = [string[], unknown[][]]
 type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
-class D1Queryable<ClientT extends StdClient> implements SqlConnection {
+class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
@@ -33,7 +34,7 @@ class D1Queryable<ClientT extends StdClient> implements SqlConnection {
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<ResultSet> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
@@ -42,7 +43,7 @@ class D1Queryable<ClientT extends StdClient> implements SqlConnection {
     return convertedData
   }
 
-  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
+  private convertData(ioResult: D1ResultsWithColumnNames): SqlResultSet {
     const columnNames = ioResult[0]
     const results = ioResult[1]
 
@@ -73,7 +74,7 @@ class D1Queryable<ClientT extends StdClient> implements SqlConnection {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<number> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
@@ -81,15 +82,7 @@ class D1Queryable<ClientT extends StdClient> implements SqlConnection {
     return (result as D1Response).meta.changes ?? 0
   }
 
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  dispose(): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
-
-  private async performIO(query: Query, executeRaw = false): Promise<PerformIOResult> {
+  private async performIO(query: SqlQuery, executeRaw = false): Promise<PerformIOResult> {
     try {
       query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
 
@@ -102,14 +95,18 @@ class D1Queryable<ClientT extends StdClient> implements SqlConnection {
         return [columnNames, rows]
       }
     } catch (e) {
-      console.error('Error in performIO: %O', e)
-      const { message } = e
+      this.onError(e)
+    }
+  }
 
-      throw {
-        kind: 'sqlite',
-        extendedCode: matchSQLiteErrorCode(message),
-        message,
-      }
+  protected onError(error: any): never {
+    console.error('Error in performIO: %O', error)
+    const { message } = error
+
+    throw {
+      kind: 'sqlite',
+      extendedCode: matchSQLiteErrorCode(message),
+      message,
     }
   }
 }
@@ -146,7 +143,7 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
   }
 }
 
-export class PrismaD1 extends D1Queryable<StdClient> implements SqlQueryAdapter {
+export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
   readonly tags = {
     error: red('prisma:error'),
     warn: yellow('prisma:warn'),
@@ -156,7 +153,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlQueryAdapter 
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient) {
+  constructor(client: StdClient, readonly release: () => Promise<void>) {
     super(client)
   }
 
@@ -177,6 +174,14 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlQueryAdapter 
     }
   }
 
+  async executeScript(script: string): Promise<void> {
+    try {
+      await this.client.exec(script)
+    } catch (error) {
+      this.onError(error)
+    }
+  }
+
   getConnectionInfo(): ConnectionInfo {
     return {
       maxBindValues: 98,
@@ -190,5 +195,38 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlQueryAdapter 
     )
 
     return new D1TransactionContext(this.client)
+  }
+
+  dispose(): Promise<void> {
+    return this.release()
+  }
+}
+
+export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
+  readonly provider = 'sqlite'
+  readonly adapterName = packageName
+
+  constructor(private client: StdClient) {}
+
+  async connect(): Promise<SqlConnection> {
+    return new PrismaD1(this.client, () => Promise.resolve())
+  }
+
+  async connectToShadowDb(): Promise<SqlConnection> {
+    const { Miniflare } = await import('miniflare')
+
+    const mf = new Miniflare({
+      modules: true,
+      d1Databases: {
+        db: crypto.randomUUID(),
+      },
+      script: `
+      export default {
+        async fetch(request, env, ctx) {}
+      }
+      `,
+    })
+    const db = await mf.getD1Database('db')
+    return new PrismaD1(db, () => mf.dispose())
   }
 }

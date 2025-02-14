@@ -1,4 +1,4 @@
-import { SqlQueryAdapter } from '@prisma/driver-adapter-utils'
+import { SqlConnection } from '@prisma/driver-adapter-utils'
 
 import { Providers as Provider } from '../../_utils/providers'
 import { getDriverAdaptersProvider } from './provider'
@@ -12,7 +12,7 @@ export const mockAdapterErrors = {
 /**
  * Create an adapter stub for testing.
  */
-export function mockAdapter(provider: Provider): SqlQueryAdapter {
+export function mockAdapter(provider: Provider): SqlConnection {
   return {
     provider: getDriverAdaptersProvider(provider),
     adapterName: getDriverAdaptersProvider(provider),

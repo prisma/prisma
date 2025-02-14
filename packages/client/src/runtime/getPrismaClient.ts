@@ -1,6 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type ErrorCapturingDriverAdapter, type SqlQueryAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type ErrorCapturingSqlConnection, type SqlConnection } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
@@ -95,7 +95,7 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: SqlQueryAdapter | null
+  adapter?: SqlConnection | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -373,7 +373,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        * Initialise and validate the Driver Adapter, if provided.
        */
 
-      let adapter: ErrorCapturingDriverAdapter | undefined
+      let adapter: ErrorCapturingSqlConnection | undefined
       if (optionsArg?.adapter) {
         adapter = bindAdapter(optionsArg.adapter)
 

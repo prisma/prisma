@@ -1,11 +1,11 @@
 import { err, ok, Result } from './result'
 import type {
-  ErrorCapturingDriverAdapter,
+  ErrorCapturingSqlConnection,
   ErrorCapturingTransaction,
   ErrorCapturingTransactionContext,
   ErrorRecord,
   ErrorRegistry,
-  SqlQueryAdapter,
+  SqlConnection,
   Transaction,
   TransactionContext,
 } from './types'
@@ -29,12 +29,12 @@ class ErrorRegistryInternal implements ErrorRegistry {
 
 // *.bind(adapter) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-export const bindAdapter = (adapter: SqlQueryAdapter): ErrorCapturingDriverAdapter => {
+export const bindAdapter = (adapter: SqlConnection): ErrorCapturingSqlConnection => {
   const errorRegistry = new ErrorRegistryInternal()
 
   const createTransactionContext = wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
 
-  const boundAdapter: ErrorCapturingDriverAdapter = {
+  const boundAdapter: ErrorCapturingSqlConnection = {
     adapterName: adapter.adapterName,
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
@@ -68,8 +68,6 @@ const bindTransactionContext = (
     provider: ctx.provider,
     queryRaw: wrapAsync(errorRegistry, ctx.queryRaw.bind(ctx)),
     executeRaw: wrapAsync(errorRegistry, ctx.executeRaw.bind(ctx)),
-    executeScript: wrapAsync(errorRegistry, ctx.executeScript.bind(ctx)),
-    dispose: wrapAsync(errorRegistry, ctx.dispose.bind(ctx)),
     startTransaction: async (...args) => {
       const result = await startTransaction(...args)
       return result.map((tx) => bindTransaction(errorRegistry, tx))
@@ -86,8 +84,6 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
     options: transaction.options,
     queryRaw: wrapAsync(errorRegistry, transaction.queryRaw.bind(transaction)),
     executeRaw: wrapAsync(errorRegistry, transaction.executeRaw.bind(transaction)),
-    executeScript: wrapAsync(errorRegistry, transaction.executeScript.bind(transaction)),
-    dispose: wrapAsync(errorRegistry, transaction.dispose.bind(transaction)),
     commit: wrapAsync(errorRegistry, transaction.commit.bind(transaction)),
     rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
   }

@@ -1,11 +1,11 @@
-import { SqlQueryAdapter } from '@prisma/driver-adapter-utils'
+import { SqlConnection } from '@prisma/driver-adapter-utils'
 
 import { Providers as Provider } from '../../_utils/providers'
 
 /**
  * Return the driver adapter provider name for a given provider, if it is supported.
  */
-export function getDriverAdaptersProvider(provider: Provider): SqlQueryAdapter['provider'] {
+export function getDriverAdaptersProvider(provider: Provider): SqlConnection['provider'] {
   switch (provider) {
     case Provider.POSTGRESQL:
     case Provider.COCKROACHDB:
