@@ -223,10 +223,14 @@ export interface AdapterInfo {
   readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 }
 
+type ErrorCapturingFunction<T> = T extends (...args: infer A) => Promise<infer R>
+  ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
+  : T extends (...args: infer A) => infer R
+  ? (...args: A) => Result<ErrorCapturingInterface<R>>
+  : T
+
 type ErrorCapturingInterface<T> = {
-  [K in keyof T]: T[K] extends (...args: infer A) => Promise<infer R>
-    ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
-    : T[K]
+  [K in keyof T]: ErrorCapturingFunction<T[K]>
 }
 
 export interface ErrorCapturingSqlConnection extends ErrorCapturingInterface<SqlConnection> {

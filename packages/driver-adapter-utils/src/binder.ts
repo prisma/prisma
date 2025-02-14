@@ -49,7 +49,7 @@ export const bindAdapter = (adapter: SqlConnection): ErrorCapturingSqlConnection
   }
 
   if (adapter.getConnectionInfo) {
-    boundAdapter.getConnectionInfo = adapter.getConnectionInfo.bind(adapter)
+    boundAdapter.getConnectionInfo = wrapSync(errorRegistry, adapter.getConnectionInfo.bind(adapter))
   }
 
   return boundAdapter
@@ -96,6 +96,20 @@ function wrapAsync<A extends unknown[], R>(
   return async (...args) => {
     try {
       return ok(await fn(...args))
+    } catch (error) {
+      const id = registry.registerNewError(error)
+      return err({ kind: 'GenericJs', id })
+    }
+  }
+}
+
+function wrapSync<A extends unknown[], R>(
+  registry: ErrorRegistryInternal,
+  fn: (...args: A) => R,
+): (...args: A) => Result<R> {
+  return (...args) => {
+    try {
+      return ok(fn(...args))
     } catch (error) {
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJs', id })
