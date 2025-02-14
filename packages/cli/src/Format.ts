@@ -37,7 +37,7 @@ Or specify a Prisma schema path
 
   `)
 
-  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const before = Math.round(performance.now())
     const args = arg(argv, {
       '--help': Boolean,
@@ -55,7 +55,7 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
     const formattedDatamodel = await formatSchema({ schemas })
 

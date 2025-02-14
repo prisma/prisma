@@ -26,7 +26,7 @@ async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) 
   try {
     asyncResult =
       (
-        await getSchemaWithPath(schemaPathFromArgs, {
+        await getSchemaWithPath(schemaPathFromArgs, undefined, {
           cwd,
         })
       )?.schemaPath ?? null

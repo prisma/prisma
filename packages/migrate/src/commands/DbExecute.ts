@@ -168,13 +168,13 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaWithPath = (await getSchemaWithPath(args['--schema']))!
-      const config = await getConfig({ datamodel: schemaWithPath.schemas })
+      const schemaWithPath = (await getSchemaWithPath(args['--schema'], config.schema))!
+      const engineConfig = await getConfig({ datamodel: schemaWithPath.schemas })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        ...toSchemasWithConfigDir(schemaWithPath, config),
+        ...toSchemasWithConfigDir(schemaWithPath, engineConfig),
       }
     }
 

@@ -82,7 +82,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })

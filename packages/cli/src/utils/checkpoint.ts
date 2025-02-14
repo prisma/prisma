@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue } from '@prisma/internals'
+import { SchemaPathFromConfig } from '@prisma/internals/src/cli/getSchema'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
 
@@ -16,6 +17,7 @@ const debug = Debug('prisma:cli:checkpoint')
  */
 export async function runCheckpointClientCheck({
   schemaPath,
+  schemaPathFromConfig,
   isPrismaInstalledGlobally,
   version,
   command,
@@ -26,6 +28,7 @@ export async function runCheckpointClientCheck({
   command: string
   telemetryInformation: string
   schemaPath?: string
+  schemaPathFromConfig?: SchemaPathFromConfig
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {
@@ -41,7 +44,7 @@ export async function runCheckpointClientCheck({
       // SHA256 identifier for the project based on the Prisma schema path
       getProjectHash(),
       // Read schema and extract some data
-      tryToReadDataFromSchema(schemaPath),
+      tryToReadDataFromSchema(schemaPath, schemaPathFromConfig),
     ])
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
@@ -97,13 +100,13 @@ export async function runCheckpointClientCheck({
  * Tries to read some data from the Prisma Schema
  * if an error occurs it will silently fail and return undefined values
  */
-export async function tryToReadDataFromSchema(schemaPath?: string) {
+export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: SchemaPathFromConfig) {
   let schemaProvider: string | undefined
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
 
   try {
-    const schema = await getSchema(schemaPath)
+    const schema = await getSchema(schemaPath, schemaPathFromConfig)
 
     try {
       const config = await getConfig({

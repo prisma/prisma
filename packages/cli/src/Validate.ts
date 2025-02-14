@@ -69,7 +69,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
     const { lintDiagnostics } = handleLintPanic(
       () => {

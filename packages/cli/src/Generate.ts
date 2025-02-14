@@ -21,6 +21,7 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
+import type { SchemaPathFromConfig } from '@prisma/internals/src/cli/getSchema'
 import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
@@ -138,7 +139,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
@@ -375,11 +376,12 @@ function getCurrentClientVersion(): string | null {
 
 async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
+  schemaFromConfig: SchemaPathFromConfig | undefined,
   cwd: string,
   isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {
   if (isPostinstall) {
-    const schema = await getSchemaWithPathOptional(schemaFromArgs, { cwd })
+    const schema = await getSchemaWithPathOptional(schemaFromArgs, schemaFromConfig, { cwd })
     if (schema) {
       return schema
     }
@@ -392,5 +394,5 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
     return null
   }
 
-  return getSchemaWithPath(schemaFromArgs, { cwd })
+  return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }
