@@ -202,6 +202,7 @@ describe('postgresql-views', () => {
   describe('with preview feature, views defined and then removed', () => {
     const { setupParams, fixturePath } = setupPostgresForViewsIO()
 
+    // TODO: this test is too large in scope, it takes ~6s to run
     test('re-introspection with views removed', async () => {
       ctx.fixture(fixturePath)
 
@@ -281,6 +282,7 @@ describe('postgresql-views', () => {
   describe('with preview feature and views defined', () => {
     const { fixturePath } = setupPostgresForViewsIO()
 
+    // TODO: this test is too large in scope, it takes ~5.2s to run
     test('basic introspection', async () => {
       ctx.fixture(fixturePath)
 
@@ -359,6 +361,7 @@ describe('postgresql-views', () => {
       const viewsPath = path.posix.join(schemaDir, 'views')
       const testName = `introspection from ${schemaPath} creates view definition files`
 
+      // these tests is too large in scope, it takes ~4.6 to ~5.2s to run
       test(testName, async () => {
         ctx.fixture(fixturePath)
 
@@ -417,6 +420,8 @@ describe('postgresql-views', () => {
       })
     }
 
+    // TODO: this test is too large in scope, it takes ~5.6s to run.
+    // Also: is it really useful to delete the extraneous files/folders?
     test('extraneous empty subdirectories should be deleted and top files kept in views directory on introspect', async () => {
       ctx.fixture(path.join(fixturePath))
 
