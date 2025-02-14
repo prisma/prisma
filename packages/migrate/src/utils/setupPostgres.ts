@@ -20,6 +20,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   })
   await dbDefault.connect()
   await dbDefault.query(`DROP DATABASE IF EXISTS "${credentials.database}-shadowdb";`)
+  await dbDefault.query(`CREATE DATABASE "${credentials.database}-shadowdb";`)
   await dbDefault.query(`DROP DATABASE IF EXISTS "${credentials.database}";`)
   await dbDefault.query(`CREATE DATABASE "${credentials.database}";`)
   await dbDefault.end()
