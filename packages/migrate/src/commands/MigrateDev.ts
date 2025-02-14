@@ -89,7 +89,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate dev', args, true)
+    await checkUnsupportedDataProxy('migrate dev', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()

@@ -180,7 +180,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate diff', args, false)
+    await checkUnsupportedDataProxy('migrate diff', args, config.schema, false)
 
     if (args['--help']) {
       return this.help()

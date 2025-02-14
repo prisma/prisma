@@ -64,7 +64,7 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, true)
+    await checkUnsupportedDataProxy('migrate status', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()

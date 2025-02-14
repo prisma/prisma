@@ -74,7 +74,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, true)
+    await checkUnsupportedDataProxy('migrate resolve', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()

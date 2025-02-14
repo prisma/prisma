@@ -72,7 +72,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db drop', args, true)
+    await checkUnsupportedDataProxy('db drop', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()

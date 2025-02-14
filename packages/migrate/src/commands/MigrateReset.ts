@@ -70,7 +70,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate reset', args, true)
+    await checkUnsupportedDataProxy('migrate reset', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()

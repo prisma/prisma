@@ -117,7 +117,7 @@ Set composite types introspection depth to 2 levels
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db pull', args, !args['--url'])
+    await checkUnsupportedDataProxy('db pull', args, config.schema, !args['--url'])
 
     if (args['--help']) {
       return this.help()

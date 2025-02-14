@@ -105,7 +105,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db execute', args, !args['--url'])
+    await checkUnsupportedDataProxy('db execute', args, config.schema, !args['--url'])
 
     if (args['--help']) {
       return this.help()
