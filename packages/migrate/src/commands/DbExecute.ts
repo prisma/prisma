@@ -47,6 +47,9 @@ export class DbExecute implements Command {
     return new DbExecute()
   }
 
+  // TODO: This command needs to get proper support for `prisma.config.ts` eventually. Not just taking the schema path
+  //  from prisma.config.ts but likely to support driver adapters, too?
+  //  See https://linear.app/prisma-company/issue/ORM-639/prisma-db-execute-support-prismaconfigts-and-driver-adapters
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
