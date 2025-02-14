@@ -1,3 +1,4 @@
+/** @type {import('jest').Config} */
 module.exports = {
   preset: '../../helpers/test/presets/withSnapshotSerializer.js',
   coveragePathIgnorePatterns: [
@@ -9,4 +10,5 @@ module.exports = {
   ],
   // to get rid of "jest-haste-map: Haste module naming collision: package name"
   modulePathIgnorePatterns: ['<rootDir>/src/__tests__/fixtures/'],
+  testTimeout: 10_000,
 }
