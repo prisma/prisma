@@ -181,7 +181,7 @@ async function getSchemaWithPathInternal(
   schemaPathFromArgs: string | undefined,
   schemaPathFromConfig: SchemaPathFromConfig | undefined,
   { cwd, argumentName }: GetSchemaInternalOptions,
-) {
+): Promise<DefaultLookupResult> {
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
     const absPath = path.resolve(cwd, schemaPathFromArgs)
@@ -199,7 +199,10 @@ async function getSchemaWithPathInternal(
   }
 
   // 2. Try the `schema` from `PrismaConfig`
-  // TODO
+  const prismaConfigResult = await readSchemaFromPrismaConfigBasedLocation(cwd, schemaPathFromConfig)
+  if (prismaConfigResult.ok) {
+    return prismaConfigResult
+  }
 
   // 3. Use the "prisma"."schema" attribute from the project's package.json
   const pkgJsonResult = await getSchemaFromPackageJson(cwd)
@@ -274,6 +277,45 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
     data: prismaPropertyFromPkgJson,
     packagePath: pkgJson.path,
   }
+}
+
+async function readSchemaFromPrismaConfigBasedLocation(
+  cwd: string,
+  schemaPathFromConfig: SchemaPathFromConfig | undefined,
+) {
+  if (!schemaPathFromConfig) {
+    return {
+      ok: false,
+      error: { kind: 'PrismaConfigNotConfigured' },
+    } as const
+  }
+
+  let schemaResult: LookupResult
+  if (schemaPathFromConfig.kind === 'single') {
+    const absPath = path.resolve(cwd, schemaPathFromConfig.filenamePath)
+    schemaResult = await readSchemaFromSingleFile(absPath)
+    if (!schemaResult.ok) {
+      throw new Error(
+        `Could not load schema from file \`${path.relative(
+          cwd,
+          schemaPathFromConfig.filenamePath,
+        )}\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+      )
+    }
+  } else {
+    const absPath = path.resolve(cwd, schemaPathFromConfig.folder)
+    schemaResult = await readSchemaFromDirectory(absPath)
+    if (!schemaResult.ok) {
+      throw new Error(
+        `Could not load schema from folder \`${path.relative(
+          cwd,
+          schemaPathFromConfig.folder,
+        )}\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+      )
+    }
+  }
+
+  return schemaResult
 }
 
 export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJsonLookupResult> {
