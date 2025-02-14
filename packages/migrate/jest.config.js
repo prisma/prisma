@@ -10,5 +10,6 @@ module.exports = {
   ],
   // to get rid of "jest-haste-map: Haste module naming collision: package name"
   modulePathIgnorePatterns: ['<rootDir>/src/__tests__/fixtures/'],
+  // to allow large-ish tests in `postgresql-views`
   testTimeout: 10_000,
 }
