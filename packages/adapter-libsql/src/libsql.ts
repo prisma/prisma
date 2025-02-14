@@ -172,7 +172,7 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConne
     return new LibSqlTransactionContext(this.client, release)
   }
 
-  async dispose(): Promise<void> {
+  dispose(): Promise<void> {
     this.client.close()
     return Promise.resolve()
   }

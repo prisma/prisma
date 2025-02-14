@@ -209,7 +209,7 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
   constructor(private client: StdClient) {}
 
   async connect(): Promise<SqlConnection> {
-    return new PrismaD1(this.client, () => Promise.resolve())
+    return new PrismaD1(this.client, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlConnection> {
