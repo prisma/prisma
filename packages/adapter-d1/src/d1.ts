@@ -153,7 +153,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient, readonly release: () => Promise<void>) {
+  constructor(client: StdClient, private readonly release?: () => Promise<void>) {
     super(client)
   }
 
@@ -197,8 +197,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
     return new D1TransactionContext(this.client)
   }
 
-  dispose(): Promise<void> {
-    return this.release()
+  async dispose(): Promise<void> {
+    await this.release?.()
   }
 }
 
