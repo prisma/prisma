@@ -42,7 +42,7 @@ export async function runCheckpointClientCheck({
     // Get some info about the project
     const [projectPathHash, { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders }] = await Promise.all([
       // SHA256 identifier for the project based on the Prisma schema path
-      getProjectHash(),
+      getProjectHash(schemaPath, schemaPathFromConfig),
       // Read schema and extract some data
       tryToReadDataFromSchema(schemaPath, schemaPathFromConfig),
     ])
