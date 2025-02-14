@@ -1,6 +1,7 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import { credentialsToUri, uriToCredentials } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
 import { Client } from 'pg'
 
 export type SetupParams = {
@@ -19,19 +20,15 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   })
   await dbDefault.connect()
   await dbDefault.query(`DROP DATABASE IF EXISTS "${credentials.database}-shadowdb";`)
-  await dbDefault.query(`CREATE DATABASE "${credentials.database}-shadowdb";`)
   await dbDefault.query(`DROP DATABASE IF EXISTS "${credentials.database}";`)
   await dbDefault.query(`CREATE DATABASE "${credentials.database}";`)
   await dbDefault.end()
 
   if (dirname !== '') {
+    const migrationScript = await fs.readFile(path.join(dirname, 'setup.sql'), { encoding: 'utf-8' })
+
     // Connect to final db and populate
-    const db = new Client({
-      connectionString: connectionString,
-    })
-    await db.connect()
-    await db.query(fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8'))
-    await db.end()
+    await runQueryPostgres({ connectionString }, migrationScript)
   }
 }
 
@@ -60,7 +57,7 @@ export async function tearDownPostgres(options: SetupParams) {
  * This function should be called after `setupPostgres` and before `tearDownPostgres`.
  * The given `options.connectionString` is used as is.
  */
-export async function runQueryPostgres(options: SetupParams, query: string): Promise<void> {
+export async function runQueryPostgres(options: Omit<SetupParams, 'dirname'>, query: string): Promise<void> {
   const { connectionString } = options
 
   // Connect to default db
