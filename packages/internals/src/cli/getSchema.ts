@@ -199,7 +199,7 @@ async function getSchemaWithPathInternal(
   }
 
   // 2. Try the `schema` from `PrismaConfig`
-  const prismaConfigResult = await readSchemaFromPrismaConfigBasedLocation(cwd, schemaPathFromConfig)
+  const prismaConfigResult = await readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig)
   if (prismaConfigResult.ok) {
     return prismaConfigResult
   }
@@ -279,10 +279,7 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
   }
 }
 
-async function readSchemaFromPrismaConfigBasedLocation(
-  cwd: string,
-  schemaPathFromConfig: SchemaPathFromConfig | undefined,
-) {
+async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: SchemaPathFromConfig | undefined) {
   if (!schemaPathFromConfig) {
     return {
       ok: false,
@@ -292,25 +289,21 @@ async function readSchemaFromPrismaConfigBasedLocation(
 
   let schemaResult: LookupResult
   if (schemaPathFromConfig.kind === 'single') {
-    const absPath = path.resolve(cwd, schemaPathFromConfig.filenamePath)
-    schemaResult = await readSchemaFromSingleFile(absPath)
+    schemaResult = await readSchemaFromSingleFile(schemaPathFromConfig.filenamePath)
     if (!schemaResult.ok) {
       throw new Error(
-        `Could not load schema from file \`${path.relative(
-          cwd,
-          schemaPathFromConfig.filenamePath,
-        )}\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+        `Could not load schema from file \`${
+          schemaPathFromConfig.filenamePath
+        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   } else {
-    const absPath = path.resolve(cwd, schemaPathFromConfig.folder)
-    schemaResult = await readSchemaFromDirectory(absPath)
+    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folder)
     if (!schemaResult.ok) {
       throw new Error(
-        `Could not load schema from folder \`${path.relative(
-          cwd,
-          schemaPathFromConfig.folder,
-        )}\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+        `Could not load schema from folder \`${
+          schemaPathFromConfig.folder
+        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   }
