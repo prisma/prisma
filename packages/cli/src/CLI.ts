@@ -22,6 +22,7 @@ export class CLI implements Command {
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,

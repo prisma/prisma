@@ -55,6 +55,7 @@ Check the status of your database migrations
         '--help': Boolean,
         '-h': '--help',
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,

@@ -172,6 +172,7 @@ ${bold('Examples')}
         '--script': Boolean,
         '--exit-code': Boolean,
         '--telemetry-information': String,
+        '--config': String,
       },
       false,
     )
