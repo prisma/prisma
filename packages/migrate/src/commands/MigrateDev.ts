@@ -14,9 +14,12 @@ import {
   toSchemasContainer,
   validate,
 } from '@prisma/internals'
+import fs from 'fs-jetpack'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
+import { DbPull } from '../commands/DbPull'
+import { MigrateResolve } from '../commands/MigrateResolve'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -86,7 +89,6 @@ ${bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
-
     await checkUnsupportedDataProxy('migrate dev', args, true)
 
     if (args['--help']) {
@@ -142,22 +144,36 @@ ${bold('Examples')}
           reason: devDiagnostic.action.reason,
         })
 
-        process.stdout.write('\n') // empty line
+        process.stdout.write('\n')
 
-        if (!confirmedReset) {
-          process.stdout.write('Reset cancelled.\n')
+        if (confirmedReset === 'cancel') {
+          process.stdout.write('Operation cancelled.\n')
           migrate.stop()
-          // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
+        } else if (confirmedReset === 'baseline') {
+          process.stdout.write('Baselining the database...\n')
+          try {
+            await DbPull.new().parse(['--schema', schemaPath])
+            await MigrateDev.new().parse(['--create-only', '--schema', schemaPath])
+            const migrationDirs = await fs.listAsync('prisma/migrations')
+            if (!migrationDirs || migrationDirs.length === 0) {
+              throw new Error('No migrations found')
+            }
+            const latestMigration = migrationDirs.sort().reverse()[0]
+            await MigrateResolve.new().parse(['--applied', latestMigration, '--schema', schemaPath])
+          } catch (e) {
+            migrate.stop()
+            throw e
+          }
+        } else if (confirmedReset === 'reset') {
+          process.stdout.write('Resetting the database...\n')
+          try {
+            await migrate.reset()
+          } catch (e) {
+            migrate.stop()
+            throw e
+          }
         }
-      }
-
-      try {
-        // Do the reset
-        await migrate.reset()
-      } catch (e) {
-        migrate.stop()
-        throw e
       }
     }
 
@@ -206,7 +222,7 @@ ${bold('Examples')}
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
       process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
       for (const warning of evaluateDataLossResult.warnings) {
-        process.stdout.write(`  • ${warning.message}\n`)
+        process.stdout.write(`   • ${bold(red(warning.message))}\n`)
       }
       process.stdout.write('\n') // empty line
 
@@ -342,7 +358,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
   }: {
     datasourceInfo: DatasourceInfo
     reason: string
-  }): Promise<boolean> {
+  }): Promise<'baseline' | 'reset' | 'cancel'> {
     // Log the reason of why a reset is needed to the user
     process.stdout.write(reason + '\n')
 
@@ -365,7 +381,10 @@ ${green('Your database is now in sync with your schema.')}\n`,
     }
 
     const messageForPrompt = `${messageFirstLine}
-Do you want to continue? ${red('All data will be lost')}.`
+Do you want to continue? ${red('All data will be lost')}.
+You have two options:
+1. Baseline (non-destructive): Keep the current database structure and create new migrations.
+2. Reset (destructive): Reset the database schema and apply all migrations.`
 
     // For testing purposes we log the message
     // An alternative would be to find a way to capture the prompt message from jest tests
@@ -374,12 +393,17 @@ Do you want to continue? ${red('All data will be lost')}.`
       process.stdout.write(messageForPrompt + '\n')
     }
     const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
+      type: 'select',
+      name: 'action',
       message: messageForPrompt,
+      choices: [
+        { title: 'Baseline (non-destructive)', value: 'baseline' },
+        { title: 'Reset (destructive)', value: 'reset' },
+        { title: 'Cancel', value: 'cancel' },
+      ],
     })
 
-    return confirmation.value
+    return confirmation.action
   }
 
   public help(error?: string): string | HelpError {
