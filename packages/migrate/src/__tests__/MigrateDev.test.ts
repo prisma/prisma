@@ -452,6 +452,48 @@ describe('sqlite', () => {
     `)
   })
 
+  it('should handle schema drift with baseline option', async () => {
+    ctx.fixture('schema-drift')
+    // Inject the prompt response to select the baseline option
+    prompt.inject(['baseline'])
+    const result = MigrateDev.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Drift detected: Your database schema is not in sync with your migration history.
+  
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+  
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+  
+      [+] Added tables
+        - Blog
+  
+      We need to reset the PostgreSQL database "tests-migrate-dev" at "localhost:5432"
+      Do you want to continue? All data will be lost.
+      You have two options:
+      1. Baseline (non-destructive): Keep the current database structure and create new migrations.
+      2. Reset (destructive): Reset the database schema and apply all migrations.
+  
+      Baselining the database...
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+  
+      Applying migration \`20201231000000_first\`
+  
+      The following migration(s) have been created and applied from new schema changes:
+  
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+  
+      Your database is now in sync with your schema.
+      "
+    `)
+  })
+
   it('transition-db-push-migrate (prompt reset no)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
