@@ -315,7 +315,7 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: Sch
       throw new Error(
         `Could not load schema from file \`${
           schemaPathFromConfig.filePath
-        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   } else {
@@ -324,7 +324,7 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: Sch
       throw new Error(
         `Could not load schema from folder \`${
           schemaPathFromConfig.folderPath
-        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   }
