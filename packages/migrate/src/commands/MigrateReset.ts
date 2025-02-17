@@ -63,6 +63,7 @@ ${bold('Examples')}
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 

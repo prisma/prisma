@@ -160,6 +160,7 @@ export const SENSITIVE_CLI_OPTIONS = [
   '--to-url',
   // 2. Paths
   '--schema',
+  '--config',
   '--file',
   '--from-schema-datamodel',
   '--to-schema-datamodel',

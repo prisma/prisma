@@ -80,6 +80,7 @@ ${bold('Examples')}
       // '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
+      '--config': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,

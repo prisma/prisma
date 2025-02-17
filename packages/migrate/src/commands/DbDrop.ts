@@ -65,6 +65,7 @@ ${bold('Examples')}
       '--force': Boolean,
       '-f': '--force',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 

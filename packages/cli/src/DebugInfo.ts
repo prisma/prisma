@@ -42,6 +42,7 @@ export class DebugInfo implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 

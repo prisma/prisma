@@ -118,6 +118,8 @@ export async function loadConfigFromFile({
       }
     }
 
+    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
+
     // Success case
     const prismaConfig = transformPathsInConfigToAbsolute(parseResultEither.right, resolvedPath)
 
