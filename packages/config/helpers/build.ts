@@ -4,7 +4,7 @@ void build([
   {
     name: 'default',
     bundle: true,
-    emitTypes: true,
+    emitTypes: false,
     external: ['esbuild', 'esbuild-register'],
   },
 ])

@@ -53,7 +53,17 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
-// we define the config for cli
+// we define a separate config for emitting types on src/config.ts only
+const cliConfigTypesBuildConfig: BuildOptions = {
+  name: 'cliConfigTypes',
+  entryPoints: ['src/config.ts'],
+  outfile: 'dist/config',
+  bundle: true,
+  emitTypes: true,
+  minify: false,
+}
+
+// we define the config for cli - building the binary without emitting types
 const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
@@ -75,7 +85,7 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliBuildConfig, preinstallBuildConfig])
+void build([cliConfigTypesBuildConfig, cliBuildConfig, preinstallBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

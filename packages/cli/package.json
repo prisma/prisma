@@ -66,7 +66,19 @@
     ]
   },
   "bin": {
-    "prisma": "build/index.js"
+    "prisma": "build/bin.js"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "require": {
+        "types": "./build/config.d.ts"
+      },
+      "import": {
+        "types": "./build/config.d.mts"
+      },
+      "default": "./build/config.js"
+    }
   },
   "devDependencies": {
     "@antfu/ni": "0.21.12",
@@ -94,6 +106,7 @@
     "chokidar": "3.6.0",
     "debug": "4.3.7",
     "dotenv": "16.4.7",
+    "effect": "3.12.10",
     "env-paths": "2.2.1",
     "esbuild": "0.24.2",
     "execa": "5.1.1",
