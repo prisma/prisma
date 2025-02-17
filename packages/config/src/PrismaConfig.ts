@@ -4,14 +4,14 @@ import type { Either } from 'effect/Either'
 import { identity, pipe } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
 
-// Define the shape for the `createAdapter` function
-const createAdapterShape = <Env>() =>
+// Define the shape for the `adapter` function
+const adapterShape = <Env>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<QueryableDriverAdapter> => {
       return input instanceof Function
     },
     {
-      identifier: 'CreateAdapter<Env>',
+      identifier: 'Adapter<Env>',
       encode: identity,
       decode: identity,
     },
@@ -23,7 +23,7 @@ const createPrismaStudioConfigInternalShape = <Env>() =>
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Studio.
      */
-    createAdapter: createAdapterShape<Env>(),
+    adapter: adapterShape<Env>(),
   })
 
 const PrismaConfigSchemaSingleShape = Shape.Struct({

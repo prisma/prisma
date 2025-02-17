@@ -164,7 +164,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -177,7 +177,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly createAdapter: CreateAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
            └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "loadedFromFile""
       `)
@@ -246,7 +246,7 @@ describe('loadConfigFromFile', () => {
     expect(config).toMatchObject({
       earlyAccess: true,
       studio: {
-        createAdapter: expect.any(Function),
+        adapter: expect.any(Function),
       },
       loadedFromFile: resolvedPath,
     })
@@ -256,7 +256,7 @@ describe('loadConfigFromFile', () => {
       throw new Error('Expected config.studio to be defined')
     }
 
-    const adapter = await config.studio.createAdapter({})
+    const adapter = await config.studio.adapter({})
     expect(adapter).toBeDefined()
     expect(adapter.provider).toEqual('postgres')
   })
@@ -269,7 +269,7 @@ describe('loadConfigFromFile', () => {
     expect(config).toMatchObject({
       earlyAccess: true,
       studio: {
-        createAdapter: expect.any(Function),
+        adapter: expect.any(Function),
       },
       loadedFromFile: resolvedPath,
     })
@@ -279,7 +279,7 @@ describe('loadConfigFromFile', () => {
       throw new Error('Expected config.studio to be defined')
     }
 
-    const adapter = await config.studio.createAdapter({})
+    const adapter = await config.studio.adapter({})
     expect(adapter).toBeDefined()
     expect(adapter.provider).toEqual('postgres')
   })
