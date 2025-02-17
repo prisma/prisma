@@ -164,7 +164,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -177,9 +177,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "loadedFromFile""
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "loadedFromFile""
       `)
     })
   })
@@ -245,20 +245,9 @@ describe('loadConfigFromFile', () => {
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       earlyAccess: true,
-      studio: {
-        adapter: expect.any(Function),
-      },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const adapter = await config.studio.adapter({})
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   it('typescript-esm-ext-ts', async () => {
@@ -268,20 +257,9 @@ describe('loadConfigFromFile', () => {
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       earlyAccess: true,
-      studio: {
-        adapter: expect.any(Function),
-      },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const adapter = await config.studio.adapter({})
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   describe('environment variables', () => {
