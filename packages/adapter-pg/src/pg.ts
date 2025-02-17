@@ -12,7 +12,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug, PrismaError } from '@prisma/driver-adapter-utils'
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 
@@ -48,10 +48,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
       columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
-        throw {
+        throw new PrismaError({
           kind: 'UnsupportedNativeDataType',
           type: e.type,
-        }
+        })
       }
       throw e
     }
@@ -129,7 +129,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
       typeof error.severity === 'string' &&
       typeof error.message === 'string'
     ) {
-      throw {
+      throw new PrismaError({
         kind: 'postgres',
         code: error.code,
         severity: error.severity,
@@ -137,7 +137,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         detail: error.detail,
         column: error.column,
         hint: error.hint,
-      }
+      })
     }
     throw error
   }

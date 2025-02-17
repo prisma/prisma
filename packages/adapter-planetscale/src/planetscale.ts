@@ -13,7 +13,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug, PrismaError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
@@ -88,10 +88,10 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
       if (error.name === 'DatabaseError') {
         const parsed = parseErrorMessage(error.message)
         if (parsed) {
-          throw {
+          throw new PrismaError({
             kind: 'mysql',
             ...parsed,
-          }
+          })
         }
       }
       debug('Error in performIO: %O', error)

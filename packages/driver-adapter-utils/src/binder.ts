@@ -1,3 +1,4 @@
+import { PrismaError } from './error'
 import { err, ok, Result } from './result'
 import type {
   ErrorCapturingSqlConnection,
@@ -97,6 +98,9 @@ function wrapAsync<A extends unknown[], R>(
     try {
       return ok(await fn(...args))
     } catch (error) {
+      if (error instanceof PrismaError) {
+        return err(error.cause)
+      }
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJs', id })
     }
@@ -111,6 +115,9 @@ function wrapSync<A extends unknown[], R>(
     try {
       return ok(fn(...args))
     } catch (error) {
+      if (error instanceof PrismaError) {
+        return err(error.cause)
+      }
       const id = registry.registerNewError(error)
       return err({ kind: 'GenericJs', id })
     }

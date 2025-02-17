@@ -11,7 +11,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug } from '@prisma/driver-adapter-utils'
+import { Debug, PrismaError } from '@prisma/driver-adapter-utils'
 import * as pg from '@prisma/pg-worker'
 
 import { name as packageName } from '../package.json'
@@ -45,10 +45,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
       columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
-        throw {
+        throw new PrismaError({
           kind: 'UnsupportedNativeDataType',
           type: e.type,
-        }
+        })
       }
       throw e
     }
@@ -117,7 +117,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
       const error = e as Error
       debug('Error in performIO: %O', error)
       if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-        throw {
+        throw new PrismaError({
           kind: 'postgres',
           code: e.code,
           severity: e.severity,
@@ -125,7 +125,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
           detail: e.detail,
           column: e.column,
           hint: e.hint,
-        }
+        })
       }
       throw error
     }
