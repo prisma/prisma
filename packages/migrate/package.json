@@ -57,7 +57,7 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.4.0-26.7e7c9b8394a8c99732582d1f3b0646e95e351267",
+    "@prisma/engines-version": "6.4.0-28.integration-sql-nested-transactions-fba3682185fb5027c810216c59359fba8e1cdbb3",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
