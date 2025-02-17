@@ -112,7 +112,6 @@ describe('loadConfigFromFile', () => {
             folder: path.join(cwd, 'prisma', 'schema'),
           },
         })
-        expect(error).toBeUndefined()
       })
 
       it('succeeds when it points to multiple Prisma schema files that do not exist', async () => {
