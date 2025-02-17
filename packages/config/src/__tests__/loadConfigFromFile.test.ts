@@ -245,20 +245,9 @@ describe('loadConfigFromFile', () => {
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       earlyAccess: true,
-      studio: {
-        adapter: expect.any(Function),
-      },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const adapter = await config.studio.adapter({})
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   it('typescript-esm-ext-ts', async () => {
@@ -268,20 +257,9 @@ describe('loadConfigFromFile', () => {
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
     expect(config).toMatchObject({
       earlyAccess: true,
-      studio: {
-        adapter: expect.any(Function),
-      },
       loadedFromFile: resolvedPath,
     })
     expect(error).toBeUndefined()
-
-    if (!config?.studio) {
-      throw new Error('Expected config.studio to be defined')
-    }
-
-    const adapter = await config.studio.adapter({})
-    expect(adapter).toBeDefined()
-    expect(adapter.provider).toEqual('postgres')
   })
 
   describe('environment variables', () => {

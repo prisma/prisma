@@ -1,4 +1,3 @@
-import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
@@ -22,17 +21,6 @@ export type PrismaConfig<Env> = {
    * The location of the Prisma schema file(s).
    */
   schema?: PrismaSchemaConfigShape
-  /**
-   * The configuration for the Prisma Studio.
-   */
-  studio?: {
-    /**
-     * Istantiates the Prisma driver adapter to use for Prisma Studio.
-     * @param env Dictionary of environment variables.
-     * @returns The Prisma driver adapter to use for Prisma Studio.
-     */
-    adapter: (env: Env) => Promise<QueryableDriverAdapter>
-  }
 }
 
 /**
@@ -45,7 +33,6 @@ export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigI
   const config = defaultConfig<Env>()
 
   defineSchemaConfig<Env>(config, configInput)
-  defineStudioConfig<Env>(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
@@ -64,15 +51,4 @@ function defineSchemaConfig<Env>(
 
   config.schema = configInput.schema
   debug('Prisma config [schema]: %o', config.schema)
-}
-
-function defineStudioConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>, configInput: PrismaConfig<Env>) {
-  if (!configInput.studio) {
-    return
-  }
-
-  config.studio = {
-    adapter: configInput.studio.adapter,
-  }
-  debug('Prisma config [studio]: %o', config.studio)
 }
