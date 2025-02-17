@@ -1,4 +1,4 @@
-import type { SqlConnection as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Schema as Shape } from 'effect'
 import type { Either } from 'effect/Either'
 import { identity, pipe } from 'effect/Function'
@@ -91,7 +91,9 @@ export type PrismaConfigInternal<Env = any> = ReturnType<typeof createPrismaConf
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigInternalShape<Env = any>(input: unknown): Either<PrismaConfigInternal<Env>, ParseError> {
+export function parsePrismaConfigInternalShape<Env = any>(
+  input: unknown,
+): Either<PrismaConfigInternal<Env>, ParseError> {
   return Shape.decodeUnknownEither(createPrismaConfigInternalShape<Env>(), {})(input, {
     onExcessProperty: 'error',
   })

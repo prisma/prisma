@@ -1,4 +1,4 @@
-import type { SqlConnection as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
@@ -54,10 +54,7 @@ export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigI
   return config as PrismaConfigInternal<Env>
 }
 
-function defineSchemaConfig<Env>(
-  config: DeepMutable<PrismaConfigInternal<Env>>,
-  configInput: PrismaConfig<Env>,
-) {
+function defineSchemaConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>, configInput: PrismaConfig<Env>) {
   if (!configInput.schema) {
     return
   }

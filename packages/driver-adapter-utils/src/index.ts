@@ -10,6 +10,8 @@ export type {
   // exported as DriverAdapter for backward compatibility
   SqlConnection as DriverAdapter,
   Error,
+  // exported as ErrorCapturingDriverAdapter for backward compatibility
+  ErrorCapturingSqlConnection as ErrorCapturingDriverAdapter,
   ErrorCapturingSqlConnection,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
@@ -17,8 +19,6 @@ export type {
   ErrorRecord,
   ErrorRegistry,
   Provider,
-  // exported as Queryable for backward compatibility
-  SqlQueryable as Queryable,
   SqlConnection,
   SqlMigrationAwareDriverAdapter,
   SqlQuery,
