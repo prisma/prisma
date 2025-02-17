@@ -3,11 +3,11 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
-import { Either } from 'effect'
+import { Either, pipe } from 'effect'
 import { ParseError } from 'effect/ParseResult'
 
-import type { PrismaConfigInternal } from './defineConfig'
-import { parsePrismaConfigInternalShape } from './PrismaConfig'
+import { defineConfig, type PrismaConfigInternal } from './defineConfig'
+import { parsePrismaConfigInternalShape, parsePrismaConfigShape } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -104,8 +104,18 @@ export async function loadConfigFromFile({
 
     debug(`Config file loaded in %s`, getTime())
 
-    // Ensure the config file conforms to the expected PrismaConfig schema.
-    const parseResultEither = parsePrismaConfigInternalShape(required['default'])
+    const defaultExport = required['default']
+
+    const parseResultEither = pipe(
+      // If the given config conforms to the `PrismaConfig` shape, feed it to `defineConfig`.
+      parsePrismaConfigShape(defaultExport),
+      Either.map((config) => {
+        debug('Parsed `PrismaConfig` shape: %o', config)
+        return defineConfig(config)
+      }),
+      // Otherwise, try to parse it as a `PrismaConfigInternal` shape.
+      Either.orElse(() => parsePrismaConfigInternalShape(defaultExport)),
+    )
 
     // Failure case
     if (Either.isLeft(parseResultEither)) {
