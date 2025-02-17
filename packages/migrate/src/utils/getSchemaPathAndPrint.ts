@@ -1,4 +1,4 @@
-import { GetSchemaOptions, type GetSchemaResult, getSchemaWithPath } from '@prisma/internals'
+import { type GetSchemaOptions, type GetSchemaResult, getSchemaWithPath, type SchemaPathFromConfig } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 
@@ -9,15 +9,16 @@ import path from 'path'
 /**
  * If a path is provided checks that it exists or error
  * If no path provided check in default location(s) or error
- * Schema found: print to console it's relative path
+ * Schema found: print to console its relative path
  *
  * @returns {GetSchemaResult}
  */
 export async function getSchemaPathAndPrint(
   schemaPathProvided?: string,
+  schemaPathFromConfig?: SchemaPathFromConfig,
   options?: GetSchemaOptions,
 ): Promise<GetSchemaResult> {
-  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, options)
+  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, schemaPathFromConfig, options)
 
   printSchemaLoadedMessage(schemaPathResult.schemaPath)
 

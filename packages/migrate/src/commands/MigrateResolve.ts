@@ -74,7 +74,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, true)
+    await checkUnsupportedDataProxy('migrate resolve', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
@@ -82,7 +82,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 

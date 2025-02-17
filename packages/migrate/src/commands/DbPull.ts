@@ -117,14 +117,14 @@ Set composite types introspection depth to 2 levels
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db pull', args, !args['--url'])
+    await checkUnsupportedDataProxy('db pull', args, config.schema, !args['--url'])
 
     if (args['--help']) {
       return this.help()
     }
 
     const url: string | undefined = args['--url']
-    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'])
+    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'], config.schema)
     let schemaPath = schemaPathResult?.schemaPath ?? null
     const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
     debug('schemaPathResult', schemaPathResult)
@@ -165,14 +165,14 @@ Set composite types introspection depth to 2 levels
       .when(
         (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
         async (input) => {
-          const rawSchema = await getSchema(input.schemaPath)
-          const config = await getConfig({
+          const rawSchema = await getSchema(input.schemaPath, config.schema)
+          const engineConfig = await getConfig({
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,
           })
 
-          const previewFeatures = config.generators.find(({ name }) => name === 'client')?.previewFeatures
-          const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
+          const previewFeatures = engineConfig.generators.find(({ name }) => name === 'client')?.previewFeatures
+          const firstDatasource = engineConfig.datasources[0] ? engineConfig.datasources[0] : undefined
 
           if (input.url) {
             let providerFromSchema = firstDatasource?.provider
@@ -283,7 +283,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
       .run()
 
     if (schemaPath) {
-      const schemas = await getSchema(args['--schema'])
+      const schemas = await getSchema(args['--schema'], config.schema)
 
       // Re-Introspection is not supported on MongoDB
       const modelRegex = /\s*model\s*(\w+)\s*{/

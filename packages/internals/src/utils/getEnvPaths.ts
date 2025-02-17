@@ -25,6 +25,8 @@ export async function getEnvPaths(
 ): Promise<EnvPaths> {
   const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
+  // NOTE: We intentionally do NOT check based on the schema path from `prisma.config.ts` as having a
+  // `prisma.config.ts` file disables automatic env loading anyway.
   const schemaEnvPathFromPkgJson = schemaPathToEnvPath(await readSchemaPathFromPkgJson())
   const schemaEnvPaths = [
     schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
