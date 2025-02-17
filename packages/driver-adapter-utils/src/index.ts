@@ -1,7 +1,7 @@
 export { bindAdapter } from './binder'
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
-export { PrismaError } from './error'
+export { PrismaAdapterError } from './error'
 export { err, ok, type Result } from './result'
 export type {
   ArgType,

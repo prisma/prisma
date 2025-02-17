@@ -4,7 +4,7 @@ import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   ConnectionInfo,
   Debug,
-  PrismaError,
+  PrismaAdapterError,
   SqlConnection,
   SqlMigrationAwareDriverAdapter,
   SqlQuery,
@@ -104,7 +104,7 @@ class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
     console.error('Error in performIO: %O', error)
     const { message } = error
 
-    throw new PrismaError({
+    throw new PrismaAdapterError({
       kind: 'sqlite',
       extendedCode: matchSQLiteErrorCode(message),
       message,
