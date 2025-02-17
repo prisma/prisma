@@ -5,9 +5,6 @@ inputs:
   node-version:
     description: 'Version of Node.js to use.'
     required: true
-  pnpm-version:
-    description: 'Version of pnpm to use.'
-    required: true
   skip-tsc:
     description: 'Skip type checking.'
     required: true
@@ -23,9 +20,6 @@ runs:
   using: composite
   steps:
     - uses: pnpm/action-setup@v4.0.0
-      with:
-        version: ${{ inputs.pnpm-version }}
-
     - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v4
       with:
