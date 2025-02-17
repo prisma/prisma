@@ -6,6 +6,7 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { copyPrismaClient } from './copy-prisma-client'
 
 /**
@@ -53,11 +54,36 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
-// we define a separate config for emitting types on src/config.ts only
-const cliConfigTypesBuildConfig: BuildOptions = {
-  name: 'cliConfigTypes',
+/**
+ * Allow `import type { ... } from 'prisma'` to work.
+ */
+const cliTypesBuildConfig: BuildOptions = {
+  name: 'cliTypes',
+  entryPoints: ['src/types.ts'],
+  outdir: 'dist',
+  bundle: true,
+  emitTypes: true,
+  minify: false,
+}
+
+/**
+ * Allow `import { ... } from 'prisma/config'` to work.
+ */
+const cliConfigBuildConfig: BuildOptions = {
+  name: 'cliConfig',
   entryPoints: ['src/config.ts'],
-  outfile: 'dist/config',
+
+  /**
+   * We store `./config.js` and `./config.d.ts` in the root of the package to avoid TypeScript
+   * errors for:
+   * - users with default `"moduleResolution"` settings in their `tsconfig.json`
+   * - users with old and inconsistent bundlers, like `webpack`
+   */
+  outdir: '.',
+  plugins: [
+    copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])
+  ],
+  
   bundle: true,
   emitTypes: true,
   minify: false,
@@ -85,7 +111,7 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliConfigTypesBuildConfig, cliBuildConfig, preinstallBuildConfig])
+void build([cliTypesBuildConfig, cliConfigBuildConfig, cliBuildConfig, preinstallBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

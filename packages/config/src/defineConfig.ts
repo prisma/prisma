@@ -26,10 +26,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   return config as PrismaConfigInternal
 }
 
-function defineSchemaConfig(
-  config: DeepMutable<PrismaConfigInternal>,
-  configInput: PrismaConfig,
-) {
+function defineSchemaConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.schema) {
     return
   }

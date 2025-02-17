@@ -46,6 +46,9 @@
   "files": [
     "README.md",
     "build",
+    "config.js",
+    "config.d.ts",
+    "dist/cli/src/types.d.ts",
     "install",
     "runtime/*.js",
     "runtime/*.d.ts",
@@ -66,18 +69,32 @@
     ]
   },
   "bin": {
-    "prisma": "build/bin.js"
+    "prisma": "build/index.js"
   },
+  "types": "./dist/cli/src/types.d.ts",
   "exports": {
     "./package.json": "./package.json",
     ".": {
       "require": {
-        "types": "./build/config.d.ts"
+        "types": "./dist/cli/src/types.d.ts",
+        "default": "./build/types.js"
       },
       "import": {
-        "types": "./build/config.d.mts"
+        "types": "./dist/cli/src/types.d.ts",
+        "default": "./build/types.js"
       },
-      "default": "./build/config.js"
+      "default": "./build/types.js"
+    },
+    "./config": {
+      "require": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "import": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "default": "./config.js"
     }
   },
   "devDependencies": {
