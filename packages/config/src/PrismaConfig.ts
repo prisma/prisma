@@ -33,7 +33,7 @@ export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
 
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
-export const createPrismaConfigInternalShape = <Env = any>() =>
+export const createPrismaConfigInternalShape = () =>
   pipe(
     Shape.Struct({
       /**
@@ -58,14 +58,14 @@ export const createPrismaConfigInternalShape = <Env = any>() =>
  * by the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfigInternal<Env = any> = ReturnType<typeof createPrismaConfigInternalShape<Env>>['Type']
+export type PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigInternalShape<Env = any>(input: unknown): Either<PrismaConfigInternal<Env>, ParseError> {
-  return Shape.decodeUnknownEither(createPrismaConfigInternalShape<Env>(), {})(input, {
+export function parsePrismaConfigInternalShape(input: unknown): Either<PrismaConfigInternal, ParseError> {
+  return Shape.decodeUnknownEither(createPrismaConfigInternalShape(), {})(input, {
     onExcessProperty: 'error',
   })
 }

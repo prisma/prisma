@@ -11,7 +11,7 @@ const debug = Debug('prisma:config:defineConfig')
 /**
  * Define the input configuration for the Prisma Development Kit.
  */
-export type PrismaConfig<Env> = {
+export type PrismaConfig = {
   /**
    * Whether to enable experimental features.
    * Currently, every feature is considered experimental.
@@ -26,24 +26,24 @@ export type PrismaConfig<Env> = {
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigInternal<Env> {
+export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
-  const config = defaultConfig<Env>()
+  const config = defaultConfig()
 
-  defineSchemaConfig<Env>(config, configInput)
+  defineSchemaConfig(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
    * `Readonly` type
    */
-  return config as PrismaConfigInternal<Env>
+  return config as PrismaConfigInternal
 }
 
-function defineSchemaConfig<Env>(
-  config: DeepMutable<PrismaConfigInternal<Env>>,
-  configInput: PrismaConfig<Env>,
+function defineSchemaConfig(
+  config: DeepMutable<PrismaConfigInternal>,
+  configInput: PrismaConfig,
 ) {
   if (!configInput.schema) {
     return
