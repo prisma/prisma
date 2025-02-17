@@ -72,7 +72,7 @@ function defineStudioConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>,
   }
 
   config.studio = {
-    createAdapter: configInput.studio.adapter,
+    adapter: configInput.studio.adapter,
   }
   debug('Prisma config [studio]: %o', config.studio)
 }

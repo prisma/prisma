@@ -20,7 +20,7 @@ describe('defineConfig', () => {
         },
       })
       expect(config.studio).toEqual({
-        createAdapter: adapter,
+        adapter: adapter,
       })
     })
   })

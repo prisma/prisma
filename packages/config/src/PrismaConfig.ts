@@ -4,14 +4,14 @@ import type { Either } from 'effect/Either'
 import { identity, pipe } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
 
-// Define the shape for the `createAdapter` function
-const createAdapterShape = <Env>() =>
+// Define the shape for the `adapter` function
+const adapterShape = <Env>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<QueryableDriverAdapter> => {
       return input instanceof Function
     },
     {
-      identifier: 'CreateAdapter<Env>',
+      identifier: 'Adapter<Env>',
       encode: identity,
       decode: identity,
     },
@@ -23,7 +23,7 @@ const createPrismaStudioConfigInternalShape = <Env>() =>
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Studio.
      */
-    createAdapter: createAdapterShape<Env>(),
+    adapter: adapterShape<Env>(),
   })
 
 const PrismaConfigSchemaSingleShape = Shape.Struct({
@@ -34,7 +34,7 @@ const PrismaConfigSchemaSingleShape = Shape.Struct({
   /**
    * The path to a single `.prisma` schema file.
    */
-  filenamePath: Shape.String,
+  filePath: Shape.String,
 })
 
 const PrismaConfigSchemaMultiShape = Shape.Struct({
@@ -46,7 +46,7 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
    * The path to a folder containing multiple `.prisma` schema files.
    * All of the files in this folder will be used.
    */
-  folder: Shape.String,
+  folderPath: Shape.String,
 })
 
 // Define the shape for the `schema` property.
