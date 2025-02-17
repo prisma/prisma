@@ -34,7 +34,7 @@ const PrismaConfigSchemaSingleShape = Shape.Struct({
   /**
    * The path to a single `.prisma` schema file.
    */
-  filenamePath: Shape.String,
+  filePath: Shape.String,
 })
 
 const PrismaConfigSchemaMultiShape = Shape.Struct({
@@ -46,7 +46,7 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
    * The path to a folder containing multiple `.prisma` schema files.
    * All of the files in this folder will be used.
    */
-  folder: Shape.String,
+  folderPath: Shape.String,
 })
 
 // Define the shape for the `schema` property.

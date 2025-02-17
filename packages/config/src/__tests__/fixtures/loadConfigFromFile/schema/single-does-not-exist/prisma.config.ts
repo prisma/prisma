@@ -6,6 +6,6 @@ export default defineConfig({
   earlyAccess: true,
   schema: {
     kind: 'single',
-    filenamePath: path.join(process.cwd(), 'prisma', 'schema.prisma'),
+    filePath: path.join(process.cwd(), 'prisma', 'schema.prisma'),
   },
 })
