@@ -97,6 +97,7 @@ function wrapAsync<A extends unknown[], R>(
     try {
       return ok(await fn(...args))
     } catch (error) {
+      // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (error.cause && typeof error.cause === 'object') {
         return err(error.cause)
       }
@@ -114,6 +115,7 @@ function wrapSync<A extends unknown[], R>(
     try {
       return ok(fn(...args))
     } catch (error) {
+      // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (error.cause && typeof error.cause === 'object') {
         return err(error.cause)
       }
