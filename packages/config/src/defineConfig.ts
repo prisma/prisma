@@ -2,26 +2,11 @@ import { Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
-import type { PrismaConfigInternal, PrismaSchemaConfigShape } from './PrismaConfig'
+import type { PrismaConfig, PrismaConfigInternal } from './PrismaConfig'
 
 export type { PrismaConfigInternal }
 
 const debug = Debug('prisma:config:defineConfig')
-
-/**
- * Define the input configuration for the Prisma Development Kit.
- */
-export type PrismaConfig = {
-  /**
-   * Whether to enable experimental features.
-   * Currently, every feature is considered experimental.
-   */
-  earlyAccess: true
-  /**
-   * The location of the Prisma schema file(s).
-   */
-  schema?: PrismaSchemaConfigShape
-}
 
 /**
  * Define the configuration for the Prisma Development Kit.
