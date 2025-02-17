@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { getSchemaWithPath, SchemaPathFromConfig } from './getSchema'
+import { getSchemaWithPath, type SchemaPathFromConfig } from './getSchema'
 
 /**
  * Get a unique identifier for the project by hashing

@@ -57,7 +57,28 @@ type PackageJsonLookupResult =
       }
     }
 
-export type SchemaPathFromConfig = { kind: 'single'; filenamePath: string } | { kind: 'multi'; folder: string }
+export type SchemaPathFromConfig =
+  | {
+      /**
+       * Tell Prisma to use a single `.prisma` schema file.
+       */
+      kind: 'single'
+      /**
+       * The path to a single `.prisma` schema file.
+       */
+      filenamePath: string
+    }
+  | {
+    /**
+     * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
+     */
+    kind: 'multi'
+    /**
+     * The path to a folder containing multiple `.prisma` schema files.
+     * All of the files in this folder will be used.
+     */
+    folder: string
+  }
 
 export type GetSchemaOptions = {
   cwd?: string

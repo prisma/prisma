@@ -20,8 +20,8 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  type SchemaPathFromConfig,
 } from '@prisma/internals'
-import type { SchemaPathFromConfig } from '@prisma/internals/src/cli/getSchema'
 import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'

@@ -6,7 +6,7 @@ import type { O } from 'ts-toolbelt'
 import { getConfig, getEffectiveUrl, getSchemaWithPath, link } from '..'
 import { resolveUrl } from '../engine-commands/getConfig'
 import { loadEnvFile } from '../utils/loadEnvFile'
-import { SchemaPathFromConfig } from './getSchema'
+import type { SchemaPathFromConfig } from './getSchema'
 
 /**
  * These are the cli args that we check the data proxy for. If in use
