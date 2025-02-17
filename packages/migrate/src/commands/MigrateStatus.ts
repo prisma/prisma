@@ -64,7 +64,7 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, true)
+    await checkUnsupportedDataProxy('migrate status', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
@@ -73,7 +73,7 @@ Check the status of your database migrations
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     // TODO: handle the case where the schemaPath is null
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 

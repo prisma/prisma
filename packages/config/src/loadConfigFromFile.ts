@@ -119,7 +119,7 @@ export async function loadConfigFromFile({
     }
 
     // Success case
-    const prismaConfig = parseResultEither.right
+    const prismaConfig = transformPathsInConfigToAbsolute(parseResultEither.right, resolvedPath)
 
     return {
       config: {
@@ -171,5 +171,30 @@ async function requireTypeScriptFile(resolvedPath: string) {
         error,
       } as const,
     }
+  }
+}
+
+function transformPathsInConfigToAbsolute(
+  prismaConfig: PrismaConfigInternal,
+  resolvedPath: string,
+): PrismaConfigInternal {
+  if (prismaConfig.schema?.kind === 'single') {
+    return {
+      ...prismaConfig,
+      schema: {
+        ...prismaConfig.schema,
+        filenamePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filenamePath),
+      },
+    }
+  } else if (prismaConfig.schema?.kind === 'multi') {
+    return {
+      ...prismaConfig,
+      schema: {
+        ...prismaConfig.schema,
+        folder: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folder),
+      },
+    }
+  } else {
+    return prismaConfig
   }
 }

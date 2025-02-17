@@ -24,7 +24,7 @@ describe('loadConfigFromFile', () => {
 
   describe('schema', () => {
     describe('single', () => {
-      it('succeeds when it points to a single Prisma schema file that exists', async () => {
+      it('succeeds when it points to a single Prisma schema file that exists via an absolute path', async () => {
         ctx.fixture('loadConfigFromFile/schema/single-exists')
         const cwd = ctx.fs.cwd()
 
@@ -40,6 +40,23 @@ describe('loadConfigFromFile', () => {
           },
         })
         expect(error).toBeUndefined()
+      })
+
+      it('succeeds when it points to a single Prisma schema file that exists via a relative path', async () => {
+        ctx.fixture('loadConfigFromFile/schema/single-exists-relative')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'single',
+            filenamePath: path.join(cwd, 'prisma', 'schema.prisma'),
+          },
+        })
       })
 
       it('succeeds when it points to a single Prisma schema file that does not exists', async () => {
@@ -62,7 +79,7 @@ describe('loadConfigFromFile', () => {
     })
 
     describe('multi', () => {
-      it('succeeds when it points to multiple Prisma schema files that exist', async () => {
+      it('succeeds when it points to multiple Prisma schema files that exist via an absolute path', async () => {
         ctx.fixture('loadConfigFromFile/schema/multi-exist')
         const cwd = ctx.fs.cwd()
 
@@ -78,6 +95,23 @@ describe('loadConfigFromFile', () => {
           },
         })
         expect(error).toBeUndefined()
+      })
+
+      it('succeeds when it points to multiple Prisma schema files that exist via a relative path ', async () => {
+        ctx.fixture('loadConfigFromFile/schema/multi-exist-relative')
+        const cwd = ctx.fs.cwd()
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        expect(config).toMatchObject({
+          earlyAccess: true,
+          loadedFromFile: resolvedPath,
+          schema: {
+            kind: 'multi',
+            folder: path.join(cwd, 'prisma', 'schema'),
+          },
+        })
       })
 
       it('succeeds when it points to multiple Prisma schema files that do not exist', async () => {
