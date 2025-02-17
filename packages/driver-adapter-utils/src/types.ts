@@ -152,7 +152,7 @@ export interface SqlMigrationAwareDriverAdapter extends SqlDriverAdapter {
   connectToShadowDb(): Promise<SqlConnection>
 }
 
-interface Queryable<Query, Result> extends AdapterInfo {
+export interface Queryable<Query, Result> extends AdapterInfo {
   /**
    * Execute a query and return its result.
    */
