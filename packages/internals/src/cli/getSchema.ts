@@ -319,7 +319,7 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: Sch
       )
     }
   } else {
-    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folder)
+    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folderPath)
     if (!schemaResult.ok) {
       throw new Error(
         `Could not load schema from folder \`${
