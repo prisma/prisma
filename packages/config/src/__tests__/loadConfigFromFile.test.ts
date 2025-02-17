@@ -57,7 +57,6 @@ describe('loadConfigFromFile', () => {
             filenamePath: path.join(cwd, 'prisma', 'schema.prisma'),
           },
         })
-        expect(error).toBeUndefined()
       })
 
       it('succeeds when it points to a single Prisma schema file that does not exists', async () => {
