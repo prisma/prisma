@@ -92,6 +92,7 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
+        '--config': String,
         '--stdin': Boolean,
         '--file': String,
         '--schema': String,

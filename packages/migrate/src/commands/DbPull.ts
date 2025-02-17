@@ -105,6 +105,7 @@ Set composite types introspection depth to 2 levels
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--config': String,
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
