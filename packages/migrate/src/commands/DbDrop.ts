@@ -72,7 +72,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db drop', args, true)
+    await checkUnsupportedDataProxy('db drop', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
@@ -84,7 +84,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
     printDatasource({ datasourceInfo })

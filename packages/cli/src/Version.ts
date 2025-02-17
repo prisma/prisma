@@ -119,7 +119,7 @@ export class Version implements Command {
 
     let schemaPath: string | null = null
     try {
-      schemaPath = (await getSchemaWithPath()).schemaPath
+      schemaPath = (await getSchemaWithPath(undefined, config.schema)).schemaPath
     } catch {
       schemaPath = null
     }
@@ -138,7 +138,7 @@ export class Version implements Command {
     }
 
     try {
-      const datamodel = await getSchema()
+      const datamodel = await getSchema(schemaPath)
       const config = await getConfig({
         datamodel,
         ignoreEnvVarErrors: true,
