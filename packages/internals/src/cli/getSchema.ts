@@ -66,7 +66,7 @@ export type SchemaPathFromConfig =
       /**
        * The path to a single `.prisma` schema file.
        */
-      filenamePath: string
+      filePath: string
     }
   | {
     /**
@@ -77,7 +77,7 @@ export type SchemaPathFromConfig =
      * The path to a folder containing multiple `.prisma` schema files.
      * All of the files in this folder will be used.
      */
-    folder: string
+    folderPath: string
   }
 
 export type GetSchemaOptions = {
@@ -310,21 +310,21 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: Sch
 
   let schemaResult: LookupResult
   if (schemaPathFromConfig.kind === 'single') {
-    schemaResult = await readSchemaFromSingleFile(schemaPathFromConfig.filenamePath)
+    schemaResult = await readSchemaFromSingleFile(schemaPathFromConfig.filePath)
     if (!schemaResult.ok) {
       throw new Error(
         `Could not load schema from file \`${
-          schemaPathFromConfig.filenamePath
-        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+          schemaPathFromConfig.filePath
+        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   } else {
-    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folder)
+    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folderPath)
     if (!schemaResult.ok) {
       throw new Error(
         `Could not load schema from folder \`${
-          schemaPathFromConfig.folder
-        }\` provided by "prisma.config.ts" config\`: ${renderLookupError(schemaResult.error)}`,
+          schemaPathFromConfig.folderPath
+        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
       )
     }
   }

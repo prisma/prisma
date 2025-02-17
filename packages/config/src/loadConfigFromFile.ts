@@ -185,7 +185,7 @@ function transformPathsInConfigToAbsolute(
       ...prismaConfig,
       schema: {
         ...prismaConfig.schema,
-        filenamePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filenamePath),
+        filePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filePath),
       },
     }
   } else if (prismaConfig.schema?.kind === 'multi') {
@@ -193,7 +193,7 @@ function transformPathsInConfigToAbsolute(
       ...prismaConfig,
       schema: {
         ...prismaConfig.schema,
-        folder: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folder),
+        folderPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folderPath),
       },
     }
   } else {
