@@ -8,13 +8,13 @@
     "prisma:db:execute:postgres": "prisma db execute --schema ./prisma/postgres/schema.prisma --file ./prisma/postgres/commands/type_test/insert.sql",
     "prisma:db:push:mysql": "prisma db push --schema ./prisma/mysql/schema.prisma --force-reset",
     "prisma:db:execute:mysql": "prisma db execute --schema ./prisma/mysql/schema.prisma --file ./prisma/mysql/commands/type_test/insert.sql",
-    "prisma:neon": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
-    "neon:ws": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.ws.ts\"",
-    "neon:http": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.http.ts\"",
-    "prisma:pg": "cross-env-shell DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
-    "pg": "cross-env-shell DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"tsx ./src/pg.ts\"",
-    "prisma:planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:db:push:mysql && pnpm prisma:db:execute:mysql\"",
-    "planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"tsx ./src/planetscale.ts\""
+    "prisma:neon": "DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
+    "neon:ws": "DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.ws.ts\"",
+    "neon:http": "DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.http.ts\"",
+    "prisma:pg": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
+    "pg": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"tsx ./src/pg.ts\"",
+    "prisma:planetscale": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:db:push:mysql && pnpm prisma:db:execute:mysql\"",
+    "planetscale": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"tsx ./src/planetscale.ts\""
   },
   "keywords": [],
   "author": "Alberto Schiabel <schiabel@prisma.io>",
@@ -34,7 +34,6 @@
   "devDependencies": {
     "@types/node": "18.18.9",
     "@types/pg": "../../packages/adapter-pg/node_modules/@types/pg",
-    "cross-env": "7.0.3",
     "prisma": "../../packages/cli",
     "tsx": "4.1.2",
     "typescript": "5.2.2"
