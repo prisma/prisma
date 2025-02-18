@@ -110,6 +110,7 @@ ${bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
+      '--config': String,
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,

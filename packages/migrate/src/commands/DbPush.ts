@@ -65,6 +65,7 @@ ${bold('Examples')}
         '--force-reset': Boolean,
         '--skip-generate': Boolean,
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,

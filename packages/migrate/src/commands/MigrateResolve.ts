@@ -65,6 +65,7 @@ ${bold('Examples')}
         '--applied': String,
         '--rolled-back': String,
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,

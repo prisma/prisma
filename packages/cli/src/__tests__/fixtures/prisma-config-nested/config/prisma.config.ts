@@ -1,4 +1,4 @@
-import { defineConfig } from 'src/index'
+import { defineConfig } from '@prisma/config/src'
 
 export default defineConfig({
   earlyAccess: true,

@@ -95,7 +95,7 @@ it('reads from --schema args first even if path in prisma.config.ts is provided'
     schemaPathFromArgs: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
     schemaPathFromConfig: {
       kind: 'single',
-      filenamePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
+      filePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
     },
   })
 
@@ -107,7 +107,7 @@ it('reads from path provided by prisma.config.ts', async () => {
     fixtureName: 'unconventional-path',
     schemaPathFromConfig: {
       kind: 'single',
-      filenamePath: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
+      filePath: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
     },
   })
 
@@ -119,7 +119,7 @@ it('reads from path provided by prisma.config.ts even if package.json is provide
     fixtureName: 'pkg-json-with-prisma-config',
     schemaPathFromConfig: {
       kind: 'single',
-      filenamePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-prisma-config', 'config', 'schema.prisma'),
+      filePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-prisma-config', 'config', 'schema.prisma'),
     },
   })
 
@@ -133,7 +133,7 @@ it('reads from directory provided by prisma.config.ts', async () => {
     fixtureName: 'unconventional-path-folder',
     schemaPathFromConfig: {
       kind: 'multi',
-      folder: path.resolve(FIXTURE_CWD, 'unconventional-path-folder', 'db'),
+      folderPath: path.resolve(FIXTURE_CWD, 'unconventional-path-folder', 'db'),
     },
   })
 
@@ -145,12 +145,12 @@ it('throws error if prisma.config.ts with single file is used but schema file ca
     fixtureName: 'no-schema',
     schemaPathFromConfig: {
       kind: 'single',
-      filenamePath: path.resolve(FIXTURE_CWD, 'no-schema', 'db', 'schema.prisma'),
+      filePath: path.resolve(FIXTURE_CWD, 'no-schema', 'db', 'schema.prisma'),
     },
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from file \`./__fixtures__/getSchema/no-schema/db/schema.prisma\` provided by "prisma.config.ts" config\`: file not found]`,
+    `[Error: Could not load schema from file \`./__fixtures__/getSchema/no-schema/db/schema.prisma\` provided by "prisma.config.ts"\`: file not found]`,
   )
 })
 
@@ -159,12 +159,12 @@ it('throws error if prisma.config.ts with folder is used but schema files cannot
     fixtureName: 'no-schema',
     schemaPathFromConfig: {
       kind: 'multi',
-      folder: path.resolve(FIXTURE_CWD, 'no-schema', 'db'),
+      folderPath: path.resolve(FIXTURE_CWD, 'no-schema', 'db'),
     },
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from folder \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts" config\`: directory not found]`,
+    `[Error: Could not load schema from folder \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts"\`: directory not found]`,
   )
 })
 

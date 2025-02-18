@@ -53,6 +53,7 @@ export class Version implements Command {
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean,
       '--telemetry-information': String,
     })

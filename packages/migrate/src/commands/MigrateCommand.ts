@@ -67,6 +67,7 @@ ${bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--preview-feature': Boolean,
       '--telemetry-information': String,
     })

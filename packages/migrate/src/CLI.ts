@@ -18,6 +18,7 @@ export class CLI implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
