@@ -1,4 +1,9 @@
-import { type GetSchemaOptions, type GetSchemaResult, getSchemaWithPath, type SchemaPathFromConfig } from '@prisma/internals'
+import {
+  type GetSchemaOptions,
+  type GetSchemaResult,
+  getSchemaWithPath,
+  type SchemaPathFromConfig,
+} from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 

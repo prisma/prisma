@@ -443,6 +443,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
             max_wait: arg.maxWait,
             timeout: arg.timeout,
             isolation_level: arg.isolationLevel,
+            new_tx_id: arg?.newTxId,
           })
 
           const url = await this.url('transaction/start')

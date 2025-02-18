@@ -100,6 +100,15 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async begin(): Promise<Result<void>> {
+    debug(`[js::commit]`)
+
+    throw new Error('Method not implemented.')
+
+    return ok(undefined)
+  }
+
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 

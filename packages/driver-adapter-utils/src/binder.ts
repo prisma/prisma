@@ -77,6 +77,7 @@ const bindTransaction = (errorRegistry: ErrorRegistryInternal, transaction: Tran
     options: transaction.options,
     queryRaw: wrapAsync(errorRegistry, transaction.queryRaw.bind(transaction)),
     executeRaw: wrapAsync(errorRegistry, transaction.executeRaw.bind(transaction)),
+    begin: wrapAsync(errorRegistry, transaction.begin.bind(transaction)),
     commit: wrapAsync(errorRegistry, transaction.commit.bind(transaction)),
     rollback: wrapAsync(errorRegistry, transaction.rollback.bind(transaction)),
   }
