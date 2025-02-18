@@ -5,9 +5,7 @@ import path from 'path'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 function cleanSnapshot(str: string): string {
-  str = str.replace(/\\/g, '/').replace(/"\/.*(\/config\/prisma.config.ts)"/g, '"REDACTED_ROOT$1"')
-  str = str.replace(/\\/g, '/').replace(/"\/.*(\/prisma.config.ts)"/g, '"REDACTED_ROOT$1"')
-  return str
+  return str.replace(/\\/g, '/').replace(/".*?((\/config)?\/prisma\.config\.ts)"/g, '"REDACTED_ROOT$1"')
 }
 
 const originalCwd = process.cwd()
