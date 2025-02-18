@@ -3,9 +3,7 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 function cleanSnapshot(str: string): string {
-  str = str.replace(/\\/g, '/').replace(/"\/.*(\/config\/prisma.config.ts)"/g, '"REDACTED_ROOT$1"')
-  str = str.replace(/\\/g, '/').replace(/"\/.*(\/prisma.config.ts)"/g, '"REDACTED_ROOT$1"')
-  return str
+  return str.replace(/\\/g, '/').replace(/".*?((\/config)?\/prisma\.config\.ts)"/g, '"REDACTED_ROOT$1"')
 }
 
 const COMMANDS = [
@@ -42,7 +40,6 @@ COMMANDS.forEach((command) => {
 
     // Running with --help to not run further actions beyond config loading
     const res = await ctx.cli(...command, '--config=./config/prisma.config.ts', '--help')
-    console.log(res.stdout)
     expect(cleanSnapshot(res.stdout)).toContain(`Loaded Prisma config from "REDACTED_ROOT/config/prisma.config.ts".`)
   })
 })
