@@ -229,12 +229,10 @@ describe('push', () => {
     `)
   })
 
-  it('unexecutable - drop accepted (prompt)', async () => {
+  it('unexecutable - drop allowed (--force-reset)', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
 
-    prompt.inject(['y'])
-
-    const result = DbPush.new().parse([], defaultTestConfig())
+    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
 
     const sqliteDbSizeBefore = ctx.fs.inspect('prisma/dev.db')!.size
 
@@ -250,20 +248,14 @@ describe('push', () => {
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
-      ⚠️ We found changes that cannot be executed:
-
-        • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
-
-
-      The SQLite database "dev.db" from "file:dev.db" was successfully reset.
+      The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
     `)
   })
 
-  it('unexecutable - drop cancelled (prompt)', async () => {
+  it('unexecutable - drop refused', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
@@ -290,21 +282,6 @@ describe('push', () => {
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
-  it('unexecutable - --force-reset should succeed and print a log', async () => {
-    ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = DbPush.new().parse(['--force-reset'], defaultTestConfig())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      The SQLite database "dev.db" at "file:dev.db" was successfully reset.
-
-      Your database is now in sync with your Prisma schema. Done in XXXms
-      "
-    `)
-  })
-
   it('unexecutable - should ask for --force-reset in CI', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     process.env.GITHUB_ACTIONS = '1'
@@ -316,9 +293,9 @@ describe('push', () => {
 
         • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-      Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+      You may use the --force-reset flag to drop the database before push like prisma db push --force-reset
       All data will be lost.
-              "
+            "
     `)
   })
 })
