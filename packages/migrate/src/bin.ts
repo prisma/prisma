@@ -6,6 +6,7 @@ import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
 
+import { version as packageVersion } from '../package.json'
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
@@ -43,8 +44,6 @@ const args = arg(
   false,
   true,
 )
-
-const packageJson = eval(`require('../package.json')`)
 
 /**
  * Main function
@@ -107,7 +106,7 @@ main()
     if (error.rustStack) {
       handlePanic({
         error,
-        cliVersion: packageJson.version,
+        cliVersion: packageVersion,
         enginesVersion,
         command: commandArray.join(' '),
         getDatabaseVersionSafe,
