@@ -880,6 +880,9 @@ importers:
 
   packages/config:
     dependencies:
+      effect:
+        specifier: 3.12.10
+        version: 3.12.10
       esbuild:
         specifier: '>=0.12 <1'
         version: 0.24.2
@@ -899,9 +902,6 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.10.11)
-      effect:
-        specifier: 3.12.10
-        version: 3.12.10
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.14.1)(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.14.1)(typescript@5.7.2))
