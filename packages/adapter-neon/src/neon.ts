@@ -174,6 +174,30 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     this.client.release()
     return Promise.resolve(ok(undefined))
   }
+
+  async create_savepoint(): Promise<Result<void>> {
+    debug(`[js::create_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async release_savepoint(): Promise<Result<void>> {
+    debug(`[js::release_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async rollback_to_savepoint(): Promise<Result<void>> {
+    debug(`[js::rollback_to_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async depth(): Promise<Result<number>> {
+    debug(`[js::depth]`)
+
+    return ok(0)
+  }
 }
 
 class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {

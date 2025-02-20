@@ -151,6 +151,30 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     this.txDeferred.reject(new RollbackError())
     return ok(await this.txResultPromise)
   }
+
+  async create_savepoint(): Promise<Result<void>> {
+    debug(`[js::create_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async release_savepoint(): Promise<Result<void>> {
+    debug(`[js::release_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async rollback_to_savepoint(): Promise<Result<void>> {
+    debug(`[js::rollback_to_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async depth(): Promise<Result<number>> {
+    debug(`[js::depth]`)
+
+    return ok(0)
+  }
 }
 
 class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {

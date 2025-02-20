@@ -134,6 +134,30 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
 
     return ok(undefined)
   }
+
+  async create_savepoint(): Promise<Result<void>> {
+    debug(`[js::create_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async release_savepoint(): Promise<Result<void>> {
+    debug(`[js::release_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async rollback_to_savepoint(): Promise<Result<void>> {
+    debug(`[js::rollback_to_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async depth(): Promise<Result<number>> {
+    debug(`[js::depth]`)
+
+    return ok(0)
+  }
 }
 
 class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
