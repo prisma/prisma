@@ -39,10 +39,16 @@ export async function handleNpsSurvey() {
   }
 
   const now = new Date()
+
   const rl = readline.promises.createInterface({
     input: process.stdin,
     output: process.stdout,
   })
+
+  rl.on('error', (err) => {
+    debug(`A readline error occurred while handling NPS survey: ${err}`)
+  })
+
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
