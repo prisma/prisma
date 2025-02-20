@@ -316,6 +316,22 @@ describe('using cli', () => {
     `)
   })
 
+  it('should call the survey handler when hints are not disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse([], defaultTestConfig())
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not call the survey handler when hints are disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse(['--no-hints'], defaultTestConfig())
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')

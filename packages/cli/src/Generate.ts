@@ -43,6 +43,12 @@ const pkg = eval(`require('../package.json')`)
  * $ prisma generate
  */
 export class Generate implements Command {
+  surveyHandler: () => Promise<void>
+
+  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+    this.surveyHandler = surveyHandler
+  }
+
   public static new(): Generate {
     return new Generate()
   }
@@ -233,6 +239,8 @@ Please run \`prisma generate\` manually.`
 
     const watchingText = `\n${green('Watching...')} ${dim(schemaPath)}\n`
 
+    const hideHints = args['--no-hints'] ?? false
+
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
@@ -255,8 +263,6 @@ When using Deno, you need to define \`output\` in the client generator section o
 
 ${breakingChangesMessage}`
           : ''
-
-        const hideHints = args['--no-hints'] ?? false
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
@@ -290,7 +296,9 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         }
         throw new Error(message)
       } else {
-        await handleNpsSurvey()
+        if (!hideHints) {
+          await this.surveyHandler()
+        }
 
         return message
       }
