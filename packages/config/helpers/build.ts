@@ -3,8 +3,7 @@ import { build } from '../../../helpers/compile/build'
 void build([
   {
     name: 'default',
-    bundle: true,
+    bundle: false,
     emitTypes: true,
-    external: ['esbuild', 'esbuild-register'],
   },
 ])
