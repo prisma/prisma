@@ -4,7 +4,6 @@ import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
 import { Either, pipe } from 'effect'
-import { ParseError } from 'effect/ParseResult'
 
 import { defineConfig, type PrismaConfigInternal } from './defineConfig'
 import { parsePrismaConfigInternalShape, parsePrismaConfigShape } from './PrismaConfig'
@@ -33,7 +32,7 @@ export type LoadConfigFromFileError =
     }
   | {
       _tag: 'ConfigFileParseError'
-      error: ParseError
+      error: Error
     }
   | {
       _tag: 'UnknownError'
@@ -123,7 +122,7 @@ export async function loadConfigFromFile({
         resolvedPath,
         error: {
           _tag: 'ConfigFileParseError',
-          error: parseResultEither.left,
+          error: new Error(parseResultEither.left.message),
         },
       }
     }
