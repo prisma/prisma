@@ -33,17 +33,38 @@ function removeSeedlingEmoji(str: string) {
 
 const originalEnv = { ...process.env }
 
-beforeEach(() => {
+beforeAll(() => {
   captureStdout.startCapture()
 })
 
+beforeEach(() => {
+  clearPromptInjection('before')
+})
+
 afterEach(() => {
+  clearPromptInjection('after')
   captureStdout.clearCaptureText()
 })
 
 afterAll(() => {
   captureStdout.stopCapture()
 })
+
+// Sanity check to ensure no prompt injections remain enqueued between
+// test cases. Having those would cause cascade failures of unrelated
+// test cases after failed ones with confusing error output, wasting
+// developer's time. This is why we should not rely on such global objects
+// if possible.
+function clearPromptInjection(position: string): void {
+  if (!prompt || !prompt._injected) return
+
+  const count = prompt._injected.length
+  if (!count) return
+
+  process.stdout.write(`WARNING: Clearing ${count} prompt injection(s) ${position} test case\n: ${prompt._injected.join(", ")}`)
+
+  prompt._injected.splice(0, count)
+}
 
 describe('common', () => {
   it('invalid schema', async () => {
@@ -138,7 +159,8 @@ describe('common', () => {
     `)
   })
   it('dev should error in unattended environment', async () => {
-    ctx.fixture('transition-db-push-migrate')
+    // Must use a fixture which attempts to prompt
+    ctx.fixture('existing-db-1-warning')
     const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma Migrate has detected that the environment is non-interactive, which is not supported.
@@ -412,12 +434,10 @@ describe('sqlite', () => {
     `)
   })
 
-  it('transition-db-push-migrate (prompt reset yes)', async () => {
+  it('transition-db-push-migrate (--allow-reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
 
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([], defaultTestConfig())
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -438,7 +458,8 @@ describe('sqlite', () => {
         - _Migration
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_\`
 
@@ -453,13 +474,11 @@ describe('sqlite', () => {
     `)
   })
 
-  it('transition-db-push-migrate (prompt reset no)', async () => {
+  it('transition-db-push-migrate (must refuse reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
     })
-
-    prompt.inject([new Error()])
 
     const result = MigrateDev.new().parse([], defaultTestConfig())
 
@@ -482,9 +501,8 @@ describe('sqlite', () => {
         - _Migration
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
-
-      Reset cancelled.
+      
+      You may use --allow-reset to drop the database. All data will be lost.
       "
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -493,9 +511,7 @@ describe('sqlite', () => {
   it('edited migration and unapplied empty draft', async () => {
     ctx.fixture('edited-and-draft')
 
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([], defaultTestConfig())
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -504,7 +520,8 @@ describe('sqlite', () => {
 
       The migration \`20201231000000_test\` was modified after it was applied.
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_test\`
       Applying migration \`20201231000000_draft\`
@@ -526,9 +543,9 @@ describe('sqlite', () => {
     ctx.fixture('edited-and-draft')
     fs.remove('prisma/migrations/20201117144659_test')
 
-    prompt.inject(['y', 'new-change'])
+    prompt.inject(['new-change'])
 
-    const result = MigrateDev.new().parse([], defaultTestConfig())
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -547,7 +564,8 @@ describe('sqlite', () => {
       - The migrations recorded in the database diverge from the local migrations directory.
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_draft\`
 
