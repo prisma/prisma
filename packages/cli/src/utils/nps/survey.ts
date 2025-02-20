@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { isCi } from '@prisma/internals'
+import { isCi, isInContainer, isInNpmLifecycleHook, isInteractive, maybeInGitHook } from '@prisma/internals'
 import * as checkpoint from 'checkpoint-client'
 import paths from 'env-paths'
 import fs from 'fs'
@@ -33,7 +33,7 @@ const promptTimeoutSecs = 30
 const debug = Debug('prisma:cli:nps')
 
 export async function handleNpsSurvey() {
-  if (!process.stdin.isTTY) {
+  if (!isInteractive()) {
     // no point in running the NPS survey if there's no TTY
     return
   }
@@ -60,7 +60,7 @@ export async function handleNpsSurveyImpl(
   rl: ReadlineInterface,
   eventCapture: EventCapture,
 ) {
-  if (isCi()) {
+  if (isCi() || maybeInGitHook() || isInNpmLifecycleHook() || isInContainer()) {
     return
   }
 
