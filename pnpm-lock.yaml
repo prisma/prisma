@@ -397,15 +397,12 @@ importers:
 
   packages/cli:
     dependencies:
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
-      esbuild:
-        specifier: '>=0.12 <1'
-        version: 0.24.2
-      esbuild-register:
-        specifier: 3.6.0
-        version: 3.6.0(esbuild@0.24.2)
     optionalDependencies:
       fsevents:
         specifier: 2.3.3
@@ -420,9 +417,6 @@ importers:
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
-      '@prisma/config':
-        specifier: workspace:*
-        version: link:../config
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -489,6 +483,9 @@ importers:
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
+      esbuild:
+        specifier: 0.24.2
+        version: 0.24.2
       execa:
         specifier: 5.1.1
         version: 5.1.1
@@ -880,9 +877,6 @@ importers:
 
   packages/config:
     dependencies:
-      effect:
-        specifier: 3.12.10
-        version: 3.12.10
       esbuild:
         specifier: '>=0.12 <1'
         version: 0.24.2
@@ -902,6 +896,9 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.10.11)
+      effect:
+        specifier: 3.12.10
+        version: 3.12.10
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@20.14.1)(ts-node@10.9.2(@swc/core@1.10.11)(@types/node@20.14.1)(typescript@5.7.2))

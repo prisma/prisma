@@ -60,7 +60,7 @@ const cliBuildConfig: BuildOptions = {
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
-  external: ['fsevents', 'esbuild', 'esbuild-register'],
+  external: ['fsevents', '@prisma/config'],
   emitTypes: false,
   minify: true,
 }
