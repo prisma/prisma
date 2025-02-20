@@ -881,7 +881,7 @@ importers:
         specifier: '>=0.12 <1'
         version: 0.24.2
       esbuild-register:
-        specifier: 3.6.0
+        specifier: ^3.6.0
         version: 3.6.0(esbuild@0.24.2)
     devDependencies:
       '@prisma/driver-adapter-utils':

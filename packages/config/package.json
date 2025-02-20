@@ -13,7 +13,7 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
     "esbuild": ">=0.12 <1",
-    "esbuild-register": "3.6.0"
+    "esbuild-register": "^3.6.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
