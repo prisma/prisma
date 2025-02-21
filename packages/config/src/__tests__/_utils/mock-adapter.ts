@@ -4,6 +4,8 @@ export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),
   executeRaw: new Error('Not implemented: executeRaw'),
   transactionContext: new Error('Not implemented: transactionContext'),
+  executeScript: new Error('Not implemented: executeScript'),
+  dispose: new Error('Not implemented: dispose'),
 }
 
 /**
@@ -16,5 +18,7 @@ export function mockAdapter(provider: 'mysql' | 'sqlite' | 'postgres'): DriverAd
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
     transactionContext: () => Promise.reject(mockAdapterErrors.transactionContext),
+    executeScript: () => Promise.reject(mockAdapterErrors.executeScript),
+    dispose: () => Promise.reject(mockAdapterErrors.dispose),
   }
 }
