@@ -69,16 +69,16 @@ export type SchemaPathFromConfig =
       filePath: string
     }
   | {
-    /**
-     * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
-     */
-    kind: 'multi'
-    /**
-     * The path to a folder containing multiple `.prisma` schema files.
-     * All of the files in this folder will be used.
-     */
-    folderPath: string
-  }
+      /**
+       * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
+       */
+      kind: 'multi'
+      /**
+       * The path to a folder containing multiple `.prisma` schema files.
+       * All of the files in this folder will be used.
+       */
+      folderPath: string
+    }
 
 export type GetSchemaOptions = {
   cwd?: string

@@ -1,5 +1,12 @@
 import Debug from '@prisma/debug'
-import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue, type SchemaPathFromConfig } from '@prisma/internals'
+import {
+  getCLIPathHash,
+  getConfig,
+  getProjectHash,
+  getSchema,
+  parseEnvValue,
+  type SchemaPathFromConfig,
+} from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
 

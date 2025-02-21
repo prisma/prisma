@@ -100,6 +100,15 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async begin(): Promise<Result<void>> {
+    debug(`[js::commit]`)
+
+    throw new Error('Method not implemented.')
+
+    return ok(undefined)
+  }
+
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
@@ -124,6 +133,30 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     }
 
     return ok(undefined)
+  }
+
+  async create_savepoint(): Promise<Result<void>> {
+    debug(`[js::create_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async release_savepoint(): Promise<Result<void>> {
+    debug(`[js::release_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async rollback_to_savepoint(): Promise<Result<void>> {
+    debug(`[js::rollback_to_savepoint]`)
+
+    return ok(undefined)
+  }
+
+  async depth(): Promise<Result<number>> {
+    debug(`[js::depth]`)
+
+    return ok(0)
   }
 }
 

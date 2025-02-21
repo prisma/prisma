@@ -792,6 +792,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         max_wait: arg.maxWait,
         timeout: arg.timeout,
         isolation_level: arg.isolationLevel,
+        new_tx_id: arg?.newTxId,
       })
 
       const result = await Connection.onHttpError(
