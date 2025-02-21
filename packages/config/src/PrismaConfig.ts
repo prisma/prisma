@@ -49,9 +49,12 @@ export type PrismaSchemaConfigShape =
 // without bundling and tree-shaking. The following tests ensure that the
 // exported types are structurally equal to the ones defined by the schemas.
 declare const __testPrismaConfigShapeValueA: typeof PrismaSchemaConfigShape.Type
-__testPrismaConfigShapeValueA satisfies PrismaSchemaConfigShape
 declare const __testPrismaConfigShapeValueB: PrismaSchemaConfigShape
-__testPrismaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testPrismaConfigShapeValueA satisfies PrismaSchemaConfigShape
+  __testPrismaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
+}
 
 // Define the shape for the `PrismaConfig` type.
 const createPrismaConfigShape = () =>
@@ -76,9 +79,12 @@ export type PrismaConfig = {
 }
 
 declare const __testPrismaConfigValueA: ReturnType<typeof createPrismaConfigShape>['Type']
-__testPrismaConfigValueA satisfies PrismaConfig
 declare const __testPrismaConfigValueB: PrismaConfig
-__testPrismaConfigValueB satisfies ReturnType<typeof createPrismaConfigShape>['Type']
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testPrismaConfigValueA satisfies PrismaConfig
+  __testPrismaConfigValueB satisfies ReturnType<typeof createPrismaConfigShape>['Type']
+}
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
@@ -118,9 +124,12 @@ type _PrismaConfigInternal = {
 }
 
 declare const __testPrismaConfigInternalValueA: ReturnType<typeof createPrismaConfigInternalShape>['Type']
-__testPrismaConfigInternalValueA satisfies _PrismaConfigInternal
 declare const __testPrismaConfigInternalValueB: _PrismaConfigInternal
-__testPrismaConfigInternalValueB satisfies ReturnType<typeof createPrismaConfigInternalShape>['Type']
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testPrismaConfigInternalValueA satisfies _PrismaConfigInternal
+  __testPrismaConfigInternalValueB satisfies ReturnType<typeof createPrismaConfigInternalShape>['Type']
+}
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
