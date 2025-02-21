@@ -1,5 +1,4 @@
-import { Schema as Shape } from 'effect'
-import type { Either } from 'effect/Either'
+import { Either, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
 
@@ -54,47 +53,68 @@ export type PrismaConfig = ReturnType<typeof createPrismaConfigShape>['Type']
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigShape(input: unknown): Either<PrismaConfig, ParseError> {
+export function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, ParseError> {
   return Shape.decodeUnknownEither(createPrismaConfigShape(), {})(input, {
     onExcessProperty: 'error',
   })
 }
 
+const PRISMA_CONFIG_INTERNAL_BRAND = Symbol('PrismaConfigInternal')
+
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
 export const createPrismaConfigInternalShape = () =>
-  pipe(
-    Shape.Struct({
-      /**
-       * Whether features with an unstable API are enabled.
-       */
-      earlyAccess: Shape.Literal(true),
-      /**
-       * The configuration for the Prisma schema file(s).
-       */
-      schema: Shape.optional(PrismaSchemaConfigShape),
-      /**
-       * The path from where the config was loaded.
-       * It's set to `null` if no config file was found and only default config is applied.
-       */
-      loadedFromFile: Shape.NullOr(Shape.String),
-    }),
-    Shape.brand('PrismaConfigInternal'),
-  )
+  Shape.Struct({
+    /**
+     * Whether features with an unstable API are enabled.
+     */
+    earlyAccess: Shape.Literal(true),
+    /**
+     * The configuration for the Prisma schema file(s).
+     */
+    schema: Shape.optional(PrismaSchemaConfigShape),
+    /**
+     * The path from where the config was loaded.
+     * It's set to `null` if no config file was found and only default config is applied.
+     */
+    loadedFromFile: Shape.NullOr(Shape.String),
+  })
+
+type _PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
  * by the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
+export type PrismaConfigInternal = _PrismaConfigInternal & { __brand: typeof PRISMA_CONFIG_INTERNAL_BRAND }
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfigInternal` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigInternalShape(input: unknown): Either<PrismaConfigInternal, ParseError> {
-  return Shape.decodeUnknownEither(createPrismaConfigInternalShape(), {})(input, {
-    onExcessProperty: 'error',
-  })
+export function parsePrismaConfigInternalShape(input: unknown): Either.Either<PrismaConfigInternal, ParseError> {
+  return pipe(
+    Shape.decodeUnknownEither(createPrismaConfigInternalShape(), {})(input, {
+      onExcessProperty: 'error',
+    }),
+    // Brand the output type to make `PrismaConfigInternal` opaque, without exposing the `Effect/Brand` type
+    // to the public API.
+    // This is done to work around the following issues:
+    // - https://github.com/microsoft/rushstack/issues/1308
+    // - https://github.com/microsoft/rushstack/issues/4034
+    // - https://github.com/microsoft/TypeScript/issues/58914 
+    Either.map((config) => ({ ...config, __brand: PRISMA_CONFIG_INTERNAL_BRAND })),
+  )
+}
+
+type MakeArgs = Parameters<
+  ReturnType<typeof createPrismaConfigInternalShape>['make']
+>[0]
+
+export function makePrismaConfigInternal(makeArgs: MakeArgs): PrismaConfigInternal {
+  return {
+    ...createPrismaConfigInternalShape().make(makeArgs),
+    __brand: PRISMA_CONFIG_INTERNAL_BRAND,
+  }
 }
