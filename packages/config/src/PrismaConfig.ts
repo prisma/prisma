@@ -20,7 +20,6 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
 // This is shared between `PrismaConfig` and `PrismaConfigInput`.
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
 
-// export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
 export type PrismaSchemaConfigShape =
   | {
       /**
@@ -44,6 +43,16 @@ export type PrismaSchemaConfigShape =
       folderPath: string
     }
 
+// The exported types are re-declared manually instead of using the Shape.Type
+// types because `effect` types make API Extractor crash, making it impossible
+// to bundle them, and `effect` is too large to ship as a full dependency
+// without bundling and tree-shaking. The following tests ensure that the
+// exported types are structurally equal to the ones defined by the schemas.
+declare const __testPrismaConfigShapeValueA: typeof PrismaSchemaConfigShape.Type
+__testPrismaConfigShapeValueA satisfies PrismaSchemaConfigShape
+declare const __testPrismaConfigShapeValueB: PrismaSchemaConfigShape
+__testPrismaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
+
 // Define the shape for the `PrismaConfig` type.
 const createPrismaConfigShape = () =>
   Shape.Struct({
@@ -55,7 +64,6 @@ const createPrismaConfigShape = () =>
  * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-// export type PrismaConfig = ReturnType<typeof createPrismaConfigShape>['Type']
 export type PrismaConfig = {
   /**
    * Whether features with an unstable API are enabled.
@@ -66,6 +74,11 @@ export type PrismaConfig = {
    */
   schema?: PrismaSchemaConfigShape
 }
+
+declare const __testPrismaConfigValueA: ReturnType<typeof createPrismaConfigShape>['Type']
+__testPrismaConfigValueA satisfies PrismaConfig
+declare const __testPrismaConfigValueB: PrismaConfig
+__testPrismaConfigValueB satisfies ReturnType<typeof createPrismaConfigShape>['Type']
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
@@ -88,7 +101,6 @@ const createPrismaConfigInternalShape = () =>
     loadedFromFile: Shape.NullOr(Shape.String),
   })
 
-// type _PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
 type _PrismaConfigInternal = {
   /**
    * Whether features with an unstable API are enabled.
@@ -104,6 +116,11 @@ type _PrismaConfigInternal = {
    */
   loadedFromFile: string | null
 }
+
+declare const __testPrismaConfigInternalValueA: ReturnType<typeof createPrismaConfigInternalShape>['Type']
+__testPrismaConfigInternalValueA satisfies _PrismaConfigInternal
+declare const __testPrismaConfigInternalValueB: _PrismaConfigInternal
+__testPrismaConfigInternalValueB satisfies ReturnType<typeof createPrismaConfigInternalShape>['Type']
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
