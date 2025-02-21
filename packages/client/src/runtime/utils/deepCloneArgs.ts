@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
+import { isTypedSql, TypedSql, UnknownTypedSql } from '../core/types/exported'
 import { JsArgs, JsInputValue } from '../core/types/exported/JsApi'
 import { ObjectEnumValue } from '../core/types/exported/ObjectEnums'
 import { RawQueryArgs } from '../core/types/exported/RawQueryArgs'
@@ -12,6 +13,10 @@ import { isDecimalJsLike } from './decimalJsLike'
 export function deepCloneArgs(args: JsArgs | RawQueryArgs): JsArgs | RawQueryArgs {
   if (args instanceof Sql) {
     return cloneSql(args)
+  }
+
+  if (isTypedSql(args)) {
+    return cloneTypedSql(args)
   }
 
   if (Array.isArray(args)) {
@@ -32,6 +37,10 @@ export function deepCloneArgs(args: JsArgs | RawQueryArgs): JsArgs | RawQueryArg
 
 function cloneSql(rawParam: Sql): Sql {
   return new Sql(rawParam.strings, rawParam.values)
+}
+
+function cloneTypedSql(rawParam: UnknownTypedSql): UnknownTypedSql {
+  return new TypedSql(rawParam.sql, rawParam.values)
 }
 
 // based on https://github.com/lukeed/klona/blob/v2.0.6/src/index.js
