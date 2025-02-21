@@ -270,7 +270,7 @@
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.2.1",
-    "stacktrace-parser": "0.1.10",
+    "stacktrace-parser": "0.1.11",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-node": "10.9.2",
