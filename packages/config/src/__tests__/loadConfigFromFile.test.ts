@@ -157,12 +157,12 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorTypeScriptImportFailed(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "  [31mx[0m Unexpected eof
-           ,-[[36;1;4m<prisma-config>.ts[0m:5:3]
-         [2m3[0m | export default defineConfig({
-         [2m4[0m |   earlyAccess: true,
-         [2m5[0m | }
-           \`----
+        "  [31m×[0m Unexpected eof
+           ╭─[[36;1;4m<prisma-config>.ts[0m:5:3]
+         [2m3[0m │ export default defineConfig({
+         [2m4[0m │   earlyAccess: true,
+         [2m5[0m │ }
+           ╰────
 
 
         Caused by:
@@ -178,7 +178,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null; readonly __brand: Symbol(PrismaConfigInternal) }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -191,9 +191,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null; readonly __brand: Symbol(PrismaConfigInternal) }
+        "{ readonly earlyAccess: true; readonly schema?: { readonly kind: "single"; readonly filePath: string } | { readonly kind: "multi"; readonly folderPath: string } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "earlyAccess" | "schema" | "loadedFromFile" | "__brand""
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "loadedFromFile""
       `)
     })
   })
