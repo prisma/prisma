@@ -24,8 +24,8 @@
     "check-engines-override": "tsx scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "prettier-check": "prettier --check .",
-    "bench": "tsx scripts/bench.ts | tee output.txt",
-    "bench-stdout-only": "tsx scripts/bench.ts",
+    "bench": "node -r esbuild-register scripts/bench.ts | tee output.txt",
+    "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
