@@ -1156,8 +1156,8 @@ importers:
         specifier: 4.1.5
         version: 4.1.5
       replace-string:
-        specifier: 3.1.0
-        version: 3.1.0
+        specifier: 4.0.0
+        version: 4.0.0
       strip-ansi:
         specifier: 6.0.1
         version: 6.0.1
@@ -1434,8 +1434,8 @@ importers:
         specifier: 11.0.0
         version: 11.0.0
       replace-string:
-        specifier: 3.1.0
-        version: 3.1.0
+        specifier: 4.0.0
+        version: 4.0.0
       resolve:
         specifier: 1.22.10
         version: 1.22.10
@@ -6539,9 +6539,9 @@ packages:
     resolution: {integrity: sha512-0SutC3pNudRKgquxGoRGIz946MZVHqbNfPjBdxeOhBrdgDKlRoXmYLQN9xRbrR09ZXWeGAdPuif7egofn6v5LA==}
     engines: {node: '>= 0.4'}
 
-  replace-string@3.1.0:
-    resolution: {integrity: sha512-yPpxc4ZR2makceA9hy/jHNqc7QVkd4Je/N0WRHm6bs3PtivPuPynxE5ejU/mp5EhnCv8+uZL7vhz8rkluSlx+Q==}
-    engines: {node: '>=8'}
+  replace-string@4.0.0:
+    resolution: {integrity: sha512-fcgyZ62o26oBaihEC302pZQ2WectvmZ4sGOq4Lwa8ad12lPbhIlZCvLpgpI1sOAsbN83kpXiH5KCcr3pcZa8bA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
@@ -13406,7 +13406,7 @@ snapshots:
       define-properties: 1.2.1
       functions-have-names: 1.2.3
 
-  replace-string@3.1.0: {}
+  replace-string@4.0.0: {}
 
   require-directory@2.1.1: {}
 
