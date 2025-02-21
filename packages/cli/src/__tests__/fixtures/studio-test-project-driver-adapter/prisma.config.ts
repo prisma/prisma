@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { defineConfig, PrismaConfig } from '@prisma/config'
+import { defineConfig } from '@prisma/config'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { createClient } from '@libsql/client'
 
@@ -18,4 +18,4 @@ export default defineConfig({
       return new PrismaLibSQL(libsql)
     },
   },
-}) as PrismaConfig
+})
