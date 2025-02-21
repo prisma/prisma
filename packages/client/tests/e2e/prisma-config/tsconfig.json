@@ -1,7 +1,4 @@
 {
   "extends": "../tsconfig.base.json",
-  "compilerOptions": {
-    "skipLibCheck": true
-  },
   "exclude": ["_steps.ts"]
 }

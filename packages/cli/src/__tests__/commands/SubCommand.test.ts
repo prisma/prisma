@@ -39,7 +39,6 @@ test('@<version>', async () => {
             "--help",
           ],
           {
-            "__brand": Symbol(PrismaConfigInternal),
             "earlyAccess": true,
             "loadedFromFile": null,
           },
@@ -70,7 +69,6 @@ test('@latest', async () => {
             "--help",
           ],
           {
-            "__brand": Symbol(PrismaConfigInternal),
             "earlyAccess": true,
             "loadedFromFile": null,
           },
@@ -106,7 +104,6 @@ test('autoinstall', async () => {
             "--help",
           ],
           {
-            "__brand": Symbol(PrismaConfigInternal),
             "earlyAccess": true,
             "loadedFromFile": null,
           },

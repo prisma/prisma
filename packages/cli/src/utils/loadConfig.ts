@@ -1,4 +1,4 @@
-import { defaultConfig, loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
+import { loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { assertNever, HelpError } from '@prisma/internals'
 
@@ -26,5 +26,5 @@ export async function loadConfig(configFilePath?: string): Promise<PrismaConfigI
     }
   }
 
-  return { ...defaultConfig(), ...config }
+  return config
 }

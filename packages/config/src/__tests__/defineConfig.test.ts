@@ -12,7 +12,6 @@ describe('defineConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "__brand": Symbol(PrismaConfigInternal),
         "earlyAccess": true,
         "loadedFromFile": null,
       }
@@ -24,7 +23,6 @@ describe('defineConfig', () => {
     const config = defaultTestConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "__brand": Symbol(PrismaConfigInternal),
         "earlyAccess": true,
         "loadedFromFile": null,
       }
