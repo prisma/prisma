@@ -3,48 +3,51 @@ import { Either, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
-import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
 const PrismaConfigSchemaSingleShape = Shape.Struct({
-  /**
-   * Tell Prisma to use a single `.prisma` schema file.
-   */
   kind: Shape.Literal('single'),
-  /**
-   * The path to a single `.prisma` schema file.
-   */
   filePath: Shape.String,
 })
 
 const PrismaConfigSchemaMultiShape = Shape.Struct({
-  /**
-   * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
-   */
   kind: Shape.Literal('multi'),
-  /**
-   * The path to a folder containing multiple `.prisma` schema files.
-   * All of the files in this folder will be used.
-   */
   folderPath: Shape.String,
 })
 
 // Define the shape for the `schema` property.
 // This is shared between `PrismaConfig` and `PrismaConfigInput`.
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
-export type PrismaSchemaConfigShape = Simplify<typeof PrismaSchemaConfigShape.Type>
+
+// export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
+export type PrismaSchemaConfigShape
+  = {
+      /**
+       * Tell Prisma to use a single `.prisma` schema file.
+       */
+      kind: 'single'
+      /**
+       * The path to a single `.prisma` schema file.
+       */
+      filePath: string
+    }
+  | {
+      /**
+       * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
+       */
+      kind: 'multi'
+      /**
+       * The path to a folder containing multiple `.prisma` schema files.
+       * All of the files in this folder will be used.
+       */
+      folderPath: string
+    }
 
 // Define the shape for the `PrismaConfig` type.
 const createPrismaConfigShape = () =>
   Shape.Struct({
-    /**
-     * Whether features with an unstable API are enabled.
-     */
     earlyAccess: Shape.Literal(true),
-    /**
-     * The configuration for the Prisma schema file(s).
-     */
     schema: Shape.optional(PrismaSchemaConfigShape),
   })
 
@@ -52,7 +55,17 @@ const createPrismaConfigShape = () =>
  * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfig = Simplify<ReturnType<typeof createPrismaConfigShape>['Type']>
+// export type PrismaConfig = ReturnType<typeof createPrismaConfigShape>['Type']
+export type PrismaConfig = {
+  /**
+   * Whether features with an unstable API are enabled.
+   */
+  earlyAccess: true
+  /**
+   * The configuration for the Prisma schema file(s).
+   */
+  schema?: PrismaSchemaConfigShape
+}
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
@@ -70,22 +83,27 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
 const createPrismaConfigInternalShape = () =>
   Shape.Struct({
-    /**
-     * Whether features with an unstable API are enabled.
-     */
     earlyAccess: Shape.Literal(true),
-    /**
-     * The configuration for the Prisma schema file(s).
-     */
     schema: Shape.optional(PrismaSchemaConfigShape),
-    /**
-     * The path from where the config was loaded.
-     * It's set to `null` if no config file was found and only default config is applied.
-     */
     loadedFromFile: Shape.NullOr(Shape.String),
   })
 
-type _PrismaConfigInternal = Simplify<ReturnType<typeof createPrismaConfigInternalShape>['Type']>
+// type _PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
+type _PrismaConfigInternal = {
+  /**
+   * Whether features with an unstable API are enabled.
+   */
+  earlyAccess: true
+  /**
+   * The configuration for the Prisma schema file(s).
+   */
+  schema?: PrismaSchemaConfigShape
+  /**
+   * The path from where the config was loaded.
+   * It's set to `null` if no config file was found and only default config is applied.
+   */
+  loadedFromFile: string | null
+}
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed
@@ -131,9 +149,7 @@ function parsePrismaConfigInternalShape(input: unknown): Either.Either<PrismaCon
   )
 }
 
-type MakeArgs = Parameters<ReturnType<typeof createPrismaConfigInternalShape>['make']>[0]
-
-export function makePrismaConfigInternal(makeArgs: MakeArgs): PrismaConfigInternal {
+export function makePrismaConfigInternal(makeArgs: _PrismaConfigInternal): PrismaConfigInternal {
   return pipe(createPrismaConfigInternalShape().make(makeArgs), brandPrismaConfigInternal)
 }
 
