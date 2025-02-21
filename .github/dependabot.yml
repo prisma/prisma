@@ -3,6 +3,5 @@ updates:
   - package-ecosystem: 'npm'
     directories:
       - '/'
-      - '/packages/*'
     schedule:
       interval: 'daily'
