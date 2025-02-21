@@ -420,6 +420,12 @@ importers:
       '@inquirer/prompts':
         specifier: 5.0.5
         version: 5.0.5
+      '@libsql/client':
+        specifier: 0.8.1
+        version: 0.8.1
+      '@prisma/adapter-libsql':
+        specifier: workspace:*
+        version: link:../adapter-libsql
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -2794,8 +2800,14 @@ packages:
   '@libsql/client@0.8.0':
     resolution: {integrity: sha512-ncx6p2wsaZtCAbRJCIkaTO14ya18qFYLJ1yTm5zHgwd9mlcvgenG4imSgJy2zNrKJkeyr1wzD+80jNqI7nCYoA==}
 
+  '@libsql/client@0.8.1':
+    resolution: {integrity: sha512-xGg0F4iTDFpeBZ0r4pA6icGsYa5rG6RAG+i/iLDnpCAnSuTqEWMDdPlVseiq4Z/91lWI9jvvKKiKpovqJ1kZWA==}
+
   '@libsql/core@0.8.0':
     resolution: {integrity: sha512-Bqs7bKfUNwm8NTLfKPbI4WME+3BTEBeDZTec0b9XZQ9hvjM4YlGXKKCuIDm8ECUYx4Mb1Gc0X14pm2/4r6ImdA==}
+
+  '@libsql/core@0.8.1':
+    resolution: {integrity: sha512-u6nrj6HZMTPsgJ9EBhLzO2uhqhlHQJQmVHV+0yFLvfGf3oSP8w7TjZCNUgu1G8jHISx6KFi7bmcrdXW9lRt++A==}
 
   '@libsql/darwin-arm64@0.3.10':
     resolution: {integrity: sha512-RaexEFfPAFogd6dJlqkpCkTxdr6K14Z0286lodIJ8Ny77mWuWyBkWKxf70OYWXXAMxMJFUW+6al1F3/Osf/pTg==}
@@ -8669,7 +8681,22 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@libsql/client@0.8.1':
+    dependencies:
+      '@libsql/core': 0.8.1
+      '@libsql/hrana-client': 0.6.2
+      js-base64: 3.7.5
+      libsql: 0.3.10
+      promise-limit: 2.7.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@libsql/core@0.8.0':
+    dependencies:
+      js-base64: 3.7.5
+
+  '@libsql/core@0.8.1':
     dependencies:
       js-base64: 3.7.5
 
