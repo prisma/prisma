@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
+// @ts-ignore
+import type $ from '@prisma/client'
 import { expectTypeOf } from 'expect-type'
 
-import { Providers } from '../_utils/providers'
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
-// @ts-ignore
-import type $ from './node_modules/@prisma/client'
 
 declare let prisma: $.PrismaClient
 
