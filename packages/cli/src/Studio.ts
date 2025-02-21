@@ -77,7 +77,7 @@ ${bold('Examples')}
    * Parses arguments passed to this command, and starts Studio
    *
    * @param argv Array of all arguments
-   * @param _config The loaded Prisma config
+   * @param config The loaded Prisma config
    */
   public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
@@ -117,10 +117,12 @@ ${bold('Examples')}
     })
 
     const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const adapter = await config.studio?.adapter(process.env)
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath,
+      adapter,
       schemaText: mergedSchema,
       hostname,
       port,

@@ -1,7 +1,30 @@
+import type { DriverAdapter as QueryableDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Schema as Shape } from 'effect'
 import type { Either } from 'effect/Either'
-import { pipe } from 'effect/Function'
+import { identity, pipe } from 'effect/Function'
 import type { ParseError } from 'effect/ParseResult'
+
+// Define the shape for the `adapter` function
+const adapterShape = <Env>() =>
+  Shape.declare(
+    (input: any): input is (env: Env) => Promise<QueryableDriverAdapter> => {
+      return input instanceof Function
+    },
+    {
+      identifier: 'Adapter<Env>',
+      encode: identity,
+      decode: identity,
+    },
+  )
+
+// Define the shape for the `studio` property
+const createPrismaStudioConfigInternalShape = <Env>() =>
+  Shape.Struct({
+    /**
+     * Instantiates the Prisma driver adapter to use for Prisma Studio.
+     */
+    adapter: adapterShape<Env>(),
+  })
 
 const PrismaConfigSchemaSingleShape = Shape.Struct({
   /**
@@ -62,7 +85,7 @@ export function parsePrismaConfigShape(input: unknown): Either<PrismaConfig, Par
 
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
-export const createPrismaConfigInternalShape = () =>
+export const createPrismaConfigInternalShape = <Env = any>() =>
   pipe(
     Shape.Struct({
       /**
@@ -73,6 +96,10 @@ export const createPrismaConfigInternalShape = () =>
        * The configuration for the Prisma schema file(s).
        */
       schema: Shape.optional(PrismaSchemaConfigShape),
+      /**
+       * The configuration for Prisma Studio.
+       */
+      studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
       /**
        * The path from where the config was loaded.
        * It's set to `null` if no config file was found and only default config is applied.
@@ -87,14 +114,14 @@ export const createPrismaConfigInternalShape = () =>
  * by the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfigInternal = ReturnType<typeof createPrismaConfigInternalShape>['Type']
+export type PrismaConfigInternal<Env = any> = ReturnType<typeof createPrismaConfigInternalShape<Env>>['Type']
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfigInternal` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigInternalShape(input: unknown): Either<PrismaConfigInternal, ParseError> {
-  return Shape.decodeUnknownEither(createPrismaConfigInternalShape(), {})(input, {
+export function parsePrismaConfigInternalShape<Env = any>(input: unknown): Either<PrismaConfigInternal<Env>, ParseError> {
+  return Shape.decodeUnknownEither(createPrismaConfigInternalShape<Env>(), {})(input, {
     onExcessProperty: 'error',
   })
 }

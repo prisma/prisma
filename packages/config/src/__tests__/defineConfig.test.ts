@@ -3,12 +3,25 @@ import { defineConfig, type PrismaConfig } from '../defineConfig'
 describe('defineConfig', () => {
   const baselineConfig = {
     earlyAccess: true,
-  } satisfies PrismaConfig
+  } satisfies PrismaConfig<unknown>
 
-  describe('earlyAccess', () => {
-    test('if `earlyAccess` is set to `true`, it should enable early access features', () => {
+  describe('studio', () => {
+    test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {
       const config = defineConfig(baselineConfig)
-      expect(config.earlyAccess).toBe(true)
+      expect(config.studio).toBeUndefined()
+    })
+
+    test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', () => {
+      const adapter = jest.fn()
+      const config = defineConfig({
+        earlyAccess: true,
+        studio: {
+          adapter: adapter,
+        },
+      })
+      expect(config.studio).toEqual({
+        adapter: adapter,
+      })
     })
   })
 })
