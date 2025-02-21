@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 import prompt from 'prompts'
@@ -6,8 +7,10 @@ import { DbPull } from '../commands/DbPull'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { MigrateDev } from '../commands/MigrateDev'
 import { MigrateResolve } from '../commands/MigrateResolve'
+import { CaptureStdout } from '../utils/captureStdout'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const captureStdout = new CaptureStdout()
 
 // Disable prompts
 process.env.GITHUB_ACTIONS = '1'
@@ -22,7 +25,13 @@ describe('Baselining', () => {
   // Backup env vars
   const OLD_ENV = { ...process.env }
 
+  beforeEach(() => {
+    captureStdout.startCapture()
+  })
+
   afterEach(() => {
+    captureStdout.clearCaptureText()
+    captureStdout.stopCapture()
     // Restore env vars to backup state
     process.env = { ...OLD_ENV }
   })
@@ -36,24 +45,30 @@ describe('Baselining', () => {
     process.env.DATABASE_URL = 'file:./dev.db'
 
     // db pull
-    const dbPull = DbPull.new().parse([])
-    await expect(dbPull).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+    const dbPull = DbPull.new().parse([], defaultTestConfig())
+    await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+
+      - Introspecting based on datasource defined in prisma/schema.prisma
+      ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
+            
+      Run prisma generate to generate Prisma Client.
+      "
     `)
-    ctx.mocked['console.info'].mockReset()
+    captureStdout.clearCaptureText()
 
     // migrate dev --create-only
     prompt.inject(['y'])
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'])
+    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
-      Prisma Migrate created the following migration without applying it 20201231000000_
+      "Prisma Migrate created the following migration without applying it 20201231000000_
 
-      You can now edit it and apply it by running prisma migrate dev.
+      You can now edit it and apply it by running prisma migrate dev."
     `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Drift detected: Your database schema is not in sync with your migration history.
@@ -71,14 +86,16 @@ describe('Baselining', () => {
       We need to reset the SQLite database "dev.db" at "file:./dev.db"
       Do you want to continue? All data will be lost.
 
+      "
     `)
-    ctx.mocked['console.info'].mockReset()
+    captureStdout.clearCaptureText()
 
     // migrate dev
-    const migrateDev = MigrateDev.new().parse([])
-    await expect(migrateDev).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+    captureStdout.startCapture()
+    const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
+    await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Applying migration \`20201231000000_\`
@@ -90,33 +107,38 @@ describe('Baselining', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
+      "
     `)
-    ctx.mocked['console.info'].mockReset()
+    captureStdout.clearCaptureText()
 
     // Switch to PROD database
     process.env.DATABASE_URL = 'file:./prod.db'
 
     // migrate resolve --applied migration_name
     const migrationName = fs.list('prisma/migrations')![0]
-    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName])
-    await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`Migration 20201231000000_ marked as applied.`)
+    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
+    await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
+
+      Migration 20201231000000_ marked as applied.
+      "
     `)
-    ctx.mocked['console.info'].mockReset()
+    captureStdout.clearCaptureText()
 
     // migrate deploy
-    const migrateDeployProd = MigrateDeploy.new().parse([])
-    await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+    const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
+    await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
 
       1 migration found in prisma/migrations
 
 
+      "
     `)
 
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])

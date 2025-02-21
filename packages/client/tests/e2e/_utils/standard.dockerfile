@@ -5,7 +5,11 @@ FROM base as dependencies
 RUN node -v
 RUN npm -v
 
-RUN npm i -g zx 
+# zx is pinned to v7 because v8 fails with: 
+# [esbuild Error]: Top-level await is currently not supported with the "cjs" output format
+# at /usr/local/lib/node_modules/zx/build/vendor.js:2:17
+RUN npm i -g zx@7 
+
 RUN npm i -g pnpm
 RUN npm i -g typescript 
 RUN npm i -g ts-node 

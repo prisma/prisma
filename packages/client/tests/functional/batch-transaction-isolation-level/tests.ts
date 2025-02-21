@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -8,7 +9,9 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, clientMeta) => {
+  ({ provider }, _suiteMeta, _clientMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 
@@ -66,29 +69,33 @@ testMatrix.setupTestSuite(
       expectSql: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
     })
 
-    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements', async () => {
+    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements (unless running MSSQL)', async () => {
       await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})])
 
-      expect(queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))).toBeUndefined()
+      const match = queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))
+      if (isSqlServer) {
+        expect(match).toBeDefined()
+      } else {
+        expect(match).toBeUndefined()
+      }
     })
 
-    // TODO: skipped on edge client because of error snapshot
-    testIf(clientMeta.runtime !== 'edge')('invalid level generates run- and compile- time error', async () => {
+    test('invalid level generates run- and compile- time error', async () => {
       // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
         isolationLevel: 'yes',
       })
 
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
+        "
         Invalid \`prisma.$transaction([prisma.user.findFirst()\` invocation in
         /client/tests/functional/batch-transaction-isolation-level/tests.ts:0:0
 
-          XX // TODO: skipped on edge client because of error snapshot
-          XX testIf(clientMeta.runtime !== 'edge')('invalid level generates run- and compile- time error', async () => {
+          XX 
+          XX test('invalid level generates run- and compile- time error', async () => {
           XX   // @ts-expect-error
         → XX   const result = prisma.$transaction([prisma.user.findFirst(
-        Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`
+        Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`"
       `)
     })
   },

@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -7,7 +8,9 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -37,15 +40,18 @@ testMatrix.setupTestSuite(
 
       await xprisma.$queryRawUnsafe('SELECT 2')
 
-      await waitFor(() =>
-        expect(queries).toEqual([
-          expect.stringContaining('BEGIN'),
-          'SELECT 1',
-          'SELECT 2',
-          'SELECT 3',
-          expect.stringContaining('COMMIT'),
-        ]),
-      )
+      const expectation = [
+        expect.stringContaining('BEGIN'),
+        'SELECT 1',
+        'SELECT 2',
+        'SELECT 3',
+        expect.stringContaining('COMMIT'),
+      ]
+      if (isSqlServer) {
+        expectation.unshift(expect.stringContaining('SET TRANSACTION'))
+      }
+
+      await waitFor(() => expect(queries).toEqual(expectation))
     })
 
     test('executes batch in right order when using delayed middleware', async () => {
@@ -68,21 +74,24 @@ testMatrix.setupTestSuite(
         prisma.$queryRawUnsafe('SELECT 3'),
       ])
 
-      await waitFor(() =>
-        expect(queries).toEqual([
-          expect.stringContaining('BEGIN'),
-          'SELECT 1',
-          'SELECT 2',
-          'SELECT 3',
-          expect.stringContaining('COMMIT'),
-        ]),
-      )
+      const expectation = [
+        expect.stringContaining('BEGIN'),
+        'SELECT 1',
+        'SELECT 2',
+        'SELECT 3',
+        expect.stringContaining('COMMIT'),
+      ]
+      if (isSqlServer) {
+        expectation.unshift(expect.stringContaining('SET TRANSACTION'))
+      }
+
+      await waitFor(() => expect(queries).toEqual(expectation))
     })
   },
   {
     skipDefaultClientInstance: true,
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'Test uses raw SQL queries',
     },
   },

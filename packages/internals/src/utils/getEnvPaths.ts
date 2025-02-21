@@ -1,17 +1,13 @@
 import Debug from '@prisma/debug'
+import { EnvPaths } from '@prisma/generator-helper'
 import findUp from 'find-up'
 import fs from 'fs'
 import path from 'path'
 
-import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
+import { getSchemaFromPackageJson } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
 const debug = Debug('prisma:loadEnv')
-
-export type EnvPaths = {
-  rootEnvPath: string | null
-  schemaEnvPath: string | undefined
-}
 
 /**
  *  1. Search in project root
@@ -23,10 +19,15 @@ export type EnvPaths = {
  *
  * @returns `{ rootEnvPath, schemaEnvPath }`
  */
-export function getEnvPaths(schemaPath?: string | null, opts: { cwd: string } = { cwd: process.cwd() }): EnvPaths {
+export async function getEnvPaths(
+  schemaPath?: string | null,
+  opts: { cwd: string } = { cwd: process.cwd() },
+): Promise<EnvPaths> {
   const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
-  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(readSchemaPathFromPkgJson())
+  // NOTE: We intentionally do NOT check based on the schema path from `prisma.config.ts` as having a
+  // `prisma.config.ts` file disables automatic env loading anyway.
+  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(await readSchemaPathFromPkgJson())
   const schemaEnvPaths = [
     schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
     schemaEnvPathFromPkgJson, // 2 - Check package.json schema directory for .env
@@ -37,9 +38,13 @@ export function getEnvPaths(schemaPath?: string | null, opts: { cwd: string } = 
   return { rootEnvPath, schemaEnvPath }
 }
 
-function readSchemaPathFromPkgJson(): string | null {
+async function readSchemaPathFromPkgJson(): Promise<string | null> {
   try {
-    return getSchemaPathFromPackageJsonSync(process.cwd())
+    const pkgJsonSchema = await getSchemaFromPackageJson(process.cwd())
+    if (pkgJsonSchema.ok) {
+      pkgJsonSchema.schema.schemaPath
+    }
+    return null
   } catch {
     return null
   }

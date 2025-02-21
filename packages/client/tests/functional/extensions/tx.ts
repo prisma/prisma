@@ -218,7 +218,8 @@ testMatrix.setupTestSuite(
   {
     skipDriverAdapter: {
       from: ['js_d1'],
-      reason: 'Transactions are not supported is D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733',
+      reason:
+        'batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done',
     },
   },
 )

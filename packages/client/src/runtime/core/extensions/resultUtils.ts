@@ -3,7 +3,7 @@ import { mapObjectValues } from '@prisma/internals'
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { ExtensionArgs, ResultArg, ResultArgsFieldCompute } from '../types/exported/ExtensionArgs'
-import { Selection } from '../types/exported/JsApi'
+import { Omission, Selection } from '../types/exported/JsApi'
 
 export type ComputedField = {
   name: string
@@ -102,7 +102,7 @@ function composeCompute(
   }
 }
 
-export function applyComputedFieldsToSelection(
+export function computeEngineSideSelection(
   selection: Selection,
   computedFields: ComputedFieldsMap | undefined,
 ): Selection {
@@ -118,6 +118,64 @@ export function applyComputedFieldsToSelection(
 
     for (const dependency of field.needs) {
       result[dependency] = true
+    }
+  }
+  return result
+}
+
+/**
+ * Given user-supplied omissions, computes the results to send to the engine, taking
+ * into account dependencies of the computed field. Consider following example:
+ *
+ * ```
+ * const xprisma = prisma.$extends({
+ *       result: {
+ *         user: {
+ *           sanitizedPassword: {
+ *             needs: { password: true },
+ *             compute(user) {
+ *               return sanitze(user.password)
+ *             },
+ *           },
+ *         },
+ *       },
+ * })
+ *
+ * const user = await xprisma.user.findFirstOrThrow({
+ *       omit: {
+ *         password: true,
+ *       },
+ * })
+ * ```
+ *
+ * In that case, user wants to omit the `password` but not `sanitizedPassword`.
+ * Since `sanitizedPassword` can not be computed without `password`, we can not let
+ * the engine handle omission in this case - we have to still query `password` from the
+ * database and omit it on the client, after computing `sanitizedPassword`.
+ *
+ * This function removes the omission (thus, including the field into result set) if it is a dependency of
+ * a non-omitted computed field. Client-side omission after we get a response is handled by `applyResultExtensions`
+ *
+ * @param omission
+ * @param computedFields
+ * @returns
+ */
+export function computeEngineSideOmissions(
+  omission: Omission,
+  computedFields: ComputedFieldsMap | undefined,
+): Omission {
+  if (!computedFields) {
+    return omission
+  }
+  const result = { ...omission }
+
+  for (const field of Object.values(computedFields)) {
+    if (omission[field.name]) {
+      continue
+    }
+
+    for (const dependency of field.needs) {
+      delete result[dependency]
     }
   }
   return result

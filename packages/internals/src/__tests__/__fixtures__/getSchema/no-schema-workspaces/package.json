@@ -1,0 +1,7 @@
+{
+  "name": "no-schema-workspaces",
+  "workspaces": [
+    "packages/*"
+  ],
+  "private": true
+}

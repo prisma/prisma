@@ -40,7 +40,7 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_BINARY)('missing-engine-native-binaryTar
   await expect(async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
-
+    "
     Invalid \`prisma.user.findMany()\` invocation in
     /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/binary.test.ts:0:0
 
@@ -61,6 +61,6 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_BINARY)('missing-engine-native-binaryTar
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
       /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget"
   `)
 })

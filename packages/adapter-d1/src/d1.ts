@@ -1,5 +1,8 @@
-import { D1Database, D1Result } from '@cloudflare/workers-types'
+/* eslint-disable @typescript-eslint/require-await */
+
+import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
+  ConnectionInfo,
   Debug,
   DriverAdapter,
   err,
@@ -9,19 +12,24 @@ import {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
+import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
+import { cleanArg, matchSQLiteErrorCode } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
-type PerformIOResult = D1Result
+type D1ResultsWithColumnNames = [string[], unknown[][]]
+type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
 class D1Queryable<ClientT extends StdClient> implements Queryable {
   readonly provider = 'sqlite'
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
@@ -35,13 +43,16 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const ioResult = await this.performIO(query)
 
     return ioResult.map((data) => {
-      const convertedData = this.convertData(data)
+      const convertedData = this.convertData(data as D1ResultsWithColumnNames)
       return convertedData
     })
   }
 
-  private convertData(ioResult: PerformIOResult): ResultSet {
-    if (ioResult.results.length === 0) {
+  private convertData(ioResult: D1ResultsWithColumnNames): ResultSet {
+    const columnNames = ioResult[0]
+    const results = ioResult[1]
+
+    if (results.length === 0) {
       return {
         columnNames: [],
         columnTypes: [],
@@ -49,10 +60,8 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
       }
     }
 
-    const results = ioResult.results as Object[]
-    const columnNames = Object.keys(results[0])
     const columnTypes = Object.values(getColumnTypes(columnNames, results))
-    const rows = ioResult.results.map((value) => mapRow(value as Object, columnTypes))
+    const rows = results.map((value) => mapRow(value, columnTypes))
 
     return {
       columnNames,
@@ -74,64 +83,32 @@ class D1Queryable<ClientT extends StdClient> implements Queryable {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ meta }) => meta.rows_written ?? 0)
+    const res = await this.performIO(query, true)
+    return res.map((result) => (result as D1Response).meta.changes ?? 0)
   }
 
-  private async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  private async performIO(query: Query, executeRaw = false): Promise<Result<PerformIOResult>> {
     try {
-      query.args = query.args.map((arg) => this.cleanArg(arg))
+      query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
 
-      const result = await this.client
-        .prepare(query.sql)
-        .bind(...query.args)
-        // TODO use .raw({ columnNames: true }) later
-        .all()
+      const stmt = this.client.prepare(query.sql).bind(...query.args)
 
-      return ok(result)
-    } catch (e) {
-      const error = e as Error
-      console.error('Error in performIO: %O', error)
-
-      // We only get the error message, not the error code.
-      // "name":"Error","message":"D1_ERROR: UNIQUE constraint failed: User.email"
-      // So we try to match some errors and use the generic error code as a fallback.
-      // https://www.sqlite.org/rescode.html
-      // 1 = The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
-      let extendedCode = 1
-      if (error.message.startsWith('D1_ERROR: UNIQUE constraint failed:')) {
-        extendedCode = 2067
-      } else if (error.message.startsWith('D1_ERROR: FOREIGN KEY constraint failed')) {
-        extendedCode = 787
+      if (executeRaw) {
+        return ok(await stmt.run())
+      } else {
+        const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
+        return ok([columnNames, rows])
       }
+    } catch (e) {
+      console.error('Error in performIO: %O', e)
+      const { message } = e
 
       return err({
-        kind: 'Sqlite',
-        extendedCode,
-        message: error.message,
+        kind: 'sqlite',
+        extendedCode: matchSQLiteErrorCode(message),
+        message,
       })
     }
-  }
-
-  cleanArg(arg: unknown): unknown {
-    // * Hack for booleans, we must convert them to 0/1.
-    // * ✘ [ERROR] Error in performIO: Error: D1_TYPE_ERROR: Type 'boolean' not supported for value 'true'
-    if (arg === true) {
-      return 1
-    }
-
-    if (arg === false) {
-      return 0
-    }
-
-    if (arg instanceof Uint8Array) {
-      return Array.from(arg)
-    }
-
-    if (typeof arg === 'bigint') {
-      return String(arg)
-    }
-
-    return arg
   }
 }
 
@@ -140,18 +117,34 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<Result<void>> {
     debug(`[js::commit]`)
 
     return ok(undefined)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<Result<void>> {
     debug(`[js::rollback]`)
 
     return ok(undefined)
+  }
+}
+
+class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
+  constructor(readonly client: StdClient) {
+    super(client)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      // TODO: D1 does not have a Transaction API.
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new D1Transaction(this.client, options))
   }
 }
 
@@ -165,12 +158,8 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
 
   alreadyWarned = new Set()
 
-  // TODO: decide what we want to do for "debug"
-  constructor(client: StdClient, debug?: string) {
+  constructor(client: StdClient) {
     super(client)
-    if (debug) {
-      globalThis.DEBUG = debug
-    }
   }
 
   /**
@@ -183,28 +172,25 @@ export class PrismaD1 extends D1Queryable<StdClient> implements DriverAdapter {
    * await prisma.$transaction([ ...moreQueries ])
    * ```
    */
-  warnOnce = (key: string, message: string, ...args: unknown[]) => {
+  private warnOnce = (key: string, message: string, ...args: unknown[]) => {
     if (!this.alreadyWarned.has(key)) {
       this.alreadyWarned.add(key)
       console.info(`${this.tags.warn} ${message}`, ...args)
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      // TODO: D1 does not support transactions.
-      usePhantomQuery: true,
-    }
+  getConnectionInfo(): Result<ConnectionInfo> {
+    return ok({
+      maxBindValues: 98,
+    })
+  }
 
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
+  async transactionContext(): Promise<Result<TransactionContext>> {
     this.warnOnce(
       'D1 Transaction',
-      "Cloudflare D1 - currently in Beta - does not support transactions. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and ran as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
+      "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return ok(new D1Transaction(this.client, options))
+    return ok(new D1TransactionContext(this.client))
   }
 }

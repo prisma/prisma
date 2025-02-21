@@ -8,8 +8,9 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
+  const isSqlServer = provider === Providers.SQLSERVER
 
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
@@ -47,7 +48,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  test('should log queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -111,17 +113,21 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(logs[2].query).toContain('SELECT')
         expect(logs[3].query).toContain('COMMIT')
       } else {
-        expect(logs).toHaveLength(5)
-        expect(logs[0].query).toContain('BEGIN')
-        expect(logs[1].query).toContain('INSERT')
-        expect(logs[2].query).toContain('SELECT')
-        expect(logs[3].query).toContain('SELECT')
-        expect(logs[4].query).toContain('COMMIT')
+        expect(logs).toHaveLength(isSqlServer ? 6 : 5)
+        if (isSqlServer) {
+          expect(logs.shift()?.query).toContain('SET TRANSACTION')
+        }
+        expect(logs.shift()?.query).toContain('BEGIN')
+        expect(logs.shift()?.query).toContain('INSERT')
+        expect(logs.shift()?.query).toContain('SELECT')
+        expect(logs.shift()?.query).toContain('SELECT')
+        expect(logs.shift()?.query).toContain('COMMIT')
       }
     }
   })
 
-  test('should log batched queries inside a ITX', async () => {
+  // D1: iTx are not available.
+  skipTestIf(driverAdapter === 'js_d1')('should log batched queries inside a ITX', async () => {
     client = newPrismaClient({
       log: [
         {
@@ -174,12 +180,14 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      expect(logs).toHaveLength(4)
-
-      expect(logs[0].query).toContain('BEGIN')
-      expect(logs[1].query).toContain('SELECT')
-      expect(logs[2].query).toContain('SELECT')
-      expect(logs[3].query).toContain('COMMIT')
+      expect(logs).toHaveLength(isSqlServer ? 5 : 4)
+      if (isSqlServer) {
+        expect(logs.shift()?.query).toContain('SET TRANSACTION')
+      }
+      expect(logs.shift()?.query).toContain('BEGIN')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('COMMIT')
     }
   })
 
@@ -235,12 +243,14 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      expect(logs).toHaveLength(4)
-
-      expect(logs[0].query).toContain('BEGIN')
-      expect(logs[1].query).toContain('SELECT')
-      expect(logs[2].query).toContain('SELECT')
-      expect(logs[3].query).toContain('COMMIT')
+      expect(logs).toHaveLength(isSqlServer ? 5 : 4)
+      if (isSqlServer) {
+        expect(logs.shift()?.query).toContain('SET TRANSACTION')
+      }
+      expect(logs.shift()?.query).toContain('BEGIN')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('SELECT')
+      expect(logs.shift()?.query).toContain('COMMIT')
     }
   })
 })

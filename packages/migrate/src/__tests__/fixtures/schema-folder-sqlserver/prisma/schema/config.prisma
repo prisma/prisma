@@ -1,0 +1,10 @@
+datasource my_db {
+    provider = "sqlserver"
+    url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+}
+
+generator client {
+    provider        = "prisma-client-js"
+    output          = "@prisma/client"
+    previewFeatures = ["prismaSchemaFolder"]
+}

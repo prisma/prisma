@@ -6,7 +6,6 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { BinaryTarget } from './binaryTargets'
-import { link } from './link'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -302,7 +301,7 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
     .with({ familyDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
-      return ['/lib']
+      return ['/lib', '/usr/lib']
     })
     .with({ familyDistro: 'debian' }, ({ archFromUname }) => {
       /* Linux Debian, Ubuntu, etc */
@@ -373,7 +372,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
     /**
      * Fall back to the rhel-specific paths (although `familyDistro` isn't detected as rhel) when the `ldconfig` command fails.
      */
-    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib'])
+    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib', '/usr/lib'])
   }
 
   if (libsslFilename) {
@@ -478,7 +477,7 @@ export function getBinaryTargetForCurrentPlatformInternal(args: GetOSResult): Bi
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
     warn(
-      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
+      `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures (detected "${arch}" instead). If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
     )
   }
 
@@ -506,12 +505,7 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
-    warn(
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
-Please report your experience by creating an issue at ${link(
-        'https://github.com/prisma/prisma/issues',
-      )} so we can add your distro to the list of known supported distros.`,
-    )
+    debug(`Distro is "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}".`)
   }
 
   // Apple Silicon (M1)

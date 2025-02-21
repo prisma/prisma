@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
@@ -9,11 +10,13 @@ import type {
   Result,
   ResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, err, ok } from '@prisma/driver-adapter-utils'
 
-import { fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { name as packageName } from '../package.json'
+import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
@@ -26,7 +29,11 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
  */
 abstract class NeonQueryable implements Queryable {
   readonly provider = 'postgres'
+  readonly adapterName = packageName
 
+  /**
+   * Execute a query given as SQL, interpolating the given parameters.
+   */
   async queryRaw(query: Query): Promise<Result<ResultSet>> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
@@ -60,6 +67,11 @@ abstract class NeonQueryable implements Queryable {
     })
   }
 
+  /**
+   * Execute a query given as SQL, interpolating the given parameters and
+   * returning the number of affected rows.
+   * Note: Queryable expects a u64, but napi.rs only supports u32.
+   */
   async executeRaw(query: Query): Promise<Result<number>> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
@@ -68,6 +80,11 @@ abstract class NeonQueryable implements Queryable {
     return (await this.performIO(query)).map((r) => r.rowCount ?? 0)
   }
 
+  /**
+   * Run a query against the database, returning the result set.
+   * Should the query fail due to a connection error, the connection is
+   * marked as unhealthy.
+   */
   abstract performIO(query: Query): Promise<Result<PerformIOResult>>
 }
 
@@ -83,12 +100,42 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     const { sql, args: values } = query
 
     try {
-      return ok(await this.client.query({ text: sql, values: fixArrayBufferValues(values), rowMode: 'array' }))
+      const result = await this.client.query(
+        {
+          text: sql,
+          values: fixArrayBufferValues(values),
+          rowMode: 'array',
+          types: {
+            // This is the error expected:
+            // No overload matches this call.
+            // The last overload gave the following error.
+            //   Type '(oid: number, format?: any) => (json: string) => unknown' is not assignable to type '{ <T>(oid: number): TypeParser<string, string | T>; <T>(oid: number, format: "text"): TypeParser<string, string | T>; <T>(oid: number, format: "binary"): TypeParser<...>; }'.
+            //     Type '(json: string) => unknown' is not assignable to type 'TypeParser<Buffer, any>'.
+            //       Types of parameters 'json' and 'value' are incompatible.
+            //         Type 'Buffer' is not assignable to type 'string'.ts(2769)
+            //
+            // Because pg-types types expect us to handle both binary and text protocol versions,
+            // where as far we can see, pg will ever pass only text version.
+            //
+            // @ts-expect-error
+            getTypeParser: (oid: number, format?) => {
+              if (format === 'text' && customParsers[oid]) {
+                return customParsers[oid]
+              }
+
+              return neon.types.getTypeParser(oid, format)
+            },
+          },
+        },
+        fixArrayBufferValues(values),
+      )
+
+      return ok(result)
     } catch (e) {
       debug('Error in performIO: %O', e)
-      if (e && e.code) {
+      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
         return err({
-          kind: 'Postgres',
+          kind: 'postgres',
           code: e.code,
           severity: e.severity,
           message: e.message,
@@ -122,6 +169,23 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
+class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {
+  constructor(readonly conn: neon.PoolClient) {
+    super(conn)
+  }
+
+  async startTransaction(): Promise<Result<Transaction>> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return ok(new NeonTransaction(this.conn, options))
+  }
+}
+
 export type PrismaNeonOptions = {
   schema?: string
 }
@@ -146,16 +210,9 @@ const adapter = new PrismaNeon(pool)
     })
   }
 
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
-
-    const connection = await this.client.connect()
-    return ok(new NeonTransaction(connection, options))
+  async transactionContext(): Promise<Result<TransactionContext>> {
+    const conn = await this.client.connect()
+    return ok(new NeonTransactionContext(conn))
   }
 
   async close() {
@@ -178,11 +235,26 @@ export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
       await this.client(sql, values, {
         arrayMode: true,
         fullResults: true,
-      }),
+        // pass type parsers to neon() HTTP client, same as in WS client above
+        //
+        // requires @neondatabase/serverless >= 0.9.5
+        // - types option added in https://github.com/neondatabase/serverless/pull/92
+        types: {
+          getTypeParser: (oid: number, format?) => {
+            if (format === 'text' && customParsers[oid]) {
+              return customParsers[oid]
+            }
+
+            return neon.types.getTypeParser(oid, format)
+          },
+        },
+        // type `as` cast required until neon types are corrected:
+        // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
+      } as neon.HTTPQueryOptions<true, true>),
     )
   }
 
-  startTransaction(): Promise<Result<Transaction>> {
+  transactionContext(): Promise<Result<TransactionContext>> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 }

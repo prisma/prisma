@@ -34,24 +34,24 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {
-            bar: {
-              baz: qux,
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {
+            "bar": {
+              "baz": "qux",
             },
-            foo: bar,
-            garply: [
+            "foo": "bar",
+            "garply": [
               {
-                waldo: fred,
+                "waldo": "fred",
               },
               {
-                plugh: xyzzy,
+                "plugh": "xyzzy",
               },
             ],
-            quux: [
-              corge,
-              grault,
+            "quux": [
+              "corge",
+              "grault",
             ],
           },
         }
@@ -69,16 +69,16 @@ testMatrix.setupTestSuite(
       expect(result[0]).toHaveProperty('requiredJson')
     })
 
-    testIf(['mysql', 'postgresql', 'cockroachdb'].includes(suiteConfig.provider))(
+    testIf(['mysql', 'postgresql', 'cockroachdb', 'sqlite'].includes(suiteConfig.provider))(
       'select required json with where path',
       async () => {
         let result
 
-        if (suiteConfig.provider === Providers.MYSQL) {
+        if (suiteConfig.provider === Providers.MYSQL || suiteConfig.provider === Providers.SQLITE) {
           result = await prisma.resource.findMany({
             where: {
               requiredJson: {
-                // @ts-test-if: provider === Providers.MYSQL
+                // @ts-test-if: provider === Providers.MYSQL || provider === Providers.SQLITE
                 path: '$.bar.baz',
                 equals: 'qux',
               },
@@ -138,16 +138,16 @@ testMatrix.setupTestSuite(
 
       expect(result).toMatchInlineSnapshot(`
         {
-          id: 02d25579a73a72373fa4e846,
-          optionalJson: null,
-          requiredJson: {},
+          "id": "02d25579a73a72373fa4e846",
+          "optionalJson": null,
+          "requiredJson": {},
         }
       `)
     })
   },
   {
     optOut: {
-      from: ['sqlserver', 'sqlite'],
+      from: ['sqlserver'],
       reason: 'They do not support JSON',
     },
   },

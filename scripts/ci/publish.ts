@@ -466,8 +466,8 @@ async function publish() {
     '--test': Boolean,
   })
 
-  if (!process.env.BUILDKITE_BRANCH) {
-    throw new Error(`Missing env var BUILDKITE_BRANCH`)
+  if (!process.env.GITHUB_REF_NAME) {
+    throw new Error(`Missing env var GITHUB_REF_NAME`)
   }
 
   if (process.env.DRY_RUN) {
@@ -477,14 +477,13 @@ async function publish() {
 
   const dryRun = args['--dry-run'] ?? false
 
-  // TODO: rename BUILDKITE_TAG
-  if (args['--publish'] && process.env.BUILDKITE_TAG) {
+  if (args['--publish'] && process.env.RELEASE_VERSION) {
     if (args['--release']) {
-      throw new Error(`Can't provide env var BUILDKITE_TAG and --release at the same time`)
+      throw new Error(`Can't provide env var RELEASE_VERSION and --release at the same time`)
     }
 
-    console.log(`Setting --release to BUILDKITE_TAG = ${process.env.BUILDKITE_TAG}`)
-    args['--release'] = process.env.BUILDKITE_TAG // TODO: rename this var to RELEASE_VERSION
+    console.log(`Setting --release to RELEASE_VERSION = ${process.env.RELEASE_VERSION}`)
+    args['--release'] = process.env.RELEASE_VERSION
     // TODO: put this into a global variable VERSION
     // and then replace the args['--release'] with it
   }
@@ -514,11 +513,11 @@ async function publish() {
 
   // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
-  if (process.env.BUILDKITE && args['--publish']) {
+  if (process.env.CI && args['--publish']) {
     console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
     const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
-    unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
+    unlock = await acquireLock(process.env.GITHUB_REF_NAME)
     const after = Math.round(performance.now())
     console.log(`Acquired lock after ${after - before}ms`)
   }
@@ -634,12 +633,6 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         } catch (e) {
           console.error(e)
         }
-
-        try {
-          await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
-        } catch (e) {
-          console.error(e)
-        }
       }
     }
   } catch (e) {
@@ -664,60 +657,6 @@ function getEnginesCommitHash(): string {
   return commitHash
 }
 
-async function tagEnginesRepo(
-  prismaVersion: string,
-  engineVersion: string,
-  patchBranch: string | null,
-  dryRun = false,
-) {
-  let previousTag: string
-
-  console.log(`Going to tag the engines repo with "${prismaVersion}", patchBranch: ${patchBranch}, dryRun: ${dryRun}`)
-  /** Get ready */
-  await cloneOrPull('prisma-engines', dryRun)
-
-  // 3.2.x
-  if (patchBranch) {
-    // 3.2
-    const [major, minor] = patchBranch.split('.')
-    const majorMinor = [major, minor].join('.')
-    // ['3.2.0', '3.2.1']
-    const patchesPublished: string | string[] = JSON.parse(
-      // TODO this line is useful for retrieving versions
-      await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
-    )
-
-    console.log({ patchesPublished })
-
-    if (typeof patchesPublished === 'string') {
-      previousTag = patchesPublished
-    } else if (patchesPublished.length > 0) {
-      // 3.2.0
-      previousTag = patchesPublished.pop() as string
-    } else {
-      console.warn('No version found for this patch branch')
-      return
-    }
-  } else {
-    /** Get previous tag */
-    previousTag = await runResult('prisma-engines', `git describe --tags --abbrev=0`)
-  }
-
-  /** Get commits between previous tag and engines sha1 */
-  const changelog = await runResult(
-    'prisma-engines',
-    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
-  )
-
-  // TODO remove later
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const changelogSanitized = changelog.replace(/"/gm, '\\"').replace(/`/gm, '\\`')
-
-  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-    // fs.appendFileSync(process.env.GITHUB_OUTPUT, `changelogSanitized=${changelogSanitized}\n`)
-  }
-}
-
 /**
  * Tests packages in "publishOrder"
  * @param packages Packages
@@ -726,19 +665,6 @@ async function tagEnginesRepo(
 async function testPackages(packages: Packages, publishOrder: string[][]): Promise<void> {
   const order = flatten(publishOrder)
 
-  // If parallelism is set in build-kite we split the testing
-  //  Job 0 - Node-API Library
-  //    PRISMA_CLIENT_ENGINE_TYPE="library"
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="library"
-  //  Job 1 - Binary
-  //    PRISMA_CLIENT_ENGINE_TYPE="binary"
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary"
-  if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-    console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API Library')
-  } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-    console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
-  }
-
   console.log(bold(`\nRun ${cyan('tests')}. Testing order:`))
   console.log(order)
 
@@ -746,20 +672,7 @@ async function testPackages(packages: Packages, publishOrder: string[][]): Promi
     const pkg = packages[pkgName]
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${magenta(pkg.name)}`)
-      // Sets ENV to override engines
-      if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-        await run(
-          path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test --silent',
-        )
-      } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-        await run(
-          path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test --silent',
-        )
-      } else {
-        await run(path.dirname(pkg.path), 'pnpm run test')
-      }
+      await run(path.dirname(pkg.path), 'pnpm run test')
     } else {
       console.log(`\nSkipping ${magenta(pkg.name)}, as it doesn't have tests`)
     }
@@ -988,8 +901,8 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
 }
 
 async function getPrismaBranch(): Promise<string | undefined> {
-  if (process.env.BUILDKITE_BRANCH) {
-    return process.env.BUILDKITE_BRANCH
+  if (process.env.GITHUB_REF_NAME) {
+    return process.env.GITHUB_REF_NAME
   }
   try {
     // TODO: this can probably be simplified, we don't publish locally, remove?
@@ -1013,12 +926,12 @@ async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
 }
 
 function getPatchBranch() {
-  if (process.env.BUILDKITE_BRANCH) {
-    const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
+  if (process.env.GITHUB_REF_NAME) {
+    const versions = getSemverFromPatchBranch(process.env.GITHUB_REF_NAME)
     console.debug('versions from patch branch:', versions)
 
     if (versions !== undefined) {
-      return process.env.BUILDKITE_BRANCH
+      return process.env.GITHUB_REF_NAME
     }
   }
 
@@ -1100,28 +1013,6 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
     author: jsonData.commit?.author?.name || '',
     hash,
   }
-}
-
-function getCommitEnvVar(name: string): string {
-  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
-}
-
-async function cloneOrPull(repo: string, dryRun = false) {
-  if (fs.existsSync(path.join(__dirname, '../../', repo))) {
-    return run(repo, `git pull --tags`, dryRun)
-  } else {
-    await run('.', `git clone ${repoUrl(repo)}`, dryRun)
-    const envVar = getCommitEnvVar(repo)
-    if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
-    }
-  }
-
-  return undefined
-}
-
-function repoUrl(repo: string, org = 'prisma') {
-  return `https://github.com/${org}/${repo}.git`
 }
 
 if (require.main === module) {

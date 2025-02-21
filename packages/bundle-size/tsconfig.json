@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.build.regular.json",
+  "compilerOptions": {
+    "paths": {}
+  }
+}

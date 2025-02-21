@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            enumValue: A,
+            "enumValue": "A",
           },
         ]
       `)
@@ -52,8 +52,8 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            enumArray: [
-              A,
+            "enumArray": [
+              "A",
             ],
           },
         ]

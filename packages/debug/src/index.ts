@@ -1,4 +1,3 @@
-/* eslint-disable no-var */
 import * as kleur from 'kleur/colors'
 import { bold } from 'kleur/colors'
 
@@ -9,8 +8,10 @@ const argsHistory: [namespace: string, ...unknown[]][] = []
 let lastTimestamp = Date.now()
 let lastColor = 0
 
-globalThis.DEBUG ??= process.env.DEBUG ?? ''
-globalThis.DEBUG_COLORS ??= process.env.DEBUG_COLORS ? process.env.DEBUG_COLORS === 'true' : true
+const processEnv = typeof process !== 'undefined' ? process.env : {}
+
+globalThis.DEBUG ??= processEnv.DEBUG ?? ''
+globalThis.DEBUG_COLORS ??= processEnv.DEBUG_COLORS ? processEnv.DEBUG_COLORS === 'true' : true
 
 /**
  * Top-level utilities to configure the debug module.
@@ -59,24 +60,12 @@ const topProps = {
   },
   log: (...args: string[]) => {
     const [namespace, format, ...rest] = args
-    let logger: (...args: unknown[]) => void
-
-    if (
-      typeof require === 'function' &&
-      typeof process !== 'undefined' &&
-      typeof process.stderr !== 'undefined' &&
-      typeof process.stderr.write === 'function'
-    ) {
-      logger = (...args: unknown[]) => {
-        const util = require(`${'util'}`)
-        process.stderr.write(util.format(...args) + '\n')
-      }
-    } else {
-      logger = console.warn ?? console.log
-    }
+    // Note: `console.warn` / `console.log` use `util.format` internally, so they can handle
+    // `printf`-style string interpolation.
+    const logWithFormatting = console.warn ?? console.log
 
     // console only formats first arg, concat ns+format
-    logger(`${namespace} ${format}`, ...rest)
+    logWithFormatting(`${namespace} ${format}`, ...rest)
   },
   formatters: {}, // not implemented
 }

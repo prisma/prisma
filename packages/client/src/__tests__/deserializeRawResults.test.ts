@@ -1,16 +1,15 @@
-import { deserializeRawResults } from '../runtime/utils/deserializeRawResults'
+import Decimal from 'decimal.js'
 
-describe('deserializeRawResults', () => {
+import { deserializeRawResult } from '../runtime/utils/deserializeRawResults'
+
+describe('deserializeRawResult', () => {
   test('int', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'int',
-            prisma__value: 42,
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a'],
+        types: ['int'],
+        rows: [[42]],
+      }),
     ).toEqual([
       {
         a: 42,
@@ -20,14 +19,11 @@ describe('deserializeRawResults', () => {
 
   test('bigint', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'bigint',
-            prisma__value: '10000',
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a'],
+        types: ['bigint'],
+        rows: [['10000']],
+      }),
     ).toEqual([
       {
         a: BigInt(10_000),
@@ -37,18 +33,11 @@ describe('deserializeRawResults', () => {
 
   test('floating point', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'float',
-            prisma__value: 1.5,
-          },
-          b: {
-            prisma__type: 'double',
-            prisma__value: 0.5,
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a', 'b'],
+        types: ['float', 'double'],
+        rows: [[1.5, 0.5]],
+      }),
     ).toEqual([
       {
         a: 1.5,
@@ -58,16 +47,7 @@ describe('deserializeRawResults', () => {
   })
 
   test('string', () => {
-    expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'string',
-            prisma__value: 'hello',
-          },
-        },
-      ]),
-    ).toEqual([
+    expect(deserializeRawResult({ columns: ['a'], types: ['string'], rows: [['hello']] })).toEqual([
       {
         a: 'hello',
       },
@@ -75,16 +55,7 @@ describe('deserializeRawResults', () => {
   })
 
   test('enum', () => {
-    expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'enum',
-            prisma__value: 'value',
-          },
-        },
-      ]),
-    ).toEqual([
+    expect(deserializeRawResult({ columns: ['a'], types: ['enum'], rows: [['value']] })).toEqual([
       {
         a: 'value',
       },
@@ -92,37 +63,15 @@ describe('deserializeRawResults', () => {
   })
 
   test('bytes', () => {
-    expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'bytes',
-            prisma__value: 'Ynl0ZXM=',
-          },
-        },
-      ]),
-    ).toEqual([
+    expect(deserializeRawResult({ columns: ['a'], types: ['bytes'], rows: [['Ynl0ZXM=']] })).toEqual([
       {
-        a: Buffer.from('bytes'),
+        a: new Uint8Array(Buffer.from('bytes')),
       },
     ])
   })
 
   test('bool', () => {
-    expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'bool',
-            prisma__value: true,
-          },
-          b: {
-            prisma__type: 'bool',
-            prisma__value: false,
-          },
-        },
-      ]),
-    ).toEqual([
+    expect(deserializeRawResult({ columns: ['a', 'b'], types: ['bool', 'bool'], rows: [[true, false]] })).toEqual([
       {
         a: true,
         b: false,
@@ -132,35 +81,22 @@ describe('deserializeRawResults', () => {
 
   test('null', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'null',
-            prisma__value: null,
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a', 'b', 'c'],
+        types: ['int', 'string', 'bool-array'],
+        rows: [[null, null, null]],
+      }),
     ).toEqual([
       {
         a: null,
+        b: null,
+        c: null,
       },
     ])
   })
 
   test('json', () => {
-    expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'json',
-            prisma__value: {
-              a: 1,
-              b: [2],
-            },
-          },
-        },
-      ]),
-    ).toEqual([
+    expect(deserializeRawResult({ columns: ['a'], types: ['json'], rows: [[{ a: 1, b: [2] }]] })).toEqual([
       {
         a: {
           a: 1,
@@ -172,22 +108,11 @@ describe('deserializeRawResults', () => {
 
   test('date and time', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'datetime',
-            prisma__value: '2022-01-01T00:00:00.000Z',
-          },
-          b: {
-            prisma__type: 'date',
-            prisma__value: '2022-05-04',
-          },
-          c: {
-            prisma__type: 'time',
-            prisma__value: '14:10:45.912',
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a', 'b', 'c'],
+        types: ['datetime', 'date', 'time'],
+        rows: [['2022-01-01T00:00:00.000Z', '2022-05-04', '14:10:45.912']],
+      }),
     ).toEqual([
       {
         a: new Date('2022-01-01T00:00:00.000Z'),
@@ -199,22 +124,11 @@ describe('deserializeRawResults', () => {
 
   test('unsupported', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'char',
-            prisma__value: 'a',
-          },
-          b: {
-            prisma__type: 'xml',
-            prisma__value: '<xml></xml>',
-          },
-          c: {
-            prisma__type: 'uuid',
-            prisma__value: '00000000-0000-0000-0000-000000000000',
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['a', 'b', 'c'],
+        types: ['char', 'xml', 'uuid'],
+        rows: [['a', '<xml></xml>', '00000000-0000-0000-0000-000000000000']],
+      }),
     ).toEqual([
       {
         a: 'a',
@@ -226,26 +140,38 @@ describe('deserializeRawResults', () => {
 
   test('array', () => {
     expect(
-      deserializeRawResults([
-        {
-          a: {
-            prisma__type: 'array',
-            prisma__value: [
-              {
-                prisma__type: 'int',
-                prisma__value: 1,
-              },
-              {
-                prisma__type: 'int',
-                prisma__value: 2,
-              },
-            ],
-          },
-        },
-      ]),
+      deserializeRawResult({
+        columns: ['bigints', 'bytes', 'decimals', 'datetimes', 'dates', 'times', 'empty'],
+        types: [
+          'bigint-array',
+          'bytes-array',
+          'decimal-array',
+          'datetime-array',
+          'date-array',
+          'time-array',
+          'unknown',
+        ],
+        rows: [
+          [
+            ['1234', '123456789'],
+            ['Ynl0ZXM=', 'Ym9uam91cg=='],
+            ['1.2345678', '9999999.456789'],
+            ['2022-01-01T00:00:00.000Z', '2022-05-04T00:00:00.000Z'],
+            ['2022-05-04', '2022-01-01'],
+            ['14:10:45.912', '00:00:00.000'],
+            [],
+          ],
+        ],
+      }),
     ).toEqual([
       {
-        a: [1, 2],
+        bigints: [BigInt(1234), BigInt(123456789)],
+        bytes: [new Uint8Array(Buffer.from('bytes')), new Uint8Array(Buffer.from('bonjour'))],
+        decimals: [new Decimal('1.2345678'), new Decimal('9999999.456789')],
+        datetimes: [new Date('2022-01-01T00:00:00.000Z'), new Date('2022-05-04T00:00:00.000Z')],
+        dates: [new Date('2022-05-04T00:00:00.000Z'), new Date('2022-01-01T00:00:00.000Z')],
+        times: [new Date('1970-01-01T14:10:45.912Z'), new Date('1970-01-01T00:00:00.000Z')],
+        empty: [],
       },
     ])
   })

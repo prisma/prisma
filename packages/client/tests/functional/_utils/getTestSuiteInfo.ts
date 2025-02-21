@@ -1,4 +1,5 @@
 import { ClientEngineType } from '@prisma/internals'
+import fs from 'fs/promises'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
@@ -246,6 +247,7 @@ export function getTestSuiteMeta() {
   const prismaPath = path.join(testRoot, 'prisma')
   const _matrixPath = path.join(testRoot, '_matrix')
   const _schemaPath = path.join(prismaPath, '_schema')
+  const sqlPath = path.join(prismaPath, 'sql')
 
   return {
     testName,
@@ -255,6 +257,7 @@ export function getTestSuiteMeta() {
     rootRelativeTestDir,
     testFileName,
     prismaPath,
+    sqlPath,
     _matrixPath,
     _schemaPath,
   }
@@ -288,5 +291,21 @@ export function getTestSuiteClientMeta({
   return {
     ...getTestSuiteCliMeta(),
     driverAdapter: isDriverAdapterProviderLabel(suiteConfig.driverAdapter),
+  }
+}
+
+export async function testSuiteHasTypedSql(meta: TestSuiteMeta) {
+  return await isDirectory(meta.sqlPath)
+}
+
+async function isDirectory(path: string) {
+  try {
+    const stat = await fs.stat(path)
+    return stat.isDirectory()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
   }
 }

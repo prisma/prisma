@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -52,25 +53,25 @@ testMatrix.setupTestSuite(
 
       expect(users).toMatchInlineSnapshot(`
         {
-          cursor: {
-            firstBatch: [
+          "cursor": {
+            "firstBatch": [
               {
-                email: Kyla_Beer587@fraternise-assassination.name,
+                "email": "Kyla_Beer587@fraternise-assassination.name",
               },
               {
-                email: Arielle.Reichel85426@hunker-string.org,
+                "email": "Arielle.Reichel85426@hunker-string.org",
               },
             ],
-            id: 0,
+            "id": 0,
           },
-          ok: 1,
+          "ok": 1,
         }
       `)
     })
   },
   {
     optOut: {
-      from: ['cockroachdb', 'sqlserver', 'sqlite', 'mysql', 'postgresql'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'This is a MongoDB specific feature',
     },
   },

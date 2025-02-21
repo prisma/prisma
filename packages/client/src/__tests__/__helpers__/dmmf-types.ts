@@ -153,6 +153,7 @@ const dmmf: DMMF.Document = {
         aggregate: 'aggregatePost',
         create: 'createOnePost',
         createMany: 'createManyPost',
+        createManyAndReturn: 'createManyPostAndReturn',
         delete: 'deleteOnePost',
         deleteMany: 'deleteManyPost',
         findFirst: 'findFirstPost',
@@ -163,6 +164,7 @@ const dmmf: DMMF.Document = {
         plural: 'posts',
         update: 'updateOnePost',
         updateMany: 'updateManyPost',
+        updateManyAndReturn: 'updateManyPostAndReturn',
         upsert: 'upsertOnePost',
       },
       {

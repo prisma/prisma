@@ -1,28 +1,36 @@
-import {
-  ColumnType,
-  ColumnTypeEnum,
-  // Debug
-} from '@prisma/driver-adapter-utils'
+import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 // const debug = Debug('prisma:driver-adapter:d1:conversion')
 
 export type Value = null | string | number | object
 
-export function getColumnTypes(columnNames: string[], rows: Object[]): ColumnType[] {
+export function getColumnTypes(columnNames: string[], rows: unknown[][]): ColumnType[] {
   const columnTypes: (ColumnType | null)[] = []
 
-  columnLoop: for (const columnIndex of columnNames) {
-    // No declared column type in db schema, infer using first non-null value
+  columnLoop: for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
+    // No declared column type in db schema, try inferring it.
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
-      const candidateValue = rows[rowIndex][columnIndex]
+      const candidateValue = rows[rowIndex][columnIndex] as Value
       if (candidateValue !== null) {
-        columnTypes[columnIndex] = inferColumnType(candidateValue)
-        continue columnLoop
+        const inferred = inferColumnType(candidateValue)
+        // JSON values that represent plain numbers are returned as JS numbers by D1.
+        // This can cause issues if different rows have differently shaped JSON, leading to
+        // different inferred types for the same column. To avoid this, we set the column
+        // type to text if any row contains a text value.
+        if (columnTypes[columnIndex] === undefined || inferred === ColumnTypeEnum.Text) {
+          columnTypes[columnIndex] = inferred
+        }
+        if (inferred !== ColumnTypeEnum.UnknownNumber) {
+          // We can move on to the next column if we found a non-number.
+          continue columnLoop
+        }
       }
     }
 
-    // No non-null value found for this column, fall back to int32 to mimic what quaint does
-    columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    if (columnTypes[columnIndex] === undefined) {
+      // No non-null value found for this column, fall back to int32 to mimic what quaint does
+      columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    }
   }
 
   return columnTypes as ColumnType[]
@@ -58,17 +66,17 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 
 // See https://stackoverflow.com/a/3143231/1345244
 const isoDateRegex = new RegExp(
-  /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
+  /^(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))$/,
 )
-function isISODate(str) {
-  return isoDateRegex.test(str)
+
+// SQLITE date format, returned by built-in time functions. See https://www.sqlite.org/lang_datefunc.html
+// Essentially, it is "<ISO Date> <ISO Time>"
+const sqliteDateRegex = /^\d{4}-[0-1]\d-[0-3]\d [0-2]\d:[0-5]\d:[0-5]\d$/
+function isISODate(str: string) {
+  return isoDateRegex.test(str) || sqliteDateRegex.test(str)
 }
 
 function inferStringType(value: string): ColumnType {
-  if (['true', 'false'].includes(value)) {
-    return ColumnTypeEnum.Boolean
-  }
-
   if (isISODate(value)) {
     return ColumnTypeEnum.DateTime
   }
@@ -76,19 +84,8 @@ function inferStringType(value: string): ColumnType {
   return ColumnTypeEnum.Text
 }
 
-function inferNumberType(value: number): ColumnType {
-  if (!Number.isInteger(value)) {
-    return ColumnTypeEnum.Float
-    // Note: returning "Numeric" makes is better for our Decimal type
-    // But we can't tell what is a float or a decimal here
-    // return ColumnTypeEnum.Numeric
-  }
-  // Hack - TODO change this when we have type metadata
-  else if (Number.isInteger(value) && Math.abs(value) < Number.MAX_SAFE_INTEGER) {
-    return ColumnTypeEnum.Int32
-  } else {
-    return ColumnTypeEnum.UnknownNumber
-  }
+function inferNumberType(_: number): ColumnType {
+  return ColumnTypeEnum.UnknownNumber
 }
 
 function inferObjectType(value: Object): ColumnType {
@@ -107,9 +104,7 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
-  const result: unknown[] = Object.values(obj)
-
+export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] {
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
 
@@ -124,6 +119,11 @@ export function mapRow(obj: Object, columnTypes: ColumnType[]): unknown[] {
       !Number.isInteger(value)
     ) {
       result[i] = Math.trunc(value)
+      continue
+    }
+
+    if (typeof value === 'number' && columnTypes[i] === ColumnTypeEnum.Text) {
+      result[i] = value.toString()
       continue
     }
 

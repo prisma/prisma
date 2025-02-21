@@ -20,8 +20,8 @@ testMatrix.setupTestSuite(
       {
         provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
-        providerFeatures: '',
-        previewFeatures: '"tracing"'
+        randomString: 'foo',
+        previewFeatures: '"relationJoins"'
       }
     */
 

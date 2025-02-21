@@ -22,7 +22,7 @@ export const setupTestSuite: (typeof testMatrix)['setupTestSuite'] = (tests, opt
   testMatrix.setupTestSuite(tests, {
     ...options,
     optOut: {
-      from: ['sqlite', 'postgresql', 'mysql', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'composites are mongo-specific feature',
     },
   })

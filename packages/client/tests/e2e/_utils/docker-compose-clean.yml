@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   # not an actual service, just a helper to clean up the workspace
   # useful because docker linux creates files with root permissions

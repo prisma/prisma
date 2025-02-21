@@ -80,7 +80,7 @@ async function request(query: string, variables: any): Promise<any> {
       if (!response.ok) {
         throw new Error(`Error during request: ${response.status} ${response.statusText} - Query: ${query}`)
       }
-      return response.json()
+      return response.json() as any
     })
     .then((responseAsJson) => {
       if (responseAsJson.errors) {

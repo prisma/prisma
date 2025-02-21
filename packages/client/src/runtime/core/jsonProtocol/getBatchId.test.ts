@@ -37,7 +37,7 @@ test('getBatchId for findUnique', () => {
         },
       },
     }),
-  ).toMatchInlineSnapshot(`User((where (id)))($composites $scalars)`)
+  ).toMatchInlineSnapshot(`"User((where (id)))($composites $scalars)"`)
 })
 
 test('getBatchId for findUniqueOrThrow', () => {
@@ -57,5 +57,5 @@ test('getBatchId for findUniqueOrThrow', () => {
         },
       },
     }),
-  ).toMatchInlineSnapshot(`User((where (id)))($composites $scalars)`)
+  ).toMatchInlineSnapshot(`"User((where (id)))($composites $scalars)"`)
 })

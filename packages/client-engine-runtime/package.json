@@ -1,0 +1,46 @@
+{
+  "name": "@prisma/client-engine-runtime",
+  "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/accelerate-contract"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@prisma/debug": "workspace:*",
+    "@prisma/driver-adapter-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.14",
+    "@types/node": "18.19.31",
+    "jest": "29.7.0",
+    "jest-junit": "16.0.0"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "prepublishOnly": "pnpm run build",
+    "test": "jest"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false
+}

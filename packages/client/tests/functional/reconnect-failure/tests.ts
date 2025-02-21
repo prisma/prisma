@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { Db, NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -37,7 +38,7 @@ testMatrix.setupTestSuite(
       `,
     },
     optOut: {
-      from: ['mongodb'],
+      from: [Providers.MONGODB],
       reason: 'First query does not fail even when database does not exist.',
     },
   },

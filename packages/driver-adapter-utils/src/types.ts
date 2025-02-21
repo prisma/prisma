@@ -28,9 +28,53 @@ export interface ResultSet {
   lastInsertId?: string
 }
 
+/**
+ * Original `quaint::ValueType` enum tag from Prisma's `quaint`.
+ * Query arguments marked with this type are sanitized before being sent to the database.
+ * Notice while a query argument may be `null`, `ArgType` is guaranteed to be defined.
+ */
+export type ArgType =
+  // 32-bit signed integer.
+  | 'Int32'
+  // 64-bit signed integer.
+  | 'Int64'
+  // 32-bit floating point.
+  | 'Float'
+  // 64-bit floating point.
+  | 'Double'
+  // String value.
+  | 'Text'
+  // Database enum value.
+  | 'Enum'
+  // Database enum array (PostgreSQL specific).
+  | 'EnumArray'
+  // Bytes value.
+  | 'Bytes'
+  // Boolean value.
+  | 'Boolean'
+  // A single character.
+  | 'Char'
+  // An array value (PostgreSQL).
+  | 'Array'
+  // A numeric value.
+  | 'Numeric'
+  // A JSON value.
+  | 'Json'
+  // A XML value.
+  | 'Xml'
+  // An UUID value.
+  | 'Uuid'
+  // A datetime value.
+  | 'DateTime'
+  // A date value.
+  | 'Date'
+  // A time value.
+  | 'Time'
+
 export type Query = {
   sql: string
   args: Array<unknown>
+  argTypes: Array<ArgType>
 }
 
 export type Error =
@@ -43,7 +87,7 @@ export type Error =
       type: string
     }
   | {
-      kind: 'Postgres'
+      kind: 'postgres'
       code: string
       severity: string
       message: string
@@ -52,13 +96,13 @@ export type Error =
       hint: string | undefined
     }
   | {
-      kind: 'Mysql'
+      kind: 'mysql'
       code: number
       message: string
       state: string
     }
   | {
-      kind: 'Sqlite'
+      kind: 'sqlite'
       /**
        * Sqlite extended error code: https://www.sqlite.org/rescode.html
        */
@@ -68,10 +112,26 @@ export type Error =
 
 export type ConnectionInfo = {
   schemaName?: string
+  maxBindValues?: number
 }
 
+export type Provider = 'mysql' | 'postgres' | 'sqlite'
+
+// Current list of official Prisma adapters
+// This list might get outdated over time.
+// It's only used for auto-completion.
+const officialPrismaAdapters = [
+  '@prisma/adapter-planetscale',
+  '@prisma/adapter-neon',
+  '@prisma/adapter-libsql',
+  '@prisma/adapter-d1',
+  '@prisma/adapter-pg',
+  '@prisma/adapter-pg-worker',
+] as const
+
 export interface Queryable {
-  readonly provider: 'mysql' | 'postgres' | 'sqlite'
+  readonly provider: Provider
+  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
 
   /**
    * Execute a query given as SQL, interpolating the given parameters,
@@ -91,11 +151,18 @@ export interface Queryable {
   executeRaw(params: Query): Promise<Result<number>>
 }
 
-export interface DriverAdapter extends Queryable {
+export interface TransactionContext extends Queryable {
   /**
-   * Starts new transation.
+   * Starts new transaction.
    */
   startTransaction(): Promise<Result<Transaction>>
+}
+
+export interface DriverAdapter extends Queryable {
+  /**
+   * Starts new transaction.
+   */
+  transactionContext(): Promise<Result<TransactionContext>>
 
   /**
    * Optional method that returns extra connection info

@@ -28,17 +28,17 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  target: 'ES2020',
+  target: 'ES2021',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
 } as const
 
 /**
- * Apply defaults to allow us to build tree-shaken esm
+ * Apply defaults to the original build options
  * @param options the original build options
  */
-const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
+const applyDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
   outExtension: { '.js': '.js' },
@@ -72,7 +72,7 @@ function createBuildOptions(options: BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       // we defer it so that we don't trigger glob immediately
-      () => applyCjsDefaults(options),
+      () => applyDefaults(options),
       // ... here can go more steps
     ]),
   )
@@ -138,10 +138,6 @@ async function executeEsBuild(options: BuildOptions) {
 async function dependencyCheck(options: BuildOptions) {
   // we only check our dependencies for a full build
   if (process.env.DEV === 'true') return undefined
-  // Only run on test and publish pipelines on Buildkite
-  // Meaning we skip on GitHub Actions
-  // Because it's slow and runs for each job, during setup, making each job slower
-  if (process.env.CI && !process.env.BUILDKITE) return undefined
 
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({

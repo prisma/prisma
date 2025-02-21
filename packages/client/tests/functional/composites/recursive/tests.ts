@@ -1,3 +1,4 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -38,7 +39,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'postgresql', 'mysql', 'cockroachdb', 'sqlserver'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'Composites are only supported on mongo',
     },
   },

@@ -48,6 +48,10 @@ testMatrix.setupTestSuite(
     })
   },
   {
+    skipEngine: {
+      from: ['client'],
+      reason: 'Client engine cannot be used with native drivers but requires driver adapters / wasm.',
+    },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: `
@@ -57,7 +61,7 @@ testMatrix.setupTestSuite(
     },
     skipDriverAdapter: {
       from: ['js_d1'],
-      reason: 'The native connector lirary/binary cannot be used to talk to D1',
+      reason: 'The native connector library/binary cannot be used to talk to D1',
     },
   },
 )

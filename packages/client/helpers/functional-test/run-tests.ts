@@ -2,11 +2,11 @@ import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/inte
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
-import path from 'path'
 
 const allProviders = new Set(Object.values(Providers))
 const allAdapterProviders = new Set(Object.values(AdapterProviders))
@@ -35,6 +35,8 @@ const jestArgs = {
   // Use this flag to show full diffs and errors instead of a patch.
   '--expand': Boolean,
   '-e': '--expand',
+  // Create json test report -a lso see --outputFile.
+  '--json': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
   '--listTests': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
@@ -49,6 +51,8 @@ const jestArgs = {
   '--noStackTrace': Boolean,
   // Activates notifications for test results.
   '--notify': Boolean,
+  // Output file location for json output. Also see --json.
+  '--outputFile': String,
   // Passes the same flag to Jest to shard tests between multiple machines
   '--shard': String,
   // Passes the same flag to Jest to silence the output
@@ -108,6 +112,8 @@ const args = arg(
     '--engine-type': String,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
+    // Enable Node.js debugger
+    '--inspect-brk': Boolean,
 
     //
     // Jest params
@@ -134,6 +140,10 @@ async function main(): Promise<number | void> {
     }
   }
 
+  if (args['--inspect-brk']) {
+    jestCli = jestCli.withDebugger()
+  }
+
   if (args['--preview-features']) {
     jestCli = jestCli.withEnv({ TEST_PREVIEW_FEATURES: args['--preview-features'] })
   }
@@ -154,7 +164,12 @@ async function main(): Promise<number | void> {
     )
 
     if (unknownAdapterProviders.length > 0) {
-      throw new Error(`Unknown adapter providers: ${unknownAdapterProviders.join(', ')}`)
+      const allAdaptersStr = Array.from(allAdapterProviders)
+        .map((provider) => `  - ${provider}`)
+        .join('\n')
+      throw new Error(
+        `Unknown adapter providers: ${unknownAdapterProviders.join(', ')}. Available options:\n${allAdaptersStr}\n\n`,
+      )
     }
 
     if (adapterProviders.some(isDriverAdapterProviderLabel)) {
@@ -230,7 +245,9 @@ async function main(): Promise<number | void> {
 
   try {
     if (args['--updateSnapshot']) {
-      const snapshotUpdate = jestCli.withArgs(['-u']).withArgs(args['_'])
+      const snapshotUpdate = jestCli
+        .withArgs(['-u'])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {

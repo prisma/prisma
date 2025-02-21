@@ -1,13 +1,12 @@
-import { Writer } from '../../../generation/ts-builders/Writer'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { JsArgs } from '../types/exported/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
-import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
-import { activeColors, inactiveColors } from './base'
+import { buildArgumentsRenderingTree, renderArgsTree } from './ArgumentsRenderingTree'
 
 type ExceptionParams = {
   errors: ValidationError[]
@@ -16,6 +15,7 @@ type ExceptionParams = {
   originalMethod: string
   errorFormat: ErrorFormat
   clientVersion: string
+  globalOmit?: GlobalOmitOptions
 }
 
 export function throwValidationException({
@@ -25,16 +25,14 @@ export function throwValidationException({
   callsite,
   originalMethod,
   clientVersion,
+  globalOmit,
 }: ExceptionParams): never {
   const argsTree = buildArgumentsRenderingTree(args)
   for (const error of errors) {
-    applyValidationError(error, argsTree)
+    applyValidationError(error, argsTree, globalOmit)
   }
 
-  const colors = errorFormat === 'pretty' ? activeColors : inactiveColors
-
-  const message = argsTree.renderAllMessages(colors)
-  const renderedArgs = new Writer(0, { colors }).write(argsTree).toString()
+  const { message, args: renderedArgs } = renderArgsTree(argsTree, errorFormat)
 
   const messageWithContext = createErrorMessageWithContext({
     message,

@@ -1,6 +1,7 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
+import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 
 import { Version } from './Version'
@@ -12,14 +13,16 @@ export class CLI implements Command {
   static new(cmds: Commands, ensureBinaries: string[]): CLI {
     return new CLI(cmds, ensureBinaries)
   }
+
   private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,
@@ -33,7 +36,7 @@ export class CLI implements Command {
 
     if (args['--version']) {
       await ensureBinariesExist()
-      return Version.new().parse(argv)
+      return Version.new().parse(argv, config)
     }
 
     // display help for help flag or no subcommand
@@ -76,7 +79,7 @@ export class CLI implements Command {
         argsForCmd = args._.slice(1)
       }
 
-      return cmd.parse(argsForCmd)
+      return cmd.parse(argsForCmd, config)
     }
     // unknown command
     return unknownCommand(this.help() as string, args._[0])
@@ -88,6 +91,17 @@ export class CLI implements Command {
     }
     return CLI.help
   }
+
+  private static tryPdpMessage = `Optimize performance through connection pooling and caching with Prisma Accelerate
+and capture real-time events from your database with Prisma Pulse.
+Learn more at ${link('https://pris.ly/cli/pdp')}`
+
+  private static boxedTryPdpMessage = drawBox({
+    height: this.tryPdpMessage.split('\n').length,
+    width: 0, // calculated automatically
+    str: this.tryPdpMessage,
+    horizontalPadding: 2,
+  })
 
   private static help = format(`
     ${
@@ -114,6 +128,8 @@ export class CLI implements Command {
 
          --preview-feature   Run Preview Prisma commands
          --help, -h          Show additional information about a command
+
+${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 

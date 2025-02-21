@@ -1,3 +1,6 @@
+import path from 'node:path'
+
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
@@ -12,7 +15,6 @@ import {
   validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -33,6 +35,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -40,16 +43,20 @@ ${bold('Examples')}
   With an existing Prisma schema
     ${dim('$')} prisma validate
 
+  With a Prisma config file
+    ${dim('$')} prisma validate --config=./prisma.config.ts
+
   Or specify a Prisma schema path
     ${dim('$')} prisma validate --schema=./schema.prisma
 
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
@@ -61,19 +68,17 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
-
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
     const { lintDiagnostics } = handleLintPanic(
       () => {
         // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schema })
+        const lintDiagnostics = lintSchema({ schemas })
         return { lintDiagnostics }
       },
-      { schema },
+      { schemas },
     )
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -83,16 +88,22 @@ ${bold('Examples')}
     }
 
     validate({
-      datamodel: schema,
+      schemas,
     })
 
     // We could have a CLI flag to ignore env var validation
     await getConfig({
-      datamodel: schema,
+      datamodel: schemas,
       ignoreEnvVarErrors: false,
     })
 
-    return `The schema at ${underline(schemaPath)} is valid 🚀`
+    const schemaRelativePath = path.relative(process.cwd(), schemaPath)
+
+    if (schemas.length > 1) {
+      return `The schemas at ${underline(schemaRelativePath)} are valid 🚀`
+    }
+
+    return `The schema at ${underline(schemaRelativePath)} is valid 🚀`
   }
 
   // help message

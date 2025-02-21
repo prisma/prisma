@@ -3,6 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 import type { MigrateTypes } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
@@ -90,7 +91,7 @@ export namespace EngineArgs {
 
   export interface CreateMigrationInput {
     migrationsDirectoryPath: string
-    prismaSchema: string
+    schema: MigrateTypes.SchemasContainer
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
     migrationName?: string
@@ -102,24 +103,16 @@ export namespace EngineArgs {
   // or the whole Prisma schema as a string,
   // or only the connection string.
   export interface CreateDatabaseInput {
-    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
+    datasource: MigrateTypes.DatasourceParam
   }
 
   export interface DropDatabase {
     schema: string
   }
 
-  type DbExecuteDatasourceTypeSchema = {
-    // Path to the Prisma schema file to take the datasource URL from.
-    tag: 'schema'
-    schema: string
-  }
-  type DbExecuteDatasourceTypeUrl = {
-    // The URL of the database to run the command on.
-    tag: 'url'
-    url: string
-  }
-  export type DbExecuteDatasourceType = DbExecuteDatasourceTypeSchema | DbExecuteDatasourceTypeUrl
+  export type DbExecuteDatasourceType =
+    | MigrateTypes.Tagged<'schema', MigrateTypes.SchemasWithConfigDir>
+    | MigrateTypes.Tagged<'url', MigrateTypes.UrlContainer>
   export interface DbExecuteInput {
     // The location of the live database to connect to.
     datasourceType: DbExecuteDatasourceType
@@ -127,19 +120,18 @@ export namespace EngineArgs {
     script: string
   }
 
-  export type GetDatabaseVersionParams = MigrateTypes.GetDatabaseVersionParams
-
   export interface IntrospectParams {
-    schema: string
+    schema: MigrateTypes.SchemasContainer
+    baseDirectoryPath: string
     force?: Boolean
 
     // Note: this must be a non-negative integer
     compositeTypeDepth?: number
-    schemas?: string[]
+    namespaces?: string[]
   }
 
   export interface IntrospectResult {
-    datamodel: string
+    schema: MigrateTypes.SchemasContainer
     warnings: string | null
 
     /**
@@ -165,12 +157,12 @@ export namespace EngineArgs {
   }
 
   export interface EnsureConnectionValidityInput {
-    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
+    datasource: MigrateTypes.DatasourceParam
   }
 
   export interface EvaluateDataLossInput {
     migrationsDirectoryPath: string
-    prismaSchema: string
+    schema: MigrateTypes.SchemasContainer
   }
 
   export interface ListMigrationDirectoriesInput {
@@ -186,27 +178,13 @@ export namespace EngineArgs {
     migrationName: string
   }
 
-  type MigrateDiffTargetUrl = {
-    // The url to a live database. Its schema will be considered.
-    // This will cause the Schema engine to connect to the database and read from it. It will not write.
-    tag: 'url'
-    url: string
-  }
+  type MigrateDiffTargetUrl = MigrateTypes.Tagged<'url', MigrateTypes.UrlContainer>
   type MigrateDiffTargetEmpty = {
     // An empty schema.
     tag: 'empty'
   }
-  type MigrateDiffTargetSchemaDatamodel = {
-    // Path to the Prisma schema file to take the datasource URL from.
-    tag: 'schemaDatamodel'
-    schema: string
-  }
-  type MigrateDiffTargetSchemaDatasource = {
-    // The path to a Prisma schema.
-    // The datasource url will be considered, and the live database it points to introspected for its schema.
-    tag: 'schemaDatasource'
-    schema: string
-  }
+  type MigrateDiffTargetSchemaDatamodel = MigrateTypes.Tagged<'schemaDatamodel', MigrateTypes.SchemasContainer>
+  type MigrateDiffTargetSchemaDatasource = MigrateTypes.Tagged<'schemaDatasource', MigrateTypes.SchemasWithConfigDir>
   type MigrateDiffTargetMigrations = {
     // The path to a migrations directory of the shape expected by Prisma Migrate.
     // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
@@ -235,9 +213,19 @@ export namespace EngineArgs {
     exitCode?: boolean
   }
 
-  export interface SchemaPush {
-    schema: string
+  export interface SchemaPushInput {
+    schema: MigrateTypes.SchemasContainer
     force: boolean
+  }
+
+  export interface IntrospectSqlParams {
+    url: string
+    queries: SqlQueryInput[]
+  }
+
+  export interface SqlQueryInput {
+    name: string
+    source: string
   }
 }
 
@@ -305,6 +293,10 @@ export namespace EngineResults {
     executedSteps: number
     warnings: string[]
     unexecutable: string[]
+  }
+
+  export interface IntrospectSqlOutput {
+    queries: SqlQueryOutput[]
   }
 }
 

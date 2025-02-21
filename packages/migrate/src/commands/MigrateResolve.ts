@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
@@ -38,6 +39,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
     -h, --help   Display this help message
+      --config   Custom path to your Prisma config file
       --schema   Custom path to your Prisma schema
      --applied   Record a specific migration as applied
  --rolled-back   Record a specific migration as rolled back
@@ -54,7 +56,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -63,6 +65,7 @@ ${bold('Examples')}
         '--applied': String,
         '--rolled-back': String,
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -72,15 +75,15 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, true)
+    await checkUnsupportedDataProxy('migrate resolve', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
@@ -117,7 +120,8 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         migrate.stop()
       }
 
-      return `Migration ${args['--applied']} marked as applied.`
+      process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
+      return ``
     } else {
       if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
         throw new Error(
@@ -138,7 +142,8 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         migrate.stop()
       }
 
-      return `Migration ${args['--rolled-back']} marked as rolled back.`
+      process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
+      return ``
     }
   }
 

@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { DbPull } from '@prisma/migrate'
 
@@ -9,6 +10,7 @@ const cliInstance = CLI.new(
   {
     // init: Init.new(),
     // migrate: MigrateCommand.new({
+    //   diff: MigrateDiff.new(),
     //   dev: MigrateDev.new(),
     //   status: MigrateStatus.new(),
     //   resolve: MigrateResolve.new(),
@@ -39,7 +41,7 @@ const cliInstance = CLI.new(
 it('no params should return help', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse([])
+  await cliInstance.parse([], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -47,7 +49,7 @@ it('no params should return help', async () => {
 it('wrong flag', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse(['--something'])
+  await cliInstance.parse(['--something'], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -55,28 +57,28 @@ it('wrong flag', async () => {
 it('help flag', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse(['--help'])
+  await cliInstance.parse(['--help'], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
+  await expect(cliInstance.parse(['doesnotexist'], defaultTestConfig())).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {
-  const result = cliInstance.parse(['introspect'])
+  const result = cliInstance.parse(['introspect'], defaultTestConfig())
 
   await expect(result).rejects.toMatchInlineSnapshot(`
-          Could not find a schema.prisma file that is required for this command.
-          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-        `)
+    "Could not find a schema.prisma file that is required for this command.
+    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+  `)
   expect(ctx.mocked['console.log'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.info'].mock.calls).toHaveLength(0)
   expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-    prisma:warn 
+    "prisma:warn 
     prisma:warn The prisma introspect command is deprecated. Please use prisma db pull instead.
-    prisma:warn 
+    prisma:warn "
   `)
   expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
 })

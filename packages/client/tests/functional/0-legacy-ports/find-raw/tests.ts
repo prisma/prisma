@@ -1,5 +1,6 @@
 import { copycat } from '@snaplet/copycat'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type $ from './node_modules/@prisma/client'
@@ -46,32 +47,32 @@ testMatrix.setupTestSuite(
       expect(users).toMatchInlineSnapshot(`
         [
           {
-            _id: {
-              $oid: 02d25579a73a72373fa4e846,
+            "_id": {
+              "$oid": "02d25579a73a72373fa4e846",
             },
-            age: 20,
-            email: Pete.Runte93767@broaden-dungeon.info,
+            "age": 20,
+            "email": "Pete.Runte93767@broaden-dungeon.info",
           },
           {
-            _id: {
-              $oid: a85d5d75a3a886cb61eb3a0e,
+            "_id": {
+              "$oid": "a85d5d75a3a886cb61eb3a0e",
             },
-            age: 45,
-            email: Sam.Mills50272@oozeastronomy.net,
+            "age": 45,
+            "email": "Sam.Mills50272@oozeastronomy.net",
           },
           {
-            _id: {
-              $oid: a7fe5dac91ab6b0f529430c5,
+            "_id": {
+              "$oid": "a7fe5dac91ab6b0f529430c5",
             },
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
           },
           {
-            _id: {
-              $oid: 40b15492abe23e6fce736dad,
+            "_id": {
+              "$oid": "40b15492abe23e6fce736dad",
             },
-            age: 63,
-            email: Arielle.Reichel85426@hunker-string.org,
+            "age": 63,
+            "email": "Arielle.Reichel85426@hunker-string.org",
           },
         ]
       `)
@@ -83,11 +84,11 @@ testMatrix.setupTestSuite(
       expect(users).toMatchInlineSnapshot(`
         [
           {
-            _id: {
-              $oid: a7fe5dac91ab6b0f529430c5,
+            "_id": {
+              "$oid": "a7fe5dac91ab6b0f529430c5",
             },
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
           },
         ]
       `)
@@ -102,8 +103,8 @@ testMatrix.setupTestSuite(
       expect(users).toMatchInlineSnapshot(`
         [
           {
-            age: 60,
-            email: Kyla_Beer587@fraternise-assassination.name,
+            "age": 60,
+            "email": "Kyla_Beer587@fraternise-assassination.name",
           },
         ]
       `)
@@ -111,7 +112,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['cockroachdb', 'sqlserver', 'sqlite', 'mysql', 'postgresql'],
+      from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.SQLITE],
       reason: 'This is a MongoDB specific feature',
     },
   },

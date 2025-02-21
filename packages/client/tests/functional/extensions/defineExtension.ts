@@ -294,6 +294,12 @@ function allResultsGenericExtensionObjectViaDefault() {
         _createMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'createMany'>>) {
           return {} as PrismaDefault.Result<T, A, 'createMany'>
         },
+        _createManyAndReturn<T, A>(
+          this: T,
+          _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'createManyAndReturn'>>,
+        ) {
+          return {} as PrismaDefault.Result<T, A, 'createManyAndReturn'>
+        },
         _delete<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'delete'>>) {
           return {} as PrismaDefault.Result<T, A, 'delete'>
         },
@@ -326,6 +332,12 @@ function allResultsGenericExtensionObjectViaDefault() {
         },
         _updateMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'updateMany'>>) {
           return {} as PrismaDefault.Result<T, A, 'updateMany'>
+        },
+        _updateManyAndReturn<T, A>(
+          this: T,
+          _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'updateManyAndReturn'>>,
+        ) {
+          return {} as PrismaDefault.Result<T, A, 'updateManyAndReturn'>
         },
         _upsert<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'upsert'>>) {
           return {} as PrismaDefault.Result<T, A, 'upsert'>
@@ -562,10 +574,16 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
 
       const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-      // @ts-test-if: provider !== Providers.SQLITE
       const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
-      // @ts-test-if: provider !== Providers.SQLITE
       expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
+
+      const _createManyAndReturn = xprisma.user._createManyAndReturn({
+        data: [{ email: '', firstName: '', lastName: '' }],
+      })
+      const createManyAndReturn = await xprisma.user._createManyAndReturn({
+        data: [{ email: '', firstName: '', lastName: '' }],
+      })
+      expectTypeOf<typeof _createManyAndReturn>().toEqualTypeOf<typeof createManyAndReturn>()
 
       const _delete = xprisma.user._delete({ where: { id: '1' } })
       const deleted = await xprisma.user.delete({ where: { id: '1' } })
@@ -606,6 +624,12 @@ testMatrix.setupTestSuite(() => {
       const _updateMany = xprisma.user._updateMany({ where: { id: '1' }, data: { email: '' } })
       const updateMany = await prisma.user.updateMany({ where: { id: '1' }, data: { email: '' } })
       expectTypeOf<typeof _updateMany>().toEqualTypeOf<typeof updateMany>()
+
+      const _updateManyAndReturn = xprisma.user._updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      const updateManyAndReturn = await prisma.user.updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      expectTypeOf<typeof _updateManyAndReturn>().toEqualTypeOf<typeof updateManyAndReturn>()
 
       const _upsert = xprisma.user._upsert({
         where: { id: '1' },

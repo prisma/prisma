@@ -3,7 +3,7 @@ import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -131,16 +131,14 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint failed on the field`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
-                      [Providers.POSTGRESQL]:
-                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                      [Providers.SQLSERVER]:
-                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated: `authorId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
@@ -196,45 +194,41 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
-          // SQLite doesn't support createMany
-          test('[create] nested child [createMany]', async () => {
-            // @ts-test-if: provider !== Providers.SQLITE
-            await prisma[userModel].create({
-              data: {
-                id: '1',
-                posts: {
-                  createMany: {
-                    data: [{ id: '1' }, { id: '2' }],
-                  },
+        test('[create] nested child [createMany]', async () => {
+          await prisma[userModel].create({
+            data: {
+              id: '1',
+              posts: {
+                createMany: {
+                  data: [{ id: '1' }, { id: '2' }],
                 },
               },
-              include: { posts: true },
-            })
+            },
+            include: { posts: true },
+          })
 
-            expect(
-              await prisma[postModel].findMany({
-                where: { authorId: '1' },
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                authorId: '1',
-              },
-              {
-                id: '2',
-                authorId: '1',
-              },
-            ])
-            expect(
-              await prisma[userModel].findUniqueOrThrow({
-                where: { id: '1' },
-              }),
-            ).toEqual({
+          expect(
+            await prisma[postModel].findMany({
+              where: { authorId: '1' },
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
               id: '1',
-              enabled: null,
-            })
+              authorId: '1',
+            },
+            {
+              id: '2',
+              authorId: '1',
+            },
+          ])
+          expect(
+            await prisma[userModel].findUniqueOrThrow({
+              where: { id: '1' },
+            }),
+          ).toEqual({
+            id: '1',
+            enabled: null,
           })
         })
       })
@@ -359,7 +353,7 @@ testMatrix.setupTestSuite(
                         ? // DEFAULT / Cascade / SetNull
                           'Unique constraint failed on the constraint: `PRIMARY`'
                         : // Other
-                          'Foreign key constraint failed on the field: `authorId`',
+                          'Foreign key constraint violated: `authorId`',
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
@@ -535,13 +529,11 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.MONGODB]:
                         "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-                      [Providers.POSTGRESQL]:
-                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                      [Providers.SQLSERVER]:
-                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated: `authorId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
@@ -628,13 +620,11 @@ testMatrix.setupTestSuite(
               undefined
             : conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated: `authorId`',
+                  [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
                   [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                 },
                 prisma:
@@ -867,7 +857,14 @@ testMatrix.setupTestSuite(
   // otherwise the suite will require all providers to be specified.
   {
     optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
+      from: [
+        Providers.MONGODB,
+        Providers.SQLSERVER,
+        Providers.MYSQL,
+        Providers.POSTGRESQL,
+        Providers.COCKROACHDB,
+        Providers.SQLITE,
+      ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
   },
