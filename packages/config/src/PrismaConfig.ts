@@ -20,7 +20,6 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
 // This is shared between `PrismaConfig` and `PrismaConfigInput`.
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
 
-// export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
 export type PrismaSchemaConfigShape =
   | {
       /**
