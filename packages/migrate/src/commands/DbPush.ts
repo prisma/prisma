@@ -156,52 +156,13 @@ ${bold('Examples')}
       }
       process.stdout.write('\n') // empty line
 
-      if (!canPrompt()) {
-        migrate.stop()
-        throw new Error(`${messages.join('\n')}\n
-Use the --force-reset flag to drop the database before push like ${bold(
-          green(getCommandWithExecutor('prisma db push --force-reset')),
-        )}
+      migrate.stop()
+      throw new Error(`${messages.join('\n')}\n
+You may use the --force-reset flag to drop the database before push like ${bold(
+        green(getCommandWithExecutor('prisma db push --force-reset')),
+      )}
 ${bold(red('All data will be lost.'))}
-        `)
-      } else {
-        process.stdout.write(`${messages.join('\n')}\n\n`)
-      }
-
-      process.stdout.write('\n') // empty line
-      const confirmation = await prompt({
-        type: 'confirm',
-        name: 'value',
-        message: `To apply this change we need to reset the database, do you want to continue? ${red(
-          'All data will be lost',
-        )}.`,
-      })
-
-      if (!confirmation.value) {
-        process.stdout.write('Reset cancelled.\n')
-        migrate.stop()
-        // Return SIGINT exit code to signal that the process was cancelled.
-        process.exit(130)
-      }
-
-      try {
-        // Reset first to remove all structure and data
-        await migrate.reset()
-        if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
-          process.stdout.write(
-            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.\n`,
-          )
-        } else {
-          process.stdout.write(`The ${datasourceInfo.prettyProvider} database was successfully reset.\n`)
-        }
-        wasDatabaseReset = true
-
-        // And now we can db push
-        await migrate.push({})
-      } catch (e) {
-        migrate.stop()
-        throw e
-      }
+      `)
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
