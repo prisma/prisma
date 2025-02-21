@@ -33,7 +33,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 18
-          pnpm-version: 9
           skip-tsc: true
           skip-build: true
 

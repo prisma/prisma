@@ -57,6 +57,7 @@ ${bold('Options')}
                     The migration will be empty if there are no changes in Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
+    --allow-reset   Allow resetting the database on incompatible schema change (accept data loss)
 
 ${bold('Examples')}
 
@@ -84,6 +85,7 @@ ${bold('Examples')}
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,
+      '--allow-reset': Boolean,
     })
 
     if (isError(args)) {
@@ -134,26 +136,21 @@ ${bold('Examples')}
     const migrationIdsApplied: string[] = []
 
     if (devDiagnostic.action.tag === 'reset') {
-      if (!args['--force']) {
-        if (!canPrompt()) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
-        }
+      this.logResetReason({
+        datasourceInfo,
+        reason: devDiagnostic.action.reason,
+      })
 
-        const confirmedReset = await this.confirmReset({
-          datasourceInfo,
-          reason: devDiagnostic.action.reason,
-        })
-
-        process.stdout.write('\n') // empty line
-
-        if (!confirmedReset) {
-          process.stdout.write('Reset cancelled.\n')
-          migrate.stop()
-          // Return SIGINT exit code to signal that the process was cancelled.
-          process.exit(130)
-        }
+      if (!args['--allow-reset']) {
+        process.stdout.write(
+          `\nYou may use --allow-reset to drop the database. ${bold(red('All data will be lost.'))}\n`,
+        )
+        migrate.stop()
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
       }
+
+      process.stdout.write('\nReceived --allow-reset, dropping the database. All data is lost.\n\n')
 
       try {
         // Do the reset
@@ -207,6 +204,11 @@ ${bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
+      if (!canPrompt()) {
+        migrate.stop()
+        throw new MigrateDevEnvNonInteractiveError()
+      }
+
       process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
       for (const warning of evaluateDataLossResult.warnings) {
         process.stdout.write(`  • ${warning.message}\n`)
@@ -214,11 +216,6 @@ ${bold('Examples')}
       process.stdout.write('\n') // empty line
 
       if (!args['--force']) {
-        if (!canPrompt()) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
-        }
-
         const message = args['--create-only']
           ? 'Are you sure you want to create this migration?'
           : 'Are you sure you want to create and apply this migration?'
@@ -339,50 +336,29 @@ ${green('Your database is now in sync with your schema.')}\n`,
     return ''
   }
 
-  private async confirmReset({
-    datasourceInfo,
-    reason,
-  }: {
-    datasourceInfo: DatasourceInfo
-    reason: string
-  }): Promise<boolean> {
+  private logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
     // Log the reason of why a reset is needed to the user
     process.stdout.write(reason + '\n')
 
-    let messageFirstLine = ''
+    let message: string
 
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
       if (datasourceInfo.schemas?.length) {
-        messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+        message = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
       } else if (datasourceInfo.schema) {
-        messageFirstLine = `We need to reset the "${datasourceInfo.schema}" schema`
+        message = `We need to reset the "${datasourceInfo.schema}" schema`
       } else {
-        messageFirstLine = `We need to reset the database schema`
+        message = `We need to reset the database schema`
       }
     } else {
-      messageFirstLine = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
+      message = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
     }
 
     if (datasourceInfo.dbLocation) {
-      messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
+      message += ` at "${datasourceInfo.dbLocation}"`
     }
 
-    const messageForPrompt = `${messageFirstLine}
-Do you want to continue? ${red('All data will be lost')}.`
-
-    // For testing purposes we log the message
-    // An alternative would be to find a way to capture the prompt message from jest tests
-    // (attempted without success)
-    if (Boolean((prompt as any)._injected?.length) === true) {
-      process.stdout.write(messageForPrompt + '\n')
-    }
-    const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
-      message: messageForPrompt,
-    })
-
-    return confirmation.value
+    process.stdout.write(`${message}\n`)
   }
 
   public help(error?: string): string | HelpError {

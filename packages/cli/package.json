@@ -133,7 +133,9 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*"
+    "@prisma/engines": "workspace:*",
+    "esbuild": ">=0.12 <1",
+    "esbuild-register": "3.6.0"
   },
   "optionalDependencies": {
     "fsevents": "2.3.3"
