@@ -1,7 +1,6 @@
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
-import prompt from 'prompts'
 
 import { DbPull } from '../commands/DbPull'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
@@ -59,9 +58,8 @@ describe('Baselining', () => {
     `)
     captureStdout.clearCaptureText()
 
-    // migrate dev --create-only
-    prompt.inject(['y'])
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
+    // migrate dev --create-only --allow-reset
+    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only', '--allow-reset'], defaultTestConfig())
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
@@ -84,7 +82,8 @@ describe('Baselining', () => {
         - Blog
 
       We need to reset the SQLite database "dev.db" at "file:./dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       "
     `)
