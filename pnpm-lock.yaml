@@ -1155,9 +1155,6 @@ importers:
       kleur:
         specifier: 4.1.5
         version: 4.1.5
-      replace-string:
-        specifier: 3.1.0
-        version: 3.1.0
       strip-ansi:
         specifier: 6.0.1
         version: 6.0.1
@@ -1433,9 +1430,6 @@ importers:
       read-package-up:
         specifier: 11.0.0
         version: 11.0.0
-      replace-string:
-        specifier: 3.1.0
-        version: 3.1.0
       resolve:
         specifier: 1.22.10
         version: 1.22.10
@@ -6534,10 +6528,6 @@ packages:
   regexp.prototype.flags@1.5.0:
     resolution: {integrity: sha512-0SutC3pNudRKgquxGoRGIz946MZVHqbNfPjBdxeOhBrdgDKlRoXmYLQN9xRbrR09ZXWeGAdPuif7egofn6v5LA==}
     engines: {node: '>= 0.4'}
-
-  replace-string@3.1.0:
-    resolution: {integrity: sha512-yPpxc4ZR2makceA9hy/jHNqc7QVkd4Je/N0WRHm6bs3PtivPuPynxE5ejU/mp5EhnCv8+uZL7vhz8rkluSlx+Q==}
-    engines: {node: '>=8'}
 
   require-directory@2.1.1:
     resolution: {integrity: sha512-fGxEI7+wsG9xrvdjsrlmL22OMTTiHRwAMroiEeMgq8gzoLC/PQr7RsRDSTLUg/bZAZtF+TVIkHc6/4RIKrui+Q==}
@@ -13395,8 +13385,6 @@ snapshots:
       call-bind: 1.0.2
       define-properties: 1.2.1
       functions-have-names: 1.2.3
-
-  replace-string@3.1.0: {}
 
   require-directory@2.1.1: {}
 

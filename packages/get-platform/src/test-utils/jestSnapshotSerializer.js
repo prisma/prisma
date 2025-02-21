@@ -1,6 +1,5 @@
 'use strict'
 const path = require('path')
-const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
 const { binaryTargetRegex } = require('./binaryTargetRegex')
 
@@ -33,12 +32,12 @@ function normalizeTmpDir(str) {
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(path.dirname(__dirname)))
 
-  return replaceAll(str, parentDir, '')
+  return str.replaceAll(parentDir, '')
 }
 
 function normalizeToUnixPaths(str) {
   // TODO: Windows: this breaks some tests by replacing backslashes outside of file names.
-  return replaceAll(str, path.sep, '/')
+  return str.replaceAll(path.sep, '/')
 }
 
 function normalizeGitHubLinks(str) {
