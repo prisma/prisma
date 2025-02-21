@@ -21,8 +21,8 @@ const PrismaConfigSchemaMultiShape = Shape.Struct({
 const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
 
 // export type PrismaSchemaConfigShape = typeof PrismaSchemaConfigShape.Type
-export type PrismaSchemaConfigShape
-  = {
+export type PrismaSchemaConfigShape =
+  | {
       /**
        * Tell Prisma to use a single `.prisma` schema file.
        */
