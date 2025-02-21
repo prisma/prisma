@@ -306,15 +306,15 @@ async function binaryNeedsToBeDownloaded(
         return true
       }
     } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-      if (!targetExists) {
-        if (cachedFile) {
-            debug(`copying ${cachedFile} to ${job.targetFilePath}`)
-            await overwriteFile(cachedFile, job.targetFilePath)
-            return false
-          }
-        return true
+      if (targetExists) {
+        return false
       }
-      return false
+      if (cachedFile) {
+        debug(`copying ${cachedFile} to ${job.targetFilePath}`)
+        await overwriteFile(cachedFile, job.targetFilePath)
+        return false
+      }
+      return true
     } else {
       return true
     }
