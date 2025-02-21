@@ -3,6 +3,7 @@ import path from 'node:path'
 import { jestContext } from '@prisma/get-platform'
 import type { ParseError } from 'effect/ParseResult'
 
+import { defaultConfig } from '../defaultConfig'
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
 
 const ctx = jestContext.new().assemble()
@@ -211,13 +212,13 @@ describe('loadConfigFromFile', () => {
       expect(error).toBeUndefined()
     })
 
-    it('returns no config when the Prisma config file does not exist', async () => {
+    it('returns default config when the Prisma config file does not exist', async () => {
       ctx.fixture('loadConfigFromFile/default-location/ignore')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toBeNull()
       expect(error).toBeUndefined()
-      expect(config).toBeUndefined()
+      expect(config).toMatchObject(defaultConfig())
     })
   })
 

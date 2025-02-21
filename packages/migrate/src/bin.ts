@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { defaultConfig, loadConfigFromFile } from '@prisma/config'
+import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
@@ -75,7 +75,7 @@ async function main(): Promise<number> {
   }
 
   // Execute the command
-  const result = await cli.parse(commandArray, { ...defaultConfig(), ...config })
+  const result = await cli.parse(commandArray, config)
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result)

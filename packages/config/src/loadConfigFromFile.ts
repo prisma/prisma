@@ -3,11 +3,10 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
-import { Either, pipe } from 'effect'
-import { ParseError } from 'effect/ParseResult'
 
-import { defineConfig, type PrismaConfigInternal } from './defineConfig'
-import { parsePrismaConfigInternalShape, parsePrismaConfigShape } from './PrismaConfig'
+import { defaultConfig } from './defaultConfig'
+import type { PrismaConfigInternal } from './defineConfig'
+import { parseDefaultExport } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -33,7 +32,7 @@ export type LoadConfigFromFileError =
     }
   | {
       _tag: 'ConfigFileParseError'
-      error: ParseError
+      error: Error
     }
   | {
       _tag: 'UnknownError'
@@ -53,7 +52,7 @@ export type ConfigFromFile =
     }
   | {
       resolvedPath: null
-      config?: never
+      config: PrismaConfigInternal
       error?: never
     }
 
@@ -88,7 +87,7 @@ export async function loadConfigFromFile({
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
-      return { resolvedPath }
+      return { resolvedPath, config: defaultConfig() }
     }
   }
 
@@ -104,34 +103,23 @@ export async function loadConfigFromFile({
 
     debug(`Config file loaded in %s`, getTime())
 
-    const defaultExport = required['default']
+    let defaultExport: PrismaConfigInternal | undefined
 
-    const parseResultEither = pipe(
-      // If the given config conforms to the `PrismaConfig` shape, feed it to `defineConfig`.
-      parsePrismaConfigShape(defaultExport),
-      Either.map((config) => {
-        debug('Parsed `PrismaConfig` shape: %o', config)
-        return defineConfig(config)
-      }),
-      // Otherwise, try to parse it as a `PrismaConfigInternal` shape.
-      Either.orElse(() => parsePrismaConfigInternalShape(defaultExport)),
-    )
-
-    // Failure case
-    if (Either.isLeft(parseResultEither)) {
+    try {
+      defaultExport = parseDefaultExport(required['default'])
+    } catch (e) {
+      const error = e as Error
       return {
         resolvedPath,
         error: {
           _tag: 'ConfigFileParseError',
-          error: parseResultEither.left,
+          error,
         },
       }
     }
 
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
-
-    // Success case
-    const prismaConfig = transformPathsInConfigToAbsolute(parseResultEither.right, resolvedPath)
+    const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
     return {
       config: {
