@@ -7,6 +7,7 @@
     "node": ">=18.18",
     "pnpm": ">=9.14.4 <10"
   },
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
   "scripts": {
     "build": "pnpm -r build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
@@ -23,8 +24,8 @@
     "check-engines-override": "tsx scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "prettier-check": "prettier --check .",
-    "bench": "tsx scripts/bench.ts | tee output.txt",
-    "bench-stdout-only": "tsx scripts/bench.ts",
+    "bench": "node -r esbuild-register scripts/bench.ts | tee output.txt",
+    "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"

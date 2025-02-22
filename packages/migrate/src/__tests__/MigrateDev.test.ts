@@ -1,6 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 import path from 'path'
@@ -32,11 +33,16 @@ function removeSeedlingEmoji(str: string) {
 
 const originalEnv = { ...process.env }
 
-beforeEach(() => {
+beforeAll(() => {
   captureStdout.startCapture()
 })
 
+beforeEach(() => {
+  clearPromptInjection('before')
+})
+
 afterEach(() => {
+  clearPromptInjection('after')
   captureStdout.clearCaptureText()
 })
 
@@ -44,12 +50,28 @@ afterAll(() => {
   captureStdout.stopCapture()
 })
 
+// Sanity check to ensure no prompt injections remain enqueued between
+// test cases. Having those would cause cascade failures of unrelated
+// test cases after failed ones with confusing error output, wasting
+// developer's time. This is why we should not rely on such global objects
+// if possible.
+function clearPromptInjection(position: string): void {
+  if (!prompt || !prompt._injected) return
+
+  const count = prompt._injected.length
+  if (!count) return
+
+  process.stdout.write(`WARNING: Clearing ${count} prompt injection(s) ${position} test case\n: ${prompt._injected.join(", ")}`)
+
+  prompt._injected.splice(0, count)
+}
+
 describe('common', () => {
   it('invalid schema', async () => {
     ctx.fixture('schema-only-sqlite')
 
     try {
-      await MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
+      await MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'], defaultTestConfig())
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
@@ -80,7 +102,7 @@ describe('common', () => {
     ctx.fixture('schema-only-sqlite')
 
     try {
-      await MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
+      await MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'], defaultTestConfig())
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
@@ -109,7 +131,7 @@ describe('common', () => {
     const commandInstance = MigrateDev.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--something'])
+    await commandInstance.parse(['--something'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
@@ -117,13 +139,13 @@ describe('common', () => {
     const commandInstance = MigrateDev.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--help'])
+    await commandInstance.parse(['--help'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
@@ -137,8 +159,9 @@ describe('common', () => {
     `)
   })
   it('dev should error in unattended environment', async () => {
-    ctx.fixture('transition-db-push-migrate')
-    const result = MigrateDev.new().parse([])
+    // Must use a fixture which attempts to prompt
+    ctx.fixture('existing-db-1-warning')
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma Migrate has detected that the environment is non-interactive, which is not supported.
 
@@ -152,7 +175,7 @@ describe('common', () => {
 describe('sqlite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'])
+    const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -168,7 +191,7 @@ describe('sqlite', () => {
 
   it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
@@ -194,7 +217,7 @@ describe('sqlite', () => {
 
   it('first migration (--name) (folder)', async () => {
     ctx.fixture('schema-folder-sqlite')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
@@ -236,7 +259,7 @@ describe('sqlite', () => {
       'xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end_this_should_be_truncated',
     ])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -288,7 +311,7 @@ describe('sqlite', () => {
   it('snapshot of sql', async () => {
     ctx.fixture('schema-only-sqlite')
 
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
@@ -311,7 +334,7 @@ describe('sqlite', () => {
 
     prompt.inject(['some-Draft'])
 
-    const draftResult = MigrateDev.new().parse(['--create-only'])
+    const draftResult = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_some_draft
@@ -319,7 +342,7 @@ describe('sqlite', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
@@ -353,7 +376,7 @@ describe('sqlite', () => {
 
     prompt.inject(['some-empty-Draft'])
 
-    const draftResult = MigrateDev.new().parse(['--schema=./prisma/empty.prisma', '--create-only'])
+    const draftResult = MigrateDev.new().parse(['--schema=./prisma/empty.prisma', '--create-only'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_some_empty_draft
@@ -376,7 +399,7 @@ describe('sqlite', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
-    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
+    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_first
@@ -384,7 +407,7 @@ describe('sqlite', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
@@ -411,12 +434,10 @@ describe('sqlite', () => {
     `)
   })
 
-  it('transition-db-push-migrate (prompt reset yes)', async () => {
+  it('transition-db-push-migrate (--allow-reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
 
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -437,7 +458,8 @@ describe('sqlite', () => {
         - _Migration
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_\`
 
@@ -495,14 +517,14 @@ describe('sqlite', () => {
   })
 
   it('transition-db-push-migrate (prompt reset no)', async () => {
+=======
+  it('transition-db-push-migrate (must refuse reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
     })
 
-    prompt.inject([new Error()])
-
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -523,9 +545,8 @@ describe('sqlite', () => {
         - _Migration
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
-
-      Reset cancelled.
+      
+      You may use --allow-reset to drop the database. All data will be lost.
       "
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -534,9 +555,7 @@ describe('sqlite', () => {
   it('edited migration and unapplied empty draft', async () => {
     ctx.fixture('edited-and-draft')
 
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -545,7 +564,8 @@ describe('sqlite', () => {
 
       The migration \`20201231000000_test\` was modified after it was applied.
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_test\`
       Applying migration \`20201231000000_draft\`
@@ -567,9 +587,9 @@ describe('sqlite', () => {
     ctx.fixture('edited-and-draft')
     fs.remove('prisma/migrations/20201117144659_test')
 
-    prompt.inject(['y', 'new-change'])
+    prompt.inject(['new-change'])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -588,7 +608,8 @@ describe('sqlite', () => {
       - The migrations recorded in the database diverge from the local migrations directory.
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
+
+      Received --allow-reset, dropping the database. All data is lost.
 
       Applying migration \`20201231000000_draft\`
 
@@ -616,7 +637,7 @@ describe('sqlite', () => {
     ctx.fixture('broken-migration')
 
     try {
-      await MigrateDev.new().parse([])
+      await MigrateDev.new().parse([], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('near "BROKEN": syntax error')
@@ -636,7 +657,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-failed-migration')
 
     try {
-      await MigrateDev.new().parse([])
+      await MigrateDev.new().parse([], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
@@ -654,14 +675,14 @@ describe('sqlite', () => {
   it('existing-db-1-migration edit migration with broken sql', async () => {
     ctx.fixture('existing-db-1-migration')
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     // Edit with broken SQL
     fs.write('prisma/migrations/20201014154943_init/migration.sql', 'CREATE BROKEN')
 
     try {
-      await MigrateDev.new().parse([])
+      await MigrateDev.new().parse([], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
@@ -682,7 +703,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft', async () => {
     ctx.fixture('existing-db-1-draft')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -704,7 +725,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft + 1 schema change', async () => {
     ctx.fixture('existing-db-1-draft-1-change')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -734,7 +755,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unexecutable schema change', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).rejects.toMatchInlineSnapshot(`
       "
@@ -757,7 +778,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = MigrateDev.new().parse(['--create-only'])
+    const result = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
@@ -779,7 +800,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -811,7 +832,7 @@ describe('sqlite', () => {
 
     prompt.inject([new Error()])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -833,7 +854,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
@@ -865,7 +886,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--skip-seed'])
+    const result = MigrateDev.new().parse(['--skip-seed'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -897,7 +918,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -933,7 +954,7 @@ describe('sqlite', () => {
     ctx.fs.remove('prisma/seed.sh')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -960,7 +981,7 @@ describe('sqlite', () => {
     ctx.fixture('provider-switch-postgresql-to-sqlite')
 
     try {
-      await MigrateDev.new().parse([])
+      await MigrateDev.new().parse([], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P3019')
       expect(e.message).toContain('P3019')
@@ -1017,7 +1038,7 @@ describe('postgresql', () => {
   it('schema only', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -1040,7 +1061,7 @@ describe('postgresql', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
+    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -1062,7 +1083,7 @@ describe('postgresql', () => {
 
   it('create first migration', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1086,7 +1107,7 @@ describe('postgresql', () => {
   it('create first migration with nativeTypes', async () => {
     ctx.fixture('nativeTypes-postgresql')
 
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1132,7 +1153,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(7_000)
 
-    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
+    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_first
@@ -1140,7 +1161,7 @@ describe('postgresql', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
@@ -1168,7 +1189,7 @@ describe('postgresql', () => {
 
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1224,21 +1245,25 @@ describe('postgresql', () => {
 
     await fs.writeAsync(
       'script.sql',
-      `CREATE TABLE "public"."User" (
-        "id" text,
-        "email" text NOT NULL,
-        "name" text,
-        PRIMARY KEY ("id")
-    );`,
+      `CREATE TABLE "public"."User"
+       (
+           "id"    text,
+           "email" text NOT NULL,
+           "name"  text,
+           PRIMARY KEY ("id")
+       );`,
     )
 
-    const dbExecuteResult = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+    const dbExecuteResult = DbExecute.new().parse(
+      ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+      defaultTestConfig(),
+    )
     await expect(dbExecuteResult).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
 
     prompt.inject(['test', new Error()]) // simulate user cancellation
     // prompt.inject(['y']) // simulate user cancellation
 
-    const result = MigrateDev.new().parse(['--schema=prisma/multiSchema.prisma'])
+    const result = MigrateDev.new().parse(['--schema=prisma/multiSchema.prisma'], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
@@ -1258,7 +1283,10 @@ describe('postgresql', () => {
 
   it('should work if directUrl is set as env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'])
+    const result = MigrateDev.new().parse(
+      ['--schema', 'with-directUrl-env.prisma', '--name=first'],
+      defaultTestConfig(),
+    )
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1314,7 +1342,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('schema only', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -1337,7 +1365,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
+    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -1359,7 +1387,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
   it('create first migration', async () => {
     ctx.fixture('schema-only-cockroachdb')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1383,7 +1411,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('create first migration with nativeTypes', async () => {
     ctx.fixture('nativeTypes-cockroachdb')
 
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1407,7 +1435,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     ctx.fixture('schema-only-cockroachdb')
     jest.setTimeout(7_000)
 
-    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
+    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_first
@@ -1415,7 +1443,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
@@ -1443,7 +1471,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-cockroachdb')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1504,7 +1532,7 @@ describe('mysql', () => {
   it('schema only', async () => {
     ctx.fixture('schema-only-mysql')
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -1526,7 +1554,7 @@ describe('mysql', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-mysql')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
+    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
@@ -1547,7 +1575,7 @@ describe('mysql', () => {
 
   it('create first migration', async () => {
     ctx.fixture('schema-only-mysql')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1614,7 +1642,7 @@ describe('mysql', () => {
     ctx.fixture('schema-only-mysql')
     jest.setTimeout(7_000)
 
-    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
+    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_first
@@ -1622,7 +1650,7 @@ describe('mysql', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
@@ -1648,7 +1676,7 @@ describe('mysql', () => {
 
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-mysql')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1717,7 +1745,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   it('schema only', async () => {
     ctx.fixture('schema-only-sqlserver')
 
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -1739,7 +1767,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-sqlserver')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
+    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
@@ -1760,7 +1788,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   it('create first migration', async () => {
     ctx.fixture('schema-only-sqlserver')
-    const result = MigrateDev.new().parse([])
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -1826,7 +1854,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlserver')
 
-    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
+    const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'], defaultTestConfig())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_first
@@ -1834,7 +1862,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    const applyResult = MigrateDev.new().parse([])
+    const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
@@ -1860,7 +1888,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-sqlserver')
-    const result = MigrateDev.new().parse(['--name=first'])
+    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`

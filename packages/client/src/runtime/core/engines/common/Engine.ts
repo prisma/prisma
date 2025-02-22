@@ -135,6 +135,9 @@ export interface EngineConfig {
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   generator?: GeneratorConfig
+  /**
+   * @remarks this field is used internally by Policy, do not rename or remove
+   */
   overrideDatasources: Datasources
   showColors?: boolean
   logQueries?: boolean
@@ -166,6 +169,7 @@ export interface EngineConfig {
   /**
    * The contents of the datasource url saved in a string
    * @remarks only used by DataProxyEngine.ts
+   * @remarks this field is used internally by Policy, do not rename or remove
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 

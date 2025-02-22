@@ -1,13 +1,22 @@
+import {
+  QueryEvent,
+  QueryInterpreter,
+  QueryPlanNode,
+  TransactionInfo,
+  TransactionManager,
+  TransactionManagerError,
+} from '@prisma/client-engine-runtime'
 import Debug from '@prisma/debug'
 import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { LogEmitter, QueryEvent } from '../common/types/Events'
+import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import {
@@ -19,9 +28,6 @@ import {
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
-import { QueryInterpreter } from './interpreter/QueryInterpreter'
-import { QueryPlanNode } from './QueryPlan'
-import { TransactionManager } from './transactionManager/TransactionManager'
 import { QueryCompiler, QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
@@ -90,13 +96,24 @@ export class ClientEngine implements Engine<undefined> {
 
     if (this.logQueries) {
       this.#emitQueryEvent = (event: QueryEvent) => {
-        this.logEmitter.emit('query', event)
+        this.logEmitter.emit('query', {
+          ...event,
+          // TODO: we should probably change the interface to contain a proper array in the next major version.
+          params: JSON.stringify(event.params),
+          // TODO: this field only exists for historical reasons as we grandfathered it from the time
+          // when we emitted `tracing` events to stdout in the engine unchanged, and then described
+          // them in the public API as TS types. Thus this field used to contain the name of the Rust
+          // module in which an event originated. When using library engine, which uses a different
+          // mechanism with a JavaScript callback for logs, it's normally just an empty string instead.
+          // This field is definitely not useful and should be removed from the public types (but it's
+          // technically a breaking change, even if a tiny and inconsequential one).
+          target: 'ClientEngine',
+        } satisfies ClientQueryEvent)
       }
     }
 
     this.transactionManager = new TransactionManager({
       driverAdapter: this.driverAdapter,
-      clientVersion: this.config.clientVersion,
     })
 
     this.instantiateQueryCompilerPromise = this.instantiateQueryCompiler()
@@ -137,8 +154,18 @@ export class ClientEngine implements Engine<undefined> {
 
   private transformRequestError(err: any): Error {
     if (err instanceof PrismaClientInitializationError) return err
+
     if (err.code === 'GenericFailure' && err.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm')
       return new PrismaClientRustPanicError(getErrorMessageWithLink(this, err.message), this.config.clientVersion!)
+
+    if (err instanceof TransactionManagerError) {
+      return new PrismaClientKnownRequestError(err.message, {
+        code: err.code,
+        meta: err.meta,
+        clientVersion: this.config.clientVersion,
+      })
+    }
+
     try {
       const error: RustRequestError = JSON.parse(err as string)
       return new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
@@ -161,6 +188,7 @@ export class ClientEngine implements Engine<undefined> {
 
   async stop(): Promise<void> {
     await this.instantiateQueryCompilerPromise
+    await this.transactionManager.cancelAllTransactions()
   }
 
   version(): string {
@@ -187,21 +215,26 @@ export class ClientEngine implements Engine<undefined> {
     _headers: Tx.TransactionHeaders,
     arg?: any,
   ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
-    let result: Tx.InteractiveTransactionInfo<undefined> | undefined
-    if (action === 'start') {
-      const options: Tx.Options = arg
-      result = await this.transactionManager.startTransaction(options)
-    } else if (action === 'commit') {
-      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-      await this.transactionManager.commitTransaction(txInfo.id)
-    } else if (action === 'rollback') {
-      const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-      await this.transactionManager.rollbackTransaction(txInfo.id)
-    } else {
-      assertNever(action, 'Invalid transaction action.')
+    let result: TransactionInfo | undefined
+
+    try {
+      if (action === 'start') {
+        const options: Tx.Options = arg
+        result = await this.transactionManager.startTransaction(options)
+      } else if (action === 'commit') {
+        const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+        await this.transactionManager.commitTransaction(txInfo.id)
+      } else if (action === 'rollback') {
+        const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
+        await this.transactionManager.rollbackTransaction(txInfo.id)
+      } else {
+        assertNever(action, 'Invalid transaction action.')
+      }
+    } catch (error) {
+      throw this.transformRequestError(error)
     }
 
-    return result
+    return result ? { id: result.id, payload: undefined } : undefined
   }
 
   async request<T>(

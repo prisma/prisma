@@ -4,6 +4,7 @@
 /runtime
 /scripts/default-index.js
 /tests/memory/memory-report.html
+/tests/functional/results.json
 
 *.tsbuildinfo
 junit.xml

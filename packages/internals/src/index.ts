@@ -5,9 +5,9 @@ export {
   getSchema,
   getSchemaDir,
   type GetSchemaOptions,
-  type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
+  type SchemaPathFromConfig,
 } from './cli/getSchema'
 export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
@@ -73,6 +73,8 @@ export { handlePanic } from './utils/handlePanic'
 export { hasOwnProperty } from './utils/hasOwnProperty'
 export { isCi } from './utils/isCi'
 export { isCurrentBinInstalledGlobally } from './utils/isCurrentBinInstalledGlobally'
+export { isInContainer } from './utils/isInContainer'
+export { isInNpmLifecycleHook } from './utils/isInNpmLifecycleHook'
 export { isInteractive } from './utils/isInteractive'
 export { isPromiseLike } from './utils/isPromiseLike'
 export { isValidJsIdentifier } from './utils/isValidJsIdentifier'
@@ -83,6 +85,7 @@ export { loadEnvFile } from './utils/loadEnvFile'
 export { mapObjectValues } from './utils/mapObjectValues'
 export { maskSchema } from './utils/maskSchema'
 export { maxBy, maxWithComparator } from './utils/max'
+export { maybeInGitHook } from './utils/maybeInGitHook'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export { parseAWSNodejsRuntimeEnvVarVersion } from './utils/parseAWSNodejsRuntimeEnvVarVersion'
 export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue'
@@ -108,3 +111,4 @@ export * as wasm from './wasm'
 export type { EnvPaths } from '@prisma/generator-helper'
 export type { BinaryTarget } from '@prisma/get-platform'
 export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+export type { GetSchemaResult } from '@prisma/schema-files-loader'

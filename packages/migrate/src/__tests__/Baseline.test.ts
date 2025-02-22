@@ -1,6 +1,6 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
-import prompt from 'prompts'
 
 import { DbPull } from '../commands/DbPull'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
@@ -44,7 +44,7 @@ describe('Baselining', () => {
     process.env.DATABASE_URL = 'file:./dev.db'
 
     // db pull
-    const dbPull = DbPull.new().parse([])
+    const dbPull = DbPull.new().parse([], defaultTestConfig())
     await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -58,9 +58,8 @@ describe('Baselining', () => {
     `)
     captureStdout.clearCaptureText()
 
-    // migrate dev --create-only
-    prompt.inject(['y'])
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'])
+    // migrate dev --create-only --allow-reset
+    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only', '--allow-reset'], defaultTestConfig())
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
@@ -83,7 +82,8 @@ describe('Baselining', () => {
         - Blog
 
       We need to reset the SQLite database "dev.db" at "file:./dev.db"
-      Do you want to continue? All data will be lost.
+      
+      Received --allow-reset, dropping the database. All data is lost.
 
       "
     `)
@@ -91,7 +91,7 @@ describe('Baselining', () => {
 
     // migrate dev
     captureStdout.startCapture()
-    const migrateDev = MigrateDev.new().parse([])
+    const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
     await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -115,7 +115,7 @@ describe('Baselining', () => {
 
     // migrate resolve --applied migration_name
     const migrationName = fs.list('prisma/migrations')![0]
-    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName])
+    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
     await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -128,7 +128,7 @@ describe('Baselining', () => {
     captureStdout.clearCaptureText()
 
     // migrate deploy
-    const migrateDeployProd = MigrateDeploy.new().parse([])
+    const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -52,12 +53,14 @@ ${bold('Usage')}
 ${bold('Options')}
 
        -h, --help   Display this help message
+         --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
+    --allow-reset   Allow resetting the database on incompatible schema change (accept data loss)
 
 ${bold('Examples')}
 
@@ -71,7 +74,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -81,23 +84,30 @@ ${bold('Examples')}
       // '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
+      '--config': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,
+      '--allow-reset': Boolean,
     })
 
     if (isError(args)) {
       return this.help(args.message)
     }
+
     await checkUnsupportedDataProxy('migrate dev', args, true)
+=======
+
+    await checkUnsupportedDataProxy('migrate dev', args, config.schema, true)
+
 
     if (args['--help']) {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
@@ -133,6 +143,7 @@ ${bold('Examples')}
     const migrationIdsApplied: string[] = []
 
     if (devDiagnostic.action.tag === 'reset') {
+
       if (!args['--force']) {
         if (!canPrompt()) {
           migrate.stop()
@@ -175,6 +186,31 @@ ${bold('Examples')}
           }
         }
       }
+=======
+      this.logResetReason({
+        datasourceInfo,
+        reason: devDiagnostic.action.reason,
+      })
+
+      if (!args['--allow-reset']) {
+        process.stdout.write(
+          `\nYou may use --allow-reset to drop the database. ${bold(red('All data will be lost.'))}\n`,
+        )
+        migrate.stop()
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
+      }
+
+      process.stdout.write('\nReceived --allow-reset, dropping the database. All data is lost.\n\n')
+
+      try {
+        // Do the reset
+        await migrate.reset()
+      } catch (e) {
+        migrate.stop()
+        throw e
+      }
+
     }
 
     try {
@@ -220,6 +256,11 @@ ${bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
+      if (!canPrompt()) {
+        migrate.stop()
+        throw new MigrateDevEnvNonInteractiveError()
+      }
+
       process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
       for (const warning of evaluateDataLossResult.warnings) {
         process.stdout.write(`   • ${bold(red(warning.message))}\n`)
@@ -227,11 +268,6 @@ ${bold('Examples')}
       process.stdout.write('\n') // empty line
 
       if (!args['--force']) {
-        if (!canPrompt()) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
-        }
-
         const message = args['--create-only']
           ? 'Are you sure you want to create this migration?'
           : 'Are you sure you want to create and apply this migration?'
@@ -339,7 +375,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
           }
         } else {
           // Only used to help users to set up their seeds from old way to new package.json config
-          const { schemaPath } = (await getSchemaWithPath(args['--schema']))!
+          const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
           await verifySeedConfigAndReturnMessage(schemaPath)
@@ -352,6 +388,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
     return ''
   }
 
+
   private async confirmReset({
     datasourceInfo,
     reason,
@@ -359,21 +396,23 @@ ${green('Your database is now in sync with your schema.')}\n`,
     datasourceInfo: DatasourceInfo
     reason: string
   }): Promise<'baseline' | 'reset' | 'cancel'> {
+
+  private logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
     // Log the reason of why a reset is needed to the user
     process.stdout.write(reason + '\n')
 
-    let messageFirstLine = ''
+    let message: string
 
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
       if (datasourceInfo.schemas?.length) {
-        messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+        message = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
       } else if (datasourceInfo.schema) {
-        messageFirstLine = `We need to reset the "${datasourceInfo.schema}" schema`
+        message = `We need to reset the "${datasourceInfo.schema}" schema`
       } else {
-        messageFirstLine = `We need to reset the database schema`
+        message = `We need to reset the database schema`
       }
     } else {
-      messageFirstLine = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
+      message = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
     }
 
     if (datasourceInfo.dbLocation) {
@@ -404,6 +443,12 @@ You have two options:
     })
 
     return confirmation.action
+
+      message += ` at "${datasourceInfo.dbLocation}"`
+    }
+
+    process.stdout.write(`${message}\n`)
+
   }
 
   public help(error?: string): string | HelpError {

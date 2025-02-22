@@ -1,4 +1,5 @@
 import { confirm, input, select } from '@inquirer/prompts'
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { ConnectorType } from '@prisma/generator-helper'
 import {
   arg,
@@ -220,7 +221,7 @@ export class Init implements Command {
     ${dim('$')} prisma init --with-model
   `)
 
-  async parse(argv: string[]): Promise<any> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -237,7 +238,7 @@ export class Init implements Command {
       return this.help()
     }
 
-    await checkUnsupportedDataProxy('init', args, false)
+    await checkUnsupportedDataProxy('init', args, config.schema, false)
 
     /**
      * Validation

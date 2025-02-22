@@ -1,4 +1,5 @@
 import { select } from '@inquirer/prompts'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
@@ -28,7 +29,7 @@ export class Login implements Command {
     return new Login()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       // internal optimize flag to track signup attribution
       '--optimize': Boolean,
@@ -41,7 +42,7 @@ export class Login implements Command {
 
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
-    if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'),)} to see the current user.` // prettier-ignore
+    if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor("prisma platform auth show --early-access"))} to see the current user.`; // prettier-ignore
 
     console.info('Authenticating to Prisma Platform CLI via browser.\n')
 
@@ -101,7 +102,7 @@ export class Login implements Command {
       .then((results) => results[0])
       .catch(unknownToError)
 
-    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
+    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
 
     {
       const writeResult = await credentialsFile.save({ token: callbackResult.token })
@@ -217,7 +218,7 @@ export const loginOrSignup = async () => {
     .then((results) => results[0])
     .catch(unknownToError)
 
-  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
+  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
 
   {
     const writeResult = await credentialsFile.save({ token: callbackResult.token })

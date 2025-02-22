@@ -1,5 +1,6 @@
 import path from 'node:path'
 
+import { defaultTestConfig } from '@prisma/config'
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
@@ -315,6 +316,22 @@ describe('using cli', () => {
     `)
   })
 
+  it('should call the survey handler when hints are not disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse([], defaultTestConfig())
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not call the survey handler when hints are disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse(['--no-hints'], defaultTestConfig())
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
@@ -476,7 +493,7 @@ describe('--schema from project directory', () => {
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-project-dir')
-    const result = await Generate.new().parse(['--schema=./schema.prisma'])
+    const result = await Generate.new().parse(['--schema=./schema.prisma'], defaultTestConfig())
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
@@ -503,7 +520,7 @@ describe('--schema from project directory', () => {
 
   it('--schema relative path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-project-dir')
-    const result = Generate.new().parse(['--schema=./doesnotexists.prisma'])
+    const result = Generate.new().parse(['--schema=./doesnotexists.prisma'], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -512,7 +529,7 @@ describe('--schema from project directory', () => {
   it('--schema absolute path: should work', async () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./schema.prisma')
-    const output = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
+    const output = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(output).toMatchInlineSnapshot(`
@@ -540,7 +557,7 @@ describe('--schema from project directory', () => {
   it('--schema absolute path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
-    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
+    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -548,7 +565,7 @@ describe('--schema from project directory', () => {
 
   it('should throw errors if schema does not exist at default path', async () => {
     ctx.fixture('empty')
-    const output = Generate.new().parse([])
+    const output = Generate.new().parse([], defaultTestConfig())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
@@ -577,7 +594,7 @@ describe('in postinstall', () => {
 
   it('should not throw errors if prisma schema not found', async () => {
     ctx.fixture('empty')
-    const output = await Generate.new().parse([])
+    const output = await Generate.new().parse([], defaultTestConfig())
     expect(output).toMatchInlineSnapshot(`""`)
   })
 })
@@ -593,7 +610,7 @@ describe('--schema from parent directory', () => {
   it('--schema relative path: should work', async () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
-    const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'])
+    const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'], defaultTestConfig())
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
@@ -621,7 +638,7 @@ describe('--schema from parent directory', () => {
   it('--schema relative path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-parent-dir')
 
-    const result = Generate.new().parse(['--schema=./subdirectory/doesnotexists.prisma'])
+    const result = Generate.new().parse(['--schema=./subdirectory/doesnotexists.prisma'], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -631,7 +648,7 @@ describe('--schema from parent directory', () => {
     expect.assertions(1)
     ctx.fixture('generate-from-parent-dir')
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
-    const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
+    const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
@@ -660,7 +677,7 @@ describe('--schema from parent directory', () => {
     ctx.fixture('generate-from-parent-dir')
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
-    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
+    const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Could not load \`--schema\` from provided path \`subdirectory/doesnotexists.prisma\`: file or directory not found"`,
     )
@@ -668,11 +685,10 @@ describe('--schema from parent directory', () => {
 
   it('--generator: should work - valid generator names', async () => {
     ctx.fixture('example-project')
-    const result = await Generate.new().parse([
-      '--schema=./prisma/multiple-generator.prisma',
-      '--generator=client',
-      '--generator=client_3',
-    ])
+    const result = await Generate.new().parse(
+      ['--schema=./prisma/multiple-generator.prisma', '--generator=client', '--generator=client_3'],
+      defaultTestConfig(),
+    )
 
     if (getClientEngineType() === ClientEngineType.Binary) {
       expect(result).toMatchInlineSnapshot(`
@@ -705,11 +721,10 @@ describe('--schema from parent directory', () => {
     ctx.fixture('example-project')
 
     await expect(
-      Generate.new().parse([
-        '--schema=./prisma/multiple-generator.prisma',
-        '--generator=client',
-        '--generator=invalid_client',
-      ]),
+      Generate.new().parse(
+        ['--schema=./prisma/multiple-generator.prisma', '--generator=client', '--generator=invalid_client'],
+        defaultTestConfig(),
+      ),
     ).rejects.toMatchInlineSnapshot(
       `"The generator invalid_client specified via --generator does not exist in your Prisma schema"`,
     )
@@ -719,12 +734,15 @@ describe('--schema from parent directory', () => {
     ctx.fixture('example-project')
 
     await expect(
-      Generate.new().parse([
-        '--schema=./prisma/multiple-generator.prisma',
-        '--generator=client',
-        '--generator=invalid_client',
-        '--generator=invalid_client_2',
-      ]),
+      Generate.new().parse(
+        [
+          '--schema=./prisma/multiple-generator.prisma',
+          '--generator=client',
+          '--generator=invalid_client',
+          '--generator=invalid_client_2',
+        ],
+        defaultTestConfig(),
+      ),
     ).rejects.toMatchInlineSnapshot(
       `"The generators invalid_client, invalid_client_2 specified via --generator do not exist in your Prisma schema"`,
     )
@@ -734,7 +752,7 @@ describe('--schema from parent directory', () => {
 describe('with --sql', () => {
   it('should throw error on invalid sql', async () => {
     ctx.fixture('typed-sql-invalid')
-    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(`
+    await expect(Generate.new().parse(['--sql'], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
       "Errors while reading sql files:
 
       In prisma/sql/invalidQuery.sql:
@@ -748,14 +766,14 @@ describe('with --sql', () => {
 
   it('throws error on mssql', async () => {
     ctx.fixture('typed-sql-invalid-mssql')
-    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+    await expect(Generate.new().parse(['--sql'], defaultTestConfig())).rejects.toMatchInlineSnapshot(
       `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
     )
   })
 
   it('throws error on mongo', async () => {
     ctx.fixture('typed-sql-invalid-mongo')
-    await expect(Generate.new().parse(['--sql'])).rejects.toMatchInlineSnapshot(
+    await expect(Generate.new().parse(['--sql'], defaultTestConfig())).rejects.toMatchInlineSnapshot(
       `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
     )
   })

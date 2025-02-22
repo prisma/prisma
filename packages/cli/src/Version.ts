@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
@@ -46,12 +47,13 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean,
       '--telemetry-information': String,
     })
@@ -64,7 +66,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: !args['--json'] })
+    await loadEnvFile({ printMessage: !args['--json'], config })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -118,7 +120,7 @@ export class Version implements Command {
 
     let schemaPath: string | null = null
     try {
-      schemaPath = (await getSchemaWithPath()).schemaPath
+      schemaPath = (await getSchemaWithPath(undefined, config.schema)).schemaPath
     } catch {
       schemaPath = null
     }
@@ -137,7 +139,7 @@ export class Version implements Command {
     }
 
     try {
-      const datamodel = await getSchema()
+      const datamodel = await getSchema(schemaPath)
       const config = await getConfig({
         datamodel,
         ignoreEnvVarErrors: true,
