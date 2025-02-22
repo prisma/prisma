@@ -28,7 +28,7 @@
 0-legacy-ports.json (provider=postgresql, js_pg) select required json with where path
 0-legacy-ports.json (provider=postgresql, js_pg) update required json with where equals
 0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter empty optional relation
-0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter empty optional relation with 
+0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter empty optional relation with
 0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter empty optional relation with `null`
 0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter existing optional relation with `isNot: null`
 0-legacy-ports.optional-relation-filters (provider=postgresql, js_pg) filter existing optional relation with empty field
@@ -42,7 +42,6 @@
 0-legacy-ports.query-raw (provider=postgresql, js_pg) select fields via queryRaw using Prisma.join and Prisma.sql
 0-legacy-ports.query-raw (provider=postgresql, js_pg) select values via queryRawUnsafe
 0-legacy-ports.query-raw (provider=postgresql, js_pg) select with alias via queryRaw
-24835-omit-error.test (provider=postgresql, js_pg) have omitted field as never
 _example (provider=postgresql, previewFeatures=referentialIntegrity, js_pg) conditional @ts-test-if
 _example (provider=postgresql, previewFeatures=relationJoins, js_pg) conditional @ts-test-if
 batch-transaction-isolation-level (provider=postgresql, js_pg) ReadCommitted
@@ -390,6 +389,7 @@ issues.21807-citext-neon (provider=postgresql, js_pg) writing and reading a cite
 issues.22610-parallel-batch (provider=postgresql, js_pg) batch does not times out
 issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent upserts should succeed
 issues.23902 (provider=postgresql, js_pg) should not throw error when updating fields on a many to many join table
+issues.24835-omit-error.test (provider=postgresql, js_pg) have omitted field as never
 issues.25163-typed-sql-enum.test (provider=postgresql, js_pg) returns enums that are mapped to invalid JS identifier correctly
 issues.4004 (provider=postgresql, js_pg) should not throw error when updating fields on a many to many join table
 issues.5952-decimal-batch (provider=postgresql, js_pg) findFirst decimal with $transaction([...])
