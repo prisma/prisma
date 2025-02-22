@@ -96,7 +96,6 @@ ${bold('Examples')}
     }
 
     await checkUnsupportedDataProxy('migrate dev', args, true)
-=======
 
     await checkUnsupportedDataProxy('migrate dev', args, config.schema, true)
 
@@ -186,7 +185,6 @@ ${bold('Examples')}
           }
         }
       }
-=======
       this.logResetReason({
         datasourceInfo,
         reason: devDiagnostic.action.reason,
