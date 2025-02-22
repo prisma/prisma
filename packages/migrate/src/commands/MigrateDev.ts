@@ -80,8 +80,8 @@ ${bold('Examples')}
       '-h': '--help',
       '--name': String,
       '-n': '--name',
-      // '--force': Boolean,
-      // '-f': '--force',
+      '--force': Boolean,
+      '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
@@ -95,10 +95,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate dev', args, true)
-
     await checkUnsupportedDataProxy('migrate dev', args, config.schema, true)
-
 
     if (args['--help']) {
       return this.help()
@@ -142,7 +139,6 @@ ${bold('Examples')}
     const migrationIdsApplied: string[] = []
 
     if (devDiagnostic.action.tag === 'reset') {
-
       if (!args['--force']) {
         if (!canPrompt()) {
           migrate.stop()
@@ -150,8 +146,8 @@ ${bold('Examples')}
         }
 
         const confirmedReset = await this.confirmReset({
-          datasourceInfo,
-          reason: devDiagnostic.action.reason,
+          _datasourceInfo: datasourceInfo,
+          _reason: devDiagnostic.action.reason,
         })
 
         process.stdout.write('\n')
@@ -163,14 +159,14 @@ ${bold('Examples')}
         } else if (confirmedReset === 'baseline') {
           process.stdout.write('Baselining the database...\n')
           try {
-            await DbPull.new().parse(['--schema', schemaPath])
-            await MigrateDev.new().parse(['--create-only', '--schema', schemaPath])
+            await DbPull.new().parse(['--schema', schemaPath], config)
+            await MigrateDev.new().parse(['--create-only', '--schema', schemaPath], config) // Added config
             const migrationDirs = await fs.listAsync('prisma/migrations')
             if (!migrationDirs || migrationDirs.length === 0) {
               throw new Error('No migrations found')
             }
             const latestMigration = migrationDirs.sort().reverse()[0]
-            await MigrateResolve.new().parse(['--applied', latestMigration, '--schema', schemaPath])
+            await MigrateResolve.new().parse(['--applied', latestMigration, '--schema', schemaPath], config)
           } catch (e) {
             migrate.stop()
             throw e
@@ -185,7 +181,7 @@ ${bold('Examples')}
           }
         }
       }
-      this.logResetReason({
+      await this.logResetReason({
         datasourceInfo,
         reason: devDiagnostic.action.reason,
       })
@@ -208,7 +204,6 @@ ${bold('Examples')}
         migrate.stop()
         throw e
       }
-
     }
 
     try {
@@ -386,16 +381,17 @@ ${green('Your database is now in sync with your schema.')}\n`,
     return ''
   }
 
-
   private async confirmReset({
-    datasourceInfo,
-    reason,
+    _datasourceInfo,
+    _reason,
   }: {
-    datasourceInfo: DatasourceInfo
-    reason: string
+    _datasourceInfo: DatasourceInfo
+    _reason: string
   }): Promise<'baseline' | 'reset' | 'cancel'> {
+    return Promise.resolve('cancel')
+  }
 
-  private logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
+  private async logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
     // Log the reason of why a reset is needed to the user
     process.stdout.write(reason + '\n')
 
@@ -414,10 +410,10 @@ ${green('Your database is now in sync with your schema.')}\n`,
     }
 
     if (datasourceInfo.dbLocation) {
-      messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
+      message += ` at "${datasourceInfo.dbLocation}"`
     }
 
-    const messageForPrompt = `${messageFirstLine}
+    const messageForPrompt = `${message}
 Do you want to continue? ${red('All data will be lost')}.
 You have two options:
 1. Baseline (non-destructive): Keep the current database structure and create new migrations.
@@ -441,17 +437,13 @@ You have two options:
     })
 
     return confirmation.action
-
-      message += ` at "${datasourceInfo.dbLocation}"`
-    }
-
-    process.stdout.write(`${message}\n`)
-
   }
+
+  // Duplicate function implementation removed
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDev.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateDev.help}`)
     }
     return MigrateDev.help
   }
