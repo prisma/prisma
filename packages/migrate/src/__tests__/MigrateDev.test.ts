@@ -517,7 +517,7 @@ describe('sqlite', () => {
   })
 
   it('transition-db-push-migrate (prompt reset no)', async () => {
-=======
+
   it('transition-db-push-migrate (must refuse reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
