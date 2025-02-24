@@ -27,7 +27,7 @@
     "bench": "node -r esbuild-register scripts/bench.ts | tee output.txt",
     "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
-    "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /sandbox",
+    "clean": "git clean -fdx -e /.envrc.local -e /docker/docker-compose.override.yml -e /sandbox -e /.jj",
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
