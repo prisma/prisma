@@ -8,41 +8,40 @@ export type RuntimeName =
   | 'edge-light'
   | '' /* unknown */
 
+/**
+ * Indicates if running in Node.js or a Node.js compatible runtime.
+ *
+ * **Note:** When running code in Bun and Deno with Node.js compatibility mode, `isNode` flag will be also `true`, indicating running in a Node.js compatible runtime.
+ */
+const isNode = () => globalThis.process?.release?.name === 'node'
+
+/**
+ * Indicates if running in Bun runtime.
+ */
+const isBun = () => !!globalThis.Bun || !!globalThis.process?.versions?.bun
+
+/**
+ * Indicates if running in Deno runtime.
+ */
+const isDeno = () => !!globalThis.Deno
+
+/**
+ * Indicates if running in Netlify runtime.
+ */
+const isNetlify = () => typeof globalThis.Netlify === 'object'
+
+/**
+ * Indicates if running in EdgeLight (Vercel Edge) runtime.
+ */
+const isEdgeLight = () => typeof globalThis.EdgeRuntime === 'object'
+
+/**
+ * Indicates if running in Cloudflare Workers runtime.
+ * See: https://developers.cloudflare.com/workers/runtime-apis/web-standards/#navigatoruseragent
+ */
+const isWorkerd = () => globalThis.navigator?.userAgent === 'Cloudflare-Workers'
   
 function detectRuntime(): RuntimeName {
-  /**
-   * Indicates if running in Node.js or a Node.js compatible runtime.
-   *
-   * **Note:** When running code in Bun and Deno with Node.js compatibility mode, `isNode` flag will be also `true`, indicating running in a Node.js compatible runtime.
-   */
-  const isNode = globalThis.process?.release?.name === 'node'
-  
-  /**
-   * Indicates if running in Bun runtime.
-   */
-  const isBun = !!globalThis.Bun || !!globalThis.process?.versions?.bun
-  
-  /**
-   * Indicates if running in Deno runtime.
-   */
-  const isDeno = !!globalThis.Deno
-  
-  /**
-   * Indicates if running in Netlify runtime.
-   */
-  const isNetlify = typeof globalThis.Netlify === 'object'
-  
-  /**
-   * Indicates if running in EdgeLight (Vercel Edge) runtime.
-   */
-  const isEdgeLight = typeof globalThis.EdgeRuntime === 'object'
-  
-  /**
-   * Indicates if running in Cloudflare Workers runtime.
-   * See: https://developers.cloudflare.com/workers/runtime-apis/web-standards/#navigatoruseragent
-   */
-  const isWorkerd = globalThis.navigator?.userAgent === 'Cloudflare-Workers'
-
   // Note: we're currently not taking 'fastly' into account. Why?
   const runtimeChecks = [
     [isNetlify, 'netlify'],
@@ -57,9 +56,9 @@ function detectRuntime(): RuntimeName {
     // TODO: Transforming destructuring to the configured target environment ('chrome58', 'edge16', 'firefox57', 'safari11') is not supported yet,
     // so we can't write the following code yet:
     // ```
-    // .flatMap(([detected, runtime]) => detected ? [runtime] : [])
+    // .flatMap(([isCurrentRuntime, runtime]) => isCurrentRuntime() ? [runtime] : [])
     // ```
-    .flatMap(check => check[0] ? [check[1]] : [])
+    .flatMap(check => check[0]() ? [check[1]] : [])
     .at(0) ?? ''
 
   return detectedRuntime
