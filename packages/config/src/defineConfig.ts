@@ -16,6 +16,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
   const config = defaultConfig()
+  debug('Prisma config [default]: %o', config)
 
   defineSchemaConfig(config, configInput)
 
@@ -26,10 +27,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   return config as PrismaConfigInternal
 }
 
-function defineSchemaConfig(
-  config: DeepMutable<PrismaConfigInternal>,
-  configInput: PrismaConfig,
-) {
+function defineSchemaConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.schema) {
     return
   }
