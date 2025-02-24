@@ -1,5 +1,6 @@
-import { detectRuntime, Runtime } from 'detect-runtime'
+import { runtime as runtimeId, type RuntimeName } from 'std-env'
 
+// Note: 'fastly' - yet another Edge serverless platform - is currently not considered by Prisma.
 const runtimesPrettyNames = {
   node: 'Node.js',
   workerd: 'Cloudflare Workers',
@@ -9,14 +10,12 @@ const runtimesPrettyNames = {
 } as const
 
 type GetRuntimeOutput = {
-  id: Runtime
+  id: RuntimeName
   prettyName: string
   isEdge: boolean
 }
 
 export function getRuntime(): GetRuntimeOutput {
-  const runtimeId = detectRuntime()
-
   return {
     id: runtimeId,
     // Fallback to the runtimeId if the runtime is not in the list
