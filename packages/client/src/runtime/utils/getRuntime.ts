@@ -8,8 +8,6 @@ export type RuntimeName =
   | 'edge-light'
   | '' /* unknown */
 
-export type RuntimeInfo = { name: RuntimeName }
-
 /**
  * Indicates if running in Node.js or a Node.js compatible runtime.
  *
@@ -33,7 +31,6 @@ const isDeno = !!globalThis.Deno
 const isNetlify = typeof globalThis.Netlify === 'object'
 
 /**
- *
  * Indicates if running in EdgeLight (Vercel Edge) runtime.
  */
 const isEdgeLight = typeof globalThis.EdgeRuntime === 'object'
