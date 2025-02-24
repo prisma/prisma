@@ -391,6 +391,7 @@ issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent u
 issues.23902 (provider=postgresql, js_pg) should not throw error when updating fields on a many to many join table
 issues.24835-omit-error.test (provider=postgresql, js_pg) have omitted field as never
 issues.25163-typed-sql-enum.test (provider=postgresql, js_pg) returns enums that are mapped to invalid JS identifier correctly
+issues.25481-typedsql-query-extension.test (provider=postgresql, js_pg) TypedSQL should work when a client extension of type query extension is used
 issues.4004 (provider=postgresql, js_pg) should not throw error when updating fields on a many to many join table
 issues.5952-decimal-batch (provider=postgresql, js_pg) findFirst decimal with $transaction([...])
 issues.5952-decimal-batch (provider=postgresql, js_pg) findFirst decimal with Promise.all
