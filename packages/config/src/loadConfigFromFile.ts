@@ -42,7 +42,7 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfigInternal
+      config: PrismaConfigInternal<any>
       error?: never
     }
   | {
