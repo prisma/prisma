@@ -52,12 +52,29 @@ export async function handleNpsSurvey() {
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
-  await handleNpsSurveyImpl(now, status, rl, eventCapture)
+  await handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture)
     .catch((err) => {
       // we don't want to propagate NPS survey errors, so we catch them here and log them
       debug(`An error occurred while handling NPS survey: ${err}`)
     })
     .finally(() => rl.close())
+}
+
+/**
+ * Creates a proxy that aborts the readline interface when the underlying stream closes.
+ */
+export function createSafeReadlineProxy(rl: readline.promises.Interface): ReadlineInterface {
+  const controller = new AbortController()
+  rl.on('close', () => controller.abort())
+
+  const rlProxy = new Proxy(rl, {
+    get(target, prop, receiver) {
+      controller.signal.throwIfAborted()
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+
+  return rlProxy
 }
 
 export async function handleNpsSurveyImpl(
