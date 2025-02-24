@@ -12,7 +12,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, PrismaAdapterError } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
@@ -45,7 +45,7 @@ abstract class NeonQueryable implements SqlQueryable {
       columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
-        throw new PrismaAdapterError({
+        throw new DriverAdapterError({
           kind: 'UnsupportedNativeDataType',
           type: e.type,
         })
@@ -132,7 +132,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
   protected onError(e: any): never {
     debug('Error in onError: %O', e)
     if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-      throw new PrismaAdapterError({
+      throw new DriverAdapterError({
         kind: 'postgres',
         code: e.code,
         severity: e.severity,

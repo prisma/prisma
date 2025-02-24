@@ -4,7 +4,7 @@ import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
   ConnectionInfo,
   Debug,
-  PrismaAdapterError,
+  DriverAdapterError,
   SqlConnection,
   SqlMigrationAwareDriverAdapter,
   SqlQuery,
@@ -96,19 +96,8 @@ class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
         return [columnNames, rows]
       }
     } catch (e) {
-      this.onError(e)
+      onError(e as Error)
     }
-  }
-
-  protected onError(error: any): never {
-    console.error('Error in performIO: %O', error)
-    const { message } = error
-
-    throw new PrismaAdapterError({
-      kind: 'sqlite',
-      extendedCode: matchSQLiteErrorCode(message),
-      message,
-    })
   }
 }
 
@@ -179,7 +168,7 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
     try {
       await this.client.exec(script)
     } catch (error) {
-      this.onError(error)
+      onError(error as Error)
     }
   }
 
@@ -230,4 +219,15 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
     const db = await mf.getD1Database('db')
     return new PrismaD1(db, () => mf.dispose())
   }
+}
+
+function onError(error: Error): never {
+  console.error('Error in performIO: %O', error)
+  const { message } = error
+
+  throw new DriverAdapterError({
+    kind: 'sqlite',
+    extendedCode: matchSQLiteErrorCode(message),
+    message,
+  })
 }

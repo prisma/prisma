@@ -16,7 +16,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, PrismaAdapterError } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
@@ -88,7 +88,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
     debug('Error in performIO: %O', error)
     const rawCode = error['rawCode'] ?? error.cause?.['rawCode']
     if (typeof rawCode === 'number') {
-      throw new PrismaAdapterError({
+      throw new DriverAdapterError({
         kind: 'sqlite',
         extendedCode: rawCode,
         message: error.message,

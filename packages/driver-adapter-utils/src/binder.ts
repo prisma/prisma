@@ -1,3 +1,4 @@
+import { isDriverAdapterError } from './error'
 import { err, ok, Result } from './result'
 import type {
   ErrorCapturingSqlConnection,
@@ -98,7 +99,7 @@ function wrapAsync<A extends unknown[], R>(
       return ok(await fn(...args))
     } catch (error) {
       // unwrap the cause of exceptions thrown by driver adapters if there is one
-      if (error.cause && typeof error.cause === 'object') {
+      if (isDriverAdapterError(error)) {
         return err(error.cause)
       }
       const id = registry.registerNewError(error)
@@ -116,7 +117,7 @@ function wrapSync<A extends unknown[], R>(
       return ok(fn(...args))
     } catch (error) {
       // unwrap the cause of exceptions thrown by driver adapters if there is one
-      if (error.cause && typeof error.cause === 'object') {
+      if (isDriverAdapterError(error)) {
         return err(error.cause)
       }
       const id = registry.registerNewError(error)

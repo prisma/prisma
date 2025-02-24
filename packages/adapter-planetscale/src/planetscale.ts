@@ -13,7 +13,7 @@ import type {
   TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, PrismaAdapterError } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
@@ -88,7 +88,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
       if (error.name === 'DatabaseError') {
         const parsed = parseErrorMessage(error.message)
         if (parsed) {
-          throw new PrismaAdapterError({
+          throw new DriverAdapterError({
             kind: 'mysql',
             ...parsed,
           })
