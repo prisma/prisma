@@ -1,11 +1,12 @@
 #!/usr/bin/env tsx
 
-import { defaultConfig, loadConfigFromFile } from '@prisma/config'
+import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
 
+import { version as packageVersion } from '../package.json'
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
@@ -44,8 +45,6 @@ const args = arg(
   true,
 )
 
-const packageJson = eval(`require('../package.json')`)
-
 /**
  * Main function
  */
@@ -76,7 +75,7 @@ async function main(): Promise<number> {
   }
 
   // Execute the command
-  const result = await cli.parse(commandArray, { ...defaultConfig(), ...config })
+  const result = await cli.parse(commandArray, config)
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result)
@@ -107,7 +106,7 @@ main()
     if (error.rustStack) {
       handlePanic({
         error,
-        cliVersion: packageJson.version,
+        cliVersion: packageVersion,
         enginesVersion,
         command: commandArray.join(' '),
         getDatabaseVersionSafe,

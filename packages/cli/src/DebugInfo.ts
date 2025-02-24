@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -37,11 +37,12 @@ export class DebugInfo implements Command {
     --schema       Custom path to your Prisma schema
 `)
 
-  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
@@ -67,7 +68,7 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link((await getSchemaWithPath(args['--schema']))?.schemaPath)
+      schemaPath = link((await getSchemaWithPath(args['--schema'], config.schema))?.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }

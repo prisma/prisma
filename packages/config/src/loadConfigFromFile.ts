@@ -3,11 +3,10 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
-import { Either } from 'effect'
-import { ParseError } from 'effect/ParseResult'
 
-import type { PrismaConfig } from './defineConfig'
-import { parsePrismaConfig } from './PrismaConfig'
+import { defaultConfig } from './defaultConfig'
+import type { PrismaConfigInternal } from './defineConfig'
+import { parseDefaultExport } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -33,7 +32,7 @@ export type LoadConfigFromFileError =
     }
   | {
       _tag: 'ConfigFileParseError'
-      error: ParseError
+      error: Error
     }
   | {
       _tag: 'UnknownError'
@@ -43,7 +42,7 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfig<any>
+      config: PrismaConfigInternal
       error?: never
     }
   | {
@@ -53,7 +52,7 @@ export type ConfigFromFile =
     }
   | {
       resolvedPath: null
-      config?: never
+      config: PrismaConfigInternal
       error?: never
     }
 
@@ -88,7 +87,7 @@ export async function loadConfigFromFile({
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
-      return { resolvedPath }
+      return { resolvedPath, config: defaultConfig() }
     }
   }
 
@@ -104,20 +103,23 @@ export async function loadConfigFromFile({
 
     debug(`Config file loaded in %s`, getTime())
 
-    // Ensure the config file conforms to the expected PrismaConfig schema.
-    const parseResultEither = parsePrismaConfig(required['default'])
+    let defaultExport: PrismaConfigInternal | undefined
 
-    if (Either.isLeft(parseResultEither)) {
+    try {
+      defaultExport = parseDefaultExport(required['default'])
+    } catch (e) {
+      const error = e as Error
       return {
         resolvedPath,
         error: {
           _tag: 'ConfigFileParseError',
-          error: parseResultEither.left,
+          error,
         },
       }
     }
 
-    const prismaConfig = parseResultEither.right
+    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
+    const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
     return {
       config: {
@@ -169,5 +171,30 @@ async function requireTypeScriptFile(resolvedPath: string) {
         error,
       } as const,
     }
+  }
+}
+
+function transformPathsInConfigToAbsolute(
+  prismaConfig: PrismaConfigInternal,
+  resolvedPath: string,
+): PrismaConfigInternal {
+  if (prismaConfig.schema?.kind === 'single') {
+    return {
+      ...prismaConfig,
+      schema: {
+        ...prismaConfig.schema,
+        filePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filePath),
+      },
+    }
+  } else if (prismaConfig.schema?.kind === 'multi') {
+    return {
+      ...prismaConfig,
+      schema: {
+        ...prismaConfig.schema,
+        folderPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folderPath),
+      },
+    }
+  } else {
+    return prismaConfig
   }
 }

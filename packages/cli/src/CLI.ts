@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
@@ -16,12 +16,13 @@ export class CLI implements Command {
 
   private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
 
-  async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--preview-feature': Boolean,

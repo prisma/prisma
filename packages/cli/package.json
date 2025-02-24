@@ -80,8 +80,8 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/studio": "0.508.0",
-    "@prisma/studio-server": "0.508.0",
+    "@prisma/studio": "0.509.0",
+    "@prisma/studio-server": "0.509.0",
     "@swc/core": "1.10.11",
     "@swc/jest": "0.2.37",
     "@types/debug": "4.1.12",
@@ -92,7 +92,7 @@
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "chokidar": "3.6.0",
-    "debug": "4.3.7",
+    "debug": "4.4.0",
     "dotenv": "16.4.7",
     "env-paths": "2.2.1",
     "esbuild": "0.24.2",
@@ -133,7 +133,9 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*"
+    "@prisma/engines": "workspace:*",
+    "esbuild": ">=0.12 <1",
+    "esbuild-register": "3.6.0"
   },
   "optionalDependencies": {
     "fsevents": "2.3.3"

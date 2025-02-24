@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 
 import { getEnvPaths } from './getEnvPaths'
 import { tryLoadEnvs } from './tryLoadEnvs'
@@ -14,7 +14,7 @@ export async function loadEnvFile({
 }: {
   schemaPath?: string
   printMessage?: boolean
-  config: PrismaConfig
+  config: PrismaConfigInternal
 }) {
   if (config.loadedFromFile) {
     process.stdout.write(`Prisma config detected, skipping environment variable loading.\n`)

@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
@@ -44,10 +44,11 @@ ${bold('Examples')}
 
   private constructor(private readonly cmds: Commands) {}
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--preview-feature': Boolean,
       '--telemetry-information': String,
     })

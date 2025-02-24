@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
@@ -47,6 +47,9 @@ export class DbExecute implements Command {
     return new DbExecute()
   }
 
+  // TODO: This command needs to get proper support for `prisma.config.ts` eventually. Not just taking the schema path
+  //  from prisma.config.ts but likely to support driver adapters, too?
+  //  See https://linear.app/prisma-company/issue/ORM-639/prisma-db-execute-support-prismaconfigts-and-driver-adapters
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
@@ -83,12 +86,13 @@ ${bold('Examples')}
     --url="mysql://root:root@localhost/mydb"
 `)
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
+        '--config': String,
         '--stdin': Boolean,
         '--file': String,
         '--schema': String,
@@ -102,7 +106,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db execute', args, !args['--url'])
+    await checkUnsupportedDataProxy('db execute', args, config.schema, !args['--url'])
 
     if (args['--help']) {
       return this.help()
@@ -168,13 +172,13 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaWithPath = (await getSchemaWithPath(args['--schema']))!
-      const config = await getConfig({ datamodel: schemaWithPath.schemas })
+      const schemaWithPath = (await getSchemaWithPath(args['--schema'], config.schema))!
+      const engineConfig = await getConfig({ datamodel: schemaWithPath.schemas })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        ...toSchemasWithConfigDir(schemaWithPath, config),
+        ...toSchemasWithConfigDir(schemaWithPath, engineConfig),
       }
     }
 

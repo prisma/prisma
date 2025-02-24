@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -39,13 +39,14 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -55,7 +56,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate deploy', args, true)
+    await checkUnsupportedDataProxy('migrate deploy', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
@@ -63,7 +64,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 

@@ -1,27 +1,40 @@
-import { defineConfig, type PrismaConfigInput } from '../defineConfig'
+import { defaultConfig } from '../defaultConfig'
+import { defaultTestConfig } from '../defaultTestConfig'
+import { defineConfig } from '../defineConfig'
+import type { PrismaConfig, PrismaConfigInternal } from '../PrismaConfig'
 
 describe('defineConfig', () => {
   const baselineConfig = {
     earlyAccess: true,
-  } satisfies PrismaConfigInput<unknown>
+  } satisfies PrismaConfig
 
-  describe('studio', () => {
-    test('if no `studio` configuration is provided, it should not configure Prisma Studio', () => {
+  describe('defaultConfig', () => {
+    const config = defaultConfig() satisfies PrismaConfigInternal
+    expect(config).toMatchInlineSnapshot(`
+      {
+        "earlyAccess": true,
+        "loadedFromFile": null,
+      }
+    `)
+    expect(typeof config.__brand).toEqual('symbol')
+  })
+
+  describe('defaultTestConfig', () => {
+    const config = defaultTestConfig() satisfies PrismaConfigInternal
+    expect(config).toMatchInlineSnapshot(`
+      {
+        "earlyAccess": true,
+        "loadedFromFile": null,
+      }
+    `)
+    expect(typeof config.__brand).toEqual('symbol')
+  })
+
+  describe('earlyAccess', () => {
+    test('if `earlyAccess` is set to `true`, it should enable early access features', () => {
       const config = defineConfig(baselineConfig)
-      expect(config.studio).toBeUndefined()
-    })
-
-    test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', () => {
-      const adapter = jest.fn()
-      const config = defineConfig({
-        earlyAccess: true,
-        studio: {
-          adapter: adapter,
-        },
-      })
-      expect(config.studio).toEqual({
-        createAdapter: adapter,
-      })
+      expect(config.earlyAccess).toBe(true)
+      expect(typeof config.__brand).toEqual('symbol')
     })
   })
 })

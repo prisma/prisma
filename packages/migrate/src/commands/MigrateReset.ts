@@ -1,4 +1,4 @@
-import type { PrismaConfig } from '@prisma/config'
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -54,7 +54,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[], config: PrismaConfig): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -63,6 +63,7 @@ ${bold('Examples')}
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
@@ -70,7 +71,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate reset', args, true)
+    await checkUnsupportedDataProxy('migrate reset', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
@@ -78,7 +79,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
 
@@ -154,7 +155,7 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
         }
       } else {
         // Only used to help users to set up their seeds from old way to new package.json config
-        const { schemaPath } = (await getSchemaWithPath(args['--schema']))!
+        const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
         // we don't want to output the returned warning message
         // but we still want to run it for `legacyTsNodeScriptWarning()`
         await verifySeedConfigAndReturnMessage(schemaPath)
