@@ -190,7 +190,7 @@ export interface SqlConnection extends SqlQueryable {
 
 export interface TransactionContext extends AdapterInfo, SqlQueryable {
   /**
-   * Starts new transaction.
+   * Start new transaction.
    */
   startTransaction(): Promise<Transaction>
 }
@@ -209,7 +209,7 @@ export interface Transaction extends AdapterInfo, SqlQueryable {
    */
   commit(): Promise<void>
   /**
-   * Rolls back the transaction.
+   * Roll back the transaction.
    */
   rollback(): Promise<void>
 }
