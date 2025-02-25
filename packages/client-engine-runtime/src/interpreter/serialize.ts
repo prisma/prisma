@@ -1,6 +1,6 @@
-import type { ResultSet } from '@prisma/driver-adapter-utils'
+import type { SqlResultSet } from '@prisma/driver-adapter-utils'
 
-export function serialize(resultSet: ResultSet): Record<string, unknown>[] {
+export function serialize(resultSet: SqlResultSet): Record<string, unknown>[] {
   return resultSet.rows.map((row) =>
     row.reduce<Record<string, unknown>>((acc, value, index) => {
       const splitByDot = resultSet.columnNames[index].split('.')

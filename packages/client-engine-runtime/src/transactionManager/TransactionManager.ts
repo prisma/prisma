@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 
 import Debug from '@prisma/debug'
-import { DriverAdapter, Query, Transaction } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'
 import { IsolationLevel, Options, TransactionInfo } from './Transaction'
@@ -33,14 +33,14 @@ type TransactionWrapper = {
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
-  transaction?: Transaction
+  transaction?: ErrorCapturingTransaction
 }
 
 const debug = Debug('prisma:client:transactionManager')
 
-const COMMIT_QUERY = (): Query => ({ sql: 'COMMIT', args: [], argTypes: [] })
-const ROLLBACK_QUERY = (): Query => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): Query => ({
+const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
+const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
+const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SqlQuery => ({
   sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
   args: [],
   argTypes: [],
@@ -52,9 +52,9 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: DriverAdapter
+  private readonly driverAdapter: ErrorCapturingSqlConnection
 
-  constructor({ driverAdapter }: { driverAdapter: DriverAdapter }) {
+  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlConnection }) {
     this.driverAdapter = driverAdapter
   }
 
@@ -133,7 +133,7 @@ export class TransactionManager {
     await this.closeTransaction(txw, 'rolled_back')
   }
 
-  getTransaction(txInfo: TransactionInfo, operation: string): Transaction {
+  getTransaction(txInfo: TransactionInfo, operation: string): ErrorCapturingTransaction {
     const tx = this.getActiveTransaction(txInfo.id, operation)
     if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
