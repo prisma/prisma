@@ -461,15 +461,16 @@ export class PrismaClientClass implements Generable {
 
     return `${this.jsDoc}
 export class PrismaClient<
-  ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
-  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
+  OriginalClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  U = 'log' extends keyof OriginalClientOptions ? OriginalClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<OriginalClientOptions['log']> : never : never,
+  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
+  ClientOptions = 'omit' extends keyof OriginalClientOptions ? OriginalClientOptions : {}
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
   ${indent(this.jsDoc, TAB_SIZE)}
 
-  constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
+  constructor(optionsArg ?: Prisma.Subset<OriginalClientOptions, Prisma.PrismaClientOptions>);
   ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
 
   /**
