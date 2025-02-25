@@ -315,10 +315,10 @@ describe('createSafeReadlineProxy', () => {
     })
     const proxy = createSafeReadlineProxy(rl)
 
-    process.nextTick(() => input.write('whatever\n'))
-    await proxy.question('whatever')
+    process.nextTick(() => proxy.write('answer\n'))
+    await expect(proxy.question('question')).resolves.toBe('answer')
 
     rl.close()
-    expect(() => proxy.question('whatever')).toThrow('This operation was aborted')
+    expect(() => proxy.question('question')).toThrow('This operation was aborted')
   })
 })
