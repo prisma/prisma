@@ -204,6 +204,7 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
 
   async connectToShadowDb(): Promise<SqlConnection> {
     const { Miniflare } = await import('miniflare')
+    const crypto = await import('crypto')
 
     const mf = new Miniflare({
       modules: true,
