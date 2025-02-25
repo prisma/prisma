@@ -1,6 +1,8 @@
 import fs from 'fs'
+import readline from 'readline'
+import { PassThrough } from 'stream'
 
-import { handleNpsSurveyImpl } from '../utils/nps/survey'
+import { createSafeReadlineProxy, handleNpsSurveyImpl } from '../utils/nps/survey'
 
 const currentDate = new Date('2022-01-01T00:00:00.000Z')
 const laterDate = new Date('2023-01-01T00:00:00.000Z')
@@ -299,5 +301,24 @@ describe('nps survey', () => {
     expect(readline.question).toHaveBeenCalledTimes(1)
     expect(readline.write).toHaveBeenCalledWith('Not received a valid rating. Exiting the survey.\n')
     expect(capture).toHaveBeenCalledTimes(0)
+  })
+})
+
+describe('createSafeReadlineProxy', () => {
+  it('should handle an input stream that closes', async () => {
+    const input = new PassThrough()
+    const output = new PassThrough()
+
+    const rl = readline.promises.createInterface({
+      input,
+      output,
+    })
+    const proxy = createSafeReadlineProxy(rl)
+
+    process.nextTick(() => proxy.write('answer\n'))
+    await expect(proxy.question('question')).resolves.toBe('answer')
+
+    rl.close()
+    expect(() => proxy.question('question')).toThrow('This operation was aborted')
   })
 })
