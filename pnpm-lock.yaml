@@ -1177,7 +1177,7 @@ importers:
   packages/instrumentation:
     dependencies:
       '@opentelemetry/instrumentation':
-        specifier: ^0.57.2
+        specifier: ^0.52.0 || ^0.53.0 || ^0.54.0 || ^0.55.0 || ^0.56.0 || ^0.57.0
         version: 0.57.2(@opentelemetry/api@1.9.0)
     devDependencies:
       '@opentelemetry/api':
@@ -5578,7 +5578,6 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
