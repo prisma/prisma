@@ -19,7 +19,7 @@
     "pg": "../../packages/adapter-pg/node_modules/pg"
   },
   "devDependencies": {
-    "@types/node": "18.18.9",
+    "@types/node": "18.19.76",
     "@types/pg": "../../packages/adapter-pg/node_modules/@types/pg",
     "prisma": "../../packages/cli",
     "ts-node": "*",
