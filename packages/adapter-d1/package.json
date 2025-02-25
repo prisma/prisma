@@ -40,7 +40,7 @@
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "@cloudflare/workers-types": "4.20250214.0",
-    "miniflare": "^3.20240620.0"
+    "miniflare": "^3.20250214.0"
   },
   "devDependencies": {},
   "peerDependencies": {}
