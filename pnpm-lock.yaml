@@ -739,8 +739,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       expect-type:
-        specifier: 0.19.0
-        version: 0.19.0
+        specifier: 1.1.0
+        version: 1.1.0
       flat-map-polyfill:
         specifier: 0.3.8
         version: 0.3.8
@@ -4606,8 +4606,8 @@ packages:
     resolution: {integrity: sha512-Zk/eNKV2zbjpKzrsQ+n1G6poVbErQxJ0LBOJXaKZ1EViLzH+hrLu9cdXI4zw9dBQJslwBEpbQ2P1oS7nDxs6jQ==}
     engines: {node: '>= 0.8.0'}
 
-  expect-type@0.19.0:
-    resolution: {integrity: sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==}
+  expect-type@1.1.0:
+    resolution: {integrity: sha512-bFi65yM+xZgk+u/KRIpekdSYkTB5W1pEf0Lt8Q8Msh7b+eQ7LXVtIB1Bkm4fvclDEL1b2CZkMhv2mOeF8tMdkA==}
     engines: {node: '>=12.0.0'}
 
   expect@29.7.0:
@@ -10752,7 +10752,7 @@ snapshots:
 
   exit@0.1.2: {}
 
-  expect-type@0.19.0: {}
+  expect-type@1.1.0: {}
 
   expect@29.7.0:
     dependencies:
