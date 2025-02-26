@@ -820,8 +820,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
       return createCompositeProxy(
+        this,
         applyModelsAndClientExtensions(
-          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+          createCompositeProxy(this,
+            unApplyModelsAndClientExtensions(this), [
             addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
             addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
             addProperty(TX_ID, () => transaction.id),
@@ -938,7 +940,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         if (!requestParams.model) {
           return result
         }
-        return applyAllResultExtensions({
+        return applyAllResultExtensions(this, {
           result,
           modelName: requestParams.model,
           args: requestParams.args,

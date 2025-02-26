@@ -1,3 +1,4 @@
+import type { Client } from '../../getPrismaClient'
 import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { RuntimeDataModel } from '../runtimeDataModel'
@@ -19,7 +20,7 @@ type ApplyAllResultExtensionsParams = {
  * Walks the result of the query and applies all possible result extensions
  * to all parts of it, including nested relations
  */
-export function applyAllResultExtensions({
+export function applyAllResultExtensions(client: Client, {
   result,
   modelName,
   args,
@@ -46,7 +47,7 @@ export function applyAllResultExtensions({
     runtimeDataModel,
     visitor: (value, dmmfModelName, args) => {
       const jsName = dmmfToJSModelName(dmmfModelName)
-      return applyResultExtensions({
+      return applyResultExtensions(client, {
         result: value,
         modelName: jsName,
         select: args.select,

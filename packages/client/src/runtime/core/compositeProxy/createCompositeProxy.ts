@@ -1,3 +1,4 @@
+import type { Client } from '../../getPrismaClient'
 import { defaultPropertyDescriptor } from '../model/utils/defaultProxyHandlers'
 
 export interface CompositeProxyLayer<KeyType extends string | symbol = string | symbol> {
@@ -39,7 +40,7 @@ const customInspect = Symbol.for('nodejs.util.inspect.custom')
  * @param layers
  * @returns
  */
-export function createCompositeProxy<T extends object>(target: T, layers: CompositeProxyLayer[]): T {
+export function createCompositeProxy<T extends object>(client: Client, target: T, layers: CompositeProxyLayer[]): T {
   const keysToLayerMap = mapKeysToLayers(layers)
   const overwrittenKeys = new Set<string | symbol>()
 
@@ -113,7 +114,7 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
       return Reflect.defineProperty(target, property, attributes)
     },
 
-    getPrototypeOf: () => Object.prototype,
+    getPrototypeOf: () => Object.getPrototypeOf(client._originalClient),
   })
 
   proxy[customInspect] = function () {

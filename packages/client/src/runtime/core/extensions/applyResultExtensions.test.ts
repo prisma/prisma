@@ -1,3 +1,4 @@
+import type { Client } from '../../getPrismaClient'
 import { applyResultExtensions } from './applyResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'
 
@@ -18,7 +19,7 @@ test('does not add fields if some dependencies are not met', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -46,7 +47,7 @@ test('adds a field if all dependencies are met', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -73,7 +74,7 @@ test('does not add a field if it is not present in select', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     select: { firstName: true, lastName: true },
@@ -101,7 +102,7 @@ test('adds a field if it is present in select', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     select: { firstName: true, lastName: true, fullName: true },
@@ -131,7 +132,7 @@ test('masks dependencies if they are not present in select', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     select: { fullName: true },
@@ -161,7 +162,7 @@ test('counts falsy values as met dependencies', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -194,7 +195,7 @@ test('can add multiple fields', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -235,7 +236,7 @@ test('allows fields to use other fields', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extA).append(extB),
@@ -262,7 +263,7 @@ test('does not add a field if model does not match', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'post',
     extensions: MergedExtensionsList.single(extension),
@@ -283,7 +284,7 @@ test('adds a field if it is specified in $allModels', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -311,7 +312,7 @@ test('specific model field takes precedence over $allModels', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -340,7 +341,7 @@ test('non-conflicting fields from $allModels and specific model co-exist', () =>
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -367,7 +368,7 @@ test('caches the result', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -396,7 +397,7 @@ test('allow to shadow a field', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -422,7 +423,7 @@ test('allow to shadow a field when select is used', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
@@ -462,7 +463,7 @@ test('allow to shadow already shadowed field', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension1).append(extension2),
@@ -489,7 +490,7 @@ test('allows to omit computed fields', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     omit: { fullName: true },
@@ -516,7 +517,7 @@ test('allows to omit dependency of a computed team', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     omit: { firstName: true },
@@ -551,7 +552,7 @@ test('allows to omit transitive dependency of a computed team', () => {
     },
   }
 
-  const extended = applyResultExtensions({
+  const extended = applyResultExtensions({} as Client, {
     result,
     modelName: 'user',
     omit: { firstName: true },

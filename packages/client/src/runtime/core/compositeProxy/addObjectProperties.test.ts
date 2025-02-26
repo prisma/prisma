@@ -1,3 +1,4 @@
+import type { Client } from '../../getPrismaClient'
 import { addObjectProperties } from './addObjectProperties'
 import { createCompositeProxy } from './createCompositeProxy'
 
@@ -5,7 +6,7 @@ test('forwards properties to a target object', () => {
   const target = { first: 1 }
   const extensions = { second: 2, third: 3 }
 
-  const proxy = createCompositeProxy(target, [addObjectProperties(extensions)])
+  const proxy = createCompositeProxy({} as Client, target, [addObjectProperties(extensions)])
 
   expect(Object.keys(proxy)).toEqual(['first', 'second', 'third'])
   expect(proxy).toHaveProperty('first', 1)

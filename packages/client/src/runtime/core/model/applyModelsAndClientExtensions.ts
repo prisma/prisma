@@ -33,7 +33,7 @@ export function applyModelsAndClientExtensions(client: Client) {
   if (clientExtensions) {
     layers.push(addObjectProperties(clientExtensions))
   }
-  return createCompositeProxy(client, layers)
+  return createCompositeProxy(client, client, layers)
 }
 
 function rootLayer(client: Client): CompositeProxyLayer {
