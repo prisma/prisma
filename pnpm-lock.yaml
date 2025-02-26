@@ -729,9 +729,6 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      detect-runtime:
-        specifier: 1.0.4
-        version: 1.0.4
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -4288,10 +4285,6 @@ packages:
   detect-newline@3.1.0:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
     engines: {node: '>=8'}
-
-  detect-runtime@1.0.4:
-    resolution: {integrity: sha512-oJJu3EzRFbmJcflC0Z55Gs08z7lOZ+68HsegIOVmg9WjDFdolJ/PoHQokv+usWcBqyZvUSVdrpDghOhoZCXJyw==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -10312,8 +10305,6 @@ snapshots:
   detect-libc@2.0.3: {}
 
   detect-newline@3.1.0: {}
-
-  detect-runtime@1.0.4: {}
 
   diff-sequences@29.6.3: {}
 
