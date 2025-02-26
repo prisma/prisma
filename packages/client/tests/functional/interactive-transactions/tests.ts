@@ -256,7 +256,7 @@ testMatrix.setupTestSuite(
       expect(result).toHaveLength(0)
     })
 
-    testIf(provider === Providers.POSTGRESQL)('sql: multiple interactive transactions', async () => {
+    testIf(provider !== Providers.MONGODB)('sql: multiple interactive transactions', async () => {
       const existingEmail = faker.internet.email()
 
       await prisma.$transaction(async (tx) => {
@@ -279,6 +279,36 @@ testMatrix.setupTestSuite(
       expect(result).toHaveLength(2)
     })
 
+    testIf(provider !== Providers.MONGODB)('sql: disallow concurrent nested transactions', async () => {
+      const result = prisma.$transaction(async (tx) => {
+        const email1 = faker.internet.email()
+        const email2 = faker.internet.email()
+        const email3 = faker.internet.email()
+        const email4 = faker.internet.email()
+        const email5 = faker.internet.email()
+        const email6 = faker.internet.email()
+        const email7 = faker.internet.email()
+
+        await Promise.all([
+          tx.$transaction(async (tx2) => {
+            await tx2.user.create({ data: { email: email1 } })
+            await tx2.user.create({ data: { email: email2 } })
+            await tx2.user.create({ data: { email: email3 } })
+          }),
+          tx.$transaction(async (tx3) => {
+            await tx3.user.create({ data: { email: email4 } })
+            await tx3.user.create({ data: { email: email5 } })
+          }),
+          tx.$transaction(async (tx4) => {
+            await tx4.user.create({ data: { email: email6 } })
+            await tx4.user.create({ data: { email: email7 } })
+          }),
+        ])
+      })
+
+      await expect(result).rejects.toThrow('Concurrent nested transactions are not supported')
+    });
+
     /**
      * We don't allow certain methods to be called in a transaction
      */
@@ -300,25 +330,32 @@ testMatrix.setupTestSuite(
      * If one of the query fails, all queries should cancel
      */
     testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
+      const email1 = faker.internet.email()
       const result = prisma.$transaction(async (prisma) => {
         await prisma.user.create({
           data: {
             id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
 
         await prisma.user.create({
           data: {
             id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
       })
 
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany({
+        where: {
+          email: {
+            equals: email1,
+          },
+        },
+      })
 
       expect(users.length).toBe(0)
     })

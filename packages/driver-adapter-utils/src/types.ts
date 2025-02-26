@@ -281,7 +281,7 @@ export interface Transaction extends AdapterInfo, SqlQueryable {
   /**
    * Begin the transaction.
    */
-  begin(): Promise<Result<void>>
+  begin(): Promise<void>
   /**
    * Commit the transaction.
    */
