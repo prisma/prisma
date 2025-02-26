@@ -259,6 +259,36 @@ testMatrix.setupTestSuite(
       expect(users).toHaveLength(0)
     })
 
+    testIf(provider !== Providers.MONGODB)('sql: disallow concurrent nested transactions', async () => {
+      const result = prisma.$transaction(async (tx) => {
+        const email1 = `user_${copycat.uuid(201)}@website.com`
+        const email2 = `user_${copycat.uuid(202)}@website.com`
+        const email3 = `user_${copycat.uuid(203)}@website.com`
+        const email4 = `user_${copycat.uuid(204)}@website.com`
+        const email5 = `user_${copycat.uuid(205)}@website.com`
+        const email6 = `user_${copycat.uuid(206)}@website.com`
+        const email7 = `user_${copycat.uuid(207)}@website.com`
+
+        await Promise.all([
+          tx.$transaction(async (tx2) => {
+            await tx2.user.create({ data: { email: email1 } })
+            await tx2.user.create({ data: { email: email2 } })
+            await tx2.user.create({ data: { email: email3 } })
+          }),
+          tx.$transaction(async (tx3) => {
+            await tx3.user.create({ data: { email: email4 } })
+            await tx3.user.create({ data: { email: email5 } })
+          }),
+          tx.$transaction(async (tx4) => {
+            await tx4.user.create({ data: { email: email6 } })
+            await tx4.user.create({ data: { email: email7 } })
+          }),
+        ])
+      })
+
+      await expect(result).rejects.toThrow('Concurrent nested transactions are not supported')
+    })
+
     /**
      * We don't allow certain methods to be called in a transaction
      */
@@ -280,25 +310,32 @@ testMatrix.setupTestSuite(
      * If one of the query fails, all queries should cancel
      */
     test('rollback query', async () => {
+      const email1 = 'user_1@website.com'
       const result = prisma.$transaction(async (prisma) => {
         await prisma.user.create({
           data: {
             id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
 
         await prisma.user.create({
           data: {
             id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
       })
 
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany({
+        where: {
+          email: {
+            equals: email1,
+          },
+        },
+      })
 
       expect(users.length).toBe(0)
     })

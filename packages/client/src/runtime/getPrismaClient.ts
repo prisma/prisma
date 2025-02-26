@@ -253,6 +253,12 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
+    /**
+     * A map of nested transactions that are currently active.
+     * The key is the transaction id, the value is the transaction object.
+     * Currently, only one nested transaction at a time is supported.
+     */
+    _nestedTransactions: number = 0
 
     constructor(optionsArg: PrismaClientOptions) {
       if (!optionsArg) {
@@ -677,9 +683,18 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       callback: (client: Client) => Promise<unknown>
       options?: Options & { newTxId?: string }
     }) {
+      if (this._nestedTransactions > 0) {
+        throw new Error('Concurrent nested transactions are not supported')
+      }
+
+      // Check if the client is already in a transaction, if so this is a nested 
+      // transaction, and the engine will use savepoints to manage it provided 
+      // the same transaction id is used.
       if (this[TX_ID]) {
+        this._nestedTransactions++
         options.newTxId = this[TX_ID]
       }
+
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
 
       const optionsWithDefaults: Options = {
@@ -694,13 +709,17 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       try {
         // execute user logic with a proxied the client
         const transaction = { kind: 'itx', ...info } as const
-
+        
         result = await callback(this._createItxClient(transaction))
 
         await this._engine.transaction('commit', headers, info)
+
+        this._nestedTransactions = 0
       } catch (e: any) {
         // it went bad, then we rollback the transaction
         await this._engine.transaction('rollback', headers, info).catch(() => {})
+
+        this._nestedTransactions = 0
 
         throw e // silent rollback, throw original error
       }
