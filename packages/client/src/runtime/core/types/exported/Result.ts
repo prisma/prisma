@@ -50,8 +50,8 @@ export type FluentOperation =
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
-  Equals<A, any> extends 1 ? DefaultSelection<P, A, ClientOptions> :
+export type GetFindResult<P extends OperationPayload, A, GlobalOmit> =
+  Equals<A, any> extends 1 ? DefaultSelection<P, A, GlobalOmit> :
   A extends
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>
@@ -59,16 +59,16 @@ export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
       [K in keyof S | keyof I as (S & I)[K] extends false | undefined | Skip | null ? never : K]:
         (S & I)[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions>[] : never
+          ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmit>[] : never
           : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], ClientOptions> | SelectField<P, K> & null : never
+            ? O extends OperationPayload ? GetFindResult<O, (S & I)[K], GlobalOmit> | SelectField<P, K> & null : never
             : K extends '_count'
-              ? Count<GetFindResult<P, (S & I)[K], ClientOptions>>
+              ? Count<GetFindResult<P, (S & I)[K], GlobalOmit>>
               : never
         : P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions>[] : never
+          ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmit>[] : never
           : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends OperationPayload ? DefaultSelection<O, {}, ClientOptions> | SelectField<P, K> & null : never
+            ? O extends OperationPayload ? DefaultSelection<O, {}, GlobalOmit> | SelectField<P, K> & null : never
             : P extends { scalars: { [k in K]: infer O } }
               ? O
               : K extends '_count'
@@ -81,10 +81,10 @@ export type GetFindResult<P extends OperationPayload, A, ClientOptions> =
         // reason. Splitting the top-level conditional type above into two separate branches and handling `select` and
         // `include` separately so we don't need to use `A extends { include: any } & Record<string, unknown>` above in
         // this branch here makes zero difference. Re-adding the `omit` key here makes TypeScript remember it.
-        ? DefaultSelection<P, A & { omit: A['omit'] }, ClientOptions>
+        ? DefaultSelection<P, A & { omit: A['omit'] }, GlobalOmit>
         : unknown
     )
-  : DefaultSelection<P, A, ClientOptions>
+  : DefaultSelection<P, A, GlobalOmit>
 
 // prettier-ignore
 export type SelectablePayloadFields<K extends PropertyKey, O> =
@@ -100,12 +100,12 @@ export type SelectField<P extends SelectablePayloadFields<any, any>, K extends P
     : never
 
 // prettier-ignore
-export type DefaultSelection<Payload extends OperationPayload, Args = {}, ClientOptions = {}> =
+export type DefaultSelection<Payload extends OperationPayload, Args = {}, GlobalOmit = {}> =
   Args extends { omit: infer LocalOmit }
     // Both local and global omit, local settings override globals
-    ? ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], PatchFlat<LocalOmit, ExtractGlobalOmit<ClientOptions, Uncapitalize<Payload['name']>>>>
+    ? ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], PatchFlat<LocalOmit, GlobalOmit>>
     // global only
-    : ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], ExtractGlobalOmit<ClientOptions, Uncapitalize<Payload['name']>>>
+    : ApplyOmit<UnwrapPayload<{ default: Payload }>['default'], GlobalOmit>
 
 // prettier-ignore
 export type UnwrapPayload<P> = {} extends P ? unknown : {
@@ -146,20 +146,20 @@ export type GetGroupByResult<P extends OperationPayload, A> =
     : {}[]
 
 // prettier-ignore
-export type GetResult<Payload extends OperationPayload, Args, OperationName extends Operation = 'findUniqueOrThrow', ClientOptions = {}> = {
-  findUnique: GetFindResult<Payload, Args, ClientOptions> | null,
-  findUniqueOrThrow: GetFindResult<Payload, Args, ClientOptions>,
-  findFirst: GetFindResult<Payload, Args, ClientOptions> | null,
-  findFirstOrThrow: GetFindResult<Payload, Args, ClientOptions>,
-  findMany: GetFindResult<Payload, Args, ClientOptions>[],
-  create: GetFindResult<Payload, Args, ClientOptions>,
+export type GetResult<Payload extends OperationPayload, Args, OperationName extends Operation = 'findUniqueOrThrow', GlobalOmit = {}> = {
+  findUnique: GetFindResult<Payload, Args, GlobalOmit> | null,
+  findUniqueOrThrow: GetFindResult<Payload, Args, GlobalOmit>,
+  findFirst: GetFindResult<Payload, Args, GlobalOmit> | null,
+  findFirstOrThrow: GetFindResult<Payload, Args, GlobalOmit>,
+  findMany: GetFindResult<Payload, Args, GlobalOmit>[],
+  create: GetFindResult<Payload, Args, GlobalOmit>,
   createMany: GetBatchResult,
-  createManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
-  update: GetFindResult<Payload, Args, ClientOptions>,
+  createManyAndReturn: GetFindResult<Payload, Args, GlobalOmit>[],
+  update: GetFindResult<Payload, Args, GlobalOmit>,
   updateMany: GetBatchResult,
-  updateManyAndReturn: GetFindResult<Payload, Args, ClientOptions>[],
-  upsert: GetFindResult<Payload, Args, ClientOptions>,
-  delete: GetFindResult<Payload, Args, ClientOptions>,
+  updateManyAndReturn: GetFindResult<Payload, Args, GlobalOmit>[],
+  upsert: GetFindResult<Payload, Args, GlobalOmit>,
+  delete: GetFindResult<Payload, Args, GlobalOmit>,
   deleteMany: GetBatchResult,
   aggregate: GetAggregateResult<Payload, Args>,
   count: GetCountResult<Args>,

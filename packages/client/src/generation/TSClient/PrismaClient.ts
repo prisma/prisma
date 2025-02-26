@@ -14,6 +14,7 @@ import {
   getGroupByName,
   getModelArgName,
   getPayloadName,
+  uncapitalize,
 } from '../utils'
 import { lowerCase } from '../utils/common'
 import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
@@ -49,6 +50,15 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
       const entry = ts.objectType()
       entry.add(
         ts.property('payload', ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument())),
+      )
+      entry.add(
+        ts.property(
+          'globalOmit',
+          ts
+            .namedType('$Result.ExtractGlobalOmit')
+            .addGenericArgument(ts.namedType('ClientOptions'))
+            .addGenericArgument(ts.stringLiteral(uncapitalize(modelName))),
+        ),
       )
       entry.add(ts.property('fields', ts.namedType(`Prisma.${getFieldRefsTypeName(modelName)}`)))
       const actions = getModelActions(context.dmmf, modelName)
@@ -179,7 +189,6 @@ function extendsPropertyDefinition() {
         .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
-    .addGenericArgument(ts.namedType('ClientOptions'))
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
 }
 

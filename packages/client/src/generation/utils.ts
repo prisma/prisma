@@ -178,6 +178,10 @@ export function capitalize(str: string): string {
   return str[0].toUpperCase() + str.slice(1)
 }
 
+export function uncapitalize(str: string): string {
+  return str[0].toLowerCase() + str.slice(1)
+}
+
 export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
   let typeName = type.type
   if (type.isList) {

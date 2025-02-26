@@ -142,7 +142,7 @@ export type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends Pr
 export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> = GetFindResult<
   TypeMap['model'][M]['payload'],
   { select: S },
-  {}
+  TypeMap['model'][M]['globalOmit']
 >
 
 /** Model */
@@ -153,7 +153,6 @@ export type DynamicModelExtensionArgs<
   TypeMap extends TypeMapDef, 
   TypeMapCb extends TypeMapCbDef, 
   ExtArgs extends Record<string, any>,
-  ClientOptions
 > = {
   [K in keyof M_]:
     K extends '$allModels'
@@ -163,8 +162,8 @@ export type DynamicModelExtensionArgs<
       ? & { [P in keyof M_[K]]?: unknown }
         & {
             [K: symbol]: {
-              ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs, ClientOptions>
-                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs, ClientOptions> } 
+              ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs>
+                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
                    & { $name: ModelKey<TypeMap, K> }
                    & {
                       /**
@@ -182,13 +181,12 @@ export type DynamicModelExtensionThis<
   TypeMap extends TypeMapDef, 
   M extends PropertyKey, 
   ExtArgs extends Record<string, any>,
-  ClientOptions
 > = {
   [P in keyof ExtArgs['model'][Uncapitalize<M & string>]]:
     Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
 } & {
   [P in Exclude<keyof TypeMap['model'][M]['operations'], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    DynamicModelExtensionOperationFn<TypeMap, M, P, ClientOptions>
+    DynamicModelExtensionOperationFn<TypeMap, M, P>
 } & {
   [P in Exclude<'fields', keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
     TypeMap['model'][M]['fields'] 
@@ -200,14 +198,13 @@ export type DynamicModelExtensionOperationFn<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
   P extends PropertyKey,
-  ClientOptions,
 > = {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
   ? <A extends TypeMap['model'][M]['operations'][P]['args']>(
       args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
-    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P, DynamicModelExtensionFnResultNull<P>, ClientOptions>
+    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P, DynamicModelExtensionFnResultNull<P>>
   : <A extends TypeMap['model'][M]['operations'][P]['args']>(
       args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>,
-    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P, DynamicModelExtensionFnResultNull<P>, ClientOptions>
+    ) => DynamicModelExtensionFnResult<TypeMap, M, A, P, DynamicModelExtensionFnResultNull<P>>
 
 // prettier-ignore
 export type DynamicModelExtensionFnResult<
@@ -216,19 +213,17 @@ export type DynamicModelExtensionFnResult<
   A,
   P extends PropertyKey,
   Null,
-  ClientOptions
 > = P extends FluentOperation
-  ? & DynamicModelExtensionFluentApi<TypeMap, M, P, Null, ClientOptions>
-    & PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P, ClientOptions> | Null>
-  : PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P, ClientOptions>>
+  ? & DynamicModelExtensionFluentApi<TypeMap, M, P, Null>
+    & PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P> | Null>
+  : PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P>>
 
 export type DynamicModelExtensionFnResultBase<
   TypeMap extends TypeMapDef,
   M extends PropertyKey,
   A,
   P extends PropertyKey,
-  ClientOptions,
-> = GetOperationResult<TypeMap['model'][M]['payload'], A, P & Operation, ClientOptions>
+> = GetOperationResult<TypeMap['model'][M]['payload'], A, P & Operation, TypeMap['model'][M]['globalOmit']>
 
 // prettier-ignore
 export type DynamicModelExtensionFluentApi<
@@ -236,18 +231,16 @@ export type DynamicModelExtensionFluentApi<
   M extends PropertyKey,
   P extends PropertyKey,
   Null,
-  ClientOptions,
 > = {
   [K in keyof TypeMap['model'][M]['payload']['objects']]: <A>(
     args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>,
   ) => 
-    & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P, ClientOptions>, [K]> | Null>
+    & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
     & DynamicModelExtensionFluentApi<
       TypeMap,
       (TypeMap['model'][M]['payload']['objects'][K] & {})['name'],
       P,
-      Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>,
-      ClientOptions
+      Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>
     >
 }
 
@@ -262,13 +255,12 @@ export type DynamicClientExtensionArgs<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
-  ClientOptions,
 > = {
   [P in keyof C_]: unknown
 } & {
   [K: symbol]: {
-    ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs, ClientOptions>, ITXClientDenyList> & {
-      $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs, ClientOptions>, ITXClientDenyList>
+    ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> & {
+      $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>
     }
   }
 }
@@ -278,38 +270,34 @@ export type DynamicClientExtensionThis<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
-  ClientOptions
 > = {
   [P in keyof ExtArgs['client']]: Return<ExtArgs['client'][P]>
 } & {
   [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
-    DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs, ClientOptions>
+    DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]: P extends keyof ClientOtherOps ? ClientOtherOps[P] : never
 } & {
   [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
-    DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs, ClientOptions>[P]
+    DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
 } & {
   [K: symbol]: { types: TypeMap['other'] }
 }
 
-export type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never, never>
+export type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
 
 export type DynamicClientExtensionThisBuiltin<
   TypeMap extends TypeMapDef,
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
-  ClientOptions,
 > = {
-  $extends: ExtendsHook<'extends', TypeMapCb, ExtArgs, Call<TypeMapCb, { extArgs: ExtArgs }>, ClientOptions>
+  $extends: ExtendsHook<'extends', TypeMapCb, ExtArgs, Call<TypeMapCb, { extArgs: ExtArgs }>>
   $transaction<P extends PrismaPromise<any>[]>(
     arg: [...P],
     options?: { isolationLevel?: TypeMap['meta']['txIsolationLevel'] },
   ): Promise<UnwrapTuple<P>>
   $transaction<R>(
-    fn: (
-      client: Omit<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs, ClientOptions>, ITXClientDenyList>,
-    ) => Promise<R>,
+    fn: (client: Omit<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>) => Promise<R>,
     options?: { maxWait?: number; timeout?: number; isolationLevel?: TypeMap['meta']['txIsolationLevel'] },
   ): Promise<R>
   $disconnect(): Promise<void>
@@ -323,7 +311,6 @@ export interface ExtendsHook<
   TypeMapCb extends TypeMapCbDef,
   ExtArgs extends Record<string, any>,
   TypeMap extends TypeMapDef = Call<TypeMapCb, { extArgs: ExtArgs }>,
-  ClientOptions = {},
 > {
   extArgs: ExtArgs
   <
@@ -346,18 +333,18 @@ export interface ExtendsHook<
     MergedArgs extends InternalArgs = MergeExtArgs<TypeMap, ExtArgs, Args>,
   >(
     extension:
-      | ((client: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs, ClientOptions>) => {
+      | ((client: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>) => {
           $extends: { extArgs: Args }
         })
       | {
           name?: string
           query?: DynamicQueryExtensionArgs<Q_, TypeMap>
           result?: DynamicResultExtensionArgs<R_, TypeMap> & R
-          model?: DynamicModelExtensionArgs<M_, TypeMap, TypeMapCb, ExtArgs, ClientOptions> & M
-          client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs, ClientOptions> & C
+          model?: DynamicModelExtensionArgs<M_, TypeMap, TypeMapCb, ExtArgs> & M
+          client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
         },
   ): {
-    extends: DynamicClientExtensionThis<Call<TypeMapCb, { extArgs: MergedArgs }>, TypeMapCb, MergedArgs, ClientOptions>
+    extends: DynamicClientExtensionThis<Call<TypeMapCb, { extArgs: MergedArgs }>, TypeMapCb, MergedArgs>
     define: (client: any) => { $extends: { extArgs: Args } }
   }[Variant]
 }

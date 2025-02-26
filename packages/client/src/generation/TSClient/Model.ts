@@ -760,7 +760,15 @@ function getResultType(modelName: string, actionName: DMMF.ModelAction) {
     .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(ts.stringLiteral(actionName))
-    .addGenericArgument(ts.namedType('ClientOptions'))
+    .addGenericArgument(
+      ts
+        .namedType('Prisma.TypeMap')
+        .addGenericArgument(extArgsParam.toArgument())
+        .addGenericArgument(ts.namedType('ClientOptions'))
+        .subKey('model')
+        .subKey(modelName)
+        .subKey('globalOmit'),
+    )
 }
 
 function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.OutputType, context: GenerateContext) {
