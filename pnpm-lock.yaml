@@ -377,8 +377,8 @@ importers:
         specifier: workspace:*
         version: link:../cli
       wrangler:
-        specifier: 3.109.3
-        version: 3.109.3(@cloudflare/workers-types@4.20250214.0)
+        specifier: 3.110.0
+        version: 3.110.0(@cloudflare/workers-types@4.20250214.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -729,9 +729,6 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      detect-runtime:
-        specifier: 1.0.4
-        version: 1.0.4
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -742,8 +739,8 @@ importers:
         specifier: 5.1.1
         version: 5.1.1
       expect-type:
-        specifier: 0.19.0
-        version: 0.19.0
+        specifier: 1.1.0
+        version: 1.1.0
       flat-map-polyfill:
         specifier: 0.3.8
         version: 0.3.8
@@ -853,8 +850,8 @@ importers:
         specifier: 7.3.0
         version: 7.3.0
       wrangler:
-        specifier: 3.109.3
-        version: 3.109.3(@cloudflare/workers-types@4.20250214.0)
+        specifier: 3.110.0
+        version: 3.110.0(@cloudflare/workers-types@4.20250214.0)
       zx:
         specifier: 7.2.3
         version: 7.2.3
@@ -1591,8 +1588,8 @@ importers:
         specifier: 5.4.5
         version: 5.4.5
       wrangler:
-        specifier: 3.109.3
-        version: 3.109.3(@cloudflare/workers-types@4.20250214.0)
+        specifier: 3.110.0
+        version: 3.110.0(@cloudflare/workers-types@4.20250214.0)
 
   packages/nextjs-monorepo-workaround-plugin:
     devDependencies:
@@ -4289,10 +4286,6 @@ packages:
     resolution: {integrity: sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==}
     engines: {node: '>=8'}
 
-  detect-runtime@1.0.4:
-    resolution: {integrity: sha512-oJJu3EzRFbmJcflC0Z55Gs08z7lOZ+68HsegIOVmg9WjDFdolJ/PoHQokv+usWcBqyZvUSVdrpDghOhoZCXJyw==}
-    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
-
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -4613,8 +4606,8 @@ packages:
     resolution: {integrity: sha512-Zk/eNKV2zbjpKzrsQ+n1G6poVbErQxJ0LBOJXaKZ1EViLzH+hrLu9cdXI4zw9dBQJslwBEpbQ2P1oS7nDxs6jQ==}
     engines: {node: '>= 0.8.0'}
 
-  expect-type@0.19.0:
-    resolution: {integrity: sha512-piv9wz3IrAG4Wnk2A+n2VRCHieAyOSxrRLU872Xo6nyn39kYXKDALk4OcqnvLRnFvkz659CnWC8MWZLuuQnoqg==}
+  expect-type@1.1.0:
+    resolution: {integrity: sha512-bFi65yM+xZgk+u/KRIpekdSYkTB5W1pEf0Lt8Q8Msh7b+eQ7LXVtIB1Bkm4fvclDEL1b2CZkMhv2mOeF8tMdkA==}
     engines: {node: '>=12.0.0'}
 
   expect@29.7.0:
@@ -5778,6 +5771,11 @@ packages:
 
   miniflare@3.20250214.0:
     resolution: {integrity: sha512-XKwn+X/V2CEpbRhoeaIcJHpV/Duz5Md5rxVT8I6S1oqd3aLZkn8cUX1tuxHpUvfQSPuXwWH+2ESLNnTf9PKEWg==}
+    engines: {node: '>=16.13'}
+    hasBin: true
+
+  miniflare@3.20250214.1:
+    resolution: {integrity: sha512-NE66QV+2n9ZndaP5jgPlcVref3Arvizb+l2QqhgeXtKM5Orhi8UU2mijoiN3mHEUexKaBES2S1VubT4LDPqkxQ==}
     engines: {node: '>=16.13'}
     hasBin: true
 
@@ -7306,8 +7304,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.109.3:
-    resolution: {integrity: sha512-T+SfFYEbkWDzf8WRR1JzaVKPH7wAzyciRIua8qszT+UqPqFNb6M5beCHHK/de7Zk5z6W5lvLly9SHToC11maDQ==}
+  wrangler@3.110.0:
+    resolution: {integrity: sha512-ldTaxtcYozSHo8QRcxTQUckO9C7zSZgG0/AMCqFLdKK7fYLFPWEwmbnh+gxzlxzWEMfa8fV/5NtR0k2bCBxAoA==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -10313,8 +10311,6 @@ snapshots:
 
   detect-newline@3.1.0: {}
 
-  detect-runtime@1.0.4: {}
-
   diff-sequences@29.6.3: {}
 
   diff@4.0.2: {}
@@ -10761,7 +10757,7 @@ snapshots:
 
   exit@0.1.2: {}
 
-  expect-type@0.19.0: {}
+  expect-type@1.1.0: {}
 
   expect@29.7.0:
     dependencies:
@@ -12368,6 +12364,23 @@ snapshots:
   min-indent@1.0.1: {}
 
   miniflare@3.20250214.0:
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      acorn: 8.14.0
+      acorn-walk: 8.3.2
+      exit-hook: 2.2.1
+      glob-to-regexp: 0.4.1
+      stoppable: 1.1.0
+      undici: 5.28.5
+      workerd: 1.20250214.0
+      ws: 8.18.0
+      youch: 3.2.3
+      zod: 3.22.3
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  miniflare@3.20250214.1:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.14.0
@@ -14055,14 +14068,14 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250214.0
       '@cloudflare/workerd-windows-64': 1.20250214.0
 
-  wrangler@3.109.3(@cloudflare/workers-types@4.20250214.0):
+  wrangler@3.110.0(@cloudflare/workers-types@4.20250214.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@esbuild-plugins/node-globals-polyfill': 0.2.3(esbuild@0.17.19)
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
       esbuild: 0.17.19
-      miniflare: 3.20250214.0
+      miniflare: 3.20250214.1
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.1
       workerd: 1.20250214.0
