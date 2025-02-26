@@ -57,7 +57,6 @@ ${bold('Options')}
                     The migration will be empty if there are no changes in Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
-    --allow-reset   Allow resetting the database on incompatible schema change (accept data loss)
 
 ${bold('Examples')}
 
@@ -85,7 +84,6 @@ ${bold('Examples')}
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,
-      '--allow-reset': Boolean,
     })
 
     if (isError(args)) {
@@ -141,24 +139,14 @@ ${bold('Examples')}
         reason: devDiagnostic.action.reason,
       })
 
-      if (!args['--allow-reset']) {
-        process.stdout.write(
-          `\nYou may use --allow-reset to drop the database. ${bold(red('All data will be lost.'))}\n`,
-        )
-        migrate.stop()
-        // Return SIGINT exit code to signal that the process was cancelled.
-        process.exit(130)
-      }
-
-      process.stdout.write('\nReceived --allow-reset, dropping the database. All data is lost.\n\n')
-
-      try {
-        // Do the reset
-        await migrate.reset()
-      } catch (e) {
-        migrate.stop()
-        throw e
-      }
+      process.stdout.write(
+        '\n' +
+          `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
+          `${bold(red('All data will be lost.'))}\n`,
+      )
+      migrate.stop()
+      // Return SIGINT exit code to signal that the process was cancelled.
+      process.exit(130)
     }
 
     try {
@@ -204,11 +192,6 @@ ${bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
-      if (!canPrompt()) {
-        migrate.stop()
-        throw new MigrateDevEnvNonInteractiveError()
-      }
-
       process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
       for (const warning of evaluateDataLossResult.warnings) {
         process.stdout.write(`  • ${warning.message}\n`)
@@ -216,6 +199,11 @@ ${bold('Examples')}
       process.stdout.write('\n') // empty line
 
       if (!args['--force']) {
+        if (!canPrompt()) {
+          migrate.stop()
+          throw new MigrateDevEnvNonInteractiveError()
+        }
+
         const message = args['--create-only']
           ? 'Are you sure you want to create this migration?'
           : 'Are you sure you want to create and apply this migration?'
