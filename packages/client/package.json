@@ -277,7 +277,7 @@
     "tsd": "0.31.2",
     "typescript": "5.4.5",
     "undici": "7.3.0",
-    "wrangler": "3.109.3",
+    "wrangler": "3.110.0",
     "zx": "7.2.3"
   },
   "peerDependencies": {
