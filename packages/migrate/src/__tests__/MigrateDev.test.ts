@@ -1222,6 +1222,46 @@ describe('postgresql', () => {
       "
     `)
   })
+
+  it('regression: enum array column type is introspected properly (gh-22456)', async () => {
+    ctx.fixture('enum-array-type-introspection')
+
+    // Reset the database
+    const reset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(reset).resolves.toMatchInlineSnapshot('""')
+
+    // The first (initial) migration should create the database objects
+    captureStdout.clearCaptureText()
+    const firstResult = MigrateDev.new().parse([], defaultTestConfig())
+    await expect(firstResult).resolves.toMatchInlineSnapshot('""')
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Applying migration \`20201231000000_\`
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      migrations/
+        └─ 20201231000000_/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+
+    // No migration should be created on the second run, since there have been no changes to the schema
+    captureStdout.clearCaptureText()
+    const secondResult = MigrateDev.new().parse([], defaultTestConfig())
+    await expect(secondResult).resolves.toMatchInlineSnapshot('""')
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Already in sync, no schema change or pending migration was found.
+      "
+    `)
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
