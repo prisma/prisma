@@ -454,11 +454,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/studio':
-        specifier: 0.509.1-integration-orm-578-driver-adapters.0
-        version: 0.509.1-integration-orm-578-driver-adapters.0
+        specifier: 0.510.0
+        version: 0.510.0
       '@prisma/studio-server':
-        specifier: 0.509.1-integration-orm-578-driver-adapters.0
-        version: 0.509.1-integration-orm-578-driver-adapters.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
+        specifier: 0.510.0
+        version: 0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
       '@swc/core':
         specifier: 1.10.11
         version: 1.10.11
@@ -3024,25 +3024,25 @@ packages:
   '@prisma/query-engine-wasm@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d':
     resolution: {integrity: sha512-+EDjXVeI7pYfG7HUCmmq3kURg76+fn3gBhdIyqvYL2MFglYwPJ5IJZRc3CtLQasnVUKnsfA+KYUT3xTC4dicYA==}
 
-  '@prisma/studio-common@0.509.1-integration-orm-578-driver-adapters.0':
-    resolution: {integrity: sha512-cECwMRG9W4VbcPBKSQUZaDLbxFlSuOKd4TkG/L+99Hus7lQUlstzIRsgCwRN6mNvz0EUQc2UnQyvC603fPopKA==}
+  '@prisma/studio-common@0.510.0':
+    resolution: {integrity: sha512-Fwq1r7vv/MzuUOGMi5JMwSpkCIpYbO+43dZTdoNLLylqkPvfuVnYVRpAVsANmY/UJ0heXup8a1s+OvSaYBMvUQ==}
     engines: {node: '>= 16.13'}
 
-  '@prisma/studio-pcw@0.509.1-integration-orm-578-driver-adapters.0':
-    resolution: {integrity: sha512-oF/0sxTyLmI8IzA9KIrqV7IeWuvBhbkq2AQInJ+guiBa6YE+LMg/h6K/5yaC+J6T8ptX2NDV+tGZ8MCMDAuskQ==}
+  '@prisma/studio-pcw@0.510.0':
+    resolution: {integrity: sha512-gfJMZbPl71OQALhVSG0AzXa2XgsHjpdmBeKppA5HFkSL177EH9WpOW75xyqkZbPGqEDSKKRki/lDyMJwiucZcg==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/internals': '*'
 
-  '@prisma/studio-server@0.509.1-integration-orm-578-driver-adapters.0':
-    resolution: {integrity: sha512-d9kXmk03KIHLu40hw4cGfvH1gN8he9J+qxyKyaAvLxbLVUEadhoezVMGdkex8QwK0tEmWUF09F1kL/uWo2S0+g==}
+  '@prisma/studio-server@0.510.0':
+    resolution: {integrity: sha512-/d7REMxj54NML4gOR3GT+xE0euZDTal80edq/hzmeo5/3GefgiAjcBWbjAXdu3kigMNHPSCBK1VkgzOpCijDng==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
 
-  '@prisma/studio@0.509.1-integration-orm-578-driver-adapters.0':
-    resolution: {integrity: sha512-Ag+z12pjVx2+u9fq0JddYMrep6x28xMZXlzcGysVaKIxsRHEalu9Kn+LXyjMmddjbm/Jj8o0OVkHRelI7JLfGQ==}
+  '@prisma/studio@0.510.0':
+    resolution: {integrity: sha512-dXicUmLEdVyewn9tp2avUk8XN9XQrLbQu4OsRC8hsBMvDfp3GzM6Go3/ECzBzBZWCZz8dl7FZ30Kpc7rQBZByg==}
 
   '@rushstack/node-core-library@5.11.0':
     resolution: {integrity: sha512-I8+VzG9A0F3nH2rLpPd7hF8F7l5Xb7D+ldrWVZYegXM6CsKkvWc670RlgK3WX8/AseZfXA/vVrh0bpXe2Y2UDQ==}
@@ -5574,7 +5574,6 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -8923,11 +8922,11 @@ snapshots:
 
   '@prisma/query-engine-wasm@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d': {}
 
-  '@prisma/studio-common@0.509.1-integration-orm-578-driver-adapters.0':
+  '@prisma/studio-common@0.510.0':
     dependencies:
       buffer: 6.0.3
 
-  '@prisma/studio-pcw@0.509.1-integration-orm-578-driver-adapters.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
+  '@prisma/studio-pcw@0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
     dependencies:
       '@prisma/client': link:packages/client
       '@prisma/internals': link:packages/internals
@@ -8936,12 +8935,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@prisma/studio-server@0.509.1-integration-orm-578-driver-adapters.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
+  '@prisma/studio-server@0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.509.1-integration-orm-578-driver-adapters.0
-      '@prisma/studio-common': 0.509.1-integration-orm-578-driver-adapters.0
-      '@prisma/studio-pcw': 0.509.1-integration-orm-578-driver-adapters.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.510.0
+      '@prisma/studio-common': 0.510.0
+      '@prisma/studio-pcw': 0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.33(encoding@0.1.13)
       cors: 2.8.5
       debug: 4.3.3
@@ -8952,7 +8951,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@prisma/studio@0.509.1-integration-orm-578-driver-adapters.0': {}
+  '@prisma/studio@0.510.0': {}
 
   '@rushstack/node-core-library@5.11.0(@types/node@18.19.76)':
     dependencies:
