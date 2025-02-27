@@ -30,7 +30,6 @@ describe('generator', () => {
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })
@@ -82,6 +81,7 @@ describe('generator', () => {
           "fromEnvVar": null,
           "value": "prisma-client-js",
         },
+        "sourceFilePath": "/client/src/__tests__/generation/schema.prisma",
       }
     `)
 
@@ -117,16 +117,15 @@ describe('generator', () => {
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'denylist.prisma'),
-        baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Prisma schema validation - (get-config wasm)
+        "Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:10
+          -->  src/__tests__/generation/denylist.prisma:10
            | 
          9 | 
         10 | model public {
@@ -134,7 +133,7 @@ describe('generator', () => {
         12 | }
            | 
         error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:14
+          -->  src/__tests__/generation/denylist.prisma:14
            | 
         13 | 
         14 | model return {
@@ -143,7 +142,7 @@ describe('generator', () => {
            | 
 
         Validation Error Count: 2
-        [Context: getConfig]
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)
@@ -168,7 +167,6 @@ describe('generator', () => {
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
-        baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
       })
@@ -184,7 +182,6 @@ describe('generator', () => {
   test('override client package', async () => {
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'main-package-override.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })
@@ -225,7 +222,6 @@ describe('generator', () => {
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'mongo.prisma'),
-      baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
     })
@@ -277,6 +273,7 @@ describe('generator', () => {
           "fromEnvVar": null,
           "value": "prisma-client-js",
         },
+        "sourceFilePath": "/client/src/__tests__/generation/mongo.prisma",
       }
     `)
 

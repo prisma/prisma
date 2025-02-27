@@ -133,7 +133,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
@@ -145,7 +146,8 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []
@@ -192,7 +194,8 @@ describe('getConfig', () => {
                 "native": true
               }
             ],
-            "previewFeatures": []
+            "previewFeatures": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "datasources": [
@@ -204,7 +207,8 @@ describe('getConfig', () => {
               "fromEnvVar": null,
               "value": "file:../hello.db"
             },
-            "schemas": []
+            "schemas": [],
+            "sourceFilePath": "schema.prisma"
           }
         ],
         "warnings": []

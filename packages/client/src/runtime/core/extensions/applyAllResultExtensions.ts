@@ -1,3 +1,4 @@
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { RuntimeDataModel } from '../runtimeDataModel'
 import { JsArgs } from '../types/exported/JsApi'
@@ -11,6 +12,7 @@ type ApplyAllResultExtensionsParams = {
   args: JsArgs
   extensions: MergedExtensionsList
   runtimeDataModel: RuntimeDataModel
+  globalOmit?: GlobalOmitOptions
 }
 
 /**
@@ -23,6 +25,7 @@ export function applyAllResultExtensions({
   args,
   extensions,
   runtimeDataModel,
+  globalOmit,
 }: ApplyAllResultExtensionsParams) {
   // We return the result directly (not applying result extensions) if
   // - there is no extension to apply
@@ -35,18 +38,23 @@ export function applyAllResultExtensions({
   if (!model) {
     return result
   }
+
   return visitQueryResult({
     result,
     args: args ?? {},
     modelName,
     runtimeDataModel,
-    visitor: (value, dmmfModelName, args) =>
-      applyResultExtensions({
+    visitor: (value, dmmfModelName, args) => {
+      const jsName = dmmfToJSModelName(dmmfModelName)
+      return applyResultExtensions({
         result: value,
-        modelName: dmmfToJSModelName(dmmfModelName),
+        modelName: jsName,
         select: args.select,
-        omit: args.omit,
+        // passing omit only if explicit select is not set - those 2 options are
+        // mutually exclusive
+        omit: args.select ? undefined : { ...globalOmit?.[jsName], ...args.omit },
         extensions,
-      }),
+      })
+    },
   })
 }

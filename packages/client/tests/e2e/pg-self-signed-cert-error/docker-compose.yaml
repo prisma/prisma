@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   test-e2e:
     environment:

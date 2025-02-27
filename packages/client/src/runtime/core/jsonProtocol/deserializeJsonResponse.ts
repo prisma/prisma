@@ -32,8 +32,10 @@ function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutp
   switch ($type) {
     case 'BigInt':
       return BigInt(value)
-    case 'Bytes':
-      return Buffer.from(value, 'base64')
+    case 'Bytes': {
+      const { buffer, byteOffset, byteLength } = Buffer.from(value, 'base64')
+      return new Uint8Array(buffer, byteOffset, byteLength)
+    }
     case 'DateTime':
       return new Date(value)
     case 'Decimal':

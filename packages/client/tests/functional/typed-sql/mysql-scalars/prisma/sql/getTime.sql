@@ -1,0 +1,1 @@
+SELECT `time` FROM `TestModel` WHERE id = ?

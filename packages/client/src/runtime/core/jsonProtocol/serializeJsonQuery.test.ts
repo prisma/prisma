@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
+import { skip } from '../types'
 import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
@@ -114,6 +115,38 @@ test('createManyAndReturn', () => {
     "{
       "modelName": "User",
       "action": "createManyAndReturn",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('updateMany', () => {
+  expect(serialize({ modelName: 'User', action: 'updateMany', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "updateMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('updateManyAndReturn', () => {
+  expect(serialize({ modelName: 'User', action: 'updateManyAndReturn', args: {} })).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "updateManyAndReturn",
       "query": {
         "arguments": {},
         "selection": {
@@ -422,6 +455,35 @@ test('args - Buffer', () => {
       modelName: 'User',
       action: 'findMany',
       args: { where: { binary: Buffer.from('hello world') } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "binary": {
+              "$type": "Bytes",
+              "value": "aGVsbG8gd29ybGQ="
+            }
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test('args - Uint8Array', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { binary: new Uint8Array(Buffer.from('hello world')) } },
     }),
   ).toMatchInlineSnapshot(`
     "{
@@ -764,7 +826,13 @@ test('1 level include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": true
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
         }
       }
     }"
@@ -821,7 +889,13 @@ test('multiple level include', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": true
+              "attachments": {
+                "arguments": {},
+                "selection": {
+                  "$composites": true,
+                  "$scalars": true
+                }
+              }
             }
           }
         }
@@ -845,7 +919,13 @@ test('explicit selection', () => {
         "arguments": {},
         "selection": {
           "title": true,
-          "posts": true
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
         }
       }
     }"
@@ -936,7 +1016,13 @@ test('mixed include and select', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": true
+              "attachments": {
+                "arguments": {},
+                "selection": {
+                  "$composites": true,
+                  "$scalars": true
+                }
+              }
             }
           }
         }
@@ -1014,7 +1100,6 @@ test('omit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1038,7 +1123,6 @@ test('omit(false)', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: false } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1062,7 +1146,6 @@ test('omit + include', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { include: { posts: true }, omit: { name: true } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1074,7 +1157,13 @@ test('omit + include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          },
           "name": false
         }
       }
@@ -1087,7 +1176,6 @@ test('nested omit', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { include: { posts: { omit: { title: true } } } },
     }),
   ).toMatchInlineSnapshot(`
@@ -1118,7 +1206,6 @@ test('exclusion with extension', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true } },
       extensions: MergedExtensionsList.single({
         result: {
@@ -1151,7 +1238,6 @@ test('exclusion with extension while excluding computed field too', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      previewFeatures: ['omitApi'],
       args: { omit: { name: true, fullName: true } },
       extensions: MergedExtensionsList.single({
         result: {
@@ -1174,6 +1260,302 @@ test('exclusion with extension while excluding computed field too', () => {
           "$composites": true,
           "$scalars": true,
           "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": false
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit + local omit', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: {
+        omit: {
+          name: false,
+        },
+      },
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('globalOmit + local select', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: {
+        select: {
+          name: true,
+        },
+      },
+      globalOmit: {
+        user: {
+          name: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "name": true
+        }
+      }
+    }"
+  `)
+})
+
+test('nested globalOmit (include)', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { include: { posts: true } },
+      globalOmit: {
+        post: {
+          title: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true,
+              "title": false
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test('nested globalOmit (select)', () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { select: { posts: true } },
+      globalOmit: {
+        post: {
+          title: true,
+        },
+      },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true,
+              "title": false
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in arguments`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: skip },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {},
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in input object fields`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve', occupation: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in include`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, include: { posts: true, profile: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in select`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, select: { posts: true, profile: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "posts": {
+            "arguments": {},
+            "selection": {
+              "$composites": true,
+              "$scalars": true
+            }
+          }
+        }
+      }
+    }"
+  `)
+})
+
+test(`Prisma.skip in omit`, () => {
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name: 'Steve' }, omit: { password: true, name: skip } },
+    }),
+  ).toMatchInlineSnapshot(`
+    "{
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Steve"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true,
+          "password": false
         }
       }
     }"

@@ -1,9 +1,9 @@
-import { type ColumnType, ColumnTypeEnum, JsonNullMarker } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import * as pg from '@prisma/pg-worker'
 import { parse as parseArray } from 'postgres-array'
 
 const { types } = pg
-const { builtins: ScalarColumnType, getTypeParser, setTypeParser } = types
+const { builtins: ScalarColumnType, getTypeParser } = types
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
@@ -172,45 +172,45 @@ export class UnsupportedNativeDataType extends Error {
  */
 export function fieldToColumnType(fieldTypeId: number): ColumnType {
   switch (fieldTypeId) {
-    case ScalarColumnType['INT2']:
-    case ScalarColumnType['INT4']:
+    case ScalarColumnType.INT2:
+    case ScalarColumnType.INT4:
       return ColumnTypeEnum.Int32
-    case ScalarColumnType['INT8']:
+    case ScalarColumnType.INT8:
       return ColumnTypeEnum.Int64
-    case ScalarColumnType['FLOAT4']:
+    case ScalarColumnType.FLOAT4:
       return ColumnTypeEnum.Float
-    case ScalarColumnType['FLOAT8']:
+    case ScalarColumnType.FLOAT8:
       return ColumnTypeEnum.Double
-    case ScalarColumnType['BOOL']:
+    case ScalarColumnType.BOOL:
       return ColumnTypeEnum.Boolean
-    case ScalarColumnType['DATE']:
+    case ScalarColumnType.DATE:
       return ColumnTypeEnum.Date
-    case ScalarColumnType['TIME']:
-    case ScalarColumnType['TIMETZ']:
+    case ScalarColumnType.TIME:
+    case ScalarColumnType.TIMETZ:
       return ColumnTypeEnum.Time
-    case ScalarColumnType['TIMESTAMP']:
-    case ScalarColumnType['TIMESTAMPTZ']:
+    case ScalarColumnType.TIMESTAMP:
+    case ScalarColumnType.TIMESTAMPTZ:
       return ColumnTypeEnum.DateTime
-    case ScalarColumnType['NUMERIC']:
-    case ScalarColumnType['MONEY']:
+    case ScalarColumnType.NUMERIC:
+    case ScalarColumnType.MONEY:
       return ColumnTypeEnum.Numeric
-    case ScalarColumnType['JSON']:
-    case ScalarColumnType['JSONB']:
+    case ScalarColumnType.JSON:
+    case ScalarColumnType.JSONB:
       return ColumnTypeEnum.Json
-    case ScalarColumnType['UUID']:
+    case ScalarColumnType.UUID:
       return ColumnTypeEnum.Uuid
-    case ScalarColumnType['OID']:
+    case ScalarColumnType.OID:
       return ColumnTypeEnum.Int64
-    case ScalarColumnType['BPCHAR']:
-    case ScalarColumnType['TEXT']:
-    case ScalarColumnType['VARCHAR']:
-    case ScalarColumnType['BIT']:
-    case ScalarColumnType['VARBIT']:
-    case ScalarColumnType['INET']:
-    case ScalarColumnType['CIDR']:
-    case ScalarColumnType['XML']:
+    case ScalarColumnType.BPCHAR:
+    case ScalarColumnType.TEXT:
+    case ScalarColumnType.VARCHAR:
+    case ScalarColumnType.BIT:
+    case ScalarColumnType.VARBIT:
+    case ScalarColumnType.INET:
+    case ScalarColumnType.CIDR:
+    case ScalarColumnType.XML:
       return ColumnTypeEnum.Text
-    case ScalarColumnType['BYTEA']:
+    case ScalarColumnType.BYTEA:
       return ColumnTypeEnum.Bytes
     case ArrayColumnType.INT2_ARRAY:
     case ArrayColumnType.INT4_ARRAY:
@@ -275,16 +275,22 @@ function normalize_numeric(numeric: string): string {
   return numeric
 }
 
-setTypeParser(ScalarColumnType.NUMERIC, normalize_numeric)
-setTypeParser(ArrayColumnType.NUMERIC_ARRAY, normalize_array(normalize_numeric))
-
 /****************************/
 /* Time-related data-types  */
 /****************************/
 
+/*
+ * DATE, DATE_ARRAY - converts value (or value elements) to a string in the format YYYY-MM-DD
+ */
+
 function normalize_date(date: string): string {
   return date
 }
+
+/*
+ * TIMESTAMP, TIMESTAMP_ARRAY - converts value (or value elements) to a string in the rfc3339 format
+ * ex: 1996-12-19T16:39:57-08:00
+ */
 
 function normalize_timestamp(time: string): string {
   return time
@@ -308,25 +314,6 @@ function normalize_timez(time: string): string {
   return time.split('+')[0]
 }
 
-setTypeParser(ScalarColumnType.TIME, normalize_time)
-setTypeParser(ArrayColumnType.TIME_ARRAY, normalize_array(normalize_time))
-setTypeParser(ScalarColumnType.TIMETZ, normalize_timez)
-
-/*
- * DATE, DATE_ARRAY - converts value (or value elements) to a string in the format YYYY-MM-DD
- */
-
-setTypeParser(ScalarColumnType.DATE, normalize_date)
-setTypeParser(ArrayColumnType.DATE_ARRAY, normalize_array(normalize_date))
-
-/*
- * TIMESTAMP, TIMESTAMP_ARRAY - converts value (or value elements) to a string in the rfc3339 format
- * ex: 1996-12-19T16:39:57-08:00
- */
-setTypeParser(ScalarColumnType.TIMESTAMP, normalize_timestamp)
-setTypeParser(ArrayColumnType.TIMESTAMP_ARRAY, normalize_array(normalize_timestamp))
-setTypeParser(ScalarColumnType.TIMESTAMPTZ, normalize_timestampz)
-
 /******************/
 /* Money handling */
 /******************/
@@ -335,29 +322,25 @@ function normalize_money(money: string): string {
   return money.slice(1)
 }
 
-setTypeParser(ScalarColumnType.MONEY, normalize_money)
-setTypeParser(ArrayColumnType.MONEY_ARRAY, normalize_array(normalize_money))
+/******************/
+/* XML handling */
+/******************/
+function normalize_xml(xml: string): string {
+  return xml
+}
 
 /*****************/
 /* JSON handling */
 /*****************/
 
 /**
- * JsonNull are stored in JSON strings as the string "null", distinguishable from
- * the `null` value which is used by the driver to represent the database NULL.
- * By default, JSON and JSONB columns use JSON.parse to parse a JSON column value
- * and this will lead to serde_json::Value::Null in Rust, which will be interpreted
- * as DbNull.
- *
- * By converting "null" to JsonNullMarker, we can signal JsonNull in Rust side and
- * convert it to QuaintValue::Json(Some(Null)).
+ * We hand off JSON handling entirely to engines, so we keep it
+ * stringified here. This function needs to exist as otherwise
+ * the default type parser attempts to deserialise it.
  */
 function toJson(json: string): unknown {
-  return json === 'null' ? JsonNullMarker : JSON.parse(json)
+  return json
 }
-
-setTypeParser(ScalarColumnType.JSONB, toJson)
-setTypeParser(ScalarColumnType.JSON, toJson)
 
 /************************/
 /* Binary data handling */
@@ -379,6 +362,18 @@ function encodeBuffer(buffer: Buffer) {
  */
 
 const parsePgBytes = getTypeParser(ScalarColumnType.BYTEA) as (_: string) => Buffer
+
+/*
+ * BYTEA_ARRAY - arrays of arbitrary raw binary strings
+ */
+
+const parseBytesArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
+
+function normalizeByteaArray(serializedBytesArray) {
+  const buffers = parseBytesArray(serializedBytesArray)
+  return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
+}
+
 /**
  * Convert bytes to a JSON-encodable representation since we can't
  * currently send a parsed Buffer or ArrayBuffer across JS to Rust
@@ -389,27 +384,33 @@ function convertBytes(serializedBytes: string): number[] {
   return encodeBuffer(buffer)
 }
 
-setTypeParser(ScalarColumnType.BYTEA, convertBytes)
-
-/*
- * BYTEA_ARRAY - arrays of arbitrary raw binary strings
- */
-
-const parseBytesArray = getTypeParser(ArrayColumnType.BYTEA_ARRAY) as (_: string) => Buffer[]
-
-setTypeParser(ArrayColumnType.BYTEA_ARRAY, (serializedBytesArray) => {
-  const buffers = parseBytesArray(serializedBytesArray)
-  return buffers.map((buf) => (buf ? encodeBuffer(buf) : null))
-})
-
 /* BIT_ARRAY, VARBIT_ARRAY */
 
 function normalizeBit(bit: string): string {
   return bit
 }
 
-setTypeParser(ArrayColumnType.BIT_ARRAY, normalize_array(normalizeBit))
-setTypeParser(ArrayColumnType.VARBIT_ARRAY, normalize_array(normalizeBit))
+export const customParsers = {
+  [ScalarColumnType.NUMERIC]: normalize_numeric,
+  [ArrayColumnType.NUMERIC_ARRAY]: normalize_array(normalize_numeric),
+  [ScalarColumnType.TIME]: normalize_time,
+  [ArrayColumnType.TIME_ARRAY]: normalize_array(normalize_time),
+  [ScalarColumnType.TIMETZ]: normalize_timez,
+  [ScalarColumnType.DATE]: normalize_date,
+  [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
+  [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
+  [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
+  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
+  [ScalarColumnType.MONEY]: normalize_money,
+  [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
+  [ScalarColumnType.JSON]: toJson,
+  [ScalarColumnType.JSONB]: toJson,
+  [ScalarColumnType.BYTEA]: convertBytes,
+  [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
+  [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
+}
 
 // https://github.com/brianc/node-postgres/pull/2930
 export function fixArrayBufferValues(values: unknown[]) {

@@ -1,13 +1,6 @@
 import { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
-import {
-  extArgsParam,
-  getIncludeName,
-  getLegacyModelArgName,
-  getModelArgName,
-  getOmitName,
-  getSelectName,
-} from '../utils'
+import { extArgsParam, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { buildInputField } from './Input'
@@ -35,7 +28,7 @@ export class ArgsTypeBuilder {
 
   addSchemaArgs(args: readonly DMMF.SchemaArg[]): this {
     for (const arg of args) {
-      const inputField = buildInputField(arg, this.context.genericArgsInfo)
+      const inputField = buildInputField(arg, this.context)
 
       const docComment = getArgFieldJSDoc(this.type, this.action, arg)
       if (docComment) {
@@ -46,15 +39,12 @@ export class ArgsTypeBuilder {
     return this
   }
 
-  addSelectArg(): this {
+  addSelectArg(selectTypeName: string = getSelectName(this.type.name)): this {
     this.addProperty(
       ts
         .property(
           'select',
-          ts.unionType([
-            ts.namedType(getSelectName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
-            ts.nullType,
-          ]),
+          ts.unionType([ts.namedType(selectTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
         )
         .optional()
         .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
@@ -63,8 +53,8 @@ export class ArgsTypeBuilder {
     return this
   }
 
-  addIncludeArgIfHasRelations(): this {
-    const hasRelationField = this.type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
+  addIncludeArgIfHasRelations(includeTypeName = getIncludeName(this.type.name), type = this.type): this {
+    const hasRelationField = type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
     if (!hasRelationField) {
       return this
     }
@@ -73,10 +63,7 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'include',
-          ts.unionType([
-            ts.namedType(getIncludeName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
-            ts.nullType,
-          ]),
+          ts.unionType([ts.namedType(includeTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
         )
         .optional()
         .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),
@@ -86,9 +73,6 @@ export class ArgsTypeBuilder {
   }
 
   addOmitArg(): this {
-    if (!this.context.isPreviewFeatureOn('omitApi')) {
-      return this
-    }
     this.addProperty(
       ts
         .property(
@@ -116,13 +100,6 @@ export class ArgsTypeBuilder {
   }
 
   createExport() {
-    if (!this.action && this.hasDefaultName) {
-      this.context.defaultArgsAliases.addPossibleAlias(
-        getModelArgName(this.type.name),
-        getLegacyModelArgName(this.type.name),
-      )
-    }
-    this.context.defaultArgsAliases.registerArgName(this.moduleExport.declaration.name)
     return this.moduleExport
   }
 }

@@ -37,16 +37,17 @@ import { Platform } from './platform/_Platform'
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
 import { Studio } from './Studio'
+import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
+import { loadConfig } from './utils/loadConfig'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
 
 const debug = Debug('prisma:cli:bin')
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
 const commandArray = process.argv.slice(2)
@@ -63,6 +64,7 @@ const args = arg(
   commandArray,
   {
     '--schema': String,
+    '--config': String,
     '--telemetry-information': String,
   },
   false,
@@ -86,6 +88,8 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       platform: Platform.$.new({
+        policy: new SubCommand('@prisma/cli-policy'),
+
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
@@ -154,9 +158,15 @@ async function main(): Promise<number> {
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
 
+  const config = await loadConfig(args['--config'])
+  if (config instanceof HelpError) {
+    console.error(config.message)
+    return 1
+  }
+
   const startCliExec = performance.now()
   // Execute the command
-  const result = await cli.parse(commandArray)
+  const result = await cli.parse(commandArray, config)
   const endCliExec = performance.now()
   const cliExecElapsedTime = endCliExec - startCliExec
   debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
@@ -184,6 +194,7 @@ async function main(): Promise<number> {
     command: redactedCommandAsString,
     isPrismaInstalledGlobally,
     schemaPath: args['--schema'],
+    schemaPathFromConfig: config.schema,
     telemetryInformation: args['--telemetry-information'],
     version: packageJson.version,
   })

@@ -35,6 +35,8 @@ const jestArgs = {
   // Use this flag to show full diffs and errors instead of a patch.
   '--expand': Boolean,
   '-e': '--expand',
+  // Create json test report -a lso see --outputFile.
+  '--json': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
   '--listTests': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
@@ -49,6 +51,8 @@ const jestArgs = {
   '--noStackTrace': Boolean,
   // Activates notifications for test results.
   '--notify': Boolean,
+  // Output file location for json output. Also see --json.
+  '--outputFile': String,
   // Passes the same flag to Jest to shard tests between multiple machines
   '--shard': String,
   // Passes the same flag to Jest to silence the output
@@ -108,6 +112,8 @@ const args = arg(
     '--engine-type': String,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
+    // Enable Node.js debugger
+    '--inspect-brk': Boolean,
 
     //
     // Jest params
@@ -132,6 +138,10 @@ async function main(): Promise<number | void> {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       jestCli = jestCli.withArgs([cliArg, args[cliArg]])
     }
+  }
+
+  if (args['--inspect-brk']) {
+    jestCli = jestCli.withDebugger()
   }
 
   if (args['--preview-features']) {

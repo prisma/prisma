@@ -1,4 +1,3 @@
-import crypto from 'crypto'
 import newGitHubIssueUrl from 'new-github-issue-url'
 
 export function getGitHubIssueUrl({
@@ -21,8 +20,4 @@ export function getGitHubIssueUrl({
     title,
     body,
   })
-}
-
-export function getRandomString() {
-  return crypto.randomBytes(12).toString('hex')
 }

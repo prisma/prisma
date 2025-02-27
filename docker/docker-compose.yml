@@ -1,5 +1,3 @@
-version: '3.8'
-
 name: prisma-prisma
 
 # For connection urls to the following instances, see
@@ -75,7 +73,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:4b5514a7740219bc81a65333f286a439ab3a76d6674b4a25fb6edc122f2faaee
+    image: vitess/vttestserver:mysql80@sha256:22c9945888fd6d5b192072895db91a1c0357f6ed932993d04689c716cf828bb2
     restart: unless-stopped
     ports:
       - 33807:33807
@@ -94,7 +92,7 @@ services:
       retries: 20
 
   mysql:
-    image: mysql:8.0
+    image: mysql:9.0
     command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
@@ -111,7 +109,7 @@ services:
       retries: 20
 
   mysql_isolated:
-    image: mysql:8.0
+    image: mysql:9.0
     command: --lower_case_table_names=1
     restart: unless-stopped
     environment:
@@ -152,7 +150,7 @@ services:
     ports:
       - '1433:1433'
     healthcheck:
-      test: ['CMD', '/opt/mssql-tools/bin/sqlcmd', '-Usa', '-PPr1sm4_Pr1sm4', '-Q', 'select 1']
+      test: ['CMD', '/opt/mssql-tools18/bin/sqlcmd', '-C', '-Usa', '-PPr1sm4_Pr1sm4', '-Q', 'select 1']
       interval: 5s
       timeout: 2s
       retries: 20

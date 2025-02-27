@@ -49,15 +49,17 @@ function mapDeclType(declType: string): ColumnType | null {
       return ColumnTypeEnum.Bytes
     case 'BOOLEAN':
       return ColumnTypeEnum.Boolean
+    case 'JSONB':
+      return ColumnTypeEnum.Json
     default:
       debug('unknown decltype:', declType)
       return null
   }
 }
 
-function mapDeclaredColumnTypes(columntTypes: string[]): [out: Array<ColumnType | null>, empty: Set<number>] {
+function mapDeclaredColumnTypes(columnTypes: string[]): [out: Array<ColumnType | null>, empty: Set<number>] {
   const emptyIndices = new Set<number>()
-  const result = columntTypes.map((typeName, index) => {
+  const result = columnTypes.map((typeName, index) => {
     const mappedType = mapDeclType(typeName)
     if (mappedType === null) {
       emptyIndices.add(index)

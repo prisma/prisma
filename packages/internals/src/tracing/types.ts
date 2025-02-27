@@ -15,27 +15,47 @@ export type ExtendedSpanOptions = SpanOptions & {
   context?: Context
 }
 
-export type EngineSpanEvent = {
-  span: boolean
-  spans: EngineSpan[]
-}
+export type EngineSpanId = string
+
+export type HrTime = [number, number]
+
+export type EngineSpanKind = 'client' | 'internal'
 
 export type EngineSpan = {
-  span: boolean
+  id: EngineSpanId
+  parentId: string | null
   name: string
-  trace_id: string
-  span_id: string
-  parent_span_id: string
-  start_time: [number, number]
-  end_time: [number, number]
-  attributes?: Record<string, string>
-  links?: { trace_id: string; span_id: string }[]
+  startTime: HrTime
+  endTime: HrTime
+  kind: EngineSpanKind
+  attributes?: Record<string, unknown>
+  links?: EngineSpanId[]
+}
+
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'query'
+
+export type EngineTraceEvent = {
+  spanId: EngineSpanId
+  target: string
+  level: LogLevel
+  timestamp: HrTime
+  attributes: Record<string, unknown> & {
+    message?: string
+    query?: string
+    duration_ms?: number
+    params?: string
+  }
+}
+
+export type EngineTrace = {
+  spans: EngineSpan[]
+  events: EngineTraceEvent[]
 }
 
 export interface TracingHelper {
   isEnabled(): boolean
   getTraceParent(context?: Context): string
-  createEngineSpan(engineSpanEvent: EngineSpanEvent): void
+  dispatchEngineSpans(spans: EngineSpan[]): void
 
   getActiveContext(): Context | undefined
 

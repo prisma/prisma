@@ -1,7 +1,8 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
-import { argOrThrow } from '../_lib/cli/parameters'
+import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'
 import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
@@ -11,8 +12,11 @@ export class Show implements Command {
     return new Show()
   }
 
-  public async parse(argv: string[]) {
-    const args = argOrThrow(argv, { ...platformParameters.global })
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
+    const args = argOrThrow(argv, {
+      ...platformParameters.global,
+      '--sensitive': Boolean,
+    })
     const token = await getTokenOrThrow(args)
     const { me } = await requestOrThrow<{
       me: {
@@ -41,9 +45,18 @@ export class Show implements Command {
         `,
       },
     })
+
+    const data = {
+      ...me.user,
+      token: getOptionalParameter(args, ['--sensitive']) ? token : null,
+    }
+
     return messages.sections([
       messages.info(`Currently authenticated as ${green(me.user.email)}`),
-      messages.resource(me.user, { email: true }),
+      messages.resource(data, {
+        email: true,
+        token: true,
+      }),
     ])
   }
 }

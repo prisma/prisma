@@ -1,7 +1,9 @@
-import type { DMMF } from '@prisma/generator-helper'
+import { type DMMF } from '@prisma/generator-helper'
 
-import type { Dictionary } from './utils/common'
+import { type Dictionary } from './utils/common'
 import { keyBy } from './utils/common'
+
+export { datamodelEnumToSchemaEnum } from '@prisma/generator-helper'
 
 type NamespacedTypeMap<T> = {
   prisma: Record<string, T>
@@ -107,6 +109,13 @@ export class DMMFHelper implements DMMF.Document {
   }
 
   private buildMergedOutputTypeMap(): NamespacedTypeMap<DMMF.OutputType> {
+    if (!this.schema.outputObjectTypes.prisma) {
+      return {
+        model: keyBy(this.schema.outputObjectTypes.model, 'name'),
+        prisma: keyBy([], 'name'),
+      }
+    }
+
     return {
       model: keyBy(this.schema.outputObjectTypes.model, 'name'),
       prisma: keyBy(this.schema.outputObjectTypes.prisma, 'name'),

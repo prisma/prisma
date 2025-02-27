@@ -1,5 +1,7 @@
+import { finished } from 'node:stream/promises'
+
 import { arg } from '@prisma/internals'
-import { existsSync } from 'fs'
+import { createReadStream, existsSync } from 'fs'
 import fs from 'fs/promises'
 import glob from 'globby'
 import path from 'path'
@@ -116,6 +118,12 @@ async function main() {
     return async () => {
       const result =
         await $`docker compose ${composeFileArgs} -p ${projectName} run --rm ${dockerVolumeArgs} -e "NAME=${testPath}" test-e2e`.nothrow()
+
+      await $`docker compose ${composeFileArgs} -p ${projectName} logs > ${path.join(
+        e2eRoot,
+        testPath,
+        'LOGS.docker.txt',
+      )}`
       await $`docker compose ${composeFileArgs} -p ${projectName} stop`
       await $`docker compose ${composeFileArgs} -p ${projectName} rm -f`
       await $`docker network rm -f ${networkName}`
@@ -158,20 +166,37 @@ async function main() {
 
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
-      console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
-      await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+      console.log(`-----------------------------------------------------------------------`)
+      console.log(`🛑🛑🛑 Test "${result.name}" failed with exit code ${result.exitCode} 🛑🛑🛑`)
+      console.log(`\t\t⬇️ Container Log output below ⬇️\n\n`)
+      console.log(`-----------------------------------------------------------------------`)
+
+      const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
+      const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
+
+      if (await isFile(logsPath)) {
+        await printFile(logsPath)
+      } else if (await isFile(dockerLogsPath)) {
+        await printFile(dockerLogsPath)
+      }
       await sleep(50) // give some time for the logs to be printed (CI issue)
+
+      console.log(`-----------------------------------------------------------------------`)
+      console.log(`🛑 ⬆️ Container Log output of test failure "${result.name}" above ⬆️ 🛑`)
+      console.log(`-----------------------------------------------------------------------`)
     }
   }
 
   // let the tests run and gather a list of logs for containers that have failed
   if (failedJobResults.length > 0) {
     const failedJobLogPaths = failedJobResults.map((result) => path.resolve(__dirname, '..', result.name, 'LOGS.txt'))
+    console.log(`-----------------------------------------------------------------------`)
     console.log(`✅ ${passedJobResults.length}/${jobResults.length} tests passed`)
     console.log(`🛑 ${failedJobResults.length}/${jobResults.length} tests failed`, failedJobLogPaths)
 
     throw new Error('Some tests exited with a non-zero exit code')
   } else {
+    console.log(`-----------------------------------------------------------------------`)
     console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
   }
 }
@@ -179,6 +204,28 @@ async function main() {
 async function restoreOriginalState() {
   if (args['--skipPack'] === false) {
     await $`pnpm -r exec cp package.copy.json package.json`
+  }
+}
+
+async function printFile(filePath: string) {
+  try {
+    const fileStream = createReadStream(filePath)
+    fileStream.pipe(process.stdout, { end: false })
+    await finished(fileStream)
+  } catch (err) {
+    console.error(`Error trying to print log file "${filePath}":`, err)
+  }
+}
+
+async function isFile(filePath: string) {
+  try {
+    const stat = await fs.stat(filePath)
+    return stat.isFile()
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return false
+    }
+    throw e
   }
 }
 

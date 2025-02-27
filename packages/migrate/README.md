@@ -24,7 +24,7 @@
 
 **Prisma Migrate** is an imperative database schema migration tool that enables you to make changes to your database schema. Migrations are auto-generated based on the Prisma schema changes but are fully customizable.
 
-> Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
+> Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://pris.ly/discord/) with us.
 
 ---
 

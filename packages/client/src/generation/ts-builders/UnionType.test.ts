@@ -1,4 +1,5 @@
 import { array } from './ArrayType'
+import { functionType } from './FunctionType'
 import {} from './GenericParameter'
 import { namedType } from './NamedType'
 import { stringify } from './stringify'
@@ -17,6 +18,10 @@ test('multiple types', () => {
 
 test('from array', () => {
   expect(stringify(unionType([A, B]))).toMatchInlineSnapshot(`"A | B"`)
+})
+
+test('with function type', () => {
+  expect(stringify(unionType([A, B, functionType()]))).toMatchInlineSnapshot(`"A | B | (() => void)"`)
 })
 
 test('fails with empty array', () => {

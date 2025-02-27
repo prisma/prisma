@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 // default import does not work correctly for JS values inside,
 // i.e. client
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  DriverAdapter,
-  Query,
-  Queryable,
-  Result,
-  ResultSet,
+  SqlConnection,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
+  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
@@ -31,7 +32,9 @@ class RollbackError extends Error {
   }
 }
 
-class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
+class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
+  implements SqlQueryable
+{
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
@@ -40,20 +43,18 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const ioResult = await this.performIO(query)
-    return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
-      const columns = fields.map((field) => field.name)
-      return {
-        columnNames: columns,
-        columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-        rows: rows as ResultSet['rows'],
-        lastInsertId,
-      }
-    })
+    const { fields, insertId: lastInsertId, rows } = await this.performIO(query)
+    const columns = fields.map((field) => field.name)
+    return {
+      columnNames: columns,
+      columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
+      rows: rows as SqlResultSet['rows'],
+      lastInsertId,
+    }
   }
 
   /**
@@ -61,11 +62,11 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ rowsAffected }) => rowsAffected)
+    return (await this.performIO(query)).rowsAffected
   }
 
   /**
@@ -73,7 +74,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<planetScale.ExecutedQuery>> {
+  private async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -81,14 +82,14 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
         as: 'array',
         cast,
       })
-      return ok(result)
+      return result
     } catch (e) {
       const error = e as Error
       if (error.name === 'DatabaseError') {
         const parsed = parseErrorMessage(error.message)
         if (parsed) {
-          return err({
-            kind: 'Mysql',
+          throw new DriverAdapterError({
+            kind: 'mysql',
             ...parsed,
           })
         }
@@ -127,58 +128,41 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     super(tx)
   }
 
-  async commit(): Promise<Result<void>> {
+  async commit(): Promise<void> {
     debug(`[js::commit]`)
 
     this.txDeferred.resolve()
-    return Promise.resolve(ok(await this.txResultPromise))
+    return await this.txResultPromise
   }
 
-  async rollback(): Promise<Result<void>> {
+  async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
     this.txDeferred.reject(new RollbackError())
-    return Promise.resolve(ok(await this.txResultPromise))
+    return await this.txResultPromise
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
-  constructor(client: planetScale.Client) {
-    // this used to be a check for constructor name at same point (more reliable when having multiple copies
-    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
-    if (!(client instanceof planetScale.Client)) {
-      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
-import { Client } from '@planetscale/database'
-const client = new Client({ url })
-const adapter = new PrismaPlanetScale(client)
-`)
-    }
-    super(client)
+class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {
+  constructor(private conn: planetScale.Connection) {
+    super(conn)
   }
 
-  getConnectionInfo(): Result<ConnectionInfo> {
-    const url = this.client.connection()['url'] as string
-    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
-    return ok({
-      schemaName: dbName,
-    })
-  }
-
-  async startTransaction() {
+  async startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
-    return new Promise<Result<Transaction>>((resolve, reject) => {
-      const txResultPromise = this.client
+    return new Promise<Transaction>((resolve, reject) => {
+      const txResultPromise = this.conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
 
-          resolve(ok(txWrapper))
+          resolve(txWrapper)
           return deferredPromise
         })
         .catch((error) => {
@@ -192,4 +176,39 @@ const adapter = new PrismaPlanetScale(client)
         })
     })
   }
+}
+
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlConnection {
+  constructor(client: planetScale.Client) {
+    // this used to be a check for constructor name at same point (more reliable when having multiple copies
+    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
+    if (!(client instanceof planetScale.Client)) {
+      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
+import { Client } from '@planetscale/database'
+const client = new Client({ url })
+const adapter = new PrismaPlanetScale(client)
+`)
+    }
+    super(client)
+  }
+
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
+  }
+
+  getConnectionInfo(): ConnectionInfo {
+    const url = this.client.connection()['url'] as string
+    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
+    return {
+      schemaName: dbName,
+    }
+  }
+
+  async transactionContext(): Promise<TransactionContext> {
+    const conn = this.client.connection()
+    const ctx = new PlanetScaleTransactionContext(conn)
+    return ctx
+  }
+
+  async dispose(): Promise<void> {}
 }

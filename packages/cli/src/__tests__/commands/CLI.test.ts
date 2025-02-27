@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { DbPull } from '@prisma/migrate'
 
@@ -9,6 +10,7 @@ const cliInstance = CLI.new(
   {
     // init: Init.new(),
     // migrate: MigrateCommand.new({
+    //   diff: MigrateDiff.new(),
     //   dev: MigrateDev.new(),
     //   status: MigrateStatus.new(),
     //   resolve: MigrateResolve.new(),
@@ -39,7 +41,7 @@ const cliInstance = CLI.new(
 it('no params should return help', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse([])
+  await cliInstance.parse([], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -47,7 +49,7 @@ it('no params should return help', async () => {
 it('wrong flag', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse(['--something'])
+  await cliInstance.parse(['--something'], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -55,17 +57,17 @@ it('wrong flag', async () => {
 it('help flag', async () => {
   const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await cliInstance.parse(['--help'])
+  await cliInstance.parse(['--help'], defaultTestConfig())
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
+  await expect(cliInstance.parse(['doesnotexist'], defaultTestConfig())).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {
-  const result = cliInstance.parse(['introspect'])
+  const result = cliInstance.parse(['introspect'], defaultTestConfig())
 
   await expect(result).rejects.toMatchInlineSnapshot(`
     "Could not find a schema.prisma file that is required for this command.

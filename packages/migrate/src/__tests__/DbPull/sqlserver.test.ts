@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
@@ -102,7 +102,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlserver')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
+    const result = introspect.parse(['--print'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -111,7 +111,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!])
+    const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -170,7 +170,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'without-schemas-in-datasource.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -179,12 +182,15 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  schema.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:4
          | 
        3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
        4 |   schemas  = []
@@ -208,28 +214,34 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                    // *** WARNING ***
-                                    // 
-                                    // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                                    //   - transactional_some_table
-                                    // 
-                                    // These items were renamed due to their names being duplicates in the Prisma Schema Language:
-                                    //   - type: model, name: base_some_table
-                                    //   - type: model, name: transactional_some_table
-                                    // 
-                        `)
+                                          // *** WARNING ***
+                                          // 
+                                          // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                          //   - transactional_some_table
+                                          // 
+                                          // These items were renamed due to their names being duplicates in the Prisma schema:
+                                          //   - type: model, name: base_some_table
+                                          //   - type: model, name: transactional_some_table
+                                          // 
+                            `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
 
@@ -239,7 +251,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -248,11 +263,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--schema',
-      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
-    ])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
 
@@ -262,7 +276,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -271,7 +285,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
 

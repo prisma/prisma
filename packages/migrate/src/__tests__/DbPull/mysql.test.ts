@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
@@ -74,7 +74,7 @@ describe('mysql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/mysql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
+    const result = introspect.parse(['--print'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -86,7 +86,7 @@ describe('mysql', () => {
   // user and set password for MySQL, or sanitize the snapshot.
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 

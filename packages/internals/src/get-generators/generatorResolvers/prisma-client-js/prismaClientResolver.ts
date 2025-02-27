@@ -8,7 +8,6 @@ import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
 import { getPackageCmd } from './auto-installation/getPackageCmd'
 import { runPackageCmd } from './auto-installation/runPackageCmd'
 import { checkTypeScriptVersion } from './check-dependencies/checkTypeScriptVersion'
-import { checkYarnVersion } from './check-dependencies/checkYarnVersion'
 import { isYarnUsed } from './check-dependencies/isYarnUsed'
 import { resolvePkg } from './check-dependencies/resolve'
 
@@ -27,7 +26,6 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
 
   debug('baseDir', baseDir)
 
-  checkYarnVersion()
   await checkTypeScriptVersion()
 
   if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
@@ -78,10 +76,10 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     }
 
     if (!prismaCliDir) {
-      await runPackageCmd(projectRoot, 'add', `prisma@${version ?? 'latest'}`, '-D')
+      await runPackageCmd(projectRoot, 'add', `prisma@${version ?? 'latest'}`, '-D', '--silent')
     }
 
-    await runPackageCmd(projectRoot, 'add', `@prisma/client@${version ?? 'latest'}`)
+    await runPackageCmd(projectRoot, 'add', `@prisma/client@${version ?? 'latest'}`, '--silent')
 
     // resolvePkg has caching, so we trick it not to do it 👇
     prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))

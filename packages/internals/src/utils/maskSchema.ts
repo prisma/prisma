@@ -1,3 +1,9 @@
+import { MultipleSchemas } from './schemaFileInput'
+
+export function maskSchemas(schemas: MultipleSchemas): MultipleSchemas {
+  return schemas.map(([path, content]) => [path, maskSchema(content)])
+}
+
 export function maskSchema(schema: string): string {
   const regex = /url\s*=\s*.+/
   return schema

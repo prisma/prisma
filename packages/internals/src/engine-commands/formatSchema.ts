@@ -1,59 +1,27 @@
-import fs from 'node:fs'
-import { promisify } from 'node:util'
-
-import { match } from 'ts-pattern'
+import Debug from '@prisma/debug'
 
 import { logger } from '..'
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
-import { type Datamodel, schemaToStringDebug } from '../utils/datamodel'
+import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
-const readFile = promisify(fs.readFile)
-const exists = promisify(fs.exists)
+const debug = Debug('prisma:format')
 
-type FormatSchemaParams = { schema: Datamodel; schemaPath?: never } | { schema?: never; schemaPath: string }
+type FormatSchemaParams = { schemas: MultipleSchemas }
 
-function isSchemaOnly(schemaParams: FormatSchemaParams): schemaParams is { schema: Datamodel; schemaPath?: never } {
-  return Boolean(schemaParams.schema)
-}
-
-function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { schema?: never; schemaPath: string } {
-  return Boolean(schemaParams.schemaPath)
-}
-
-/**
- * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
- * Currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
- */
 export async function formatSchema(
-  { schemaPath, schema }: FormatSchemaParams,
+  { schemas }: FormatSchemaParams,
   inputFormattingOptions?: Partial<DocumentFormattingParams['options']>,
-): Promise<string> {
-  if (!schema && !schemaPath) {
-    throw new Error(`Parameter schema or schemaPath must be passed.`)
-  }
-
+): Promise<MultipleSchemas> {
   if (process.env.FORCE_PANIC_PRISMA_SCHEMA) {
     handleFormatPanic(
       () => {
         prismaSchemaWasm.debug_panic()
       },
-      { schemaPath, schema } as FormatSchemaParams,
+      { schemas } as FormatSchemaParams,
     )
   }
-
-  const schemaContent = await match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, async ({ schema: _schema }) => await Promise.resolve(_schema))
-    .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      if (!(await exists(_schemaPath))) {
-        throw new Error(`Schema at ${schemaPath} does not exist.`)
-      }
-
-      const _schema = await readFile(_schemaPath, { encoding: 'utf8' })
-      return _schema
-    })
-    .exhaustive()
 
   const defaultFormattingOptions: DocumentFormattingParams['options'] = {
     tabSize: 2,
@@ -77,14 +45,16 @@ export async function formatSchema(
    *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
    *   If we called `getConfig` instead, we wouldn't have any validation check.
    */
-  const { formattedSchema, lintDiagnostics } = handleFormatPanic(
+  const { formattedMultipleSchemas, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      const formattedSchema = formatWasm(JSON.stringify(schemaContent), documentFormattingParams)
-      const lintDiagnostics = lintSchema({ schema: formattedSchema })
-      return { formattedSchema, lintDiagnostics }
+      const formattedMultipleSchemasRaw = formatWasm(JSON.stringify(schemas), documentFormattingParams)
+      const formattedMultipleSchemas = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
+
+      const lintDiagnostics = lintSchema({ schemas: formattedMultipleSchemas })
+      return { formattedMultipleSchemas, lintDiagnostics }
     },
-    { schemaPath, schema: schemaContent } as FormatSchemaParams,
+    { schemas } as FormatSchemaParams,
   )
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -93,22 +63,24 @@ export async function formatSchema(
     console.warn(lintWarnings)
   }
 
-  return Promise.resolve(formattedSchema)
+  return Promise.resolve(formattedMultipleSchemas)
 }
 
-function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSchemaParams) {
+function handleFormatPanic<T>(tryCb: () => T, { schemas }: FormatSchemaParams) {
   try {
     return tryCb()
   } catch (e: unknown) {
     const { message, stack } = getWasmError(e as WasmPanic)
+    debug(`Error formatting schema: ${message}`)
+    debug(stack)
 
     const panic = new RustPanic(
       /* message */ message,
       /* rustStack */ stack,
       /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
-      schemaPath,
-      /* schema */ schemaToStringDebug(schema),
+      /* schemaPath */ debugMultipleSchemaPaths(schemas),
+      /* schema */ schemas,
     )
 
     throw panic

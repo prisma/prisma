@@ -1,8 +1,8 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type DriverAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
@@ -18,9 +18,9 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { WasmLoadingConfig } from './core/engines/common/Engine'
+import { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -35,7 +35,7 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
-import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
+import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
@@ -61,13 +61,13 @@ import { getLockCountPromise } from './core/transaction/utils/createLockCountPro
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
 import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
+import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
-import { deserializeRawResults } from './utils/deserializeRawResults'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
@@ -76,7 +76,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -131,6 +131,8 @@ export type PrismaClientOptions = {
    */
   log?: Array<LogLevel | LogDefinition>
 
+  omit?: GlobalOmitOptions
+
   /**
    * @internal
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
@@ -174,7 +176,7 @@ export type InternalRequestParams = {
   /** Used to convert args for middleware and back */
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -237,7 +239,7 @@ export type GetPrismaClientConfig = {
   clientVersion: string
   engineVersion: string
   datasourceNames: string[]
-  activeProvider: string
+  activeProvider: ActiveConnectorType
 
   /**
    * The contents of the schema encoded into a string
@@ -299,7 +301,8 @@ export type GetPrismaClientConfig = {
   /**
    * Optional wasm loading configuration
    */
-  engineWasm?: WasmLoadingConfig
+  engineWasm?: EngineWasmLoadingConfig
+  compilerWasm?: CompilerWasmLoadingConfig
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -325,11 +328,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
+    _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
+    /**
+     * @remarks This is used internally by Policy, do not rename or remove
+     */
     _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
@@ -347,8 +353,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config)
       }
 
-      const adapter = optionsArg?.adapter ? bindAdapter(optionsArg.adapter) : undefined
-
       // prevents unhandled error events when users do not explicitly listen to them
       const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
 
@@ -356,12 +360,45 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._previewFeatures = getPreviewFeatures(config)
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
-      this._tracingHelper = getTracingHelper(this._previewFeatures)
+      this._globalOmit = optionsArg?.omit
+      this._tracingHelper = getTracingHelper()
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
+      }
+
+      /**
+       * Initialise and validate the Driver Adapter, if provided.
+       */
+
+      let adapter: ErrorCapturingDriverAdapter | undefined
+      if (optionsArg?.adapter) {
+        adapter = bindAdapter(optionsArg.adapter)
+
+        // Note:
+        // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
+        // - `getConfig(..).datasources[0].activeProvider`, stored in `config.activeProvider`, can be `postgresql`, `mysql`, or other known providers
+        // - `adapter.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
+        //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
+        //
+        // TODO: Normalize these provider names once and for all in Prisma 6.
+        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+
+        if (adapter.provider !== normalizedActiveProvider) {
+          throw new PrismaClientInitializationError(
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            this._clientVersion,
+          )
+        }
+
+        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
+          throw new PrismaClientInitializationError(
+            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
+            this._clientVersion,
+          )
+        }
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
@@ -422,6 +459,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           env: loadedEnv?.parsed ?? {},
           flags: [],
           engineWasm: config.engineWasm,
+          compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -472,8 +510,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -484,6 +520,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
@@ -650,7 +687,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
-      }).then(deserializeRawResults)
+      })
     }
 
     /**
@@ -677,6 +714,22 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 `,
           { clientVersion: this._clientVersion },
         )
+      })
+    }
+
+    /**
+     * Counterpart to $queryRaw, that returns strongly typed results
+     * @param typedSql
+     */
+    $queryRawTyped(typedSql: UnknownTypedSql) {
+      return this._createPrismaPromise((transaction) => {
+        if (!this._hasPreviewFlag('typedSql')) {
+          throw new PrismaClientValidationError(
+            '`typedSql` preview feature must be enabled in order to access $queryRawTyped API',
+            { clientVersion: this._clientVersion },
+          )
+        }
+        return this.$queryRawInternal(transaction, '$queryRawTyped', typedSql)
       })
     }
 
@@ -766,13 +819,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
-      return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
-          addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-          addProperty(TX_ID, () => transaction.id),
-          removeProperties(itxClientDenyList),
-        ]),
+      return createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
+            addProperty(TX_ID, () => transaction.id),
+          ]),
+        ),
+        [removeProperties(itxClientDenyList)],
       )
     }
 
@@ -889,6 +944,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           args: requestParams.args,
           extensions: this._extensions,
           runtimeDataModel: this._runtimeDataModel,
+          globalOmit: this._globalOmit,
         })
       }
 
@@ -936,6 +992,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             errorFormat: this._errorFormat,
             clientVersion: this._clientVersion,
             previewFeatures: this._previewFeatures,
+            globalOmit: this._globalOmit,
           }),
         )
 
@@ -966,6 +1023,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           unpacker,
           otelParentCtx,
           otelChildCtx: this._tracingHelper.getActiveContext(),
+          globalOmit: this._globalOmit,
           customDataProxyFetch,
         })
       } catch (e) {
@@ -974,15 +1032,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    get $metrics(): MetricsClient {
-      if (!this._hasPreviewFlag('metrics')) {
-        throw new PrismaClientValidationError(
-          '`metrics` preview feature must be enabled in order to access metrics API',
-          { clientVersion: this._clientVersion },
-        )
-      }
-      return this._metrics
-    }
+    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag

@@ -5,15 +5,16 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { Datamodel, schemaToStringDebug } from '../utils/datamodel'
+import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
+import { relativizePathInPSLError } from './relativizePathInPSLError'
 
 const debug = Debug('prisma:validate')
 
 export type ValidateOptions = {
-  datamodel: Datamodel
+  schemas: MultipleSchemas
 }
 
 export class ValidateError extends Error {
@@ -23,7 +24,7 @@ export class ValidateError extends Error {
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
         return `${reason}
 ${errorCodeMessage}
-${message}`
+${relativizePathInPSLError(message)}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
         const detailsHeader = red(bold('Details:'))
@@ -60,7 +61,7 @@ export function validate(options: ValidateOptions): void {
         }
 
         const params = JSON.stringify({
-          prismaSchema: options.datamodel,
+          prismaSchema: options.schemas,
           noColor: Boolean(process.env.NO_COLOR),
         })
         prismaSchemaWasm.validate(params)
@@ -92,16 +93,16 @@ export function validate(options: ValidateOptions): void {
        */
       if (isWasmPanic(e.error)) {
         const { message, stack } = getWasmError(e.error)
-
-        const schema = schemaToStringDebug(options.datamodel)
+        debug(`Error validating schema: ${message}`)
+        debug(stack)
 
         const panic = new RustPanic(
           /* message */ message,
           /* rustStack */ stack,
           /* request */ '@prisma/prisma-schema-wasm validate',
           ErrorArea.FMT_CLI,
-          /* schemaPath */ undefined,
-          /* schema */ schema,
+          /* schemaPath */ debugMultipleSchemaPaths(options.schemas),
+          /* schema */ options.schemas,
         )
         return panic
       }

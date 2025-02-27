@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
@@ -31,7 +32,7 @@ describe('common', () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--something'])
+    await commandInstance.parse(['--something'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
@@ -39,16 +40,23 @@ describe('common', () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--help'])
+    await commandInstance.parse(['--help'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "Could not find a schema.prisma file that is required for this command.
-      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
+      "Could not find Prisma Schema that is required for this command.
+      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      Checked following paths:
+
+      schema.prisma: file not found
+      prisma/schema.prisma: file not found
+      prisma/schema: directory not found
+
+      See also https://pris.ly/d/prisma-schema-location"
     `)
   })
 })
@@ -59,7 +67,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -82,7 +90,7 @@ describe('reset', () => {
   it('should work (--force)', async () => {
     ctx.fixture('reset')
 
-    const result = MigrateReset.new().parse(['--force'])
+    const result = MigrateReset.new().parse(['--force'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -101,11 +109,35 @@ describe('reset', () => {
     `)
   })
 
+  it('should work with folder (--force)', async () => {
+    ctx.fixture('schema-folder-sqlite-migration-exists')
+
+    const result = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      SQLite database dev.db created at file:dev.db
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+      "
+    `)
+  })
+
   it('with missing db', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--force'])
+    const result = MigrateReset.new().parse(['--force'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -132,7 +164,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -153,7 +185,7 @@ describe('reset', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -169,7 +201,7 @@ describe('reset', () => {
 
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
@@ -183,7 +215,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -202,7 +234,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--skip-seed'])
+    const result = MigrateReset.new().parse(['--skip-seed'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
   })
 
@@ -210,7 +242,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
@@ -239,7 +271,7 @@ describe('reset', () => {
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -268,7 +300,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
@@ -296,7 +328,7 @@ describe('reset', () => {
     // ctx.fs.remove('prisma/seed.sh')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -318,7 +350,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([])
+    const result = MigrateReset.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

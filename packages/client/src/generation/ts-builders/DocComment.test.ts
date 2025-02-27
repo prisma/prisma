@@ -72,3 +72,17 @@ test('tagged template - with content', () => {
     "
   `)
 })
+
+test('tagged template - with substitutions', () => {
+  const name = 'World'
+  const comment = docComment`
+    Hello, ${name}!
+  `
+
+  expect(stringify(comment)).toMatchInlineSnapshot(`
+    "/**
+     * Hello, World!
+     */
+    "
+  `)
+})

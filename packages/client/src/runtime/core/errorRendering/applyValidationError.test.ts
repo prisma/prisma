@@ -2,6 +2,7 @@ import ansiEscapesSerializer from 'jest-serializer-ansi-escapes'
 import { $ as colors } from 'kleur/colors'
 
 import { Writer } from '../../../generation/ts-builders/Writer'
+import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { JsArgs } from '../types/exported/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
@@ -10,9 +11,9 @@ import { activeColors, inactiveColors } from './base'
 
 expect.addSnapshotSerializer(ansiEscapesSerializer)
 
-const renderError = (error: ValidationError, args: JsArgs) => {
+const renderError = (error: ValidationError, args: JsArgs, globalOmit: GlobalOmitOptions = {}) => {
   const argsTree = buildArgumentsRenderingTree(args)
-  applyValidationError(error, argsTree)
+  applyValidationError(error, argsTree, globalOmit)
 
   return `
 Colorless:
@@ -550,6 +551,52 @@ describe('EmptySelection', () => {
     `)
   })
 
+  test('top level (global omit)', () => {
+    expect(
+      renderError(
+        {
+          kind: 'EmptySelection',
+          selectionPath: [],
+          outputType: PostOutputDescription,
+        },
+        { where: { published: true } },
+        { post: { id: true, title: true } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        where: {
+          published: true
+        },
+      + omit: {
+      +   id: false,
+      +   title: false
+      + }
+      }
+
+      The global omit configuration excludes every field of the model Post. At least one field must be included in the result
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        where: {
+          published: true
+        },
+      <green>+</color> <green>omit</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>   <green><dim>id: false</intensity></color>,
+      <green><dim>+</intensity></color>   <green><dim>title: false</intensity></color>
+      <green>+</color> <green>}</color>
+      }
+
+      The global <red>omit</color> configuration excludes every field of the model <bold>Post</intensity>. At least one field must be included in the result
+      "
+    `)
+  })
+
   test('top level with falsy values', () => {
     expect(
       renderError(
@@ -707,6 +754,62 @@ describe('EmptySelection', () => {
       }
 
       The <red>omit</color> statement includes every field of the model <bold>Post</intensity>. At least one field must be included in the result
+      "
+    `)
+  })
+
+  test('nested (globalOmit)', () => {
+    expect(
+      renderError(
+        {
+          kind: 'EmptySelection',
+          selectionPath: ['users', 'posts'],
+          outputType: PostOutputDescription,
+        },
+        { select: { users: { include: { posts: true } } } },
+        { post: { id: true, title: true, comments: true } },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+      +         omit: {
+      +           id: false,
+      +           title: false
+      +         }
+              }
+            }
+          }
+        }
+      }
+
+      The global omit configuration excludes every field of the model Post. At least one field must be included in the result
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+      <green>+</color>         <green>omit</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>           <green><dim>id: false</intensity></color>,
+      <green><dim>+</intensity></color>           <green><dim>title: false</intensity></color>
+      <green>+</color>         <green>}</color>
+              }
+            }
+          }
+        }
+      }
+
+      The global <red>omit</color> configuration excludes every field of the model <bold>Post</intensity>. At least one field must be included in the result
       "
     `)
   })
@@ -1015,6 +1118,308 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <red>\`notThere\`</color> for <bold>omit</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <green>green</color>.
+      "
+    `)
+  })
+})
+
+describe('InvalidSelectionValue', () => {
+  test('top level select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          omit: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        omit: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        omit: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              select: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            user: {
+              include: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'password'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              omit: {
+                // @ts-expect-error
+                password: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: undefined
+                        ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`password\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: <red>undefined</color>
+                        <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>password</color>\`: Not allowed
       "
     `)
   })

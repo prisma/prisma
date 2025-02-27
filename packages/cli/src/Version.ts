@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
@@ -9,7 +10,8 @@ import {
   getConfig,
   getEnginesMetaInfo,
   getSchema,
-  getSchemaPath,
+  getSchemaWithPath,
+  getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
@@ -21,7 +23,7 @@ import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 /**
  * $ prisma version
@@ -45,12 +47,13 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--config': String,
       '--json': Boolean,
       '--telemetry-information': String,
     })
@@ -63,7 +66,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFile({ printMessage: true })
+    await loadEnvFile({ printMessage: !args['--json'], config })
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -88,6 +91,7 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const typescriptVersion = await getTypescriptVersion()
 
     const rows = [
       [packageJson.name, packageJson.version],
@@ -96,6 +100,7 @@ export class Version implements Command {
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
+      ['TypeScript', typescriptVersion],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
@@ -113,7 +118,12 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = await getSchemaPath()
+    let schemaPath: string | null = null
+    try {
+      schemaPath = (await getSchemaWithPath(undefined, config.schema)).schemaPath
+    } catch {
+      schemaPath = null
+    }
     const featureFlags = await this.getFeatureFlags(schemaPath)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
@@ -129,7 +139,7 @@ export class Version implements Command {
     }
 
     try {
-      const datamodel = await getSchema()
+      const datamodel = await getSchema(schemaPath)
       const config = await getConfig({
         datamodel,
         ignoreEnvVarErrors: true,

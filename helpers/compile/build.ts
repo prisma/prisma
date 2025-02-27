@@ -28,7 +28,7 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  target: 'ES2020',
+  target: 'ES2021',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
@@ -138,10 +138,6 @@ async function executeEsBuild(options: BuildOptions) {
 async function dependencyCheck(options: BuildOptions) {
   // we only check our dependencies for a full build
   if (process.env.DEV === 'true') return undefined
-  // Only run on test and publish pipelines on Buildkite
-  // Meaning we skip on GitHub Actions
-  // Because it's slow and runs for each job, during setup, making each job slower
-  if (process.env.CI && !process.env.BUILDKITE) return undefined
 
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({

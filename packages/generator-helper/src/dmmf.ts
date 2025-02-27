@@ -2,6 +2,13 @@ export type ReadonlyDeep<O> = {
   +readonly [K in keyof O]: ReadonlyDeep<O[K]>
 }
 
+export function datamodelEnumToSchemaEnum(datamodelEnum: DMMF.DatamodelEnum): DMMF.SchemaEnum {
+  return {
+    name: datamodelEnum.name,
+    values: datamodelEnum.values.map((v) => v.name),
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export type Document = ReadonlyDeep<{
@@ -44,6 +51,7 @@ export namespace DMMF {
     models: Model[]
     enums: DatamodelEnum[]
     types: Model[]
+    indexes: Index[]
   }>
 
   export type uniqueIndex = ReadonlyDeep<{
@@ -57,6 +65,7 @@ export namespace DMMF {
   export type Model = ReadonlyDeep<{
     name: string
     dbName: string | null
+    schema: string | null
     fields: Field[]
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
@@ -85,22 +94,51 @@ export namespace DMMF {
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
+    /**
+     * Native database type, if specified.
+     * For example, `@db.VarChar(191)` is encoded as `['VarChar', ['191']]`,
+     * `@db.Text` is encoded as `['Text', []]`.
+     */
+    nativeType?: [string, string[]] | null
     dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
     relationToFields?: string[]
     relationOnDelete?: string
+    relationOnUpdate?: string
     relationName?: string
     documentation?: string
   }>
 
   export type FieldDefault = ReadonlyDeep<{
     name: string
-    args: any[]
+    args: Array<string | number>
   }>
 
   export type FieldDefaultScalar = string | boolean | number
+
+  export type Index = ReadonlyDeep<{
+    model: string
+    type: IndexType
+    isDefinedOnField: boolean
+    name?: string
+    dbName?: string
+    algorithm?: string
+    clustered?: boolean
+    fields: IndexField[]
+  }>
+
+  export type IndexType = 'id' | 'normal' | 'unique' | 'fulltext'
+
+  export type IndexField = ReadonlyDeep<{
+    name: string
+    sortOrder?: SortOrder
+    length?: number
+    operatorClass?: string
+  }>
+
+  export type SortOrder = 'asc' | 'desc'
 
   export type Schema = ReadonlyDeep<{
     rootQueryType?: string
@@ -210,6 +248,7 @@ export namespace DMMF {
     createManyAndReturn?: string | null
     update?: string | null
     updateMany?: string | null
+    updateManyAndReturn?: string | null
     upsert?: string | null
     delete?: string | null
     deleteMany?: string | null
@@ -231,6 +270,7 @@ export namespace DMMF {
     createManyAndReturn = 'createManyAndReturn',
     update = 'update',
     updateMany = 'updateMany',
+    updateManyAndReturn = 'updateManyAndReturn',
     upsert = 'upsert',
     delete = 'delete',
     deleteMany = 'deleteMany',

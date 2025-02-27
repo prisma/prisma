@@ -6,7 +6,9 @@ import { getDriverAdaptersProvider } from './provider'
 export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),
   executeRaw: new Error('Not implemented: executeRaw'),
-  startTransaction: new Error('Not implemented: startTransaction'),
+  transactionContext: new Error('Not implemented: transactionContext'),
+  executeScript: new Error('Not implemented: executeScript'),
+  dispose: new Error('Not implemented: dispose'),
 }
 
 /**
@@ -15,10 +17,11 @@ export const mockAdapterErrors = {
 export function mockAdapter(provider: Provider): DriverAdapter {
   return {
     provider: getDriverAdaptersProvider(provider),
-    // TODO: this should be the package name to be exact, but it's not used in the tests yet
-    adapterName: `mock-adapter-${getDriverAdaptersProvider(provider)}`,
+    adapterName: getDriverAdaptersProvider(provider),
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
-    startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),
+    transactionContext: () => Promise.reject(mockAdapterErrors.transactionContext),
+    executeScript: () => Promise.reject(mockAdapterErrors.executeScript),
+    dispose: () => Promise.reject(mockAdapterErrors.dispose),
   }
 }

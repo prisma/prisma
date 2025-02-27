@@ -1,5 +1,7 @@
+import { select } from '@inquirer/prompts'
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
 import http from 'http'
 import { green } from 'kleur/colors'
@@ -27,10 +29,20 @@ export class Login implements Command {
     return new Login()
   }
 
-  public async parse() {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
+    const args = arg(argv, {
+      // internal optimize flag to track signup attribution
+      '--optimize': Boolean,
+    })
+    if (isError(args)) return args
+
+    if (args['--optimize']) {
+      console.warn("The '--optimize' flag is deprecated. Use API keys instead.")
+    }
+
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
-    if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'),)} to see the current user.` // prettier-ignore
+    if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor("prisma platform auth show --early-access"))} to see the current user.`; // prettier-ignore
 
     console.info('Authenticating to Prisma Platform CLI via browser.\n')
 
@@ -40,7 +52,7 @@ export class Login implements Command {
      */
     const randomPort = 0
     const redirectUrl = await listen(server, randomPort, '127.0.0.1')
-    const loginUrl = await createLoginUrl({ connection: `github`, redirectTo: redirectUrl.href })
+    const loginUrl = await createLoginUrl({ connection: 'github', redirectTo: redirectUrl.href })
 
     console.info('Visit the following URL in your browser to authenticate:')
     console.info(link(loginUrl.href))
@@ -53,7 +65,7 @@ export class Login implements Command {
           const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
           const token = searchParams.get('token') ?? ''
           const error = searchParams.get('error')
-          const location = new URL('/auth/cli', consoleUrl)
+          const location = getBaseAuthUrl()
 
           if (error) {
             location.pathname += '/error'
@@ -90,7 +102,7 @@ export class Login implements Command {
       .then((results) => results[0])
       .catch(unknownToError)
 
-    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
+    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
 
     {
       const writeResult = await credentialsFile.save({ token: callbackResult.token })
@@ -101,6 +113,8 @@ export class Login implements Command {
   }
 }
 
+const getBaseAuthUrl = () => new URL('/auth/cli', consoleUrl)
+
 const createLoginUrl = async (params: { connection: string; redirectTo: string }) => {
   const userAgent = await getUserAgent()
   const state: State = {
@@ -108,17 +122,19 @@ const createLoginUrl = async (params: { connection: string; redirectTo: string }
     ...params,
   }
   const stateEncoded = encodeState(state)
-  const url = new URL('/auth/cli', consoleUrl)
+  const url = getBaseAuthUrl()
   url.searchParams.set('state', stateEncoded)
+
   return url
 }
+
 interface State {
   client: string
   connection: string
   redirectTo: string
 }
 
-const encodeState = (state: State) => Buffer.from(JSON.stringify(state), `utf-8`).toString(`base64`)
+const encodeState = (state: State) => Buffer.from(JSON.stringify(state), 'utf-8').toString('base64')
 
 const decodeUser = (stringifiedUser: string) => {
   try {
@@ -132,5 +148,86 @@ const decodeUser = (stringifiedUser: string) => {
   } catch (e) {
     debug(`parseUser() failed silently with ${e}`)
     return null
+  }
+}
+
+export const loginOrSignup = async () => {
+  const providerAnswer = await select({
+    message: 'Select an authentication method',
+    default: 'google',
+    choices: [
+      { name: 'Google', value: 'google' },
+      { name: 'GitHub', value: 'github' },
+    ],
+  })
+  console.info('Authenticating to Prisma Platform via browser.\n')
+
+  const server = http.createServer()
+  /**
+   * When passing 0 as a port to listen, the OS will assign a random available port
+   */
+  const randomPort = 0
+  const redirectUrl = await listen(server, randomPort, '127.0.0.1')
+  const loginUrl = await createLoginUrl({ connection: providerAnswer, redirectTo: redirectUrl.href })
+
+  console.info('Visit the following URL in your browser to authenticate:')
+  console.info(link(loginUrl.href))
+
+  const callbackResult = await Promise.all([
+    new Promise<CallbackData>((resolve, reject) => {
+      server.once('request', (req, res) => {
+        server.close()
+        res.setHeader('connection', 'close')
+        const searchParams = new URL(req.url || '/', 'http://localhost').searchParams
+        const token = searchParams.get('token') ?? ''
+        const error = searchParams.get('error')
+        const location = getBaseAuthUrl()
+
+        if (error) {
+          location.pathname += '/error'
+          location.searchParams.set('error', error)
+          reject(new Error(error))
+        } else {
+          // TODO: Consider getting the user via Console API instead of passing it via query params
+          const user = decodeUser(searchParams.get('user') ?? '')
+          if (user) {
+            searchParams.delete('token')
+            searchParams.delete('user')
+            location.pathname += '/success'
+            const nextSearchParams = new URLSearchParams({
+              ...Object.fromEntries(searchParams.entries()),
+              email: user.email,
+            })
+            location.search = nextSearchParams.toString()
+            resolve({ token, user })
+          } else {
+            location.pathname += '/error'
+            location.searchParams.set('error', 'Invalid user')
+            reject(new Error('Invalid user'))
+          }
+        }
+
+        res.statusCode = 302
+        res.setHeader('location', location.href)
+        res.end()
+      })
+      server.once('error', reject)
+    }),
+    open(loginUrl.href),
+  ])
+    .then((results) => results[0])
+    .catch(unknownToError)
+
+  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
+
+  {
+    const writeResult = await credentialsFile.save({ token: callbackResult.token })
+    if (isError(writeResult)) throw new Error('Writing credentials to disk failed', { cause: writeResult })
+  }
+
+  return {
+    message: successMessage(`Authentication successful for ${callbackResult.user.email}`),
+    email: callbackResult.user.email,
+    token: callbackResult.token,
   }
 }

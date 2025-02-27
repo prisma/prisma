@@ -1,5 +1,9 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`sqlite 1 unapplied migration (folder) 4`] = `[]`;
+
+exports[`sqlite 1 unapplied migration (folder) 5`] = `""`;
+
 exports[`sqlite 1 unapplied migration 4`] = `[]`;
 
 exports[`sqlite 1 unapplied migration 5`] = `""`;

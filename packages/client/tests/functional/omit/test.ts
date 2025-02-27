@@ -1,12 +1,13 @@
 import { expectTypeOf } from 'expect-type'
 
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite(({ provider }) => {
   test('non-existing true field in omit throw validation error', async () => {
     const result = prisma.user.findFirstOrThrow({
       omit: {
@@ -20,7 +21,7 @@ testMatrix.setupTestSuite(() => {
       /client/tests/functional/omit/test.ts:0:0
 
          XX 
-         XX testMatrix.setupTestSuite(() => {
+        XX testMatrix.setupTestSuite(({ provider }) => {
         XX   test('non-existing true field in omit throw validation error', async () => {
       → XX     const result = prisma.user.findFirstOrThrow({
                  omit: {
@@ -198,6 +199,40 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf(user).toHaveProperty('name')
     expectTypeOf(user).not.toHaveProperty('password')
   })
+
+  // Not implemented for SQL Server, MongoDB, and MySQL
+  skipTestIf([Providers.SQLSERVER, Providers.MONGODB, Providers.MYSQL].includes(provider))(
+    'createManyAndReturn',
+    async () => {
+      // @ts-test-if: provider !== Providers.SQLSERVER && provider !== Providers.MONGODB && provider !== Providers.MYSQL
+      const user = await prisma.user.createManyAndReturn({
+        data: [
+          {
+            name: 'Steve the Rat - The Sequel',
+            password: 'cheese',
+            email: 'steve2@rats.com',
+          },
+        ],
+        omit: {
+          password: true,
+        },
+      })
+
+      // Cleanup
+      await prisma.user.delete({
+        where: {
+          id: user[0].id,
+        },
+      })
+
+      expect(user[0].name).toBe('Steve the Rat - The Sequel')
+      expect(user[0]).not.toHaveProperty('password')
+      expectTypeOf(user[0]).toHaveProperty('id')
+      expectTypeOf(user[0]).toHaveProperty('name')
+      // @ts-test-if: provider !== Providers.SQLSERVER && provider !== Providers.MONGODB && provider !== Providers.MYSQL
+      expectTypeOf(user[0]).not.toHaveProperty('password')
+    },
+  )
 
   test('findUnique', async () => {
     const user = await prisma.user.findUnique({

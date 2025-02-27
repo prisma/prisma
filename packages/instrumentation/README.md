@@ -29,7 +29,6 @@ Don't forget to set `previewFeatures`:
 ```prisma
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 ```
 
@@ -44,7 +43,7 @@ import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import { BasicTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 import { PrismaClient } from '.prisma/client'
@@ -57,8 +56,8 @@ const otlpTraceExporter = new OTLPTraceExporter()
 
 const provider = new BasicTracerProvider({
   resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: 'test-tracing-service',
-    [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+    [SEMRESATTRS_SERVICE_NAME]: 'test-tracing-service',
+    [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
   }),
 })
 

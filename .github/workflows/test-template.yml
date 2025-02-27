@@ -28,7 +28,7 @@ on:
       pnpmVersion:
         description: pnpm package manager version
         type: string
-        default: '8.15.5'
+        default: '9'
       engineHash:
         description: Customly-built engine hash to use
         type: string
@@ -39,8 +39,6 @@ on:
       BUILDPULSE_SECRET_ACCESS_KEY:
         required: false
       BOT_TOKEN:
-        required: false
-      CODECOV_TOKEN:
         required: false
 
 env:
@@ -70,7 +68,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
@@ -102,14 +99,14 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
-      contains(inputs.jobsToRun, '-all-') || 
+      contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
       fail-fast: false
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
@@ -138,7 +135,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
@@ -146,24 +142,15 @@ jobs:
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
         if: |
-          contains(inputs.jobsToRun, '-all-') || 
+          contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
       - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
         if: |
-          contains(inputs.jobsToRun, '-all-') || 
+          contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,ubuntu,${{ matrix.queryEngine }}
-          name: client-ubuntu-${{ matrix.queryEngine }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -191,7 +178,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -207,7 +194,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
@@ -225,15 +211,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,ubuntu,dataproxy
-          name: client-ubuntu-dataproxy
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -263,7 +240,7 @@ jobs:
         clientRuntime: ['node', 'wasm']
         flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20] #[16, 18, 20]
+        node: [20]
         previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
     steps:
       - uses: actions/checkout@v4
@@ -280,7 +257,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
@@ -293,14 +269,67 @@ jobs:
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,ubuntu,driveradapters
-          name: client-ubuntu-driveradapters
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
+  # CLIENT (functional tests with client engine, query compiler and driver adapters)
+  #
+  client-query-compiler:
+    name: Client (func/query-compiler)
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: ['js_pg'] # TODO: add more flavors once we want to target SQLite and MySQL support
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [20]
+        previewFeatures: ['driverAdapters']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE: true
+          JEST_ALWAYS_EXIT_WITH_CODE_ZERO: true # TODO: only needed while we know jest tests are failing and do the checkAgainstKnownFailures step below
+
+      # Checks failed jest tests against known failures => fails build only if non known tests fail
+      - run: pnpm run test:knownQueryCompilerFailures:check ${{ matrix.flavor }}
+        working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -328,7 +357,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -344,7 +373,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -443,7 +471,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
@@ -468,7 +495,7 @@ jobs:
       matrix:
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
-        node: [16]
+        node: [18]
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -479,7 +506,7 @@ jobs:
       - name: Set RELATION_MODE custom test env var
         run: |
           echo "RELATION_MODE=${{ matrix.relationMode }}"
-          if [ -n "${{ matrix.relationMode }}" ]; 
+          if [ -n "${{ matrix.relationMode }}" ];
             then echo "RELATION_MODE=${{ matrix.relationMode }}" >> "$GITHUB_ENV";
           fi
 
@@ -495,7 +522,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -543,7 +569,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -551,22 +577,12 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-legacy-types,ubuntu,library,binary
-          name: client-legacy-types-ubuntu
 
   #
   # WORKSPACE-TYPES
@@ -578,7 +594,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -586,7 +602,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
           engine-hash: ${{ inputs.engineHash }}
 
@@ -606,7 +621,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -630,21 +645,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/integration-tests
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
-          flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
-          name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
 
   #
   # `@prisma/internals`
@@ -661,7 +666,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -685,21 +690,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/internals
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/internals/src/__tests__/coverage/clover.xml
-          flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # MIGRATE
@@ -716,7 +711,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -740,21 +735,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/migrate
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/migrate/src/__tests__/coverage/clover.xml
-          flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # CLI-COMMANDS
@@ -771,7 +756,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -795,21 +780,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/cli
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/cli/src/__tests__/coverage/clover.xml
-          flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # CLI-PLATFORM-COMMANDS (only)
@@ -825,12 +800,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         include:
           - os: windows-latest
-            version: 16
+            version: 18
           - os: macos-latest
-            version: 16
+            version: 18
     steps:
       - uses: actions/checkout@v4
 
@@ -838,21 +813,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test:platform
         working-directory: packages/cli
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/cli/src/__tests__/coverage/clover.xml
-          flags: cli-platform,${{ matrix.os }}
-          name: cli-platform-${{ matrix.os }}
 
   #
   # All the other packages!
@@ -866,7 +831,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -874,7 +839,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -882,66 +846,21 @@ jobs:
         name: 'debug'
         working-directory: packages/debug
 
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/debug/src/__tests__/coverage/clover.xml
-          flags: debug,${{ matrix.os }},library,binary
-          name: debug-${{ matrix.os }}
-
       - run: pnpm run test
         name: 'generator-helper'
         working-directory: packages/generator-helper
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
-          flags: generator-helper,${{ matrix.os }},library,binary
-          name: generator-helper-${{ matrix.os }}
 
       - run: pnpm run test
         name: 'get-platform'
         working-directory: packages/get-platform
 
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
-          flags: get-platform,${{ matrix.os }},library,binary
-          name: get-platform-${{ matrix.os }}
-
       - run: pnpm run test
         name: 'fetch-engine'
         working-directory: packages/fetch-engine
 
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
-          flags: fetch-engine,${{ matrix.os }},library,binary
-          name: fetch-engine-${{ matrix.os }}
-
       - run: pnpm run test
         name: 'engines'
         working-directory: packages/engines
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/engines/src/__tests__/coverage/clover.xml
-          flags: engines,${{ matrix.os }},library,binary
-          name: engines-${{ matrix.os }}
 
       - run: pnpm run test
         name: 'adapter-planetscale'
@@ -954,41 +873,13 @@ jobs:
       - run: pnpm run test
         name: 'adapter-pg'
         working-directory: packages/adapter-pg
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/adapter-planetscale/src/__tests__/coverage/clover.xml
-          flags: adapter-planetscale,${{ matrix.os }},library,binary
-          name: adapter-planetscale-${{ matrix.os }}
-
       - run: pnpm run test
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
-          flags: instrumentation,${{ matrix.os }},library,binary
-          name: instrumentation-${{ matrix.os }}
-
       - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/schema-files-loader/src/__tests__/coverage/clover.xml
-          flags: schema-files-loader,${{ matrix.os }},library,binary
-          name: schema-files-loader-${{ matrix.os }}
 
   #
   # Run all tests on macOS and Windows.
@@ -1010,7 +901,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
@@ -1023,12 +914,12 @@ jobs:
         shell: bash
         run: |
           {
-            echo "TEST_SKIP_MSSQL=true" 
-            echo "TEST_SKIP_MONGODB=true" 
+            echo "TEST_SKIP_MSSQL=true"
+            echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_SKIP_VITESS=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" 
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" 
+            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
+            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -1042,7 +933,6 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           engine-hash: ${{ inputs.engineHash }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
 
       - name: Test packages/client
@@ -1054,15 +944,6 @@ jobs:
           NODE_OPTIONS: "${{ matrix.os == 'macos-14' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-functional-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -1090,7 +971,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4
@@ -1099,11 +980,11 @@ jobs:
         shell: bash
         run: |
           {
-            echo "TEST_SKIP_MSSQL=true" 
-            echo "TEST_SKIP_MONGODB=true" 
+            echo "TEST_SKIP_MSSQL=true"
+            echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" 
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" 
+            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
+            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -1116,7 +997,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
@@ -1128,14 +1008,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'internals'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-')) && github.repository == 'prisma/prisma'
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/internals/src/__tests__/coverage/clover.xml
-          flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/client (old suite)
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-')
@@ -1148,14 +1020,6 @@ jobs:
           NODE_OPTIONS: "${{ matrix.os == 'macos-14' && '--max-old-space-size=14336' || '--max-old-space-size=3072' }}"
           JEST_JUNIT_SUITE_NAME: 'client/old'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-'))
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/migrate
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-')
@@ -1164,13 +1028,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'migrate'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-'))
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/migrate/src/__tests__/coverage/clover.xml
-          flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/cli
         if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-')
@@ -1179,14 +1036,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'cli'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && (contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-'))
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/cli/src/__tests__/coverage/clover.xml
-          flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/debug
         if: contains(inputs.jobsToRun, '-all-')
@@ -1195,14 +1044,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'debug'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/debug/src/__tests__/coverage/clover.xml
-          flags: debug,${{ matrix.os }},library,binary
-          name: debug-${{ matrix.os }}
 
       - name: Test packages/generator-helper
         if: contains(inputs.jobsToRun, '-all-')
@@ -1211,14 +1052,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'generator-helper'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
-          flags: generator-helper,${{ matrix.os }},library,binary
-          name: generator-helper-${{ matrix.os }}
 
       - name: Test packages/get-platform
         continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
@@ -1228,14 +1061,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'get-platform'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
-          flags: get-platform,${{ matrix.os }},library,binary
-          name: get-platform-${{ matrix.os }}
 
       - name: Test packages/fetch-engine
         continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
@@ -1245,14 +1070,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'fetch-engine'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
-          flags: fetch-engine,${{ matrix.os }},library,binary
-          name: fetch-engine-${{ matrix.os }}
 
       - name: Test packages/engines
         if: contains(inputs.jobsToRun, '-all-')
@@ -1261,14 +1078,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'engines'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/engines/src/__tests__/coverage/clover.xml
-          flags: engines,${{ matrix.os }},library,binary
-          name: engines-${{ matrix.os }}
 
       - name: Test packages/schema-files-loader
         if: contains(inputs.jobsToRun, '-all-')
@@ -1277,15 +1086,6 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'schema-files-loader'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v4
-        continue-on-error: true # Can fail randomly and we don't want to fail the whole workflow
-        if: success() && contains(inputs.jobsToRun, '-all-')
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/engines/src/__tests__/coverage/clover.xml
-          flags: schema-files-loader,${{ matrix.os }},library,binary
-          name: schema-files-loader-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

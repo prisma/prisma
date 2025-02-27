@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
@@ -74,7 +74,10 @@ describe('postgresql-multischema', () => {
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'without-schemas-in-datasource.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -83,12 +86,15 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  schema.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:4
          | 
        3 |   url      = env("TEST_POSTGRES_URI_MIGRATE")
        4 |   schemas  = []
@@ -106,7 +112,10 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -114,7 +123,7 @@ describe('postgresql-multischema', () => {
       "
       // *** WARNING ***
       // 
-      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      // These items were renamed due to their names being duplicates in the Prisma schema:
       //   - Type: "enum", name: "base_status"
       //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
@@ -126,7 +135,10 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -136,7 +148,10 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -146,11 +161,10 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--schema',
-      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
-    ])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -162,7 +176,10 @@ describe('postgresql-multischema', () => {
     ctx.fs.remove(`./schema.prisma`)
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
 
@@ -177,7 +194,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'],
+      defaultTestConfig(),
+    )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P4001 The introspected database was empty:
@@ -201,7 +221,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -212,13 +235,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--url',
-      setupParams.connectionString,
-      '--schemas',
-      'base,transactional',
-    ])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base,transactional'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -226,7 +246,7 @@ describe('postgresql-multischema', () => {
       "
       // *** WARNING ***
       // 
-      // These items were renamed due to their names being duplicates in the Prisma Schema Language:
+      // These items were renamed due to their names being duplicates in the Prisma schema:
       //   - Type: "enum", name: "base_status"
       //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
@@ -239,13 +259,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--url',
-      setupParams.connectionString,
-      '--schemas',
-      'base,does-not-exist',
-    ])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base,does-not-exist'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -256,7 +273,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -266,7 +286,7 @@ describe('postgresql-multischema', () => {
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
     await expect(result).rejects.toThrow(`P4001`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -276,7 +296,7 @@ describe('postgresql-multischema', () => {
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 

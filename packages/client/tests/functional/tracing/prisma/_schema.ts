@@ -5,7 +5,6 @@ export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
-      previewFeatures = ["tracing"]
     }
 
     datasource db {

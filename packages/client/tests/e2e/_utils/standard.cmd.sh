@@ -3,16 +3,16 @@
 set -euo pipefail
 
 # Get access to localhost
-export DOCKER_BRIDGE_IP=$(ip route | grep default | awk '{print $3}') # 172.17.0.1
+export DOCKER_BRIDGE_HOST="host.docker.internal"
 
 # Database env variables
 export PRISMA_DB_NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 16)
-export TEST_E2E_POSTGRES_URI="postgres://prisma:prisma@${DOCKER_BRIDGE_IP}:5432/${PRISMA_DB_NAME}"
-export TEST_E2E_MYSQL_URI="mysql://root:root@${DOCKER_BRIDGE_IP}:3306/${PRISMA_DB_NAME}"
-export TEST_E2E_VITESS_8_URI="mysql://root:root@${DOCKER_BRIDGE_IP}:33807/${PRISMA_DB_NAME}"
-export TEST_E2E_MSSQL_URI="sqlserver://${DOCKER_BRIDGE_IP}:1433;database=${PRISMA_DB_NAME};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_E2E_MONGO_URI="mongodb://${DOCKER_BRIDGE_IP}:27018/${PRISMA_DB_NAME}"
-export TEST_E2E_COCKROACH_URI="postgresql://prisma@${DOCKER_BRIDGE_IP}:26257/${PRISMA_DB_NAME}"
+export TEST_E2E_POSTGRES_URI="postgres://prisma:prisma@${DOCKER_BRIDGE_HOST}:5432/${PRISMA_DB_NAME}"
+export TEST_E2E_MYSQL_URI="mysql://root:root@${DOCKER_BRIDGE_HOST}:3306/${PRISMA_DB_NAME}"
+export TEST_E2E_VITESS_8_URI="mysql://root:root@${DOCKER_BRIDGE_HOST}:33807/${PRISMA_DB_NAME}"
+export TEST_E2E_MSSQL_URI="sqlserver://${DOCKER_BRIDGE_HOST}:1433;database=${PRISMA_DB_NAME};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+export TEST_E2E_MONGO_URI="mongodb://${DOCKER_BRIDGE_HOST}:27018/${PRISMA_DB_NAME}"
+export TEST_E2E_COCKROACH_URI="postgresql://prisma@${DOCKER_BRIDGE_HOST}:26257/${PRISMA_DB_NAME}"
 
 # Other env variables
 export NODE_PATH=$(npm root --quiet -g) # make global packages available
