@@ -19,6 +19,7 @@ body:
 
         We receive a _lot_ of GitHub issues. **Bug reports without a reproduction might not be investigated.**
 
+        💡 If you're trying to ask a question rather than file a bug report, try a GitHub Discussion instead or join our [Discord server](https://discord.com/invite/prisma-937751382725886062).
   - type: textarea
     id: description
     attributes:
@@ -131,7 +132,6 @@ body:
       description: |
         - Run your query with `DEBUG="*"` and paste the output.
         - If relevant, include database logs.
-        - Run `npx prisma doctor` and `npx prisma validate` and share any errors.
       value: |
         ```
         // Debug logs here

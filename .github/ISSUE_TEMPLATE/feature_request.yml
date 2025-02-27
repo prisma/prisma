@@ -14,8 +14,7 @@ body:
 
         Before submitting, please search existing issues and discussions to avoid duplicates and keep our GitHub issues organized.
 
-        💡 If your idea is not fully formed or you have a question rather than a concrete proposal, consider starting a GitHub Discussion instead.
-
+        💡 If your idea is not fully formed or you have a question rather than a concrete proposal, try a GitHub Discussion instead or join our [Discord server](https://discord.com/invite/prisma-937751382725886062).
   - type: textarea
     id: summary
     attributes:
