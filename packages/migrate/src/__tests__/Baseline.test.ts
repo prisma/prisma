@@ -5,6 +5,7 @@ import fs from 'fs-jetpack'
 import { DbPull } from '../commands/DbPull'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { MigrateDev } from '../commands/MigrateDev'
+import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
 
@@ -58,35 +59,32 @@ describe('Baselining', () => {
     `)
     captureStdout.clearCaptureText()
 
-    // migrate dev --create-only --allow-reset
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only', '--allow-reset'], defaultTestConfig())
+    // migrate reset --force
+    const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+      "
+    `)
+    captureStdout.clearCaptureText()
+
+    // migrate dev --create-only
+    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+"Prisma schema loaded from prisma/schema.prisma
+Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
-      Drift detected: Your database schema is not in sync with your migration history.
-
-      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
-
-      It should be understood as the set of changes to get from the expected schema to the actual schema.
-
-      If you are running this the first time on an existing database, please make sure to read this documentation page:
-      https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
-
-      [+] Added tables
-        - Blog
-
-      We need to reset the SQLite database "dev.db" at "file:./dev.db"
-      
-      Received --allow-reset, dropping the database. All data is lost.
-
-      "
-    `)
+"
+`)
     captureStdout.clearCaptureText()
 
     // migrate dev
