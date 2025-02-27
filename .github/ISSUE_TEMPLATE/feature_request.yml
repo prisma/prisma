@@ -107,7 +107,7 @@ body:
       options:
         - label: I have **searched existing issues** to make sure this is not a duplicate
           required: true
-        - label: I have **checked the Prisma roadmap** to see if this is already planned
+        - label: I have **checked the [Prisma roadmap](https://pris.ly/orm-roadmap)** to see if this is already planned
           required: true
         - label: I have described **why this belongs in Prisma Core** rather than a solution in application code
           required: true
