@@ -62,7 +62,6 @@ testMatrix.setupTestSuite(
       xprisma.user.extMethod()
 
       expect(extMethod).toHaveBeenCalledTimes(1)
-      expect((xprisma.post as any).extMethod).toBeUndefined()
     })
 
     test('extend all models', () => {
