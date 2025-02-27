@@ -222,6 +222,15 @@ export const prismaVersion: PrismaVersion
  * Utility Types
  */
 
+<<<<<<< Updated upstream
+=======
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches a JSON object.
+ * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from.
+ */
+export type JsonObject = {[Key in string]?: JsonValue}
+>>>>>>> Stashed changes
 
 export import JsonObject = runtime.JsonObject
 export import JsonArray = runtime.JsonArray
@@ -443,14 +452,11 @@ type _Record<K extends keyof any, T> = {
 // cause typescript not to expand types and preserve names
 type NoExpand<T> = T extends unknown ? T : never;
 
-// This utility type is useful for conditionally checking the inclusion of a specific key or type within a type union or intersection.
-type In<T, U> = T extends U ? true : false;
-
 // this type assumes the passed object is entirely optional
 type AtLeast<O extends object, K extends string> = NoExpand<
   O extends unknown
   ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-    | ({ [P in keyof O as In<P, K> extends true ? P : never]-?: O[P] } & O)
+    | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
   : never>;
 
 type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
