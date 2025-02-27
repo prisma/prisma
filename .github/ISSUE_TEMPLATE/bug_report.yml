@@ -10,9 +10,9 @@ body:
 
         To help us address your issue as quickly as possible, please fill out all relevant sections in this template.
 
-        The **most important** thing you can do is include a minimal reproduction of the issue. Here's how you can do that easily:
+        The **most important** thing you can do is include a minimal reproduction of the issue.
 
-        **Best ways to provide a reproduction:**
+        Easy ways to create a reproduction:
         - Create a CodeSandbox ([here are templates](https://codesandbox.io/examples/package/prisma))
         - A **GitHub repository** we can clone
         - As a last resort, detailed step-by-step instructions (this makes debugging harder for us)
