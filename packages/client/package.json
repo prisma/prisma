@@ -184,7 +184,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "4.20250214.0",
     "@codspeed/benchmark.js-plugin": "4.0.0",
-    "@faker-js/faker": "8.4.1",
+    "@faker-js/faker": "9.5.0",
     "@fast-check/jest": "2.0.3",
     "@inquirer/prompts": "5.0.5",
     "@jest/create-cache-key-function": "29.7.0",
