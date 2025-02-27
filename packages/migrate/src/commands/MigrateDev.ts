@@ -290,12 +290,8 @@ ${green('Your database is now in sync with your schema.')}\n`,
       process.stdout.write('\n') // empty line
     }
 
-    // If database was created or reset we want to run the seed if not skipped
-    if (
-      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
-      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
-      !args['--skip-seed']
-    ) {
+    // If database was created we want to run the seed if not skipped
+    if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
