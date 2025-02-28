@@ -67,7 +67,11 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
     }),
   )
 
-  return ts.objectType().add(ts.property('meta', meta)).add(ts.property('model', model))
+  return ts
+    .objectType()
+    .add(ts.property('globalOmitOptions', ts.namedType('ClientOptions')))
+    .add(ts.property('meta', meta))
+    .add(ts.property('model', model))
 }
 
 function clientTypeMapModelsResultDefinition(
@@ -144,8 +148,8 @@ function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
-  returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
+interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+  returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions>
 }
 
 export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = ${typeMap}`
@@ -171,15 +175,14 @@ function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('$Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
-    .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
+    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
     .addGenericArgument(ts.namedType('ExtArgs'))
     .addGenericArgument(
       ts
         .namedType('$Utils.Call')
-        .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
-    .addGenericArgument(ts.namedType('ClientOptions'))
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
 }
 
