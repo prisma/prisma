@@ -26,7 +26,7 @@ test('@<version>', async () => {
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@0.0.0`)
-  await copy(copySrc, copyDest, { recursive: true })
+  await copy(copySrc, copyDest)
 
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
@@ -56,7 +56,7 @@ test('@latest', async () => {
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@latest-${getDayMillis()}`)
-  await copy(copySrc, copyDest, { recursive: true })
+  await copy(copySrc, copyDest)
 
   await cmd.parse(['--help'], defaultTestConfig())
 
@@ -90,7 +90,7 @@ test('autoinstall', async () => {
   jest.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
   // eslint-disable-next-line @typescript-eslint/unbound-method
   jest.mocked(execa.command).mockImplementation((async () => {
-    await copy(copySrc, copyDest, { recursive: true })
+    await copy(copySrc, copyDest)
   }) as () => any)
 
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
