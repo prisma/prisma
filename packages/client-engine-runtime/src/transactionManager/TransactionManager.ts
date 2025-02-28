@@ -62,7 +62,7 @@ export class TransactionManager {
     const validatedOptions = this.validateOptions(options)
 
     const transaction: TransactionWrapper = {
-      id: crypto.randomUUID(),
+      id: options.newTxId ?? crypto.randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: validatedOptions.timeout,

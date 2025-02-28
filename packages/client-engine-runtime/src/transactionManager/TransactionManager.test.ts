@@ -30,6 +30,7 @@ class MockDriverAdapter implements SqlConnection {
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
+  beginMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
@@ -56,6 +57,7 @@ class MockDriverAdapter implements SqlConnection {
 
   transactionContext(): Promise<TransactionContext> {
     const executeRawMock = this.executeRawMock
+    const beginMock = this.beginMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
@@ -72,6 +74,7 @@ class MockDriverAdapter implements SqlConnection {
           options: { usePhantomQuery },
           queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
           executeRaw: executeRawMock,
+          begin: beginMock,
           commit: commitMock,
           rollback: rollbackMock,
         }

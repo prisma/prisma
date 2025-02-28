@@ -128,6 +128,12 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     super(tx)
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+
+    return await this.txResultPromise
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 

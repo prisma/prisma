@@ -106,6 +106,10 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
   }
