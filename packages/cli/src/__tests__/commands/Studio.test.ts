@@ -682,6 +682,10 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
   () => {
     jest.setTimeout(20_000)
 
+    afterEach(() => {
+      process.env = { ...originalEnv }
+    })
+
     beforeAll(async () => {
       // Before every test, we'd like to reset the DB.
       // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema

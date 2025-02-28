@@ -1,7 +1,12 @@
 import path from 'node:path'
 import { defineConfig } from '@prisma/config'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { createClient } from '@libsql/client'
+
+type Env = {
+  DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL: 'string'
+}
+
+// Simulate env var loading
+process.env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL = 'file:./dev_tmp.db'
 
 export default defineConfig({
   earlyAccess: true,
@@ -10,10 +15,12 @@ export default defineConfig({
     filePath: path.join(__dirname, 'schema-c.prisma'),
   },
   studio: {
-    adapter: async (env: unknown) => {
-      const connectionString = `file:${path.join(__dirname, './dev_tmp.db')}`
+    adapter: async (env: Env) => {
+      const { PrismaLibSQL } = await import('@prisma/adapter-libsql')
+      const { createClient } = await import('@libsql/client')
+
       const libsql = createClient({
-        url: connectionString,
+        url: env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL,
       })
       return new PrismaLibSQL(libsql)
     },
