@@ -33,10 +33,12 @@ const oldProcessCwd = process.cwd
 const sendPanicTag = 'send-panic-failed'
 
 jest.mock('../sendPanic', () => ({
+  ...jest.requireActual('../sendPanic'),
   sendPanic: jest.fn().mockImplementation(() => Promise.reject(new Error(sendPanicTag))),
 }))
 
 jest.mock('../utils/getGitHubIssueUrl', () => ({
+  ...jest.requireActual('../utils/getGitHubIssueUrl'),
   wouldYouLikeToCreateANewIssue: jest.fn().mockImplementation(() => Promise.resolve()),
 }))
 
