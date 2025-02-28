@@ -14,7 +14,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -31,7 +30,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -61,7 +59,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: 9
           skip-tsc: false
 
       - name: Run benchmarks
@@ -97,7 +94,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'Benchmark failed :x:'
           SLACK_COLOR: '#FF0000'

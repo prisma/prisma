@@ -1,0 +1,113 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
+name: Feature request
+description: Suggest an improvement to Prisma ORM
+labels: ['kind/feature']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        🙏 Thank you for taking the time to submit a feature request!
+
+        To help us give your idea the attention it deserves, please fill out all relevant sections of this template.
+
+        Well-defined requests make it easier for other users to find and understand your idea. The Prisma team prioritizes feature requests with the highest number of upvotes.
+
+        Before submitting, please search existing issues and discussions to avoid duplicates and keep our GitHub issues organized.
+
+        💡 If your idea is not fully formed or you have a question rather than a concrete proposal, try a GitHub Discussion instead or join our [Discord server](https://discord.com/invite/prisma-937751382725886062).
+  - type: textarea
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: |
+        What’s the feature in **1-2 sentences**?
+        A short and clear description of what you want Prisma to support.
+      placeholder: 'Example: Add support for composite primary keys in Prisma schema.'
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Use Cases & Problem Description
+      description: |
+        Why is this feature needed? Provide **real-world examples** of when you faced this limitation.
+        This helps the team understand the practical impact of the request.
+      placeholder: "Example: I'm using PostgreSQL and need composite primary keys for multi-tenant apps..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: |
+        How should this feature work? If applicable, describe how it might look in the Prisma schema or API.
+        This doesn’t need to be technically detailed—just your ideal outcome.
+      placeholder: 'Example: A new syntax for composite keys, like `@@id([column1, column2])`...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Solutions
+      description: |
+        Have you found any workarounds or ways to solve this in your application code?
+        Could this be handled at the database level, in your API layer, or with an existing Prisma feature?
+      placeholder: "Example: I tried handling this in my API layer with raw SQL, but it's complex and error-prone..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: drawbacks
+    attributes:
+      label: Potential Considerations
+      description: |
+        Are there any potential downsides to adding this feature?
+        For example, could it introduce complexity, impact performance, or require major changes?
+      placeholder: 'Example: This may require database-specific implementations, which could be tricky...'
+    validations:
+      required: false
+
+  - type: input
+    id: prisma-version
+    attributes:
+      label: Prisma Version
+      description: 'Run `npx prisma --version` and paste the output here.'
+      placeholder: 'Example: 5.0.0'
+
+  - type: dropdown
+    id: affected-areas
+    attributes:
+      label: What part of Prisma does this affect?
+      description: |
+        Select the area of Prisma this feature would impact.
+      options:
+        - Prisma Client
+        - Prisma Migrate
+        - Prisma Schema
+        - Prisma Studio
+        - Other
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other details? Screenshots, related issues, or links to relevant discussions.
+      placeholder: "Example: Here's a link to a related issue..."
+
+  - type: checkboxes
+    id: pre-submission-checklist
+    attributes:
+      label: Pre-Submission Checklist
+      description: |
+        Please confirm the following before submitting:
+      options:
+        - label: I have **searched existing issues** to make sure this is not a duplicate
+          required: true
+        - label: I have **checked the [Prisma roadmap](https://pris.ly/orm-roadmap)** to see if this is already planned
+          required: true
+        - label: I have described **why this belongs in Prisma Core** rather than a solution in application code
+          required: true

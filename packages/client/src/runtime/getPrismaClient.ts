@@ -328,12 +328,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
+    /**
+     * @remarks This is used internally by Policy, do not rename or remove
+     */
     _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
@@ -508,8 +510,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -520,6 +520,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
@@ -532,12 +533,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
       } else if (eventType) {
         this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
+      return this
     }
 
     $connect() {
@@ -818,13 +820,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
-      return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
-          addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-          addProperty(TX_ID, () => transaction.id),
-          removeProperties(itxClientDenyList),
-        ]),
+      return createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
+            addProperty(TX_ID, () => transaction.id),
+          ]),
+        ),
+        [removeProperties(itxClientDenyList)],
       )
     }
 
@@ -1029,15 +1033,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    get $metrics(): MetricsClient {
-      if (!this._hasPreviewFlag('metrics')) {
-        throw new PrismaClientValidationError(
-          '`metrics` preview feature must be enabled in order to access metrics API',
-          { clientVersion: this._clientVersion },
-        )
-      }
-      return this._metrics
-    }
+    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag

@@ -47,6 +47,7 @@ export class DenylistError extends Error {
     this.stack = undefined
   }
 }
+
 setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
@@ -210,8 +211,6 @@ export async function buildClient({
 
   const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
 
-  // TODO: adjust below code
-
   if (usesWasmRuntime) {
     const usesClientEngine = clientEngineType === ClientEngineType.Client
 
@@ -362,7 +361,7 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
 
 // TODO: explore why we have a special case for excluding pnpm
 async function getDefaultOutdir(outputDir: string): Promise<string> {
-  if (outputDir.endsWith('node_modules/@prisma/client')) {
+  if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
     return path.join(outputDir, '../../.prisma/client')
   }
   if (
@@ -649,8 +648,9 @@ async function getGenerationDirs({
   testMode,
 }: GenerateClientOptions) {
   const isCustomOutput = generator.isCustomOutput === true
+  const normalizedOutputDir = path.normalize(outputDir)
   let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? outputDir : await getDefaultOutdir(outputDir)
+  let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
 
   if (testMode && runtimeBase) {
     userOutputDir = outputDir

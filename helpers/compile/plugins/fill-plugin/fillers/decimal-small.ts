@@ -1,3 +1,5 @@
+import crypto from 'node:crypto'
+
 import DecimalLight from 'decimal.js-light/decimal.mjs'
 
 class Decimal extends DecimalLight {

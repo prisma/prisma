@@ -1,4 +1,5 @@
 import * as ni from '@antfu/ni'
+import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
 import { rm } from 'fs/promises'
 import { copy } from 'fs-extra'
@@ -25,9 +26,9 @@ test('@<version>', async () => {
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@0.0.0`)
-  await copy(copySrc, copyDest, { recursive: true })
+  await copy(copySrc, copyDest)
 
-  await cmd.parse(['@0.0.0', '--help'])
+  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
     [
@@ -37,6 +38,10 @@ test('@<version>', async () => {
           [
             "--help",
           ],
+          {
+            "earlyAccess": true,
+            "loadedFromFile": null,
+          },
         ],
       ],
     ]
@@ -51,9 +56,9 @@ test('@latest', async () => {
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@latest-${getDayMillis()}`)
-  await copy(copySrc, copyDest, { recursive: true })
+  await copy(copySrc, copyDest)
 
-  await cmd.parse(['--help'])
+  await cmd.parse(['--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
     [
@@ -63,6 +68,10 @@ test('@latest', async () => {
           [
             "--help",
           ],
+          {
+            "earlyAccess": true,
+            "loadedFromFile": null,
+          },
         ],
       ],
     ]
@@ -81,23 +90,27 @@ test('autoinstall', async () => {
   jest.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
   // eslint-disable-next-line @typescript-eslint/unbound-method
   jest.mocked(execa.command).mockImplementation((async () => {
-    await copy(copySrc, copyDest, { recursive: true })
+    await copy(copySrc, copyDest)
   }) as () => any)
 
-  await cmd.parse(['@0.0.0', '--help'])
+  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 
   expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
+    [
       [
+        "sub-command",
         [
-          "sub-command",
           [
-            [
-              "--help",
-            ],
+            "--help",
           ],
+          {
+            "earlyAccess": true,
+            "loadedFromFile": null,
+          },
         ],
-      ]
-    `)
+      ],
+    ]
+  `)
 
   // eslint-disable-next-line @typescript-eslint/unbound-method
   expect(execa.command).toHaveBeenCalled()
