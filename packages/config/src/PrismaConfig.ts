@@ -77,13 +77,13 @@ export type PrismaSchemaConfigShape =
 declare const __testPrismaSchemaConfigShapeValueA: typeof PrismaSchemaConfigShape.Type
 declare const __testPrismaSchemaConfigShapeValueB: PrismaSchemaConfigShape
 declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
-declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<any>
+declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVars>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
   __testPrismaSchemaConfigShapeValueA satisfies PrismaSchemaConfigShape
   __testPrismaSchemaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
-  __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<any>
+  __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<EnvVars>
   __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
 }
 
