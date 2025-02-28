@@ -11,7 +11,9 @@ const debug = Debug('prisma:config:defineConfig')
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigInternal<Env> {
+export function defineConfig<Env extends Record<string, string | undefined> = never>(
+  configInput: PrismaConfig<Env>,
+): PrismaConfigInternal<Env> {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
@@ -28,7 +30,10 @@ export function defineConfig<Env>(configInput: PrismaConfig<Env>): PrismaConfigI
   return config as PrismaConfigInternal<Env>
 }
 
-function defineSchemaConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>, configInput: PrismaConfig<Env>) {
+function defineSchemaConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
   if (!configInput.schema) {
     return
   }
@@ -37,7 +42,10 @@ function defineSchemaConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>,
   debug('Prisma config [schema]: %o', config.schema)
 }
 
-function defineStudioConfig<Env>(config: DeepMutable<PrismaConfigInternal<Env>>, configInput: PrismaConfig<Env>) {
+function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
   if (!configInput.studio) {
     return
   }
