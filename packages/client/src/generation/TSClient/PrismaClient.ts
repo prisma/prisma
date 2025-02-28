@@ -69,7 +69,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
 
   return ts
     .objectType()
-    .add(ts.property('globalOmitOptions', ts.namedType('ClientOptions')))
+    .add(ts.property('globalOmitOptions', ts.objectType().add(ts.property('omit', ts.namedType('GlobalOmitOptions')))))
     .add(ts.property('meta', meta))
     .add(ts.property('model', model))
 }
@@ -148,11 +148,11 @@ function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
-  returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions>
+interface TypeMapCb<ClientOptions = {}, GlobalOmitOptions = ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+  returns: Prisma.TypeMap<this['params']['extArgs'], GlobalOmitOptions>
 }
 
-export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = ${typeMap}`
+export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(context: GenerateContext) {

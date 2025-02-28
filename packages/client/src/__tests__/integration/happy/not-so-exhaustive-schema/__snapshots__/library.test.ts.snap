@@ -1191,12 +1191,14 @@ export namespace Prisma {
     db?: Datasource
   }
 
-  interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
-    returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions>
+  interface TypeMapCb<ClientOptions = {}, GlobalOmitOptions = ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs'], GlobalOmitOptions>
   }
 
-  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
-    globalOmitOptions: ClientOptions
+  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = {
+    globalOmitOptions: {
+      omit: GlobalOmitOptions
+    }
     meta: {
       modelProps: "post" | "user" | "m" | "n" | "oneOptional" | "manyRequired" | "optionalSide1" | "optionalSide2" | "a" | "b" | "c" | "d" | "e"
       txIsolationLevel: Prisma.TransactionIsolationLevel
