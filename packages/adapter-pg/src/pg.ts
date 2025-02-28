@@ -184,7 +184,8 @@ export type PrismaPgOptions = {
 
 export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
   constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
-    if (!(client instanceof pg.Pool)) {
+    // Note: Full `client instanceof pg.Pool` check would sometimes give false negatives depending on the package resolution.
+    if (!client) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
 import { Pool } from 'pg'
 const pool = new Pool({ connectionString: url })

@@ -420,6 +420,12 @@ importers:
       '@inquirer/prompts':
         specifier: 5.0.5
         version: 5.0.5
+      '@libsql/client':
+        specifier: 0.8.1
+        version: 0.8.1
+      '@prisma/adapter-libsql':
+        specifier: workspace:*
+        version: link:../adapter-libsql
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -448,11 +454,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/studio':
-        specifier: 0.509.0
-        version: 0.509.0
+        specifier: 0.510.0
+        version: 0.510.0
       '@prisma/studio-server':
-        specifier: 0.509.0
-        version: 0.509.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
+        specifier: 0.510.0
+        version: 0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)
       '@swc/core':
         specifier: 1.10.11
         version: 1.10.11
@@ -2798,8 +2804,14 @@ packages:
   '@libsql/client@0.8.0':
     resolution: {integrity: sha512-ncx6p2wsaZtCAbRJCIkaTO14ya18qFYLJ1yTm5zHgwd9mlcvgenG4imSgJy2zNrKJkeyr1wzD+80jNqI7nCYoA==}
 
+  '@libsql/client@0.8.1':
+    resolution: {integrity: sha512-xGg0F4iTDFpeBZ0r4pA6icGsYa5rG6RAG+i/iLDnpCAnSuTqEWMDdPlVseiq4Z/91lWI9jvvKKiKpovqJ1kZWA==}
+
   '@libsql/core@0.8.0':
     resolution: {integrity: sha512-Bqs7bKfUNwm8NTLfKPbI4WME+3BTEBeDZTec0b9XZQ9hvjM4YlGXKKCuIDm8ECUYx4Mb1Gc0X14pm2/4r6ImdA==}
+
+  '@libsql/core@0.8.1':
+    resolution: {integrity: sha512-u6nrj6HZMTPsgJ9EBhLzO2uhqhlHQJQmVHV+0yFLvfGf3oSP8w7TjZCNUgu1G8jHISx6KFi7bmcrdXW9lRt++A==}
 
   '@libsql/darwin-arm64@0.3.10':
     resolution: {integrity: sha512-RaexEFfPAFogd6dJlqkpCkTxdr6K14Z0286lodIJ8Ny77mWuWyBkWKxf70OYWXXAMxMJFUW+6al1F3/Osf/pTg==}
@@ -3016,25 +3028,25 @@ packages:
   '@prisma/query-engine-wasm@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d':
     resolution: {integrity: sha512-+EDjXVeI7pYfG7HUCmmq3kURg76+fn3gBhdIyqvYL2MFglYwPJ5IJZRc3CtLQasnVUKnsfA+KYUT3xTC4dicYA==}
 
-  '@prisma/studio-common@0.509.0':
-    resolution: {integrity: sha512-fQj2nHp1hJlSY6ewYHShoa1uXjfLzo8Vm4l7l21hJdZnXCGGExndUqWvLcP6LF1iL/OaPv5raR7ypGTHN6hOyg==}
+  '@prisma/studio-common@0.510.0':
+    resolution: {integrity: sha512-Fwq1r7vv/MzuUOGMi5JMwSpkCIpYbO+43dZTdoNLLylqkPvfuVnYVRpAVsANmY/UJ0heXup8a1s+OvSaYBMvUQ==}
     engines: {node: '>= 16.13'}
 
-  '@prisma/studio-pcw@0.509.0':
-    resolution: {integrity: sha512-r6dzA9b+aO05E6DUZz5Sndxou3j6jhLKI7EplfMH3wTjcuAXjabYmSU9Pf1HWlEwWdQnB9T0P+VAJ4Up669Xdw==}
+  '@prisma/studio-pcw@0.510.0':
+    resolution: {integrity: sha512-gfJMZbPl71OQALhVSG0AzXa2XgsHjpdmBeKppA5HFkSL177EH9WpOW75xyqkZbPGqEDSKKRki/lDyMJwiucZcg==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/internals': '*'
 
-  '@prisma/studio-server@0.509.0':
-    resolution: {integrity: sha512-hsFIWkkm/iQhUlhJUWI4f9g3Z56thlkfHlOMs3ddH2wcTaB1dKqwddn6ytRMuY8RE7pSY0bGivY/cCJHMcitgQ==}
+  '@prisma/studio-server@0.510.0':
+    resolution: {integrity: sha512-/d7REMxj54NML4gOR3GT+xE0euZDTal80edq/hzmeo5/3GefgiAjcBWbjAXdu3kigMNHPSCBK1VkgzOpCijDng==}
     engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
 
-  '@prisma/studio@0.509.0':
-    resolution: {integrity: sha512-i+H9lhnSUctfXtBQ2vhvlxr/lxk+MVyjK8VcYPqKMNyFGDdtb8AqHWcdV067aY7AWxWsDNBNwcVW0zRuBRCIvA==}
+  '@prisma/studio@0.510.0':
+    resolution: {integrity: sha512-dXicUmLEdVyewn9tp2avUk8XN9XQrLbQu4OsRC8hsBMvDfp3GzM6Go3/ECzBzBZWCZz8dl7FZ30Kpc7rQBZByg==}
 
   '@rushstack/node-core-library@5.11.0':
     resolution: {integrity: sha512-I8+VzG9A0F3nH2rLpPd7hF8F7l5Xb7D+ldrWVZYegXM6CsKkvWc670RlgK3WX8/AseZfXA/vVrh0bpXe2Y2UDQ==}
@@ -5569,7 +5581,6 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -8684,7 +8695,22 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
+  '@libsql/client@0.8.1':
+    dependencies:
+      '@libsql/core': 0.8.1
+      '@libsql/hrana-client': 0.6.2
+      js-base64: 3.7.5
+      libsql: 0.3.10
+      promise-limit: 2.7.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@libsql/core@0.8.0':
+    dependencies:
+      js-base64: 3.7.5
+
+  '@libsql/core@0.8.1':
     dependencies:
       js-base64: 3.7.5
 
@@ -8911,11 +8937,11 @@ snapshots:
 
   '@prisma/query-engine-wasm@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d': {}
 
-  '@prisma/studio-common@0.509.0':
+  '@prisma/studio-common@0.510.0':
     dependencies:
       buffer: 6.0.3
 
-  '@prisma/studio-pcw@0.509.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
+  '@prisma/studio-pcw@0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)':
     dependencies:
       '@prisma/client': link:packages/client
       '@prisma/internals': link:packages/internals
@@ -8924,12 +8950,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@prisma/studio-server@0.509.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
+  '@prisma/studio-server@0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)(encoding@0.1.13)':
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.509.0
-      '@prisma/studio-common': 0.509.0
-      '@prisma/studio-pcw': 0.509.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.510.0
+      '@prisma/studio-common': 0.510.0
+      '@prisma/studio-pcw': 0.510.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.33(encoding@0.1.13)
       cors: 2.8.5
       debug: 4.3.3
@@ -8940,7 +8966,7 @@ snapshots:
       - encoding
       - supports-color
 
-  '@prisma/studio@0.509.0': {}
+  '@prisma/studio@0.510.0': {}
 
   '@rushstack/node-core-library@5.11.0(@types/node@18.19.76)':
     dependencies:

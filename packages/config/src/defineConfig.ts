@@ -11,27 +11,47 @@ const debug = Debug('prisma:config:defineConfig')
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
+export function defineConfig<Env extends Record<string, string | undefined> = never>(
+  configInput: PrismaConfig<Env>,
+): PrismaConfigInternal<Env> {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
-  const config = defaultConfig()
+  const config = defaultConfig<Env>()
   debug('Prisma config [default]: %o', config)
 
-  defineSchemaConfig(config, configInput)
+  defineSchemaConfig<Env>(config, configInput)
+  defineStudioConfig<Env>(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
    * `Readonly` type
    */
-  return config as PrismaConfigInternal
+  return config as PrismaConfigInternal<Env>
 }
 
-function defineSchemaConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+function defineSchemaConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
   if (!configInput.schema) {
     return
   }
 
   config.schema = configInput.schema
   debug('Prisma config [schema]: %o', config.schema)
+}
+
+function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
+  if (!configInput.studio) {
+    return
+  }
+
+  config.studio = {
+    adapter: configInput.studio.adapter,
+  }
+  debug('Prisma config [studio]: %o', config.studio)
 }
