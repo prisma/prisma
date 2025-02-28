@@ -43,6 +43,27 @@ testMatrix.setupTestSuite(
       expect((xprisma.post as any).extMethod).toBeUndefined()
     })
 
+    test('chain $on with $extends', () => {
+      const fnEmitter = jest.fn()
+      const extMethod = jest.fn()
+
+      const xprisma = newPrismaClient({
+        log: [{ emit: 'event', level: 'query' }],
+      })
+        .$on('query', fnEmitter)
+        .$extends({
+          model: {
+            user: {
+              extMethod,
+            },
+          },
+        })
+
+      xprisma.user.extMethod()
+
+      expect(extMethod).toHaveBeenCalledTimes(1)
+    })
+
     test('extend all models', () => {
       const extMethod = jest.fn()
       const xprisma = prisma.$extends({

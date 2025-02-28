@@ -20,7 +20,6 @@ const cliLifecyclePlugin: esbuild.Plugin = {
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
       await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
-        recursive: true,
         overwrite: true,
       })
 

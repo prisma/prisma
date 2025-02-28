@@ -447,7 +447,7 @@ type NoExpand<T> = T extends unknown ? T : never;
 type AtLeast<O extends object, K extends string> = NoExpand<
   O extends unknown
   ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-    | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
+    | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
   : never>;
 
 type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
