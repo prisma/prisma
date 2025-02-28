@@ -6,7 +6,7 @@ type Env = {
 }
 
 // Simulate env var loading
-process.env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL = 'file:./dev_tmp.db'
+process.env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL = `file:${path.join(__dirname, 'dev_tmp.db')}`
 
 export default defineConfig({
   earlyAccess: true,
