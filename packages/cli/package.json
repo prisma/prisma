@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@antfu/ni": "0.21.12",
-    "@inquirer/prompts": "5.0.5",
+    "@inquirer/prompts": "7.3.2",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/client": "workspace:*",
     "@prisma/config": "workspace:*",
