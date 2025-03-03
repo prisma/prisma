@@ -17,7 +17,7 @@ import {
 
 export interface PrismaInstrumentationConfig {
   middleware?: boolean
-  ignoreSpanTypes?: string[]
+  ignoreSpanTypes?: (string | RegExp)[]
 }
 
 type Config = PrismaInstrumentationConfig & InstrumentationConfig

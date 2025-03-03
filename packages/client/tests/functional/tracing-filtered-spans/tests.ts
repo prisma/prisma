@@ -36,7 +36,7 @@ beforeAll(() => {
     instrumentations: [
       new PrismaInstrumentation({
         middleware: true,
-        ignoreSpanTypes: ['prisma:client:connect', 'prisma:engine:query'],
+        ignoreSpanTypes: [/prisma:client:ser.*/, 'prisma:client:connect', 'prisma:engine:query'],
       }),
     ],
   })
@@ -60,7 +60,7 @@ testMatrix.setupTestSuite(
       expect(spans.map((span) => span.name)).toEqual([
         'prisma:client:detect_platform',
         'prisma:client:load_engine',
-        'prisma:client:serialize',
+        // 'prisma:client:serialize',                   <-- Filtered out by regex
         'prisma:engine:connection',
         'prisma:engine:connect',
         // 'prisma:client:connect',                     <-- Filtered out individually

@@ -22,7 +22,7 @@ const nonSampledTraceParent = `00-10-10-00`
 type Options = {
   traceMiddleware: boolean
   tracerProvider: TracerProvider
-  ignoreSpanTypes: string[]
+  ignoreSpanTypes: (string | RegExp)[]
 }
 
 function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
@@ -38,12 +38,12 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
   private tracerProvider: TracerProvider
-  private ignoreSpanTypes: string[]
+  private ignoreSpanTypes: (string | RegExp)[]
 
   constructor({ traceMiddleware, tracerProvider, ignoreSpanTypes }: Options) {
     this.traceMiddleware = traceMiddleware
     this.tracerProvider = tracerProvider
-    this.ignoreSpanTypes = ignoreSpanTypes.map((value) => value.toString())
+    this.ignoreSpanTypes = ignoreSpanTypes
   }
 
   isEnabled(): boolean {
@@ -89,7 +89,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
 
-    if (this.ignoreSpanTypes.includes(name)) {
+    if (shouldIgnoreSpan(name, this.ignoreSpanTypes)) {
       return callback()
     }
 
@@ -111,9 +111,9 @@ function dispatchEngineSpan(
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
   linkIds: Map<string, string>,
-  ignoreSpanTypes: string[],
+  ignoreSpanTypes: (string | RegExp)[],
 ) {
-  if (ignoreSpanTypes.includes(engineSpan.name)) return
+  if (shouldIgnoreSpan(engineSpan.name, ignoreSpanTypes)) return
 
   const spanOptions = {
     attributes: engineSpan.attributes as Attributes,
@@ -170,4 +170,10 @@ function endSpan<T>(span: Span, result: T): T {
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return value != null && typeof value['then'] === 'function'
+}
+
+function shouldIgnoreSpan(spanName: string, ignoreSpanTypes: (string | RegExp)[]): boolean {
+  return ignoreSpanTypes.some((pattern) =>
+    typeof pattern === 'string' ? pattern === spanName : pattern.test(spanName),
+  )
 }
