@@ -17,7 +17,7 @@ import {
 
 export interface PrismaInstrumentationConfig {
   middleware?: boolean
-  ignoreLayersTypes?: string[]
+  ignoreSpanTypes?: string[]
 }
 
 type Config = PrismaInstrumentationConfig & InstrumentationConfig
@@ -46,7 +46,7 @@ export class PrismaInstrumentation extends InstrumentationBase {
       helper: new ActiveTracingHelper({
         traceMiddleware: config.middleware ?? false,
         tracerProvider: this.tracerProvider ?? trace.getTracerProvider(),
-        ignoreLayersTypes: config.ignoreLayersTypes ?? [],
+        ignoreSpanTypes: config.ignoreSpanTypes ?? [],
       }),
     }
 

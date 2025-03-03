@@ -22,7 +22,7 @@ const nonSampledTraceParent = `00-10-10-00`
 type Options = {
   traceMiddleware: boolean
   tracerProvider: TracerProvider
-  ignoreLayersTypes: string[]
+  ignoreSpanTypes: string[]
 }
 
 function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
@@ -38,12 +38,12 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
   private tracerProvider: TracerProvider
-  private ignoreLayersTypes: string[]
+  private ignoreSpanTypes: string[]
 
-  constructor({ traceMiddleware, tracerProvider, ignoreLayersTypes }: Options) {
+  constructor({ traceMiddleware, tracerProvider, ignoreSpanTypes }: Options) {
     this.traceMiddleware = traceMiddleware
     this.tracerProvider = tracerProvider
-    this.ignoreLayersTypes = ignoreLayersTypes.map((value) => value.toString())
+    this.ignoreSpanTypes = ignoreSpanTypes.map((value) => value.toString())
   }
 
   isEnabled(): boolean {
@@ -64,7 +64,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const roots = spans.filter((span) => span.parentId === null)
 
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreLayersTypes)
+      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes)
     }
   }
 
@@ -89,7 +89,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
 
-    if (this.ignoreLayersTypes.includes(name)) {
+    if (this.ignoreSpanTypes.includes(name)) {
       return callback()
     }
 
@@ -111,9 +111,9 @@ function dispatchEngineSpan(
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
   linkIds: Map<string, string>,
-  ignoreLayersTypes: string[],
+  ignoreSpanTypes: string[],
 ) {
-  if (ignoreLayersTypes.includes(engineSpan.name)) return
+  if (ignoreSpanTypes.includes(engineSpan.name)) return
 
   const spanOptions = {
     attributes: engineSpan.attributes as Attributes,
@@ -144,7 +144,7 @@ function dispatchEngineSpan(
 
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreLayersTypes)
+      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes)
     }
 
     span.end(engineSpan.endTime)

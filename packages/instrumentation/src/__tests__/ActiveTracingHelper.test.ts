@@ -11,7 +11,7 @@ describe('ActiveTracingHelper', () => {
   const options = {
     traceMiddleware: true,
     tracerProvider: trace.getTracerProvider(),
-    ignoreLayersTypes: ['prisma:client:serialize', 'prisma:engine:serialize'],
+    ignoreSpanTypes: ['prisma:client:serialize', 'prisma:engine:serialize'],
   }
 
   beforeEach(() => {
@@ -59,7 +59,7 @@ describe('ActiveTracingHelper', () => {
       const helper = new ActiveTracingHelper({
         traceMiddleware: false,
         tracerProvider: trace.getTracerProvider(),
-        ignoreLayersTypes: ignoredLayers,
+        ignoreSpanTypes: ignoredLayers,
       })
 
       const engineSpans: EngineSpan[] = [
@@ -100,7 +100,7 @@ describe('ActiveTracingHelper', () => {
         const options = {
           traceMiddleware: true,
           tracerProvider: trace.getTracerProvider(),
-          ignoreLayersTypes: ['prisma:engine:connection', 'prisma:engine:serialize'],
+          ignoreSpanTypes: ['prisma:engine:connection', 'prisma:engine:serialize'],
         }
         const tracer = trace.getTracer('mocked')
         jest.spyOn(trace, 'getTracer').mockReturnValue(tracer)
@@ -122,7 +122,7 @@ describe('ActiveTracingHelper', () => {
       const options = {
         traceMiddleware: true,
         tracerProvider: trace.getTracerProvider(),
-        ignoreLayersTypes: ['prisma:client:operations', 'prisma:client:serialize'],
+        ignoreSpanTypes: ['prisma:client:operations', 'prisma:client:serialize'],
       }
       const tracer = trace.getTracer('mocked')
       jest.spyOn(trace, 'getTracer').mockReturnValue(tracer)
