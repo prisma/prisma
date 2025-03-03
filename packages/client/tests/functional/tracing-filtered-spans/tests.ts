@@ -47,8 +47,9 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ driverAdapter }) => {
     beforeAll(() => {
+      inMemorySpanExporter.reset()
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
     })
 
@@ -57,7 +58,7 @@ testMatrix.setupTestSuite(
 
       const spans = inMemorySpanExporter.getFinishedSpans()
 
-      expect(spans.map((span) => span.name)).toEqual([
+      const expectedSpans = [
         'prisma:client:detect_platform',
         'prisma:client:load_engine',
         // 'prisma:client:serialize',                   <-- Filtered out by regex
@@ -70,10 +71,20 @@ testMatrix.setupTestSuite(
         // 'prisma:engine:response_json_serialization', <-- Child span of filtered out parent span
         // 'prisma:engine:query',                       <-- Filtered out parent span
         'prisma:client:operation',
-      ])
+      ]
+
+      if (driverAdapter) {
+        expectedSpans.shift() // Driver adapaters do not platform detection
+      }
+
+      expect(spans.map((span) => span.name)).toEqual(expectedSpans)
     })
   },
   {
     skipDefaultClientInstance: true,
+    skipDataProxy: {
+      runtimes: ['edge', 'node', 'wasm', 'client'],
+      reason: 'Data proxy creates different traces',
+    },
   },
 )
