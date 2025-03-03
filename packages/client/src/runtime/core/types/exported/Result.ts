@@ -176,6 +176,6 @@ export type GetResult<Payload extends OperationPayload, Args, OperationName exte
 
 // prettier-ignore
 export type ExtractGlobalOmit<Options, ModelName extends string> =
-  Options extends { omit: {[K in ModelName]: infer GlobalOmit } }
+  Options extends { omit: { [K in ModelName]: infer GlobalOmit } }
   ? GlobalOmit
   : {}
