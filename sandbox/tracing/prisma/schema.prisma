@@ -1,8 +1,8 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../node_modules/.prisma/client"
-  previewFeatures = ["tracing"]
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
 }
+
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"

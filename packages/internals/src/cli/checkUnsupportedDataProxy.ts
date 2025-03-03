@@ -1,10 +1,12 @@
+import { defaultTestConfig } from '@prisma/config'
 import fs from 'fs'
 import { green } from 'kleur/colors'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
 import { getConfig, getEffectiveUrl, getSchemaWithPath, link } from '..'
 import { resolveUrl } from '../engine-commands/getConfig'
 import { loadEnvFile } from '../utils/loadEnvFile'
+import type { SchemaPathFromConfig } from './getSchema'
 
 /**
  * These are the cli args that we check the data proxy for. If in use
@@ -39,13 +41,19 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
  * Check that the data proxy cannot be used through the given args
  * @param command the cli command (eg. db push)
  * @param args the cli command arguments
+ * @param schemaPathFromConfig schema path config from prisma.config.ts
  * @param implicitSchema if this command implicitly loads a schema
  */
-async function checkUnsupportedDataProxyMessage(command: string, args: Args, implicitSchema: boolean) {
+async function checkUnsupportedDataProxyMessage(
+  command: string,
+  args: Args,
+  schemaPathFromConfig: SchemaPathFromConfig | undefined,
+  implicitSchema: boolean,
+) {
   // when the schema can be implicit, we use its default location
   if (implicitSchema === true) {
     // TODO: Why do we perform this mutation?
-    args['--schema'] = (await getSchemaWithPath(args['--schema']))?.schemaPath ?? undefined
+    args['--schema'] = (await getSchemaWithPath(args['--schema'], schemaPathFromConfig))?.schemaPath ?? undefined
   }
 
   const argList = Object.entries(args)
@@ -57,7 +65,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
     // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
-      await loadEnvFile({ schemaPath: argValue, printMessage: false })
+      await loadEnvFile({ schemaPath: argValue, printMessage: false, config: defaultTestConfig() })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
@@ -72,8 +80,15 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
   return undefined
 }
 
-export async function checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
-  const message = await checkUnsupportedDataProxyMessage(command, args, implicitSchema).catch(() => undefined)
+export async function checkUnsupportedDataProxy(
+  command: string,
+  args: Args,
+  schemaPathFromConfig: SchemaPathFromConfig | undefined,
+  implicitSchema: boolean,
+) {
+  const message = await checkUnsupportedDataProxyMessage(command, args, schemaPathFromConfig, implicitSchema).catch(
+    () => undefined,
+  )
 
   if (message) throw new Error(message)
 }

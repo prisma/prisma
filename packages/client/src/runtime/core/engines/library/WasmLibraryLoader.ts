@@ -42,7 +42,9 @@ export const wasmLibraryLoader: LibraryLoader = {
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
         const options = { './query_engine_bg.js': runtime }
         const instance = new WebAssembly.Instance(wasmModule, options)
+        const wbindgen_start = instance.exports.__wbindgen_start as () => void
         runtime.__wbg_set_wasm(instance.exports)
+        wbindgen_start()
         return runtime.QueryEngine
       })()
     }

@@ -8,17 +8,29 @@ export function getColumnTypes(columnNames: string[], rows: unknown[][]): Column
   const columnTypes: (ColumnType | null)[] = []
 
   columnLoop: for (let columnIndex = 0; columnIndex < columnNames.length; columnIndex++) {
-    // No declared column type in db schema, infer using first non-null value
+    // No declared column type in db schema, try inferring it.
     for (let rowIndex = 0; rowIndex < rows.length; rowIndex++) {
       const candidateValue = rows[rowIndex][columnIndex] as Value
       if (candidateValue !== null) {
-        columnTypes[columnIndex] = inferColumnType(candidateValue)
-        continue columnLoop
+        const inferred = inferColumnType(candidateValue)
+        // JSON values that represent plain numbers are returned as JS numbers by D1.
+        // This can cause issues if different rows have differently shaped JSON, leading to
+        // different inferred types for the same column. To avoid this, we set the column
+        // type to text if any row contains a text value.
+        if (columnTypes[columnIndex] === undefined || inferred === ColumnTypeEnum.Text) {
+          columnTypes[columnIndex] = inferred
+        }
+        if (inferred !== ColumnTypeEnum.UnknownNumber) {
+          // We can move on to the next column if we found a non-number.
+          continue columnLoop
+        }
       }
     }
 
-    // No non-null value found for this column, fall back to int32 to mimic what quaint does
-    columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    if (columnTypes[columnIndex] === undefined) {
+      // No non-null value found for this column, fall back to int32 to mimic what quaint does
+      columnTypes[columnIndex] = ColumnTypeEnum.Int32
+    }
   }
 
   return columnTypes as ColumnType[]
@@ -54,7 +66,7 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
 
 // See https://stackoverflow.com/a/3143231/1345244
 const isoDateRegex = new RegExp(
-  /(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))/,
+  /^(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))|(\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d([+-][0-2]\d:[0-5]\d|Z))$/,
 )
 
 // SQLITE date format, returned by built-in time functions. See https://www.sqlite.org/lang_datefunc.html
@@ -73,7 +85,7 @@ function inferStringType(value: string): ColumnType {
 }
 
 function inferNumberType(_: number): ColumnType {
-  return ColumnTypeEnum.Double
+  return ColumnTypeEnum.UnknownNumber
 }
 
 function inferObjectType(value: Object): ColumnType {
@@ -107,6 +119,11 @@ export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] 
       !Number.isInteger(value)
     ) {
       result[i] = Math.trunc(value)
+      continue
+    }
+
+    if (typeof value === 'number' && columnTypes[i] === ColumnTypeEnum.Text) {
+      result[i] = value.toString()
       continue
     }
 

@@ -15,6 +15,8 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     beforeEach(() => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -39,6 +41,27 @@ testMatrix.setupTestSuite(
 
       expect(extMethod).toHaveBeenCalledTimes(1)
       expect((xprisma.post as any).extMethod).toBeUndefined()
+    })
+
+    test('chain $on with $extends', () => {
+      const fnEmitter = jest.fn()
+      const extMethod = jest.fn()
+
+      const xprisma = newPrismaClient({
+        log: [{ emit: 'event', level: 'query' }],
+      })
+        .$on('query', fnEmitter)
+        .$extends({
+          model: {
+            user: {
+              extMethod,
+            },
+          },
+        })
+
+      xprisma.user.extMethod()
+
+      expect(extMethod).toHaveBeenCalledTimes(1)
     })
 
     test('extend all models', () => {
@@ -379,13 +402,17 @@ testMatrix.setupTestSuite(
       `)
 
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -432,13 +459,17 @@ testMatrix.setupTestSuite(
               `)
 
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
+          const expectation = [
             [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (isSqlServer) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )

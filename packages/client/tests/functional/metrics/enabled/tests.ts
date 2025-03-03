@@ -360,7 +360,9 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_busy',
               labels: {},
-              value: 0,
+              // This is either 0 or 1 at this point. We might want to use `waitFor` to wait for a stable
+              // final state if we know the total number of connections.
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections currently executing datasource queries',
             },
             {
