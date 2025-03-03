@@ -47,7 +47,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ driverAdapter }) => {
+  () => {
     beforeAll(() => {
       inMemorySpanExporter.reset()
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
@@ -72,10 +72,6 @@ testMatrix.setupTestSuite(
         // 'prisma:engine:query',                       <-- Filtered out parent span
         'prisma:client:operation',
       ]
-
-      if (driverAdapter) {
-        expectedSpans.shift() // Driver adapaters do not platform detection
-      }
 
       expect(spans.map((span) => span.name)).toEqual(expectedSpans)
     })
