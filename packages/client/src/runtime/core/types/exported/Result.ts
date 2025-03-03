@@ -179,3 +179,9 @@ export type ExtractGlobalOmit<Options, ModelName extends string> =
   Options extends { [K in ModelName]: infer GlobalOmit }
   ? GlobalOmit
   : {}
+
+// prettier-ignore
+export type ExtractOmitOptions<ClientOptions> = 
+  ClientOptions extends { omit: infer OmitOptions }
+  ? OmitOptions
+  : {}

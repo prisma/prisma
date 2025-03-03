@@ -493,7 +493,6 @@ export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs,
-  GlobalOmitOptions = ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -597,7 +596,7 @@ export class PrismaClient<
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
 
-  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<GlobalOmitOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<GlobalOmitOptions>, {
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<$Result.ExtractOmitOptions<ClientOptions>>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<$Result.ExtractOmitOptions<ClientOptions>>, {
     extArgs: ExtArgs
   }>>
 
@@ -609,7 +608,7 @@ export class PrismaClient<
     * const posts = await prisma.post.findMany()
     * \`\`\`
     */
-  get post(): Prisma.PostDelegate<ExtArgs, GlobalOmitOptions>;
+  get post(): Prisma.PostDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.user\`: Exposes CRUD operations for the **User** model.
@@ -619,7 +618,7 @@ export class PrismaClient<
     * const users = await prisma.user.findMany()
     * \`\`\`
     */
-  get user(): Prisma.UserDelegate<ExtArgs, GlobalOmitOptions>;
+  get user(): Prisma.UserDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.m\`: Exposes CRUD operations for the **M** model.
@@ -629,7 +628,7 @@ export class PrismaClient<
     * const ms = await prisma.m.findMany()
     * \`\`\`
     */
-  get m(): Prisma.MDelegate<ExtArgs, GlobalOmitOptions>;
+  get m(): Prisma.MDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.n\`: Exposes CRUD operations for the **N** model.
@@ -639,7 +638,7 @@ export class PrismaClient<
     * const ns = await prisma.n.findMany()
     * \`\`\`
     */
-  get n(): Prisma.NDelegate<ExtArgs, GlobalOmitOptions>;
+  get n(): Prisma.NDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.oneOptional\`: Exposes CRUD operations for the **OneOptional** model.
@@ -649,7 +648,7 @@ export class PrismaClient<
     * const oneOptionals = await prisma.oneOptional.findMany()
     * \`\`\`
     */
-  get oneOptional(): Prisma.OneOptionalDelegate<ExtArgs, GlobalOmitOptions>;
+  get oneOptional(): Prisma.OneOptionalDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.manyRequired\`: Exposes CRUD operations for the **ManyRequired** model.
@@ -659,7 +658,7 @@ export class PrismaClient<
     * const manyRequireds = await prisma.manyRequired.findMany()
     * \`\`\`
     */
-  get manyRequired(): Prisma.ManyRequiredDelegate<ExtArgs, GlobalOmitOptions>;
+  get manyRequired(): Prisma.ManyRequiredDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.optionalSide1\`: Exposes CRUD operations for the **OptionalSide1** model.
@@ -669,7 +668,7 @@ export class PrismaClient<
     * const optionalSide1s = await prisma.optionalSide1.findMany()
     * \`\`\`
     */
-  get optionalSide1(): Prisma.OptionalSide1Delegate<ExtArgs, GlobalOmitOptions>;
+  get optionalSide1(): Prisma.OptionalSide1Delegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.optionalSide2\`: Exposes CRUD operations for the **OptionalSide2** model.
@@ -679,7 +678,7 @@ export class PrismaClient<
     * const optionalSide2s = await prisma.optionalSide2.findMany()
     * \`\`\`
     */
-  get optionalSide2(): Prisma.OptionalSide2Delegate<ExtArgs, GlobalOmitOptions>;
+  get optionalSide2(): Prisma.OptionalSide2Delegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.a\`: Exposes CRUD operations for the **A** model.
@@ -689,7 +688,7 @@ export class PrismaClient<
     * const as = await prisma.a.findMany()
     * \`\`\`
     */
-  get a(): Prisma.ADelegate<ExtArgs, GlobalOmitOptions>;
+  get a(): Prisma.ADelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.b\`: Exposes CRUD operations for the **B** model.
@@ -699,7 +698,7 @@ export class PrismaClient<
     * const bs = await prisma.b.findMany()
     * \`\`\`
     */
-  get b(): Prisma.BDelegate<ExtArgs, GlobalOmitOptions>;
+  get b(): Prisma.BDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.c\`: Exposes CRUD operations for the **C** model.
@@ -709,7 +708,7 @@ export class PrismaClient<
     * const cs = await prisma.c.findMany()
     * \`\`\`
     */
-  get c(): Prisma.CDelegate<ExtArgs, GlobalOmitOptions>;
+  get c(): Prisma.CDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.d\`: Exposes CRUD operations for the **D** model.
@@ -719,7 +718,7 @@ export class PrismaClient<
     * const ds = await prisma.d.findMany()
     * \`\`\`
     */
-  get d(): Prisma.DDelegate<ExtArgs, GlobalOmitOptions>;
+  get d(): Prisma.DDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 
   /**
    * \`prisma.e\`: Exposes CRUD operations for the **E** model.
@@ -729,7 +728,7 @@ export class PrismaClient<
     * const es = await prisma.e.findMany()
     * \`\`\`
     */
-  get e(): Prisma.EDelegate<ExtArgs, GlobalOmitOptions>;
+  get e(): Prisma.EDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
 }
 
 export namespace Prisma {
