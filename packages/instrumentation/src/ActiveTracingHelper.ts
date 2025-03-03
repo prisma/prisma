@@ -11,8 +11,6 @@ import {
 } from '@opentelemetry/api'
 import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
-import { PrismaLayerType } from './types'
-
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
 
@@ -24,7 +22,7 @@ const nonSampledTraceParent = `00-10-10-00`
 type Options = {
   traceMiddleware: boolean
   tracerProvider: TracerProvider
-  ignoreLayersTypes: PrismaLayerType[]
+  ignoreLayersTypes: string[]
 }
 
 function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {

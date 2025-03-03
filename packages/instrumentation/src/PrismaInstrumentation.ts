@@ -14,11 +14,10 @@ import {
   NAME,
   VERSION,
 } from './constants'
-import { PrismaLayerType } from './types'
 
 export interface PrismaInstrumentationConfig {
   middleware?: boolean
-  ignoreLayersTypes?: PrismaLayerType[]
+  ignoreLayersTypes?: string[]
 }
 
 type Config = PrismaInstrumentationConfig & InstrumentationConfig

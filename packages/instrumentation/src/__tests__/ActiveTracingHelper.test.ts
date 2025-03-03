@@ -1,9 +1,8 @@
 import { trace } from '@opentelemetry/api'
 import { Span } from '@opentelemetry/sdk-trace-base'
-import { EngineSpanEvent } from '@prisma/internals'
+import { EngineSpan } from '@prisma/internals'
 
 import { ActiveTracingHelper } from '../ActiveTracingHelper'
-import { PrismaLayerType } from '../types'
 
 jest.mock('@opentelemetry/sdk-trace-base')
 
@@ -11,7 +10,8 @@ describe('ActiveTracingHelper', () => {
   // Sample test data for options used in the constructor
   const options = {
     traceMiddleware: true,
-    ignoreLayersTypes: [PrismaLayerType.ClientSerialize, PrismaLayerType.EngineSerialize],
+    tracerProvider: trace.getTracerProvider(),
+    ignoreLayersTypes: ['prisma:client:serialize', 'prisma:engine:serialize'],
   }
 
   beforeEach(() => {
@@ -31,70 +31,62 @@ describe('ActiveTracingHelper', () => {
       const spanSetAttributesSpyOn = jest.spyOn(Span.prototype, 'setAttributes')
 
       const helper = new ActiveTracingHelper(options)
-      const engineSpanEvent: EngineSpanEvent = {
-        spans: [
-          {
-            name: 'TypeC',
-            trace_id: '123',
-            span_id: '456',
-            parent_span_id: '789',
-            start_time: [1, 2],
-            end_time: [3, 4],
-            span: true,
-            attributes: {
-              foo: 'bar',
-            },
+      const engineSpans: EngineSpan[] = [
+        {
+          name: 'TypeC',
+          id: '456',
+          parentId: '789',
+          startTime: [1, 2],
+          endTime: [3, 4],
+          kind: 'client',
+          attributes: {
+            foo: 'bar',
           },
-        ],
-        span: true,
-      }
-      helper.createEngineSpan(engineSpanEvent)
+        },
+      ]
+      helper.dispatchEngineSpans(engineSpans)
 
       expect(spanEndSpyOn).toHaveBeenCalledTimes(1)
       expect(spanSetAttributesSpyOn).toHaveBeenCalledTimes(1)
-      expect(spanSetAttributesSpyOn).toHaveBeenCalledWith(engineSpanEvent.spans[0].attributes)
+      expect(spanSetAttributesSpyOn).toHaveBeenCalledWith(engineSpans[0].attributes)
     })
 
     it('should not create span for ignoredLayers and call the end method', () => {
       const spanEndSpyOn = jest.spyOn(Span.prototype, 'end')
       const spanSetAttributesSpyOn = jest.spyOn(Span.prototype, 'setAttributes')
-      const ignoredLayers = [PrismaLayerType.ClientSerialize, PrismaLayerType.EngineSerialize]
+      const ignoredLayers = ['prisma:client:serialize', 'prisma:engine:serialize']
 
       const helper = new ActiveTracingHelper({
         traceMiddleware: false,
+        tracerProvider: trace.getTracerProvider(),
         ignoreLayersTypes: ignoredLayers,
       })
 
-      const engineSpanEvent: EngineSpanEvent = {
-        spans: [
-          {
-            name: PrismaLayerType.ClientSerialize.toString(),
-            trace_id: '123',
-            span_id: '456',
-            parent_span_id: '789',
-            start_time: [1, 2],
-            end_time: [3, 4],
-            span: true,
-            attributes: {
-              foo: 'bar',
-            },
+      const engineSpans: EngineSpan[] = [
+        {
+          name: 'prisma:client:serialize',
+          id: '456',
+          parentId: '789',
+          startTime: [1, 2],
+          endTime: [3, 4],
+          kind: 'client',
+          attributes: {
+            foo: 'bar',
           },
-          {
-            name: PrismaLayerType.EngineSerialize.toString(),
-            trace_id: '123',
-            span_id: '7',
-            parent_span_id: '789',
-            start_time: [1, 2],
-            end_time: [3, 4],
-            span: true,
-            attributes: {
-              foo: 'bar',
-            },
+        },
+        {
+          name: 'prisma:engine:serialize',
+          id: '7',
+          parentId: '789',
+          startTime: [1, 2],
+          endTime: [3, 4],
+          kind: 'client',
+          attributes: {
+            foo: 'bar',
           },
-        ],
-        span: true,
-      }
-      helper.createEngineSpan(engineSpanEvent)
+        },
+      ]
+      helper.dispatchEngineSpans(engineSpans)
 
       expect(spanEndSpyOn).toHaveBeenCalledTimes(0)
       expect(spanSetAttributesSpyOn).toHaveBeenCalledTimes(0)
@@ -107,7 +99,8 @@ describe('ActiveTracingHelper', () => {
       async (jobName) => {
         const options = {
           traceMiddleware: true,
-          ignoreLayersTypes: [PrismaLayerType.EngineConnection, PrismaLayerType.EngineSerialize],
+          tracerProvider: trace.getTracerProvider(),
+          ignoreLayersTypes: ['prisma:engine:connection', 'prisma:engine:serialize'],
         }
         const tracer = trace.getTracer('mocked')
         jest.spyOn(trace, 'getTracer').mockReturnValue(tracer)
@@ -128,7 +121,8 @@ describe('ActiveTracingHelper', () => {
     it.each(['operations', 'serialize'])('should not create span for ignoredLayers ', async (jobName) => {
       const options = {
         traceMiddleware: true,
-        ignoreLayersTypes: [PrismaLayerType.ClientOperations, PrismaLayerType.ClientSerialize],
+        tracerProvider: trace.getTracerProvider(),
+        ignoreLayersTypes: ['prisma:client:operations', 'prisma:client:serialize'],
       }
       const tracer = trace.getTracer('mocked')
       jest.spyOn(trace, 'getTracer').mockReturnValue(tracer)
