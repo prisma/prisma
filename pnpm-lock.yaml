@@ -685,8 +685,8 @@ importers:
         specifier: 6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c
         version: 6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c
       '@prisma/query-engine-wasm':
-        specifier: 6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c
-        version: 6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c
+        specifier: 6.5.0-36.3f077f0c2a07647acf7cda7dc8e24e0ce3a3812a
+        version: 6.5.0-36.3f077f0c2a07647acf7cda7dc8e24e0ce3a3812a
       '@snaplet/copycat':
         specifier: 0.17.3
         version: 0.17.3
@@ -3025,8 +3025,8 @@ packages:
   '@prisma/query-compiler-wasm@6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c':
     resolution: {integrity: sha512-XXLDKGlKVhjkFUcoMQxm0cCOC8Tv1zQ0/BR8buEqRQFScOvcguE8TgJMp8sZp3C+20Y7iOBiIieI09djzJpvpQ==}
 
-  '@prisma/query-engine-wasm@6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c':
-    resolution: {integrity: sha512-3Ac40DCJNx3gTL/MVbNpuZifeVvFkTUgYm40XtZVkZnsy64loI2JopNazYPV5+PrIJPifVHP7mDjBi8TQVo7FA==}
+  '@prisma/query-engine-wasm@6.5.0-36.3f077f0c2a07647acf7cda7dc8e24e0ce3a3812a':
+    resolution: {integrity: sha512-BdorpGoMedGaFjTfc1C1XI+ntNSfSEXDqGpPNaISoFH3pSZG50NoRFE+fqwOYkxPywKeVCHXISOesEaWO4ARCw==}
 
   '@prisma/studio-common@0.510.0':
     resolution: {integrity: sha512-Fwq1r7vv/MzuUOGMi5JMwSpkCIpYbO+43dZTdoNLLylqkPvfuVnYVRpAVsANmY/UJ0heXup8a1s+OvSaYBMvUQ==}
@@ -5491,6 +5491,7 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -8810,7 +8811,7 @@ snapshots:
 
   '@prisma/query-compiler-wasm@6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c': {}
 
-  '@prisma/query-engine-wasm@6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c': {}
+  '@prisma/query-engine-wasm@6.5.0-36.3f077f0c2a07647acf7cda7dc8e24e0ce3a3812a': {}
 
   '@prisma/studio-common@0.510.0':
     dependencies:

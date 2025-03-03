@@ -220,7 +220,7 @@
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
     "@prisma/query-compiler-wasm": "6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c",
-    "@prisma/query-engine-wasm": "6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c",
+    "@prisma/query-engine-wasm": "6.5.0-36.3f077f0c2a07647acf7cda7dc8e24e0ce3a3812a",
     "@snaplet/copycat": "0.17.3",
     "@swc-node/register": "1.10.9",
     "@swc/core": "1.11.5",
