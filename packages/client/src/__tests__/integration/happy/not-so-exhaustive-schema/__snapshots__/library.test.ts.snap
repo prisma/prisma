@@ -596,7 +596,7 @@ export class PrismaClient<
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
 
-  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<$Result.ExtractOmitOptions<ClientOptions>>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<$Result.ExtractOmitOptions<ClientOptions>>, {
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
     extArgs: ExtArgs
   }>>
 
@@ -608,7 +608,7 @@ export class PrismaClient<
     * const posts = await prisma.post.findMany()
     * \`\`\`
     */
-  get post(): Prisma.PostDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get post(): Prisma.PostDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.user\`: Exposes CRUD operations for the **User** model.
@@ -618,7 +618,7 @@ export class PrismaClient<
     * const users = await prisma.user.findMany()
     * \`\`\`
     */
-  get user(): Prisma.UserDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.m\`: Exposes CRUD operations for the **M** model.
@@ -628,7 +628,7 @@ export class PrismaClient<
     * const ms = await prisma.m.findMany()
     * \`\`\`
     */
-  get m(): Prisma.MDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get m(): Prisma.MDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.n\`: Exposes CRUD operations for the **N** model.
@@ -638,7 +638,7 @@ export class PrismaClient<
     * const ns = await prisma.n.findMany()
     * \`\`\`
     */
-  get n(): Prisma.NDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get n(): Prisma.NDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.oneOptional\`: Exposes CRUD operations for the **OneOptional** model.
@@ -648,7 +648,7 @@ export class PrismaClient<
     * const oneOptionals = await prisma.oneOptional.findMany()
     * \`\`\`
     */
-  get oneOptional(): Prisma.OneOptionalDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get oneOptional(): Prisma.OneOptionalDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.manyRequired\`: Exposes CRUD operations for the **ManyRequired** model.
@@ -658,7 +658,7 @@ export class PrismaClient<
     * const manyRequireds = await prisma.manyRequired.findMany()
     * \`\`\`
     */
-  get manyRequired(): Prisma.ManyRequiredDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get manyRequired(): Prisma.ManyRequiredDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.optionalSide1\`: Exposes CRUD operations for the **OptionalSide1** model.
@@ -668,7 +668,7 @@ export class PrismaClient<
     * const optionalSide1s = await prisma.optionalSide1.findMany()
     * \`\`\`
     */
-  get optionalSide1(): Prisma.OptionalSide1Delegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get optionalSide1(): Prisma.OptionalSide1Delegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.optionalSide2\`: Exposes CRUD operations for the **OptionalSide2** model.
@@ -678,7 +678,7 @@ export class PrismaClient<
     * const optionalSide2s = await prisma.optionalSide2.findMany()
     * \`\`\`
     */
-  get optionalSide2(): Prisma.OptionalSide2Delegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get optionalSide2(): Prisma.OptionalSide2Delegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.a\`: Exposes CRUD operations for the **A** model.
@@ -688,7 +688,7 @@ export class PrismaClient<
     * const as = await prisma.a.findMany()
     * \`\`\`
     */
-  get a(): Prisma.ADelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get a(): Prisma.ADelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.b\`: Exposes CRUD operations for the **B** model.
@@ -698,7 +698,7 @@ export class PrismaClient<
     * const bs = await prisma.b.findMany()
     * \`\`\`
     */
-  get b(): Prisma.BDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get b(): Prisma.BDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.c\`: Exposes CRUD operations for the **C** model.
@@ -708,7 +708,7 @@ export class PrismaClient<
     * const cs = await prisma.c.findMany()
     * \`\`\`
     */
-  get c(): Prisma.CDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get c(): Prisma.CDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.d\`: Exposes CRUD operations for the **D** model.
@@ -718,7 +718,7 @@ export class PrismaClient<
     * const ds = await prisma.d.findMany()
     * \`\`\`
     */
-  get d(): Prisma.DDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get d(): Prisma.DDelegate<ExtArgs, ClientOptions>;
 
   /**
    * \`prisma.e\`: Exposes CRUD operations for the **E** model.
@@ -728,7 +728,7 @@ export class PrismaClient<
     * const es = await prisma.e.findMany()
     * \`\`\`
     */
-  get e(): Prisma.EDelegate<ExtArgs, $Result.ExtractOmitOptions<ClientOptions>>;
+  get e(): Prisma.EDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1191,12 +1191,14 @@ export namespace Prisma {
     db?: Datasource
   }
 
-  interface TypeMapCb<GlobalOmitOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+  interface TypeMapCb<ClientOptions = {}, GlobalOmitOptions = ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
     returns: Prisma.TypeMap<this['params']['extArgs'], GlobalOmitOptions>
   }
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = {
-    globalOmitOptions: GlobalOmitOptions
+    globalOmitOptions: {
+      omit: GlobalOmitOptions
+    }
     meta: {
       modelProps: "post" | "user" | "m" | "n" | "oneOptional" | "manyRequired" | "optionalSide1" | "optionalSide2" | "a" | "b" | "c" | "d" | "e"
       txIsolationLevel: Prisma.TransactionIsolationLevel

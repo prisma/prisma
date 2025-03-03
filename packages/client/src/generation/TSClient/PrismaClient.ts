@@ -69,7 +69,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
 
   return ts
     .objectType()
-    .add(ts.property('globalOmitOptions', ts.namedType('GlobalOmitOptions')))
+    .add(ts.property('globalOmitOptions', ts.objectType().add(ts.property('omit', ts.namedType('GlobalOmitOptions')))))
     .add(ts.property('meta', meta))
     .add(ts.property('model', model))
 }
@@ -148,7 +148,7 @@ function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-interface TypeMapCb<GlobalOmitOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+interface TypeMapCb<ClientOptions = {}, GlobalOmitOptions = ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
   returns: Prisma.TypeMap<this['params']['extArgs'], GlobalOmitOptions>
 }
 
@@ -175,24 +175,12 @@ function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('$Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
-    .addGenericArgument(
-      ts
-        .namedType('Prisma.TypeMapCb')
-        .addGenericArgument(
-          ts.namedType('$Result.ExtractOmitOptions').addGenericArgument(ts.namedType('ClientOptions')),
-        ),
-    )
+    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
     .addGenericArgument(ts.namedType('ExtArgs'))
     .addGenericArgument(
       ts
         .namedType('$Utils.Call')
-        .addGenericArgument(
-          ts
-            .namedType('Prisma.TypeMapCb')
-            .addGenericArgument(
-              ts.namedType('$Result.ExtractOmitOptions').addGenericArgument(ts.namedType('ClientOptions')),
-            ),
-        )
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
@@ -527,7 +515,7 @@ ${[
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
-          const generics = ['ExtArgs', '$Result.ExtractOmitOptions<ClientOptions>']
+          const generics = ['ExtArgs', 'ClientOptions']
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
