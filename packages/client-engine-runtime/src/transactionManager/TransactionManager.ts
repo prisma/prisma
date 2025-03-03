@@ -1,7 +1,6 @@
-import crypto from 'node:crypto'
-
 import Debug from '@prisma/debug'
 import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
+import { webcrypto } from 'crypto'
 
 import { assertNever } from '../utils'
 import { IsolationLevel, Options, TransactionInfo } from './Transaction'
@@ -62,7 +61,7 @@ export class TransactionManager {
     const validatedOptions = this.validateOptions(options)
 
     const transaction: TransactionWrapper = {
-      id: crypto.randomUUID(),
+      id: webcrypto.randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: validatedOptions.timeout,
