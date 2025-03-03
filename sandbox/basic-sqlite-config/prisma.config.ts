@@ -1,10 +1,10 @@
 import path from 'node:path'
-import { defineConfig } from 'prisma/config'
+import type { PrismaConfig } from 'prisma'
 
-export default defineConfig({
+export default {
   earlyAccess: true,
   schema: {
     kind: 'single',
     filePath: path.join('custom', 'prisma', 'schema.prisma'),
   },
-})
+} satisfies PrismaConfig

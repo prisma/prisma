@@ -60,7 +60,7 @@ const cliTypesBuildConfig: BuildOptions = {
   name: 'cliTypes',
   entryPoints: ['src/types.ts'],
   outdir: 'dist',
-  bundle: true,
+  bundle: false,
   emitTypes: true,
   minify: false,
 }
@@ -84,6 +84,7 @@ const cliConfigBuildConfig: BuildOptions = {
   ],
 
   bundle: true,
+  external: ['fsevents', 'esbuild', 'esbuild-register'],
   emitTypes: true,
   minify: false,
 }
