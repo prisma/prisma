@@ -43,6 +43,8 @@ module.exports = [
       '**/packages/client/declaration/**',
       '**/packages/client/runtime/**',
       '**/packages/client/src/__tests__/types/**',
+      'packages/cli/config.js',
+      'packages/cli/config.d.ts',
       'packages/client/scripts/default-index.js',
       '**/packages/cli/prisma-client/**',
       '**/packages/cli/install/**',

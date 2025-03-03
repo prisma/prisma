@@ -68,6 +68,32 @@
   "bin": {
     "prisma": "build/index.js"
   },
+  "types": "./dist/cli/src/types.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "require": {
+        "types": "./dist/cli/src/types.d.ts",
+        "default": "./build/types.js"
+      },
+      "import": {
+        "types": "./dist/cli/src/types.d.ts",
+        "default": "./build/types.js"
+      },
+      "default": "./build/types.js"
+    },
+    "./config": {
+      "require": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "import": {
+        "types": "./config.d.ts",
+        "default": "./config.js"
+      },
+      "default": "./config.js"
+    }
+  },
   "devDependencies": {
     "@antfu/ni": "0.21.12",
     "@inquirer/prompts": "5.0.5",
