@@ -111,9 +111,9 @@ testMatrix.setupTestSuite(
         const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
         if (Array.isArray(expectedTree)) {
-          expect(expectedTree).toEqual(trees)
+          expect(trees).toEqual(expectedTree)
         } else {
-          expect(expectedTree).toEqual(trees[0])
+          expect(trees[0]).toEqual(expectedTree)
         }
       })
     }
