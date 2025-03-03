@@ -20,7 +20,8 @@
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "precommit": "lint-staged",
     "eslint": "eslint",
-    "lint": "eslint --fix .",
+    "lint": "eslint .",
+    "lint-fix": "eslint --fix .",
     "check-engines-override": "tsx scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "prettier-check": "prettier --check .",
@@ -31,7 +32,7 @@
     "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
-    "@eslint/compat": "1.2.5",
+    "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
     "@eslint/eslintrc": "3.1.0",
     "@eslint/js": "9.19.0",
     "@microsoft/api-extractor": "7.49.2",
@@ -59,8 +60,7 @@
     "esbuild-register": "3.6.0",
     "eslint": "9.19.0",
     "eslint-config-prettier": "10.0.2",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-import": "2.29.1",
+    "eslint-plugin-import-x": "4.6.1",
     "eslint-plugin-jest": "28.10.0",
     "eslint-plugin-local-rules": "2.0.1",
     "eslint-plugin-prettier": "4.2.1",
