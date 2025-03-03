@@ -29,8 +29,9 @@ testMatrix.setupTestSuite(
       expect.assertions(1)
 
       await prisma
-        // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-        .$transaction(/* note how there's no `async` here */ (tx) => {
+        .$transaction(
+          // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
+          /* note how there's no `async` here */ (tx) => {
             console.log('1')
             console.log(tx)
             console.log('2')
