@@ -112,75 +112,93 @@
   "size-limit": [
     {
       "path": "packages/client/runtime/library.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/library.d.ts",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/binary.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/binary.d.ts",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/edge.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/edge-esm.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/wasm.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/index-browser.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/runtime/index-browser.d.ts",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/cli/build/index.js",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/client/prisma-client-0.0.0.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/cli/prisma-0.0.0.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-libsql/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-neon/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-pg/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     },
     {
       "path": "packages/bundle-size/da-workers-d1/output.tgz",
-      "gzip": false
+      "gzip": false,
+      "brotli": false
     }
   ]
 }
