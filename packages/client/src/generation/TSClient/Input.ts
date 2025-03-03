@@ -55,7 +55,7 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
   } else if (Array.isArray(scalarType)) {
     const union = ts.unionType(scalarType.map(namedInputType))
     if (t.isList) {
-      return union.mapVariants((variant) => ts.array(variant))
+      return union.mapVariants((variant) => ts.unionType(ts.array(variant)).addVariant(ts.array(variant).readonly()))
     }
     return union
   } else {
@@ -71,7 +71,7 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
   }
 
   if (t.isList) {
-    return ts.array(type)
+    return ts.unionType(ts.array(type)).addVariant(ts.array(type).readonly())
   }
 
   return type

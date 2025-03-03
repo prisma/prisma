@@ -2576,7 +2576,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | readonly PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2640,8 +2640,8 @@ export namespace Prisma {
 
   export type PostGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PostWhereInput
-    orderBy?: PostOrderByWithAggregationInput | PostOrderByWithAggregationInput[]
-    by: PostScalarFieldEnum[] | PostScalarFieldEnum
+    orderBy?: PostOrderByWithAggregationInput | PostOrderByWithAggregationInput[] | readonly PostOrderByWithAggregationInput[]
+    by: PostScalarFieldEnum[] | readonly PostScalarFieldEnum[] | PostScalarFieldEnum
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -3245,7 +3245,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | readonly PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3269,7 +3269,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[] | readonly PostScalarFieldEnum[]
   }
 
   /**
@@ -3297,7 +3297,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | readonly PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3321,7 +3321,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[] | readonly PostScalarFieldEnum[]
   }
 
   /**
@@ -3349,7 +3349,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | readonly PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3368,7 +3368,7 @@ export namespace Prisma {
      * Skip the first \`n\` Posts.
      */
     skip?: number
-    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[] | readonly PostScalarFieldEnum[]
   }
 
   /**
@@ -3400,7 +3400,7 @@ export namespace Prisma {
     /**
      * The data used to create many Posts.
      */
-    data: PostCreateManyInput | PostCreateManyInput[]
+    data: PostCreateManyInput | PostCreateManyInput[] | readonly PostCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -3419,7 +3419,7 @@ export namespace Prisma {
     /**
      * The data used to create many Posts.
      */
-    data: PostCreateManyInput | PostCreateManyInput[]
+    data: PostCreateManyInput | PostCreateManyInput[] | readonly PostCreateManyInput[]
     skipDuplicates?: boolean
     /**
      * Choose, which related nodes to fetch as well
@@ -3737,7 +3737,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[] | readonly UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3801,8 +3801,8 @@ export namespace Prisma {
 
   export type UserGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserWhereInput
-    orderBy?: UserOrderByWithAggregationInput | UserOrderByWithAggregationInput[]
-    by: UserScalarFieldEnum[] | UserScalarFieldEnum
+    orderBy?: UserOrderByWithAggregationInput | UserOrderByWithAggregationInput[] | readonly UserOrderByWithAggregationInput[]
+    by: UserScalarFieldEnum[] | readonly UserScalarFieldEnum[] | UserScalarFieldEnum
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -4458,7 +4458,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[] | readonly UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4482,7 +4482,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[] | readonly UserScalarFieldEnum[]
   }
 
   /**
@@ -4510,7 +4510,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[] | readonly UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4534,7 +4534,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[] | readonly UserScalarFieldEnum[]
   }
 
   /**
@@ -4562,7 +4562,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[] | readonly UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4581,7 +4581,7 @@ export namespace Prisma {
      * Skip the first \`n\` Users.
      */
     skip?: number
-    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[] | readonly UserScalarFieldEnum[]
   }
 
   /**
@@ -4613,7 +4613,7 @@ export namespace Prisma {
     /**
      * The data used to create many Users.
      */
-    data: UserCreateManyInput | UserCreateManyInput[]
+    data: UserCreateManyInput | UserCreateManyInput[] | readonly UserCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -4632,7 +4632,7 @@ export namespace Prisma {
     /**
      * The data used to create many Users.
      */
-    data: UserCreateManyInput | UserCreateManyInput[]
+    data: UserCreateManyInput | UserCreateManyInput[] | readonly UserCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -4789,11 +4789,11 @@ export namespace Prisma {
      */
     include?: PostInclude<ExtArgs> | null
     where?: PostWhereInput
-    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[] | readonly PostOrderByWithRelationInput[]
     cursor?: PostWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[] | readonly PostScalarFieldEnum[]
   }
 
   /**
@@ -4960,7 +4960,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[] | readonly MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5024,8 +5024,8 @@ export namespace Prisma {
 
   export type MGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MWhereInput
-    orderBy?: MOrderByWithAggregationInput | MOrderByWithAggregationInput[]
-    by: MScalarFieldEnum[] | MScalarFieldEnum
+    orderBy?: MOrderByWithAggregationInput | MOrderByWithAggregationInput[] | readonly MOrderByWithAggregationInput[]
+    by: MScalarFieldEnum[] | readonly MScalarFieldEnum[] | MScalarFieldEnum
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -5674,7 +5674,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[] | readonly MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5698,7 +5698,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[] | readonly MScalarFieldEnum[]
   }
 
   /**
@@ -5726,7 +5726,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[] | readonly MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5750,7 +5750,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[] | readonly MScalarFieldEnum[]
   }
 
   /**
@@ -5778,7 +5778,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[] | readonly MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5797,7 +5797,7 @@ export namespace Prisma {
      * Skip the first \`n\` MS.
      */
     skip?: number
-    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[] | readonly MScalarFieldEnum[]
   }
 
   /**
@@ -5829,7 +5829,7 @@ export namespace Prisma {
     /**
      * The data used to create many MS.
      */
-    data: MCreateManyInput | MCreateManyInput[]
+    data: MCreateManyInput | MCreateManyInput[] | readonly MCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -5848,7 +5848,7 @@ export namespace Prisma {
     /**
      * The data used to create many MS.
      */
-    data: MCreateManyInput | MCreateManyInput[]
+    data: MCreateManyInput | MCreateManyInput[] | readonly MCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -6005,11 +6005,11 @@ export namespace Prisma {
      */
     include?: NInclude<ExtArgs> | null
     where?: NWhereInput
-    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[] | readonly NOrderByWithRelationInput[]
     cursor?: NWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[] | readonly NScalarFieldEnum[]
   }
 
   /**
@@ -6176,7 +6176,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[] | readonly NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6240,8 +6240,8 @@ export namespace Prisma {
 
   export type NGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: NWhereInput
-    orderBy?: NOrderByWithAggregationInput | NOrderByWithAggregationInput[]
-    by: NScalarFieldEnum[] | NScalarFieldEnum
+    orderBy?: NOrderByWithAggregationInput | NOrderByWithAggregationInput[] | readonly NOrderByWithAggregationInput[]
+    by: NScalarFieldEnum[] | readonly NScalarFieldEnum[] | NScalarFieldEnum
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -6890,7 +6890,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[] | readonly NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6914,7 +6914,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[] | readonly NScalarFieldEnum[]
   }
 
   /**
@@ -6942,7 +6942,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[] | readonly NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6966,7 +6966,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[] | readonly NScalarFieldEnum[]
   }
 
   /**
@@ -6994,7 +6994,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[] | readonly NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7013,7 +7013,7 @@ export namespace Prisma {
      * Skip the first \`n\` NS.
      */
     skip?: number
-    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[] | readonly NScalarFieldEnum[]
   }
 
   /**
@@ -7045,7 +7045,7 @@ export namespace Prisma {
     /**
      * The data used to create many NS.
      */
-    data: NCreateManyInput | NCreateManyInput[]
+    data: NCreateManyInput | NCreateManyInput[] | readonly NCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -7064,7 +7064,7 @@ export namespace Prisma {
     /**
      * The data used to create many NS.
      */
-    data: NCreateManyInput | NCreateManyInput[]
+    data: NCreateManyInput | NCreateManyInput[] | readonly NCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -7221,11 +7221,11 @@ export namespace Prisma {
      */
     include?: MInclude<ExtArgs> | null
     where?: MWhereInput
-    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[] | readonly MOrderByWithRelationInput[]
     cursor?: MWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[] | readonly MScalarFieldEnum[]
   }
 
   /**
@@ -7392,7 +7392,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[] | readonly OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7456,8 +7456,8 @@ export namespace Prisma {
 
   export type OneOptionalGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OneOptionalWhereInput
-    orderBy?: OneOptionalOrderByWithAggregationInput | OneOptionalOrderByWithAggregationInput[]
-    by: OneOptionalScalarFieldEnum[] | OneOptionalScalarFieldEnum
+    orderBy?: OneOptionalOrderByWithAggregationInput | OneOptionalOrderByWithAggregationInput[] | readonly OneOptionalOrderByWithAggregationInput[]
+    by: OneOptionalScalarFieldEnum[] | readonly OneOptionalScalarFieldEnum[] | OneOptionalScalarFieldEnum
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -8106,7 +8106,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[] | readonly OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8130,7 +8130,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[] | readonly OneOptionalScalarFieldEnum[]
   }
 
   /**
@@ -8158,7 +8158,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[] | readonly OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8182,7 +8182,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[] | readonly OneOptionalScalarFieldEnum[]
   }
 
   /**
@@ -8210,7 +8210,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[] | readonly OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8229,7 +8229,7 @@ export namespace Prisma {
      * Skip the first \`n\` OneOptionals.
      */
     skip?: number
-    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[] | readonly OneOptionalScalarFieldEnum[]
   }
 
   /**
@@ -8261,7 +8261,7 @@ export namespace Prisma {
     /**
      * The data used to create many OneOptionals.
      */
-    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[]
+    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[] | readonly OneOptionalCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -8280,7 +8280,7 @@ export namespace Prisma {
     /**
      * The data used to create many OneOptionals.
      */
-    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[]
+    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[] | readonly OneOptionalCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -8437,11 +8437,11 @@ export namespace Prisma {
      */
     include?: ManyRequiredInclude<ExtArgs> | null
     where?: ManyRequiredWhereInput
-    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[] | readonly ManyRequiredOrderByWithRelationInput[]
     cursor?: ManyRequiredWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[] | readonly ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -8618,7 +8618,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[] | readonly ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8682,8 +8682,8 @@ export namespace Prisma {
 
   export type ManyRequiredGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ManyRequiredWhereInput
-    orderBy?: ManyRequiredOrderByWithAggregationInput | ManyRequiredOrderByWithAggregationInput[]
-    by: ManyRequiredScalarFieldEnum[] | ManyRequiredScalarFieldEnum
+    orderBy?: ManyRequiredOrderByWithAggregationInput | ManyRequiredOrderByWithAggregationInput[] | readonly ManyRequiredOrderByWithAggregationInput[]
+    by: ManyRequiredScalarFieldEnum[] | readonly ManyRequiredScalarFieldEnum[] | ManyRequiredScalarFieldEnum
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -9343,7 +9343,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[] | readonly ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9367,7 +9367,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[] | readonly ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -9395,7 +9395,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[] | readonly ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9419,7 +9419,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[] | readonly ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -9447,7 +9447,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[] | readonly ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9466,7 +9466,7 @@ export namespace Prisma {
      * Skip the first \`n\` ManyRequireds.
      */
     skip?: number
-    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[] | readonly ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -9498,7 +9498,7 @@ export namespace Prisma {
     /**
      * The data used to create many ManyRequireds.
      */
-    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[]
+    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[] | readonly ManyRequiredCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -9517,7 +9517,7 @@ export namespace Prisma {
     /**
      * The data used to create many ManyRequireds.
      */
-    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[]
+    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[] | readonly ManyRequiredCreateManyInput[]
     skipDuplicates?: boolean
     /**
      * Choose, which related nodes to fetch as well
@@ -9858,7 +9858,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[] | readonly OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9922,8 +9922,8 @@ export namespace Prisma {
 
   export type OptionalSide1GroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OptionalSide1WhereInput
-    orderBy?: OptionalSide1OrderByWithAggregationInput | OptionalSide1OrderByWithAggregationInput[]
-    by: OptionalSide1ScalarFieldEnum[] | OptionalSide1ScalarFieldEnum
+    orderBy?: OptionalSide1OrderByWithAggregationInput | OptionalSide1OrderByWithAggregationInput[] | readonly OptionalSide1OrderByWithAggregationInput[]
+    by: OptionalSide1ScalarFieldEnum[] | readonly OptionalSide1ScalarFieldEnum[] | OptionalSide1ScalarFieldEnum
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -10583,7 +10583,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[] | readonly OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10607,7 +10607,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[] | readonly OptionalSide1ScalarFieldEnum[]
   }
 
   /**
@@ -10635,7 +10635,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[] | readonly OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10659,7 +10659,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[] | readonly OptionalSide1ScalarFieldEnum[]
   }
 
   /**
@@ -10687,7 +10687,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[] | readonly OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10706,7 +10706,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide1s.
      */
     skip?: number
-    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[] | readonly OptionalSide1ScalarFieldEnum[]
   }
 
   /**
@@ -10738,7 +10738,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide1s.
      */
-    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[]
+    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[] | readonly OptionalSide1CreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -10757,7 +10757,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide1s.
      */
-    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[]
+    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[] | readonly OptionalSide1CreateManyInput[]
     skipDuplicates?: boolean
     /**
      * Choose, which related nodes to fetch as well
@@ -11088,7 +11088,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[] | readonly OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11152,8 +11152,8 @@ export namespace Prisma {
 
   export type OptionalSide2GroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: OptionalSide2WhereInput
-    orderBy?: OptionalSide2OrderByWithAggregationInput | OptionalSide2OrderByWithAggregationInput[]
-    by: OptionalSide2ScalarFieldEnum[] | OptionalSide2ScalarFieldEnum
+    orderBy?: OptionalSide2OrderByWithAggregationInput | OptionalSide2OrderByWithAggregationInput[] | readonly OptionalSide2OrderByWithAggregationInput[]
+    by: OptionalSide2ScalarFieldEnum[] | readonly OptionalSide2ScalarFieldEnum[] | OptionalSide2ScalarFieldEnum
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -11800,7 +11800,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[] | readonly OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11824,7 +11824,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[] | readonly OptionalSide2ScalarFieldEnum[]
   }
 
   /**
@@ -11852,7 +11852,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[] | readonly OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11876,7 +11876,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[] | readonly OptionalSide2ScalarFieldEnum[]
   }
 
   /**
@@ -11904,7 +11904,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[] | readonly OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11923,7 +11923,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide2s.
      */
     skip?: number
-    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[] | readonly OptionalSide2ScalarFieldEnum[]
   }
 
   /**
@@ -11955,7 +11955,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide2s.
      */
-    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[]
+    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[] | readonly OptionalSide2CreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -11974,7 +11974,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide2s.
      */
-    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[]
+    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[] | readonly OptionalSide2CreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -12285,7 +12285,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[] | readonly AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12349,8 +12349,8 @@ export namespace Prisma {
 
   export type AGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AWhereInput
-    orderBy?: AOrderByWithAggregationInput | AOrderByWithAggregationInput[]
-    by: AScalarFieldEnum[] | AScalarFieldEnum
+    orderBy?: AOrderByWithAggregationInput | AOrderByWithAggregationInput[] | readonly AOrderByWithAggregationInput[]
+    by: AScalarFieldEnum[] | readonly AScalarFieldEnum[] | AScalarFieldEnum
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -12954,7 +12954,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[] | readonly AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12978,7 +12978,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[] | readonly AScalarFieldEnum[]
   }
 
   /**
@@ -13002,7 +13002,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[] | readonly AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13026,7 +13026,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[] | readonly AScalarFieldEnum[]
   }
 
   /**
@@ -13050,7 +13050,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[] | readonly AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13069,7 +13069,7 @@ export namespace Prisma {
      * Skip the first \`n\` AS.
      */
     skip?: number
-    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[] | readonly AScalarFieldEnum[]
   }
 
   /**
@@ -13097,7 +13097,7 @@ export namespace Prisma {
     /**
      * The data used to create many AS.
      */
-    data: ACreateManyInput | ACreateManyInput[]
+    data: ACreateManyInput | ACreateManyInput[] | readonly ACreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -13116,7 +13116,7 @@ export namespace Prisma {
     /**
      * The data used to create many AS.
      */
-    data: ACreateManyInput | ACreateManyInput[]
+    data: ACreateManyInput | ACreateManyInput[] | readonly ACreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -13360,7 +13360,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[] | readonly BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13424,8 +13424,8 @@ export namespace Prisma {
 
   export type BGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: BWhereInput
-    orderBy?: BOrderByWithAggregationInput | BOrderByWithAggregationInput[]
-    by: BScalarFieldEnum[] | BScalarFieldEnum
+    orderBy?: BOrderByWithAggregationInput | BOrderByWithAggregationInput[] | readonly BOrderByWithAggregationInput[]
+    by: BScalarFieldEnum[] | readonly BScalarFieldEnum[] | BScalarFieldEnum
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -13995,7 +13995,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[] | readonly BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14019,7 +14019,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[] | readonly BScalarFieldEnum[]
   }
 
   /**
@@ -14043,7 +14043,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[] | readonly BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14067,7 +14067,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[] | readonly BScalarFieldEnum[]
   }
 
   /**
@@ -14091,7 +14091,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[] | readonly BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14110,7 +14110,7 @@ export namespace Prisma {
      * Skip the first \`n\` BS.
      */
     skip?: number
-    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[] | readonly BScalarFieldEnum[]
   }
 
   /**
@@ -14138,7 +14138,7 @@ export namespace Prisma {
     /**
      * The data used to create many BS.
      */
-    data: BCreateManyInput | BCreateManyInput[]
+    data: BCreateManyInput | BCreateManyInput[] | readonly BCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -14157,7 +14157,7 @@ export namespace Prisma {
     /**
      * The data used to create many BS.
      */
-    data: BCreateManyInput | BCreateManyInput[]
+    data: BCreateManyInput | BCreateManyInput[] | readonly BCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -14383,7 +14383,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[] | readonly COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14435,8 +14435,8 @@ export namespace Prisma {
 
   export type CGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: CWhereInput
-    orderBy?: COrderByWithAggregationInput | COrderByWithAggregationInput[]
-    by: CScalarFieldEnum[] | CScalarFieldEnum
+    orderBy?: COrderByWithAggregationInput | COrderByWithAggregationInput[] | readonly COrderByWithAggregationInput[]
+    by: CScalarFieldEnum[] | readonly CScalarFieldEnum[] | CScalarFieldEnum
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -15016,7 +15016,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[] | readonly COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15040,7 +15040,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[] | readonly CScalarFieldEnum[]
   }
 
   /**
@@ -15064,7 +15064,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[] | readonly COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15088,7 +15088,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[] | readonly CScalarFieldEnum[]
   }
 
   /**
@@ -15112,7 +15112,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[] | readonly COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15131,7 +15131,7 @@ export namespace Prisma {
      * Skip the first \`n\` CS.
      */
     skip?: number
-    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[] | readonly CScalarFieldEnum[]
   }
 
   /**
@@ -15159,7 +15159,7 @@ export namespace Prisma {
     /**
      * The data used to create many CS.
      */
-    data: CCreateManyInput | CCreateManyInput[]
+    data: CCreateManyInput | CCreateManyInput[] | readonly CCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -15178,7 +15178,7 @@ export namespace Prisma {
     /**
      * The data used to create many CS.
      */
-    data: CCreateManyInput | CCreateManyInput[]
+    data: CCreateManyInput | CCreateManyInput[] | readonly CCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -15410,7 +15410,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[] | readonly DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15474,8 +15474,8 @@ export namespace Prisma {
 
   export type DGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: DWhereInput
-    orderBy?: DOrderByWithAggregationInput | DOrderByWithAggregationInput[]
-    by: DScalarFieldEnum[] | DScalarFieldEnum
+    orderBy?: DOrderByWithAggregationInput | DOrderByWithAggregationInput[] | readonly DOrderByWithAggregationInput[]
+    by: DScalarFieldEnum[] | readonly DScalarFieldEnum[] | DScalarFieldEnum
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -16059,7 +16059,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[] | readonly DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -16083,7 +16083,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[] | readonly DScalarFieldEnum[]
   }
 
   /**
@@ -16107,7 +16107,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[] | readonly DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -16131,7 +16131,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[] | readonly DScalarFieldEnum[]
   }
 
   /**
@@ -16155,7 +16155,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[] | readonly DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -16174,7 +16174,7 @@ export namespace Prisma {
      * Skip the first \`n\` DS.
      */
     skip?: number
-    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[] | readonly DScalarFieldEnum[]
   }
 
   /**
@@ -16202,7 +16202,7 @@ export namespace Prisma {
     /**
      * The data used to create many DS.
      */
-    data: DCreateManyInput | DCreateManyInput[]
+    data: DCreateManyInput | DCreateManyInput[] | readonly DCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -16221,7 +16221,7 @@ export namespace Prisma {
     /**
      * The data used to create many DS.
      */
-    data: DCreateManyInput | DCreateManyInput[]
+    data: DCreateManyInput | DCreateManyInput[] | readonly DCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -16429,7 +16429,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[] | readonly EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -16481,8 +16481,8 @@ export namespace Prisma {
 
   export type EGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: EWhereInput
-    orderBy?: EOrderByWithAggregationInput | EOrderByWithAggregationInput[]
-    by: EScalarFieldEnum[] | EScalarFieldEnum
+    orderBy?: EOrderByWithAggregationInput | EOrderByWithAggregationInput[] | readonly EOrderByWithAggregationInput[]
+    by: EScalarFieldEnum[] | readonly EScalarFieldEnum[] | EScalarFieldEnum
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -17041,7 +17041,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[] | readonly EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -17065,7 +17065,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[] | readonly EScalarFieldEnum[]
   }
 
   /**
@@ -17089,7 +17089,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[] | readonly EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -17113,7 +17113,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[] | readonly EScalarFieldEnum[]
   }
 
   /**
@@ -17137,7 +17137,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[] | readonly EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -17156,7 +17156,7 @@ export namespace Prisma {
      * Skip the first \`n\` ES.
      */
     skip?: number
-    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[] | readonly EScalarFieldEnum[]
   }
 
   /**
@@ -17184,7 +17184,7 @@ export namespace Prisma {
     /**
      * The data used to create many ES.
      */
-    data: ECreateManyInput | ECreateManyInput[]
+    data: ECreateManyInput | ECreateManyInput[] | readonly ECreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -17203,7 +17203,7 @@ export namespace Prisma {
     /**
      * The data used to create many ES.
      */
-    data: ECreateManyInput | ECreateManyInput[]
+    data: ECreateManyInput | ECreateManyInput[] | readonly ECreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -17760,9 +17760,9 @@ export namespace Prisma {
 
 
   export type PostWhereInput = {
-    AND?: PostWhereInput | PostWhereInput[]
-    OR?: PostWhereInput[]
-    NOT?: PostWhereInput | PostWhereInput[]
+    AND?: PostWhereInput | PostWhereInput[] | readonly PostWhereInput[]
+    OR?: PostWhereInput[] | readonly PostWhereInput[]
+    NOT?: PostWhereInput | PostWhereInput[] | readonly PostWhereInput[]
     id?: IntFilter<"Post"> | number
     createdAt?: DateTimeFilter<"Post"> | Date | string
     title?: StringFilter<"Post"> | string
@@ -17784,9 +17784,9 @@ export namespace Prisma {
 
   export type PostWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: PostWhereInput | PostWhereInput[]
-    OR?: PostWhereInput[]
-    NOT?: PostWhereInput | PostWhereInput[]
+    AND?: PostWhereInput | PostWhereInput[] | readonly PostWhereInput[]
+    OR?: PostWhereInput[] | readonly PostWhereInput[]
+    NOT?: PostWhereInput | PostWhereInput[] | readonly PostWhereInput[]
     createdAt?: DateTimeFilter<"Post"> | Date | string
     title?: StringFilter<"Post"> | string
     content?: StringNullableFilter<"Post"> | string | null
@@ -17810,9 +17810,9 @@ export namespace Prisma {
   }
 
   export type PostScalarWhereWithAggregatesInput = {
-    AND?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
-    OR?: PostScalarWhereWithAggregatesInput[]
-    NOT?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
+    AND?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[] | readonly PostScalarWhereWithAggregatesInput[]
+    OR?: PostScalarWhereWithAggregatesInput[] | readonly PostScalarWhereWithAggregatesInput[]
+    NOT?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[] | readonly PostScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"Post"> | number
     createdAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
     title?: StringWithAggregatesFilter<"Post"> | string
@@ -17822,9 +17822,9 @@ export namespace Prisma {
   }
 
   export type UserWhereInput = {
-    AND?: UserWhereInput | UserWhereInput[]
-    OR?: UserWhereInput[]
-    NOT?: UserWhereInput | UserWhereInput[]
+    AND?: UserWhereInput | UserWhereInput[] | readonly UserWhereInput[]
+    OR?: UserWhereInput[] | readonly UserWhereInput[]
+    NOT?: UserWhereInput | UserWhereInput[] | readonly UserWhereInput[]
     id?: IntFilter<"User"> | number
     email?: StringFilter<"User"> | string
     int?: IntFilter<"User"> | number
@@ -17863,9 +17863,9 @@ export namespace Prisma {
   export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: number
     email?: string
-    AND?: UserWhereInput | UserWhereInput[]
-    OR?: UserWhereInput[]
-    NOT?: UserWhereInput | UserWhereInput[]
+    AND?: UserWhereInput | UserWhereInput[] | readonly UserWhereInput[]
+    OR?: UserWhereInput[] | readonly UserWhereInput[]
+    NOT?: UserWhereInput | UserWhereInput[] | readonly UserWhereInput[]
     int?: IntFilter<"User"> | number
     optionalInt?: IntNullableFilter<"User"> | number | null
     float?: FloatFilter<"User"> | number
@@ -17904,9 +17904,9 @@ export namespace Prisma {
   }
 
   export type UserScalarWhereWithAggregatesInput = {
-    AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    OR?: UserScalarWhereWithAggregatesInput[]
-    NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
+    AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[] | readonly UserScalarWhereWithAggregatesInput[]
+    OR?: UserScalarWhereWithAggregatesInput[] | readonly UserScalarWhereWithAggregatesInput[]
+    NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[] | readonly UserScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"User"> | number
     email?: StringWithAggregatesFilter<"User"> | string
     int?: IntWithAggregatesFilter<"User"> | number
@@ -17924,9 +17924,9 @@ export namespace Prisma {
   }
 
   export type MWhereInput = {
-    AND?: MWhereInput | MWhereInput[]
-    OR?: MWhereInput[]
-    NOT?: MWhereInput | MWhereInput[]
+    AND?: MWhereInput | MWhereInput[] | readonly MWhereInput[]
+    OR?: MWhereInput[] | readonly MWhereInput[]
+    NOT?: MWhereInput | MWhereInput[] | readonly MWhereInput[]
     id?: IntFilter<"M"> | number
     int?: IntFilter<"M"> | number
     optionalInt?: IntNullableFilter<"M"> | number | null
@@ -17962,9 +17962,9 @@ export namespace Prisma {
 
   export type MWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: MWhereInput | MWhereInput[]
-    OR?: MWhereInput[]
-    NOT?: MWhereInput | MWhereInput[]
+    AND?: MWhereInput | MWhereInput[] | readonly MWhereInput[]
+    OR?: MWhereInput[] | readonly MWhereInput[]
+    NOT?: MWhereInput | MWhereInput[] | readonly MWhereInput[]
     int?: IntFilter<"M"> | number
     optionalInt?: IntNullableFilter<"M"> | number | null
     float?: FloatFilter<"M"> | number
@@ -18002,9 +18002,9 @@ export namespace Prisma {
   }
 
   export type MScalarWhereWithAggregatesInput = {
-    AND?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
-    OR?: MScalarWhereWithAggregatesInput[]
-    NOT?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
+    AND?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[] | readonly MScalarWhereWithAggregatesInput[]
+    OR?: MScalarWhereWithAggregatesInput[] | readonly MScalarWhereWithAggregatesInput[]
+    NOT?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[] | readonly MScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"M"> | number
     int?: IntWithAggregatesFilter<"M"> | number
     optionalInt?: IntNullableWithAggregatesFilter<"M"> | number | null
@@ -18021,9 +18021,9 @@ export namespace Prisma {
   }
 
   export type NWhereInput = {
-    AND?: NWhereInput | NWhereInput[]
-    OR?: NWhereInput[]
-    NOT?: NWhereInput | NWhereInput[]
+    AND?: NWhereInput | NWhereInput[] | readonly NWhereInput[]
+    OR?: NWhereInput[] | readonly NWhereInput[]
+    NOT?: NWhereInput | NWhereInput[] | readonly NWhereInput[]
     id?: IntFilter<"N"> | number
     int?: IntFilter<"N"> | number
     optionalInt?: IntNullableFilter<"N"> | number | null
@@ -18059,9 +18059,9 @@ export namespace Prisma {
 
   export type NWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: NWhereInput | NWhereInput[]
-    OR?: NWhereInput[]
-    NOT?: NWhereInput | NWhereInput[]
+    AND?: NWhereInput | NWhereInput[] | readonly NWhereInput[]
+    OR?: NWhereInput[] | readonly NWhereInput[]
+    NOT?: NWhereInput | NWhereInput[] | readonly NWhereInput[]
     int?: IntFilter<"N"> | number
     optionalInt?: IntNullableFilter<"N"> | number | null
     float?: FloatFilter<"N"> | number
@@ -18099,9 +18099,9 @@ export namespace Prisma {
   }
 
   export type NScalarWhereWithAggregatesInput = {
-    AND?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
-    OR?: NScalarWhereWithAggregatesInput[]
-    NOT?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
+    AND?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[] | readonly NScalarWhereWithAggregatesInput[]
+    OR?: NScalarWhereWithAggregatesInput[] | readonly NScalarWhereWithAggregatesInput[]
+    NOT?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[] | readonly NScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"N"> | number
     int?: IntWithAggregatesFilter<"N"> | number
     optionalInt?: IntNullableWithAggregatesFilter<"N"> | number | null
@@ -18118,9 +18118,9 @@ export namespace Prisma {
   }
 
   export type OneOptionalWhereInput = {
-    AND?: OneOptionalWhereInput | OneOptionalWhereInput[]
-    OR?: OneOptionalWhereInput[]
-    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[]
+    AND?: OneOptionalWhereInput | OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
+    OR?: OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
+    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
     id?: IntFilter<"OneOptional"> | number
     int?: IntFilter<"OneOptional"> | number
     optionalInt?: IntNullableFilter<"OneOptional"> | number | null
@@ -18156,9 +18156,9 @@ export namespace Prisma {
 
   export type OneOptionalWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: OneOptionalWhereInput | OneOptionalWhereInput[]
-    OR?: OneOptionalWhereInput[]
-    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[]
+    AND?: OneOptionalWhereInput | OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
+    OR?: OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
+    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[] | readonly OneOptionalWhereInput[]
     int?: IntFilter<"OneOptional"> | number
     optionalInt?: IntNullableFilter<"OneOptional"> | number | null
     float?: FloatFilter<"OneOptional"> | number
@@ -18196,9 +18196,9 @@ export namespace Prisma {
   }
 
   export type OneOptionalScalarWhereWithAggregatesInput = {
-    AND?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
-    OR?: OneOptionalScalarWhereWithAggregatesInput[]
-    NOT?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
+    AND?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[] | readonly OneOptionalScalarWhereWithAggregatesInput[]
+    OR?: OneOptionalScalarWhereWithAggregatesInput[] | readonly OneOptionalScalarWhereWithAggregatesInput[]
+    NOT?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[] | readonly OneOptionalScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"OneOptional"> | number
     int?: IntWithAggregatesFilter<"OneOptional"> | number
     optionalInt?: IntNullableWithAggregatesFilter<"OneOptional"> | number | null
@@ -18215,9 +18215,9 @@ export namespace Prisma {
   }
 
   export type ManyRequiredWhereInput = {
-    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
-    OR?: ManyRequiredWhereInput[]
-    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
+    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
+    OR?: ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
+    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
     id?: IntFilter<"ManyRequired"> | number
     oneOptionalId?: IntNullableFilter<"ManyRequired"> | number | null
     int?: IntFilter<"ManyRequired"> | number
@@ -18255,9 +18255,9 @@ export namespace Prisma {
 
   export type ManyRequiredWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
-    OR?: ManyRequiredWhereInput[]
-    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
+    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
+    OR?: ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
+    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[] | readonly ManyRequiredWhereInput[]
     oneOptionalId?: IntNullableFilter<"ManyRequired"> | number | null
     int?: IntFilter<"ManyRequired"> | number
     optionalInt?: IntNullableFilter<"ManyRequired"> | number | null
@@ -18297,9 +18297,9 @@ export namespace Prisma {
   }
 
   export type ManyRequiredScalarWhereWithAggregatesInput = {
-    AND?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
-    OR?: ManyRequiredScalarWhereWithAggregatesInput[]
-    NOT?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
+    AND?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[] | readonly ManyRequiredScalarWhereWithAggregatesInput[]
+    OR?: ManyRequiredScalarWhereWithAggregatesInput[] | readonly ManyRequiredScalarWhereWithAggregatesInput[]
+    NOT?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[] | readonly ManyRequiredScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"ManyRequired"> | number
     oneOptionalId?: IntNullableWithAggregatesFilter<"ManyRequired"> | number | null
     int?: IntWithAggregatesFilter<"ManyRequired"> | number
@@ -18317,9 +18317,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide1WhereInput = {
-    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
-    OR?: OptionalSide1WhereInput[]
-    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
+    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
+    OR?: OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
+    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
     id?: IntFilter<"OptionalSide1"> | number
     optionalSide2Id?: IntNullableFilter<"OptionalSide1"> | number | null
     int?: IntFilter<"OptionalSide1"> | number
@@ -18358,9 +18358,9 @@ export namespace Prisma {
   export type OptionalSide1WhereUniqueInput = Prisma.AtLeast<{
     id?: number
     optionalSide2Id?: number
-    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
-    OR?: OptionalSide1WhereInput[]
-    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
+    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
+    OR?: OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
+    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[] | readonly OptionalSide1WhereInput[]
     int?: IntFilter<"OptionalSide1"> | number
     optionalInt?: IntNullableFilter<"OptionalSide1"> | number | null
     float?: FloatFilter<"OptionalSide1"> | number
@@ -18399,9 +18399,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide1ScalarWhereWithAggregatesInput = {
-    AND?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
-    OR?: OptionalSide1ScalarWhereWithAggregatesInput[]
-    NOT?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
+    AND?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[] | readonly OptionalSide1ScalarWhereWithAggregatesInput[]
+    OR?: OptionalSide1ScalarWhereWithAggregatesInput[] | readonly OptionalSide1ScalarWhereWithAggregatesInput[]
+    NOT?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[] | readonly OptionalSide1ScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"OptionalSide1"> | number
     optionalSide2Id?: IntNullableWithAggregatesFilter<"OptionalSide1"> | number | null
     int?: IntWithAggregatesFilter<"OptionalSide1"> | number
@@ -18419,9 +18419,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide2WhereInput = {
-    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
-    OR?: OptionalSide2WhereInput[]
-    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
+    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
+    OR?: OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
+    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
     id?: IntFilter<"OptionalSide2"> | number
     int?: IntFilter<"OptionalSide2"> | number
     optionalInt?: IntNullableFilter<"OptionalSide2"> | number | null
@@ -18457,9 +18457,9 @@ export namespace Prisma {
 
   export type OptionalSide2WhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
-    OR?: OptionalSide2WhereInput[]
-    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
+    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
+    OR?: OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
+    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[] | readonly OptionalSide2WhereInput[]
     int?: IntFilter<"OptionalSide2"> | number
     optionalInt?: IntNullableFilter<"OptionalSide2"> | number | null
     float?: FloatFilter<"OptionalSide2"> | number
@@ -18497,9 +18497,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide2ScalarWhereWithAggregatesInput = {
-    AND?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
-    OR?: OptionalSide2ScalarWhereWithAggregatesInput[]
-    NOT?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
+    AND?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[] | readonly OptionalSide2ScalarWhereWithAggregatesInput[]
+    OR?: OptionalSide2ScalarWhereWithAggregatesInput[] | readonly OptionalSide2ScalarWhereWithAggregatesInput[]
+    NOT?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[] | readonly OptionalSide2ScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"OptionalSide2"> | number
     int?: IntWithAggregatesFilter<"OptionalSide2"> | number
     optionalInt?: IntNullableWithAggregatesFilter<"OptionalSide2"> | number | null
@@ -18516,9 +18516,9 @@ export namespace Prisma {
   }
 
   export type AWhereInput = {
-    AND?: AWhereInput | AWhereInput[]
-    OR?: AWhereInput[]
-    NOT?: AWhereInput | AWhereInput[]
+    AND?: AWhereInput | AWhereInput[] | readonly AWhereInput[]
+    OR?: AWhereInput[] | readonly AWhereInput[]
+    NOT?: AWhereInput | AWhereInput[] | readonly AWhereInput[]
     id?: StringFilter<"A"> | string
     email?: StringFilter<"A"> | string
     name?: StringNullableFilter<"A"> | string | null
@@ -18545,9 +18545,9 @@ export namespace Prisma {
   export type AWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     email?: string
-    AND?: AWhereInput | AWhereInput[]
-    OR?: AWhereInput[]
-    NOT?: AWhereInput | AWhereInput[]
+    AND?: AWhereInput | AWhereInput[] | readonly AWhereInput[]
+    OR?: AWhereInput[] | readonly AWhereInput[]
+    NOT?: AWhereInput | AWhereInput[] | readonly AWhereInput[]
     name?: StringNullableFilter<"A"> | string | null
     int?: IntFilter<"A"> | number
     sInt?: IntFilter<"A"> | number
@@ -18575,9 +18575,9 @@ export namespace Prisma {
   }
 
   export type AScalarWhereWithAggregatesInput = {
-    AND?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
-    OR?: AScalarWhereWithAggregatesInput[]
-    NOT?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
+    AND?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[] | readonly AScalarWhereWithAggregatesInput[]
+    OR?: AScalarWhereWithAggregatesInput[] | readonly AScalarWhereWithAggregatesInput[]
+    NOT?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[] | readonly AScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"A"> | string
     email?: StringWithAggregatesFilter<"A"> | string
     name?: StringNullableWithAggregatesFilter<"A"> | string | null
@@ -18590,9 +18590,9 @@ export namespace Prisma {
   }
 
   export type BWhereInput = {
-    AND?: BWhereInput | BWhereInput[]
-    OR?: BWhereInput[]
-    NOT?: BWhereInput | BWhereInput[]
+    AND?: BWhereInput | BWhereInput[] | readonly BWhereInput[]
+    OR?: BWhereInput[] | readonly BWhereInput[]
+    NOT?: BWhereInput | BWhereInput[] | readonly BWhereInput[]
     id?: StringFilter<"B"> | string
     float?: FloatFilter<"B"> | number
     dFloat?: FloatFilter<"B"> | number
@@ -18610,9 +18610,9 @@ export namespace Prisma {
 
   export type BWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: BWhereInput | BWhereInput[]
-    OR?: BWhereInput[]
-    NOT?: BWhereInput | BWhereInput[]
+    AND?: BWhereInput | BWhereInput[] | readonly BWhereInput[]
+    OR?: BWhereInput[] | readonly BWhereInput[]
+    NOT?: BWhereInput | BWhereInput[] | readonly BWhereInput[]
     float?: FloatFilter<"B"> | number
     dFloat?: FloatFilter<"B"> | number
     decFloat?: DecimalFilter<"B"> | Decimal | DecimalJsLike | number | string
@@ -18633,9 +18633,9 @@ export namespace Prisma {
   }
 
   export type BScalarWhereWithAggregatesInput = {
-    AND?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
-    OR?: BScalarWhereWithAggregatesInput[]
-    NOT?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
+    AND?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[] | readonly BScalarWhereWithAggregatesInput[]
+    OR?: BScalarWhereWithAggregatesInput[] | readonly BScalarWhereWithAggregatesInput[]
+    NOT?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[] | readonly BScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"B"> | string
     float?: FloatWithAggregatesFilter<"B"> | number
     dFloat?: FloatWithAggregatesFilter<"B"> | number
@@ -18644,9 +18644,9 @@ export namespace Prisma {
   }
 
   export type CWhereInput = {
-    AND?: CWhereInput | CWhereInput[]
-    OR?: CWhereInput[]
-    NOT?: CWhereInput | CWhereInput[]
+    AND?: CWhereInput | CWhereInput[] | readonly CWhereInput[]
+    OR?: CWhereInput[] | readonly CWhereInput[]
+    NOT?: CWhereInput | CWhereInput[] | readonly CWhereInput[]
     id?: StringFilter<"C"> | string
     char?: StringFilter<"C"> | string
     vChar?: StringFilter<"C"> | string
@@ -18668,9 +18668,9 @@ export namespace Prisma {
 
   export type CWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: CWhereInput | CWhereInput[]
-    OR?: CWhereInput[]
-    NOT?: CWhereInput | CWhereInput[]
+    AND?: CWhereInput | CWhereInput[] | readonly CWhereInput[]
+    OR?: CWhereInput[] | readonly CWhereInput[]
+    NOT?: CWhereInput | CWhereInput[] | readonly CWhereInput[]
     char?: StringFilter<"C"> | string
     vChar?: StringFilter<"C"> | string
     text?: StringFilter<"C"> | string
@@ -18693,9 +18693,9 @@ export namespace Prisma {
   }
 
   export type CScalarWhereWithAggregatesInput = {
-    AND?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
-    OR?: CScalarWhereWithAggregatesInput[]
-    NOT?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
+    AND?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[] | readonly CScalarWhereWithAggregatesInput[]
+    OR?: CScalarWhereWithAggregatesInput[] | readonly CScalarWhereWithAggregatesInput[]
+    NOT?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[] | readonly CScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"C"> | string
     char?: StringWithAggregatesFilter<"C"> | string
     vChar?: StringWithAggregatesFilter<"C"> | string
@@ -18706,9 +18706,9 @@ export namespace Prisma {
   }
 
   export type DWhereInput = {
-    AND?: DWhereInput | DWhereInput[]
-    OR?: DWhereInput[]
-    NOT?: DWhereInput | DWhereInput[]
+    AND?: DWhereInput | DWhereInput[] | readonly DWhereInput[]
+    OR?: DWhereInput[] | readonly DWhereInput[]
+    NOT?: DWhereInput | DWhereInput[] | readonly DWhereInput[]
     id?: StringFilter<"D"> | string
     bool?: BoolFilter<"D"> | boolean
     byteA?: BytesFilter<"D"> | Uint8Array
@@ -18730,9 +18730,9 @@ export namespace Prisma {
 
   export type DWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: DWhereInput | DWhereInput[]
-    OR?: DWhereInput[]
-    NOT?: DWhereInput | DWhereInput[]
+    AND?: DWhereInput | DWhereInput[] | readonly DWhereInput[]
+    OR?: DWhereInput[] | readonly DWhereInput[]
+    NOT?: DWhereInput | DWhereInput[] | readonly DWhereInput[]
     bool?: BoolFilter<"D"> | boolean
     byteA?: BytesFilter<"D"> | Uint8Array
     xml?: StringFilter<"D"> | string
@@ -18757,9 +18757,9 @@ export namespace Prisma {
   }
 
   export type DScalarWhereWithAggregatesInput = {
-    AND?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
-    OR?: DScalarWhereWithAggregatesInput[]
-    NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
+    AND?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[] | readonly DScalarWhereWithAggregatesInput[]
+    OR?: DScalarWhereWithAggregatesInput[] | readonly DScalarWhereWithAggregatesInput[]
+    NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[] | readonly DScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"D"> | string
     bool?: BoolWithAggregatesFilter<"D"> | boolean
     byteA?: BytesWithAggregatesFilter<"D"> | Uint8Array
@@ -18770,9 +18770,9 @@ export namespace Prisma {
   }
 
   export type EWhereInput = {
-    AND?: EWhereInput | EWhereInput[]
-    OR?: EWhereInput[]
-    NOT?: EWhereInput | EWhereInput[]
+    AND?: EWhereInput | EWhereInput[] | readonly EWhereInput[]
+    OR?: EWhereInput[] | readonly EWhereInput[]
+    NOT?: EWhereInput | EWhereInput[] | readonly EWhereInput[]
     id?: StringFilter<"E"> | string
     date?: DateTimeFilter<"E"> | Date | string
     time?: DateTimeFilter<"E"> | Date | string
@@ -18788,9 +18788,9 @@ export namespace Prisma {
 
   export type EWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    AND?: EWhereInput | EWhereInput[]
-    OR?: EWhereInput[]
-    NOT?: EWhereInput | EWhereInput[]
+    AND?: EWhereInput | EWhereInput[] | readonly EWhereInput[]
+    OR?: EWhereInput[] | readonly EWhereInput[]
+    NOT?: EWhereInput | EWhereInput[] | readonly EWhereInput[]
     date?: DateTimeFilter<"E"> | Date | string
     time?: DateTimeFilter<"E"> | Date | string
     ts?: DateTimeFilter<"E"> | Date | string
@@ -18807,9 +18807,9 @@ export namespace Prisma {
   }
 
   export type EScalarWhereWithAggregatesInput = {
-    AND?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
-    OR?: EScalarWhereWithAggregatesInput[]
-    NOT?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
+    AND?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[] | readonly EScalarWhereWithAggregatesInput[]
+    OR?: EScalarWhereWithAggregatesInput[] | readonly EScalarWhereWithAggregatesInput[]
+    NOT?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[] | readonly EScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"E"> | string
     date?: DateTimeWithAggregatesFilter<"E"> | Date | string
     time?: DateTimeWithAggregatesFilter<"E"> | Date | string
@@ -19894,7 +19894,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | number[]
+    list?: DCreatelistInput | number[] | readonly number[]
   }
 
   export type DUncheckedCreateInput = {
@@ -19904,7 +19904,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | number[]
+    list?: DCreatelistInput | number[] | readonly number[]
   }
 
   export type DUpdateInput = {
@@ -19914,7 +19914,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | number[]
+    list?: DUpdatelistInput | number[] | readonly number[]
   }
 
   export type DUncheckedUpdateInput = {
@@ -19924,7 +19924,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | number[]
+    list?: DUpdatelistInput | number[] | readonly number[]
   }
 
   export type DCreateManyInput = {
@@ -19934,7 +19934,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | number[]
+    list?: DCreatelistInput | number[] | readonly number[]
   }
 
   export type DUpdateManyMutationInput = {
@@ -19944,7 +19944,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | number[]
+    list?: DUpdatelistInput | number[] | readonly number[]
   }
 
   export type DUncheckedUpdateManyInput = {
@@ -19954,7 +19954,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | number[]
+    list?: DUpdatelistInput | number[] | readonly number[]
   }
 
   export type ECreateInput = {
@@ -20008,8 +20008,8 @@ export namespace Prisma {
 
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -20019,8 +20019,8 @@ export namespace Prisma {
 
   export type DateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -20030,8 +20030,8 @@ export namespace Prisma {
 
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -20045,8 +20045,8 @@ export namespace Prisma {
 
   export type StringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -20112,8 +20112,8 @@ export namespace Prisma {
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -20128,8 +20128,8 @@ export namespace Prisma {
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -20142,8 +20142,8 @@ export namespace Prisma {
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -20160,8 +20160,8 @@ export namespace Prisma {
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -20186,8 +20186,8 @@ export namespace Prisma {
 
   export type IntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -20197,8 +20197,8 @@ export namespace Prisma {
 
   export type FloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -20208,8 +20208,8 @@ export namespace Prisma {
 
   export type FloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -20225,7 +20225,7 @@ export namespace Prisma {
 
   export type JsonFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -20248,7 +20248,7 @@ export namespace Prisma {
 
   export type JsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -20265,15 +20265,15 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
     not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | $Enums.ABeautifulEnum
   }
 
   export type EnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
     not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
   }
 
@@ -20357,8 +20357,8 @@ export namespace Prisma {
 
   export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -20373,8 +20373,8 @@ export namespace Prisma {
 
   export type FloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -20389,8 +20389,8 @@ export namespace Prisma {
 
   export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -20411,7 +20411,7 @@ export namespace Prisma {
 
   export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -20437,7 +20437,7 @@ export namespace Prisma {
 
   export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -20457,8 +20457,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
@@ -20467,8 +20467,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
@@ -20900,8 +20900,8 @@ export namespace Prisma {
 
   export type BigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
     lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
@@ -20965,8 +20965,8 @@ export namespace Prisma {
 
   export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
     lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
@@ -20981,8 +20981,8 @@ export namespace Prisma {
 
   export type DecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
+    notIn?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
     lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
@@ -21030,8 +21030,8 @@ export namespace Prisma {
 
   export type DecimalWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
+    notIn?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
     lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
@@ -21046,8 +21046,8 @@ export namespace Prisma {
 
   export type UuidFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21088,8 +21088,8 @@ export namespace Prisma {
 
   export type UuidWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21103,16 +21103,16 @@ export namespace Prisma {
 
   export type BytesFilter<$PrismaModel = never> = {
     equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
     not?: NestedBytesFilter<$PrismaModel> | Uint8Array
   }
 
   export type IntNullableListFilter<$PrismaModel = never> = {
-    equals?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    equals?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
     has?: number | IntFieldRefInput<$PrismaModel> | null
-    hasEvery?: number[] | ListIntFieldRefInput<$PrismaModel>
-    hasSome?: number[] | ListIntFieldRefInput<$PrismaModel>
+    hasEvery?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
+    hasSome?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
     isEmpty?: boolean
   }
 
@@ -21150,8 +21150,8 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
     not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
@@ -21218,17 +21218,17 @@ export namespace Prisma {
   }
 
   export type PostCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
-    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | readonly PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[] | readonly PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[] | readonly PostCreateOrConnectWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
   }
 
   export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
-    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | readonly PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[] | readonly PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[] | readonly PostCreateOrConnectWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -21268,149 +21268,149 @@ export namespace Prisma {
   }
 
   export type PostUpdateManyWithoutAuthorNestedInput = {
-    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
-    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
-    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[]
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | readonly PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[] | readonly PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[] | readonly PostCreateOrConnectWithoutAuthorInput[]
+    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[] | readonly PostUpsertWithWhereUniqueWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    set?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    delete?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[]
-    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[]
-    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[]
+    set?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    delete?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[] | readonly PostUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[] | readonly PostUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[] | readonly PostScalarWhereInput[]
   }
 
   export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
-    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
-    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
-    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[]
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | readonly PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[] | readonly PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[] | readonly PostCreateOrConnectWithoutAuthorInput[]
+    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[] | readonly PostUpsertWithWhereUniqueWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    set?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    delete?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
-    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[]
-    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[]
-    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[]
+    set?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    delete?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[] | readonly PostWhereUniqueInput[]
+    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[] | readonly PostUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[] | readonly PostUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[] | readonly PostScalarWhereInput[]
   }
 
   export type NCreateNestedManyWithoutMInput = {
-    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
-    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
-    connect?: NWhereUniqueInput | NWhereUniqueInput[]
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | readonly NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[] | readonly NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[] | readonly NCreateOrConnectWithoutMInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
   }
 
   export type NUncheckedCreateNestedManyWithoutMInput = {
-    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
-    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
-    connect?: NWhereUniqueInput | NWhereUniqueInput[]
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | readonly NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[] | readonly NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[] | readonly NCreateOrConnectWithoutMInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
   }
 
   export type NUpdateManyWithoutMNestedInput = {
-    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
-    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
-    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[]
-    set?: NWhereUniqueInput | NWhereUniqueInput[]
-    disconnect?: NWhereUniqueInput | NWhereUniqueInput[]
-    delete?: NWhereUniqueInput | NWhereUniqueInput[]
-    connect?: NWhereUniqueInput | NWhereUniqueInput[]
-    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[]
-    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[]
-    deleteMany?: NScalarWhereInput | NScalarWhereInput[]
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | readonly NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[] | readonly NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[] | readonly NCreateOrConnectWithoutMInput[]
+    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[] | readonly NUpsertWithWhereUniqueWithoutMInput[]
+    set?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    disconnect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    delete?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[] | readonly NUpdateWithWhereUniqueWithoutMInput[]
+    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[] | readonly NUpdateManyWithWhereWithoutMInput[]
+    deleteMany?: NScalarWhereInput | NScalarWhereInput[] | readonly NScalarWhereInput[]
   }
 
   export type NUncheckedUpdateManyWithoutMNestedInput = {
-    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
-    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
-    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[]
-    set?: NWhereUniqueInput | NWhereUniqueInput[]
-    disconnect?: NWhereUniqueInput | NWhereUniqueInput[]
-    delete?: NWhereUniqueInput | NWhereUniqueInput[]
-    connect?: NWhereUniqueInput | NWhereUniqueInput[]
-    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[]
-    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[]
-    deleteMany?: NScalarWhereInput | NScalarWhereInput[]
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | readonly NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[] | readonly NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[] | readonly NCreateOrConnectWithoutMInput[]
+    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[] | readonly NUpsertWithWhereUniqueWithoutMInput[]
+    set?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    disconnect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    delete?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[] | readonly NWhereUniqueInput[]
+    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[] | readonly NUpdateWithWhereUniqueWithoutMInput[]
+    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[] | readonly NUpdateManyWithWhereWithoutMInput[]
+    deleteMany?: NScalarWhereInput | NScalarWhereInput[] | readonly NScalarWhereInput[]
   }
 
   export type MCreateNestedManyWithoutNInput = {
-    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
-    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
-    connect?: MWhereUniqueInput | MWhereUniqueInput[]
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | readonly MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[] | readonly MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[] | readonly MCreateOrConnectWithoutNInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
   }
 
   export type MUncheckedCreateNestedManyWithoutNInput = {
-    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
-    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
-    connect?: MWhereUniqueInput | MWhereUniqueInput[]
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | readonly MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[] | readonly MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[] | readonly MCreateOrConnectWithoutNInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
   }
 
   export type MUpdateManyWithoutNNestedInput = {
-    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
-    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
-    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[]
-    set?: MWhereUniqueInput | MWhereUniqueInput[]
-    disconnect?: MWhereUniqueInput | MWhereUniqueInput[]
-    delete?: MWhereUniqueInput | MWhereUniqueInput[]
-    connect?: MWhereUniqueInput | MWhereUniqueInput[]
-    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[]
-    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[]
-    deleteMany?: MScalarWhereInput | MScalarWhereInput[]
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | readonly MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[] | readonly MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[] | readonly MCreateOrConnectWithoutNInput[]
+    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[] | readonly MUpsertWithWhereUniqueWithoutNInput[]
+    set?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    disconnect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    delete?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[] | readonly MUpdateWithWhereUniqueWithoutNInput[]
+    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[] | readonly MUpdateManyWithWhereWithoutNInput[]
+    deleteMany?: MScalarWhereInput | MScalarWhereInput[] | readonly MScalarWhereInput[]
   }
 
   export type MUncheckedUpdateManyWithoutNNestedInput = {
-    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
-    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
-    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[]
-    set?: MWhereUniqueInput | MWhereUniqueInput[]
-    disconnect?: MWhereUniqueInput | MWhereUniqueInput[]
-    delete?: MWhereUniqueInput | MWhereUniqueInput[]
-    connect?: MWhereUniqueInput | MWhereUniqueInput[]
-    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[]
-    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[]
-    deleteMany?: MScalarWhereInput | MScalarWhereInput[]
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | readonly MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[] | readonly MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[] | readonly MCreateOrConnectWithoutNInput[]
+    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[] | readonly MUpsertWithWhereUniqueWithoutNInput[]
+    set?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    disconnect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    delete?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[] | readonly MWhereUniqueInput[]
+    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[] | readonly MUpdateWithWhereUniqueWithoutNInput[]
+    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[] | readonly MUpdateManyWithWhereWithoutNInput[]
+    deleteMany?: MScalarWhereInput | MScalarWhereInput[] | readonly MScalarWhereInput[]
   }
 
   export type ManyRequiredCreateNestedManyWithoutOneInput = {
-    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
-    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | readonly ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[] | readonly ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[] | readonly ManyRequiredCreateOrConnectWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
   }
 
   export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
-    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
-    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | readonly ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[] | readonly ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[] | readonly ManyRequiredCreateOrConnectWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
   }
 
   export type ManyRequiredUpdateManyWithoutOneNestedInput = {
-    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
-    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
-    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | readonly ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[] | readonly ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[] | readonly ManyRequiredCreateOrConnectWithoutOneInput[]
+    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[] | readonly ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
-    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[]
-    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
+    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[] | readonly ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
+    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[] | readonly ManyRequiredUpdateManyWithWhereWithoutOneInput[]
+    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[] | readonly ManyRequiredScalarWhereInput[]
   }
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneNestedInput = {
-    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
-    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
-    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | readonly ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[] | readonly ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[] | readonly ManyRequiredCreateOrConnectWithoutOneInput[]
+    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[] | readonly ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
-    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
-    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[]
-    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
+    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[] | readonly ManyRequiredWhereUniqueInput[]
+    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[] | readonly ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
+    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[] | readonly ManyRequiredUpdateManyWithWhereWithoutOneInput[]
+    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[] | readonly ManyRequiredScalarWhereInput[]
   }
 
   export type OneOptionalCreateNestedOneWithoutManyInput = {
@@ -21494,7 +21494,7 @@ export namespace Prisma {
   }
 
   export type DCreatelistInput = {
-    set: number[]
+    set: number[] | readonly number[]
   }
 
   export type BytesFieldUpdateOperationsInput = {
@@ -21502,14 +21502,14 @@ export namespace Prisma {
   }
 
   export type DUpdatelistInput = {
-    set?: number[]
-    push?: number | number[]
+    set?: number[] | readonly number[]
+    push?: number | number[] | readonly number[]
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -21519,8 +21519,8 @@ export namespace Prisma {
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -21530,8 +21530,8 @@ export namespace Prisma {
 
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21544,8 +21544,8 @@ export namespace Prisma {
 
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21563,8 +21563,8 @@ export namespace Prisma {
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel>
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -21579,8 +21579,8 @@ export namespace Prisma {
 
   export type NestedFloatFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -21590,8 +21590,8 @@ export namespace Prisma {
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | readonly Date[] | string[] | readonly string[] | ListDateTimeFieldRefInput<$PrismaModel>
     lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
@@ -21604,8 +21604,8 @@ export namespace Prisma {
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21621,8 +21621,8 @@ export namespace Prisma {
 
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel> | null
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21638,8 +21638,8 @@ export namespace Prisma {
 
   export type NestedIntNullableFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -21657,8 +21657,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -21668,15 +21668,15 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
     not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | $Enums.ABeautifulEnum
   }
 
   export type NestedEnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
     not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
   }
 
@@ -21687,8 +21687,8 @@ export namespace Prisma {
 
   export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListIntFieldRefInput<$PrismaModel> | null
     lt?: number | IntFieldRefInput<$PrismaModel>
     lte?: number | IntFieldRefInput<$PrismaModel>
     gt?: number | IntFieldRefInput<$PrismaModel>
@@ -21703,8 +21703,8 @@ export namespace Prisma {
 
   export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel>
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -21719,8 +21719,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | readonly number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
@@ -21741,7 +21741,7 @@ export namespace Prisma {
 
   export type NestedJsonFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -21764,7 +21764,7 @@ export namespace Prisma {
 
   export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
     equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
+    path?: string[] | readonly string[]
     mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
@@ -21781,8 +21781,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
@@ -21791,8 +21791,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | readonly $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
@@ -21809,8 +21809,8 @@ export namespace Prisma {
 
   export type NestedBigIntFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
     lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
@@ -21820,8 +21820,8 @@ export namespace Prisma {
 
   export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
-    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
-    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | readonly bigint[] | number[] | readonly number[] | ListBigIntFieldRefInput<$PrismaModel>
     lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
     gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
@@ -21836,8 +21836,8 @@ export namespace Prisma {
 
   export type NestedDecimalFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
+    notIn?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
     lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
@@ -21847,8 +21847,8 @@ export namespace Prisma {
 
   export type NestedDecimalWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
-    in?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
-    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[] | ListDecimalFieldRefInput<$PrismaModel>
+    in?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
+    notIn?: Decimal[] | readonly Decimal[] | DecimalJsLike[] | readonly DecimalJsLike[] | number[] | readonly number[] | string[] | readonly string[] | ListDecimalFieldRefInput<$PrismaModel>
     lt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     lte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
@@ -21863,8 +21863,8 @@ export namespace Prisma {
 
   export type NestedUuidFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21874,8 +21874,8 @@ export namespace Prisma {
 
   export type NestedUuidWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
-    in?: string[] | ListStringFieldRefInput<$PrismaModel>
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    in?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | readonly string[] | ListStringFieldRefInput<$PrismaModel>
     lt?: string | StringFieldRefInput<$PrismaModel>
     lte?: string | StringFieldRefInput<$PrismaModel>
     gt?: string | StringFieldRefInput<$PrismaModel>
@@ -21888,15 +21888,15 @@ export namespace Prisma {
 
   export type NestedBytesFilter<$PrismaModel = never> = {
     equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
     not?: NestedBytesFilter<$PrismaModel> | Uint8Array
   }
 
   export type NestedBytesWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    in?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Uint8Array[] | readonly Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
     not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
@@ -22006,7 +22006,7 @@ export namespace Prisma {
   }
 
   export type PostCreateManyAuthorInputEnvelope = {
-    data: PostCreateManyAuthorInput | PostCreateManyAuthorInput[]
+    data: PostCreateManyAuthorInput | PostCreateManyAuthorInput[] | readonly PostCreateManyAuthorInput[]
     skipDuplicates?: boolean
   }
 
@@ -22027,9 +22027,9 @@ export namespace Prisma {
   }
 
   export type PostScalarWhereInput = {
-    AND?: PostScalarWhereInput | PostScalarWhereInput[]
-    OR?: PostScalarWhereInput[]
-    NOT?: PostScalarWhereInput | PostScalarWhereInput[]
+    AND?: PostScalarWhereInput | PostScalarWhereInput[] | readonly PostScalarWhereInput[]
+    OR?: PostScalarWhereInput[] | readonly PostScalarWhereInput[]
+    NOT?: PostScalarWhereInput | PostScalarWhereInput[] | readonly PostScalarWhereInput[]
     id?: IntFilter<"Post"> | number
     createdAt?: DateTimeFilter<"Post"> | Date | string
     title?: StringFilter<"Post"> | string
@@ -22091,9 +22091,9 @@ export namespace Prisma {
   }
 
   export type NScalarWhereInput = {
-    AND?: NScalarWhereInput | NScalarWhereInput[]
-    OR?: NScalarWhereInput[]
-    NOT?: NScalarWhereInput | NScalarWhereInput[]
+    AND?: NScalarWhereInput | NScalarWhereInput[] | readonly NScalarWhereInput[]
+    OR?: NScalarWhereInput[] | readonly NScalarWhereInput[]
+    NOT?: NScalarWhereInput | NScalarWhereInput[] | readonly NScalarWhereInput[]
     id?: IntFilter<"N"> | number
     int?: IntFilter<"N"> | number
     optionalInt?: IntNullableFilter<"N"> | number | null
@@ -22162,9 +22162,9 @@ export namespace Prisma {
   }
 
   export type MScalarWhereInput = {
-    AND?: MScalarWhereInput | MScalarWhereInput[]
-    OR?: MScalarWhereInput[]
-    NOT?: MScalarWhereInput | MScalarWhereInput[]
+    AND?: MScalarWhereInput | MScalarWhereInput[] | readonly MScalarWhereInput[]
+    OR?: MScalarWhereInput[] | readonly MScalarWhereInput[]
+    NOT?: MScalarWhereInput | MScalarWhereInput[] | readonly MScalarWhereInput[]
     id?: IntFilter<"M"> | number
     int?: IntFilter<"M"> | number
     optionalInt?: IntNullableFilter<"M"> | number | null
@@ -22217,7 +22217,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateManyOneInputEnvelope = {
-    data: ManyRequiredCreateManyOneInput | ManyRequiredCreateManyOneInput[]
+    data: ManyRequiredCreateManyOneInput | ManyRequiredCreateManyOneInput[] | readonly ManyRequiredCreateManyOneInput[]
     skipDuplicates?: boolean
   }
 
@@ -22238,9 +22238,9 @@ export namespace Prisma {
   }
 
   export type ManyRequiredScalarWhereInput = {
-    AND?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
-    OR?: ManyRequiredScalarWhereInput[]
-    NOT?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
+    AND?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[] | readonly ManyRequiredScalarWhereInput[]
+    OR?: ManyRequiredScalarWhereInput[] | readonly ManyRequiredScalarWhereInput[]
+    NOT?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[] | readonly ManyRequiredScalarWhereInput[]
     id?: IntFilter<"ManyRequired"> | number
     oneOptionalId?: IntNullableFilter<"ManyRequired"> | number | null
     int?: IntFilter<"ManyRequired"> | number
