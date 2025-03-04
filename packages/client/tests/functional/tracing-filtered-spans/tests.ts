@@ -73,8 +73,10 @@ testMatrix.setupTestSuite(
         'prisma:client:operation',
       ]
 
-      if (clientRuntime === 'wasm' || engineType === 'client') {
+      if (clientRuntime === 'wasm') {
         expectedSpans.shift() // With wasm we do not perform platform detection
+      } else if (engineType === 'client') {
+        expectedSpans.splice(0, 4) // Client engine performs no binary engine related spans
       }
 
       expect(spans.map((span) => span.name)).toEqual(expectedSpans)
