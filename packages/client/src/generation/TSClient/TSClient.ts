@@ -1,6 +1,7 @@
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
+import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
@@ -108,7 +109,7 @@ export class TSClient implements Generable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchemaHash = globalThis.crypto
+    const inlineSchemaHash = crypto
       .createHash('sha256')
       .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
       .digest('hex')
@@ -289,7 +290,7 @@ ${
   fieldRefs.length > 0
     ? `
 /**
- * Field references
+ * Field references 
  */
 
 ${fieldRefs.join('\n\n')}`
@@ -307,7 +308,7 @@ ${this.dmmf.inputObjectTypes.prisma
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
       const baseName = `Required<${innerName}>`
-      acc.push(`export type ${typeName} =
+      acc.push(`export type ${typeName} = 
   | PatchUndefined<
       Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
       ${baseName}
@@ -380,7 +381,7 @@ class PrismaClient {
         } else {
           message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
         }
-
+        
         message += \`
 If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report\`
 
