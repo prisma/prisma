@@ -48,7 +48,7 @@
     "tempy": "1.0.1",
     "ts-pattern": "5.6.2",
     "typescript": "5.4.5",
-    "wrangler": "3.110.0"
+    "wrangler": "3.111.0"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -57,7 +57,7 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.5.0-35.c4e2705a07520fd27af6feba131ff83c38cd0c5c",
+    "@prisma/engines-version": "6.5.0-39.84310176c3f15859928b573ea73f2c1ec30188eb",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

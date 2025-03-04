@@ -292,7 +292,6 @@ export class SchemaEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-
       console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}. Error: ${e.message}`)
     }
 
