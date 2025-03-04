@@ -79,9 +79,7 @@ const cliConfigBuildConfig: BuildOptions = {
    * - users with old and inconsistent bundlers, like `webpack`
    */
   outdir: '.',
-  plugins: [
-    copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])
-  ],
+  plugins: [copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])],
 
   bundle: true,
   external: ['fsevents', 'esbuild', 'esbuild-register'],
@@ -113,11 +111,10 @@ const preinstallBuildConfig: BuildOptions = {
 
 const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
 
-build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig])
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
