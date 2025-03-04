@@ -2,7 +2,7 @@ import { SchemaEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'
-import path from 'path'
+import path from 'node:path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
@@ -201,8 +201,8 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
       states[scenario.name] = state
 
       expect(introspectionResult.schema.files.length).toBe(1)
-      expect(introspectionResult.schema.files[0].content).toMatchSnapshot(`datamodel`)
-      expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
+      expect(introspectionResult.schema.files[0].content).toMatchSnapshot('datamodel')
+      expect(introspectionResult.warnings).toMatchSnapshot('warnings')
 
       await teardownScenario(state)
     },
@@ -384,7 +384,7 @@ function makeDatasourceBlock(providerName: string, url: string) {
  */
 function renderPreviewFeatures(featureMatrix: PreviewFeature[] | undefined) {
   if (featureMatrix) {
-    return `previewFeatures = [${featureMatrix.map((feature) => `"` + feature + `"`)}]`
+    return `previewFeatures = [${featureMatrix.map((feature) => `"${feature}"`)}]`
   }
   return ''
 }

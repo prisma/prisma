@@ -1,13 +1,13 @@
 import { ClientEngineType } from '@prisma/internals'
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
-import { MatrixTestHelper } from './defineMatrix'
-import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
+import type { MatrixTestHelper } from './defineMatrix'
+import { type AdapterProviders, isDriverAdapterProviderLabel, Providers, type RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, ClientRuntime, CliMeta } from './types'
+import type { ClientMeta, ClientRuntime, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
@@ -37,7 +37,7 @@ const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
  * @returns
  */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  let name = ``
+  let name = ''
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
   name += ` (${suiteConfig.parametersString})`
@@ -155,10 +155,9 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       if (config.relationMode !== undefined) {
         const driverAdapterStr = config.driverAdapter === undefined ? '' : `driverAdapter=${config.driverAdapter},`
         return `relationMode=${config.relationMode},provider=${config.provider},${driverAdapterStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
-      } else {
+      }
         const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
         return `${firstKey}=${config[firstKey]}`
-      }
     })
     .join(', ')
 }
@@ -231,7 +230,7 @@ export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
   if (testPath === undefined) {
-    throw new Error(`getTestSuiteMeta can be executed only within jest test`)
+    throw new Error('getTestSuiteMeta can be executed only within jest test')
   }
   const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)

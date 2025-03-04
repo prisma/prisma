@@ -1,8 +1,8 @@
-import { ClassDeclaration } from './Class'
-import { ConstDeclaration } from './ConstDeclaration'
-import { InterfaceDeclaration } from './Interface'
-import { NamespaceDeclaration } from './NamespaceDeclaration'
-import { TypeDeclaration } from './TypeDeclaration'
+import type { ClassDeclaration } from './Class'
+import type { ConstDeclaration } from './ConstDeclaration'
+import type { InterfaceDeclaration } from './Interface'
+import type { NamespaceDeclaration } from './NamespaceDeclaration'
+import type { TypeDeclaration } from './TypeDeclaration'
 
 // TODO: enum
 export type AnyDeclarationBuilder =

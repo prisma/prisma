@@ -10,9 +10,8 @@ testMatrix.setupTestSuite(
     function getAllEntries() {
       if (provider === Providers.MYSQL) {
         return prisma.$queryRaw`SELECT * FROM \`TestModel\`;`
-      } else {
-        return prisma.$queryRaw`SELECT * FROM "TestModel";`
       }
+        return prisma.$queryRaw`SELECT * FROM "TestModel";`
     }
 
     test('query model with multiple fields', async () => {

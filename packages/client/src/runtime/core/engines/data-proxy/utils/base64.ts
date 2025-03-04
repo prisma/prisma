@@ -15,7 +15,10 @@ export function toBase64(str: string) {
   const byteRemainder = byteLength % 3
   const mainLength = byteLength - byteRemainder
 
-  let a: number, b: number, c: number, d: number
+  let a: number
+  let b: number
+  let c: number
+  let d: number
   let chunk: number
 
   // Main loop deals with bytes in chunks of 3
@@ -34,7 +37,7 @@ export function toBase64(str: string) {
   }
 
   // Deal with the remaining bytes and padding
-  if (byteRemainder == 1) {
+  if (byteRemainder === 1) {
     chunk = bytes[mainLength]
 
     a = (chunk & 252) >> 2 // 252 = (2^6 - 1) << 2
@@ -42,8 +45,8 @@ export function toBase64(str: string) {
     // Set the 4 least significant bits to zero
     b = (chunk & 3) << 4 // 3   = 2^2 - 1
 
-    base64 += encodings[a] + encodings[b] + '=='
-  } else if (byteRemainder == 2) {
+    base64 += `${encodings[a] + encodings[b]}==`
+  } else if (byteRemainder === 2) {
     chunk = (bytes[mainLength] << 8) | bytes[mainLength + 1]
 
     a = (chunk & 64512) >> 10 // 64512 = (2^6 - 1) << 10
@@ -52,7 +55,7 @@ export function toBase64(str: string) {
     // Set the 2 least significant bits to zero
     c = (chunk & 15) << 2 // 15    = 2^4 - 1
 
-    base64 += encodings[a] + encodings[b] + encodings[c] + '='
+    base64 += `${encodings[a] + encodings[b] + encodings[c]}=`
   }
 
   return base64

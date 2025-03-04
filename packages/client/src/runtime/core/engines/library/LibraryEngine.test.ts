@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { EventEmitter } from 'node:events'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -6,7 +6,7 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
-import { LibraryLoader, QueryEngineInstance } from './types/Library'
+import type { LibraryLoader, QueryEngineInstance } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
 
@@ -15,7 +15,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  delete (globalThis as any).TARGET_BUILD_TYPE
+  (globalThis as any).TARGET_BUILD_TYPE = undefined
 })
 
 function setupMockLibraryEngine() {

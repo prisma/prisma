@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 /**
  * This script is used to check the test failures during the development of the client engine against known failures.
@@ -25,7 +25,7 @@ function getFailedTestNames(): string[] {
 
   const testResults = JSON.parse(fs.readFileSync(JEST_RESULTS_FILE_LOCATION, 'utf-8'))
 
-  return testResults['testResults']
+  return testResults.testResults
     .filter((test) => test.status === 'failed')
     .reduce(
       (acc, test) =>
@@ -56,7 +56,7 @@ function run() {
   const KNOWN_FAILURES_FILE_LOCATION = `./tests/functional/client-engine-known-failures-${suffix}.txt`
 
   if (isRecordMode) {
-    fs.writeFileSync(KNOWN_FAILURES_FILE_LOCATION, failedTestNames.join('\n') + '\n')
+    fs.writeFileSync(KNOWN_FAILURES_FILE_LOCATION, `${failedTestNames.join('\n')}\n`)
 
     console.error('💾 Recorded test failures as known')
   } else {

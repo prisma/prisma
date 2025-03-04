@@ -1,7 +1,7 @@
 import { pathToPosix } from '@prisma/internals'
 import * as stackTraceParser from 'stacktrace-parser'
 
-import { ErrorFormat } from '../getPrismaClient'
+import type { ErrorFormat } from '../getPrismaClient'
 
 declare global {
   /**
@@ -79,10 +79,8 @@ export function getCallSite(errorFormat: ErrorFormat): CallSite {
   if (errorFormat === 'minimal' || TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
     if (typeof $EnabledCallSite === 'function' && errorFormat !== 'minimal') {
       return new $EnabledCallSite()
-    } else {
-      return new DisabledCallSite()
     }
-  } else {
-    return new EnabledCallSite()
+      return new DisabledCallSite()
   }
+    return new EnabledCallSite()
 }

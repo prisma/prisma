@@ -4,7 +4,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
-import path from 'path'
+import path from 'node:path'
 import { match, P } from 'ts-pattern'
 
 import { safeResolveBinary } from '../resolveBinary'

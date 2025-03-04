@@ -1,7 +1,7 @@
-import { BasicBuilder } from './BasicBuilder'
-import { DocComment } from './DocComment'
-import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { DocComment } from './DocComment'
+import type { TypeBuilder } from './TypeBuilder'
+import type { Writer } from './Writer'
 
 export class ConstDeclaration implements BasicBuilder {
   private docComment?: DocComment

@@ -2,8 +2,8 @@ import type { DataSource, DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { ClientOtherOps } from '../../runtime'
-import { Operation } from '../../runtime/core/types/exported/Result'
+import type { ClientOtherOps } from '../../runtime'
+import type { Operation } from '../../runtime/core/types/exported/Result'
 import * as ts from '../ts-builders'
 import {
   capitalize,
@@ -20,9 +20,9 @@ import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { globalOmitConfig } from './globalOmit'
-import { TSClientOptions } from './TSClient'
+import type { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(context: GenerateContext) {
@@ -114,7 +114,7 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     }
 
     if (name === 'queryRaw' && context.isPreviewFeatureOn('typedSql')) {
-      results.push(`$queryRawTyped`)
+      results.push('$queryRawTyped')
     }
 
     return results
@@ -416,9 +416,8 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
   if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
-  } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
   }
+    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
 }
 
 export class PrismaClientClass implements Generable {

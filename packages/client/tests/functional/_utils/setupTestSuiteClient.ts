@@ -1,13 +1,13 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
-import { readFile } from 'fs/promises'
-import path from 'path'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { fetch, WebSocket } from 'undici'
 
 import { introspectSql } from '../../../../cli/src/generate/introspectSql'
 import { generateClient } from '../../../src/generation/generateClient'
-import { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
+import type { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
@@ -17,9 +17,9 @@ import {
   testSuiteHasTypedSql,
 } from './getTestSuiteInfo'
 import { AdapterProviders } from './providers'
-import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import { type DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
+import type { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 
 const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
 
@@ -145,7 +145,7 @@ export function setupTestSuiteClientDriverAdapter({
   if (clientMeta.driverAdapter !== true) return {}
 
   if (driverAdapter === undefined) {
-    throw new Error(`Missing Driver Adapter`)
+    throw new Error('Missing Driver Adapter')
   }
 
   if (clientMeta.runtime === 'wasm') {
@@ -191,7 +191,7 @@ export function setupTestSuiteClientDriverAdapter({
     const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
 
-    neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
+    neonConfig.wsProxy = () => '127.0.0.1:5488/v1'
     neonConfig.webSocketConstructor = WebSocket
     neonConfig.useSecureWebSocket = false // disable tls
     neonConfig.pipelineConnect = false

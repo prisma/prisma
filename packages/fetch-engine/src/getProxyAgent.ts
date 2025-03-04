@@ -3,7 +3,7 @@
 import Debug from '@prisma/debug'
 import { HttpProxyAgent } from 'http-proxy-agent'
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import Url from 'url'
+import Url from 'node:url'
 
 const debug = Debug('prisma:fetch-engine:getProxyAgent')
 
@@ -35,7 +35,7 @@ function uriInNoProxy(uri, noProxy): boolean {
   const noProxyList = noProxy.split(',')
 
   // iterate through the noProxyList until it finds a match.
-  return noProxyList.map(parseNoProxyZone).some(function (noProxyZone) {
+  return noProxyList.map(parseNoProxyZone).some((noProxyZone) => {
     const isMatchedAt = hostname.indexOf(noProxyZone.hostname)
     const hostnameMatched = isMatchedAt > -1 && isMatchedAt === hostname.length - noProxyZone.hostname.length
 
@@ -92,7 +92,7 @@ export function getProxyAgent(url: string): HttpProxyAgent<string> | HttpsProxyA
 
     if (!proxy) {
       return undefined
-    } else if (uri.protocol === 'http:') {
+    }if (uri.protocol === 'http:') {
       try {
         return new HttpProxyAgent(proxy)
       } catch (agentError) {
@@ -110,7 +110,7 @@ export function getProxyAgent(url: string): HttpProxyAgent<string> | HttpsProxyA
       }
     }
   } catch (e) {
-    console.warn(`An error occurred in getProxyAgent(), no proxy agent will be used.`, e)
+    console.warn('An error occurred in getProxyAgent(), no proxy agent will be used.', e)
   }
 
   return undefined

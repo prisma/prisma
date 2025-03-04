@@ -1,4 +1,4 @@
-import { ConfigMetaFormat, link } from '@prisma/internals'
+import { type ConfigMetaFormat, link } from '@prisma/internals'
 
 export function getHardcodedUrlWarning(config: ConfigMetaFormat) {
   const datasource = config.datasources?.[0]

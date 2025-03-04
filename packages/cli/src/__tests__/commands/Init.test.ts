@@ -1,6 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs'
-import { join } from 'path'
+import fs from 'node:fs'
+import { join } from 'node:path'
 import stripAnsi from 'strip-ansi'
 
 import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
@@ -355,7 +355,7 @@ test('writes a minimal .gitignore file', async () => {
 test('ignore .gitignore file if already present (do not override)', async () => {
   ctx.fixture('init')
   const gitignorePath = join(ctx.tmpDir, '.gitignore')
-  fs.writeFileSync(gitignorePath, `# This should not be overridden`)
+  fs.writeFileSync(gitignorePath, '# This should not be overridden')
   const gitignoreBefore = fs.readFileSync(gitignorePath, 'utf-8')
   await ctx.cli('init')
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')

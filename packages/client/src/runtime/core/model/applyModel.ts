@@ -1,13 +1,13 @@
 import { DMMF } from '@prisma/generator-helper'
 import type { O } from 'ts-toolbelt'
 
-import { type Client, type InternalRequestParams } from '../../getPrismaClient'
+import type { Client, InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import {
   addObjectProperties,
   addProperty,
   cacheProperties,
-  CompositeProxyLayer,
+  type CompositeProxyLayer,
   createCompositeProxy,
 } from '../compositeProxy'
 import type { PrismaPromise } from '../request/PrismaPromise'

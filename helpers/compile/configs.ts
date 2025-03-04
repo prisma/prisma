@@ -1,4 +1,4 @@
-import { BuildOptions } from './build'
+import type { BuildOptions } from './build'
 
 export const adapterConfig: BuildOptions[] = [
   {

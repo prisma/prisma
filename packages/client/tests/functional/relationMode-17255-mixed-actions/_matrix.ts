@@ -38,9 +38,8 @@ export default defineMatrix(() => [
       const isSQLite = entry.provider === Providers.SQLITE
       if (process.platform === 'win32') {
         return isCascade && !isSQLite
-      } else {
-        return isCascade
       }
+        return isCascade
     }),
   ],
   [],

@@ -3,7 +3,7 @@ import {
   arg,
   canPrompt,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   dropDatabase,
   format,
   HelpError,
@@ -120,14 +120,13 @@ ${bold('Examples')}
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
-    } else {
-      return ''
     }
+      return ''
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbDrop.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DbDrop.help}`)
     }
     return DbDrop.help
   }

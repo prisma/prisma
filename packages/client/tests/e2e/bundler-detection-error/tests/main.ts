@@ -42,5 +42,3 @@ The following locations have been searched:
   /test/bundler-detection-error/prisma"
 `)
 })
-
-export {}

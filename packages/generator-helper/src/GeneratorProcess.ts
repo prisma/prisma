@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
-import type { ChildProcessByStdio } from 'child_process'
-import { fork } from 'child_process'
+import type { ChildProcessByStdio } from 'node:child_process'
+import { fork } from 'node:child_process'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
-import { Readable, Writable } from 'stream'
+import type { Readable, Writable } from 'node:stream'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -122,8 +122,8 @@ export class GeneratorProcess {
         let data: JsonRPC.Response | undefined
         try {
           data = JSON.parse(response)
-        } catch (e) {
-          this.errorLogs += response + '\n'
+        } catch (_e) {
+          this.errorLogs += `${response}\n`
           debug(response)
         }
         if (data) {
@@ -170,7 +170,7 @@ export class GeneratorProcess {
       return
     }
 
-    this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
+    this.child.stdin.write(`${JSON.stringify(message)}\n`, (error) => {
       if (!error) {
         return callback()
       }

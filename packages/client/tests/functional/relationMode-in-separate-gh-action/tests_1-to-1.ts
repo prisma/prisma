@@ -36,7 +36,7 @@ async function createXUsersWithAProfile({ count, userModel, profileModel, profil
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig, _suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       .with('driverAdapter', suiteConfig.driverAdapter)
@@ -67,7 +67,7 @@ testMatrix.setupTestSuite(
       const profileModel = 'profileOneToOne'
       const profileOptionalModel = 'profileOptionalOneToOne'
       const profileColumn = 'profile'
-      const profileOptionalColumn = 'profileOptional'
+      const _profileOptionalColumn = 'profileOptional'
 
       beforeEach(async () => {
         await prisma.$transaction([
@@ -115,7 +115,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
@@ -499,7 +499,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @map/@@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
@@ -673,7 +673,7 @@ testMatrix.setupTestSuite(
                   isSchemaUsingMap
                     ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                       // So we can be less specific here
-                      `Unique constraint failed on the`
+                      'Unique constraint failed on the'
                     : conditionalError.snapshot({
                         foreignKeys: {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
@@ -863,13 +863,13 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
-          `onDelete: DEFAULT, Restrict, NoAction`,
+          'onDelete: DEFAULT, Restrict, NoAction',
           () => {
             const expectedError =
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.MONGODB]:
@@ -930,12 +930,12 @@ testMatrix.setupTestSuite(
           },
         )
 
-        describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {
+        describeIf(['SetNull'].includes(onDelete))('onDelete: SetNull', () => {
           const expectedError =
             isSchemaUsingMap && isRelationMode_foreignKeys
               ? // The snaphsot changes when using @map/@@map, though only the name of the table/field is different
                 // So we can be less specific here
-                `Foreign key constraint violated:`
+                'Foreign key constraint violated:'
               : conditionalError.snapshot({
                   foreignKeys: {
                     [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',

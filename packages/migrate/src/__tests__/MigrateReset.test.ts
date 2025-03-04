@@ -180,7 +180,7 @@ describe('reset', () => {
   it('should be cancelled if user send n (prompt)', async () => {
     ctx.fixture('reset')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject([new Error()]) // simulate user cancellation
@@ -265,7 +265,7 @@ describe('reset', () => {
 
   test('reset - seed.js - error should exit 1', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
     ctx.fixture('seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')

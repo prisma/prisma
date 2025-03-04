@@ -4,11 +4,11 @@ import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { ErrorArea, getWasmError, isWasmPanic, RustPanic, type WasmPanic } from '../panic'
 import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
-import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
+import { createDebugErrorType, parseQueryEngineError, type QueryEngineErrorInit } from './queryEngineCommons'
 import { relativizePathInPSLError } from './relativizePathInPSLError'
 
 const debug = Debug('prisma:mergeSchemas')
@@ -45,7 +45,7 @@ ${detailsHeader} ${message}`
  */
 export function mergeSchemas(options: MergeSchemasOptions): string {
   const debugErrorType = createDebugErrorType(debug, 'mergeSchemasWasm')
-  debug(`Using mergeSchemas Wasm`)
+  debug('Using mergeSchemas Wasm')
 
   const mergeSchemasEither = pipe(
     E.tryCatch(

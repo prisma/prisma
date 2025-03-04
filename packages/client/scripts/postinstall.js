@@ -1,8 +1,8 @@
 // @ts-check
-const childProcess = require('child_process')
-const { promisify } = require('util')
-const fs = require('fs')
-const path = require('path')
+const childProcess = require('node:child_process')
+const { promisify } = require('node:util')
+const fs = require('node:fs')
+const path = require('node:path')
 const c = require('./colors')
 
 const exec = promisify(childProcess.exec)
@@ -115,7 +115,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('prisma')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (_e) {} // eslint-disable-line no-empty
 
   // TODO: consider removing this
   try {
@@ -123,7 +123,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('@prisma/cli')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (_e) {} // eslint-disable-line no-empty
 
   return null
 }
@@ -133,11 +133,10 @@ async function isInstalledGlobally() {
     const result = await exec('prisma -v')
     if (result.stdout.includes('@prisma/client')) {
       return true
-    } else {
+    }
       console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
 Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green('yarn global remove prisma')}.`)
-    }
-  } catch (e) {
+  } catch (_e) {
     return false
   }
 }
@@ -330,7 +329,7 @@ function getPostInstallTrigger() {
   let npm_config_argv
   try {
     npm_config_argv = JSON.parse(maybe_npm_config_argv_string)
-  } catch (e) {
+  } catch (_e) {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR}: ${maybe_npm_config_argv_string}`
   }
 

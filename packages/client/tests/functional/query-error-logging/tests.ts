@@ -2,8 +2,8 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { LogEvent } from '../../../src/runtime/getPrismaClient'
-import { NewPrismaClient } from '../_utils/types'
+import type { LogEvent } from '../../../src/runtime/getPrismaClient'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
@@ -72,7 +72,7 @@ testMatrix.setupTestSuite(
       prisma.$use(async (params, next) => {
         try {
           return await next(params)
-        } catch (error) {
+        } catch (_error) {
           expect(params.action).toEqual('findFirstOrThrow')
           throw new Error('Middleware error')
         }
@@ -90,7 +90,7 @@ testMatrix.setupTestSuite(
       prisma.$use(async (params, next) => {
         try {
           return await next(params)
-        } catch (error) {
+        } catch (_error) {
           expect(params.action).toEqual('findUniqueOrThrow')
           throw new Error('Middleware error')
         }

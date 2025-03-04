@@ -1,6 +1,6 @@
 import { getDMMF } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import sortKeys from 'sort-keys'
 
 const blog = `datasource db {
@@ -24,7 +24,7 @@ model User {
 
 // Skip because it cannot work anymore via @swc/jest
 // TODO: Port this test to the new functional test setup
-test.skip('dmmf types', async () => {
+test('dmmf types', async () => {
   const dmmf = await getDMMF({ datamodel: blog })
   const file = `import { DMMF } from '@prisma/generator-helper'
 

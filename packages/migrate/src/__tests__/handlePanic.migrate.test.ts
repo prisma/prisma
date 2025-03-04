@@ -1,8 +1,8 @@
-import { handlePanic, isCi, RustPanic, toSchemasContainer } from '@prisma/internals'
-import fs from 'fs'
+import { handlePanic, isCi, type RustPanic, toSchemasContainer } from '@prisma/internals'
+import fs from 'node:fs'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { dirname, join } from 'path'
+import { dirname, join } from 'node:path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
@@ -85,7 +85,7 @@ describe('handlePanic migrate', () => {
           id Int @id
         }
       `,
-      'db/.keep': ``,
+      'db/.keep': '',
     }
     const schemaPath = join(testRootDir, Object.keys(files)[0])
     await writeFiles(testRootDir, files)
@@ -148,7 +148,7 @@ describe('handlePanic migrate', () => {
           id Int @id
         }
       `,
-      'db/.keep': ``,
+      'db/.keep': '',
     }
     const schemaPath = join(testRootDir, Object.keys(files)[0])
     await writeFiles(testRootDir, files)

@@ -17,7 +17,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
-import { createDeferred, Deferred } from './deferred'
+import { createDeferred, type Deferred } from './deferred'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
 
@@ -113,9 +113,8 @@ function parseErrorMessage(message: string) {
       code,
       state: sqlstate,
     }
-  } else {
-    return undefined
   }
+    return undefined
 }
 
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
@@ -129,14 +128,14 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 
   async commit(): Promise<void> {
-    debug(`[js::commit]`)
+    debug('[js::commit]')
 
     this.txDeferred.resolve()
     return await this.txResultPromise
   }
 
   async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
+    debug('[js::rollback]')
 
     this.txDeferred.reject(new RollbackError())
     return await this.txResultPromise
@@ -197,7 +196,7 @@ const adapter = new PrismaPlanetScale(client)
   }
 
   getConnectionInfo(): ConnectionInfo {
-    const url = this.client.connection()['url'] as string
+    const url = this.client.connection().url as string
     const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
     return {
       schemaName: dbName,

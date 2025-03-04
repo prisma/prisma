@@ -2,7 +2,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getCommandWithExecutor,
   getConfig,
@@ -12,10 +12,10 @@ import {
   loadEnvFile,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'node:fs'
 import getStdin from 'get-stdin'
 import { bold, dim, green, italic } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
@@ -53,9 +53,9 @@ export class DbExecute implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
-This command takes as input a datasource, using ${green(`--url`)} or ${green(`--schema`)} and a script, using ${green(
-    `--stdin`,
-  )} or ${green(`--file`)}.
+This command takes as input a datasource, using ${green('--url')} or ${green('--schema')} and a script, using ${green(
+    '--stdin',
+  )} or ${green('--file')}.
 The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
@@ -63,7 +63,7 @@ The output of the command is connector-specific, and is not meant for returning 
 On SQL databases, this command takes as input a SQL script.
 The whole script will be sent as a single command to the database.
 
-${italic(`This command is currently not supported on MongoDB.`)}
+${italic('This command is currently not supported on MongoDB.')}
 
 ${helpOptions}
 ${bold('Examples')}
@@ -120,7 +120,7 @@ ${bold('Examples')}
         `--stdin and --file cannot be used at the same time. Only 1 must be provided. 
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
-    } else if (!args['--stdin'] && !args['--file']) {
+    }if (!args['--stdin'] && !args['--file']) {
       throw new Error(
         `Either --stdin or --file must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
@@ -133,7 +133,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         `--url and --schema cannot be used at the same time. Only 1 must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
-    } else if (!args['--url'] && !args['--schema']) {
+    }if (!args['--url'] && !args['--schema']) {
       throw new Error(
         `Either --url or --schema must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
@@ -148,10 +148,9 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       } catch (e) {
         if (e.code === 'ENOENT') {
           throw new Error(`Provided --file at ${args['--file']} doesn't exist.`)
-        } else {
+        }
           console.error(`An error occurred while reading the provided --file at ${args['--file']}`)
           throw e
-        }
       }
     }
     // Read stdin
@@ -193,7 +192,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       migrate.stop()
     }
 
-    return `Script executed successfully.`
+    return 'Script executed successfully.'
   }
 
   public help(error?: string): string | HelpError {

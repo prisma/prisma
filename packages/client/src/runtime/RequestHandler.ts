@@ -1,9 +1,9 @@
-import { Context } from '@opentelemetry/api'
+import type { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
-import {
+import type {
   EngineValidationError,
   InteractiveTransactionOptions,
   JsonQuery,
@@ -16,24 +16,24 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { CustomDataProxyFetch } from './core/engines/common/Engine'
-import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
+import type { CustomDataProxyFetch } from './core/engines/common/Engine'
+import type { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
-import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import type { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
-import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
-import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
-import { Action, JsArgs } from './core/types/exported/JsApi'
+import type { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
+import type { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import type { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
-import { CallSite } from './utils/CallSite'
+import type { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
-import { deserializeRawResult, RawResponse } from './utils/deserializeRawResults'
+import { deserializeRawResult, type RawResponse } from './utils/deserializeRawResults'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -231,16 +231,16 @@ export class RequestHandler {
         meta,
         batchRequestIdx: error.batchRequestIdx,
       })
-    } else if (error.isPanic) {
+    }if (error.isPanic) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
-    } else if (error instanceof PrismaClientUnknownRequestError) {
+    }if (error instanceof PrismaClientUnknownRequestError) {
       throw new PrismaClientUnknownRequestError(message, {
         clientVersion: this.client._clientVersion,
         batchRequestIdx: error.batchRequestIdx,
       })
-    } else if (error instanceof PrismaClientInitializationError) {
+    }if (error instanceof PrismaClientInitializationError) {
       throw new PrismaClientInitializationError(message, this.client._clientVersion)
-    } else if (error instanceof PrismaClientRustPanicError) {
+    }if (error instanceof PrismaClientRustPanicError) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
     }
 
@@ -260,8 +260,8 @@ export class RequestHandler {
     if (!data) {
       return data
     }
-    if (data['data']) {
-      data = data['data']
+    if (data.data) {
+      data = data.data
     }
 
     if (!data) {
@@ -345,8 +345,8 @@ function convertValidationError(error: EngineValidationError): EngineValidationE
     }
   }
 
-  if (Array.isArray(error['selectionPath'])) {
-    const [, ...selectionPath] = error['selectionPath']
+  if (Array.isArray(error.selectionPath)) {
+    const [, ...selectionPath] = error.selectionPath
 
     return {
       ...error,

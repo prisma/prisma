@@ -1,9 +1,9 @@
 // @ts-ignore
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
-import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace

@@ -1,8 +1,8 @@
 import execa from 'execa'
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
-import { DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
+import type { DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'

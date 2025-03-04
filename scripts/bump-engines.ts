@@ -1,7 +1,7 @@
 import arg from 'arg'
 import execa from 'execa'
 import { bold, dim, red, underline } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 const argv = arg({})
 const usage = `
@@ -29,14 +29,14 @@ async function main() {
   // Update `@prisma/query-compiler-wasm` version in all package.json
   await run(path.join(__dirname, '..'), `pnpm update -r @prisma/query-compiler-wasm@${version}`)
 
-  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines dev`)
-  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines postinstall`)
+  await run(path.join(__dirname, '..'), 'pnpm run --filter @prisma/engines dev')
+  await run(path.join(__dirname, '..'), 'pnpm run --filter @prisma/engines postinstall')
 }
 
 void main()
 
 async function run(cwd: string, cmd: string): Promise<void> {
-  console.log(underline('./' + cwd).padEnd(20), bold(cmd))
+  console.log(underline(`./${cwd}`).padEnd(20), bold(cmd))
   try {
     await execa.command(cmd, {
       cwd,

@@ -1,4 +1,4 @@
-import { ESLintUtils, TSESTree } from '@typescript-eslint/utils'
+import { ESLintUtils, type TSESTree } from '@typescript-eslint/utils'
 
 // Add files to this list only if there is no other option.
 // Almost always this should be third-party libraries.

@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker'
 import type { PrismaClient } from '@prisma/client'
 
 import { waitFor } from '../../../_utils/tests/waitFor'
-import { NewPrismaClient } from '../../../_utils/types'
+import type { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -233,10 +233,10 @@ testMatrix.setupTestSuite(
         },
         create: {
           // Because the the where 'name' is 'not' equal to the create 'name'
-          name: name + '1',
+          name: `${name}1`,
         },
         update: {
-          name: name + '1',
+          name: `${name}1`,
         },
       })
 
@@ -252,7 +252,7 @@ testMatrix.setupTestSuite(
           name,
         },
         update: {
-          name: name + '1',
+          name: `${name}1`,
         },
       })
 

@@ -1,8 +1,8 @@
 import { assertNever, mapObjectValues } from '@prisma/internals'
 import Decimal from 'decimal.js'
 
-import { JsonOutputTaggedValue } from '../engines'
-import { JsOutputValue } from '../types/exported/JsApi'
+import type { JsonOutputTaggedValue } from '../engines'
+import type { JsOutputValue } from '../types/exported/JsApi'
 
 export function deserializeJsonResponse(result: unknown): unknown {
   if (result === null) {
@@ -25,7 +25,7 @@ export function deserializeJsonResponse(result: unknown): unknown {
 }
 
 function isTaggedValue(value: unknown): value is JsonOutputTaggedValue {
-  return value !== null && typeof value == 'object' && typeof value['$type'] === 'string'
+  return value !== null && typeof value === 'object' && typeof value.$type === 'string'
 }
 
 function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutputValue {

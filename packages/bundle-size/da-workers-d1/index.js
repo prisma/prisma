@@ -3,7 +3,7 @@ import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaClient } from './client/wasm'
 
 export default {
-  async fetch(request, env) {
+  async fetch(_request, env) {
     const adapter = new PrismaD1(env.MY_DATABASE)
     const prisma = new PrismaClient({ adapter })
 

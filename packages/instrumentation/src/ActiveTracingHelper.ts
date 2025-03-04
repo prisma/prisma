@@ -1,15 +1,15 @@
 import {
-  Attributes,
-  Context,
+  type Attributes,
+  type Context,
   context as _context,
-  Span,
+  type Span,
   SpanKind,
-  SpanOptions,
+  type SpanOptions,
   trace,
-  Tracer,
-  TracerProvider,
+  type Tracer,
+  type TracerProvider,
 } from '@opentelemetry/api'
-import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import type { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -17,7 +17,7 @@ const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
 // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
 // If traceparent ends with -00 this trace will not be sampled
 // the query engine needs the `10` for the span and trace id otherwise it does not parse this
-const nonSampledTraceParent = `00-10-10-00`
+const nonSampledTraceParent = '00-10-10-00'
 
 type Options = {
   traceMiddleware: boolean
@@ -28,7 +28,6 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
   switch (engineSpanKind) {
     case 'client':
       return SpanKind.CLIENT
-    case 'internal':
     default: // Other span kinds aren't currently supported
       return SpanKind.INTERNAL
   }
@@ -158,5 +157,5 @@ function endSpan<T>(span: Span, result: T): T {
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
-  return value != null && typeof value['then'] === 'function'
+  return value != null && typeof value.then === 'function'
 }

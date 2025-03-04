@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 import { GeneratorProcess } from '../GeneratorProcess'
 import type { GeneratorOptions } from '../types'

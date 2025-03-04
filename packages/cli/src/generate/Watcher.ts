@@ -1,4 +1,4 @@
-import chokidar, { FSWatcher } from 'chokidar'
+import chokidar, { type FSWatcher } from 'chokidar'
 
 type Resolve<T> = (value: T) => void
 
@@ -37,7 +37,7 @@ export class Watcher {
       followSymlinks: true,
     })
 
-    this.watcher.on('all', (e, path) => {
+    this.watcher.on('all', (_e, path) => {
       this.changeQueue.push(path)
     })
   }

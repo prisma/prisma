@@ -1,10 +1,10 @@
-import { Error as DriverAdapterError } from '@prisma/driver-adapter-utils'
+import type { Error as DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 export class TransactionManagerError extends Error {
   code = 'P2028'
 
   constructor(message: string, public meta?: Record<string, unknown>) {
-    super('Transaction API error: ' + message)
+    super(`Transaction API error: ${message}`)
   }
 }
 

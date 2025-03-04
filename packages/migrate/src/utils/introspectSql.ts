@@ -1,8 +1,8 @@
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'
-import { EngineArgs } from '../types'
+import type { EngineArgs } from '../types'
 
 const supportedProviders = ['postgresql', 'cockroachdb', 'mysql', 'sqlite']
 

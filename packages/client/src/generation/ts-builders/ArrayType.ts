@@ -1,5 +1,5 @@
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export class ArrayType extends TypeBuilder {
   constructor(private elementType: TypeBuilder) {

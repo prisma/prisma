@@ -18,7 +18,7 @@ function compileFile(filePath) {
 
   if (result.diagnostics.length > 0) {
     const formatted = ts.formatDiagnostics(result.diagnostics, compilerHost)
-    throw new Error('Compilation Error\n' + formatted)
+    throw new Error(`Compilation Error\n${formatted}`)
   }
 }
 

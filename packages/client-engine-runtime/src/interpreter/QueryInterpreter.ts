@@ -1,9 +1,9 @@
-import { ErrorCapturingSqlQueryable, SqlQuery } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlQueryable, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import { QueryEvent } from '../events'
-import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import type { QueryEvent } from '../events'
+import type { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { renderQuery } from './renderQuery'
-import { PrismaObject, ScopeBindings, Value } from './scope'
+import type { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serialize'
 
 export type QueryInterpreterOptions = {
@@ -74,9 +74,8 @@ export class QueryInterpreter {
           const result = await this.#queryable.executeRaw(query)
           if (result.ok) {
             return result.value
-          } else {
-            throw result.error
           }
+            throw result.error
         })
       }
 
@@ -86,9 +85,8 @@ export class QueryInterpreter {
           const result = await this.#queryable.queryRaw(query)
           if (result.ok) {
             return serialize(result.value)
-          } else {
-            throw result.error
           }
+            throw result.error
         })
       }
 
@@ -222,10 +220,9 @@ function attachChildrenToParent(parentRecord: PrismaObject, children: JoinExpres
 function filterChildRecords(records: Value, parentRecord: PrismaObject, joinExpr: JoinExpression) {
   if (Array.isArray(records)) {
     return records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
-  } else {
+  }
     const record = asRecord(records)
     return childRecordMatchesParent(record, parentRecord, joinExpr) ? record : null
-  }
 }
 
 function childRecordMatchesParent(

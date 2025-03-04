@@ -1,4 +1,4 @@
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -6,7 +6,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta, { dataProxy }) => {
+  ({ provider }, _suiteMeta, { dataProxy }) => {
     testIf(dataProxy === false)('using accelerate without --no-engine produces a warning at runtime', () => {
       process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
       const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()

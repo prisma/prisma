@@ -1,34 +1,34 @@
 import {
-  QueryEvent,
+  type QueryEvent,
   QueryInterpreter,
-  QueryPlanNode,
-  TransactionInfo,
+  type QueryPlanNode,
+  type TransactionInfo,
   TransactionManager,
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
 import Debug from '@prisma/debug'
-import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
-import { assertNever, TracingHelper } from '@prisma/internals'
+import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import { assertNever, type TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
-import { Engine } from '../common/Engine'
-import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import {
+import type { Engine } from '../common/Engine'
+import type { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
+import type { JsonQuery } from '../common/types/JsonProtocol'
+import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type {
   QueryEngineLogLevel,
   QueryEngineResultData,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { InteractiveTransactionInfo } from '../common/types/Transaction'
+import type { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
-import { QueryCompiler, QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
+import type { QueryCompiler, QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
 const CLIENT_ENGINE_ERROR = 'P2038'
@@ -72,10 +72,9 @@ export class ClientEngine implements Engine<undefined> {
         config.clientVersion!,
         CLIENT_ENGINE_ERROR,
       )
-    } else {
+    }
       this.driverAdapter = adapter
       debug('Using driver adapter: %O', adapter)
-    }
 
     if (TARGET_BUILD_TYPE === 'client') {
       this.queryCompilerLoader = queryCompilerLoader ?? wasmQueryCompilerLoader
@@ -147,7 +146,7 @@ export class ClientEngine implements Engine<undefined> {
     try {
       const error: SyncRustError = JSON.parse(err.message)
       return new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-    } catch (e) {
+    } catch (_e) {
       return err
     }
   }
@@ -171,7 +170,7 @@ export class ClientEngine implements Engine<undefined> {
       return new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
         clientVersion: this.config.clientVersion!,
       })
-    } catch (e) {
+    } catch (_e) {
       return err
     }
   }
@@ -242,7 +241,7 @@ export class ClientEngine implements Engine<undefined> {
     // TODO: support traceparent
     { traceparent: _traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T }> {
-    debug(`sending request`)
+    debug('sending request')
     const queryStr = JSON.stringify(query)
     this.lastStartedQuery = queryStr
 
@@ -252,7 +251,7 @@ export class ClientEngine implements Engine<undefined> {
       const queryPlanString = await this.queryCompiler!.compile(queryStr)
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
-      debug(`query plan created`, queryPlanString)
+      debug('query plan created', queryPlanString)
 
       const queryable = interactiveTransaction
         ? this.transactionManager.getTransaction(interactiveTransaction, query.action)
@@ -267,7 +266,7 @@ export class ClientEngine implements Engine<undefined> {
       })
       const result = await interpreter.run(queryPlan)
 
-      debug(`query plan executed`)
+      debug('query plan executed')
 
       return { data: { [query.action]: result } as T }
     } catch (e: any) {

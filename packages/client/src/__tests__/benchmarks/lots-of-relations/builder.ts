@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 
 const MODELS_COUNT = 100
 const fieldsCount = 5
@@ -6,7 +6,7 @@ const fieldsCount = 5
 // can be used to generate schema for this benchmark
 // generated schema needs `format` pass to be valid
 async function main() {
-  const models = Array.from({ length: MODELS_COUNT }).map((v, i) => `Model${i}`)
+  const models = Array.from({ length: MODELS_COUNT }).map((_v, i) => `Model${i}`)
   const modelsStr = models
     .map((modelName, currentModelIdx) => {
       const fields = ['id Int @id']

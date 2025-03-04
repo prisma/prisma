@@ -1,9 +1,9 @@
-import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
+import { defaultTestConfig, type PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import * as miniProxy from '@prisma/mini-proxy'
-import fs from 'fs'
+import fs from 'node:fs'
 import fetch from 'node-fetch'
-import path from 'path'
+import path from 'node:path'
 import rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
@@ -86,7 +86,7 @@ describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY
       ctx.fixture('schema-only-data-proxy')
 
       await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'], defaultTestConfig())
-      delete process.env.DATABASE_URL
+      process.env.DATABASE_URL = undefined
 
       const studio = Studio.new()
       const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], defaultTestConfig())

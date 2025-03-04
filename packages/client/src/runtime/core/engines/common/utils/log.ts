@@ -1,4 +1,4 @@
-import { PrismaClientRustError } from '../../../errors/PrismaClientRustError'
+import type { PrismaClientRustError } from '../../../errors/PrismaClientRustError'
 
 export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
 export interface RawRustLog {
@@ -18,9 +18,8 @@ export interface RustLog {
 export function getMessage(log: string | PrismaClientRustError): string {
   if (typeof log === 'string') {
     return log
-  } else {
-    return log.message
   }
+    return log.message
 }
 
 export function getBacktrace(log: RustLog): string {

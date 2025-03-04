@@ -1,10 +1,10 @@
 import { enginesVersion } from '@prisma/engines-version'
-import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { type BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
-import fs from 'fs'
+import fs from 'node:fs'
 import type { Response } from 'node-fetch'
 import { default as _mockFetch } from 'node-fetch'
-import path from 'path'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 import timeoutSignal from 'timeout-signal'
 
@@ -587,7 +587,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     afterEach(() => {
-      delete process.env.PRISMA_QUERY_ENGINE_BINARY
+      process.env.PRISMA_QUERY_ENGINE_BINARY = undefined
     })
 
     test('handle nonexistent "binaryTarget"', async () => {
@@ -645,7 +645,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         version: CURRENT_ENGINES_HASH,
         binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       })
-      expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
+      expect(testResult['query-engine']!.marvin).toEqual(targetPath)
     })
   })
 
@@ -726,7 +726,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
-      ).rejects.toThrow(`The operation was aborted.`)
+      ).rejects.toThrow('The operation was aborted.')
 
       // Because we try to fetch 2 different checksum files
       // And there are 2 retries for the checksums
@@ -752,7 +752,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
-      ).rejects.toThrow(`The operation was aborted.`)
+      ).rejects.toThrow('The operation was aborted.')
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
       // And there are 2 retries for the binary
@@ -767,7 +767,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     afterAll(() => {
-      delete process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING
+      process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = undefined
     })
 
     beforeEach(async () => {
@@ -809,7 +809,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
             status: 200,
             statusText: 'OK',
             text: () =>
-              Promise.resolve(`1deadbeef2deadbeef3deadbeef4deadbeef5deadbeef6deadbeef7deadbeef8  query-engine.gz\n`),
+              Promise.resolve('1deadbeef2deadbeef3deadbeef4deadbeef5deadbeef6deadbeef7deadbeef8  query-engine.gz\n'),
           } as Response)
         }
         return actualFetch(url, opts)

@@ -5,13 +5,11 @@ export function getCommandWithExecutor(command: string): string {
   if (isCurrentBinInstalledGlobally()) {
     // do nothing!
     return command
-  } else {
+  }
     // When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
     const npxUsed = __dirname.includes('_npx')
     if (npxUsed) {
       return `npx ${command}`
-    } else {
-      return command
     }
-  }
+      return command
 }

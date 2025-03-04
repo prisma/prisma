@@ -4,11 +4,11 @@ import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from './client/wasm'
 
 export default {
-  async fetch(request, env) {
+  async fetch(_request, env) {
     const client = new Client({
       url: env.DATABASE_URL,
       fetch(url, init) {
-        delete init['cache']
+        init.cache = undefined
         return fetch(url, init)
       },
     })

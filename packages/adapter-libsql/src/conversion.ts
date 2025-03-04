@@ -1,5 +1,5 @@
-import { Row, Value } from '@libsql/client'
-import { ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
+import type { Row, Value } from '@libsql/client'
+import { type ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:libsql:conversion')
 
@@ -164,7 +164,6 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
     // Convert bigint to string as we can only use JSON-encodable types here.
     if (typeof value === 'bigint') {
       result[i] = value.toString()
-      continue
     }
   }
 

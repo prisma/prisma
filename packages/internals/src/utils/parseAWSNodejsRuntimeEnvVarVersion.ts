@@ -6,9 +6,9 @@ export function parseAWSNodejsRuntimeEnvVarVersion() {
     const runtimeRegex = /^nodejs(\d+).x$/
     const match = runtimeRegex.exec(runtimeEnvVar)
     if (match) {
-      return parseInt(match[1])
+      return Number.parseInt(match[1])
     }
-  } catch (e) {
+  } catch (_e) {
     console.error(
       `We could not parse the AWS_LAMBDA_JS_RUNTIME env var with the following value: ${runtimeEnvVar}. This was silently ignored.`,
     )

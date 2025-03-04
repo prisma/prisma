@@ -3,5 +3,5 @@ export interface ErrorWithBatchIndex {
 }
 
 export function hasBatchIndex(value: object): value is Required<ErrorWithBatchIndex> {
-  return typeof value['batchRequestIdx'] === 'number'
+  return typeof value.batchRequestIdx === 'number'
 }

@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 import sql from 'sql-template-tag'
 
 import { getTestClient } from '../../../../utils/getTestClient'
@@ -40,7 +40,7 @@ test('executeRaw-alter-postgres', async () => {
     `)
   }
   try {
-    await prisma.$executeRawUnsafe(`ALTER USER prisma WITH PASSWORD $1`, password)
+    await prisma.$executeRawUnsafe('ALTER USER prisma WITH PASSWORD $1', password)
   } catch (err) {
     // String
     expect(err).toMatchInlineSnapshot(`
@@ -72,5 +72,5 @@ test('executeRaw-alter-postgres', async () => {
 
   // Should Work
   const result = await prisma.$executeRawUnsafe(`ALTER USER prisma WITH PASSWORD '${password}'`)
-  expect(result).toMatchInlineSnapshot(`0`)
+  expect(result).toMatchInlineSnapshot('0')
 })

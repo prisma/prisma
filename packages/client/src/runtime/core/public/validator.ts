@@ -1,5 +1,5 @@
-import { Args, Operation } from '../types/exported/Public'
-import { Exact } from '../types/exported/Utils'
+import type { Args, Operation } from '../types/exported/Public'
+import type { Exact } from '../types/exported/Utils'
 
 export function validator<V>(): <S>(select: Exact<S, V>) => S
 export function validator<C, M extends Exclude<keyof C, `$${string}`>, O extends keyof C[M] & Operation>(

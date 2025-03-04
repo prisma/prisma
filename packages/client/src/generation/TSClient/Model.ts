@@ -35,7 +35,7 @@ import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
@@ -302,7 +302,7 @@ ${indent(
       aggregateType.fields.map((f) => {
         let data = ''
         const comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, f.name)
-        data += comment ? wrapComment(comment) + '\n' : ''
+        data += comment ? `${wrapComment(comment)}\n` : ''
         if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
@@ -335,7 +335,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       .moduleExport(
         ts.typeDeclaration(
           model.name,
-          ts.namedType(`$Result.DefaultSelection`).addGenericArgument(ts.namedType(getPayloadName(model.name))),
+          ts.namedType('$Result.DefaultSelection').addGenericArgument(ts.namedType(getPayloadName(model.name))),
         ),
       )
       .setDocComment(ts.docComment(docs))

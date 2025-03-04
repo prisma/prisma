@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 
 import type { Client } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
@@ -13,9 +13,9 @@ import {
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
-import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { type DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
-import { ClientMeta, CliMeta, MatrixOptions } from './types'
+import type { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
@@ -93,7 +93,7 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
 
-        globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
+        globalThis.datasourceInfo = datasourceInfo // keep it here before anything runs
 
         // If using D1 Driver adapter
         // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
@@ -119,7 +119,7 @@ function setupTestSuiteMatrix(
           cfWorkerBindings,
         })
 
-        globalThis['loaded'] = clientModule
+        globalThis.loaded = clientModule
 
         const newDriverAdapter = () =>
           setupTestSuiteClientDriverAdapter({
@@ -129,27 +129,27 @@ function setupTestSuiteMatrix(
             cfWorkerBindings,
           })
 
-        globalThis['newPrismaClient'] = (args: any) => {
+        globalThis.newPrismaClient = (args: any) => {
           const { PrismaClient, Prisma } = clientModule
 
           const options = { ...newDriverAdapter(), ...args }
           const client = new PrismaClient(options)
 
-          globalThis['Prisma'] = Prisma
+          globalThis.Prisma = Prisma
           clients.push(client)
 
           return client as Client
         }
 
         if (!options?.skipDefaultClientInstance) {
-          globalThis['prisma'] = globalThis['newPrismaClient']() as Client
+          globalThis.prisma = globalThis.newPrismaClient() as Client
         }
 
-        globalThis['Prisma'] = clientModule['Prisma']
+        globalThis.Prisma = clientModule.Prisma
 
-        globalThis['sql'] = sqlModule
+        globalThis.sql = sqlModule
 
-        globalThis['db'] = {
+        globalThis.db = {
           setupDb: () =>
             setupTestSuiteDatabase({
               suiteMeta,
@@ -194,7 +194,7 @@ function setupTestSuiteMatrix(
           if (clientMeta.dataProxy) {
             await stopMiniProxyQueryEngine({
               client: client as Client,
-              datasourceInfo: globalThis['datasourceInfo'] as DatasourceInfo,
+              datasourceInfo: globalThis.datasourceInfo as DatasourceInfo,
             })
           }
         }
@@ -202,18 +202,18 @@ function setupTestSuiteMatrix(
         // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
         // CI=true always skip to save time
         if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
-          const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
+          const datasourceInfo = globalThis.datasourceInfo as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings })
         }
         process.env = originalEnv
-        delete globalThis['datasourceInfo']
-        delete globalThis['loaded']
-        delete globalThis['prisma']
-        delete globalThis['Prisma']
-        delete globalThis['sql']
-        delete globalThis['newPrismaClient']
+        globalThis.datasourceInfo = undefined
+        globalThis.loaded = undefined
+        globalThis.prisma = undefined
+        globalThis.Prisma = undefined
+        globalThis.sql = undefined
+        globalThis.newPrismaClient = undefined
       }, 180_000)
 
       if (originalEnv.TEST_GENERATE_ONLY === 'true') {

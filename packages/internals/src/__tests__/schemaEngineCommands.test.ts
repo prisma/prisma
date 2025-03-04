@@ -87,7 +87,7 @@ describe('createDatabase', () => {
     const uriFromCredentials = credentialsToUri(credentials)
     try {
       await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
+    } catch (_e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
   })
 
@@ -115,7 +115,7 @@ describe('createDatabase', () => {
     const uriFromCredentials = credentialsToUri(credentials)
     try {
       await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
+    } catch (_e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
   })
 
@@ -127,7 +127,7 @@ describe('createDatabase', () => {
 
     try {
       await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
+    } catch (_e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
   })
@@ -139,7 +139,7 @@ describe('createDatabase', () => {
     const connectionString = process.env.TEST_MSSQL_JDBC_URI.replace(/database=(.*?);/, 'database=can-create-a-db;')
     try {
       await dropDatabase(connectionString, __dirname)
-    } catch (e) {}
+    } catch (_e) {}
     await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(true)
   })
 

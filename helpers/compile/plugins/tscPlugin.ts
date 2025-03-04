@@ -1,7 +1,7 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 import type * as esbuild from 'esbuild'
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 
 import { run } from '../run'
 
@@ -56,7 +56,7 @@ function bundleTypeDefinitions(filename: string, outfile: string, externals: str
 
   // we exit the process immediately if there were errors
   if (extractorResult.succeeded === false) {
-    console.error(`API Extractor completed with errors`)
+    console.error('API Extractor completed with errors')
     process.exit(1)
   }
 }
@@ -121,7 +121,6 @@ function getTypeDependencyPackageName(npmPackage: string) {
     const [scope, name] = npmPackage.split('/')
 
     return `@types/${scope.slice(1)}__${name}`
-  } else {
-    return `@types/${npmPackage}`
   }
+    return `@types/${npmPackage}`
 }

@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import { PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
+import { PRISMA_POSTGRES_PROTOCOL, type TracingHelper } from '@prisma/internals'
 
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
+import type { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
@@ -13,17 +13,17 @@ import type {
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
-import { Engine } from '../common/Engine'
+import type { Engine } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import {
+import type { JsonQuery } from '../common/types/JsonProtocol'
+import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type {
   QueryEngineBatchResult,
   QueryEngineResult,
   QueryEngineResultData,
   QueryEngineResultExtensions,
 } from '../common/types/QueryEngine'
-import { RequestError } from '../common/types/RequestError'
+import type { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { DataProxyError } from './errors/DataProxyError'
@@ -305,13 +305,12 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
           target: '',
         })
         throw error
-      } else {
+      }
         this.logEmitter.emit('info', {
           message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
           timestamp: new Date(),
           target: '',
         })
-      }
     })
   }
 
@@ -469,7 +468,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
           const endpoint = result['data-proxy'].endpoint as string
 
           return { id, payload: { endpoint } }
-        } else {
+        }
           const url = `${arg.payload.endpoint}/${action}`
 
           logHttpCall(url)
@@ -490,7 +489,6 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
           }
 
           return undefined
-        }
       },
     })
   }
@@ -564,9 +562,8 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         if (attempt >= MAX_RETRIES) {
           if (e instanceof ForcedRetryError) {
             throw e.cause
-          } else {
-            throw e
           }
+            throw e
         }
 
         this.logEmitter.emit('warn', {
@@ -593,7 +590,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         clientVersion: this.clientVersion,
         cause: error,
       })
-    } else if (error) {
+    }if (error) {
       throw error
     }
   }
@@ -604,11 +601,10 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     // TODO: handle Rust panics and driver adapter errors correctly. See `LibraryEngine#buildQueryError`.
     if (errors.length === 1) {
       return prismaGraphQLToJSError(errors[0], this.config.clientVersion, this.config.activeProvider!)
-    } else {
+    }
       return new PrismaClientUnknownRequestError(JSON.stringify(errors), {
         clientVersion: this.config.clientVersion,
       })
-    }
   }
 
   applyPendingMigrations(): Promise<void> {

@@ -1,6 +1,6 @@
 import { printGeneratorConfig } from '@prisma/internals'
 
-import { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
+import type { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
 
 export function addRuntimeToYourBinaryTargets(input: EngineNotFoundErrorInput) {
   const { runtimeBinaryTarget } = input

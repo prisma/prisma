@@ -1,7 +1,7 @@
 import { formatTable, mapObjectValues } from '@prisma/internals'
 import { bold, dim, green, white } from 'kleur/colors'
 
-import { id, Mapped, NoInfer } from './prelude'
+import { id, type Mapped, type NoInfer } from './prelude'
 
 interface Resource {
   __typename: string

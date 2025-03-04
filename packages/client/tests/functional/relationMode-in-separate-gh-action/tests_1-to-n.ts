@@ -48,7 +48,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
 }
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig, _suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       .with('driverAdapter', suiteConfig.driverAdapter)
@@ -80,7 +80,7 @@ testMatrix.setupTestSuite(
       const postModel = 'postOneToMany'
       const postOptionalModel = 'postOptionalOneToMany'
       const postColumn = 'posts'
-      const postOptionalColumn = 'postsOptional'
+      const _postOptionalColumn = 'postsOptional'
 
       beforeEach(async () => {
         await prisma.$transaction([
@@ -131,7 +131,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated`
+                  'Foreign key constraint violated'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_authorId_fkey (index)`',
@@ -524,7 +524,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  ` constraint `
+                  ' constraint '
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.MONGODB]:
@@ -613,7 +613,7 @@ testMatrix.setupTestSuite(
           },
         )
 
-        describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
+        describeIf(['NoAction'].includes(onDelete))('onDelete: NoAction', () => {
           const expectedError = isSchemaUsingMap
             ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
               // So we can ignore the error message

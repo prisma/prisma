@@ -1,9 +1,9 @@
-import { GenericParameter } from './GenericParameter'
-import { Method } from './Method'
-import { NamedType } from './NamedType'
-import { Property } from './Property'
+import type { GenericParameter } from './GenericParameter'
+import type { Method } from './Method'
+import type { NamedType } from './NamedType'
+import type { Property } from './Property'
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 type ClassItem = Method | Property
 

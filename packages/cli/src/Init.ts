@@ -5,7 +5,7 @@ import {
   arg,
   canConnectToDatabase,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -17,10 +17,10 @@ import {
   protocolToConnectorType,
 } from '@prisma/internals'
 import dotenv from 'dotenv'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import ora from 'ora'
-import path from 'path'
+import path from 'node:path'
 import { match, P } from 'ts-pattern'
 
 import { poll, printPpgInitOutput } from './platform/_'
@@ -58,7 +58,7 @@ ${
   previewFeatures.length > 0
     ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
     : ''
-}${output != defaultOutput ? `  output = "${output}"\n` : ''}}
+}${output !== defaultOutput ? `  output = "${output}"\n` : ''}}
 
 datasource db {
   provider = "${datasourceProvider}"
@@ -150,7 +150,7 @@ export const defaultURL = (
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
-      return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
+      return 'mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority'
     case 'sqlite':
       return 'file:./dev.db'
     default:
@@ -296,9 +296,8 @@ export class Init implements Command {
             if (code !== 'P1003') {
               if (code) {
                 throw new Error(`${code}: ${message}`)
-              } else {
-                throw new Error(message)
               }
+                throw new Error(message)
             }
           }
 
@@ -319,15 +318,15 @@ export class Init implements Command {
     const isPpgCommand = args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER
 
     let prismaPostgresDatabaseUrl: string | undefined
-    let workspaceId = ``
-    let projectId = ``
-    let environmentId = ``
+    let workspaceId = ''
+    let projectId = ''
+    let environmentId = ''
 
     const outputDir = process.cwd()
     const prismaFolder = path.join(outputDir, 'prisma')
 
     if (isPpgCommand) {
-      const PlatformCommands = await import(`./platform/_`)
+      const PlatformCommands = await import('./platform/_')
 
       const credentials = await credentialsFile.load()
       if (isError(credentials)) throw credentials
@@ -376,7 +375,7 @@ export class Init implements Command {
           ppgRegion: ppgRegionSelection,
         })
 
-        spinner.text = `Waiting for your Prisma Postgres database to be ready...`
+        spinner.text = 'Waiting for your Prisma Postgres database to be ready...'
 
         workspaceId = defaultWorkspace.id
         projectId = project.id
@@ -397,7 +396,7 @@ export class Init implements Command {
         const serviceToken = await PlatformCommands.ServiceToken.createOrThrow({
           token: platformToken,
           environmentId: project.defaultEnvironment.id,
-          displayName: `database-setup-prismaPostgres-api-key`,
+          displayName: 'database-setup-prismaPostgres-api-key',
         })
 
         prismaPostgresDatabaseUrl = `${PRISMA_POSTGRES_PROTOCOL}//accelerate.prisma-data.net/?api_key=${serviceToken.value}`
@@ -490,7 +489,7 @@ export class Init implements Command {
           )}`,
         )
       } else {
-        fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(databaseUrl))
+        fs.appendFileSync(envPath, `\n\n# This was inserted by \`prisma init\`:\n${defaultEnv(databaseUrl)}`)
       }
     }
 
@@ -512,7 +511,7 @@ export class Init implements Command {
     const steps: string[] = []
 
     if (datasourceProvider === 'mongodb') {
-      steps.push(`Define models in the schema.prisma file.`)
+      steps.push('Define models in the schema.prisma file.')
     } else {
       steps.push(
         `Run ${green(getCommandWithExecutor('prisma db pull'))} to turn your database schema into a Prisma schema.`,
@@ -568,7 +567,7 @@ ${link('https://pris.ly/d/getting-started')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Init.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Init.help}`)
     }
     return Init.help
   }

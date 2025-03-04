@@ -1,14 +1,14 @@
 import { faker } from '@faker-js/faker'
-import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
+import { type Attributes, context, SpanKind, trace } from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
   BasicTracerProvider,
   InMemorySpanExporter,
-  ReadableSpan,
+  type ReadableSpan,
   SimpleSpanProcessor,
-  SpanProcessor,
+  type SpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
 import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
@@ -16,7 +16,7 @@ import { ClientEngineType } from '@prisma/internals'
 
 import { Providers, RelationModes } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -119,9 +119,9 @@ testMatrix.setupTestSuite(
     }
 
     enum AdapterQueryChildSpans {
-      ArgsAndResult,
-      ArgsOnly,
-      None,
+      ArgsAndResult = 0,
+      ArgsOnly = 1,
+      None = 2,
     }
 
     function dbQuery(statement: string, driverAdapterChildSpans = AdapterQueryChildSpans.ArgsAndResult): Tree {
@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        span['children'] = children
+        span.children = children
       }
 
       return span
@@ -179,33 +179,29 @@ testMatrix.setupTestSuite(
     function txSetIsolationLevel() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "SET TRANSACTION" query via underlying driver', AdapterQueryChildSpans.None)
-      } else {
-        return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
       }
+        return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txBegin() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
-      } else {
-        return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
       }
+        return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txCommit() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
-      } else {
-        return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
       }
+        return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txRollback() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "ROLLBACK" query via underlying driver', AdapterQueryChildSpans.None)
-      } else {
-        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
       }
+        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
     }
 
     function operation(model: string | undefined, method: string, children: Tree[]) {

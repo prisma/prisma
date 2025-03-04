@@ -3,8 +3,8 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 /**
  * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as
  * normally the downloading of the required engine is done in `getGenerators`. As the test

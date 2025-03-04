@@ -1,4 +1,4 @@
-import { PrismaPromise } from './Public'
+import type { PrismaPromise } from './Public'
 
 export type EmptyToUnknown<T> = T
 

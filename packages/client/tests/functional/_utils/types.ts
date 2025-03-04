@@ -1,8 +1,8 @@
-import { ClientEngineType } from '@prisma/internals'
+import type { ClientEngineType } from '@prisma/internals'
 
-import { TestsFactoryFnParams } from './defineMatrix'
-import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { AdapterProviders, Providers } from './providers'
+import type { TestsFactoryFnParams } from './defineMatrix'
+import type { TestSuiteMatrix } from './getTestSuiteInfo'
+import type { AdapterProviders, Providers } from './providers'
 
 export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   optOut?: {

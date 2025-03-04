@@ -1,8 +1,8 @@
 import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
-import execa, { ExecaChildProcess } from 'execa'
-import fs from 'fs'
-import path from 'path'
+import execa, { type ExecaChildProcess } from 'execa'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
@@ -124,7 +124,7 @@ const args = arg(
   true,
 )
 
-async function main(): Promise<number | void> {
+async function main(): Promise<number | undefined> {
   let miniProxyProcess: ExecaChildProcess | undefined
 
   const jestCliBase = new JestCli(['--config', 'tests/functional/jest.config.js'])
@@ -247,13 +247,13 @@ async function main(): Promise<number | void> {
     if (args['--updateSnapshot']) {
       const snapshotUpdate = jestCli
         .withArgs(['-u'])
-        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+        .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args._])
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
         jestCli
-          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args['_']])
+          .withArgs(['--testPathIgnorePatterns', 'typescript', '--', args._])
           .withEnv({ TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false' })
           .run()
       }

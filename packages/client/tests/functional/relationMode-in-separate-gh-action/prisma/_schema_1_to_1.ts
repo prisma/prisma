@@ -1,5 +1,5 @@
 import { Providers } from '../../_utils/providers'
-import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
+import type { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
 export function schema_1to1({
   id,
@@ -48,7 +48,7 @@ model ProfileOptionalOneToOne {
   @@map("ProfileOptionalOneToOne_AtAtMap")
 }
 `
-  } else {
+  }
     return /* Prisma */ `
 //
 // 1:1 relation
@@ -76,5 +76,4 @@ model ProfileOptionalOneToOne {
   enabled         Boolean?
 }
 `
-  }
 }

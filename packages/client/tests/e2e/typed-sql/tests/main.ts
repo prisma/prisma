@@ -18,5 +18,3 @@ test('basic functionality', async () => {
 ]
 `)
 })
-
-export {}

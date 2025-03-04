@@ -25,7 +25,7 @@ describe('seed', () => {
     ctx.fixture('seed-sqlite-js')
 
     const result = DbSeed.new().parse([], defaultTestConfig())
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    await expect(result).resolves.toContain('The seed command has been executed.')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
       "
@@ -41,7 +41,7 @@ describe('seed', () => {
       ['--', '--my-custom-arg-from-cli-1', 'my-value', '--my-custom-arg-from-cli-2=my-value', '-z'],
       defaultTestConfig(),
     )
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    await expect(result).resolves.toContain('The seed command has been executed.')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...
       "
@@ -65,7 +65,7 @@ describe('seed', () => {
 
   it('one broken seed.js file', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     ctx.fixture('seed-sqlite-js')
@@ -85,7 +85,7 @@ describe('seed', () => {
     ctx.fixture('seed-sqlite-ts')
 
     const result = DbSeed.new().parse([], defaultTestConfig())
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    await expect(result).resolves.toContain('The seed command has been executed.')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Running seed command \`ts-node prisma/seed.ts\` ...
       "
@@ -100,7 +100,7 @@ describe('seed', () => {
     await execa.command('npm i')
 
     const result = DbSeed.new().parse([], defaultTestConfig())
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    await expect(result).resolves.toContain('The seed command has been executed.')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...
       "
@@ -114,7 +114,7 @@ describe('seed', () => {
     ctx.fixture('seed-sqlite-sh')
 
     const result = DbSeed.new().parse([], defaultTestConfig())
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    await expect(result).resolves.toContain('The seed command has been executed.')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Running seed command \`./prisma/seed.sh\` ...
       "

@@ -1,6 +1,6 @@
 import pluralize from 'pluralize'
 
-import { DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import { capitalize, lowerCase } from '../utils/common'
 import type { JSDocMethodBodyCtx } from './jsdoc'
 import { JSDocs } from './jsdoc'
@@ -27,7 +27,7 @@ export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapp
 export function wrapComment(str: string): string {
   return `/**\n${str
     .split('\n')
-    .map((l) => ' * ' + l)
+    .map((l) => ` * ${l}`)
     .join('\n')}\n**/`
 }
 export function getArgFieldJSDoc(
@@ -37,7 +37,7 @@ export function getArgFieldJSDoc(
 ): string | undefined {
   if (!field || !action || !type) return
   const fieldName = typeof field === 'string' ? field : field.name
-  if (JSDocs[action] && JSDocs[action]?.fields[fieldName]) {
+  if (JSDocs[action]?.fields[fieldName]) {
     const singular = type.name
     const plural = pluralize(type.name)
     const comment = JSDocs[action]?.fields[fieldName](singular, plural)

@@ -4,7 +4,7 @@ import {
   arg,
   canPrompt,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getCommandWithExecutor,
   getConfig,
@@ -117,7 +117,7 @@ ${bold('Examples')}
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
-      process.stdout.write(wasDbCreated + '\n\n')
+      process.stdout.write(`${wasDbCreated}\n\n`)
     }
 
     const migrate = new Migrate(schemaPath)
@@ -140,9 +140,7 @@ ${bold('Examples')}
       })
 
       process.stdout.write(
-        '\n' +
-          `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
-          `${bold(red('All data will be lost.'))}\n`,
+        `\nYou may use ${red('prisma migrate reset')} to drop the development database.\n${bold(red('All data will be lost.'))}\n`,
       )
       migrate.stop()
       // Return SIGINT exit code to signal that the process was cancelled.
@@ -192,7 +190,7 @@ ${bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
-      process.stdout.write(bold(`\n⚠️  Warnings for the current datasource:\n\n`))
+      process.stdout.write(bold('\n⚠️  Warnings for the current datasource:\n\n'))
       for (const warning of evaluateDataLossResult.warnings) {
         process.stdout.write(`  • ${warning.message}\n`)
       }
@@ -227,7 +225,7 @@ ${bold('Examples')}
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
-        process.stdout.write(getMigrationNameResult.userCancelled + '\n')
+        process.stdout.write(`${getMigrationNameResult.userCancelled}\n`)
         migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
@@ -241,7 +239,7 @@ ${bold('Examples')}
       const createMigrationResult = await migrate.createMigration({
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
-        draft: args['--create-only'] ? true : false,
+        draft: !!args['--create-only'],
         schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
       })
       debug({ createMigrationResult })
@@ -268,7 +266,7 @@ ${bold('Examples')}
       if (migrationIdsApplied.length > 0) {
         process.stdout.write(`${green('Your database is now in sync with your schema.')}\n`)
       } else {
-        process.stdout.write(`Already in sync, no schema change or pending migration was found.\n`)
+        process.stdout.write('Already in sync, no schema change or pending migration was found.\n')
       }
     } else {
       process.stdout.write(
@@ -322,7 +320,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
   private logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
     // Log the reason of why a reset is needed to the user
-    process.stdout.write(reason + '\n')
+    process.stdout.write(`${reason}\n`)
 
     let message: string
 
@@ -332,7 +330,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
       } else if (datasourceInfo.schema) {
         message = `We need to reset the "${datasourceInfo.schema}" schema`
       } else {
-        message = `We need to reset the database schema`
+        message = 'We need to reset the database schema'
       }
     } else {
       message = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
@@ -347,7 +345,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDev.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateDev.help}`)
     }
     return MigrateDev.help
   }

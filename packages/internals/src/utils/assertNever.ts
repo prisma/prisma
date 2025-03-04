@@ -24,6 +24,6 @@
  * @param errorMessage error message to throw in runtime. Normally, should never happen
  * unless compile-time check is skipped
  */
-export function assertNever(arg: never, errorMessage: string): never {
+export function assertNever(_arg: never, errorMessage: string): never {
   throw new Error(errorMessage)
 }

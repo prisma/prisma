@@ -4,7 +4,7 @@
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
-import path from 'path'
+import path from 'node:path'
 import prompt from 'prompts'
 
 import { DbExecute } from '../commands/DbExecute'
@@ -349,7 +349,7 @@ describe('sqlite', () => {
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -387,7 +387,7 @@ describe('sqlite', () => {
       You can now edit it and apply it by running prisma migrate dev."
     `)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
@@ -413,7 +413,7 @@ describe('sqlite', () => {
     const applyResult = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -440,7 +440,7 @@ describe('sqlite', () => {
   it('transition-db-push-migrate (refuses to reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateDev.new().parse([], defaultTestConfig())
@@ -751,7 +751,7 @@ describe('sqlite', () => {
   it('existingdb: 1 warning from schema change (prompt no)', async () => {
     ctx.fixture('existing-db-1-warning')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject([new Error()])
@@ -837,7 +837,7 @@ describe('sqlite', () => {
     ctx.fixture('seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject(['y'])
@@ -866,7 +866,7 @@ describe('sqlite', () => {
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('')).toContain(
-      `An error occurred while running the seed command:`,
+      'An error occurred while running the seed command:',
     )
     expect(mockExit).toHaveBeenCalledWith(1)
   })
@@ -1088,7 +1088,7 @@ describe('postgresql', () => {
     const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
@@ -1161,10 +1161,10 @@ describe('postgresql', () => {
   // 0: migration_core::state::ApplyMigrations
   // at schema-engine/core/src/state.rs:199
   // Probably needs to run on an isolated db (currently in a git stash)
-  it.skip('need to reset prompt: (no) should succeed', async () => {
+  it('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     await fs.writeAsync(
@@ -1182,7 +1182,7 @@ describe('postgresql', () => {
       ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
       defaultTestConfig(),
     )
-    await expect(dbExecuteResult).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    await expect(dbExecuteResult).resolves.toMatchInlineSnapshot('Script executed successfully.')
 
     prompt.inject(['test', new Error()]) // simulate user cancellation
     // prompt.inject(['y']) // simulate user cancellation
@@ -1410,7 +1410,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
@@ -1617,7 +1617,7 @@ describe('mysql', () => {
     const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
@@ -1829,7 +1829,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     const applyResult = MigrateDev.new().parse([], defaultTestConfig())
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
-    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
+    expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot('true')
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database

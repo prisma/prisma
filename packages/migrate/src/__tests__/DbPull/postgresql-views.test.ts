@@ -3,11 +3,11 @@
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getSchema, pathToPosix, toSchemasContainer } from '@prisma/internals'
-import path from 'path'
+import path from 'node:path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SchemaEngine } from '../../SchemaEngine'
-import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
+import { runQueryPostgres, type SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -427,7 +427,7 @@ describe('postgresql-views', () => {
 
       await ctx.fs.dirAsync('views')
       const initialList = await ctx.fs.listAsync('views')
-      expect(initialList).toMatchInlineSnapshot(`[]`)
+      expect(initialList).toMatchInlineSnapshot('[]')
 
       // Empty dir should be deleted
       await ctx.fs.dirAsync('views/empty-dir')
@@ -485,10 +485,10 @@ describe('postgresql-views', () => {
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
-      expect(list).toMatchInlineSnapshot(`undefined`)
+      expect(list).toMatchInlineSnapshot('undefined')
 
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
-      expect(tree).toMatchInlineSnapshot(`[]`)
+      expect(tree).toMatchInlineSnapshot('[]')
 
       expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
         "Prisma schema loaded from schema.prisma

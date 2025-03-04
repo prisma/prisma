@@ -139,7 +139,7 @@ describe('migrate diff', () => {
         defaultTestConfig(),
       )
       await expect(result).rejects.toThrow(
-        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
       )
     })
 
@@ -151,7 +151,7 @@ describe('migrate diff', () => {
         defaultTestConfig(),
       )
       await expect(result).rejects.toThrow(
-        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
       )
     })
   })
@@ -486,7 +486,7 @@ describe('migrate diff', () => {
         ctx.fixture('schema-only-sqlite')
 
         const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-          throw new Error('process.exit: ' + number)
+          throw new Error(`process.exit: ${number}`)
         })
 
         const result = MigrateDiff.new().parse(
@@ -512,7 +512,7 @@ describe('migrate diff', () => {
         ctx.fixture('schema-only-sqlite')
 
         const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-          throw new Error('process.exit: ' + number)
+          throw new Error(`process.exit: ${number}`)
         })
 
         const result = MigrateDiff.new().parse(

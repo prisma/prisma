@@ -1,4 +1,4 @@
-import { Command, getCommandWithExecutor, isError } from '@prisma/internals'
+import { type Command, getCommandWithExecutor, isError } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
 import { credentialsFile } from '../_lib/credentials'

@@ -1,7 +1,7 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { NewPrismaClient } from '../../_utils/types'
+import type { NewPrismaClient } from '../../_utils/types'
 import { mockAdapter, mockAdapterErrors } from '../_utils/mock-adapter'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'

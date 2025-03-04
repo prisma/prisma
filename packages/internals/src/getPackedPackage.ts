@@ -1,12 +1,12 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import packlist from 'npm-packlist'
-import path from 'path'
+import path from 'node:path'
 import { readPackageUpSync } from 'read-package-up'
 import tempy from 'tempy'
 
 import { resolvePkg } from './get-generators/generatorResolvers/prisma-client-js/check-dependencies/resolve'
 
-export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | void> {
+export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | undefined> {
   packageDir =
     packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
 

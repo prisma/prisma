@@ -1,5 +1,5 @@
 import type { Context } from '@opentelemetry/api'
-import { EngineSpan, ExtendedSpanOptions, SpanCallback, TracingHelper, version } from '@prisma/internals'
+import { type EngineSpan, type ExtendedSpanOptions, type SpanCallback, type TracingHelper, version } from '@prisma/internals'
 
 const majorVersion = version.split('.')[0]
 
@@ -11,7 +11,7 @@ export const disabledTracingHelper: TracingHelper = {
     // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
     // If traceparent ends with -00 this trace will not be sampled
     // the query engine needs the `10` for the span and trace id otherwise it does not parse this
-    return `00-10-10-00`
+    return '00-10-10-00'
   },
 
   dispatchEngineSpans() {},
@@ -20,7 +20,7 @@ export const disabledTracingHelper: TracingHelper = {
     return undefined
   },
 
-  runInChildSpan<R>(options: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {
+  runInChildSpan<R>(_options: string | ExtendedSpanOptions, callback: SpanCallback<R>): R {
     return callback()
   },
 }

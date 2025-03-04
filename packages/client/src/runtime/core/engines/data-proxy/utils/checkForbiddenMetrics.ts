@@ -1,5 +1,5 @@
 import { PrismaClientInitializationError } from '../../../errors/PrismaClientInitializationError'
-import { EngineConfig } from '../..'
+import type { EngineConfig } from '../..'
 
 export function checkForbiddenMetrics(engineConfig: EngineConfig) {
   const isMetricsEnabled = !!engineConfig.generator?.previewFeatures.some((feature) => {

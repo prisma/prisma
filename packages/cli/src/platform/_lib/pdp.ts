@@ -54,7 +54,7 @@ export const requestOrThrow = async <
     (rootFieldValue): rootFieldValue is { __typename: string } =>
       typeof rootFieldValue === 'object' &&
       rootFieldValue !== null &&
-      rootFieldValue['__typename']?.startsWith('Error'),
+      rootFieldValue.__typename?.startsWith('Error'),
   )[0]
   if (error) throw errorFromPlatformError({ message: '<message not selected from server>', ...error })
 

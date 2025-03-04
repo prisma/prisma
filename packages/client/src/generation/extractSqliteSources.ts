@@ -41,7 +41,7 @@ export function extractSqliteSources(
       }
 
       if (!startLine) {
-        throw new Error(`Could not parse datamodel, invalid datasource block without opening \`{\``)
+        throw new Error('Could not parse datamodel, invalid datasource block without opening \`{\`')
       }
 
       const startMatch = startRegex.exec(startLine)

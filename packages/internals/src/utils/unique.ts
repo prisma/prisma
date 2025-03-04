@@ -8,10 +8,10 @@ export function unique<T>(arr: T[]): T[] {
   const result: T[] = []
   const seen = new Set() // just a cache
 
-  loop: for (let i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     const value = arr[i]
     if (seen.has(value)) {
-      continue loop
+      continue
     }
     seen.add(value)
     result.push(value)

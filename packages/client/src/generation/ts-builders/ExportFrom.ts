@@ -1,5 +1,5 @@
-import { BasicBuilder } from './BasicBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { Writer } from './Writer'
 
 export type ExportFrom = NamespaceExport | BindingsExport | ExportAllFrom
 

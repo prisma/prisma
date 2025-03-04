@@ -1,6 +1,6 @@
-import { readdirSync, statSync } from 'fs'
+import { readdirSync, statSync } from 'node:fs'
 import { digraph } from 'graphviz-mit'
-import { join } from 'path'
+import { join } from 'node:path'
 
 const getDirectories = (path: string) => {
   const packages = readdirSync(path).filter((any) => statSync(join(path, any)).isDirectory())
@@ -13,7 +13,7 @@ const getDirectories = (path: string) => {
 }
 
 const getKeys = (obj: any, name) => {
-  if (obj && obj[name]) {
+  if (obj?.[name]) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return Object.keys(obj[name]).filter((name) => name.includes('prisma'))
   }
@@ -39,7 +39,7 @@ function generateGraph(
       })
     } catch {}
   })
-  g.output('png', `./graphs/${type}.png`, (err, stdout, stderr) => {
+  g.output('png', `./graphs/${type}.png`, (_err, _stdout, stderr) => {
     console.log(stderr)
   })
 }

@@ -44,9 +44,8 @@ export default defineMatrix(() => [
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite
-      } else {
-        return !isSetNull
       }
+        return !isSetNull
     }),
     ...computeMatrix({ relationMode: 'prisma' }).filter((entry) => {
       const isSetNull = entry.onDelete === 'SetNull' && entry.onUpdate === 'SetNull'
@@ -54,9 +53,8 @@ export default defineMatrix(() => [
 
       if (process.platform === 'win32') {
         return !isSetNull && !isSQLite
-      } else {
-        return !isSetNull
       }
+        return !isSetNull
     }),
   ],
   [],

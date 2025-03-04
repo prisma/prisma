@@ -2,14 +2,14 @@ import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'
-import type { ChildProcess, ChildProcessByStdio } from 'child_process'
-import { spawn } from 'child_process'
+import { byline, ClientEngineType, type EngineTrace, type TracingHelper } from '@prisma/internals'
+import type { ChildProcess, ChildProcessByStdio } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
-import type { Readable } from 'stream'
+import type { Readable } from 'node:stream'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -18,11 +18,11 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
-import { Engine } from '../common/Engine'
+import type { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type { JsonQuery } from '../common/types/JsonProtocol'
+import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineResultData,
   QueryEngineResultExtensions,
@@ -33,12 +33,12 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { RustLog } from '../common/utils/log'
 import { convertLog, getMessage, isRustErrorLog } from '../common/utils/log'
-import { Connection, Result } from './Connection'
+import { Connection, type Result } from './Connection'
 
 const debug = Debug('prisma:engine')
 
 // eslint-disable-next-line
-const logger = (...args) => {}
+const logger = (..._args) => {}
 
 /**
  * Node.js based wrapper to run the Prisma binary
@@ -317,7 +317,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
       try {
         if (this.child?.connected || (this.child && !this.child?.killed)) {
-          debug(`There is a child that still runs and we want to start again`)
+          debug('There is a child that still runs and we want to start again')
         }
 
         // reset last error
@@ -367,9 +367,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
                 this.engineStartDeferred.reject(err)
               }
             }
-          } catch (e) {
+          } catch (_e) {
             if (!data.includes('Printing to stderr') && !data.includes('Listening on ')) {
-              this.stderrLogs += '\n' + data
+              this.stderrLogs += `\n${data}`
             }
           }
         })
@@ -456,14 +456,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             }
             if (code !== null) {
               err = new PrismaClientInitializationError(
-                `Query engine exited with code ${code}\n` + msg,
+                `Query engine exited with code ${code}\n${msg}`,
                 this.clientVersion!,
               )
               err.retryable = true
             } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
-Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
+Make sure that the engine binary at ${prismaPath} is not corrupt.\n${msg}`,
                 this.clientVersion!,
               )
               err.retryable = true
@@ -584,18 +584,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     if (this.currentRequestPromise) {
       try {
         await this.currentRequestPromise
-      } catch (e) {
+      } catch (_e) {
         //
       }
     }
     let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine`)
+      debug('Stopping Prisma engine')
       if (this.startPromise) {
-        debug(`Waiting for start promise`)
+        debug('Waiting for start promise')
         await this.startPromise
       }
-      debug(`Done waiting for start promise`)
+      debug('Done waiting for start promise')
       if (this.child.exitCode === null) {
         stopChildPromise = new Promise((resolve, reject) => {
           this.engineStopDeferred = { resolve, reject }
@@ -740,9 +740,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               data: result,
             }
           })
-        } else {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
         }
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
       })
       .catch(async (e) => {
         const { error, shouldRetry } = await this.handleRequestError(e)
@@ -808,7 +807,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       }
 
       return result.data
-    } else if (action === 'commit') {
+    }if (action === 'commit') {
       const result = await Connection.onHttpError(
         this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/commit`, undefined, headers),
         (result) => this.httpErrorHandler(result),
@@ -849,11 +848,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       this.lastError = undefined
       if (lastError.isPanic()) {
         throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(getMessage(lastError)), this.clientVersion!)
-      } else {
+      }
         throw new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(lastError)), {
           clientVersion: this.clientVersion!,
         })
-      }
     }
   }
 

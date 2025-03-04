@@ -18,7 +18,7 @@ import {
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
-import os from 'os'
+import os from 'node:os'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -148,7 +148,7 @@ export class Version implements Command {
       if (generator) {
         return generator.previewFeatures
       }
-    } catch (e) {
+    } catch (_e) {
       // console.error(e)
     }
     return []
@@ -156,7 +156,7 @@ export class Version implements Command {
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Version.help}`)
     }
 
     return Version.help

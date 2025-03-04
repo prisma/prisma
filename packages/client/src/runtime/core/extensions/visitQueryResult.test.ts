@@ -105,7 +105,7 @@ test('allows to modify individual array items', () => {
     modelName: 'User',
     runtimeDataModel: datamodel,
     visitor: (item) => {
-      if ('id' in item && item['id'] === '1') {
+      if ('id' in item && item.id === '1') {
         return replaceResult
       }
       return undefined
@@ -332,7 +332,7 @@ test('allows to replace deeply nested relations using include', () => {
     },
     modelName: 'Post',
     runtimeDataModel: datamodel,
-    visitor(value, modelName) {
+    visitor(_value, modelName) {
       if (modelName === 'Group') {
         return replacementGroup
       }
@@ -340,7 +340,7 @@ test('allows to replace deeply nested relations using include', () => {
     },
   })
 
-  expect(visitResult['author']['group']).toBe(replacementGroup)
+  expect(visitResult.author.group).toBe(replacementGroup)
   expect(result.author.group).toBe(replacementGroup)
 })
 
@@ -369,7 +369,7 @@ test('allows to replace deeply nested relations using select', () => {
     },
     modelName: 'Post',
     runtimeDataModel: datamodel,
-    visitor(value, modelName) {
+    visitor(_value, modelName) {
       if (modelName === 'Group') {
         return replacementGroup
       }
@@ -377,6 +377,6 @@ test('allows to replace deeply nested relations using select', () => {
     },
   })
 
-  expect(visitResult['author']['group']).toBe(replacementGroup)
+  expect(visitResult.author.group).toBe(replacementGroup)
   expect(result.author.group).toBe(replacementGroup)
 })

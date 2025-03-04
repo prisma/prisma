@@ -1,5 +1,5 @@
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 import { PrismaClient } from '../prisma/client'
 import { PrismaClient as PrismaClientEdge } from '../prisma/client/edge'
@@ -74,5 +74,3 @@ test('runtime files exists', async () => {
 ]
 `)
 })
-
-export {}

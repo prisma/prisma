@@ -1,10 +1,10 @@
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
-import fs from 'fs'
+import fs from 'node:fs'
 import globby from 'globby'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
@@ -21,7 +21,7 @@ import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema, maskSchemas } from './utils/maskSchema'
-import { MultipleSchemas } from './utils/schemaFileInput'
+import type { MultipleSchemas } from './utils/schemaFileInput'
 import { toSchemasContainer } from './utils/toSchemasContainer'
 
 // cleanup the temporary files even when an uncaught exception occurs
@@ -137,7 +137,7 @@ function getCommand(): string {
   // don't send url
   if (process.argv[2] === 'introspect') {
     return 'introspect'
-  } else if (process.argv[2] === 'db' && process.argv[3] === 'pull') {
+  }if (process.argv[2] === 'db' && process.argv[3] === 'pull') {
     return 'db pull'
   }
   return process.argv.slice(2).join(' ')

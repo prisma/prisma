@@ -13,13 +13,13 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
-import path from 'path'
+import path from 'node:path'
 
 import {
   getConfig,
   getDMMF,
   getEnvPaths,
-  GetSchemaResult,
+  type GetSchemaResult,
   getSchemaWithPath,
   mergeSchemas,
   vercelPkgPathRegex,
@@ -182,7 +182,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
         // as of now mostly used by studio
         const providerValue = parseEnvValue(generator.provider)
-        if (aliases && aliases[providerValue]) {
+        if (aliases?.[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
         } else if (generatorResolvers[providerValue]) {
@@ -262,7 +262,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const generatorProviders: string[] = generatorConfigs.map((g) => parseEnvValue(g.provider))
 
     for (const g of generators) {
-      if (g.manifest && g.manifest.requiresGenerators && g.manifest.requiresGenerators.length > 0) {
+      if (g.manifest?.requiresGenerators && g.manifest.requiresGenerators.length > 0) {
         for (const neededGenerator of g.manifest.requiresGenerators) {
           if (!generatorProviders.includes(neededGenerator)) {
             throw new Error(
@@ -283,8 +283,7 @@ generator gen {
     const neededVersions = Object.create(null)
     for (const g of generators) {
       if (
-        g.manifest &&
-        g.manifest.requiresEngines &&
+        g.manifest?.requiresEngines &&
         Array.isArray(g.manifest.requiresEngines) &&
         g.manifest.requiresEngines.length > 0
       ) {
@@ -320,7 +319,7 @@ generator gen {
       binaryPathsOverride,
     })
     for (const generator of generators) {
-      if (generator.manifest && generator.manifest.requiresEngines) {
+      if (generator.manifest?.requiresEngines) {
         const engineVersion = getEngineVersionForGenerator(generator.manifest, version)
         const binaryPaths = binaryPathsByVersion[engineVersion]
         // pick only the engines that we need for this generator
@@ -406,7 +405,7 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   for (const generator of generators) {
     if (generator.config.platforms) {
       throw new Error(
-        `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
+        'The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.',
       )
     }
 

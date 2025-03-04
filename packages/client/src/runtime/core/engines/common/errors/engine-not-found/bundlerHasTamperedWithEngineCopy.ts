@@ -1,5 +1,5 @@
 import { weWouldAppreciateIfYouCouldShareInfo } from '../weWouldAppreciateIfYouCouldShareInfo'
-import { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
+import type { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
 import { howToFixEngineNotFoundNextjs } from './howToFixEngineNotFoundNextjs'
 import { queryEngineCannotBeFound } from './queryEngineCannotBeFound'
 import { theseLocationsHaveBeenSearched } from './theseLocationsHaveBeenSearched'

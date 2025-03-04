@@ -1,11 +1,11 @@
 import { finished } from 'node:stream/promises'
 
 import { arg } from '@prisma/internals'
-import { createReadStream, existsSync } from 'fs'
-import fs from 'fs/promises'
+import { createReadStream, existsSync } from 'node:fs'
+import fs from 'node:fs/promises'
 import glob from 'globby'
-import path from 'path'
-import { $, ProcessOutput, sleep } from 'zx'
+import path from 'node:path'
+import { $, type ProcessOutput, sleep } from 'zx'
 
 const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
 const e2eRoot = path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')
@@ -37,7 +37,7 @@ async function main() {
     process.exit(1)
   }
 
-  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
+  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Number.POSITIVE_INFINITY)
   args['--runInBand'] = args['--runInBand'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
@@ -94,7 +94,7 @@ async function main() {
   }
 
   const dockerVolumes = [
-    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
+    '/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz', // hardcoded because folder doesn't match name
     ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
@@ -166,10 +166,10 @@ async function main() {
 
   if (args['--verbose'] === true) {
     for (const result of failedJobResults) {
-      console.log(`-----------------------------------------------------------------------`)
+      console.log('-----------------------------------------------------------------------')
       console.log(`🛑🛑🛑 Test "${result.name}" failed with exit code ${result.exitCode} 🛑🛑🛑`)
-      console.log(`\t\t⬇️ Container Log output below ⬇️\n\n`)
-      console.log(`-----------------------------------------------------------------------`)
+      console.log('\t\t⬇️ Container Log output below ⬇️\n\n')
+      console.log('-----------------------------------------------------------------------')
 
       const logsPath = path.resolve(__dirname, '..', result.name, 'LOGS.txt')
       const dockerLogsPath = path.resolve(__dirname, '..', result.name, 'LOGS.docker.txt')
@@ -181,24 +181,23 @@ async function main() {
       }
       await sleep(50) // give some time for the logs to be printed (CI issue)
 
-      console.log(`-----------------------------------------------------------------------`)
+      console.log('-----------------------------------------------------------------------')
       console.log(`🛑 ⬆️ Container Log output of test failure "${result.name}" above ⬆️ 🛑`)
-      console.log(`-----------------------------------------------------------------------`)
+      console.log('-----------------------------------------------------------------------')
     }
   }
 
   // let the tests run and gather a list of logs for containers that have failed
   if (failedJobResults.length > 0) {
     const failedJobLogPaths = failedJobResults.map((result) => path.resolve(__dirname, '..', result.name, 'LOGS.txt'))
-    console.log(`-----------------------------------------------------------------------`)
+    console.log('-----------------------------------------------------------------------')
     console.log(`✅ ${passedJobResults.length}/${jobResults.length} tests passed`)
     console.log(`🛑 ${failedJobResults.length}/${jobResults.length} tests failed`, failedJobLogPaths)
 
     throw new Error('Some tests exited with a non-zero exit code')
-  } else {
-    console.log(`-----------------------------------------------------------------------`)
-    console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
   }
+    console.log('-----------------------------------------------------------------------')
+    console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
 }
 
 async function restoreOriginalState() {

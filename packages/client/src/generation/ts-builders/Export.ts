@@ -1,7 +1,7 @@
-import { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
-import { BasicBuilder } from './BasicBuilder'
-import { DocComment } from './DocComment'
-import { Writer } from './Writer'
+import type { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
+import type { BasicBuilder } from './BasicBuilder'
+import type { DocComment } from './DocComment'
+import type { Writer } from './Writer'
 
 export class Export<Decl extends AnyDeclarationBuilder> implements BasicBuilder {
   private docComment?: DocComment

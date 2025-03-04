@@ -1,13 +1,13 @@
 export { BinaryEngine } from './binary/BinaryEngine'
 export { ClientEngine } from './client/ClientEngine'
-export {
-  type BatchTransactionOptions,
-  type CustomDataProxyFetch,
-  type Engine,
-  type EngineConfig,
-  type GraphQLQuery,
-  type InteractiveTransactionOptions,
-  type TransactionOptions,
+export type {
+  BatchTransactionOptions,
+  CustomDataProxyFetch,
+  Engine,
+  EngineConfig,
+  GraphQLQuery,
+  InteractiveTransactionOptions,
+  TransactionOptions,
 } from './common/Engine'
 export * from './common/types/EngineValidationError'
 export type { LogEmitter } from './common/types/Events'

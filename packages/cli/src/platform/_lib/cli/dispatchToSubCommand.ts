@@ -1,9 +1,9 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Commands, HelpError, link } from '@prisma/internals'
+import { type Commands, HelpError, link } from '@prisma/internals'
 
 export const dispatchToSubCommand = async (commands: Commands, argv: string[], config: PrismaConfigInternal) => {
   const commandName = argv[0]
-  if (!commandName) return new HelpError(`Unknown command.`)
+  if (!commandName) return new HelpError('Unknown command.')
   const command = commands[commandName]
   if (!command) return new HelpError(`Unknown command or parameter "${commandName}"`)
 

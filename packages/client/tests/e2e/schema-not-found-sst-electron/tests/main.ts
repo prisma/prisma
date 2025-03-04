@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 const consoleMock = jest.spyOn(global.console, 'warn').mockImplementation()
 
@@ -17,5 +17,3 @@ test('bundled prisma client will re-use the schema.prisma via cwd', async () => 
   expect(user).not.toBeNull()
   expect(user).not.toBeUndefined()
 })
-
-export {}

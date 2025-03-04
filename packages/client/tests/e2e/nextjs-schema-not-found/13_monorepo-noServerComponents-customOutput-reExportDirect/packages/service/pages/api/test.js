@@ -13,6 +13,6 @@ async function doPrismaQuery() {
   return user
 }
 
-export default async function handle(req, res) {
+export default async function handle(_req, res) {
   res.json({ user: await doPrismaQuery() })
 }

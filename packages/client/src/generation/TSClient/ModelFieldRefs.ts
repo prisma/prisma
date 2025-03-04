@@ -1,6 +1,6 @@
-import { DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
-import { Generable } from './Generable'
+import type { Generable } from './Generable'
 
 export class ModelFieldRefs implements Generable {
   constructor(protected outputType: DMMF.OutputType) {}

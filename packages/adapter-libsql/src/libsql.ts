@@ -86,7 +86,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 
   protected onError(error: any): never {
     debug('Error in performIO: %O', error)
-    const rawCode = error['rawCode'] ?? error.cause?.['rawCode']
+    const rawCode = error.rawCode ?? error.cause?.rawCode
     if (typeof rawCode === 'number') {
       throw new DriverAdapterError({
         kind: 'sqlite',
@@ -104,7 +104,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 
   async commit(): Promise<void> {
-    debug(`[js::commit]`)
+    debug('[js::commit]')
 
     try {
       await this.client.commit()
@@ -114,7 +114,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 
   async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
+    debug('[js::rollback]')
 
     try {
       await this.client.rollback()
@@ -152,9 +152,6 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
 }
 
 export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConnection {
-  constructor(client: StdClient) {
-    super(client)
-  }
 
   async executeScript(script: string): Promise<void> {
     const release = await this[LOCK_TAG].acquire()

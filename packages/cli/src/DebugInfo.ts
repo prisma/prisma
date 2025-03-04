@@ -61,9 +61,9 @@ export class DebugInfo implements Command {
       const line = `- ${name}${text ? ` ${text}` : ''}`
 
       if (value === undefined) {
-        return dim(line + ':')
+        return dim(`${line}:`)
       }
-      return bold(line + `: \`${value}\``)
+      return bold(`${line}: \`${value}\``)
     }
 
     let schemaPath
@@ -154,7 +154,7 @@ ${isCi()}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DebugInfo.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DebugInfo.help}`)
     }
 
     return DebugInfo.help

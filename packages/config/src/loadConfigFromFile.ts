@@ -76,7 +76,7 @@ export async function loadConfigFromFile({
     resolvedPath = path.resolve(configRoot, configFile)
 
     if (!fs.existsSync(resolvedPath)) {
-      debug(`The given config file was not found at %s`, resolvedPath)
+      debug('The given config file was not found at %s', resolvedPath)
       return { resolvedPath, error: { _tag: 'ConfigFileNotFound' } }
     }
   } else {
@@ -85,7 +85,7 @@ export async function loadConfigFromFile({
       ['prisma.config.ts'].map((file) => path.resolve(configRoot, file)).find((file) => fs.existsSync(file)) ?? null
 
     if (resolvedPath === null) {
-      debug(`No config file found in the current working directory %s`, configRoot)
+      debug('No config file found in the current working directory %s', configRoot)
 
       return { resolvedPath, config: defaultConfig() }
     }
@@ -101,12 +101,12 @@ export async function loadConfigFromFile({
       }
     }
 
-    debug(`Config file loaded in %s`, getTime())
+    debug('Config file loaded in %s', getTime())
 
     let defaultExport: PrismaConfigInternal | undefined
 
     try {
-      defaultExport = parseDefaultExport(required['default'])
+      defaultExport = parseDefaultExport(required.default)
     } catch (e) {
       const error = e as Error
       return {
@@ -186,7 +186,7 @@ function transformPathsInConfigToAbsolute(
         filePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filePath),
       },
     }
-  } else if (prismaConfig.schema?.kind === 'multi') {
+  }if (prismaConfig.schema?.kind === 'multi') {
     return {
       ...prismaConfig,
       schema: {
@@ -194,7 +194,6 @@ function transformPathsInConfigToAbsolute(
         folderPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folderPath),
       },
     }
-  } else {
-    return prismaConfig
   }
+    return prismaConfig
 }

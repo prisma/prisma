@@ -1,6 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
-import { BinaryPaths, download } from '@prisma/fetch-engine'
-import path from 'path'
+import { type BinaryPaths, download } from '@prisma/fetch-engine'
+import path from 'node:path'
 
 /**
  * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as

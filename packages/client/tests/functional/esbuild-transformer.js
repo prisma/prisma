@@ -1,4 +1,4 @@
-const fs = require('fs')
+const fs = require('node:fs')
 
 const esbuild = require('esbuild')
 const getCacheKeyFunction = require('@jest/create-cache-key-function').default
@@ -31,7 +31,7 @@ function needsTranspilation(contents, filename) {
 }
 
 const transformer = {
-  getCacheKey(contents, filename, ...rest) {
+  getCacheKey(_contents, filename, ...rest) {
     return cacheKeyFunction(filename, fs.statSync(filename).mtimeMs.toString(), ...rest)
   },
   process(_content, filename, { transformerConfig }) {
@@ -56,7 +56,7 @@ const transformer = {
         code: _content,
         map: fs.readFileSync(`${filename}.map`, 'utf8'),
       }
-    } catch (e) {}
+    } catch (_e) {}
 
     return {
       code: _content,

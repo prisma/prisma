@@ -3,9 +3,9 @@ import Decimal from 'decimal.js'
 import { Writer } from '../../../generation/ts-builders/Writer'
 import { FieldRefImpl } from '../model/FieldRef'
 import { objectEnumValues } from '../types/exported/ObjectEnums'
-import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import { type ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { inactiveColors } from './base'
-import { ObjectValue } from './ObjectValue'
+import type { ObjectValue } from './ObjectValue'
 
 function printTree(tree: ArgumentsRenderingTree) {
   const writer = new Writer(0, { colors: inactiveColors })

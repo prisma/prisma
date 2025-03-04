@@ -1,4 +1,4 @@
-import { JsonQueryAction } from '../engines'
+import type { JsonQueryAction } from '../engines'
 
 const writeMap: Record<JsonQueryAction, boolean> = {
   aggregate: false,

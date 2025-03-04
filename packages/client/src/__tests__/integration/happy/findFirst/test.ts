@@ -23,5 +23,5 @@ test('findFirst without a result', async () => {
     },
   })
   await prisma.$disconnect()
-  expect(user).toMatchInlineSnapshot(`null`)
+  expect(user).toMatchInlineSnapshot('null')
 })

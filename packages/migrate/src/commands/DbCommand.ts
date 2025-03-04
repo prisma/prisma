@@ -65,7 +65,7 @@ ${bold('Examples')}
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
+      const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), '--preview-feature'] : args._.slice(1)
       return cmd.parse(argsForCmd, config)
     }
 
@@ -74,7 +74,7 @@ ${bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbCommand.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DbCommand.help}`)
     }
     return DbCommand.help
   }

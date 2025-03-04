@@ -27,7 +27,7 @@ test('generated via postinstall on vercel', () => {
 test('generated on vercel', () => {
   expect(() => checkPlatformCaching({ postinstall: false, ciName: 'Vercel', clientVersion: '0.0.0' })).not.toThrow()
 
-  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`undefined`)
+  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot('undefined')
 })
 
 test('generated via postinstall on netlify', () => {
@@ -49,7 +49,7 @@ test('generated via postinstall on netlify', () => {
 
 test('generated on netlify', () => {
   expect(() => checkPlatformCaching({ postinstall: false, ciName: 'Netlify CI', clientVersion: '0.0.0' })).not.toThrow()
-  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`undefined`)
+  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot('undefined')
 })
 
 test('error is a PrismaClientInitializationError', () => {
@@ -66,5 +66,3 @@ test('error is a PrismaClientInitializationError', () => {
     `)
   }
 })
-
-export {}

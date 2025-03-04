@@ -1,11 +1,11 @@
 import Debug from '@prisma/debug'
-import cp from 'child_process'
-import fs from 'fs/promises'
-import os from 'os'
+import cp from 'node:child_process'
+import fs from 'node:fs/promises'
+import os from 'node:os'
 import { match } from 'ts-pattern'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
-import { BinaryTarget } from './binaryTargets'
+import type { BinaryTarget } from './binaryTargets'
 import { warn } from './logger'
 
 const exec = promisify(cp.exec)
@@ -74,7 +74,7 @@ export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   const arch = process.arch as Arch
   if (platform === 'freebsd') {
-    const version = await getCommandOutput(`freebsd-version`)
+    const version = await getCommandOutput('freebsd-version')
     if (version && version.trim().length > 0) {
       const regex = /^(\d+)\.?/
       const match = regex.exec(version)
@@ -114,10 +114,10 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
   const idLikeRegex = /^ID_LIKE="?([^"\n]*)"?$/im
 
   const idMatch = idRegex.exec(osReleaseInput)
-  const id = (idMatch && idMatch[1] && idMatch[1].toLowerCase()) || ''
+  const id = (idMatch?.[1]?.toLowerCase()) || ''
 
   const idLikeMatch = idLikeRegex.exec(osReleaseInput)
-  const idLike = (idLikeMatch && idLikeMatch[1] && idLikeMatch[1].toLowerCase()) || ''
+  const idLike = (idLikeMatch?.[1]?.toLowerCase()) || ''
 
   /**
    * Example output of /etc/os-release:
@@ -557,10 +557,9 @@ ${additionalMessage}`,
     if (isLibssl1x(libssl)) {
       // Alpine 3.16 or below linked with OpenSSL 1.1
       return base
-    } else {
+    }
       // Alpine 3.17 or above linked with OpenSSL 3.0
       return `${base}-openssl-${libssl}`
-    }
   }
 
   // when the platform is linux
@@ -594,7 +593,7 @@ ${additionalMessage}`,
 async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefined> {
   try {
     return await runPromise()
-  } catch (e) {
+  } catch (_e) {
     return undefined
   }
 }
@@ -618,8 +617,8 @@ function getCommandOutput(command: string) {
  * supported Node.js version for Prisma.
  */
 export async function getArchFromUname(): Promise<string | undefined> {
-  if (typeof os['machine'] === 'function') {
-    return os['machine']()
+  if (typeof os.machine === 'function') {
+    return os.machine()
   }
   const arch = await getCommandOutput('uname -m')
   return arch?.trim()

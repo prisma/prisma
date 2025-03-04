@@ -1,9 +1,9 @@
 import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import { arg, type Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
-import http from 'http'
+import http from 'node:http'
 import { green } from 'kleur/colors'
 import open from 'open'
 
@@ -138,7 +138,7 @@ const encodeState = (state: State) => Buffer.from(JSON.stringify(state), 'utf-8'
 
 const decodeUser = (stringifiedUser: string) => {
   try {
-    const maybeUser = JSON.parse(Buffer.from(stringifiedUser, `base64`).toString(`utf-8`))
+    const maybeUser = JSON.parse(Buffer.from(stringifiedUser, 'base64').toString('utf-8'))
     if (typeof maybeUser !== 'object' || maybeUser === null) return false
     const isUser =
       typeof maybeUser.id === 'string' &&

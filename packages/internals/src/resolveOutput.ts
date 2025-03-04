@@ -1,6 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-import { promisify } from 'util'
+import fs from 'node:fs'
+import path from 'node:path'
+import { promisify } from 'node:util'
 
 const exists = promisify(fs.exists)
 

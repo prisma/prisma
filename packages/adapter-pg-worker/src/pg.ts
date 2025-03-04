@@ -138,13 +138,13 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 
   async commit(): Promise<void> {
-    debug(`[js::commit]`)
+    debug('[js::commit]')
 
     this.client.release()
   }
 
   async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
+    debug('[js::rollback]')
 
     this.client.release()
   }

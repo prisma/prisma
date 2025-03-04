@@ -1,5 +1,5 @@
 import { isDriverAdapterError } from './error'
-import { err, ok, Result } from './result'
+import { err, ok, type Result } from './result'
 import type {
   ErrorCapturingSqlConnection,
   ErrorCapturingTransaction,

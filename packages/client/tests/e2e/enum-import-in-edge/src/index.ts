@@ -7,7 +7,7 @@ export default {
     // But that should only happen when executing a query
     // This tests that creating an instance of PrismaClient does not error
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const db = new PrismaClient()
+    const _db = new PrismaClient()
 
     const data = {
       Role,

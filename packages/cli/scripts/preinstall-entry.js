@@ -2,7 +2,7 @@
 let preinstall
 try {
   preinstall = require('../preinstall/index.js')
-} catch (e) {
+} catch (_e) {
   //
 }
 if (preinstall) {

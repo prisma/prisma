@@ -2,12 +2,12 @@ import Debug from '@prisma/debug'
 import { isCi, isInContainer, isInNpmLifecycleHook, isInteractive, maybeInGitHook } from '@prisma/internals'
 import * as checkpoint from 'checkpoint-client'
 import paths from 'env-paths'
-import fs from 'fs'
-import path from 'path'
-import readline from 'readline'
+import fs from 'node:fs'
+import path from 'node:path'
+import readline from 'node:readline'
 
-import { EventCapture, PosthogEventCapture } from './capture'
-import { NpsStatusLookup, ProdNpsStatusLookup, Timeframe } from './status'
+import { type EventCapture, PosthogEventCapture } from './capture'
+import { type NpsStatusLookup, ProdNpsStatusLookup, type Timeframe } from './status'
 
 type NpsConfig = {
   acknowledgedTimeframe: Timeframe
@@ -111,9 +111,7 @@ export async function handleNpsSurveyImpl(
 
 async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> {
   const question = rl.question(
-    'Rate how likely you are to recommend Prisma (0 = "not likely" to 10 = "extremely likely") ' +
-      `and press Enter. This prompt will close in ${promptTimeoutSecs} seconds.\n` +
-      'Rating: ',
+    `Rate how likely you are to recommend Prisma (0 = "not likely" to 10 = "extremely likely") and press Enter. This prompt will close in ${promptTimeoutSecs} seconds.\nRating: `,
   )
   const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)
   if (ratingAnswer === undefined) {
@@ -121,8 +119,8 @@ async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> 
     return {}
   }
 
-  const rating = parseInt(ratingAnswer.trim(), 10)
-  if (isNaN(rating) || rating < 0 || rating > 10) {
+  const rating = Number.parseInt(ratingAnswer.trim(), 10)
+  if (Number.isNaN(rating) || rating < 0 || rating > 10) {
     rl.write('Not received a valid rating. Exiting the survey.\n')
     return {}
   }
@@ -154,9 +152,8 @@ async function readConfig(): Promise<NpsConfig | undefined> {
     typeof obj.acknowledgedTimeframe.end === 'string'
   ) {
     return obj
-  } else {
-    throw new Error('Invalid NPS config schema')
   }
+    throw new Error('Invalid NPS config schema')
 }
 
 async function writeConfig(config: NpsConfig) {

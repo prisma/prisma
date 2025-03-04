@@ -2,7 +2,7 @@ import { assertNever } from '@prisma/internals'
 
 import { DMMF } from './dmmf-types'
 import * as ts from './ts-builders'
-import { GenerateContext } from './TSClient/GenerateContext'
+import type { GenerateContext } from './TSClient/GenerateContext'
 
 export function getSelectName(modelName: string): string {
   return `${modelName}Select`

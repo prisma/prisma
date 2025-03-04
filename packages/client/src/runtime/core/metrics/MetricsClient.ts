@@ -1,4 +1,4 @@
-import { Client } from '../../getPrismaClient'
+import type { Client } from '../../getPrismaClient'
 import type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 

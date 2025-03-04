@@ -110,7 +110,7 @@ testMatrix.setupTestSuite(
       // Chunking mechanism looks flawed with pagination.
       // See https://github.com/prisma/prisma/issues/23733 for more info
       // eslint-disable-next-line jest/no-disabled-tests
-      test.skip('should succeed when "in" has EXCESS ids and a "skip" filter', async () => {
+      test('should succeed when "in" has EXCESS ids and a "skip" filter', async () => {
         const ids = await createTags(EXCESS_BIND_VALUES)
 
         const tags = await prisma.tag.findMany({
@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
         } else {
           // It's unknown why this test doesn't fail with driver adapters.
-          await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
+          await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot('[]')
         }
       })
 

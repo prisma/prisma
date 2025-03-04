@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 /**
  * Normalize `filePath` to use forward slashes as a separator. `filePath` is
@@ -43,7 +43,7 @@ export function longestCommonPathPrefix(pathA: string, pathB: string): string | 
   if (process.platform === 'win32' && commonPrefix.endsWith(':')) {
     // Disk specifier without a backslash at the end is not an absolute path on windows,
     // it refers to current working directory on that disk.
-    return commonPrefix + '\\'
+    return `${commonPrefix}\\`
   }
 
   return commonPrefix

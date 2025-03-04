@@ -1,7 +1,7 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { join, resolve } from 'path'
+import { join, resolve } from 'node:path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
@@ -84,7 +84,7 @@ describe('handlePanic', () => {
   const command = 'something-test'
 
   // Only works locally (not in CI)
-  it.skip('ask to submit the panic error in interactive mode', async () => {
+  it('ask to submit the panic error in interactive mode', async () => {
     const oldConsoleLog = console.log
     const logs: string[] = []
     console.log = (...args) => {
@@ -121,7 +121,7 @@ describe('handlePanic', () => {
       })
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`[RustPanic: Some error message!]`)
+      expect(error).toMatchInlineSnapshot('[RustPanic: Some error message!]')
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
         `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path","name":"RustPanic"}"`,
       )
@@ -159,7 +159,7 @@ describe('handlePanic', () => {
     expect(wouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
     expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
-      new RegExp(`^Error report submission failed due to:?`),
+      /^Error report submission failed due to:?/,
     )
     expect(mockExit).toHaveBeenCalledWith(1)
   })

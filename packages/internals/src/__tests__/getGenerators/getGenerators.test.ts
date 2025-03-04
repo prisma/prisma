@@ -1,7 +1,7 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
@@ -27,7 +27,7 @@ if (process.platform === 'win32') {
 
 expect.addSnapshotSerializer({
   test: (val) =>
-    val && typeof val === 'object' && typeof val['sourceFilePath'] === 'string' && path.isAbsolute(val.sourceFilePath),
+    val && typeof val === 'object' && typeof val.sourceFilePath === 'string' && path.isAbsolute(val.sourceFilePath),
   serialize(val, config, indentation, depth, refs, printer) {
     const newVal = { ...val, sourceFilePath: path.relative(__dirname, val.sourceFilePath) }
     return printer(newVal, config, indentation, depth, refs)

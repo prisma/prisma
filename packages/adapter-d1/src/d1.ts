@@ -2,17 +2,17 @@
 
 import type { D1Database, D1Response } from '@cloudflare/workers-types'
 import {
-  ConnectionInfo,
+  type ConnectionInfo,
   Debug,
   DriverAdapterError,
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
-  SqlQuery,
-  SqlQueryable,
-  SqlResultSet,
-  Transaction,
-  TransactionContext,
-  TransactionOptions,
+  type SqlConnection,
+  type SqlMigrationAwareDriverAdapter,
+  type SqlQuery,
+  type SqlQueryable,
+  type SqlResultSet,
+  type Transaction,
+  type TransactionContext,
+  type TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
@@ -91,10 +91,9 @@ class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
 
       if (executeRaw) {
         return await stmt.run()
-      } else {
+      }
         const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
         return [columnNames, rows]
-      }
     } catch (e) {
       onError(e as Error)
     }
@@ -107,11 +106,11 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 
   async commit(): Promise<void> {
-    debug(`[js::commit]`)
+    debug('[js::commit]')
   }
 
   async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
+    debug('[js::rollback]')
   }
 }
 

@@ -1,7 +1,7 @@
 import { defaultTestConfig } from '@prisma/config'
 import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
-import path from 'path'
+import path from 'node:path'
 
 import { MigrateDiff } from '../../src'
 

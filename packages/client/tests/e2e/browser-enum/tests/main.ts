@@ -6,5 +6,3 @@ test('can import enum from browser bundle', () => {
     ADMIN: 'ADMIN',
   })
 })
-
-export {}

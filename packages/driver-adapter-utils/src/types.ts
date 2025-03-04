@@ -1,5 +1,5 @@
-import { ColumnTypeEnum } from './const'
-import { Result } from './result'
+import type { ColumnTypeEnum } from './const'
+import type { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 

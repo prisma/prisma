@@ -1,8 +1,8 @@
 import { isValidJsIdentifier } from '@prisma/internals'
-import { introspectSql as migrateIntrospectSql, IntrospectSqlError, IntrospectSqlInput } from '@prisma/migrate'
-import fs from 'fs/promises'
+import { introspectSql as migrateIntrospectSql, type IntrospectSqlError, type IntrospectSqlInput } from '@prisma/migrate'
+import fs from 'node:fs/promises'
 import { bold } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 const SQL_DIR = 'sql'
 
@@ -47,7 +47,7 @@ async function readTypedSqlFiles(schemaPath: string): Promise<IntrospectSqlInput
 }
 
 function renderErrors(errors: IntrospectSqlError[]) {
-  const lines: string[] = [`Errors while reading sql files:\n`]
+  const lines: string[] = ['Errors while reading sql files:\n']
   for (const { fileName, message } of errors) {
     lines.push(`In ${bold(path.relative(process.cwd(), fileName))}:`)
     lines.push(message)

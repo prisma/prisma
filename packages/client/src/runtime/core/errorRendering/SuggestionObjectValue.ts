@@ -1,4 +1,4 @@
-import { ErrorBasicBuilder, ErrorWriter, fieldsSeparator } from './base'
+import { type ErrorBasicBuilder, type ErrorWriter, fieldsSeparator } from './base'
 
 export class SuggestionObjectValue implements ErrorBasicBuilder {
   private fields: ErrorBasicBuilder[] = []

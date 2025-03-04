@@ -1,7 +1,7 @@
-import { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
-import { BasicBuilder } from './BasicBuilder'
-import { Export } from './Export'
-import { Writer } from './Writer'
+import type { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
+import type { BasicBuilder } from './BasicBuilder'
+import type { Export } from './Export'
+import type { Writer } from './Writer'
 
 export type NamespaceItem = AnyDeclarationBuilder | Export<AnyDeclarationBuilder>
 export class NamespaceDeclaration implements BasicBuilder {

@@ -1,9 +1,9 @@
-import { Client, InternalRequestParams } from '../../getPrismaClient'
-import { RequestParams } from '../../RequestHandler'
+import type { Client, InternalRequestParams } from '../../getPrismaClient'
+import type { RequestParams } from '../../RequestHandler'
 import { deepCloneArgs } from '../../utils/deepCloneArgs'
-import { CustomDataProxyFetch } from '../engines'
-import { QueryOptionsCb } from '../types/exported/ExtensionArgs'
-import { BatchInternalParams, BatchQueryOptionsCb } from '../types/internal/ExtensionsInternalArgs'
+import type { CustomDataProxyFetch } from '../engines'
+import type { QueryOptionsCb } from '../types/exported/ExtensionArgs'
+import type { BatchInternalParams, BatchQueryOptionsCb } from '../types/internal/ExtensionsInternalArgs'
 
 function iterateAndCallQueryCallbacks(
   client: Client,

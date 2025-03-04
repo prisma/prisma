@@ -1,8 +1,8 @@
-import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
+import type { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
 import { isValidJsIdentifier } from '@prisma/internals'
 
 import * as ts from '../ts-builders'
-import { DbEnumsList } from './buildDbEnums'
+import type { DbEnumsList } from './buildDbEnums'
 
 type TypeMappingConfig = {
   in: ts.TypeBuilder
@@ -81,9 +81,8 @@ export function getInputType(
 
   if (!nullable) {
     return inn
-  } else {
-    return new ts.UnionType(inn).addVariant(ts.nullType)
   }
+    return new ts.UnionType(inn).addVariant(ts.nullType)
 }
 
 export function getOutputType(
@@ -95,9 +94,8 @@ export function getOutputType(
 
   if (!nullable) {
     return out
-  } else {
-    return new ts.UnionType(out).addVariant(ts.nullType)
   }
+    return new ts.UnionType(out).addVariant(ts.nullType)
 }
 
 function getMappingConfig(

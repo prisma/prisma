@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 import { dotenvExpand } from '../dotenvExpand'
 import { fixturesPath } from './__utils__/fixtures'
@@ -222,7 +222,7 @@ describe('dotenvExpand', () => {
   })
 })
 
-describe('integration', function () {
+describe('integration', () => {
   let dotenv
 
   beforeEach(() => {
@@ -234,45 +234,45 @@ describe('integration', function () {
   it('expands environment variables', () => {
     dotenvExpand(dotenv)
 
-    expect(process.env['BASIC_EXPAND']).toBe('basic')
+    expect(process.env.BASIC_EXPAND).toBe('basic')
   })
 
   it('expands environment variables existing already on the machine', () => {
     process.env.MACHINE = 'machine'
     dotenvExpand(dotenv)
 
-    expect(process.env['MACHINE_EXPAND']).toBe('machine')
+    expect(process.env.MACHINE_EXPAND).toBe('machine')
   })
 
   it('expands missing environment variables to an empty string', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['UNDEFINED_EXPAND']).toBe('$UNDEFINED_ENV_KEY')
+    expect(obj.UNDEFINED_EXPAND).toBe('$UNDEFINED_ENV_KEY')
   })
 
   it('prioritizes machine key expansion over .env', () => {
     process.env.MACHINE = 'machine'
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['MACHINE_EXPAND']).toBe('machine')
+    expect(obj.MACHINE_EXPAND).toBe('machine')
   })
 
   it('multiple expand', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['MONGOLAB_URI']).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
+    expect(obj.MONGOLAB_URI).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
   })
 
   it('should expand recursively', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['MONGOLAB_URI_RECURSIVELY']).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
+    expect(obj.MONGOLAB_URI_RECURSIVELY).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
   })
 
   it('multiple expand without curly', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['WITHOUT_CURLY_BRACES_URI']).toBe(
+    expect(obj.WITHOUT_CURLY_BRACES_URI).toBe(
       'mongodb://$MONGOLAB_USER:$MONGOLAB_PASSWORD@$MONGOLAB_DOMAIN:$MONGOLAB_PORT/$MONGOLAB_DATABASE',
     )
   })
@@ -280,7 +280,7 @@ describe('integration', function () {
   it('should expand recursively without curly', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['WITHOUT_CURLY_BRACES_URI_RECURSIVELY']).toBe(
+    expect(obj.WITHOUT_CURLY_BRACES_URI_RECURSIVELY).toBe(
       'mongodb://$MONGOLAB_USER_RECURSIVELY@$MONGOLAB_DOMAIN:$MONGOLAB_PORT/$MONGOLAB_DATABASE',
     )
   })

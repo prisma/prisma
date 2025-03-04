@@ -4,12 +4,12 @@ import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } fro
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
-import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
-import { AsyncResource } from 'async_hooks'
-import { EventEmitter } from 'events'
-import fs from 'fs'
-import path from 'path'
-import { RawValue, Sql } from 'sql-template-tag'
+import { type ExtendedSpanOptions, logger, type TracingHelper, tryLoadEnvs } from '@prisma/internals'
+import { AsyncResource } from 'node:async_hooks'
+import { EventEmitter } from 'node:events'
+import fs from 'node:fs'
+import path from 'node:path'
+import { type RawValue, Sql } from 'sql-template-tag'
 
 import {
   PrismaClientInitializationError,
@@ -18,10 +18,10 @@ import {
   PrismaClientValidationError,
 } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
-import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
+import type { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
+import type { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
+import type { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
+import type { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
@@ -35,7 +35,7 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
-import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
+import { type GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
@@ -49,24 +49,24 @@ import {
   templateStringMiddlewareArgsMapper,
 } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromiseFactory } from './core/request/createPrismaPromise'
-import {
+import type {
   PrismaPromise,
   PrismaPromiseInteractiveTransaction,
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
-import { UserArgs } from './core/request/UserArgs'
-import { RuntimeDataModel } from './core/runtimeDataModel'
+import type { UserArgs } from './core/request/UserArgs'
+import type { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
-import { JsInputValue } from './core/types/exported/JsApi'
-import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
-import { UnknownTypedSql } from './core/types/exported/TypedSql'
+import type { JsInputValue } from './core/types/exported/JsApi'
+import type { RawQueryArgs } from './core/types/exported/RawQueryArgs'
+import type { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
-import { CallSite, getCallSite } from './utils/CallSite'
+import { type CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
@@ -395,7 +395,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
           throw new PrismaClientInitializationError(
-            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
+            'Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.',
             this._clientVersion,
           )
         }
@@ -766,7 +766,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       const requests = promises.map((request, index) => {
         if (request?.[Symbol.toStringTag] !== 'PrismaPromise') {
           throw new Error(
-            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+            'All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.',
           )
         }
 
@@ -932,7 +932,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         // if middleware switched off `runInTransaction`, unset `transaction`
         // property on request as well so it will be executed outside of the tx
         if (internalParams.transaction !== undefined && runInTransaction === false) {
-          delete requestParams.transaction // client extensions check for this
+          requestParams.transaction // client extensions check for this = undefined // client extensions check for this
         }
 
         const result = await applyQueryExtensions(this, requestParams) // also executes the query
@@ -1000,10 +1000,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'
         if (Debug.enabled('prisma:client')) {
-          debug(`Prisma Client call:`)
+          debug('Prisma Client call:')
           debug(`prisma.${clientMethod}(${prettyPrintArguments(args)})`)
-          debug(`Generated request:`)
-          debug(JSON.stringify(message, null, 2) + '\n')
+          debug('Generated request:')
+          debug(`${JSON.stringify(message, null, 2)}\n`)
         }
 
         if (transaction?.kind === 'batch') {
@@ -1063,5 +1063,5 @@ function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, Midd
 }
 
 function isTemplateStringArray(value: unknown): value is TemplateStringsArray {
-  return Array.isArray(value) && Array.isArray(value['raw'])
+  return Array.isArray(value) && Array.isArray(value.raw)
 }

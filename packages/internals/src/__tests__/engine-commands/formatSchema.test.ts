@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 
 import { getSchemaWithPath } from '../../cli/getSchema'

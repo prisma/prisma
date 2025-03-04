@@ -17,10 +17,10 @@ module.exports = () => {
     snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
     testTimeout,
-    collectCoverage: process.env.CI ? true : false,
+    collectCoverage: !!process.env.CI,
   }
 
-  if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
+  if (process.env.JEST_JUNIT_DISABLE !== 'true') {
     configCommon.reporters.push([
       'jest-junit',
       {
@@ -37,7 +37,7 @@ module.exports = () => {
     ])
   }
 
-  if (process.env['JEST_ALWAYS_EXIT_WITH_CODE_ZERO'] === 'true') {
+  if (process.env.JEST_ALWAYS_EXIT_WITH_CODE_ZERO === 'true') {
     configCommon.testFailureExitCode = 0
   }
 

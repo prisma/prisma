@@ -4,14 +4,14 @@ import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
 import topo from 'batching-toposort'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'node:fs'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import pRetry from 'p-retry'
-import path from 'path'
+import path from 'node:path'
 import redis from 'redis'
 import semver from 'semver'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
@@ -24,7 +24,7 @@ async function getLatestCommitHash(dir: string): Promise<string> {
 
   const result = await runResult(dir, 'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [date, hash] = result.split(' ')
+  const [_date, hash] = result.split(' ')
   return hash
 }
 
@@ -53,7 +53,7 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
  * @param cmd command to run
  */
 async function run(cwd: string, cmd: string, dry = false, hidden = false): Promise<void> {
-  const args = [underline('./' + cwd).padEnd(20), bold(cmd)]
+  const args = [underline(`./${cwd}`).padEnd(20), bold(cmd)]
   if (dry) {
     args.push(dim('(dry)'))
   }
@@ -207,7 +207,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
 
   console.log(`getNewDevVersion: Next minor stable: ${nextStable}`)
 
-  const versions = await getAllVersionsPublishedFor(packages, 'dev', nextStable + '-dev')
+  const versions = await getAllVersionsPublishedFor(packages, 'dev', `${nextStable}-dev`)
   const maxDev = getMaxDevVersionIncrement(versions)
 
   const version = `${nextStable}-dev.${maxDev + 1}`
@@ -358,7 +358,7 @@ function getMaxPatchVersionIncrement(versions: string[]): number {
     .filter((v) => v.trim().length > 0)
     .map((v) => {
       const match = regex.exec(v)
-      if (match && match[1]) {
+      if (match?.[1]) {
         return Number(match[1])
       }
       return 0
@@ -427,7 +427,7 @@ async function getNextMinorStable() {
   // npm can have some hiccups
   const remoteVersionString = await pRetry(
     async () => {
-      return await runResult('.', `npm info prisma version`)
+      return await runResult('.', 'npm info prisma version')
     },
     {
       retries: 6,
@@ -467,7 +467,7 @@ async function publish() {
   })
 
   if (!process.env.GITHUB_REF_NAME) {
-    throw new Error(`Missing env var GITHUB_REF_NAME`)
+    throw new Error('Missing env var GITHUB_REF_NAME')
   }
 
   if (process.env.DRY_RUN) {
@@ -574,7 +574,7 @@ async function publish() {
       prismaVersion,
     })
 
-    if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+    if (typeof process.env.GITHUB_OUTPUT === 'string' && process.env.GITHUB_OUTPUT.length > 0) {
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `tagForEcosystemTestsCheck=${tagForEcosystemTestsCheck}\n`)
@@ -593,7 +593,7 @@ async function publish() {
     if (args['--publish'] || dryRun) {
       if (args['--release']) {
         if (!tagForEcosystemTestsCheck) {
-          throw new Error(`tagForEcosystemTestsCheck missing`)
+          throw new Error('tagForEcosystemTestsCheck missing')
         }
         const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
         if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
@@ -607,7 +607,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
       if (!dryRun) {
         console.log(`Let's first do a dry run!`)
         await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
-        console.log(`Waiting 5 sec so you can check it out first...`)
+        console.log('Waiting 5 sec so you can check it out first...')
         await new Promise((r) => setTimeout(r, 5_000))
       }
 
@@ -618,7 +618,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
       const prismaCommitHash = await getLatestCommitHash('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
 
-      if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+      if (typeof process.env.GITHUB_OUTPUT === 'string' && process.env.GITHUB_OUTPUT.length > 0) {
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
@@ -761,7 +761,7 @@ async function publishPackages(
     }
   } else if (!dryRun) {
     // For dev releases
-    console.log(`\nGiving you 5s to review the changes...`)
+    console.log('\nGiving you 5s to review the changes...')
     await new Promise((r) => {
       setTimeout(r, 5_000)
     })
@@ -834,7 +834,7 @@ async function publishPackages(
 }
 
 function isSkipped(pkgName) {
-  if (skipPackages && skipPackages.includes(pkgName)) {
+  if (skipPackages?.includes(pkgName)) {
     return true
   }
 
@@ -848,7 +848,7 @@ function isSkipped(pkgName) {
 async function acquireLock(branch: string): Promise<() => void> {
   const before = Math.round(performance.now())
   if (!process.env.REDIS_URL) {
-    console.log(bold(red(`REDIS_URL missing. Setting dummy lock`)))
+    console.log(bold(red('REDIS_URL missing. Setting dummy lock')))
     return () => {
       console.log(`Lock removed after ${Math.round(performance.now()) - before}ms`)
     }
@@ -907,7 +907,7 @@ async function getPrismaBranch(): Promise<string | undefined> {
   try {
     // TODO: this can probably be simplified, we don't publish locally, remove?
     return await runResult('.', 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
-  } catch (e) {}
+  } catch (_e) {}
 
   return undefined
 }

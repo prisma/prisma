@@ -1,8 +1,8 @@
-import { BasicBuilder } from './BasicBuilder'
-import { DocComment } from './DocComment'
-import { GenericParameter } from './GenericParameter'
-import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { DocComment } from './DocComment'
+import type { GenericParameter } from './GenericParameter'
+import type { TypeBuilder } from './TypeBuilder'
+import type { Writer } from './Writer'
 
 export class TypeDeclaration<InnerType extends TypeBuilder = TypeBuilder> implements BasicBuilder {
   private genericParameters: GenericParameter[] = []

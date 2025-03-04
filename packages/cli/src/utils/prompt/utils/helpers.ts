@@ -1,4 +1,4 @@
-import type { Key } from 'readline'
+import type { Key } from 'node:readline'
 
 export type ActionKey =
   | false

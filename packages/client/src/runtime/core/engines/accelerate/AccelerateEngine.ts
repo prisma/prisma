@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { BatchQueryEngineResult, Engine, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineResultData } from '../common/types/QueryEngine'
-import { InteractiveTransactionInfo as ITXInfo, Options, TransactionHeaders } from '../common/types/Transaction'
+import type { BatchQueryEngineResult, Engine, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type { JsonQuery } from '../common/types/JsonProtocol'
+import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type { QueryEngineResultData } from '../common/types/QueryEngine'
+import type { InteractiveTransactionInfo as ITXInfo, Options, TransactionHeaders } from '../common/types/Transaction'
 
-const ERROR_MESSAGE = `Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`. See https://pris.ly/d/accelerate-getting-started`
+const ERROR_MESSAGE = 'Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`. See https://pris.ly/d/accelerate-getting-started'
 
 type AccelerateUtils = EngineConfig['accelerateUtils']
 
@@ -67,7 +67,7 @@ export class AccelerateEngine implements Engine<any> {
   transaction(action: 'start', headers: TransactionHeaders, options?: Options): Promise<ITXInfo>
   transaction(action: 'commit', headers: TransactionHeaders, info: ITXInfo): Promise<void>
   transaction(action: 'rollback', headers: TransactionHeaders, info: ITXInfo): Promise<void>
-  transaction(_action: unknown, _headers: unknown, _info?: unknown): Promise<void | ITXInfo> {
+  transaction(_action: unknown, _headers: unknown, _info?: unknown): Promise<undefined | ITXInfo> {
     throw new PrismaClientInitializationError(ERROR_MESSAGE, this.config.clientVersion)
   }
 

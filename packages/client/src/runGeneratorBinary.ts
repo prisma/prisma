@@ -6,7 +6,7 @@ export async function runGeneratorBinary(
 ): Promise<{ stdout: string; stderr: string }> {
   const child = execa(binaryPath)
 
-  child.stdin!.write(JSON.stringify(options) + '\n')
+  child.stdin!.write(`${JSON.stringify(options)}\n`)
 
   return await child
 }

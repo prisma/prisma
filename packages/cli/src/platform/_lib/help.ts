@@ -16,7 +16,7 @@ export const createHelp = (content: HelpContent) => {
     ? `prisma platform ${command} ${subcommand}`
     : command && subcommands
     ? `prisma platform ${command} [command]`
-    : `prisma platform [command]`
+    : 'prisma platform [command]'
 
   const usage = format(`
 ${bold('Usage')}
@@ -35,7 +35,7 @@ ${subcommands.map(([option, description]) => `${option.padStart(15)}   ${descrip
   const options_ = options && format(`
 ${bold('Options')}
 
-${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && alias+','}   ${description}`).join('\n')}
+${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && `${alias},`}   ${description}`).join('\n')}
   `)
 
   // prettier-ignore
@@ -51,5 +51,5 @@ ${additionalContent.map(entry => `${entry}`).join('\n')}
   `)
 
   const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')
-  return (error?: string) => (error ? new HelpError(`\n${bold(red(`!`))} ${error}\n${help}`) : help)
+  return (error?: string) => (error ? new HelpError(`\n${bold(red('!'))} ${error}\n${help}`) : help)
 }

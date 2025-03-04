@@ -15,9 +15,8 @@ testMatrix.setupTestSuite(
     function getAllEntries() {
       if (provider === Providers.MYSQL) {
         return prisma.$queryRaw`SELECT * FROM \`TestModel\`;`
-      } else {
-        return prisma.$queryRaw`SELECT * FROM "TestModel";`
       }
+        return prisma.$queryRaw`SELECT * FROM "TestModel";`
     }
 
     test('simple expression', async () => {
@@ -168,7 +167,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      describe.skip('query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER)', () => {
+      describe('query model with a BigInt = -(MAX_SAFE_INTEGER + MAX_SAFE_INTEGER)', () => {
         const createBigIntMinSafeIntPlusMinSafeInt = (prisma: PrismaClient) => {
           return prisma.testModel.create({
             data: {
@@ -183,13 +182,13 @@ testMatrix.setupTestSuite(
           if (clientRuntime !== 'wasm') {
             if (driverAdapter === 'js_libsql') {
               await expect(create).rejects.toThrow(
-                `bigint is too large to be represented as a 64-bit integer and passed as argument`,
+                'bigint is too large to be represented as a 64-bit integer and passed as argument',
               )
             } else if (driverAdapter === 'js_neon' || driverAdapter === 'js_pg') {
               // PostgresError { code: \"22003\", message: \"value \\\"-18428729675200069634\\\" is out of range for type bigint\", severity: \"ERROR\", detail: None, column: None, hint: None }
-              await expect(create).rejects.toThrow(`is out of range for type bigint`)
+              await expect(create).rejects.toThrow('is out of range for type bigint')
             } else if (driverAdapter === 'js_planetscale') {
-              await expect(create).rejects.toThrow(`Value out of range for the type.`)
+              await expect(create).rejects.toThrow('Value out of range for the type.')
               await expect(create).rejects.toThrow(
                 `rpc error: code = FailedPrecondition desc = Out of range value for column 'bInt' at row 1`,
               )

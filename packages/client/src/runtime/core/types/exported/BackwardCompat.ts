@@ -12,8 +12,8 @@
  * Adding this alias manually ensures older accelerate versions continue to work.
  */
 
-import { Args, Result } from './Public'
-import { Operation } from './Result'
+import type { Args, Result } from './Public'
+import type { Operation } from './Result'
 
 export type Result_2<T, A, F extends Operation> = Result<T, A, F>
 export type Args_3<T, F extends Operation> = Args<T, F>

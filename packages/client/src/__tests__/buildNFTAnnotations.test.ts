@@ -106,7 +106,7 @@ describe('dataproxy', () => {
 
     // TODO: when using .toMatchInlineSnapshot(), this fails after updating snapshots.
     // Probably an issue with the snapshot serializer?
-    expect(normalizePaths(annotations)).toBe(``)
+    expect(normalizePaths(annotations)).toBe('')
   })
 })
 
@@ -126,7 +126,7 @@ describe('special cases for Netlify', () => {
   it('replaces `platforms` with `["rhel-openssl-1.0.x"]` or `["rhel-openssl-3.0.x"]` depending on the Node.js version', () => {
     process.env.NETLIFY = 'true'
 
-    const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+    const isNodeMajor20OrUp = Number.parseInt(process.versions.node.split('.')[0]) >= 20
     const binaryTarget = isNodeMajor20OrUp ? 'rhel-openssl-3.0.x' : 'rhel-openssl-1.0.x'
     const annotations = buildNFTAnnotations(
       false,

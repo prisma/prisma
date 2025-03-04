@@ -1,9 +1,9 @@
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { ClientArg, ExtensionArgs, ModelArg, QueryOptionsCb } from '../types/exported/ExtensionArgs'
-import { BatchQueryOptionsCb, QueryOptionsPrivate } from '../types/internal/ExtensionsInternalArgs'
-import { ComputedFieldsMap, getComputedFields } from './resultUtils'
+import type { ClientArg, ExtensionArgs, ModelArg, QueryOptionsCb } from '../types/exported/ExtensionArgs'
+import type { BatchQueryOptionsCb, QueryOptionsPrivate } from '../types/internal/ExtensionsInternalArgs'
+import { type ComputedFieldsMap, getComputedFields } from './resultUtils'
 
 class MergedExtensionsListNode {
   private computedFieldsCache = new Cache<string, ComputedFieldsMap | undefined>()
@@ -64,7 +64,7 @@ class MergedExtensionsListNode {
       const newCbs: QueryOptionsCb[] = []
       const query = this.extension.query
 
-      if (!query || !(query[jsModelName] || query['$allModels'] || query[operation] || query['$allOperations'])) {
+      if (!query || !(query[jsModelName] || query.$allModels || query[operation] || query.$allOperations)) {
         return prevCbs
       }
 
@@ -74,21 +74,21 @@ class MergedExtensionsListNode {
         }
 
         // when the model-bound extension has a wildcard for the operation
-        if (query[jsModelName]['$allOperations'] !== undefined) {
-          newCbs.push(query[jsModelName]['$allOperations'])
+        if (query[jsModelName].$allOperations !== undefined) {
+          newCbs.push(query[jsModelName].$allOperations)
         }
       }
 
       // when the extension isn't model-bound, apply it to all models
       // '$none' is a special case for top-level operations without model
-      if (jsModelName !== '$none' && query['$allModels'] !== undefined) {
-        if (query['$allModels'][operation] !== undefined) {
-          newCbs.push(query['$allModels'][operation])
+      if (jsModelName !== '$none' && query.$allModels !== undefined) {
+        if (query.$allModels[operation] !== undefined) {
+          newCbs.push(query.$allModels[operation])
         }
 
         // when the non-model-bound extension has a wildcard for the operation
-        if (query['$allModels']['$allOperations'] !== undefined) {
-          newCbs.push(query['$allModels']['$allOperations'])
+        if (query.$allModels.$allOperations !== undefined) {
+          newCbs.push(query.$allModels.$allOperations)
         }
       }
 
@@ -98,8 +98,8 @@ class MergedExtensionsListNode {
       }
 
       // when the extension is not bound to a model & is any top-level operation
-      if (query['$allOperations'] !== undefined) {
-        newCbs.push(query['$allOperations'] as QueryOptionsCb)
+      if (query.$allOperations !== undefined) {
+        newCbs.push(query.$allOperations as QueryOptionsCb)
       }
 
       return prevCbs.concat(newCbs)

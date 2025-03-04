@@ -11,7 +11,7 @@ import {
 } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
-import { ConnectorType } from './printDatasources'
+import type { ConnectorType } from './printDatasources'
 import { getSocketFromDatabaseCredentials } from './unixSocket'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
@@ -122,7 +122,7 @@ export async function getDatasourceInfo({
     }
 
     return datasourceInfo
-  } catch (e) {
+  } catch (_e) {
     return {
       name: firstDatasource.name,
       prettyProvider,
@@ -139,13 +139,13 @@ export async function getDatasourceInfo({
 // check if we can connect to the database
 // if true: return true
 // if false: throw error
-export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
+export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<boolean | Error> {
   const schema = await getSchema(schemaPath)
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
-    throw new Error(`A datasource block is missing in the Prisma schema file.`)
+    throw new Error('A datasource block is missing in the Prisma schema file.')
   }
 
   const schemaDir = getMigrateConfigDir(config, schemaPath)
@@ -156,20 +156,19 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 
   if (canConnect === true) {
     return true
-  } else {
+  }
     const { code, message } = canConnect
     throw new Error(`${code}: ${message}`)
-  }
 }
 
-export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
+export async function ensureDatabaseExists(_action: MigrateAction, schemaPath?: string) {
   const schemas = await getSchema(schemaPath)
 
   const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
-    throw new Error(`A datasource block is missing in the Prisma schema file.`)
+    throw new Error('A datasource block is missing in the Prisma schema file.')
   }
 
   const schemaDir = getMigrateConfigDir(config, schemaPath)
@@ -198,7 +197,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
   if (await createDatabase(url!, schemaDir)) {
     // URI parsing is not implemented for SQL server yet
     if (firstDatasource.provider === 'sqlserver') {
-      return `SQL Server database created.\n`
+      return 'SQL Server database created.\n'
     }
 
     // parse the url
@@ -228,9 +227,9 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
 
   if (socket) {
     return `unix:${socket}`
-  } else if (credentials.host && credentials.port) {
+  }if (credentials.host && credentials.port) {
     return `${credentials.host}:${credentials.port}`
-  } else if (credentials.host) {
+  }if (credentials.host) {
     return `${credentials.host}`
   }
 
@@ -245,19 +244,19 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
 export function prettifyProvider(provider: ConnectorType): PrettyProvider {
   switch (provider) {
     case 'mysql':
-      return `MySQL`
+      return 'MySQL'
     case 'postgres':
     case 'postgresql':
-      return `PostgreSQL`
+      return 'PostgreSQL'
     case PRISMA_POSTGRES_PROVIDER:
-      return `Prisma Postgres`
+      return 'Prisma Postgres'
     case 'sqlite':
-      return `SQLite`
+      return 'SQLite'
     case 'cockroachdb':
-      return `CockroachDB`
+      return 'CockroachDB'
     case 'sqlserver':
-      return `SQL Server`
+      return 'SQL Server'
     case 'mongodb':
-      return `MongoDB`
+      return 'MongoDB'
   }
 }

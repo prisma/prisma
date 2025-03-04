@@ -1,7 +1,7 @@
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import * as esbuild from 'esbuild'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 import resolve from 'resolve'
 
 type LoadCache = { [K in string]: string }
@@ -218,7 +218,7 @@ export const smallDecimal = {
 const fillPlugin = ({ fillerOverrides, defaultFillers = true }: FillPluginOptions): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
-    const uid = Math.random().toString(36).substring(7) + ''
+    const uid = `${Math.random().toString(36).substring(7)}`
     const namespace = `fill-plugin-${uid}`
 
     // overrides

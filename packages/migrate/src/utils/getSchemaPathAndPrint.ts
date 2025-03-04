@@ -5,7 +5,7 @@ import {
   type SchemaPathFromConfig,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 // TODO move NoSchemaFoundError to `@prisma/internals` and this too
 // then replace the 2 hardcoded errors to NoSchemaFoundError in
@@ -31,5 +31,5 @@ export async function getSchemaPathAndPrint(
 }
 
 export function printSchemaLoadedMessage(schemaPath: string) {
-  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
+  process.stdout.write(`${dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`)}\n`)
 }

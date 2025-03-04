@@ -1,6 +1,6 @@
-import childProcess from 'child_process'
-import { once } from 'events'
-import fs from 'fs/promises'
+import childProcess from 'node:child_process'
+import { once } from 'node:events'
+import fs from 'node:fs/promises'
 import { bold, green, red, white } from 'kleur/colors'
 import { linearRegression } from 'simple-statistics'
 
@@ -8,7 +8,7 @@ import { buildMemoryTest } from './buildMemoryTest'
 import { WARMUP_ITERATIONS } from './commonSettings'
 import { dropMemoryTestDatabase, setupMemoryTestDatabase } from './database'
 import { generateMemoryTestClient } from './generateMemoryTestClient'
-import { MemoryTestDir } from './MemoryTestDir'
+import type { MemoryTestDir } from './MemoryTestDir'
 
 const GROWTH_RATE_THRESHOLD_IN_BYTES = 10
 
@@ -104,7 +104,7 @@ async function readTestResults(testDir: MemoryTestDir) {
     .split('\n')
     .slice(WARMUP_ITERATIONS) // do not take warmup iterations count into account
     .filter((line) => line !== '')
-    .map((value) => parseFloat(value))
+    .map((value) => Number.parseFloat(value))
 }
 
 /**

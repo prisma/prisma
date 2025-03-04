@@ -34,7 +34,7 @@ interface IssueOptions {
   cliVersion: string
   enginesVersion: string
   command: string
-  prompt: Boolean
+  prompt: boolean
   title?: string
   reportId?: number
 }
@@ -51,7 +51,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
           {
             title: 'Yes',
             value: true,
-            description: `Create a new GitHub issue`,
+            description: 'Create a new GitHub issue',
           },
           {
             title: 'No',

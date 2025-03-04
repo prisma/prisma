@@ -5,7 +5,7 @@ import { isDate } from './date'
 export function serializeRawParameters(parameters: any[]): string {
   try {
     return serializeRawParametersInternal(parameters, 'fast')
-  } catch (error) {
+  } catch (_error) {
     // Got TypeError, try replacing values unsupported by JSON (i.e., BigInts)
     // with strings inside arrays and objects.
     return serializeRawParametersInternal(parameters, 'slow')

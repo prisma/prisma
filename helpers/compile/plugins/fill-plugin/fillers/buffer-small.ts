@@ -96,10 +96,10 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
 
   static byteLength(string: unknown, encoding: Encoding = 'utf8') {
     if (typeof string === 'string') return stringToBuffer(string, encoding).byteLength
-    if (string && string['byteLength']) return string['byteLength']
+    if (string?.byteLength) return string.byteLength
 
     const e = new TypeError('The "string" argument must be of type string or an instance of Buffer or ArrayBuffer.')
-    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    e.code = 'ERR_INVALID_ARG_TYPE'
     throw e
   }
 
@@ -120,8 +120,8 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   static from(value: unknown, encoding: any = 'utf8'): BufferClass {
-    if (value && typeof value === 'object' && value['type'] === 'Buffer') {
-      return new BufferClass(value['data'])
+    if (value && typeof value === 'object' && value.type === 'Buffer') {
+      return new BufferClass(value.data)
     }
 
     if (typeof value === 'number') {
@@ -192,7 +192,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     }
 
     if (view.getUint8(0) & 0x80) {
-      val -= Math.pow(0x100, byteLength)
+      val -= 0x100 ** byteLength
     }
 
     return val
@@ -208,11 +208,11 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
-      val += view.getUint8(i) * Math.pow(0x100, i)
+      val += view.getUint8(i) * 0x100 ** i
     }
 
     if (view.getUint8(byteLength - 1) & 0x80) {
-      val -= Math.pow(0x100, byteLength)
+      val -= 0x100 ** byteLength
     }
 
     return val
@@ -248,7 +248,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     const view = new DataView(this.buffer, offset, byteLength)
     let val = 0
     for (let i = 0; i < byteLength; i++) {
-      val += view.getUint8(i) * Math.pow(0x100, i)
+      val += view.getUint8(i) * 0x100 ** i
     }
 
     return val
@@ -259,12 +259,12 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   }
 
   writeIntBE(value: number, offset: number, byteLength: number) {
-    value = value < 0 ? value + Math.pow(0x100, byteLength) : value
+    value = value < 0 ? value + 0x100 ** byteLength : value
     return this.writeUIntBE(value, offset, byteLength)
   }
 
   writeIntLE(value: number, offset: number, byteLength: number) {
-    value = value < 0 ? value + Math.pow(0x100, byteLength) : value
+    value = value < 0 ? value + 0x100 ** byteLength : value
     return this.writeUIntLE(value, offset, byteLength)
   }
 
@@ -536,7 +536,7 @@ function stringToBuffer(value: string, encoding: string) {
   if (encoding === 'hex') {
     const bytes = new BufferClass(value.length / 2)
     for (let byteIndex = 0, i = 0; i < value.length; i += 2, byteIndex++) {
-      bytes[byteIndex] = parseInt(value.slice(i, i + 2), 16)
+      bytes[byteIndex] = Number.parseInt(value.slice(i, i + 2), 16)
     }
 
     return bytes
@@ -569,7 +569,7 @@ function initReadMethods(prototype: BufferClass) {
       assertUnsigned(offset, 'offset', this.length - 1)
       assertBounds(value, 'value', bound[0], bound[1])
       new DataView(this.buffer)[dataViewMethods[i]](offset, value, littleEndian)
-      return offset + parseInt(dataViewMethods[i].match(/\d+/)![0]) / 8
+      return offset + Number.parseInt(dataViewMethods[i].match(/\d+/)![0]) / 8
     }
   }
 
@@ -584,15 +584,15 @@ function initReadMethods(prototype: BufferClass) {
   bufferBaseMethods.forEach((method, i) => {
     if (method.startsWith('read')) {
       prototype[method] = genericReadMethod(i, false)
-      prototype[method + 'LE'] = genericReadMethod(i, true)
-      prototype[method + 'BE'] = genericReadMethod(i, false)
+      prototype[`${method}LE`] = genericReadMethod(i, true)
+      prototype[`${method}BE`] = genericReadMethod(i, false)
     }
     if (method.startsWith('write')) {
       prototype[method] = genericWriteMethod(i, false)
-      prototype[method + 'LE'] = genericWriteMethod(i, true)
-      prototype[method + 'BE'] = genericWriteMethod(i, false)
+      prototype[`${method}LE`] = genericWriteMethod(i, true)
+      prototype[`${method}BE`] = genericWriteMethod(i, false)
     }
-    createAlias([method, method + 'LE', method + 'BE'])
+    createAlias([method, `${method}LE`, `${method}BE`])
   })
 }
 
@@ -611,7 +611,7 @@ function assertUnsigned(value: number, argName: string, maxValue = MAX_UNSIGNED_
     const e = new RangeError(
       `The value of "${argName}" is out of range. It must be >= 0 && <= ${maxValue}. Received ${value}`,
     )
-    e['code'] = 'ERR_OUT_OF_RANGE'
+    e.code = 'ERR_OUT_OF_RANGE'
     throw e
   }
 }
@@ -619,7 +619,7 @@ function assertUnsigned(value: number, argName: string, maxValue = MAX_UNSIGNED_
 function assertNumber(value: any, argName: string): asserts value is number {
   if (typeof value !== 'number') {
     const e = new TypeError(`The "${argName}" argument must be of type number. Received type ${typeof value}.`)
-    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    e.code = 'ERR_INVALID_ARG_TYPE'
     throw e
   }
 }
@@ -627,7 +627,7 @@ function assertNumber(value: any, argName: string): asserts value is number {
 function assertInteger(value: any, argName: string): asserts value is number {
   if (!Number.isInteger(value) || Number.isNaN(value)) {
     const e = new RangeError(`The value of "${argName}" is out of range. It must be an integer. Received ${value}`)
-    e['code'] = 'ERR_OUT_OF_RANGE'
+    e.code = 'ERR_OUT_OF_RANGE'
     throw e
   }
 }
@@ -637,7 +637,7 @@ function assertBounds(value: number, argName: string, min: any, max: any) {
     const e = new RangeError(
       `The value of "${argName}" is out of range. It must be >= ${min} and <= ${max}. Received ${value}`,
     )
-    e['code'] = 'ERR_OUT_OF_RANGE'
+    e.code = 'ERR_OUT_OF_RANGE'
     throw e
   }
 }
@@ -645,7 +645,7 @@ function assertBounds(value: number, argName: string, min: any, max: any) {
 function assertString(value: any, argName: string): asserts value is string {
   if (typeof value !== 'string') {
     const e = new TypeError(`The "${argName}" argument must be of type string. Received type ${typeof value}`)
-    e['code'] = 'ERR_INVALID_ARG_TYPE'
+    e.code = 'ERR_INVALID_ARG_TYPE'
     throw e
   }
 }
@@ -657,8 +657,8 @@ const bounds = {
   uint8: [0, 0xff],
   uint16: [0, 0xffff],
   uint32: [0, 0xffffffff],
-  float32: [-Infinity, Infinity],
-  float64: [-Infinity, Infinity],
+  float32: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
+  float64: [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY],
   bigint64: [-0x8000000000000000n, 0x7fffffffffffffffn],
   biguint64: [0n, 0xffffffffffffffffn],
 } as const

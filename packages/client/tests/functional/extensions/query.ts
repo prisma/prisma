@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import { assertNever } from '@prisma/internals'
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 import { expectTypeOf } from 'expect-type'
 
 import { AdapterProviders, Providers } from '../_utils/providers'
 import { wait } from '../_utils/tests/wait'
 import { waitFor } from '../_utils/tests/waitFor'
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             findFirst({ args, query, operation, model }) {
-              if (args.select != undefined) {
+              if (args.select !== undefined) {
                 args.select.email = undefined
               }
               args.include = undefined
@@ -96,7 +96,7 @@ testMatrix.setupTestSuite(
 
       const data = await xprisma.user.findFirst(args)
 
-      expect(data).toMatchInlineSnapshot(`null`)
+      expect(data).toMatchInlineSnapshot('null')
       expect(fnUser).toHaveBeenCalledWith(cbArgs)
       expect(fnUser).toHaveBeenCalledTimes(1)
       expect(fnPost).not.toHaveBeenCalled()
@@ -137,7 +137,7 @@ testMatrix.setupTestSuite(
 
       const data = await xprisma.user.findFirst(args)
 
-      expect(data).toMatchInlineSnapshot(`null`)
+      expect(data).toMatchInlineSnapshot('null')
       expect(fnUser1).toHaveBeenCalledWith(1)
       expect(fnUser1).toHaveBeenCalledTimes(1)
       expect(fnUser2).toHaveBeenCalledWith(2)
@@ -198,7 +198,7 @@ testMatrix.setupTestSuite(
 
       const data = await xprisma.user.findFirst(args)
 
-      expect(data).toMatchInlineSnapshot(`null`)
+      expect(data).toMatchInlineSnapshot('null')
       expect(args).toEqual({ where: { id: randomId1 } })
       expect(fnUser).toHaveBeenCalledWith({ where: { id: randomId3 } })
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
@@ -247,7 +247,7 @@ testMatrix.setupTestSuite(
 
       const data = await xprisma.user.findFirst({ skip: 1 })
 
-      expect(data).toMatchInlineSnapshot(`null`)
+      expect(data).toMatchInlineSnapshot('null')
       expect(fnUser).toHaveBeenCalledWith({ where: { id: randomId1, email: 'john@doe.io' }, skip: 1 })
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
@@ -584,7 +584,7 @@ testMatrix.setupTestSuite(
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
+        if (calls[0][0].query.includes('SELECT')) {
           calls.shift()
         } else {
           calls.pop()
@@ -682,7 +682,7 @@ testMatrix.setupTestSuite(
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
+        if (calls[0][0].query.includes('SELECT')) {
           calls.shift()
         } else {
           calls.pop()
@@ -739,8 +739,8 @@ testMatrix.setupTestSuite(
       const dataUser = await xprisma.user.findFirst(args)
       const dataPost = await xprisma.post.findFirst(args)
 
-      expect(dataUser).toMatchInlineSnapshot(`null`)
-      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(dataUser).toMatchInlineSnapshot('null')
+      expect(dataPost).toMatchInlineSnapshot('null')
       expect(fnModel).toHaveBeenCalledTimes(2)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
@@ -806,9 +806,9 @@ testMatrix.setupTestSuite(
       const dataPost = await xprisma.post.findFirst(args)
       const dataPosts = await xprisma.post.findMany(args)
 
-      expect(dataUser).toMatchInlineSnapshot(`null`)
-      expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`[]`)
+      expect(dataUser).toMatchInlineSnapshot('null')
+      expect(dataPost).toMatchInlineSnapshot('null')
+      expect(dataPosts).toMatchInlineSnapshot('[]')
       expect(fnModel).toHaveBeenCalledTimes(3)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
@@ -872,8 +872,8 @@ testMatrix.setupTestSuite(
       const dataPost = await xprisma.post.findFirst(args)
       const dataPosts = await xprisma.post.findMany(args)
 
-      expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`[]`)
+      expect(dataPost).toMatchInlineSnapshot('null')
+      expect(dataPosts).toMatchInlineSnapshot('[]')
       expect(fnModel).toHaveBeenCalledTimes(2)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsPost)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPosts)
@@ -1048,15 +1048,15 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider !== Providers.MONGODB
         await xprisma.$queryRaw`SELECT 2`
         // @ts-test-if: provider !== Providers.MONGODB
-        await xprisma.$executeRawUnsafe(`SELECT 3`)
+        await xprisma.$executeRawUnsafe('SELECT 3')
         // @ts-test-if: provider !== Providers.MONGODB
-        await xprisma.$queryRawUnsafe(`SELECT 4`)
+        await xprisma.$queryRawUnsafe('SELECT 4')
 
         await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
         expect(fnUser).toHaveBeenNthCalledWith(1, Prisma.sql`SELECT 1`)
         expect(fnUser).toHaveBeenNthCalledWith(2, Prisma.sql`SELECT 2`)
-        expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
-        expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
+        expect(fnUser).toHaveBeenNthCalledWith(3, ['SELECT 3'])
+        expect(fnUser).toHaveBeenNthCalledWith(4, ['SELECT 4'])
       } else {
         // @ts-test-if: provider === Providers.MONGODB
         await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
@@ -1091,7 +1091,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const rawQueryArgs = `SELECT 1`
+        const rawQueryArgs = 'SELECT 1'
         const modelQueryArgs = { where: { id: randomId1 } }
 
         const cbArgsRaw = { args: [rawQueryArgs], operation: '$queryRawUnsafe', model: undefined }
@@ -1104,8 +1104,8 @@ testMatrix.setupTestSuite(
         const dataPost = await xprisma.post.findFirst(modelQueryArgs)
 
         expect(dataRaw).toBeTruthy()
-        expect(dataUser).toMatchInlineSnapshot(`null`)
-        expect(dataPost).toMatchInlineSnapshot(`null`)
+        expect(dataUser).toMatchInlineSnapshot('null')
+        expect(dataPost).toMatchInlineSnapshot('null')
         expect(fnOperation).toHaveBeenCalledTimes(3)
         expect(fnOperation).toHaveBeenNthCalledWith(1, cbArgsRaw)
         expect(fnOperation).toHaveBeenNthCalledWith(2, cbArgsUser)
@@ -1149,7 +1149,7 @@ testMatrix.setupTestSuite(
 
       const dataUser = await xprisma.user.findFirst(args)
 
-      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(dataUser).toMatchInlineSnapshot('null')
       expect(fnModel).toHaveBeenCalledTimes(2)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
@@ -1177,7 +1177,7 @@ testMatrix.setupTestSuite(
 
       const dataUser1 = await xprisma.user.findFirst(args)
 
-      expect(dataUser1).toMatchInlineSnapshot(`null`)
+      expect(dataUser1).toMatchInlineSnapshot('null')
       expect(fnModel).toHaveBeenCalledTimes(1)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))

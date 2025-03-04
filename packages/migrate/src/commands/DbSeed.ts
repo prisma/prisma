@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, getSchemaWithPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, type Command, format, getSchemaWithPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -68,7 +68,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
         throw new Error(message)
       }
 
-      return ``
+      return ''
     }
 
     // We pass the extra params after a -- separator
@@ -81,14 +81,13 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
     const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
-    } else {
-      process.exit(1)
     }
+      process.exit(1)
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbSeed.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DbSeed.help}`)
     }
     return DbSeed.help
   }

@@ -7,7 +7,7 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider, relationMode }, suiteMeta) => {
+  ({ provider, relationMode }, _suiteMeta) => {
     const isMySql = provider === Providers.MYSQL
 
     describe('issue 16390', () => {

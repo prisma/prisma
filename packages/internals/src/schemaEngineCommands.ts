@@ -90,17 +90,15 @@ export async function canConnectToDatabase(
       const logs = parseJsonFromStderr(e.stderr)
       const error = logs.find((it) => it.level === 'ERROR' && it.target === 'schema_engine::logger')
 
-      if (error && error.fields.error_code && error.fields.message) {
+      if (error?.fields.error_code && error.fields.message) {
         return {
           code: error.fields.error_code as DatabaseErrorCodes,
           message: error.fields.message,
         }
-      } else {
-        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
-    } else {
-      throw new Error(`Schema engine exited. ${_e}`)
+        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     }
+      throw new Error(`Schema engine exited. ${_e}`)
   }
 
   return true
@@ -131,14 +129,12 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
       const logs = parseJsonFromStderr(e.stderr)
       const error = logs.find((it) => it.level === 'ERROR' && it.target === 'schema_engine::logger')
 
-      if (error && error.fields.error_code && error.fields.message) {
+      if (error?.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
-      } else {
-        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
-    } else {
-      throw new Error(`Schema engine exited. ${_e}`)
+        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     }
+      throw new Error(`Schema engine exited. ${_e}`)
   }
 }
 
@@ -152,18 +148,16 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
     })
     if (result && result.exitCode === 0 && result.stderr.includes('The database was successfully dropped')) {
       return true
-    } else {
+    }
       // We should not arrive here normally
       throw Error(`An error occurred during the drop: ${JSON.stringify(result, undefined, 2)}`)
-    }
   } catch (e: any) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
 
       throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
-    } else {
-      throw new Error(`Schema engine exited. ${e}`)
     }
+      throw new Error(`Schema engine exited. ${e}`)
   }
 }
 

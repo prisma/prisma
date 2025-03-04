@@ -1,10 +1,10 @@
 import { isValidJsIdentifier } from '@prisma/internals'
 
-import { BasicBuilder } from './BasicBuilder'
-import { DocComment } from './DocComment'
-import { TypeBuilder } from './TypeBuilder'
-import { WellKnownSymbol } from './WellKnownSymbol'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { DocComment } from './DocComment'
+import type { TypeBuilder } from './TypeBuilder'
+import type { WellKnownSymbol } from './WellKnownSymbol'
+import type { Writer } from './Writer'
 
 export class Property implements BasicBuilder {
   private isOptional = false

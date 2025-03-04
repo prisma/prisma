@@ -8,14 +8,14 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 // TODO: maybe we can split each relation into a separate file for readability
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (_suiteConfig, _suiteMeta) => {
     describe('issue 14271', () => {
       afterAll(async () => {
         await prisma.$disconnect()
       })
 
       test('issue 14271', async () => {
-        await prisma['hub'].create({
+        await prisma.hub.create({
           data: {
             name: 'hub-1',
             batteryLevels: {
@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma['hub'].create({
+        await prisma.hub.create({
           data: {
             name: 'hub-2',
             batteryLevels: {
@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        expect(await prisma['hub'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
+        expect(await prisma.hub.findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
               "id": 1,
@@ -63,7 +63,7 @@ testMatrix.setupTestSuite(
           ]
         `)
 
-        expect(await prisma['batteryLevel'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
+        expect(await prisma.batteryLevel.findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
               "hubId": 1,
@@ -88,11 +88,11 @@ testMatrix.setupTestSuite(
           ]
         `)
 
-        await prisma['hub'].delete({
+        await prisma.hub.delete({
           where: { name: 'hub-1' },
         })
 
-        expect(await prisma['hub'].findMany({})).toMatchInlineSnapshot(`
+        expect(await prisma.hub.findMany({})).toMatchInlineSnapshot(`
           [
             {
               "id": 2,
@@ -101,7 +101,7 @@ testMatrix.setupTestSuite(
           ]
         `)
 
-        expect(await prisma['batteryLevel'].findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
+        expect(await prisma.batteryLevel.findMany({ orderBy: { id: 'asc' } })).toMatchInlineSnapshot(`
           [
             {
               "hubId": null,

@@ -5,7 +5,7 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
 import { skip } from '../types'
 import { objectEnumValues } from '../types/exported/ObjectEnums'
-import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
+import { serializeJsonQuery, type SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [
   field('scalar', 'name', 'String'),
@@ -1423,7 +1423,7 @@ test('nested globalOmit (select)', () => {
   `)
 })
 
-test(`Prisma.skip in arguments`, () => {
+test('Prisma.skip in arguments', () => {
   expect(
     serialize({
       modelName: 'User',
@@ -1445,7 +1445,7 @@ test(`Prisma.skip in arguments`, () => {
   `)
 })
 
-test(`Prisma.skip in input object fields`, () => {
+test('Prisma.skip in input object fields', () => {
   expect(
     serialize({
       modelName: 'User',
@@ -1471,7 +1471,7 @@ test(`Prisma.skip in input object fields`, () => {
   `)
 })
 
-test(`Prisma.skip in include`, () => {
+test('Prisma.skip in include', () => {
   expect(
     serialize({
       modelName: 'User',
@@ -1504,7 +1504,7 @@ test(`Prisma.skip in include`, () => {
   `)
 })
 
-test(`Prisma.skip in select`, () => {
+test('Prisma.skip in select', () => {
   expect(
     serialize({
       modelName: 'User',
@@ -1535,7 +1535,7 @@ test(`Prisma.skip in select`, () => {
   `)
 })
 
-test(`Prisma.skip in omit`, () => {
+test('Prisma.skip in omit', () => {
   expect(
     serialize({
       modelName: 'User',

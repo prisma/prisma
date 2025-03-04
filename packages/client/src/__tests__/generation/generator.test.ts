@@ -1,9 +1,9 @@
 import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
 import { omit } from '../../omit'
 
@@ -19,7 +19,7 @@ describe('generator', () => {
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
-    } catch (e) {
+    } catch (_e) {
       //
     }
     await getPackedPackage('@prisma/client', prismaClientTarget)
@@ -105,7 +105,7 @@ describe('generator', () => {
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
-    } catch (e) {
+    } catch (_e) {
       //
     }
     await getPackedPackage('@prisma/client', prismaClientTarget)
@@ -154,7 +154,7 @@ describe('generator', () => {
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
-    } catch (e) {
+    } catch (_e) {
       //
     }
     await getPackedPackage('@prisma/client', prismaClientTarget)
@@ -173,7 +173,7 @@ describe('generator', () => {
     } catch (e) {
       doesNotExistError = e
     } finally {
-      expect(stripAnsi(doesNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesNotExistError.message).split(`generation${path.sep}`)[1]).toMatchInlineSnapshot(
         `"doesnotexist.prisma does not exist"`,
       )
     }
@@ -211,7 +211,7 @@ describe('generator', () => {
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
-    } catch (e) {
+    } catch (_e) {
       //
     }
     await getPackedPackage('@prisma/client', prismaClientTarget)

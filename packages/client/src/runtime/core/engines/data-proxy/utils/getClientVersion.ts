@@ -68,7 +68,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
       throw e
     }
 
-    return bodyAsJson['version'] as string
+    return bodyAsJson.version as string
   }
 
   // nothing matched, meaning that the provided version is invalid

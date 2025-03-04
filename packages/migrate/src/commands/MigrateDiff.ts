@@ -3,7 +3,7 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getConfig,
   HelpError,
@@ -16,7 +16,7 @@ import {
 } from '@prisma/internals'
 import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
@@ -74,10 +74,10 @@ ${
   process.platform === 'win32' ? '' : '🔍 '
 }Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
-${green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
-${green(`prisma db execute`)} can be used to execute its ${green(`--script`)} output.
+${green('prisma migrate diff')} is a read-only command that does not write to your datasource(s).
+${green('prisma db execute')} can be used to execute its ${green('--script')} output.
 
-The command takes a source ${green(`--from-...`)} and a destination ${green(`--to-...`)}.
+The command takes a source ${green('--from-...')} and a destination ${green('--to-...')}.
 The source and destination must use the same provider,
 e.g. a diff using 2 different providers like PostgreSQL and SQLite is not supported.
 
@@ -218,7 +218,7 @@ ${bold('Examples')}
     // Validate Cloudflare D1-related flags
     if (args['--shadow-database-url'] && (args['--from-local-d1'] || args['--to-local-d1'])) {
       return this.help(
-        `The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.`,
+        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
       )
     }
 
@@ -348,7 +348,7 @@ ${bold('Examples')}
     // Return nothing
     // See below for where the printing to stdout happens
     // [console.info(result.params.content)](https://github.com/prisma/prisma/blob/e6d2bc01af44cec35cb2bda35a5c93e13dc4ba4e/packages/migrate/src/SchemaEngine.ts#L303)
-    return ``
+    return ''
   }
 
   public help(error?: string): string | HelpError {

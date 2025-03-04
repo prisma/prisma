@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import type { ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
+import { assertAlways, type EngineTrace, type TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -11,10 +11,10 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
-import { Engine } from '../common/Engine'
-import { LogEmitter, LogEventType } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type { Engine } from '../common/Engine'
+import type { LogEmitter, LogEventType } from '../common/types/Events'
+import type { JsonQuery } from '../common/types/JsonProtocol'
+import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
   QueryEngineLogLevel,
@@ -23,7 +23,7 @@ import type {
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
-import { RequestError } from '../common/types/RequestError'
+import type { RequestError } from '../common/types/RequestError'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -37,14 +37,13 @@ const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
-  return event['item_type'] === 'query' && 'query' in event
+  return event.item_type === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   if ('level' in event) {
-    return event.level === 'error' && event['message'] === 'PANIC'
-  } else {
-    return false
+    return event.level === 'error' && event.message === 'PANIC'
   }
+    return false
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
@@ -216,7 +215,7 @@ export class LibraryEngine implements Engine<undefined> {
         clientVersion: this.config.clientVersion as string,
         meta: response.meta,
       })
-    } else if (typeof response.message === 'string') {
+    }if (typeof response.message === 'string') {
       throw new PrismaClientUnknownRequestError(response.message, {
         clientVersion: this.config.clientVersion!,
       })
@@ -266,15 +265,15 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   private parseEngineResponse<T>(response?: string): T {
     if (!response) {
-      throw new PrismaClientUnknownRequestError(`Response from the Engine was empty`, {
+      throw new PrismaClientUnknownRequestError('Response from the Engine was empty', {
         clientVersion: this.config.clientVersion!,
       })
     }
 
     try {
       return JSON.parse(response) as T
-    } catch (err) {
-      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
+    } catch (_err) {
+      throw new PrismaClientUnknownRequestError('Unable to JSON.parse response from engine', {
         clientVersion: this.config.clientVersion!,
       })
     }
@@ -325,9 +324,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const error = this.parseInitError(e.message)
       if (typeof error === 'string') {
         throw e
-      } else {
-        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
     }
   }
 
@@ -366,7 +364,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       const error = JSON.parse(str)
       return error
-    } catch (e) {
+    } catch (_e) {
       //
     }
     return str
@@ -376,7 +374,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     try {
       const error = JSON.parse(str)
       return error
-    } catch (e) {
+    } catch (_e) {
       //
     }
     return str
@@ -421,9 +419,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // if parsing fails then we just reject the error
         if (typeof error === 'string') {
           throw err
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
         }
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       } finally {
         this.libraryStartingPromise = undefined
       }
@@ -504,7 +501,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
           clientVersion: this.config.clientVersion!,
         })
-      } else if (this.loggerRustPanic) {
+      }if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
       return { data }
@@ -518,11 +515,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
         throw e
-      } else {
+      }
         throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
           clientVersion: this.config.clientVersion!,
         })
-      }
     }
   }
 
@@ -565,12 +561,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           data: result,
         }
       })
-    } else {
+    }
       if (errors && errors.length === 1) {
         throw new Error(errors[0].error)
       }
       throw new Error(JSON.stringify(data))
-    }
   }
 
   private buildQueryError(error: RequestError) {
@@ -593,7 +588,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
       const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
-      assertAlways(errorRecord, `External error with reported id was not registered`)
+      assertAlways(errorRecord, 'External error with reported id was not registered')
       return errorRecord
     }
     return undefined
@@ -614,7 +609,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 }
 
 function isUserFacingError(e: unknown): e is RequestError['user_facing_error'] {
-  return typeof e === 'object' && e !== null && e['error_code'] !== undefined
+  return typeof e === 'object' && e !== null && e.error_code !== undefined
 }
 
 function getErrorMessageWithLink(engine: LibraryEngine, title: string) {

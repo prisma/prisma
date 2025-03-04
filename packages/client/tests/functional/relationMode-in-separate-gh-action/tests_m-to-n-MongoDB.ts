@@ -78,7 +78,7 @@ const expectedFindManyCategoryModelIfNoChange = [
 ]
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig, _suiteMeta) => {
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
@@ -278,7 +278,7 @@ testMatrix.setupTestSuite(
 
         // Note :Referential actions on two-way embedded many-to-many relations are not supported (schema validation error when added)
         // Which means everything has the same following behaviour:
-        describe(`onDelete:`, () => {
+        describe('onDelete:', () => {
           test('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },

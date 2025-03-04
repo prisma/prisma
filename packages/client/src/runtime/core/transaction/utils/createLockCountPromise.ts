@@ -8,15 +8,15 @@
  * @param cb the callback to execute and value to return
  * @returns
  */
-export function getLockCountPromise<V = void>(knock: number, cb: () => V | void = () => {}) {
-  let resolve: (v: V | void) => void
-  const lock = new Promise<V | void>((res) => (resolve = res))
+export function getLockCountPromise<V = void>(knock: number, cb: () => V | undefined = () => {}) {
+  let resolve: (v: V | undefined) => void
+  const lock = new Promise<V | undefined>((res) => (resolve = res))
 
   return {
     then(onFulfilled) {
       if (--knock === 0) resolve(cb())
 
-      return onFulfilled?.(lock as unknown as V | void)
+      return onFulfilled?.(lock as unknown as V | undefined)
     },
-  } as PromiseLike<V | void>
+  } as PromiseLike<V | undefined>
 }

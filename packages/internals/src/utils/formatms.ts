@@ -7,5 +7,5 @@ export function formatms(ms: number): string {
     return `${ms}ms`
   }
 
-  return (ms / 1000).toFixed(2) + 's'
+  return `${(ms / 1000).toFixed(2)}s`
 }

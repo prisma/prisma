@@ -1,11 +1,11 @@
 import { assertNever } from '@prisma/internals'
 
 import { lowerCase } from '../../../utils/lowerCase'
-import { ErrorFormat } from '../../getPrismaClient'
-import { CallSite } from '../../utils/CallSite'
+import type { ErrorFormat } from '../../getPrismaClient'
+import type { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
-import {
+import type {
   JsonArgumentValue,
   JsonFieldSelection,
   JsonQuery,
@@ -19,9 +19,9 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { isParam } from '../model/Param'
-import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
-import { isSkip, Skip } from '../types'
-import {
+import type { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
+import { isSkip, type Skip } from '../types'
+import type {
   Action,
   JsArgs,
   JsInputValue,
@@ -31,7 +31,7 @@ import {
   Selection,
 } from '../types/exported/JsApi'
 import { ObjectEnumValue, objectEnumValues } from '../types/exported/ObjectEnums'
-import { ValidationError } from '../types/ValidationError'
+import type { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   findUnique: 'findUnique',
@@ -116,11 +116,11 @@ export function serializeJsonQuery({
 }
 
 function serializeFieldSelection(
-  { select, include, ...args }: JsArgs = {},
+  { select, include, ...args }: JsArgs,
   context: SerializeContext,
 ): JsonFieldSelection {
   const omit = args.omit
-  delete args.omit
+  args.omit = undefined
   return {
     arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
@@ -282,7 +282,7 @@ function serializeArgumentsValue(
   if (isDate(jsValue)) {
     if (isValidDate(jsValue)) {
       return { $type: 'DateTime', value: jsValue.toISOString() }
-    } else {
+    }
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
         selectionPath: context.getSelectionPath(),
@@ -293,7 +293,6 @@ function serializeArgumentsValue(
         },
         underlyingError: 'Provided Date object is invalid',
       })
-    }
   }
 
   if (isParam(jsValue)) {
@@ -354,7 +353,7 @@ function serializeArgumentsObject(
   object: Record<string, JsInputValue>,
   context: SerializeContext,
 ): Record<string, JsonArgumentValue> | RawTaggedValue {
-  if (object['$type']) {
+  if (object.$type) {
     return { $type: 'Raw', value: object }
   }
   const result: Record<string, JsonArgumentValue> = {}
@@ -385,7 +384,7 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
     const itemContext = context.nestArgument(String(i))
     const value = array[i]
     if (value === undefined || isSkip(value)) {
-      const valueName = value === undefined ? 'undefined' : `Prisma.skip`
+      const valueName = value === undefined ? 'undefined' : 'Prisma.skip'
       context.throwValidationError({
         kind: 'InvalidArgumentValue',
         selectionPath: itemContext.getSelectionPath(),
@@ -403,11 +402,11 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
 }
 
 function isRawParameters(value: JsInputValue): value is RawParameters {
-  return typeof value === 'object' && value !== null && value['__prismaRawParameters__'] === true
+  return typeof value === 'object' && value !== null && value.__prismaRawParameters__ === true
 }
 
 function isJSONConvertible(value: JsInputValue): value is JsonConvertible {
-  return typeof value === 'object' && value !== null && typeof value['toJSON'] === 'function'
+  return typeof value === 'object' && value !== null && typeof value.toJSON === 'function'
 }
 
 function validateSelectionForUndefined(value: unknown, context: SerializeContext) {

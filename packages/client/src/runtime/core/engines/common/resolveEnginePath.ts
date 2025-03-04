@@ -1,15 +1,15 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+import { type BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { chmodPlusX, ClientEngineType } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { EngineConfig } from './Engine'
+import type { EngineConfig } from './Engine'
 import { binaryTargetsWasIncorrectlyPinned } from './errors/engine-not-found/binaryTargetsWasIncorrectlyPinned'
 import { bundlerHasTamperedWithEngineCopy } from './errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
-import { EngineNotFoundErrorInput } from './errors/engine-not-found/EngineNotFoundErrorInput'
+import type { EngineNotFoundErrorInput } from './errors/engine-not-found/EngineNotFoundErrorInput'
 import { nativeGeneratedOnDifferentPlatform } from './errors/engine-not-found/nativeGeneratedOnDifferentPlatform'
 import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/toolingHasTamperedWithEngineCopy'
 
@@ -124,7 +124,6 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
 export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: BinaryTarget) {
   if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
-  } else {
-    return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`
   }
+    return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`
 }

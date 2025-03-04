@@ -372,7 +372,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const result = introspect.parse(['--url', MONGO_URI], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).not.toContain(`Datasource `)
+    expect(captureStdout.getCapturedText().join('\n')).not.toContain('Datasource ')
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
 

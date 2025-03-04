@@ -3,7 +3,7 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   formatms,
   getCommandWithExecutor,
@@ -19,9 +19,9 @@ import {
   relativizePathInPSLError,
   toSchemasContainer,
 } from '@prisma/internals'
-import { MigrateTypes } from '@prisma/internals'
+import type { MigrateTypes } from '@prisma/internals'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 import { match } from 'ts-pattern'
 
 import { SchemaEngine } from '../SchemaEngine'
@@ -132,7 +132,7 @@ Set composite types introspection depth to 2 levels
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
-      process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
+      process.stdout.write(`${dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`)}\n`)
 
       // Load and print where the .env was loaded (if loaded)
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
@@ -206,7 +206,7 @@ Set composite types introspection depth to 2 levels
             }
 
             return { firstDatasource, schema, validationWarning: undefined }
-          } else if (input.fromD1) {
+          }if (input.fromD1) {
             const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
             const pathToSQLiteFile = path.relative(path.dirname(input.schemaPath), d1Database)
 
@@ -229,17 +229,15 @@ Set composite types introspection depth to 2 levels
 
             if (hasDriverAdaptersPreviewFeature) {
               return result
-            } else {
-              return { ...result, validationWarning }
             }
-          } else {
+              return { ...result, validationWarning }
+          }
             // Use getConfig with ignoreEnvVarErrors
             // It will  throw an error if the env var is not set or if it is invalid
             await getConfig({
               datamodel: rawSchema,
               ignoreEnvVarErrors: false,
             })
-          }
 
           return { firstDatasource, schema: rawSchema, validationWarning: undefined } as const
         },
@@ -325,7 +323,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       introspectionSchema = introspectionResult.schema
       introspectionWarnings = introspectionResult.warnings
-      debug(`Introspection warnings`, introspectionWarnings)
+      debug('Introspection warnings', introspectionWarnings)
     } catch (e: any) {
       introspectionSpinner.failure()
 
@@ -353,7 +351,7 @@ ${bold('To fix this, you have two options:')}
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
-      } else if (e.code === 'P1003') {
+      }if (e.code === 'P1003') {
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
@@ -372,7 +370,7 @@ ${bold('To fix this, you have two options:')}
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
-      } else if (e.code === 'P1012') {
+      }if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
         process.stdout.write('\n') // empty line
 
@@ -449,7 +447,7 @@ ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Cl
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DbPull.help}`)
     }
     return DbPull.help
   }

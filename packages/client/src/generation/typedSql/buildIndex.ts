@@ -1,8 +1,8 @@
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 
 import * as ts from '../ts-builders'
 import { Writer } from '../ts-builders/Writer'
-import { DbEnumsList } from './buildDbEnums'
+import type { DbEnumsList } from './buildDbEnums'
 
 export function buildIndexTs(queries: SqlQueryOutput[], enums: DbEnumsList) {
   const file = ts.file()

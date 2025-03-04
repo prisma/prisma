@@ -3,7 +3,7 @@ import path from 'node:path'
 import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
-  Command,
+  type Command,
   format,
   getConfig,
   getLintWarningsAsText,
@@ -109,7 +109,7 @@ ${bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Validate.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Validate.help}`)
     }
     return Validate.help
   }

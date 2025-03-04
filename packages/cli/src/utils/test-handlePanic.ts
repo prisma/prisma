@@ -1,6 +1,6 @@
 import { getSchema, handlePanic, toSchemasContainer } from '@prisma/internals'
 import { SchemaEngine } from '@prisma/migrate'
-import path from 'path'
+import path from 'node:path'
 
 async function main() {
   const packageJsonVersion = '0.0.0'
@@ -30,8 +30,8 @@ async function main() {
       getDatabaseVersionSafe,
     })
       .catch((e) => {
-        console.error('Error: ' + e.stack)
-        console.error('Error: ' + e.message)
+        console.error(`Error: ${e.stack}`)
+        console.error(`Error: ${e.message}`)
       })
       .finally(() => {
         process.exit(1)

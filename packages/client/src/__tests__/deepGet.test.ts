@@ -9,7 +9,7 @@ describe('deepGet', () => {
     }
     const path = ['aggregateUser', 'count']
     const result = deepGet(obj, path)
-    expect(result).toMatchInlineSnapshot(`0`)
+    expect(result).toMatchInlineSnapshot('0')
   })
 
   test('work with false', () => {
@@ -19,7 +19,7 @@ describe('deepGet', () => {
       },
     }
     const path = ['aggregateUser', 'count']
-    expect(deepGet(obj, path)).toMatchInlineSnapshot(`false`)
+    expect(deepGet(obj, path)).toMatchInlineSnapshot('false')
   })
 
   test('work with deep object', () => {
@@ -57,7 +57,7 @@ describe('deepGet', () => {
       },
     }
     const path = ['very', 'deep', 'obj2']
-    expect(deepGet(obj, path)).toMatchInlineSnapshot(`undefined`)
+    expect(deepGet(obj, path)).toMatchInlineSnapshot('undefined')
   })
 
   test('work with array', () => {
@@ -68,6 +68,6 @@ describe('deepGet', () => {
     ]
 
     const path = ['0', 'id']
-    expect(deepGet(obj, path)).toMatchInlineSnapshot(`1`)
+    expect(deepGet(obj, path)).toMatchInlineSnapshot('1')
   })
 })

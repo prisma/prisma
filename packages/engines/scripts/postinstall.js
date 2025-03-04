@@ -1,4 +1,4 @@
-const path = require('path')
+const path = require('node:path')
 
 const postInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'postinstall.js')
 const localInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'localinstall.js')

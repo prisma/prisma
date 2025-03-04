@@ -4,7 +4,7 @@ test('test', async () => {
   const prisma = new PrismaClient()
 
   const result = prisma.user.create({
-    data: { email: Date.now() + '' },
+    data: { email: `${Date.now()}` },
   })
 
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -31,5 +31,3 @@ The following locations have been searched:
   /test/engine-not-found-error/tooling-tampered-with-engine-copy/prisma"
 `)
 })
-
-export {}

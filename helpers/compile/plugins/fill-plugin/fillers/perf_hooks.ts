@@ -1,5 +1,5 @@
 const performance =
-  globalThis['performance'] ??
+  globalThis.performance ??
   (() => {
     const origin = Date.now()
     return {

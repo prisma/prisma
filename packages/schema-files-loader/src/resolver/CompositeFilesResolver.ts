@@ -1,5 +1,5 @@
-import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
-import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
+import { createFileNameToKeyMapper, type FileNameToKeyMapper } from './caseSensitivity'
+import type { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 
 /**
  * Files resolver that combines two other resolvers

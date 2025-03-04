@@ -18,18 +18,18 @@ export async function getMigrationName(name?: string): Promise<getMigrationNameO
   }
   // We use prompts.inject() for testing in our CI
   // If not TTY or CI, use default name
-  else if ((!isInteractive || isCi()) && Boolean(prompt._injected?.length) === false) {
+  if ((!isInteractive || isCi()) && Boolean(prompt._injected?.length) === false) {
     return {
       name: '',
     }
   }
 
-  const messageForPrompt = `Enter a name for the new migration:`
+  const messageForPrompt = 'Enter a name for the new migration:'
   // For testing purposes we log the message
   // An alternative would be to find a way to capture the prompt message from jest tests
   // (attempted without success)
   if (Boolean((prompt as any)._injected?.length) === true) {
-    process.stdout.write(messageForPrompt + '\n')
+    process.stdout.write(`${messageForPrompt}\n`)
   }
   const response = await prompt({
     type: 'text',

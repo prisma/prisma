@@ -1,7 +1,7 @@
 import { defaultTestConfig } from '@prisma/config'
 import { DbDrop, DbPush } from '@prisma/migrate'
 
-import { MemoryTestDir } from './MemoryTestDir'
+import type { MemoryTestDir } from './MemoryTestDir'
 
 /**
  * Creates a database according to provided schema while silencing the output

@@ -3,7 +3,7 @@ import { BinaryType, download } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import { version as typeScriptVersion } from 'typescript'
 
 import packageJson from '../../../package.json'
@@ -38,7 +38,7 @@ describe('version', () => {
         failSilent: false,
       })
       // This Omits query-engine from the map
-      const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
+      const { 'query-engine': qe, ...envVarMap } = engineEnvVarMap
 
       const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
@@ -85,7 +85,7 @@ describe('version', () => {
       })
 
       const binaryTarget = await getBinaryTargetForCurrentPlatform()
-      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
+      const { 'libquery-engine': qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
         process.env[envVar] = binaryPaths[engine][binaryTarget]
@@ -123,9 +123,9 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
-  str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
-  str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
-  str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
+  str = str.replace(/(Operating System\s+:).*/g, '$1 OS')
+  str = str.replace(/(Architecture\s+:).*/g, '$1 ARCHITECTURE')
+  str = str.replace(/workspace:\*/g, 'ENGINE_VERSION')
   str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
   str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
 

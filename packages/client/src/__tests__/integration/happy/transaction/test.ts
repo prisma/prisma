@@ -1,7 +1,7 @@
-import assert from 'assert'
-import crypto from 'crypto'
-import fs from 'fs'
-import path from 'path'
+import assert from 'node:assert'
+import crypto from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
@@ -9,12 +9,11 @@ function clean(array: any[]) {
   return array.map((item) => {
     if (Array.isArray(item)) {
       return clean(item)
-    } else {
+    }
       if (item?.id) {
         item.id = 'REMOVED'
       }
       return item
-    }
   })
 }
 
@@ -80,7 +79,7 @@ test('transaction', async () => {
       },
     ]
   `)
-  const email = crypto.randomBytes(20).toString('hex') + '@hey.com'
+  const email = `${crypto.randomBytes(20).toString('hex')}@hey.com`
 
   // intentionally use the same email 2 times to see, if the transaction gets rolled back properly
   // TODO: Handle the error here and make sure it's the right one

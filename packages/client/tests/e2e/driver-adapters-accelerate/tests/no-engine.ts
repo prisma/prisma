@@ -31,5 +31,3 @@ Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma 
 `)
   })
 })
-
-export {}

@@ -1,5 +1,5 @@
 // @ts-ignore
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 import type { PrismaClient } from './node_modules/@prisma/client'
 

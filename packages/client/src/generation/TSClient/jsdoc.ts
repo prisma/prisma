@@ -14,11 +14,11 @@ export interface JSDocMethodBodyCtx {
 }
 
 const Docs = {
-  cursor: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}`,
-  pagination: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}`,
-  aggregations: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}`,
-  distinct: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}`,
-  sorting: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}`,
+  cursor: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}',
+  pagination: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}',
+  aggregations: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}',
+  distinct: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}',
+  sorting: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}',
 }
 
 type JSDocsType = {
@@ -42,20 +42,20 @@ const undefinedNote = `Note, that providing \`undefined\` is treated as the valu
 Read more here: https://pris.ly/d/null-undefined`
 
 const JSDocFields = {
-  take: (singular, plural) => addLinkToDocs(`Take \`±n\` ${plural} from the position of the cursor.`, 'pagination'),
-  skip: (singular, plural) => addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
-  _count: (singular, plural) => addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
-  _avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
-  _sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
-  _min: () => addLinkToDocs(`Select which fields to find the minimum value`, 'aggregations'),
-  _max: () => addLinkToDocs(`Select which fields to find the maximum value`, 'aggregations'),
+  take: (_singular, plural) => addLinkToDocs(`Take \`±n\` ${plural} from the position of the cursor.`, 'pagination'),
+  skip: (_singular, plural) => addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
+  _count: (_singular, plural) => addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
+  _avg: () => addLinkToDocs('Select which fields to average', 'aggregations'),
+  _sum: () => addLinkToDocs('Select which fields to sum', 'aggregations'),
+  _min: () => addLinkToDocs('Select which fields to find the minimum value', 'aggregations'),
+  _max: () => addLinkToDocs('Select which fields to find the maximum value', 'aggregations'),
   count: () => getDeprecationString('2.23.0', '_count'),
   avg: () => getDeprecationString('2.23.0', '_avg'),
   sum: () => getDeprecationString('2.23.0', '_sum'),
   min: () => getDeprecationString('2.23.0', '_min'),
   max: () => getDeprecationString('2.23.0', '_max'),
-  distinct: (singular, plural) => addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
-  orderBy: (singular, plural) => addLinkToDocs(`Determine the order of ${plural} to fetch.`, 'sorting'),
+  distinct: (_singular, plural) => addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
+  orderBy: (_singular, plural) => addLinkToDocs(`Determine the order of ${plural} to fetch.`, 'sorting'),
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
@@ -103,7 +103,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })
     `,
     fields: {
-      data: (singular, plural) => `The data used to create many ${plural}.`,
+      data: (_singular, plural) => `The data used to create many ${plural}.`,
     },
   },
   createManyAndReturn: {
@@ -132,7 +132,7 @@ ${undefinedNote}
 `
     },
     fields: {
-      data: (singular, plural) => `The data used to create many ${plural}.`,
+      data: (_singular, plural) => `The data used to create many ${plural}.`,
     },
   },
   findUnique: {
@@ -181,7 +181,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     fields: {
       where: (singular) => `Filter, which ${singular} to fetch.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
+      cursor: (_singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       distinct: JSDocFields.distinct,
@@ -203,7 +203,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     fields: {
       where: (singular) => `Filter, which ${singular} to fetch.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
+      cursor: (_singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       distinct: JSDocFields.distinct,
@@ -231,10 +231,10 @@ ${onlySelect}
 `
     },
     fields: {
-      where: (singular, plural) => `Filter, which ${plural} to fetch.`,
+      where: (_singular, plural) => `Filter, which ${plural} to fetch.`,
       orderBy: JSDocFields.orderBy,
       skip: JSDocFields.skip,
-      cursor: (singular, plural) => addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
+      cursor: (_singular, plural) => addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
       take: JSDocFields.take,
     },
   },
@@ -328,7 +328,7 @@ const aggregations = await prisma.user.aggregate({
     fields: {
       where: (singular) => `Filter which ${singular} to aggregate.`,
       orderBy: JSDocFields.orderBy,
-      cursor: () => addLinkToDocs(`Sets the start position`, 'cursor'),
+      cursor: () => addLinkToDocs('Sets the start position', 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       _count: JSDocFields._count,
@@ -374,9 +374,9 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })
 `,
     fields: {
-      data: (singular, plural) => `The data used to update ${plural}.`,
-      where: (singular, plural) => `Filter which ${plural} to update`,
-      limit: (singular, plural) => `Limit how many ${plural} to update.`,
+      data: (_singular, plural) => `The data used to update ${plural}.`,
+      where: (_singular, plural) => `Filter which ${plural} to update`,
+      limit: (_singular, plural) => `Limit how many ${plural} to update.`,
     },
   },
   updateManyAndReturn: {
@@ -411,9 +411,9 @@ ${undefinedNote}
 `
     },
     fields: {
-      data: (singular, plural) => `The data used to update ${plural}.`,
-      where: (singular, plural) => `Filter which ${plural} to update`,
-      limit: (singular, plural) => `Limit how many ${plural} to update.`,
+      data: (_singular, plural) => `The data used to update ${plural}.`,
+      where: (_singular, plural) => `Filter which ${plural} to update`,
+      limit: (_singular, plural) => `Limit how many ${plural} to update.`,
     },
   },
   deleteMany: {
@@ -429,8 +429,8 @@ const { count } = await ${ctx.method}({
 })
 `,
     fields: {
-      where: (singular, plural) => `Filter which ${plural} to delete`,
-      limit: (singular, plural) => `Limit how many ${plural} to delete.`,
+      where: (_singular, plural) => `Filter which ${plural} to delete`,
+      limit: (_singular, plural) => `Limit how many ${plural} to delete.`,
     },
   },
   aggregateRaw: {

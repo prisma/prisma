@@ -5,7 +5,7 @@ import { lowerCase } from '../../utils/lowerCase'
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
-import { RuntimeDataModel, RuntimeModel } from '../core/runtimeDataModel'
+import type { RuntimeDataModel, RuntimeModel } from '../core/runtimeDataModel'
 import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
 const knownProperties = [
@@ -356,7 +356,7 @@ function renderOmitValidationErrors(
         break
       case 'InvalidFieldValue':
         argsTree.arguments.getDeepFieldValue([error.modelKey, error.fieldName])?.markAsError()
-        argsTree.addErrorMessage(() => `Omit field option value must be a boolean.`)
+        argsTree.addErrorMessage(() => 'Omit field option value must be a boolean.')
         break
     }
   }

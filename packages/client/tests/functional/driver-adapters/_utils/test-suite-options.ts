@@ -1,5 +1,5 @@
 import { Providers } from '../../_utils/providers'
-import { MatrixOptions } from '../../_utils/types'
+import type { MatrixOptions } from '../../_utils/types'
 
 /**
  * Opt out from providers not specified in `driverAdaptersTestProviders` in `setupTestSuite`

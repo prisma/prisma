@@ -61,7 +61,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.user.findMany({ where: { age: 65 } })
       result.sort((a, b) => a.id.localeCompare(b.id))
 
-      expect(affected).toMatchInlineSnapshot(`2`)
+      expect(affected).toMatchInlineSnapshot('2')
       expect(result).toMatchInlineSnapshot(`
         [
           {
@@ -85,7 +85,7 @@ testMatrix.setupTestSuite(
 
       if (isMySql) {
         // eslint-disable-next-line prettier/prettier
-        affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
+        affected = await prisma.$executeRawUnsafe('UPDATE User SET age = ? WHERE age >= ? AND age <= ?', 65, 45, 60)
       } else if (provider === Providers.SQLSERVER) {
         affected = await prisma.$executeRawUnsafe(
           `UPDATE "User" SET age = @P1 WHERE age >= @P2 AND age <= @P3`,
@@ -105,7 +105,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.user.findMany({ where: { age: 65 } })
       result.sort((a, b) => a.id.localeCompare(b.id))
 
-      expect(affected).toMatchInlineSnapshot(`2`)
+      expect(affected).toMatchInlineSnapshot('2')
       expect(result).toMatchInlineSnapshot(`
         [
           {
@@ -140,7 +140,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.user.findMany({ where: { age: 65 } })
       result.sort((a, b) => a.id.localeCompare(b.id))
 
-      expect(affected).toMatchInlineSnapshot(`2`)
+      expect(affected).toMatchInlineSnapshot('2')
       expect(result).toMatchInlineSnapshot(`
         [
           {
@@ -175,7 +175,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.user.findMany({ where: { age: 65 } })
       result.sort((a, b) => a.id.localeCompare(b.id))
 
-      expect(affected).toMatchInlineSnapshot(`2`)
+      expect(affected).toMatchInlineSnapshot('2')
       expect(result).toMatchInlineSnapshot(`
         [
           {
@@ -210,7 +210,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.user.findMany({ where: { age: 65 } })
       result.sort((a, b) => a.id.localeCompare(b.id))
 
-      expect(affected).toMatchInlineSnapshot(`2`)
+      expect(affected).toMatchInlineSnapshot('2')
       expect(result).toMatchInlineSnapshot(`
         [
           {

@@ -21,7 +21,7 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
   const errorTitle = `Unable to require(\`${dim(args.id)}\`).`
 
   const potentialReasonMessage = match({ message: error.message, code: error.code })
-    .with({ code: 'ENOENT' }, () => `File does not exist.`)
+    .with({ code: 'ENOENT' }, () => 'File does not exist.')
     .when(
       ({ message }) => hasLinkingProblem && message.includes('libz'),
       () => {

@@ -74,7 +74,7 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
 }
 
 function valueToPromise<T>(thing: T): PrismaPromise<T> {
-  if (typeof thing['then'] === 'function') {
+  if (typeof thing.then === 'function') {
     return thing as PrismaPromise<T>
   }
 

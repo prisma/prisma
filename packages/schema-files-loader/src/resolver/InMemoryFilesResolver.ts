@@ -1,5 +1,5 @@
-import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
-import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
+import { createFileNameToKeyMapper, type FileNameToKeyMapper } from './caseSensitivity'
+import type { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 
 type InMemoryNode = {
   /**
@@ -27,7 +27,7 @@ export class InMemoryFilesResolver implements FilesResolver {
     const dirs = absolutePath.split(/[\\/]/)
     const fileName = dirs.pop()
     if (!fileName) {
-      throw new Error(`Path is empty`)
+      throw new Error('Path is empty')
     }
     let currentDirRecord = this._tree
     for (const dir of dirs) {

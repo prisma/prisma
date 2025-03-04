@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
-import fs from 'fs'
+import fs from 'node:fs'
 
 import { createErrorReport } from '../errorReporting'
 import { ErrorArea, RustPanic } from '../panic'

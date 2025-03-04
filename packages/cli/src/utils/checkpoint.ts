@@ -37,7 +37,7 @@ export async function runCheckpointClientCheck({
   schemaPathFromConfig?: SchemaPathFromConfig
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
-  if (process.env['CHECKPOINT_DISABLE']) {
+  if (process.env.CHECKPOINT_DISABLE) {
     // TODO: this breaks checkpoint-client abstraction, ideally it would export a reusable isGloballyDisabled() function
     debug('runCheckpointClientCheck() is disabled by the CHECKPOINT_DISABLE env var.')
     return 0
@@ -127,7 +127,7 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
       // Example 'prisma-client-js'
       schemaGeneratorsProviders = config.generators
         // Check that value is defined
-        .filter((generator) => generator && generator.provider)
+        .filter((generator) => generator?.provider)
         .map((generator) => parseEnvValue(generator.provider))
 
       // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
@@ -144,7 +144,7 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
       )
       debug(e)
     }
-  } catch (e) {
+  } catch (_e) {
     // fail silently if schema can't be read
   }
 

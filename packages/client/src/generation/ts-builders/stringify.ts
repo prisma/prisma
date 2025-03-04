@@ -1,6 +1,6 @@
 import { assertNever } from '@prisma/internals'
 
-import { BasicBuilder } from './BasicBuilder'
+import type { BasicBuilder } from './BasicBuilder'
 import { Writer } from './Writer'
 
 type StringifyOptions = {
@@ -14,11 +14,11 @@ export function stringify(builder: BasicBuilder, { indentLevel = 0, newLine = 'n
     case 'none':
       return str
     case 'leading':
-      return '\n' + str
+      return `\n${str}`
     case 'trailing':
-      return str + '\n'
+      return `${str}\n`
     case 'both':
-      return '\n' + str + '\n'
+      return `\n${str}\n`
     default:
       assertNever(newLine, 'Unexpected value')
   }

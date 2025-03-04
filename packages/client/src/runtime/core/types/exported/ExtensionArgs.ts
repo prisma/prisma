@@ -1,6 +1,6 @@
-import { JsArgs } from './JsApi'
-import { RawQueryArgs } from './RawQueryArgs'
-import { Optional } from './Utils'
+import type { JsArgs } from './JsApi'
+import type { RawQueryArgs } from './RawQueryArgs'
+import type { Optional } from './Utils'
 
 export type ExtensionArgs = Optional<RequiredExtensionArgs>
 export type RequiredExtensionArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions

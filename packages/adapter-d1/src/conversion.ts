@@ -1,4 +1,4 @@
-import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 // const debug = Debug('prisma:driver-adapter:d1:conversion')
 
@@ -89,7 +89,7 @@ function inferNumberType(_: number): ColumnType {
 }
 
 function inferObjectType(value: Object): ColumnType {
-  if (value instanceof Array) {
+  if (Array.isArray(value)) {
     return ColumnTypeEnum.Bytes
   }
   throw new UnexpectedTypeError(value)

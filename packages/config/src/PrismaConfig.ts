@@ -1,4 +1,4 @@
-import { Debug, DriverAdapter } from '@prisma/driver-adapter-utils'
+import { Debug, type DriverAdapter } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -202,7 +202,7 @@ function parsePrismaConfigInternalShape<Env extends EnvVars = never>(
   debug('Parsing PrismaConfigInternal: %o', input)
 
   // Bypass the parsing step when the input is already an object with the correct internal brand.
-  if (typeof input === 'object' && input !== null && input['__brand'] === PRISMA_CONFIG_INTERNAL_BRAND) {
+  if (typeof input === 'object' && input !== null && input.__brand === PRISMA_CONFIG_INTERNAL_BRAND) {
     debug('Short-circuit: input is already a PrismaConfigInternal object')
     return Either.right(input as PrismaConfigInternal<Env>)
   }

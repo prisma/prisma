@@ -23,10 +23,9 @@ export async function getEngineVersion(enginePath?: string, binaryName?: BinaryT
 
     const QE = loadLibrary<NodeAPILibrary>(enginePath, platformInfo)
     return `${BinaryType.QueryEngineLibrary} ${QE.version().commit}`
-  } else {
+  }
     const { stdout } = await execa(enginePath, ['--version'])
     return stdout
-  }
 }
 
 export function safeGetEngineVersion(enginePath?: string, binaryName?: BinaryType): TE.TaskEither<Error, string> {

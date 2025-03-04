@@ -88,7 +88,7 @@ ${bold('Examples')}
     if (cmd) {
       let argsForCmd: string[]
       if (commandName === 'diff') {
-        argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
+        argsForCmd = args['--preview-feature'] ? [...args._.slice(1), '--preview-feature'] : args._.slice(1)
       } else {
         // Filter our --preview-feature flag for other migrate commands that do not consider it valid
         const filteredArgs = args._.filter((item) => item !== '--preview-feature')
@@ -103,7 +103,7 @@ ${bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateCommand.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateCommand.help}`)
     }
     return MigrateCommand.help
   }

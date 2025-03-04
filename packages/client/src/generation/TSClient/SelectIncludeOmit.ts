@@ -1,10 +1,10 @@
-import { DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 
-import { DMMFHelper } from '../dmmf'
+import type { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import { appendSkipType, extArgsParam, getFieldArgName, getIncludeName, getOmitName, getSelectName } from '../utils'
 import { lowerCase } from '../utils/common'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 
 type BuildIncludeTypeParams = {
   typeName?: string

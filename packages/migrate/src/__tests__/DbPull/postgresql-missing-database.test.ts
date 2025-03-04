@@ -34,7 +34,7 @@ describe('postgresql - missing database', () => {
   const defaultConnectionString = process.env.TEST_POSTGRES_URI_MIGRATE
 
   // replace database name, e.g., 'tests-migrate', with 'unknown-database'
-  const connectionString = defaultConnectionString.split('/').slice(0, -1).join('/') + '/unknown-database'
+  const connectionString = `${defaultConnectionString.split('/').slice(0, -1).join('/')}/unknown-database`
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()

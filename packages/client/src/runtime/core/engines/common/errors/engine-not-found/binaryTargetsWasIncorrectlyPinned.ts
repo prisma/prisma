@@ -1,5 +1,5 @@
 import { addRuntimeToYourBinaryTargets } from './addRuntimeToYourBinaryTargets'
-import { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
+import type { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
 import { queryEngineCannotBeFound } from './queryEngineCannotBeFound'
 import { theseLocationsHaveBeenSearched } from './theseLocationsHaveBeenSearched'
 

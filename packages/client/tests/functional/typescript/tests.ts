@@ -1,6 +1,6 @@
-import assert from 'assert'
+import assert from 'node:assert'
 import glob from 'globby'
-import path from 'path'
+import path from 'node:path'
 import ts from 'typescript'
 
 import { keys } from '../../../../../helpers/blaze/keys'

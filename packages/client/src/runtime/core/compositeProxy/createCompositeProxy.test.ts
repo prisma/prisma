@@ -1,4 +1,4 @@
-import util from 'util'
+import util from 'node:util'
 
 import { createCompositeProxy } from './createCompositeProxy'
 
@@ -123,7 +123,7 @@ test('allows to hide properties via layers', () => {
 
   expect(Object.keys(proxy)).toEqual(['prop'])
   expect(proxy).not.toHaveProperty('secret')
-  expect(proxy['secret']).toBeUndefined()
+  expect(proxy.secret).toBeUndefined()
 })
 
 test('does not add layers for undeclared keys', () => {

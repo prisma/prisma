@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, underline, yellow } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { BinaryType } from './BinaryType'
 
@@ -58,14 +58,13 @@ function getEnvVarToUse(binaryType: BinaryType): string {
         )} takes precedence. ${bold(deprecatedEnvVar)} is deprecated.`,
       )
       return envVar
-    } else {
+    }
       console.warn(
         `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} environment variable is deprecated, please use ${bold(
           envVar,
         )} instead`,
       )
       return deprecatedEnvVar
-    }
   }
 
   return envVar

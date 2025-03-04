@@ -3,8 +3,8 @@ import { download, getCacheDir } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
-import { existsSync } from 'fs'
-import { tmpdir } from 'os'
+import { existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 
 /**
  * Generates a certificate for the Mini Proxy and prints its CA path to stdout.

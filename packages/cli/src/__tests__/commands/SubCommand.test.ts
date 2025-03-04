@@ -1,10 +1,10 @@
 import * as ni from '@antfu/ni'
 import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
-import { rm } from 'fs/promises'
+import { rm } from 'node:fs/promises'
 import { copy } from 'fs-extra'
-import { tmpdir } from 'os'
-import { join } from 'path'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 import { SubCommand } from '../../SubCommand'
 
@@ -16,7 +16,7 @@ jest.useFakeTimers().setSystemTime(new Date('2025-01-01'))
 const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 
 beforeEach(async () => {
-  await rm(join(tmpdir(), `sub-command@0.0.0`), { recursive: true, force: true })
+  await rm(join(tmpdir(), 'sub-command@0.0.0'), { recursive: true, force: true })
   await rm(join(tmpdir(), `sub-command@latest-${getDayMillis()}`), { recursive: true, force: true })
 })
 
@@ -25,7 +25,7 @@ test('@<version>', async () => {
   const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
-  const copyDest = join(tmpdir(), `sub-command@0.0.0`)
+  const copyDest = join(tmpdir(), 'sub-command@0.0.0')
   await copy(copySrc, copyDest)
 
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())

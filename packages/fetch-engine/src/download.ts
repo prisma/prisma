@@ -1,19 +1,19 @@
 import Debug from '@prisma/debug'
 import {
   assertNodeAPISupported,
-  BinaryTarget,
+  type BinaryTarget,
   binaryTargets,
   getNodeAPIName,
   getPlatformInfo,
 } from '@prisma/get-platform'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'node:fs'
 import { ensureDir } from 'fs-extra'
 import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
-import path from 'path'
+import path from 'node:path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
 import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'
@@ -65,7 +65,7 @@ type BinaryDownloadJob = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
-  if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
+  if (enginesOverride?.branch || enginesOverride?.folder) {
     // if this is true the engines have been fetched before and already cached
     // into .cache/prisma/master/_local_ for us to be able to use this version
     options.version = '_local_'
@@ -282,7 +282,7 @@ async function binaryNeedsToBeDownloaded(
       return false
     }
 
-    const sha256FilePath = cachedFile + '.sha256'
+    const sha256FilePath = `${cachedFile}.sha256`
     if (await exists(sha256FilePath)) {
       const sha256File = await fs.promises.readFile(sha256FilePath, 'utf-8')
       const sha256Cache = await getHash(cachedFile)
@@ -302,10 +302,9 @@ async function binaryNeedsToBeDownloaded(
           await overwriteFile(cachedFile, job.targetFilePath)
         }
         return false
-      } else {
-        return true
       }
-    } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+        return true
+    }if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
       debug(
         `the checksum file ${sha256FilePath} is missing but this was ignored because the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is set`,
       )
@@ -318,9 +317,8 @@ async function binaryNeedsToBeDownloaded(
         return false
       }
       return true
-    } else {
-      return true
     }
+      return true
   }
 
   // If there is no cache and the file doesn't exist, we for sure need to download it
@@ -352,11 +350,10 @@ export async function getVersion(enginePath: string, binaryName: string) {
 
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`
-    } else {
+    }
       const result = await execa(enginePath, ['--version'])
 
       return result.stdout
-    }
   } catch {}
 
   return undefined
@@ -422,9 +419,8 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   } catch (e) {
     if (options.failSilent || (e as NodeJS.ErrnoException).code !== 'EACCES') {
       return
-    } else {
-      throw new Error(`Can't write to ${targetDir} please make sure you install "prisma" with the right permissions.`)
     }
+      throw new Error(`Can't write to ${targetDir} please make sure you install "prisma" with the right permissions.`)
   }
 
   debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)
@@ -457,8 +453,8 @@ async function saveFileToCache(
   }
 
   const cachedTargetPath = path.join(cacheDir, job.binaryName)
-  const cachedSha256Path = path.join(cacheDir, job.binaryName + '.sha256')
-  const cachedSha256ZippedPath = path.join(cacheDir, job.binaryName + '.gz.sha256')
+  const cachedSha256Path = path.join(cacheDir, `${job.binaryName}.sha256`)
+  const cachedSha256ZippedPath = path.join(cacheDir, `${job.binaryName}.gz.sha256`)
 
   try {
     await overwriteFile(job.targetFilePath, cachedTargetPath)

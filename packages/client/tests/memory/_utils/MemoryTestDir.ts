@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 export class MemoryTestDir {
   readonly basePath: string

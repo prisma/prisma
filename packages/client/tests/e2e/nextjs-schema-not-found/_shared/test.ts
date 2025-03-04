@@ -37,7 +37,7 @@ async function test({ endpoint, server = DEFAULT_SERVER }: { endpoint: string; s
     // Dual logic: server components error at build & runtime, non-Server components at runtime
     // this is also why we use `.nothrow()` and only check for exit codes as well as http codes
     const stderr = nextJsBuild.stderr + (await nextJsProcess).stderr // dual logic
-    const message = `We detected that you are using Next.js, learn how to fix this: https://pris.ly/d/engine-not-found-nextjs`
+    const message = 'We detected that you are using Next.js, learn how to fix this: https://pris.ly/d/engine-not-found-nextjs'
 
     if (stderr.includes(message) === false) {
       throw new Error(`Expected an error message starting with "${message}" but got "${stderr}"`)

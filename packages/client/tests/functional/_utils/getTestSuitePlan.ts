@@ -1,9 +1,9 @@
 import { klona } from 'klona'
 
-import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteFullName, type NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { AdapterProviders, adaptersForProvider, Providers, relationModesForAdapter } from './providers'
-import { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { CliMeta, MatrixOptions } from './types'
+import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import type { CliMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string

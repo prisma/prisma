@@ -1,7 +1,7 @@
-import { JsonObject } from './Json'
-import { OperationPayload } from './Payload'
-import { Skip } from './Skip'
-import { Compute, Equals, PatchFlat, Select } from './Utils'
+import type { JsonObject } from './Json'
+import type { OperationPayload } from './Payload'
+import type { Skip } from './Skip'
+import type { Compute, Equals, PatchFlat, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =

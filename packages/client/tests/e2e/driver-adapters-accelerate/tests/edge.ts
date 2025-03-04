@@ -15,5 +15,3 @@ Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the P
 `)
   })
 })
-
-export {}

@@ -1,8 +1,8 @@
 import type * as esbuild from 'esbuild'
-import fs from 'fs'
+import fs from 'node:fs'
 import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
-import path from 'path'
+import path from 'node:path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'

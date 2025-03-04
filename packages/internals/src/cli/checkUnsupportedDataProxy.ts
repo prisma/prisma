@@ -1,5 +1,5 @@
 import { defaultTestConfig } from '@prisma/config'
-import fs from 'fs'
+import fs from 'node:fs'
 import { green } from 'kleur/colors'
 import type { O } from 'ts-toolbelt'
 

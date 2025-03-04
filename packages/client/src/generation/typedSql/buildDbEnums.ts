@@ -1,4 +1,4 @@
-import { DMMF, SqlQueryOutput } from '@prisma/generator-helper'
+import type { DMMF, SqlQueryOutput } from '@prisma/generator-helper'
 import { isValidJsIdentifier } from '@prisma/internals'
 
 import * as ts from '../ts-builders'

@@ -4,7 +4,7 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 
 import { mapKeys } from '../../utils/mapKeys'
 import { parseAWSNodejsRuntimeEnvVarVersion } from '../../utils/parseAWSNodejsRuntimeEnvVarVersion'
@@ -34,7 +34,7 @@ export async function getBinaryPathsByVersion({
     }
 
     if (process.env.NETLIFY) {
-      const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+      const isNodeMajor20OrUp = Number.parseInt(process.versions.node.split('.')[0]) >= 20
 
       // Netlify reads and changes the runtime version based on this env var
       // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables

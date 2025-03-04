@@ -1,7 +1,7 @@
 import levenshtein from 'js-levenshtein'
 
 import { lowerCase } from '../../../utils/lowerCase'
-import {
+import type {
   ArgumentDescription,
   EmptySelectionError,
   InputTypeDescription,
@@ -16,17 +16,17 @@ import {
   UnknownSelectionFieldError,
   ValueTooLargeError,
 } from '../engines'
-import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
-import {
+import type { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
+import type {
   IncludeOnScalarError,
   InvalidSelectionValueError,
   MutuallyExclusiveFieldsError,
   ValidationError,
 } from '../types/ValidationError'
 import { applyUnionError } from './applyUnionError'
-import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
-import { Colors } from './base'
-import { ObjectField } from './ObjectField'
+import type { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import type { Colors } from './base'
+import type { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
 import { ScalarValue } from './ScalarValue'
@@ -88,7 +88,7 @@ export function applyValidationError(
       applyUnionError(error, args, globalOmit)
       break
     default:
-      throw new Error('not implemented: ' + error.kind)
+      throw new Error(`not implemented: ${error.kind}`)
   }
 }
 
@@ -517,9 +517,9 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
 
   args.addErrorMessage((colors) => {
     const parts = [`Argument \`${colors.bold(argumentName)}\` of type ${colors.bold(error.inputType.name)} needs`]
-    if (error.constraints.minFieldCount === 1 && error.constraints.maxFieldCount == 1) {
+    if (error.constraints.minFieldCount === 1 && error.constraints.maxFieldCount === 1) {
       parts.push(`${colors.green('exactly one')} argument,`)
-    } else if (error.constraints.maxFieldCount == 1) {
+    } else if (error.constraints.maxFieldCount === 1) {
       parts.push(`${colors.green('at most one')} argument,`)
     } else {
       parts.push(`${colors.green(`at most ${error.constraints.maxFieldCount}`)} arguments,`)
@@ -622,7 +622,7 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
 }
 
 function availableOptionsMessage({ green, enabled }: Colors) {
-  return `Available options are ` + (enabled ? `listed in ${green('green')}` : `marked with ?`) + '.'
+  return `Available options are ${enabled ? `listed in ${green('green')}` : 'marked with ?'}.`
 }
 
 function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {
@@ -640,7 +640,7 @@ function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string
 const MAX_EDIT_DISTANCE = 3
 
 function getSuggestion(str: string, options: string[]): string | undefined {
-  let minDistance = Infinity
+  let minDistance = Number.POSITIVE_INFINITY
   let result: string | undefined
 
   for (const option of options) {

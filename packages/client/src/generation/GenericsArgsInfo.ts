@@ -1,6 +1,6 @@
 import { Cache } from './Cache'
-import { DMMFHelper } from './dmmf'
-import { DMMF } from './dmmf-types'
+import type { DMMFHelper } from './dmmf'
+import type { DMMF } from './dmmf-types'
 
 type ToVisitItem = {
   type: DMMF.InputType

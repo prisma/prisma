@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, isError, link } from '@prisma/internals'
+import { arg, type Command, isError, link } from '@prisma/internals'
 
 import { getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'
@@ -109,18 +109,11 @@ export class Enable implements Command {
 
     if (serviceTokenCreate) {
       return messages.success(
-        `Pulse enabled. Use this Pulse connection string to authenticate requests:\n` +
-          '\n' +
-          `${generateConnectionString(serviceTokenCreate.value)}\n` +
-          '\n' +
-          `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
-      )
-    } else {
-      return messages.success(
-        `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n` +
-          `\n` +
-          `For more information, check out the Getting started guide here: ${gettingStartedUrl}`,
+        `Pulse enabled. Use this Pulse connection string to authenticate requests:\n\n${generateConnectionString(serviceTokenCreate.value)}\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     }
+      return messages.success(
+        `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
+      )
   }
 }

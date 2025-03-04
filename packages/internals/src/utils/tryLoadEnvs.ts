@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
 import dotenv from 'dotenv'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, dim, red, underline, yellow } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { dotenvExpand } from '../dotenvExpand'
 
@@ -104,7 +104,7 @@ We suggest to move the contents of ${underline(relativeEnvPath)} to ${underline(
           relativeRootEnvPath,
         )} to consolidate your env vars.\n`
         throw new Error(message)
-      } else if (type === 'warn') {
+      }if (type === 'warn') {
         const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
           .map((c) => bold(c))
           .join(', ')} in ${underline(relativeRootEnvPath)} and ${underline(relativeEnvPath)}
@@ -139,9 +139,8 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
       message: dim(`Environment variables loaded from ${path.relative(process.cwd(), envPath)}`),
       path: envPath,
     }
-  } else {
-    debug(`Environment variables not found at ${envPath}`)
   }
+    debug(`Environment variables not found at ${envPath}`)
   return null
 }
 export function pathsEqual(path1: string | null | undefined, path2: string | null | undefined) {

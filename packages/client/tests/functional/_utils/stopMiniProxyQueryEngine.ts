@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { fetch } from 'undici'
 
 import type { Client } from '../../../src/runtime/getPrismaClient'
-import { DatasourceInfo } from './setupTestSuiteEnv'
+import type { DatasourceInfo } from './setupTestSuiteEnv'
 
 const debug = Debug('prisma:test:stop-engine')
 

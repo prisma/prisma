@@ -44,7 +44,7 @@ describe('D1', () => {
     // 'file:.wrangler/state/v3/d1/miniflare-D1DatabaseObject/5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
     expect(
       captureStdout.getCapturedText().join('\n').replace(urlValueRegex, 'url = "REPLACED_BY_TEST"'),
-    ).toMatchSnapshot(``)
+    ).toMatchSnapshot('')
   })
 
   test('should succeed when reintrospecting with --local-d1 and a single local Cloudflare D1 database exists', async () => {
@@ -79,7 +79,7 @@ describe('common/sqlite', () => {
     const result = introspect.parse(['--print'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot('')
   })
 
   test('introspection --force', async () => {
@@ -88,7 +88,7 @@ describe('common/sqlite', () => {
     const result = introspect.parse(['--print', '--force'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot('')
   })
 
   test('basic introspection with --url', async () => {
@@ -97,7 +97,7 @@ describe('common/sqlite', () => {
     const result = introspect.parse(['--print', '--url', 'file:dev.db'], defaultTestConfig())
     await expect(result).resolves.toBe('')
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
+    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot('')
   })
 
   test('basic introspection with schema and --url missing file: prefix should fail', async () => {

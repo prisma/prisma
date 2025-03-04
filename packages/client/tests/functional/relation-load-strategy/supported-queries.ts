@@ -3,8 +3,8 @@ import { match } from 'ts-pattern'
 
 import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
-import { NewPrismaClient } from '../_utils/types'
-import { providersNotSupportingRelationJoins, providersSupportingRelationJoins, RelationLoadStrategy } from './_common'
+import type { NewPrismaClient } from '../_utils/types'
+import { providersNotSupportingRelationJoins, providersSupportingRelationJoins, type RelationLoadStrategy } from './_common'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'

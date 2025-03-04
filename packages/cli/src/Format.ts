@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
+import { arg, type Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
 
@@ -69,12 +69,12 @@ Or specify a Prisma schema path
       for (const [filename, formattedSchema] of formattedDatamodel) {
         const originalSchemaTuple = schemas.find((s) => s[0] === filename)
         if (!originalSchemaTuple) {
-          return new HelpError(`${bold(red(`!`))} The schema ${underline(filename)} is not found in the schema list.`)
+          return new HelpError(`${bold(red('!'))} The schema ${underline(filename)} is not found in the schema list.`)
         }
         const [, originalSchema] = originalSchemaTuple
         if (originalSchema !== formattedSchema) {
           return new HelpError(
-            `${bold(red(`!`))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
+            `${bold(red('!'))} There are unformatted files. Run ${underline('prisma format')} to format them.`,
           )
         }
       }
@@ -93,7 +93,7 @@ Or specify a Prisma schema path
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Format.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Format.help}`)
     }
     return Format.help
   }

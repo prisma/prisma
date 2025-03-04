@@ -6,5 +6,3 @@ test('can make a query', async () => {
 
   expect(data).toEqual([])
 })
-
-export {}

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-loss-of-precision */
 
-import assert from 'assert'
+import assert from 'node:assert'
 import { Buffer as NodeBuffer } from 'buffer'
 
 import { Buffer } from '../../../../helpers/compile/plugins/fill-plugin/fillers/buffer-small'
@@ -308,13 +308,13 @@ describe('Buffer readDoubleBE, readDoubleLE, readFloatBE, readFloatLE', () => {
   test('should read a double from the buffer at the specified offset in big-endian format', () => {
     const buf = Buffer.from([64, 9, 33, 251, 84, 68, 45, 24])
     const result = buf.readDoubleBE(0)
-    expect(result).toBeCloseTo(3.141592653589793)
+    expect(result).toBeCloseTo(Math.PI)
   })
 
   test('should read a double from the buffer at the specified offset in little-endian format', () => {
     const buf = Buffer.from([24, 45, 68, 84, 251, 33, 9, 64])
     const result = buf.readDoubleLE(0)
-    expect(result).toBeCloseTo(3.141592653589793)
+    expect(result).toBeCloseTo(Math.PI)
   })
 
   test('should read a float from the buffer at the specified offset in big-endian format', () => {
@@ -478,7 +478,7 @@ describe('Buffer writeBigUint64BE, writeBigUint64LE', () => {
   })
 
   test('should throw an error if the value is not a BigInt', () => {
-    const buf = Buffer.alloc(8)
+    const _buf = Buffer.alloc(8)
     // expect(() => buf.writeBigUint64BE('18446744073709551615' as any, 0)).toThrow() ❌
     // expect(() => buf.writeBigUint64LE('18446744073709551615' as any, 0)).toThrow() ❌
   })
@@ -1036,7 +1036,7 @@ test('Buffer.toJSON (example)', () => {
 
   expect(json).toBe('{"type":"Buffer","data":[1,2,3,4,5]}')
 
-  const copy = JSON.parse(json, (key, value) => {
+  const copy = JSON.parse(json, (_key, value) => {
     return value && value.type === 'Buffer' ? Buffer.from(value) : value
   })
 
@@ -1815,11 +1815,8 @@ test('Buffer slice (node.js repository test)', () => {
   // Try to slice a zero length Buffer.
   // See https://github.com/joyent/node/issues/5881
   assert.strictEqual(Buffer.alloc(0).slice(0, 1).length, 0)
-
-  {
     // Single argument slice
     assert.strictEqual(Buffer.from('abcde', 'utf8').slice(1).toString('utf8'), 'bcde')
-  }
 
   // slice(0,0).length === 0
   assert.strictEqual(Buffer.from('hello', 'utf8').slice(0, 0).length, 0)
@@ -1855,7 +1852,7 @@ test('Buffer slice (node.js repository test)', () => {
 })
 
 test('Buffer compare (node.js repository test)', () => {
-  const assert = require('assert')
+  const assert = require('node:assert')
 
   const b = Buffer.alloc(1, 97)
   const c = Buffer.alloc(1, 99)
@@ -1937,7 +1934,7 @@ test('Buffer compare (offset) (node.js repository test)', () => {
   assert.throws(() => a.compare(b, 0, { valueOf: () => 5 } as any))
 
   // Infinity should not be coerced.
-  assert.throws(() => a.compare(b, Infinity, -Infinity))
+  assert.throws(() => a.compare(b, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY))
 
   // Zero length target because default for targetEnd <= targetSource
   assert.strictEqual(a.compare(b, 0xff), 1)
@@ -1948,9 +1945,9 @@ test('Buffer compare (offset) (node.js repository test)', () => {
   assert.throws(() => a.compare(b, 0, 100, 0))
   assert.throws(() => a.compare(b, 0, 1, 0, 100))
   assert.throws(() => a.compare(b, -1))
-  assert.throws(() => a.compare(b, 0, Infinity))
+  assert.throws(() => a.compare(b, 0, Number.POSITIVE_INFINITY))
   assert.throws(() => a.compare(b, 0, 1, -1))
-  assert.throws(() => a.compare(b, -Infinity, Infinity))
+  assert.throws(() => a.compare(b, Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY))
   // @ts-expect-error
   assert.throws(() => a.compare())
 })
@@ -2142,8 +2139,6 @@ test('Buffer copy (node.js repository test)', () => {
 
   // Copy throws if sourceStart is greater than length of source
   assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, 100))
-
-  {
     // Check sourceEnd resets to targetEnd if former is greater than the latter
     b.fill(++cntr)
     c.fill(++cntr)
@@ -2151,7 +2146,6 @@ test('Buffer copy (node.js repository test)', () => {
     for (let i = 0; i < c.length; i++) {
       assert.strictEqual(c[i], b[i])
     }
-  }
 
   // Throw with negative sourceEnd
   assert.throws(() => b.copy(c, 0, 0, -1))
@@ -2187,17 +2181,10 @@ test('Buffer copy (node.js repository test)', () => {
       assert.strictEqual(c[i], e[i])
     }
   }
-
-  {
     // https://github.com/nodejs/node/issues/23668: Do not crash for invalid input.
     c.fill('c')
     // @ts-expect-error
     b.copy(c, 'not a valid offset')
-    // Make sure this acted like a regular copy with `0` offset.
-    // assert.deepStrictEqual(c, b.slice(0, c.length)) ❌
-  }
-
-  {
     c.fill('C')
     assert.throws(() => {
       // @ts-expect-error
@@ -2209,7 +2196,6 @@ test('Buffer copy (node.js repository test)', () => {
     }, /foo/)
     // No copying took place:
     assert.deepStrictEqual(c.toString(), 'C'.repeat(c.length))
-  }
 })
 
 test('Buffer equals (node.js repository test)', () => {
@@ -2408,7 +2394,7 @@ test('Buffer fill (node.js repository test)', () => {
   // @ts-expect-error
   assert.throws(() => buf1.fill('a', 0, buf1.length, 'node rocks!'))
   ;[
-    ['a', 0, 0, NaN],
+    ['a', 0, 0, Number.NaN],
     ['a', 0, 0, false],
   ].forEach((args) => {
     // @ts-expect-error
@@ -2463,14 +2449,14 @@ test('Buffer fill (node.js repository test)', () => {
       // Safety check in case write falls into infinite loop.
       if (written === 0) {
         if (wasZero) throw new Error('Could not write all data to Buffer')
-        else wasZero = true
+        wasZero = true
       }
     } while (offset < buf2.length)
 
     return buf2
   }
 
-  function testBufs(string: any, offset?: any, length?: any, encoding?: any) {
+  function testBufs(_string: any, _offset?: any, _length?: any, _encoding?: any) {
     bufReset()
     // @ts-ignore
     // eslint-disable-next-line prefer-spread, prefer-rest-params
@@ -2516,19 +2502,6 @@ test('Buffer fill (node.js repository test)', () => {
     assert.strictEqual(buf.toString(), 'abcabcabca')
     buf.fill('է')
     assert.strictEqual(buf.toString(), 'էէէէէ')
-  }
-
-  // Make sure "end" is properly checked, even if it's magically mangled using
-  // Symbol.toPrimitive.
-  {
-    // assert.throws(() => { ❌
-    //   const end = {
-    //     [Symbol.toPrimitive]() {
-    //       return 1
-    //     },
-    //   }
-    //   Buffer.alloc(1).fill(Buffer.alloc(1), 0, end)
-    // })
   }
 
   // Test that bypassing 'length' won't cause an abort.
@@ -2605,53 +2578,53 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.indexOf('a', -1), -1)
   assert.strictEqual(b.indexOf('a', -4), -1)
   assert.strictEqual(b.indexOf('a', -b.length), 0)
-  assert.strictEqual(b.indexOf('a', NaN), 0)
-  assert.strictEqual(b.indexOf('a', -Infinity), 0)
-  assert.strictEqual(b.indexOf('a', Infinity), -1)
+  assert.strictEqual(b.indexOf('a', Number.NaN), 0)
+  assert.strictEqual(b.indexOf('a', Number.NEGATIVE_INFINITY), 0)
+  assert.strictEqual(b.indexOf('a', Number.POSITIVE_INFINITY), -1)
   assert.strictEqual(b.indexOf('bc'), 1)
   assert.strictEqual(b.indexOf('bc', 2), -1)
   assert.strictEqual(b.indexOf('bc', -1), -1)
   assert.strictEqual(b.indexOf('bc', -3), -1)
   assert.strictEqual(b.indexOf('bc', -5), 1)
-  assert.strictEqual(b.indexOf('bc', NaN), 1)
-  assert.strictEqual(b.indexOf('bc', -Infinity), 1)
-  assert.strictEqual(b.indexOf('bc', Infinity), -1)
+  assert.strictEqual(b.indexOf('bc', Number.NaN), 1)
+  assert.strictEqual(b.indexOf('bc', Number.NEGATIVE_INFINITY), 1)
+  assert.strictEqual(b.indexOf('bc', Number.POSITIVE_INFINITY), -1)
   assert.strictEqual(b.indexOf('f'), b.length - 1)
   assert.strictEqual(b.indexOf('z'), -1)
   assert.strictEqual(b.indexOf(''), 0)
   assert.strictEqual(b.indexOf('', 1), 1)
   assert.strictEqual(b.indexOf('', b.length + 1), b.length)
-  assert.strictEqual(b.indexOf('', Infinity), b.length)
+  assert.strictEqual(b.indexOf('', Number.POSITIVE_INFINITY), b.length)
   assert.strictEqual(b.indexOf(buf_a), 0)
   assert.strictEqual(b.indexOf(buf_a, 1), -1)
   assert.strictEqual(b.indexOf(buf_a, -1), -1)
   assert.strictEqual(b.indexOf(buf_a, -4), -1)
   assert.strictEqual(b.indexOf(buf_a, -b.length), 0)
-  assert.strictEqual(b.indexOf(buf_a, NaN), 0)
-  assert.strictEqual(b.indexOf(buf_a, -Infinity), 0)
-  assert.strictEqual(b.indexOf(buf_a, Infinity), -1)
+  assert.strictEqual(b.indexOf(buf_a, Number.NaN), 0)
+  assert.strictEqual(b.indexOf(buf_a, Number.NEGATIVE_INFINITY), 0)
+  assert.strictEqual(b.indexOf(buf_a, Number.POSITIVE_INFINITY), -1)
   assert.strictEqual(b.indexOf(buf_bc), 1)
   assert.strictEqual(b.indexOf(buf_bc, 2), -1)
   assert.strictEqual(b.indexOf(buf_bc, -1), -1)
   assert.strictEqual(b.indexOf(buf_bc, -3), -1)
   assert.strictEqual(b.indexOf(buf_bc, -5), 1)
-  assert.strictEqual(b.indexOf(buf_bc, NaN), 1)
-  assert.strictEqual(b.indexOf(buf_bc, -Infinity), 1)
-  assert.strictEqual(b.indexOf(buf_bc, Infinity), -1)
+  assert.strictEqual(b.indexOf(buf_bc, Number.NaN), 1)
+  assert.strictEqual(b.indexOf(buf_bc, Number.NEGATIVE_INFINITY), 1)
+  assert.strictEqual(b.indexOf(buf_bc, Number.POSITIVE_INFINITY), -1)
   assert.strictEqual(b.indexOf(buf_f), b.length - 1)
   assert.strictEqual(b.indexOf(buf_z), -1)
   assert.strictEqual(b.indexOf(buf_empty), 0)
   assert.strictEqual(b.indexOf(buf_empty, 1), 1)
   assert.strictEqual(b.indexOf(buf_empty, b.length + 1), b.length)
-  assert.strictEqual(b.indexOf(buf_empty, Infinity), b.length)
+  assert.strictEqual(b.indexOf(buf_empty, Number.POSITIVE_INFINITY), b.length)
   assert.strictEqual(b.indexOf(0x61), 0)
   assert.strictEqual(b.indexOf(0x61, 1), -1)
   assert.strictEqual(b.indexOf(0x61, -1), -1)
   assert.strictEqual(b.indexOf(0x61, -4), -1)
   assert.strictEqual(b.indexOf(0x61, -b.length), 0)
-  assert.strictEqual(b.indexOf(0x61, NaN), 0)
-  assert.strictEqual(b.indexOf(0x61, -Infinity), 0)
-  assert.strictEqual(b.indexOf(0x61, Infinity), -1)
+  assert.strictEqual(b.indexOf(0x61, Number.NaN), 0)
+  assert.strictEqual(b.indexOf(0x61, Number.NEGATIVE_INFINITY), 0)
+  assert.strictEqual(b.indexOf(0x61, Number.POSITIVE_INFINITY), -1)
   assert.strictEqual(b.indexOf(0x0), -1)
 
   // test offsets
@@ -2708,8 +2681,6 @@ test('Buffer indexOf (node.js repository test)', () => {
   // Test optional offset with passed encoding
   assert.strictEqual(Buffer.from('aaaa0').indexOf('30', 'hex'), 4)
   assert.strictEqual(Buffer.from('aaaa00a').indexOf('3030', 'hex'), 4)
-
-  {
     // Test usc2 and utf16le encoding
     ;['ucs2', 'utf16le'].forEach((encoding: any) => {
       const twoByteString = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', encoding)
@@ -2720,7 +2691,6 @@ test('Buffer indexOf (node.js repository test)', () => {
       assert.strictEqual(twoByteString.indexOf(Buffer.from('\u03a3', encoding), -6, encoding), 4)
       assert.strictEqual(-1, twoByteString.indexOf('\u03a3', -2, encoding))
     })
-  }
 
   const mixedByteStringUcs2 = Buffer.from('\u039a\u0391abc\u03a3\u03a3\u0395', 'ucs2')
   assert.strictEqual(mixedByteStringUcs2.indexOf('bc', 0, 'ucs2'), 6)
@@ -2862,13 +2832,13 @@ test('Buffer indexOf (node.js repository test)', () => {
         const patternBufferUcs2 = allCharsBufferUcs2.slice(index, index + length)
         // assert.strictEqual(index, allCharsBufferUcs2.indexOf(patternBufferUcs2, 0, 'ucs2')) ❌
 
-        const patternStringUcs2 = patternBufferUcs2.toString('ucs2')
+        const _patternStringUcs2 = patternBufferUcs2.toString('ucs2')
         // assert.strictEqual(index, allCharsBufferUcs2.indexOf(patternStringUcs2, 0, 'ucs2')) ❌
       }
     }
   }
 
-  ;[() => {}, {}, []].forEach((val) => {
+  ;[() => {}, {}, []].forEach((_val) => {
     // assert.throws(() => b.indexOf(val), {
     //   code: 'ERR_INVALID_ARG_TYPE',
     //   name: 'TypeError',
@@ -2911,9 +2881,9 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf('a', -4), 0)
   assert.strictEqual(b.lastIndexOf('a', -b.length), 0)
   assert.strictEqual(b.lastIndexOf('a', -b.length - 1), -1)
-  assert.strictEqual(b.lastIndexOf('a', NaN), 0)
-  assert.strictEqual(b.lastIndexOf('a', -Infinity), -1)
-  assert.strictEqual(b.lastIndexOf('a', Infinity), 0)
+  assert.strictEqual(b.lastIndexOf('a', Number.NaN), 0)
+  assert.strictEqual(b.lastIndexOf('a', Number.NEGATIVE_INFINITY), -1)
+  assert.strictEqual(b.lastIndexOf('a', Number.POSITIVE_INFINITY), 0)
   // lastIndexOf Buffer:
   assert.strictEqual(b.lastIndexOf(buf_a), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, 1), 0)
@@ -2921,24 +2891,24 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(buf_a, -4), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, -b.length), 0)
   assert.strictEqual(b.lastIndexOf(buf_a, -b.length - 1), -1)
-  assert.strictEqual(b.lastIndexOf(buf_a, NaN), 0)
-  assert.strictEqual(b.lastIndexOf(buf_a, -Infinity), -1)
-  assert.strictEqual(b.lastIndexOf(buf_a, Infinity), 0)
+  assert.strictEqual(b.lastIndexOf(buf_a, Number.NaN), 0)
+  assert.strictEqual(b.lastIndexOf(buf_a, Number.NEGATIVE_INFINITY), -1)
+  assert.strictEqual(b.lastIndexOf(buf_a, Number.POSITIVE_INFINITY), 0)
   assert.strictEqual(b.lastIndexOf(buf_bc), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, 2), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -1), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -3), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -5), 1)
   assert.strictEqual(b.lastIndexOf(buf_bc, -6), -1)
-  assert.strictEqual(b.lastIndexOf(buf_bc, NaN), 1)
-  assert.strictEqual(b.lastIndexOf(buf_bc, -Infinity), -1)
-  assert.strictEqual(b.lastIndexOf(buf_bc, Infinity), 1)
+  assert.strictEqual(b.lastIndexOf(buf_bc, Number.NaN), 1)
+  assert.strictEqual(b.lastIndexOf(buf_bc, Number.NEGATIVE_INFINITY), -1)
+  assert.strictEqual(b.lastIndexOf(buf_bc, Number.POSITIVE_INFINITY), 1)
   assert.strictEqual(b.lastIndexOf(buf_f), b.length - 1)
   assert.strictEqual(b.lastIndexOf(buf_z), -1)
   assert.strictEqual(b.lastIndexOf(buf_empty), b.length)
   assert.strictEqual(b.lastIndexOf(buf_empty, 1), 1)
   assert.strictEqual(b.lastIndexOf(buf_empty, b.length + 1), b.length)
-  assert.strictEqual(b.lastIndexOf(buf_empty, Infinity), b.length)
+  assert.strictEqual(b.lastIndexOf(buf_empty, Number.POSITIVE_INFINITY), b.length)
   // lastIndexOf number:
   assert.strictEqual(b.lastIndexOf(0x61), 0)
   assert.strictEqual(b.lastIndexOf(0x61, 1), 0)
@@ -2946,9 +2916,9 @@ test('Buffer indexOf (node.js repository test)', () => {
   assert.strictEqual(b.lastIndexOf(0x61, -4), 0)
   assert.strictEqual(b.lastIndexOf(0x61, -b.length), 0)
   assert.strictEqual(b.lastIndexOf(0x61, -b.length - 1), -1)
-  assert.strictEqual(b.lastIndexOf(0x61, NaN), 0)
-  assert.strictEqual(b.lastIndexOf(0x61, -Infinity), -1)
-  assert.strictEqual(b.lastIndexOf(0x61, Infinity), 0)
+  assert.strictEqual(b.lastIndexOf(0x61, Number.NaN), 0)
+  assert.strictEqual(b.lastIndexOf(0x61, Number.NEGATIVE_INFINITY), -1)
+  assert.strictEqual(b.lastIndexOf(0x61, Number.POSITIVE_INFINITY), 0)
   assert.strictEqual(b.lastIndexOf(0x0), -1)
 
   // Test weird offset arguments.
@@ -3097,10 +3067,6 @@ test('Buffer indexOf (node.js repository test)', () => {
     assert.strictEqual(haystack.indexOf(needle), 2)
     assert.strictEqual(haystack.lastIndexOf(needle), haystack.length - 3)
   }
-
-  // Avoid abort because of invalid usage
-  // see https://github.com/nodejs/node/issues/32753
-  {
     assert.throws(
       () => {
         const buffer = require('buffer')
@@ -3115,7 +3081,6 @@ test('Buffer indexOf (node.js repository test)', () => {
           'Received an instance of lastIndexOf',
       },
     )
-  }
 })
 
 test('Buffer includes (node.js repository test)', () => {
@@ -3131,55 +3096,55 @@ test('Buffer includes (node.js repository test)', () => {
   assert(!b.includes('a', -1))
   assert(!b.includes('a', -4))
   assert(b.includes('a', -b.length))
-  assert(b.includes('a', NaN))
-  assert(b.includes('a', -Infinity))
-  assert(!b.includes('a', Infinity))
+  assert(b.includes('a', Number.NaN))
+  assert(b.includes('a', Number.NEGATIVE_INFINITY))
+  assert(!b.includes('a', Number.POSITIVE_INFINITY))
   assert(b.includes('bc'))
   assert(!b.includes('bc', 2))
   assert(!b.includes('bc', -1))
   assert(!b.includes('bc', -3))
   assert(b.includes('bc', -5))
-  assert(b.includes('bc', NaN))
-  assert(b.includes('bc', -Infinity))
-  assert(!b.includes('bc', Infinity))
+  assert(b.includes('bc', Number.NaN))
+  assert(b.includes('bc', Number.NEGATIVE_INFINITY))
+  assert(!b.includes('bc', Number.POSITIVE_INFINITY))
   // @ts-expect-error
   assert(b.includes('f'), b.length - 1)
   assert(!b.includes('z'))
   assert(b.includes(''))
   assert(b.includes('', 1))
   assert(b.includes('', b.length + 1))
-  assert(b.includes('', Infinity))
+  assert(b.includes('', Number.POSITIVE_INFINITY))
   assert(b.includes(buf_a))
   assert(!b.includes(buf_a, 1))
   assert(!b.includes(buf_a, -1))
   assert(!b.includes(buf_a, -4))
   assert(b.includes(buf_a, -b.length))
-  assert(b.includes(buf_a, NaN))
-  assert(b.includes(buf_a, -Infinity))
-  assert(!b.includes(buf_a, Infinity))
+  assert(b.includes(buf_a, Number.NaN))
+  assert(b.includes(buf_a, Number.NEGATIVE_INFINITY))
+  assert(!b.includes(buf_a, Number.POSITIVE_INFINITY))
   assert(b.includes(buf_bc))
   assert(!b.includes(buf_bc, 2))
   assert(!b.includes(buf_bc, -1))
   assert(!b.includes(buf_bc, -3))
   assert(b.includes(buf_bc, -5))
-  assert(b.includes(buf_bc, NaN))
-  assert(b.includes(buf_bc, -Infinity))
-  assert(!b.includes(buf_bc, Infinity))
+  assert(b.includes(buf_bc, Number.NaN))
+  assert(b.includes(buf_bc, Number.NEGATIVE_INFINITY))
+  assert(!b.includes(buf_bc, Number.POSITIVE_INFINITY))
   // @ts-expect-error
   assert(b.includes(buf_f), b.length - 1)
   assert(!b.includes(buf_z))
   assert(b.includes(buf_empty))
   assert(b.includes(buf_empty, 1))
   assert(b.includes(buf_empty, b.length + 1))
-  assert(b.includes(buf_empty, Infinity))
+  assert(b.includes(buf_empty, Number.POSITIVE_INFINITY))
   assert(b.includes(0x61))
   assert(!b.includes(0x61, 1))
   assert(!b.includes(0x61, -1))
   assert(!b.includes(0x61, -4))
   assert(b.includes(0x61, -b.length))
-  assert(b.includes(0x61, NaN))
-  assert(b.includes(0x61, -Infinity))
-  assert(!b.includes(0x61, Infinity))
+  assert(b.includes(0x61, Number.NaN))
+  assert(b.includes(0x61, Number.NEGATIVE_INFINITY))
+  assert(!b.includes(0x61, Number.POSITIVE_INFINITY))
   assert(!b.includes(0x0))
 
   // test offsets
@@ -3544,11 +3509,11 @@ test('Buffer read double (node.js repository test)', () => {
   buffer[6] = 0xf0
   buffer[7] = 0x7f
   assert.strictEqual(buffer.readDoubleBE(0), 3.0418e-319)
-  assert.strictEqual(buffer.readDoubleLE(0), Infinity)
+  assert.strictEqual(buffer.readDoubleLE(0), Number.POSITIVE_INFINITY)
 
   buffer[7] = 0xff
   assert.strictEqual(buffer.readDoubleBE(0), 3.04814e-319)
-  assert.strictEqual(buffer.readDoubleLE(0), -Infinity)
+  assert.strictEqual(buffer.readDoubleLE(0), Number.NEGATIVE_INFINITY)
   ;['readDoubleLE', 'readDoubleBE'].forEach((fn) => {
     // Verify that default offset works fine.
     buffer[fn](undefined)
@@ -3556,16 +3521,16 @@ test('Buffer read double (node.js repository test)', () => {
     ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
       assert.throws(() => buffer[fn](off))
     })
-    ;[Infinity, -1, 1].forEach((offset) => {
+    ;[Number.POSITIVE_INFINITY, -1, 1].forEach((offset) => {
       assert.throws(() => buffer[fn](offset))
     })
 
     assert.throws(() => Buffer.alloc(1)[fn](1))
-    ;[NaN, 1.01].forEach((offset) => {
+    ;[Number.NaN, 1.01].forEach((offset) => {
       assert.throws(() => buffer[fn](offset), {
         code: 'ERR_OUT_OF_RANGE',
         name: 'RangeError',
-        message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+        message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
       })
     })
   })
@@ -3621,14 +3586,14 @@ test('Buffer read float (node.js repository test)', () => {
   buffer[2] = 0x80
   buffer[3] = 0x7f
   assert.strictEqual(buffer.readFloatBE(0), 4.609571298396486e-41)
-  assert.strictEqual(buffer.readFloatLE(0), Infinity)
+  assert.strictEqual(buffer.readFloatLE(0), Number.POSITIVE_INFINITY)
 
   buffer[0] = 0
   buffer[1] = 0
   buffer[2] = 0x80
   buffer[3] = 0xff
   assert.strictEqual(buffer.readFloatBE(0), 4.627507918739843e-41)
-  assert.strictEqual(buffer.readFloatLE(0), -Infinity)
+  assert.strictEqual(buffer.readFloatLE(0), Number.NEGATIVE_INFINITY)
   ;['readFloatLE', 'readFloatBE'].forEach((fn) => {
     // Verify that default offset works fine.
     buffer[fn](undefined)
@@ -3636,16 +3601,16 @@ test('Buffer read float (node.js repository test)', () => {
     ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
       assert.throws(() => buffer[fn](off), { code: 'ERR_INVALID_ARG_TYPE' })
     })
-    ;[Infinity, -1, 1].forEach((offset) => {
+    ;[Number.POSITIVE_INFINITY, -1, 1].forEach((offset) => {
       assert.throws(() => buffer[fn](offset))
     })
 
     assert.throws(() => Buffer.alloc(1)[fn](1))
-    ;[NaN, 1.01].forEach((offset) => {
+    ;[Number.NaN, 1.01].forEach((offset) => {
       assert.throws(() => buffer[fn](offset), {
         code: 'ERR_OUT_OF_RANGE',
         name: 'RangeError',
-        message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+        message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
       })
     })
   })
@@ -3666,14 +3631,14 @@ test('Buffer read int (node.js repository test)', () => {
           name: 'TypeError',
         })
       })
-      ;[Infinity, -1, -4294967295].forEach((offset) => {
+      ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
         assert.throws(() => buffer[`read${fn}`](offset))
       })
-      ;[NaN, 1.01].forEach((offset) => {
+      ;[Number.NaN, 1.01].forEach((offset) => {
         assert.throws(() => buffer[`read${fn}`](offset), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+          message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
         })
       })
     })
@@ -3769,14 +3734,14 @@ test('Buffer read int (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false, undefined].forEach((len) => {
         assert.throws(() => buffer[fn](0, len), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1].forEach((byteLength) => {
+      ;[Number.POSITIVE_INFINITY, -1].forEach((byteLength) => {
         assert.throws(() => buffer[fn](0, byteLength))
       })
-      ;[NaN, 1.01].forEach((byteLength) => {
+      ;[Number.NaN, 1.01].forEach((byteLength) => {
         assert.throws(() => buffer[fn](0, byteLength), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "byteLength" is out of range. ' + `It must be an integer. Received ${byteLength}`,
+          message: `The value of "byteLength" is out of range. It must be an integer. Received ${byteLength}`,
         })
       })
     })
@@ -3790,14 +3755,14 @@ test('Buffer read int (node.js repository test)', () => {
             name: 'TypeError',
           })
         })
-        ;[Infinity, -1, -4294967295].forEach((offset) => {
+        ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
           assert.throws(() => buffer[fn](offset, i))
         })
-        ;[NaN, 1.01].forEach((offset) => {
+        ;[Number.NaN, 1.01].forEach((offset) => {
           assert.throws(() => buffer[fn](offset, i), {
             code: 'ERR_OUT_OF_RANGE',
             name: 'RangeError',
-            message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+            message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
           })
         })
       })
@@ -3820,14 +3785,14 @@ test('Buffer read uint (node.js repository test)', () => {
           name: 'TypeError',
         })
       })
-      ;[Infinity, -1, -4294967295].forEach((offset) => {
+      ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
         assert.throws(() => buffer[`read${fn}`](offset))
       })
-      ;[NaN, 1.01].forEach((offset) => {
+      ;[Number.NaN, 1.01].forEach((offset) => {
         assert.throws(() => buffer[`read${fn}`](offset), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+          message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
         })
       })
     })
@@ -3891,14 +3856,14 @@ test('Buffer read uint (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false, undefined].forEach((len) => {
         assert.throws(() => buffer[fn](0, len), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1].forEach((byteLength) => {
+      ;[Number.POSITIVE_INFINITY, -1].forEach((byteLength) => {
         assert.throws(() => buffer[fn](0, byteLength))
       })
-      ;[NaN, 1.01].forEach((byteLength) => {
+      ;[Number.NaN, 1.01].forEach((byteLength) => {
         assert.throws(() => buffer[fn](0, byteLength), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "byteLength" is out of range. ' + `It must be an integer. Received ${byteLength}`,
+          message: `The value of "byteLength" is out of range. It must be an integer. Received ${byteLength}`,
         })
       })
     })
@@ -3912,14 +3877,14 @@ test('Buffer read uint (node.js repository test)', () => {
             name: 'TypeError',
           })
         })
-        ;[Infinity, -1, -4294967295].forEach((offset) => {
+        ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
           assert.throws(() => buffer[fn](offset, i))
         })
-        ;[NaN, 1.01].forEach((offset) => {
+        ;[Number.NaN, 1.01].forEach((offset) => {
           assert.throws(() => buffer[fn](offset, i), {
             code: 'ERR_OUT_OF_RANGE',
             name: 'RangeError',
-            message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+            message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
           })
         })
       })
@@ -3989,9 +3954,9 @@ test('Buffer swap (node.js repository test)', () => {
     assert.deepStrictEqual(buf, Buffer.from([0x1, 0x4, 0x5, 0x2, 0x3, 0x6, 0x7]))
 
     // Length assertions
-    const re16 = /Buffer size must be a multiple of 16-bits/
-    const re32 = /Buffer size must be a multiple of 32-bits/
-    const re64 = /Buffer size must be a multiple of 64-bits/
+    const _re16 = /Buffer size must be a multiple of 16-bits/
+    const _re32 = /Buffer size must be a multiple of 32-bits/
+    const _re64 = /Buffer size must be a multiple of 64-bits/
 
     assert.throws(() => Buffer.from(buf).swap16())
     assert.throws(() => Buffer.alloc(1025).swap16())
@@ -4108,10 +4073,8 @@ test('Buffer swap (node.js repository test)', () => {
 })
 
 test('Buffer toJSON (node.js repository test)', () => {
-  {
     assert.strictEqual(JSON.stringify(Buffer.alloc(0)), '{"type":"Buffer","data":[]}')
     assert.strictEqual(JSON.stringify(Buffer.from([1, 2, 3, 4])), '{"type":"Buffer","data":[1,2,3,4]}')
-  }
 
   // issue GH-7849
   {
@@ -4131,7 +4094,7 @@ test('Buffer toJSON (node.js repository test)', () => {
     assert.strictEqual(string, '{"type":"Buffer","data":[116,101,115,116]}')
 
     // eslint-disable-next-line no-inner-declarations
-    function receiver(key, value) {
+    function receiver(_key, value) {
       return value && value.type === 'Buffer' ? Buffer.from(value.data) : value
     }
 
@@ -4144,7 +4107,7 @@ test('Buffer toString (range) (node.js repository test)', () => {
 
   // If start >= buffer's length, empty string will be returned
   assert.strictEqual(rangeBuffer.toString('ascii', 3), '')
-  assert.strictEqual(rangeBuffer.toString('ascii', +Infinity), '')
+  assert.strictEqual(rangeBuffer.toString('ascii', Number.POSITIVE_INFINITY), '')
   assert.strictEqual(rangeBuffer.toString('ascii', 3.14, 3), '')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', 'Infinity', 3), '')
@@ -4153,12 +4116,12 @@ test('Buffer toString (range) (node.js repository test)', () => {
   assert.strictEqual(rangeBuffer.toString('ascii', 1, 0), '')
   assert.strictEqual(rangeBuffer.toString('ascii', 1, -1.2), '')
   assert.strictEqual(rangeBuffer.toString('ascii', 1, -100), '')
-  assert.strictEqual(rangeBuffer.toString('ascii', 1, -Infinity), '')
+  assert.strictEqual(rangeBuffer.toString('ascii', 1, Number.NEGATIVE_INFINITY), '')
 
   // If start < 0, start will be taken as zero
   assert.strictEqual(rangeBuffer.toString('ascii', -1, 3), 'abc')
   assert.strictEqual(rangeBuffer.toString('ascii', -1.99, 3), 'abc')
-  assert.strictEqual(rangeBuffer.toString('ascii', -Infinity, 3), 'abc')
+  assert.strictEqual(rangeBuffer.toString('ascii', Number.NEGATIVE_INFINITY, 3), 'abc')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', '-1', 3), 'abc')
   // @ts-expect-error
@@ -4173,7 +4136,7 @@ test('Buffer toString (range) (node.js repository test)', () => {
   assert.strictEqual(rangeBuffer.toString('ascii', {}, 3), 'abc')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', [], 3), 'abc')
-  assert.strictEqual(rangeBuffer.toString('ascii', NaN, 3), 'abc')
+  assert.strictEqual(rangeBuffer.toString('ascii', Number.NaN, 3), 'abc')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', null, 3), 'abc')
   assert.strictEqual(rangeBuffer.toString('ascii', undefined, 3), 'abc')
@@ -4205,7 +4168,7 @@ test('Buffer toString (range) (node.js repository test)', () => {
   // If end > buffer's length, end will be taken as buffer's length
   assert.strictEqual(rangeBuffer.toString('ascii', 0, 5), 'abc')
   assert.strictEqual(rangeBuffer.toString('ascii', 0, 6.99), 'abc')
-  assert.strictEqual(rangeBuffer.toString('ascii', 0, Infinity), 'abc')
+  assert.strictEqual(rangeBuffer.toString('ascii', 0, Number.POSITIVE_INFINITY), 'abc')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', 0, '5'), 'abc')
   // @ts-expect-error
@@ -4218,7 +4181,7 @@ test('Buffer toString (range) (node.js repository test)', () => {
   assert.strictEqual(rangeBuffer.toString('ascii', 0, 'node.js'), '')
   // @ts-expect-error
   assert.strictEqual(rangeBuffer.toString('ascii', 0, {}), '')
-  assert.strictEqual(rangeBuffer.toString('ascii', 0, NaN), '')
+  assert.strictEqual(rangeBuffer.toString('ascii', 0, Number.NaN), '')
   assert.strictEqual(rangeBuffer.toString('ascii', 0, undefined), 'abc')
   assert.strictEqual(rangeBuffer.toString('ascii', 0), 'abc')
   // @ts-expect-error
@@ -4254,9 +4217,7 @@ test('Buffer toString (range) (node.js repository test)', () => {
   assert.strictEqual(
     // @ts-expect-error
     rangeBuffer.toString({
-      toString: function () {
-        return 'ascii'
-      },
+      toString: () => 'ascii',
     }),
     'abc',
   )
@@ -4277,7 +4238,7 @@ test('Buffer write (node.js repository test)', () => {
     assert.throws(() => Buffer.alloc(9).write('foo', offset), {
       code: 'ERR_OUT_OF_RANGE',
       name: 'RangeError',
-      message: 'The value of "offset" is out of range. ' + `It must be >= 0 && <= 9. Received ${offset}`,
+      message: `The value of "offset" is out of range. It must be >= 0 && <= 9. Received ${offset}`,
     })
   })
 
@@ -4338,7 +4299,7 @@ test('Buffer write (node.js repository test)', () => {
   for (let i = 1; i < 4; i++) {
     // Allocate two Buffers sequentially off the pool. Run more than once in case
     // we hit the end of the pool and don't get sequential allocations
-    const x = Buffer.allocUnsafe(4).fill(0)
+    const _x = Buffer.allocUnsafe(4).fill(0)
     const y = Buffer.allocUnsafe(4).fill(1)
     // Should not write anything, pos 3 doesn't have enough room for a 16-bit char
     // assert.strictEqual(x.write('ыыыыыы', 3, 'ucs2'), 0)
@@ -4409,8 +4370,8 @@ test('Buffer write double (node.js repository test)', () => {
     ),
   )
 
-  buffer.writeDoubleBE(Infinity, 0)
-  buffer.writeDoubleLE(Infinity, 8)
+  buffer.writeDoubleBE(Number.POSITIVE_INFINITY, 0)
+  buffer.writeDoubleLE(Number.POSITIVE_INFINITY, 8)
 
   assert.ok(
     buffer.equals(
@@ -4418,11 +4379,11 @@ test('Buffer write double (node.js repository test)', () => {
     ),
   )
 
-  assert.strictEqual(buffer.readDoubleBE(0), Infinity)
-  assert.strictEqual(buffer.readDoubleLE(8), Infinity)
+  assert.strictEqual(buffer.readDoubleBE(0), Number.POSITIVE_INFINITY)
+  assert.strictEqual(buffer.readDoubleLE(8), Number.POSITIVE_INFINITY)
 
-  buffer.writeDoubleBE(-Infinity, 0)
-  buffer.writeDoubleLE(-Infinity, 8)
+  buffer.writeDoubleBE(Number.NEGATIVE_INFINITY, 0)
+  buffer.writeDoubleLE(Number.NEGATIVE_INFINITY, 8)
 
   assert.ok(
     buffer.equals(
@@ -4430,11 +4391,11 @@ test('Buffer write double (node.js repository test)', () => {
     ),
   )
 
-  assert.strictEqual(buffer.readDoubleBE(0), -Infinity)
-  assert.strictEqual(buffer.readDoubleLE(8), -Infinity)
+  assert.strictEqual(buffer.readDoubleBE(0), Number.NEGATIVE_INFINITY)
+  assert.strictEqual(buffer.readDoubleLE(8), Number.NEGATIVE_INFINITY)
 
-  buffer.writeDoubleBE(NaN, 0)
-  buffer.writeDoubleLE(NaN, 8)
+  buffer.writeDoubleBE(Number.NaN, 0)
+  buffer.writeDoubleLE(Number.NaN, 8)
 
   // JS only knows a single NaN but there exist two platform specific
   // implementations. Therefore, allow both quiet and signalling NaNs.
@@ -4472,14 +4433,14 @@ test('Buffer write double (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
         assert.throws(() => small[fn](23, off), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1, 9].forEach((offset) => {
+      ;[Number.POSITIVE_INFINITY, -1, 9].forEach((offset) => {
         assert.throws(() => buffer[fn](23, offset))
       })
-      ;[NaN, 1.01].forEach((offset) => {
+      ;[Number.NaN, 1.01].forEach((offset) => {
         assert.throws(() => buffer[fn](42, offset), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+          message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
         })
       })
     })
@@ -4509,22 +4470,22 @@ test('Buffer write float (node.js repository test)', () => {
   buffer.writeFloatLE(0 * -1, 4)
   assert.ok(buffer.equals(new Uint8Array([0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80])))
 
-  buffer.writeFloatBE(Infinity, 0)
-  buffer.writeFloatLE(Infinity, 4)
+  buffer.writeFloatBE(Number.POSITIVE_INFINITY, 0)
+  buffer.writeFloatLE(Number.POSITIVE_INFINITY, 4)
   assert.ok(buffer.equals(new Uint8Array([0x7f, 0x80, 0x00, 0x00, 0x00, 0x00, 0x80, 0x7f])))
 
-  assert.strictEqual(buffer.readFloatBE(0), Infinity)
-  assert.strictEqual(buffer.readFloatLE(4), Infinity)
+  assert.strictEqual(buffer.readFloatBE(0), Number.POSITIVE_INFINITY)
+  assert.strictEqual(buffer.readFloatLE(4), Number.POSITIVE_INFINITY)
 
-  buffer.writeFloatBE(-Infinity, 0)
-  buffer.writeFloatLE(-Infinity, 4)
+  buffer.writeFloatBE(Number.NEGATIVE_INFINITY, 0)
+  buffer.writeFloatLE(Number.NEGATIVE_INFINITY, 4)
   assert.ok(buffer.equals(new Uint8Array([0xff, 0x80, 0x00, 0x00, 0x00, 0x00, 0x80, 0xff])))
 
-  assert.strictEqual(buffer.readFloatBE(0), -Infinity)
-  assert.strictEqual(buffer.readFloatLE(4), -Infinity)
+  assert.strictEqual(buffer.readFloatBE(0), Number.NEGATIVE_INFINITY)
+  assert.strictEqual(buffer.readFloatLE(4), Number.NEGATIVE_INFINITY)
 
-  buffer.writeFloatBE(NaN, 0)
-  buffer.writeFloatLE(NaN, 4)
+  buffer.writeFloatBE(Number.NaN, 0)
+  buffer.writeFloatLE(Number.NaN, 4)
 
   // JS only knows a single NaN but there exist two platform specific
   // implementations. Therefore, allow both quiet and signalling NaNs.
@@ -4550,14 +4511,14 @@ test('Buffer write float (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
         assert.throws(() => small[fn](23, off), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1, 5].forEach((offset) => {
+      ;[Number.POSITIVE_INFINITY, -1, 5].forEach((offset) => {
         assert.throws(() => buffer[fn](23, offset))
       })
-      ;[NaN, 1.01].forEach((offset) => {
+      ;[Number.NaN, 1.01].forEach((offset) => {
         assert.throws(() => buffer[fn](42, offset), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+          message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
         })
       })
     })
@@ -4601,7 +4562,7 @@ test('Buffer write int (node.js repository test)', () => {
     ;['', '0', null, {}, [], () => {}, true, false].forEach((off: any) => {
       assert.throws(() => buffer.writeInt8(23, off), { code: 'ERR_INVALID_ARG_TYPE' })
     })
-    ;[NaN, Infinity, -1, 1.01].forEach((off) => {
+    ;[Number.NaN, Number.POSITIVE_INFINITY, -1, 1.01].forEach((off) => {
       assert.throws(() => buffer.writeInt8(23, off), { code: 'ERR_OUT_OF_RANGE' })
     })
   }
@@ -4644,7 +4605,7 @@ test('Buffer write int (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
         assert.throws(() => buffer[fn](23, off), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[NaN, Infinity, -1, 1.01].forEach((off) => {
+      ;[Number.NaN, Number.POSITIVE_INFINITY, -1, 1.01].forEach((off) => {
         assert.throws(() => buffer[fn](23, off), { code: 'ERR_OUT_OF_RANGE' })
       })
     })
@@ -4688,7 +4649,7 @@ test('Buffer write int (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false].forEach((off) => {
         assert.throws(() => buffer[fn](23, off), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[NaN, Infinity, -1, 1.01].forEach((off) => {
+      ;[Number.NaN, Number.POSITIVE_INFINITY, -1, 1.01].forEach((off) => {
         assert.throws(() => buffer[fn](23, off), { code: 'ERR_OUT_OF_RANGE' })
       })
     })
@@ -4714,14 +4675,14 @@ test('Buffer write int (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false, undefined].forEach((bl) => {
         assert.throws(() => data[fn](23, 0, bl), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1].forEach((byteLength) => {
+      ;[Number.POSITIVE_INFINITY, -1].forEach((byteLength) => {
         assert.throws(() => data[fn](23, 0, byteLength))
       })
-      ;[NaN, 1.01].forEach((byteLength) => {
+      ;[Number.NaN, 1.01].forEach((byteLength) => {
         assert.throws(() => data[fn](42, 0, byteLength), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "byteLength" is out of range. ' + `It must be an integer. Received ${byteLength}`,
+          message: `The value of "byteLength" is out of range. It must be an integer. Received ${byteLength}`,
         })
       })
     })
@@ -4731,12 +4692,12 @@ test('Buffer write int (node.js repository test)', () => {
       ;['writeIntBE', 'writeIntLE'].forEach((fn) => {
         const min = -(2 ** (i * 8 - 1))
         const max = 2 ** (i * 8 - 1) - 1
-        let range = `>= ${min} and <= ${max}`
+        let _range = `>= ${min} and <= ${max}`
         if (i > 4) {
-          range = `>= -(2 ** ${i * 8 - 1}) and < 2 ** ${i * 8 - 1}`
+          _range = `>= -(2 ** ${i * 8 - 1}) and < 2 ** ${i * 8 - 1}`
         }
         ;[min - 1, max + 1].forEach((val) => {
-          const received = i > 4 ? String(val).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1_') : val
+          const _received = i > 4 ? String(val).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1_') : val
           // assert.throws( ❌
           //   () => {
           //     data[fn](val, 0, i)
@@ -4754,14 +4715,14 @@ test('Buffer write int (node.js repository test)', () => {
             name: 'TypeError',
           })
         })
-        ;[Infinity, -1, -4294967295].forEach((offset) => {
+        ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
           assert.throws(() => data[fn](min, offset, i))
         })
-        ;[NaN, 1.01].forEach((offset) => {
+        ;[Number.NaN, 1.01].forEach((offset) => {
           assert.throws(() => data[fn](max, offset, i), {
             code: 'ERR_OUT_OF_RANGE',
             name: 'RangeError',
-            message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+            message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
           })
         })
       })
@@ -4786,7 +4747,7 @@ test('Buffer write uint (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false].forEach((o) => {
         assert.throws(() => data[`write${fn}`](23, o), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[NaN, Infinity, -1, 1.01].forEach((o) => {
+      ;[Number.NaN, Number.POSITIVE_INFINITY, -1, 1.01].forEach((o) => {
         assert.throws(() => data[`write${fn}`](23, o), { code: 'ERR_OUT_OF_RANGE' })
       })
     })
@@ -4849,7 +4810,7 @@ test('Buffer write uint (node.js repository test)', () => {
     ;['writeUInt16BE', 'writeUInt16LE'].forEach((fn) => {
       assert.throws(() => data[fn](value, 0), {
         code: 'ERR_OUT_OF_RANGE',
-        message: 'The value of "value" is out of range. ' + `It must be >= 0 and <= 65535. Received ${value}`,
+        message: `The value of "value" is out of range. It must be >= 0 and <= 65535. Received ${value}`,
       })
     })
   }
@@ -4899,22 +4860,22 @@ test('Buffer write uint (node.js repository test)', () => {
       ;['', '0', null, {}, [], () => {}, true, false, undefined].forEach((bl) => {
         assert.throws(() => data[fn](23, 0, bl), { code: 'ERR_INVALID_ARG_TYPE' })
       })
-      ;[Infinity, -1].forEach((byteLength) => {
+      ;[Number.POSITIVE_INFINITY, -1].forEach((byteLength) => {
         assert.throws(() => data[fn](23, 0, byteLength))
       })
-      ;[NaN, 1.01].forEach((byteLength) => {
+      ;[Number.NaN, 1.01].forEach((byteLength) => {
         assert.throws(() => data[fn](42, 0, byteLength), {
           code: 'ERR_OUT_OF_RANGE',
           name: 'RangeError',
-          message: 'The value of "byteLength" is out of range. ' + `It must be an integer. Received ${byteLength}`,
+          message: `The value of "byteLength" is out of range. It must be an integer. Received ${byteLength}`,
         })
       })
     })
 
     // Test 1 to 6 bytes.
     for (let i = 1; i <= 6; i++) {
-      const range = i < 5 ? `= ${val - 1}` : ` 2 ** ${i * 8}`
-      const received = i > 4 ? String(val).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1_') : val
+      const _range = i < 5 ? `= ${val - 1}` : ` 2 ** ${i * 8}`
+      const _received = i > 4 ? String(val).replace(/(\d)(?=(\d\d\d)+(?!\d))/g, '$1_') : val
       ;['writeUIntBE', 'writeUIntLE'].forEach((fn) => {
         // assert.throws(  ❌
         //   () => {
@@ -4932,14 +4893,14 @@ test('Buffer write uint (node.js repository test)', () => {
             name: 'TypeError',
           })
         })
-        ;[Infinity, -1, -4294967295].forEach((offset) => {
+        ;[Number.POSITIVE_INFINITY, -1, -4294967295].forEach((offset) => {
           assert.throws(() => data[fn](val - 1, offset, i))
         })
-        ;[NaN, 1.01].forEach((offset) => {
+        ;[Number.NaN, 1.01].forEach((offset) => {
           assert.throws(() => data[fn](val - 1, offset, i), {
             code: 'ERR_OUT_OF_RANGE',
             name: 'RangeError',
-            message: 'The value of "offset" is out of range. ' + `It must be an integer. Received ${offset}`,
+            message: `The value of "offset" is out of range. It must be an integer. Received ${offset}`,
           })
         })
       })
@@ -4959,8 +4920,8 @@ test('Buffer write uint (node.js repository test)', () => {
     'BigUInt64LE',
     'BigUInt64BE',
   ]) {
-    const p = Buffer.prototype
-    const lowerFn = fn.replace(/UInt/, 'Uint')
+    const _p = Buffer.prototype
+    const _lowerFn = fn.replace(/UInt/, 'Uint')
     // assert.strictEqual(p[`write${fn}`], p[`write${lowerFn}`])
     // assert.strictEqual(p[`read${fn}`], p[`read${lowerFn}`])
   }
@@ -4977,7 +4938,7 @@ test('Buffer zero fill (node.js repository test)', () => {
 test('Buffer bigint64 (node.js repository test)', () => {
   const buf = Buffer.allocUnsafe(8)
 
-  ;['LE', 'BE'].forEach(function (endianness) {
+  ;['LE', 'BE'].forEach((endianness) => {
     // Should allow simple BigInts to be written and read
     let val = 123456789n
     buf[`writeBigInt64${endianness}`](val, 0)
@@ -5001,14 +4962,14 @@ test('Buffer bigint64 (node.js repository test)', () => {
     assert.strictEqual(val, buf[`readBigUInt64${endianness}`](0))
 
     // Should throw a RangeError upon INT64_MAX+1 being written
-    assert.throws(function () {
+    assert.throws(() => {
       const val = 0x8000000000000000n
       buf[`writeBigInt64${endianness}`](val, 0)
     }, RangeError)
 
     // Should throw a RangeError upon UINT64_MAX+1 being written
     assert.throws(
-      function () {
+      () => {
         const val = 0x10000000000000000n
         buf[`writeBigUInt64${endianness}`](val, 0)
       },
@@ -5022,12 +4983,12 @@ test('Buffer bigint64 (node.js repository test)', () => {
     )
 
     // Should throw a TypeError upon invalid input
-    assert.throws(function () {
+    assert.throws(() => {
       buf[`writeBigInt64${endianness}`]('bad', 0)
     }, SyntaxError)
 
     // Should throw a TypeError upon invalid input
-    assert.throws(function () {
+    assert.throws(() => {
       buf[`writeBigUInt64${endianness}`]('bad', 0)
     }, SyntaxError)
   })
@@ -5409,18 +5370,8 @@ test('Buffer alloc (node.js repository test)', () => {
       assert.strictEqual(quote, b.toString('ascii', 0, quote.length))
 
       // Check that the base64 decoder ignores illegal chars
-      const expectedIllegal =
-        expected.slice(0, 60) +
-        ' \x80' +
-        expected.slice(60, 120) +
-        ' \xff' +
-        expected.slice(120, 180) +
-        ' \x00' +
-        expected.slice(180, 240) +
-        ' \x98' +
-        expected.slice(240, 300) +
-        '\x03' +
-        expected.slice(300, 360)
+      const _expectedIllegal =
+        `${expected.slice(0, 60)} \x80${expected.slice(60, 120)} \xff${expected.slice(120, 180)} \x00${expected.slice(180, 240)} \x98${expected.slice(240, 300)}\x03${expected.slice(300, 360)}`
       // b = Buffer.from(expectedIllegal, encoding) ❌
       assert.strictEqual(quote.length, b.length)
       assert.strictEqual(quote, b.toString('ascii', 0, quote.length))
@@ -5543,7 +5494,7 @@ test('Buffer alloc (node.js repository test)', () => {
 
   {
     // Creating buffers larger than pool size.
-    const l = Buffer['poolSize'] + 5
+    const l = Buffer.poolSize + 5
     const s = 'h'.repeat(l)
     const b = Buffer.from(s)
 
@@ -5974,7 +5925,7 @@ test('Buffer alloc (node.js repository test)', () => {
 
   {
     // Test truncation after decode
-    const crypto = require('crypto')
+    const crypto = require('node:crypto')
 
     const b1 = Buffer.from('YW55=======', 'base64')
     const b2 = Buffer.from('YW55', 'base64')
@@ -5997,28 +5948,14 @@ test('Buffer alloc (node.js repository test)', () => {
   // @ts-expect-error
   assert.throws(() => Buffer.from())
   assert.throws(() => Buffer.from(null))
-
-  // Test prototype getters don't throw
-  // assert.strictEqual(Buffer.prototype.parent, undefined) ❌
-  // assert.strictEqual(Buffer.prototype.offset, undefined) ❌
-  // assert.strictEqual(SlowBuffer.prototype.parent, undefined) ❌
-  // assert.strictEqual(SlowBuffer.prototype.offset, undefined) ❌
-
-  {
     // Test that large negative Buffer length inputs don't affect the pool offset.
     // Use the fromArrayLike() variant here because it's more lenient
     // about its input and passes the length directly to allocate().
-    assert.deepStrictEqual(Buffer.from({ length: -Buffer['poolSize'] }), Buffer.from(''))
+    assert.deepStrictEqual(Buffer.from({ length: -Buffer.poolSize }), Buffer.from(''))
     assert.deepStrictEqual(Buffer.from({ length: -100 }), Buffer.from(''))
 
     // Check pool offset after that by trying to write string into the pool.
     Buffer.from('abc')
-  }
-
-  // Test that ParseArrayIndex handles full uint32
-  {
-    // assert.throws(() => Buffer.from(new ArrayBuffer(0), -1 >>> 0)) ❌
-  }
 
   // ParseArrayIndex() should reject values that don't fit in a 32 bits size_t.
   assert.throws(() => {
@@ -6120,7 +6057,7 @@ test('Buffer ascii (node.js repository test)', () => {
 })
 
 test('Buffer bytelength (node.js repository test)', () => {
-  ;[[32, 'latin1'], [NaN, 'utf8'], [{}, 'latin1'], []].forEach((args: any[]) => {
+  ;[[32, 'latin1'], [Number.NaN, 'utf8'], [{}, 'latin1'], []].forEach((args: any[]) => {
     // @ts-expect-error
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     assert.throws(() => Buffer.byteLength(...args), {

@@ -1,9 +1,9 @@
-import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
+import type { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { RuntimeDataModel } from '../runtimeDataModel'
-import { JsArgs } from '../types/exported/JsApi'
+import type { RuntimeDataModel } from '../runtimeDataModel'
+import type { JsArgs } from '../types/exported/JsApi'
 import { applyResultExtensions } from './applyResultExtensions'
-import { MergedExtensionsList } from './MergedExtensionsList'
+import type { MergedExtensionsList } from './MergedExtensionsList'
 import { visitQueryResult } from './visitQueryResult'
 
 type ApplyAllResultExtensionsParams = {

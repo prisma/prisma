@@ -1,6 +1,6 @@
-import path from 'path'
+import path from 'node:path'
 
-import { build, BuildOptions } from '../../../helpers/compile/build'
+import { build, type BuildOptions } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
 const buildOptions: BuildOptions = {

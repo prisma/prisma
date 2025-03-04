@@ -15,8 +15,8 @@ describe('isCi', () => {
 
   describe('in non TTY environment', () => {
     beforeEach(() => {
-      delete process.env.GITHUB_ACTIONS
-      delete process.env.CI
+      process.env.GITHUB_ACTIONS = undefined
+      process.env.CI = undefined
       process.stdin.isTTY = false
     })
 
@@ -27,8 +27,8 @@ describe('isCi', () => {
 
   describe('in TTY environment', () => {
     beforeEach(() => {
-      delete process.env.GITHUB_ACTIONS
-      delete process.env.CI
+      process.env.GITHUB_ACTIONS = undefined
+      process.env.CI = undefined
       process.stdin.isTTY = true
     })
 

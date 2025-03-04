@@ -1,7 +1,7 @@
 import { fs, vol } from 'memfs'
-import { performance } from 'perf_hooks'
+import { performance } from 'node:perf_hooks'
 
-import { CallSite } from './CallSite'
+import type { CallSite } from './CallSite'
 import { createErrorMessageWithContext } from './createErrorMessageWithContext'
 
 jest.mock('fs', () => fs)
@@ -25,7 +25,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  delete (globalThis as any).TARGET_BUILD_TYPE
+  (globalThis as any).TARGET_BUILD_TYPE = undefined
 })
 
 afterEach(() => vol.reset())
@@ -436,7 +436,7 @@ test('with windows lines endings', () => {
 
 test('does not uses polynominal regex', () => {
   // from https://devina.io/redos-checker
-  const example = 'tfindFirs'.repeat(18258) + 's'
+  const example = `${'tfindFirs'.repeat(18258)}s`
 
   mockFile('/project/some-file.js', example)
 

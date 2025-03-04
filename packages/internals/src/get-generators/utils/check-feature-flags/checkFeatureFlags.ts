@@ -1,5 +1,5 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
-import { GetGeneratorOptions } from '../../getGenerators'
+import type { GetGeneratorOptions } from '../../getGenerators'
 
 /**
  * Check feature flags and preview features

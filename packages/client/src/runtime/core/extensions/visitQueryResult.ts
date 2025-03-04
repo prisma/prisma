@@ -1,6 +1,6 @@
-import { RuntimeDataModel } from '../runtimeDataModel'
+import type { RuntimeDataModel } from '../runtimeDataModel'
 import { isSkip } from '../types'
-import { JsArgs, Selection } from '../types/exported/JsApi'
+import type { JsArgs, Selection } from '../types/exported/JsApi'
 
 type ModelVisitor = (value: object, modelName: string, queryArgs: JsArgs) => object | undefined
 

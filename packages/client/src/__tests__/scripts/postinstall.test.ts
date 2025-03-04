@@ -44,12 +44,12 @@ describe('npm_config_user_agent', () => {
     'if npm_config_user_agent not available then falls back to MISSING_NPM_CONFIG_USER_AGENT',
     (value) => {
       if (value === undefined) {
-        delete process.env.npm_config_user_agent
+        process.env.npm_config_user_agent = undefined
       } else {
         process.env.npm_config_user_agent = value
       }
-      delete process.env.npm_config_user_agent
-      expect(getPostInstallTrigger()).toEqual(`MISSING_NPM_CONFIG_USER_AGENT foo bar`)
+      process.env.npm_config_user_agent = undefined
+      expect(getPostInstallTrigger()).toEqual('MISSING_NPM_CONFIG_USER_AGENT foo bar')
     },
   )
 
@@ -66,12 +66,12 @@ describe('fails gracefully with', () => {
   // prettier-ignore
   test.each([
     ['envar missing', undefined, UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING],
-    ['envar bad json', 'bah', UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR +': bah'],
-    ['envar bad json schema missing field', '{}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR+': {}'],
-    ['envar bad json schema bad field type', '{"original":1}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR+': {"original":1}'],
+    ['envar bad json', 'bah', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR}: bah`],
+    ['envar bad json schema missing field', '{}', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: {}`],
+    ['envar bad json schema bad field type', '{"original":1}', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: {"original":1}`],
   ])('%s', (_, envVarValue, expected) => {
     if (envVarValue === undefined) {
-       delete process.env.npm_config_argv
+       process.env.npm_config_argv = undefined
      } else  {
        process.env.npm_config_argv = envVarValue
      }

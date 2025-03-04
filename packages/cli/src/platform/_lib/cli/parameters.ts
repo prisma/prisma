@@ -1,5 +1,5 @@
 import { arg, isError } from '@prisma/internals'
-import Arg from 'arg'
+import type Arg from 'arg'
 
 export const getRequiredParameter = <$Args extends Record<string, unknown>, $Names extends (keyof $Args)[]>(
   args: $Args,

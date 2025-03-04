@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'
-import { IsolationLevel, Options, TransactionInfo } from './Transaction'
+import { IsolationLevel, type Options, type TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
@@ -39,7 +39,7 @@ const debug = Debug('prisma:client:transactionManager')
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
 const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SqlQuery => ({
-  sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
+  sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevelMap[isolationLevel]}`,
   args: [],
   argTypes: [],
 })
@@ -158,10 +158,9 @@ export class TransactionManager {
               timeTaken: Date.now() - closedTransaction.startedAt,
             })
         }
-      } else {
-        debug(`Transaction not found.`, transactionId)
-        throw new TransactionNotFoundError()
       }
+        debug('Transaction not found.', transactionId)
+        throw new TransactionNotFoundError()
     }
 
     if (['committed', 'rolled_back', 'timed_out'].includes(transaction.status)) {

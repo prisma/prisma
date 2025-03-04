@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Command, Commands, link } from '@prisma/internals'
+import { type Command, type Commands, link } from '@prisma/internals'
 
 import { EarlyAccessFlagError } from '../utils/errors'
 import { dispatchToSubCommand } from './_lib/cli/dispatchToSubCommand'

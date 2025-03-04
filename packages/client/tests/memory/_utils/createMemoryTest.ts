@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { WARMUP_ITERATIONS } from './commonSettings'
 
@@ -60,7 +60,7 @@ export function createMemoryTest<ModuleT extends PrismaModule, PrepareResult = v
       await run(runParams)
       gc()
 
-      await new Promise((resolve) => resultStream.write(process.memoryUsage().heapUsed + '\n', resolve))
+      await new Promise((resolve) => resultStream.write(`${process.memoryUsage().heapUsed}\n`, resolve))
     }
 
     await cleanup?.(runParams)

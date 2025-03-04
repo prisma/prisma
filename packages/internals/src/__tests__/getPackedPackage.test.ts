@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { getPackedPackage } from './../getPackedPackage'
 
@@ -17,7 +17,7 @@ describe('getPackedPackage', () => {
 
     try {
       await getPackedPackage('@prisma/client', path.join(__dirname, outputDir), packageDir)
-    } catch (e) {
+    } catch (_e) {
       //
     } finally {
       expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)

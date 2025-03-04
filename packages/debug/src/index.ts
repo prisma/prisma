@@ -46,14 +46,14 @@ const topProps = {
     const isListened = listenedNamespaces.some((listenedNamespace) => {
       if (listenedNamespace === '' || listenedNamespace[0] === '-') return false
 
-      return namespace.match(RegExp(listenedNamespace.split('*').join('.*') + '$'))
+      return namespace.match(RegExp(`${listenedNamespace.split('*').join('.*')}$`))
     })
 
     // we take incoming namespaces and check then against excluded
     const isExcluded = listenedNamespaces.some((listenedNamespace) => {
       if (listenedNamespace === '' || listenedNamespace[0] !== '-') return false
 
-      return namespace.match(RegExp(listenedNamespace.slice(1).split('*').join('.*') + '$'))
+      return namespace.match(RegExp(`${listenedNamespace.slice(1).split('*').join('.*')}$`))
     })
 
     return isListened && !isExcluded
@@ -138,10 +138,10 @@ function safeStringify(value: any, indent = 2) {
 
   return JSON.stringify(
     value,
-    (key, value) => {
+    (_key, value) => {
       if (typeof value === 'object' && value !== null) {
         if (cache.has(value)) {
-          return `[Circular *]`
+          return '[Circular *]'
         }
 
         cache.add(value)
@@ -169,9 +169,8 @@ export function getLogs(numChars = 7500): string {
         .map((arg) => {
           if (typeof arg === 'string') {
             return arg
-          } else {
-            return JSON.stringify(arg)
           }
+            return JSON.stringify(arg)
         })
         .join(' ')}`
     })

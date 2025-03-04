@@ -1,4 +1,4 @@
-import { MultipleSchemas } from './utils/schemaFileInput'
+import type { MultipleSchemas } from './utils/schemaFileInput'
 
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'

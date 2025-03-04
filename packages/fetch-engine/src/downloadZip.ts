@@ -1,13 +1,13 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'node:fs'
 import hasha from 'hasha'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
-import path from 'path'
+import path from 'node:path'
 import rimraf from 'rimraf'
 import tempy from 'tempy'
-import { promisify } from 'util'
-import zlib from 'zlib'
+import { promisify } from 'node:util'
+import zlib from 'node:zlib'
 
 import { getProxyAgent } from './getProxyAgent'
 import { overwriteFile } from './utils'
@@ -31,7 +31,7 @@ async function fetchChecksum(url: string): Promise<string | null> {
     if (!response.ok) {
       let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl} - ${response.status} ${response.statusText}`
       if (!process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-        errorMessage += `\n\nIf you need to ignore this error (e.g. in an offline environment), set the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable to a truthy value.\nExample: PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
+        errorMessage += '\n\nIf you need to ignore this error (e.g. in an offline environment), set the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable to a truthy value.\nExample: PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1'
       }
       throw new Error(errorMessage)
     }
@@ -90,7 +90,7 @@ export async function downloadZip(
       }
 
       const lastModified = response.headers.get('last-modified')!
-      const size = parseFloat(response.headers.get('content-length') as string)
+      const size = Number.parseFloat(response.headers.get('content-length') as string)
       const ws = fs.createWriteStream(partial)
 
       // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor

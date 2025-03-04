@@ -1,6 +1,6 @@
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 
 import { DebugInfo } from '../../DebugInfo'
@@ -10,7 +10,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const originalEnv = { ...process.env }
 
 function cleanSnapshot(str: string): string {
-  str = str.replace(new RegExp('(Path: ).*', 'g'), '$1REDACTED_PATH')
+  str = str.replace(/(Path: ).*/g, '$1REDACTED_PATH')
   return str
 }
 

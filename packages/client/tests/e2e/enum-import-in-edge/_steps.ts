@@ -22,9 +22,8 @@ void executeSteps({
 
     if (!stdout.includes(expected)) {
       throw new Error('Expected to fetch the enum values')
-    } else {
-      console.log('Success!')
     }
+      console.log('Success!')
 
     await wranglerProcess.kill()
   },

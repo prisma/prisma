@@ -1,5 +1,5 @@
-import fs from 'fs'
-import Module from 'module'
+import fs from 'node:fs'
+import Module from 'node:module'
 import pkgUp from 'pkg-up'
 
 /**

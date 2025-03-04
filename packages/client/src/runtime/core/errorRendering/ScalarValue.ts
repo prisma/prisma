@@ -1,4 +1,4 @@
-import { ErrorWriter } from './base'
+import type { ErrorWriter } from './base'
 import { FormattedString } from './FormattedString'
 import { Value } from './Value'
 

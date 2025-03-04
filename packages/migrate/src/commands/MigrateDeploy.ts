@@ -1,6 +1,6 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, checkUnsupportedDataProxy, type Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
@@ -74,7 +74,7 @@ ${bold('Examples')}
       // Automatically create the database if it doesn't exist
       const wasDbCreated = await ensureDatabaseExists('apply', schemaPath)
       if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
+        process.stdout.write(`\n${wasDbCreated}\n`)
       }
     } catch (e) {
       process.stdout.write('\n') // empty line
@@ -92,7 +92,7 @@ ${bold('Examples')}
         `${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`,
       )
     } else {
-      process.stdout.write(`No migration found in prisma/migrations\n`)
+      process.stdout.write('No migration found in prisma/migrations\n')
     }
 
     let migrationIds: string[]
@@ -107,8 +107,8 @@ ${bold('Examples')}
 
     process.stdout.write('\n') // empty line
     if (migrationIds.length === 0) {
-      return green(`No pending migrations to apply.`)
-    } else {
+      return green('No pending migrations to apply.')
+    }
       return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
         'migrations',
         migrationIds,
@@ -118,12 +118,11 @@ ${bold('Examples')}
       )}
       
 ${green('All migrations have been successfully applied.')}`
-    }
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDeploy.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateDeploy.help}`)
     }
     return MigrateDeploy.help
   }

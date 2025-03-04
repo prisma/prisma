@@ -12,7 +12,7 @@ export class Writer<ContextType = undefined> {
   private marginSymbol?: string
   private afterNextNewLineCallback?: () => void
 
-  constructor(startingIndent = 0, readonly context: ContextType) {
+  constructor(startingIndent, readonly context: ContextType) {
     this.currentIndent = startingIndent
   }
 

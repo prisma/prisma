@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import type { DataSource } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
 import type { Generable } from './Generable'

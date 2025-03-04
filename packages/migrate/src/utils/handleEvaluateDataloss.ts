@@ -16,14 +16,13 @@ export function handleUnexecutableSteps(unexecutableSteps: MigrationFeedback[], 
     if (createOnly) {
       console.error(`${messages.join('\n')}\n`)
       return undefined
-    } else {
+    }
       return `${messages.join('\n')}
 
 You can use ${getCommandWithExecutor(
         'prisma migrate dev --create-only',
       )} to create the migration file, and manually modify it to address the underlying issue(s).
 Then run ${getCommandWithExecutor('prisma migrate dev')} to apply it and verify it works.\n`
-    }
   }
 
   return undefined

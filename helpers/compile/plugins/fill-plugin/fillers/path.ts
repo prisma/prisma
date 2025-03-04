@@ -1,8 +1,8 @@
-export function resolve(...args: any[]) {
+export function resolve(...args: unknown[]) {
   return args.join('/')
 }
 
-export function join(...args: any[]) {
+export function join(...args: unknown[]) {
   return args.join('/')
 }
 

@@ -2,10 +2,10 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 
 import { DbPull } from '../../commands/DbPull'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
+import { type SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -78,7 +78,7 @@ describe('postgresql-multischema', () => {
       ['--print', '--schema', 'without-schemas-in-datasource.prisma'],
       defaultTestConfig(),
     )
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -152,7 +152,7 @@ describe('postgresql-multischema', () => {
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
       defaultTestConfig(),
     )
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -173,7 +173,7 @@ describe('postgresql-multischema', () => {
 
   test('--url with --schemas=base without preview feature should error', async () => {
     ctx.fixture('introspection/postgresql-multischema')
-    ctx.fs.remove(`./schema.prisma`)
+    ctx.fs.remove('./schema.prisma')
 
     const introspect = new DbPull()
     const result = introspect.parse(
@@ -287,7 +287,7 @@ describe('postgresql-multischema', () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

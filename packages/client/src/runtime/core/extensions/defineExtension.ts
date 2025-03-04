@@ -1,5 +1,5 @@
-import { Client } from '../../getPrismaClient'
-import { ExtensionArgs } from '../types/exported/ExtensionArgs'
+import type { Client } from '../../getPrismaClient'
+import type { ExtensionArgs } from '../types/exported/ExtensionArgs'
 
 export function defineExtension(ext: ExtensionArgs | ((client: Client) => Client)) {
   if (typeof ext === 'function') {

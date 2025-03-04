@@ -44,14 +44,14 @@ testMatrix.setupTestSuite(() => {
         name,
       },
       update: {
-        name: name + 'new',
+        name: `${name}new`,
       },
     })
 
     let count = await prisma.user.count({ where: { name } })
     expect(count).toEqual(0)
 
-    count = await prisma.user.count({ where: { name: name + 'new' } })
+    count = await prisma.user.count({ where: { name: `${name}new` } })
     expect(count).toEqual(1)
   })
 })

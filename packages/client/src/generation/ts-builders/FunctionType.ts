@@ -1,8 +1,8 @@
-import { GenericParameter } from './GenericParameter'
-import { Parameter } from './Parameter'
+import type { GenericParameter } from './GenericParameter'
+import type { Parameter } from './Parameter'
 import { voidType } from './PrimitiveType'
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export class FunctionType extends TypeBuilder {
   needsParenthesisWhenIndexed = true

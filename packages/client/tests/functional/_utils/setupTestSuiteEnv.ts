@@ -1,13 +1,13 @@
-import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
+import type { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
 import { defaultTestConfig } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
 import fs from 'fs-extra'
-import path from 'path'
+import path from 'node:path'
 import { match } from 'ts-pattern'
-import { Script } from 'vm'
+import { Script } from 'node:vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
@@ -16,7 +16,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta } from './types'
+import type { AlterStatementCallback, ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -188,8 +188,8 @@ export async function setupTestSuiteDatabase({
     errors.push(e as Error)
 
     if (errors.length > 2) {
-      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
-    } else {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join('\n'))
+    }
       await setupTestSuiteDatabase({
         suiteMeta,
         suiteConfig,
@@ -197,7 +197,6 @@ export async function setupTestSuiteDatabase({
         alterStatementCallback: undefined,
         cfWorkerBindings,
       }) // retry logic
-    }
   }
 }
 
@@ -284,24 +283,23 @@ export async function dropTestSuiteDatabase({
     errors.push(e as Error)
 
     if (errors.length > 2) {
-      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
-    } else {
-      await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join('\n'))
     }
+      await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
   }
 }
 
 async function prepareD1Database({ cfWorkerBindings }: { cfWorkerBindings: { [key: string]: unknown } }) {
   const d1Client = cfWorkerBindings.MY_DATABASE as D1Database
 
-  const existingItems = ((await d1Client.prepare(`PRAGMA main.table_list;`).run()) as D1Result<Record<string, unknown>>)
+  const existingItems = ((await d1Client.prepare('PRAGMA main.table_list;').run()) as D1Result<Record<string, unknown>>)
     .results
   for (const item of existingItems) {
     const batch: D1PreparedStatement[] = []
 
     if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
       continue
-    } else if (item.name === 'sqlite_sequence') {
+    }if (item.name === 'sqlite_sequence') {
       batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
     } else if (item.type === 'view') {
       batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))

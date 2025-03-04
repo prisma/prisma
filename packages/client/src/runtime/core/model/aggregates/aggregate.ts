@@ -17,7 +17,7 @@ export function desugarUserArgs(args: UserArgs = {}) {
     (aggregateArgs, [key, value]) => {
       if (aggregateMap[key] !== undefined) {
         // if it's an aggregate, we re-wrap into select
-        aggregateArgs['select']![key] = { select: value }
+        aggregateArgs.select![key] = { select: value }
       } else {
         aggregateArgs[key] = value // or leave it alone
       }
@@ -35,8 +35,8 @@ export function desugarUserArgs(args: UserArgs = {}) {
  * @returns
  */
 function desugarCountInUserArgs(args: UserArgs = {}) {
-  if (typeof args['_count'] === 'boolean') {
-    return { ...args, _count: { _all: args['_count'] } }
+  if (typeof args._count === 'boolean') {
+    return { ...args, _count: { _all: args._count } }
   }
 
   return args
@@ -50,8 +50,8 @@ function desugarCountInUserArgs(args: UserArgs = {}) {
  */
 export function createUnpacker(args: UserArgs = {}) {
   return (data: object) => {
-    if (typeof args['_count'] === 'boolean') {
-      data['_count'] = data['_count']['_all']
+    if (typeof args._count === 'boolean') {
+      data._count = data._count._all
     }
 
     return data

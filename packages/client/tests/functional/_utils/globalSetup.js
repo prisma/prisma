@@ -4,7 +4,7 @@ const fs = require('fs-extra')
 const { setupQueryEngine } = require('../../_utils/setupQueryEngine')
 
 module.exports = async (globalConfig) => {
-  process.env['JEST_MAX_WORKERS'] = globalConfig.maxWorkers // expose info to test setup
+  process.env.JEST_MAX_WORKERS = globalConfig.maxWorkers // expose info to test setup
 
   await setupQueryEngine()
 

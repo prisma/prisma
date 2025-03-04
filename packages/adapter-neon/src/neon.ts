@@ -152,13 +152,13 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 
   async commit(): Promise<void> {
-    debug(`[js::commit]`)
+    debug('[js::commit]')
 
     this.client.release()
   }
 
   async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
+    debug('[js::rollback]')
 
     this.client.release()
   }

@@ -1,6 +1,6 @@
-import { ClientEngineType } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import type { ClientEngineType } from '@prisma/internals'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 

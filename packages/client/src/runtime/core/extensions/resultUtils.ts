@@ -2,8 +2,8 @@ import { mapObjectValues } from '@prisma/internals'
 
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { ExtensionArgs, ResultArg, ResultArgsFieldCompute } from '../types/exported/ExtensionArgs'
-import { Omission, Selection } from '../types/exported/JsApi'
+import type { ExtensionArgs, ResultArg, ResultArgsFieldCompute } from '../types/exported/ExtensionArgs'
+import type { Omission, Selection } from '../types/exported/JsApi'
 
 export type ComputedField = {
   name: string
@@ -73,7 +73,7 @@ export function resolveDependencies(computedFields: ComputedFieldsMap): Computed
 }
 
 function getComputedFieldsFromModel(
-  name: string | undefined,
+  _name: string | undefined,
   previousComputedFields: ComputedFieldsMap | undefined,
   modelResult: ResultArg | undefined,
 ): ComputedFieldsMap {

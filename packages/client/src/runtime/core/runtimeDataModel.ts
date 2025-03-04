@@ -1,6 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { BaseDMMF } from '../../generation/dmmf-types'
+import type { BaseDMMF } from '../../generation/dmmf-types'
 import { lazyProperty } from '../../generation/lazyProperty'
 
 export type RuntimeModel = Omit<DMMF.Model, 'name'>

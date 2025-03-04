@@ -1,4 +1,4 @@
-import * as useDebugImport from '../index'
+import type * as useDebugImport from '../index'
 
 let Debug: typeof useDebugImport.default
 
@@ -9,12 +9,12 @@ const importDebug = async () =>
   })
 
 beforeEach(() => {
-  delete process.env.DEBUG
-  delete process.env.DEBUG_COLORS
+  process.env.DEBUG = undefined
+  process.env.DEBUG_COLORS = undefined
   // @ts-ignore
-  delete globalThis.DEBUG
+  globalThis.DEBUG = undefined
   // @ts-ignore
-  delete globalThis.DEBUG_COLORS
+  globalThis.DEBUG_COLORS = undefined
 })
 
 afterEach(() => {
