@@ -68,13 +68,17 @@ describe('fails gracefully with', () => {
     ['envar missing', undefined, UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING],
     ['envar bad json', 'bah', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR}: bah`],
     ['envar bad json schema missing field', '{}', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: {}`],
-    ['envar bad json schema bad field type', '{"original":1}', `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: {"original":1}`],
+    [
+      'envar bad json schema bad field type',
+      '{"original":1}',
+      `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: {"original":1}`,
+    ],
   ])('%s', (_, envVarValue, expected) => {
     if (envVarValue === undefined) {
-       process.env.npm_config_argv = undefined
-     } else  {
-       process.env.npm_config_argv = envVarValue
-     }
+      process.env.npm_config_argv = undefined
+    } else {
+      process.env.npm_config_argv = envVarValue
+    }
     expect(getPostInstallTrigger()).toEqual(expected)
   })
 })

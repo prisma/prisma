@@ -52,18 +52,18 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
 
     if (TARGET_BUILD_TYPE === 'edge') {
       message = [
-        'Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.',
-        'Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor.',
+        'Prisma Client was configured to use the `adapter` option but it was imported via its `/edge` endpoint.',
+        'Please either remove the `/edge` endpoint or remove the `adapter` from the Prisma Client constructor.',
       ]
     } else if (!copyEngine) {
       message = [
-        'Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.',
-        'Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter.',
+        'Prisma Client was configured to use the `adapter` option but `prisma generate` was run with `--no-engine`.',
+        'Please run `prisma generate` without `--no-engine` to be able to use Prisma Client with the adapter.',
       ]
     } else if (url?.startsWith('prisma://')) {
       message = [
-        'Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.',
-        'Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor.',
+        'Prisma Client was configured to use the `adapter` option but the URL was a `prisma://` URL.',
+        'Please either use the `prisma://` URL or remove the `adapter` from the Prisma Client constructor.',
       ]
     } else {
       message = ['Prisma Client was configured to use both the `adapter` and Accelerate, please chose one.']

@@ -14,7 +14,10 @@ export class CLI implements Command {
     return new CLI(cmds, ensureBinaries)
   }
 
-  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
+  private constructor(
+    private readonly cmds: Commands,
+    private readonly ensureBinaries: string[],
+  ) {}
 
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {

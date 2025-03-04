@@ -30,7 +30,10 @@ class MergedExtensionsListNode {
     return previous.concat(newCb)
   })
 
-  constructor(public extension: ExtensionArgs, public previous?: MergedExtensionsListNode) {}
+  constructor(
+    public extension: ExtensionArgs,
+    public previous?: MergedExtensionsListNode,
+  ) {}
 
   getAllComputedFields(dmmfModelName: string): ComputedFieldsMap | undefined {
     return this.computedFieldsCache.getOrCreate(dmmfModelName, () => {

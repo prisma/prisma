@@ -4,7 +4,10 @@ import type { Writer } from './Writer'
 export type Import = NamespaceImport | BindingsImport | ModuleImport
 
 export class NamespaceImport implements BasicBuilder {
-  constructor(readonly alias: string, readonly from: string) {}
+  constructor(
+    readonly alias: string,
+    readonly from: string,
+  ) {}
   write(writer: Writer<undefined>): void {
     writer.write('import * as ').write(this.alias).write(` from "${this.from}"`)
   }

@@ -45,10 +45,9 @@ pipe.async = pipeAsync
 export declare type PipeMultiSync = {
   <R0, P extends any[]>(...fns: [F.Function<P, R0>]): F.Function<P, R0>
   <R0, R1, P extends any[]>(...fns: [F.Function<P, R0>, F.Function<[R0], R1>]): F.Function<P, R1>
-  <R0, R1, R2, P extends any[]>(...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>]): F.Function<
-    P,
-    R2
-  >
+  <R0, R1, R2, P extends any[]>(
+    ...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>]
+  ): F.Function<P, R2>
   <R0, R1, R2, R3, P extends any[]>(
     ...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>, F.Function<[R2], R3>]
   ): F.Function<P, R3>

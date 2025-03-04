@@ -13,22 +13,26 @@ export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEn
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
   if (generatorConfig?.config.engineType === ClientEngineType.Library) {
     return ClientEngineType.Library
-  }if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
+  }
+  if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
-  }if (generatorConfig?.config.engineType === ClientEngineType.Client) {
+  }
+  if (generatorConfig?.config.engineType === ClientEngineType.Client) {
     return ClientEngineType.Client
   }
-    return DEFAULT_CLIENT_ENGINE_TYPE
+  return DEFAULT_CLIENT_ENGINE_TYPE
 }
 
 function getEngineTypeFromEnvVar() {
   const engineType = process.env.PRISMA_CLIENT_ENGINE_TYPE
   if (engineType === ClientEngineType.Library) {
     return ClientEngineType.Library
-  }if (engineType === ClientEngineType.Binary) {
+  }
+  if (engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
-  }if (engineType === ClientEngineType.Client) {
+  }
+  if (engineType === ClientEngineType.Client) {
     return ClientEngineType.Client
   }
-    return undefined
+  return undefined
 }

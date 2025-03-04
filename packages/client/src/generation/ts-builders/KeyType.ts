@@ -2,7 +2,10 @@ import { TypeBuilder } from './TypeBuilder'
 import type { Writer } from './Writer'
 
 export class KeyType extends TypeBuilder {
-  constructor(public baseType: TypeBuilder, public key: string) {
+  constructor(
+    public baseType: TypeBuilder,
+    public key: string,
+  ) {
     super()
   }
   write(writer: Writer): void {

@@ -31,9 +31,11 @@ export type ReadonlyDeep<T> = {
 export type Narrowable = string | number | bigint | boolean | []
 
 // prettier-ignore
-export type Narrow<A> = {
-  [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
-} | (A extends Narrowable ? A : never)
+export type Narrow<A> =
+  | {
+      [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
+    }
+  | (A extends Narrowable ? A : never)
 
 export type Exact<A, W> =
   | (A extends unknown ? (W extends A ? { [K in keyof A]: Exact<A[K], W[K]> } : W) : never)
@@ -56,8 +58,7 @@ export type UnwrapTuple<Tuple extends readonly unknown[]> = {
 }
 
 // prettier-ignore
-export type Path<O, P, Default = never> =
-  O extends unknown
+export type Path<O, P, Default = never> = O extends unknown
   ? P extends [infer K, ...infer R]
     ? K extends keyof O
       ? Path<O[K], R>
@@ -91,23 +92,22 @@ export type Return<T> = T extends (...args: any[]) => infer R ? R : T
 export type ToTuple<T> = T extends any[] ? T : [T]
 // prettier-ignore
 export type RenameAndNestPayloadKeys<P> = {
-  [K in keyof P as K extends 'scalars' | 'objects' | 'composites' ? keyof P[K] : never]:
-    P[K] // we lift the value up with the same key name so we can flatten it later
+  [K in keyof P as K extends 'scalars' | 'objects' | 'composites' ? keyof P[K] : never]: P[K] // we lift the value up with the same key name so we can flatten it later
 }
 
 // prettier-ignore
 export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayloadKeys<P>> = {
   [K in keyof O]?: O[K][K] extends any[]
-                   ? PayloadToResult<O[K][K][number]>[]
-                   : O[K][K] extends object
-                     ? PayloadToResult<O[K][K]>
-                    : O[K][K]
+    ? PayloadToResult<O[K][K][number]>[]
+    : O[K][K] extends object
+      ? PayloadToResult<O[K][K]>
+      : O[K][K]
 }
 
 export type Select<T, U> = T extends U ? T : never
 
 // prettier-ignore
-export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
+export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? 1 : 0
 
 export type Or<A extends 1 | 0, B extends 1 | 0> = {
   0: {

@@ -206,7 +206,8 @@ Set composite types introspection depth to 2 levels
             }
 
             return { firstDatasource, schema, validationWarning: undefined }
-          }if (input.fromD1) {
+          }
+          if (input.fromD1) {
             const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
             const pathToSQLiteFile = path.relative(path.dirname(input.schemaPath), d1Database)
 
@@ -230,14 +231,14 @@ Set composite types introspection depth to 2 levels
             if (hasDriverAdaptersPreviewFeature) {
               return result
             }
-              return { ...result, validationWarning }
+            return { ...result, validationWarning }
           }
-            // Use getConfig with ignoreEnvVarErrors
-            // It will  throw an error if the env var is not set or if it is invalid
-            await getConfig({
-              datamodel: rawSchema,
-              ignoreEnvVarErrors: false,
-            })
+          // Use getConfig with ignoreEnvVarErrors
+          // It will  throw an error if the env var is not set or if it is invalid
+          await getConfig({
+            datamodel: rawSchema,
+            ignoreEnvVarErrors: false,
+          })
 
           return { firstDatasource, schema: rawSchema, validationWarning: undefined } as const
         },
@@ -351,7 +352,8 @@ ${bold('To fix this, you have two options:')}
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
-      }if (e.code === 'P1003') {
+      }
+      if (e.code === 'P1003') {
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
@@ -370,7 +372,8 @@ ${bold('To fix this, you have two options:')}
 
 Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
-      }if (e.code === 'P1012') {
+      }
+      if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
         process.stdout.write('\n') // empty line
 

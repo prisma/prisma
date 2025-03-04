@@ -9,8 +9,8 @@ async function main() {
     log: ['query'],
     adapter: new PrismaPg(
       new Pool({
-        connectionString: process.env.TEST_POSTGRES_URI
-      })
+        connectionString: process.env.TEST_POSTGRES_URI,
+      }),
     ),
   })
 
@@ -29,7 +29,7 @@ async function main() {
         title: 'Second post',
         userId: user.id,
       },
-    ]
+    ],
   })
 
   const query = prisma.user.findMany({
@@ -42,12 +42,11 @@ async function main() {
 
   const nestedQuery = await prisma.user.findMany({
     include: {
-      posts: true
-    }
+      posts: true,
+    },
   })
 
   console.log(util.inspect(nestedQuery, { depth: null }))
-
 
   // --------------
   // timings
@@ -60,7 +59,6 @@ async function main() {
   const [, timing] = await benchmark(() => query)
   // console.timeEnd('old way')
   console.log('timing', timing)
-
 
   /// --------------
   /// misc
@@ -75,12 +73,12 @@ async function main() {
 }
 
 const benchmark = async <T>(fn: () => Promise<T>): Promise<[result: T, ms: number]> => {
-    const start = process.hrtime.bigint()
-    const result = await fn()
-    const end = process.hrtime.bigint()
-    const ms = Number(end - start) / 1e6 // Duration in milliseconds
+  const start = process.hrtime.bigint()
+  const result = await fn()
+  const end = process.hrtime.bigint()
+  const ms = Number(end - start) / 1e6 // Duration in milliseconds
 
-    return [result, ms]
+  return [result, ms]
 }
 
 void main()

@@ -17,8 +17,9 @@ it('should redact --option=[value]', () => {
 })
 
 it('should redact a PostgreSQL connection string', () => {
-  expect(redactCommandArray(['init', '--url', '"postgresql://janedoe:mypassword@localhost:5432/mydb?schema=sample"']))
-    .toMatchInlineSnapshot(`
+  expect(
+    redactCommandArray(['init', '--url', '"postgresql://janedoe:mypassword@localhost:5432/mydb?schema=sample"']),
+  ).toMatchInlineSnapshot(`
     [
       "init",
       "--url",

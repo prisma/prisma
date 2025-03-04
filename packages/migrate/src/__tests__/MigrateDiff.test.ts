@@ -139,7 +139,7 @@ describe('migrate diff', () => {
         defaultTestConfig(),
       )
       await expect(result).rejects.toThrow(
-        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
+        'The flag `--shadow-database-url` is not compatible with `--from-local-d1` or `--to-local-d1`.',
       )
     })
 
@@ -151,7 +151,7 @@ describe('migrate diff', () => {
         defaultTestConfig(),
       )
       await expect(result).rejects.toThrow(
-        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
+        'The flag `--shadow-database-url` is not compatible with `--from-local-d1` or `--to-local-d1`.',
       )
     })
   })

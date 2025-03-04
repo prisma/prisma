@@ -137,7 +137,8 @@ function getCommand(): string {
   // don't send url
   if (process.argv[2] === 'introspect') {
     return 'introspect'
-  }if (process.argv[2] === 'db' && process.argv[3] === 'pull') {
+  }
+  if (process.argv[2] === 'db' && process.argv[3] === 'pull') {
     return 'db pull'
   }
   return process.argv.slice(2).join(' ')

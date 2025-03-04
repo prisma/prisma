@@ -125,9 +125,12 @@ export class TSClient implements Generable {
       activeProvider: this.options.activeProvider,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
-      inlineDatasources: datasources.reduce((acc, ds) => {
-        return (acc[ds.name] = { url: ds.url }), acc
-      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineDatasources: datasources.reduce(
+        (acc, ds) => {
+          return (acc[ds.name] = { url: ds.url }), acc
+        },
+        {} as GetPrismaClientConfig['inlineDatasources'],
+      ),
       inlineSchema,
       inlineSchemaHash,
       copyEngine,

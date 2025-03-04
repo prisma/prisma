@@ -13,7 +13,7 @@ void executeSteps({
     if (!stdout.includes('loaded @prisma/client')) {
       throw new Error('Expected to load @prisma/client')
     }
-      console.log('Success!')
+    console.log('Success!')
   },
   finish: async () => {
     await $`echo "done"`

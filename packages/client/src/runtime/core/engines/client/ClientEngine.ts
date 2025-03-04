@@ -18,7 +18,12 @@ import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, Request
 import type { Engine } from '../common/Engine'
 import type { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import type { JsonQuery } from '../common/types/JsonProtocol'
-import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type {
+  EngineMetricsOptions,
+  Metrics,
+  MetricsOptionsJson,
+  MetricsOptionsPrometheus,
+} from '../common/types/Metrics'
 import type {
   QueryEngineLogLevel,
   QueryEngineResultData,
@@ -73,8 +78,8 @@ export class ClientEngine implements Engine<undefined> {
         CLIENT_ENGINE_ERROR,
       )
     }
-      this.driverAdapter = adapter
-      debug('Using driver adapter: %O', adapter)
+    this.driverAdapter = adapter
+    debug('Using driver adapter: %O', adapter)
 
     if (TARGET_BUILD_TYPE === 'client') {
       this.queryCompilerLoader = queryCompilerLoader ?? wasmQueryCompilerLoader

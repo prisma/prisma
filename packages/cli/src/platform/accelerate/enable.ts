@@ -116,8 +116,8 @@ export class Enable implements Command {
         `Accelerate enabled. Use this Accelerate connection string to authenticate requests:\n\n${generateConnectionString(serviceTokenCreate.value)}\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     }
-      return messages.success(
-        `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
-      )
+    return messages.success(
+      `Accelerate enabled. Use your secure API key in your Accelerate connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
+    )
   }
 }

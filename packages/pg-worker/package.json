@@ -30,10 +30,7 @@
     "test": "jest",
     "prepublishOnly": "pnpm run build"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
+  "files": ["README.md", "dist"],
   "dependencies": {
     "@types/pg": "8.11.11"
   },

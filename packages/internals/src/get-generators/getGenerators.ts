@@ -405,7 +405,7 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   for (const generator of generators) {
     if (generator.config.platforms) {
       throw new Error(
-        'The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.',
+        'The `platforms` field on the generator definition is deprecated. Please rename it to `binaryTargets`.',
       )
     }
 

@@ -99,7 +99,7 @@ testMatrix.setupTestSuite(
           LEFT JOIN Profile p ON u.id = p.userId
         `
       }
-        return `
+      return `
           CREATE VIEW "UserInfo" 
           AS SELECT u.id, email, name, p.bio
           FROM "User" u

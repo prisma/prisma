@@ -1,7 +1,24 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
   "vcs": { "enabled": false, "clientKind": "git", "useIgnoreFile": false },
-  "files": { "ignoreUnknown": false, "ignore": [] },
+  "files": {
+    "ignoreUnknown": false,
+    "ignore": [
+      "**/pnpm-lock.yaml",
+      "**/dist",
+      "./.prisma",
+      "./packages/cli/**/tmp-*",
+      "./packages/cli/build",
+      "./packages/cli/prisma-client",
+      "./packages/cli/preinstall",
+      "./packages/client/runtime",
+      "./packages/client/generator-build",
+      "./packages/*/declaration",
+      "./packages/client/scripts/default-index.js",
+      "./packages/config/src/__tests__/fixtures/loadConfigFromFile/invalid/syntax-error/prisma.config.ts",
+      "**/.idea"
+    ]
+  },
   "formatter": {
     "enabled": true,
     "useEditorconfig": true,
@@ -12,22 +29,7 @@
     "lineWidth": 120,
     "attributePosition": "auto",
     "bracketSpacing": true,
-    "ignore": [
-      "**/pnpm-lock.yaml",
-      "**/dist/",
-      "./.prisma",
-      "./packages/cli/build",
-      "./packages/cli/prisma-client",
-      "./packages/cli/preinstall",
-      "./packages/client/runtime",
-      "./packages/client/generator-build",
-      "./packages/*/declaration",
-      "./packages/client/scripts/default-index.js",
-      "./packages/config/src/__tests__/fixtures/loadConfigFromFile/invalid/syntax-error/prisma.config.ts",
-      "./sandbox",
-      "**/.idea/",
-      "**/.vscode/"
-    ]
+    "ignore": []
   },
   "organizeImports": { "enabled": true },
   "linter": {
@@ -119,8 +121,6 @@
       }
     },
     "ignore": [
-      ".prisma",
-      ".github",
       "helpers/blaze/**",
       "**/dist/**",
       "**/declaration/**",
@@ -139,9 +139,7 @@
       "packages/client/scripts/default-index.js",
       "**/packages/cli/prisma-client/**",
       "**/packages/cli/install/**",
-      "**/packages/cli/preinstall/**",
-      "packages/cli/**/tmp-*",
-      "**/sandbox/**"
+      "**/packages/cli/preinstall/**"
     ]
   },
   "javascript": {
@@ -156,7 +154,19 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": ["exports", "TARGET_BUILD_TYPE", "describe", "test", "it", "expect", "jest", "beforeEach", "afterEach", "beforeAll", "afterAll"]
+    "globals": [
+      "exports",
+      "TARGET_BUILD_TYPE",
+      "describe",
+      "test",
+      "it",
+      "expect",
+      "jest",
+      "beforeEach",
+      "afterEach",
+      "beforeAll",
+      "afterAll"
+    ]
   },
   "overrides": [
     { "include": ["**/*.ts"] },

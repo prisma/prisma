@@ -70,9 +70,6 @@
     "test": "dotenv -e ../../.db.env -- jest --verbose",
     "prepublishOnly": "pnpm run build"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
+  "files": ["README.md", "dist"],
   "sideEffects": false
 }

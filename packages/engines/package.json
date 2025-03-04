@@ -33,10 +33,6 @@
     "prepublishOnly": "pnpm run build",
     "postinstall": "node scripts/postinstall.js"
   },
-  "files": [
-    "dist",
-    "download",
-    "scripts"
-  ],
+  "files": ["dist", "download", "scripts"],
   "sideEffects": false
 }

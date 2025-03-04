@@ -14,7 +14,8 @@ export interface JSDocMethodBodyCtx {
 }
 
 const Docs = {
-  cursor: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}',
+  cursor:
+    '{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}',
   pagination: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}',
   aggregations: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}',
   distinct: '{@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}',

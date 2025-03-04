@@ -9,7 +9,8 @@ export const dispatchToSubCommand = async (commands: Commands, argv: string[], c
 
   // Temporary text until it's added properly in each sub command
   const hasHelpFlag = Boolean(argv.find((it) => ['-h', '--help'].includes(it)))
-  if (hasHelpFlag) return `Help output for this command will be available soon. In the meantime, visit ${link("https://pris.ly/cli/platform-docs")} for more information.`; // prettier-ignore
+  if (hasHelpFlag)
+    return `Help output for this command will be available soon. In the meantime, visit ${link('https://pris.ly/cli/platform-docs')} for more information.` // prettier-ignore
 
   const result = await command.parse(argv.slice(1), config)
   return result

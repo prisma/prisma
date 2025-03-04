@@ -159,8 +159,8 @@ export class TransactionManager {
             })
         }
       }
-        debug('Transaction not found.', transactionId)
-        throw new TransactionNotFoundError()
+      debug('Transaction not found.', transactionId)
+      throw new TransactionNotFoundError()
     }
 
     if (['committed', 'rolled_back', 'timed_out'].includes(transaction.status)) {

@@ -36,8 +36,9 @@ describe('getProxyAgent', () => {
     expect(ctx.mocked['console.warn'].mock.calls[0][0]).toMatchInlineSnapshot(
       `"An error occurred in getProxyAgent(), no proxy agent will be used."`,
     )
-    expect(ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''))
-      .toMatchInlineSnapshot(`
+    expect(
+      ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''),
+    ).toMatchInlineSnapshot(`
       "Error while instantiating HttpProxyAgent with URL: "proxy.example.com"
       TypeError: Invalid URL
       Check the following env vars "http_proxy" or "HTTP_PROXY". The value should be a valid URL starting with "http://""
@@ -50,8 +51,9 @@ describe('getProxyAgent', () => {
     expect(ctx.mocked['console.warn'].mock.calls[0][0]).toMatchInlineSnapshot(
       `"An error occurred in getProxyAgent(), no proxy agent will be used."`,
     )
-    expect(ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''))
-      .toMatchInlineSnapshot(`
+    expect(
+      ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''),
+    ).toMatchInlineSnapshot(`
       "Error while instantiating HttpsProxyAgent with URL: "proxy.example.com"
       TypeError: Invalid URL
       Check the following env vars "https_proxy" or "HTTPS_PROXY". The value should be a valid URL starting with "https://""
@@ -65,8 +67,9 @@ describe('getProxyAgent', () => {
     expect(ctx.mocked['console.warn'].mock.calls[0][0]).toMatchInlineSnapshot(
       `"An error occurred in getProxyAgent(), no proxy agent will be used."`,
     )
-    expect(ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''))
-      .toMatchInlineSnapshot(`
+    expect(
+      ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''),
+    ).toMatchInlineSnapshot(`
       "Error while instantiating HttpProxyAgent with URL: "proxy.example.com"
       TypeError: Invalid URL
       Check the following env vars "http_proxy" or "HTTP_PROXY". The value should be a valid URL starting with "http://""
@@ -79,8 +82,9 @@ describe('getProxyAgent', () => {
     expect(ctx.mocked['console.warn'].mock.calls[0][0]).toMatchInlineSnapshot(
       `"An error occurred in getProxyAgent(), no proxy agent will be used."`,
     )
-    expect(ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''))
-      .toMatchInlineSnapshot(`
+    expect(
+      ctx.mocked['console.warn'].mock.calls[0][1].message.replace(' [ERR_INVALID_URL]', ''),
+    ).toMatchInlineSnapshot(`
       "Error while instantiating HttpsProxyAgent with URL: "proxy.example.com"
       TypeError: Invalid URL
       Check the following env vars "https_proxy" or "HTTPS_PROXY". The value should be a valid URL starting with "https://""

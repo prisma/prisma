@@ -153,7 +153,7 @@ async function readConfig(): Promise<NpsConfig | undefined> {
   ) {
     return obj
   }
-    throw new Error('Invalid NPS config schema')
+  throw new Error('Invalid NPS config schema')
 }
 
 async function writeConfig(config: NpsConfig) {

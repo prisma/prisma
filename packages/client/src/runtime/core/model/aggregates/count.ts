@@ -15,7 +15,7 @@ function desugarUserArgs(args: UserArgs = {}) {
   if (typeof select === 'object') {
     return desugarUserArgsAggregate({ ..._args, _count: select })
   }
-    return desugarUserArgsAggregate({ ..._args, _count: { _all: true } })
+  return desugarUserArgsAggregate({ ..._args, _count: { _all: true } })
 }
 
 /**
@@ -28,7 +28,7 @@ export function createUnpacker(args: UserArgs = {}) {
   if (typeof args.select === 'object') {
     return (data: object) => createUnpackerAggregate(args)(data)._count
   }
-    return (data: object) => createUnpackerAggregate(args)(data)._count._all
+  return (data: object) => createUnpackerAggregate(args)(data)._count._all
 }
 
 /**

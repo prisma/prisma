@@ -26,10 +26,7 @@
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts"
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "keywords": [],
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "Apache-2.0",

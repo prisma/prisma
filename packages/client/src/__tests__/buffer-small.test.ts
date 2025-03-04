@@ -1815,8 +1815,8 @@ test('Buffer slice (node.js repository test)', () => {
   // Try to slice a zero length Buffer.
   // See https://github.com/joyent/node/issues/5881
   assert.strictEqual(Buffer.alloc(0).slice(0, 1).length, 0)
-    // Single argument slice
-    assert.strictEqual(Buffer.from('abcde', 'utf8').slice(1).toString('utf8'), 'bcde')
+  // Single argument slice
+  assert.strictEqual(Buffer.from('abcde', 'utf8').slice(1).toString('utf8'), 'bcde')
 
   // slice(0,0).length === 0
   assert.strictEqual(Buffer.from('hello', 'utf8').slice(0, 0).length, 0)
@@ -2139,13 +2139,13 @@ test('Buffer copy (node.js repository test)', () => {
 
   // Copy throws if sourceStart is greater than length of source
   assert.throws(() => Buffer.allocUnsafe(5).copy(Buffer.allocUnsafe(5), 0, 100))
-    // Check sourceEnd resets to targetEnd if former is greater than the latter
-    b.fill(++cntr)
-    c.fill(++cntr)
-    b.copy(c, 0, 0, 1025)
-    for (let i = 0; i < c.length; i++) {
-      assert.strictEqual(c[i], b[i])
-    }
+  // Check sourceEnd resets to targetEnd if former is greater than the latter
+  b.fill(++cntr)
+  c.fill(++cntr)
+  b.copy(c, 0, 0, 1025)
+  for (let i = 0; i < c.length; i++) {
+    assert.strictEqual(c[i], b[i])
+  }
 
   // Throw with negative sourceEnd
   assert.throws(() => b.copy(c, 0, 0, -1))
@@ -2181,21 +2181,21 @@ test('Buffer copy (node.js repository test)', () => {
       assert.strictEqual(c[i], e[i])
     }
   }
-    // https://github.com/nodejs/node/issues/23668: Do not crash for invalid input.
-    c.fill('c')
+  // https://github.com/nodejs/node/issues/23668: Do not crash for invalid input.
+  c.fill('c')
+  // @ts-expect-error
+  b.copy(c, 'not a valid offset')
+  c.fill('C')
+  assert.throws(() => {
     // @ts-expect-error
-    b.copy(c, 'not a valid offset')
-    c.fill('C')
-    assert.throws(() => {
-      // @ts-expect-error
-      b.copy(c, {
-        [Symbol.toPrimitive]() {
-          throw new Error('foo')
-        },
-      })
-    }, /foo/)
-    // No copying took place:
-    assert.deepStrictEqual(c.toString(), 'C'.repeat(c.length))
+    b.copy(c, {
+      [Symbol.toPrimitive]() {
+        throw new Error('foo')
+      },
+    })
+  }, /foo/)
+  // No copying took place:
+  assert.deepStrictEqual(c.toString(), 'C'.repeat(c.length))
 })
 
 test('Buffer equals (node.js repository test)', () => {
@@ -2681,16 +2681,16 @@ test('Buffer indexOf (node.js repository test)', () => {
   // Test optional offset with passed encoding
   assert.strictEqual(Buffer.from('aaaa0').indexOf('30', 'hex'), 4)
   assert.strictEqual(Buffer.from('aaaa00a').indexOf('3030', 'hex'), 4)
-    // Test usc2 and utf16le encoding
-    ;['ucs2', 'utf16le'].forEach((encoding: any) => {
-      const twoByteString = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', encoding)
+  // Test usc2 and utf16le encoding
+  ;['ucs2', 'utf16le'].forEach((encoding: any) => {
+    const twoByteString = Buffer.from('\u039a\u0391\u03a3\u03a3\u0395', encoding)
 
-      assert.strictEqual(twoByteString.indexOf('\u0395', 4, encoding), 8)
-      assert.strictEqual(twoByteString.indexOf('\u03a3', -4, encoding), 6)
-      assert.strictEqual(twoByteString.indexOf('\u03a3', -6, encoding), 4)
-      assert.strictEqual(twoByteString.indexOf(Buffer.from('\u03a3', encoding), -6, encoding), 4)
-      assert.strictEqual(-1, twoByteString.indexOf('\u03a3', -2, encoding))
-    })
+    assert.strictEqual(twoByteString.indexOf('\u0395', 4, encoding), 8)
+    assert.strictEqual(twoByteString.indexOf('\u03a3', -4, encoding), 6)
+    assert.strictEqual(twoByteString.indexOf('\u03a3', -6, encoding), 4)
+    assert.strictEqual(twoByteString.indexOf(Buffer.from('\u03a3', encoding), -6, encoding), 4)
+    assert.strictEqual(-1, twoByteString.indexOf('\u03a3', -2, encoding))
+  })
 
   const mixedByteStringUcs2 = Buffer.from('\u039a\u0391abc\u03a3\u03a3\u0395', 'ucs2')
   assert.strictEqual(mixedByteStringUcs2.indexOf('bc', 0, 'ucs2'), 6)
@@ -2837,7 +2837,6 @@ test('Buffer indexOf (node.js repository test)', () => {
       }
     }
   }
-
   ;[() => {}, {}, []].forEach((_val) => {
     // assert.throws(() => b.indexOf(val), {
     //   code: 'ERR_INVALID_ARG_TYPE',
@@ -3067,20 +3066,20 @@ test('Buffer indexOf (node.js repository test)', () => {
     assert.strictEqual(haystack.indexOf(needle), 2)
     assert.strictEqual(haystack.lastIndexOf(needle), haystack.length - 3)
   }
-    assert.throws(
-      () => {
-        const buffer = require('buffer')
-        new buffer.Buffer.prototype.lastIndexOf(1, 'str')
-      },
-      {
-        code: 'ERR_INVALID_ARG_TYPE',
-        name: 'TypeError',
-        message:
-          'The "buffer" argument must be an instance of Buffer, ' +
-          'TypedArray, or DataView. ' +
-          'Received an instance of lastIndexOf',
-      },
-    )
+  assert.throws(
+    () => {
+      const buffer = require('buffer')
+      new buffer.Buffer.prototype.lastIndexOf(1, 'str')
+    },
+    {
+      code: 'ERR_INVALID_ARG_TYPE',
+      name: 'TypeError',
+      message:
+        'The "buffer" argument must be an instance of Buffer, ' +
+        'TypedArray, or DataView. ' +
+        'Received an instance of lastIndexOf',
+    },
+  )
 })
 
 test('Buffer includes (node.js repository test)', () => {
@@ -3316,7 +3315,6 @@ test('Buffer includes (node.js repository test)', () => {
       assert.ok(allCharsBufferUcs2.includes(patternStringUcs2, 0, 'ucs2'))
     }
   }
-
   ;[() => {}, {} /*, [] ❌ */].forEach((val: any) => {
     assert.throws(() => b.includes(val))
   })
@@ -3401,7 +3399,6 @@ test('Buffer read (node.js repository test)', () => {
     assert.throws(() => buf.readUInt8(0))
     assert.throws(() => buf.readInt8(0))
   }
-
   ;[16, 32].forEach((bit) => {
     const buf = Buffer.allocUnsafe(bit / 8 - 1)
     ;[`Int${bit}B`, `Int${bit}L`, `UInt${bit}B`, `UInt${bit}L`].forEach((fn) => {
@@ -3620,7 +3617,6 @@ test('Buffer read int (node.js repository test)', () => {
   // Test OOB
   {
     const buffer = Buffer.alloc(4)
-
     ;['Int8', 'Int16BE', 'Int16LE', 'Int32BE', 'Int32LE'].forEach((fn) => {
       // Verify that default offset works fine.
       buffer[`read${fn}`](undefined)
@@ -3774,7 +3770,6 @@ test('Buffer read uint (node.js repository test)', () => {
   // Test OOB
   {
     const buffer = Buffer.alloc(4)
-
     ;['UInt8', 'UInt16BE', 'UInt16LE', 'UInt32BE', 'UInt32LE'].forEach((fn) => {
       // Verify that default offset works fine.
       buffer[`read${fn}`](undefined)
@@ -4073,8 +4068,8 @@ test('Buffer swap (node.js repository test)', () => {
 })
 
 test('Buffer toJSON (node.js repository test)', () => {
-    assert.strictEqual(JSON.stringify(Buffer.alloc(0)), '{"type":"Buffer","data":[]}')
-    assert.strictEqual(JSON.stringify(Buffer.from([1, 2, 3, 4])), '{"type":"Buffer","data":[1,2,3,4]}')
+  assert.strictEqual(JSON.stringify(Buffer.alloc(0)), '{"type":"Buffer","data":[]}')
+  assert.strictEqual(JSON.stringify(Buffer.from([1, 2, 3, 4])), '{"type":"Buffer","data":[1,2,3,4]}')
 
   // issue GH-7849
   {
@@ -4423,7 +4418,6 @@ test('Buffer write double (node.js repository test)', () => {
   // OOB in writeDouble{LE,BE} should throw.
   {
     const small = Buffer.allocUnsafe(1)
-
     ;['writeDoubleLE', 'writeDoubleBE'].forEach((fn) => {
       // Verify that default offset works fine.
       buffer[fn](23, undefined)
@@ -4501,7 +4495,6 @@ test('Buffer write float (node.js repository test)', () => {
   // OOB in writeFloat{LE,BE} should throw.
   {
     const small = Buffer.allocUnsafe(1)
-
     ;['writeFloatLE', 'writeFloatBE'].forEach((fn) => {
       // Verify that default offset works fine.
       buffer[fn](23, undefined)
@@ -4937,7 +4930,6 @@ test('Buffer zero fill (node.js repository test)', () => {
 
 test('Buffer bigint64 (node.js repository test)', () => {
   const buf = Buffer.allocUnsafe(8)
-
   ;['LE', 'BE'].forEach((endianness) => {
     // Should allow simple BigInts to be written and read
     let val = 123456789n
@@ -5250,7 +5242,6 @@ test('Buffer alloc (node.js repository test)', () => {
     const f = Buffer.from('über', 'ascii')
     assert.deepStrictEqual(f, Buffer.from([252, 98, 101, 114]))
   }
-
   ;['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding) => {
     {
       // Test for proper UTF16LE encoding, length should be 8
@@ -5370,8 +5361,7 @@ test('Buffer alloc (node.js repository test)', () => {
       assert.strictEqual(quote, b.toString('ascii', 0, quote.length))
 
       // Check that the base64 decoder ignores illegal chars
-      const _expectedIllegal =
-        `${expected.slice(0, 60)} \x80${expected.slice(60, 120)} \xff${expected.slice(120, 180)} \x00${expected.slice(180, 240)} \x98${expected.slice(240, 300)}\x03${expected.slice(300, 360)}`
+      const _expectedIllegal = `${expected.slice(0, 60)} \x80${expected.slice(60, 120)} \xff${expected.slice(120, 180)} \x00${expected.slice(180, 240)} \x98${expected.slice(240, 300)}\x03${expected.slice(300, 360)}`
       // b = Buffer.from(expectedIllegal, encoding) ❌
       assert.strictEqual(quote.length, b.length)
       assert.strictEqual(quote, b.toString('ascii', 0, quote.length))
@@ -5611,7 +5601,6 @@ test('Buffer alloc (node.js repository test)', () => {
     assert.strictEqual(z[0], 0x66)
     assert.strictEqual(z[1], 0x6f)
   }
-
   ;['ucs2', 'ucs-2', 'utf16le', 'utf-16le'].forEach((encoding: any) => {
     const b = Buffer.allocUnsafe(10)
     b.write('あいうえお', encoding)
@@ -5948,14 +5937,14 @@ test('Buffer alloc (node.js repository test)', () => {
   // @ts-expect-error
   assert.throws(() => Buffer.from())
   assert.throws(() => Buffer.from(null))
-    // Test that large negative Buffer length inputs don't affect the pool offset.
-    // Use the fromArrayLike() variant here because it's more lenient
-    // about its input and passes the length directly to allocate().
-    assert.deepStrictEqual(Buffer.from({ length: -Buffer.poolSize }), Buffer.from(''))
-    assert.deepStrictEqual(Buffer.from({ length: -100 }), Buffer.from(''))
+  // Test that large negative Buffer length inputs don't affect the pool offset.
+  // Use the fromArrayLike() variant here because it's more lenient
+  // about its input and passes the length directly to allocate().
+  assert.deepStrictEqual(Buffer.from({ length: -Buffer.poolSize }), Buffer.from(''))
+  assert.deepStrictEqual(Buffer.from({ length: -100 }), Buffer.from(''))
 
-    // Check pool offset after that by trying to write string into the pool.
-    Buffer.from('abc')
+  // Check pool offset after that by trying to write string into the pool.
+  Buffer.from('abc')
 
   // ParseArrayIndex() should reject values that don't fit in a 32 bits size_t.
   assert.throws(() => {

@@ -31,8 +31,6 @@
     "prepublishOnly": "pnpm run build",
     "test": "jest"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false
 }

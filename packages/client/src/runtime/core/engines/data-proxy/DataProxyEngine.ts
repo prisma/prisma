@@ -306,11 +306,11 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         })
         throw error
       }
-        this.logEmitter.emit('info', {
-          message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
-          timestamp: new Date(),
-          target: '',
-        })
+      this.logEmitter.emit('info', {
+        message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+        timestamp: new Date(),
+        target: '',
+      })
     })
   }
 
@@ -469,26 +469,26 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
 
           return { id, payload: { endpoint } }
         }
-          const url = `${arg.payload.endpoint}/${action}`
+        const url = `${arg.payload.endpoint}/${action}`
 
-          logHttpCall(url)
+        logHttpCall(url)
 
-          const response = await request(url, {
-            method: 'POST',
-            headers: this.headerBuilder.build({ traceparent: headers.traceparent }),
-            clientVersion: this.clientVersion,
-          })
+        const response = await request(url, {
+          method: 'POST',
+          headers: this.headerBuilder.build({ traceparent: headers.traceparent }),
+          clientVersion: this.clientVersion,
+        })
 
-          await this.handleError(await responseToError(response, this.clientVersion))
+        await this.handleError(await responseToError(response, this.clientVersion))
 
-          const result = (await response.json()) as CloseTransactionResult
+        const result = (await response.json()) as CloseTransactionResult
 
-          const { extensions } = result
-          if (extensions) {
-            this.propagateResponseExtensions(extensions)
-          }
+        const { extensions } = result
+        if (extensions) {
+          this.propagateResponseExtensions(extensions)
+        }
 
-          return undefined
+        return undefined
       },
     })
   }
@@ -563,7 +563,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
           if (e instanceof ForcedRetryError) {
             throw e.cause
           }
-            throw e
+          throw e
         }
 
         this.logEmitter.emit('warn', {
@@ -590,7 +590,8 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         clientVersion: this.clientVersion,
         cause: error,
       })
-    }if (error) {
+    }
+    if (error) {
       throw error
     }
   }
@@ -602,9 +603,9 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     if (errors.length === 1) {
       return prismaGraphQLToJSError(errors[0], this.config.clientVersion, this.config.activeProvider!)
     }
-      return new PrismaClientUnknownRequestError(JSON.stringify(errors), {
-        clientVersion: this.config.clientVersion,
-      })
+    return new PrismaClientUnknownRequestError(JSON.stringify(errors), {
+      clientVersion: this.config.clientVersion,
+    })
   }
 
   applyPendingMigrations(): Promise<void> {

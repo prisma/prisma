@@ -92,7 +92,8 @@ export function getProxyAgent(url: string): HttpProxyAgent<string> | HttpsProxyA
 
     if (!proxy) {
       return undefined
-    }if (uri.protocol === 'http:') {
+    }
+    if (uri.protocol === 'http:') {
       try {
         return new HttpProxyAgent(proxy)
       } catch (agentError) {

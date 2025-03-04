@@ -297,7 +297,7 @@ export class Init implements Command {
               if (code) {
                 throw new Error(`${code}: ${message}`)
               }
-                throw new Error(message)
+              throw new Error(message)
             }
           }
 

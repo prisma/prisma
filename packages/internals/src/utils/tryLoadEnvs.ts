@@ -104,7 +104,8 @@ We suggest to move the contents of ${underline(relativeEnvPath)} to ${underline(
           relativeRootEnvPath,
         )} to consolidate your env vars.\n`
         throw new Error(message)
-      }if (type === 'warn') {
+      }
+      if (type === 'warn') {
         const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
           .map((c) => bold(c))
           .join(', ')} in ${underline(relativeRootEnvPath)} and ${underline(relativeEnvPath)}
@@ -140,7 +141,7 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
       path: envPath,
     }
   }
-    debug(`Environment variables not found at ${envPath}`)
+  debug(`Environment variables not found at ${envPath}`)
   return null
 }
 export function pathsEqual(path1: string | null | undefined, path2: string | null | undefined) {

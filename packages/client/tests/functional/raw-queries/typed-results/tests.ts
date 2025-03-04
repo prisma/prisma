@@ -16,7 +16,7 @@ testMatrix.setupTestSuite(
       if (provider === Providers.MYSQL) {
         return prisma.$queryRaw`SELECT * FROM \`TestModel\`;`
       }
-        return prisma.$queryRaw`SELECT * FROM "TestModel";`
+      return prisma.$queryRaw`SELECT * FROM "TestModel";`
     }
 
     test('simple expression', async () => {

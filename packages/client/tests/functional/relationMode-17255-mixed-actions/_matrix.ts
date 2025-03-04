@@ -39,7 +39,7 @@ export default defineMatrix(() => [
       if (process.platform === 'win32') {
         return isCascade && !isSQLite
       }
-        return isCascade
+      return isCascade
     }),
   ],
   [],

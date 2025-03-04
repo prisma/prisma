@@ -22,7 +22,12 @@ import type { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import type { JsonQuery } from '../common/types/JsonProtocol'
-import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type {
+  EngineMetricsOptions,
+  Metrics,
+  MetricsOptionsJson,
+  MetricsOptionsPrometheus,
+} from '../common/types/Metrics'
 import type {
   QueryEngineResultData,
   QueryEngineResultExtensions,
@@ -741,7 +746,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         }
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
+        throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!, this.config.activeProvider!)
       })
       .catch(async (e) => {
         const { error, shouldRetry } = await this.handleRequestError(e)
@@ -807,7 +812,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       }
 
       return result.data
-    }if (action === 'commit') {
+    }
+    if (action === 'commit') {
       const result = await Connection.onHttpError(
         this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/commit`, undefined, headers),
         (result) => this.httpErrorHandler(result),
@@ -849,9 +855,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       if (lastError.isPanic()) {
         throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(getMessage(lastError)), this.clientVersion!)
       }
-        throw new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(lastError)), {
-          clientVersion: this.clientVersion!,
-        })
+      throw new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(lastError)), {
+        clientVersion: this.clientVersion!,
+      })
     }
   }
 

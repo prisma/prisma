@@ -10,10 +10,10 @@ function clean(array: any[]) {
     if (Array.isArray(item)) {
       return clean(item)
     }
-      if (item?.id) {
-        item.id = 'REMOVED'
-      }
-      return item
+    if (item?.id) {
+      item.id = 'REMOVED'
+    }
+    return item
   })
 }
 

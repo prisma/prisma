@@ -2,7 +2,6 @@ import { PrismaClient, User } from '.'
 import { expectError } from 'tsd'
 
 const prisma = new PrismaClient()
-
 ;(async () => {
   expectError(
     await prisma.user.findFirst().posts({

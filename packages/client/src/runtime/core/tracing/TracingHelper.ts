@@ -1,5 +1,11 @@
 import type { Context } from '@opentelemetry/api'
-import { type EngineSpan, type ExtendedSpanOptions, type SpanCallback, type TracingHelper, version } from '@prisma/internals'
+import {
+  type EngineSpan,
+  type ExtendedSpanOptions,
+  type SpanCallback,
+  type TracingHelper,
+  version,
+} from '@prisma/internals'
 
 const majorVersion = version.split('.')[0]
 

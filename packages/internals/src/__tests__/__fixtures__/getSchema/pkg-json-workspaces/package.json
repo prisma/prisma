@@ -1,7 +1,5 @@
 {
   "name": "pkg-json-workspaces",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "private": true
 }

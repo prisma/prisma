@@ -75,7 +75,7 @@ export class QueryInterpreter {
           if (result.ok) {
             return result.value
           }
-            throw result.error
+          throw result.error
         })
       }
 
@@ -86,7 +86,7 @@ export class QueryInterpreter {
           if (result.ok) {
             return serialize(result.value)
           }
-            throw result.error
+          throw result.error
         })
       }
 
@@ -221,8 +221,8 @@ function filterChildRecords(records: Value, parentRecord: PrismaObject, joinExpr
   if (Array.isArray(records)) {
     return records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
   }
-    const record = asRecord(records)
-    return childRecordMatchesParent(record, parentRecord, joinExpr) ? record : null
+  const record = asRecord(records)
+  return childRecordMatchesParent(record, parentRecord, joinExpr) ? record : null
 }
 
 function childRecordMatchesParent(

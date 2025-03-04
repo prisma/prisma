@@ -92,8 +92,9 @@ describe('createDatabase', () => {
   })
 
   test('postgresql - server does not exist', async () => {
-    await expect(createDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname))
-      .rejects.toThrowErrorMatchingInlineSnapshot(`
+    await expect(
+      createDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(`
             "P1001: Can't reach database server at \`doesnotexist:5432\`
 
             Please make sure your database server is running at \`doesnotexist:5432\`."

@@ -11,8 +11,8 @@ import { binaryTargets } from '../binaryTargets'
  */
 export const binaryTargetRegex = new RegExp(
   `(${[...binaryTargets]
-      .sort((a, b) => b.length - a.length)
-      .map((p) => escapeString(p))
-      .join('|')})`,
+    .sort((a, b) => b.length - a.length)
+    .map((p) => escapeString(p))
+    .join('|')})`,
   'g',
 )

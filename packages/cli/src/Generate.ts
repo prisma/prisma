@@ -298,55 +298,55 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         }
         throw new Error(message)
       }
-        if (!hideHints) {
-          await this.surveyHandler()
-        }
+      if (!hideHints) {
+        await this.surveyHandler()
+      }
 
-        return message
+      return message
     }
-      logUpdate(`${watchingText}\n${this.logText}`)
+    logUpdate(`${watchingText}\n${this.logText}`)
 
-      const watcher = new Watcher(schemaPath)
-      if (args['--sql']) {
-        watcher.add(sqlDirPath(schemaPath))
-      }
+    const watcher = new Watcher(schemaPath)
+    if (args['--sql']) {
+      watcher.add(sqlDirPath(schemaPath))
+    }
 
-      for await (const changedPath of watcher) {
-        logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
-        let generatorsWatch: Generator[] | undefined
-        try {
-          if (args['--sql']) {
-            typedSql = await introspectSql(schemaPath)
-          }
-
-          generatorsWatch = await getGenerators({
-            schemaPath,
-            printDownloadProgress: !watchMode,
-            version: enginesVersion,
-            cliVersion: pkg.version,
-            generatorNames: args['--generator'],
-            typedSql,
-          })
-
-          if (!generatorsWatch || generatorsWatch.length === 0) {
-            this.logText += `${missingGeneratorMessage}\n`
-          } else {
-            logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
-            try {
-              await this.runGenerate({
-                generators: generatorsWatch,
-              })
-              logUpdate(`${watchingText}\n${this.logText}`)
-            } catch (errRunGenerate) {
-              this.logText += `${errRunGenerate.message}\n\n`
-              logUpdate(`${watchingText}\n${this.logText}`)
-            }
-          }
-        } catch (errGetGenerators) {
-          this.logText += `${errGetGenerators.message}\n\n`
-          logUpdate(`${watchingText}\n${this.logText}`)
+    for await (const changedPath of watcher) {
+      logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+      let generatorsWatch: Generator[] | undefined
+      try {
+        if (args['--sql']) {
+          typedSql = await introspectSql(schemaPath)
         }
+
+        generatorsWatch = await getGenerators({
+          schemaPath,
+          printDownloadProgress: !watchMode,
+          version: enginesVersion,
+          cliVersion: pkg.version,
+          generatorNames: args['--generator'],
+          typedSql,
+        })
+
+        if (!generatorsWatch || generatorsWatch.length === 0) {
+          this.logText += `${missingGeneratorMessage}\n`
+        } else {
+          logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
+          try {
+            await this.runGenerate({
+              generators: generatorsWatch,
+            })
+            logUpdate(`${watchingText}\n${this.logText}`)
+          } catch (errRunGenerate) {
+            this.logText += `${errRunGenerate.message}\n\n`
+            logUpdate(`${watchingText}\n${this.logText}`)
+          }
+        }
+      } catch (errGetGenerators) {
+        this.logText += `${errGetGenerators.message}\n\n`
+        logUpdate(`${watchingText}\n${this.logText}`)
       }
+    }
 
     return ''
   }

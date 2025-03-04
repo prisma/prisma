@@ -231,16 +231,20 @@ export class RequestHandler {
         meta,
         batchRequestIdx: error.batchRequestIdx,
       })
-    }if (error.isPanic) {
+    }
+    if (error.isPanic) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
-    }if (error instanceof PrismaClientUnknownRequestError) {
+    }
+    if (error instanceof PrismaClientUnknownRequestError) {
       throw new PrismaClientUnknownRequestError(message, {
         clientVersion: this.client._clientVersion,
         batchRequestIdx: error.batchRequestIdx,
       })
-    }if (error instanceof PrismaClientInitializationError) {
+    }
+    if (error instanceof PrismaClientInitializationError) {
       throw new PrismaClientInitializationError(message, this.client._clientVersion)
-    }if (error instanceof PrismaClientRustPanicError) {
+    }
+    if (error instanceof PrismaClientRustPanicError) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
     }
 

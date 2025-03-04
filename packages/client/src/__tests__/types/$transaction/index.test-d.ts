@@ -9,7 +9,6 @@ const prisma = new PrismaClient({
     },
   },
 })
-
 ;(async () => {
   expectError(await prisma.$transaction([prisma.user.findMany(), prisma.$queryRaw`SELECT 1`, 'random string'], {}))
   expectError(await prisma.$transaction([prisma.$connect()]))

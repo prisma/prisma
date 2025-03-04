@@ -122,5 +122,5 @@ function getTypeDependencyPackageName(npmPackage: string) {
 
     return `@types/${scope.slice(1)}__${name}`
   }
-    return `@types/${npmPackage}`
+  return `@types/${npmPackage}`
 }

@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-non-null-asserted-optional-chain */
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import type { BatchQueryEngineResult, Engine, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
+import type {
+  BatchQueryEngineResult,
+  Engine,
+  EngineConfig,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import type { JsonQuery } from '../common/types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResultData } from '../common/types/QueryEngine'
 import type { InteractiveTransactionInfo as ITXInfo, Options, TransactionHeaders } from '../common/types/Transaction'
 
-const ERROR_MESSAGE = 'Accelerate has not been setup correctly. Make sure your client is using \`.$extends(withAccelerate())\`. See https://pris.ly/d/accelerate-getting-started'
+const ERROR_MESSAGE =
+  'Accelerate has not been setup correctly. Make sure your client is using `.$extends(withAccelerate())`. See https://pris.ly/d/accelerate-getting-started'
 
 type AccelerateUtils = EngineConfig['accelerateUtils']
 

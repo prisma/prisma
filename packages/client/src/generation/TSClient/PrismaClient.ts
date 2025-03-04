@@ -381,7 +381,8 @@ function runCommandRawDefinition(context: GenerateContext) {
   const method = ts
     .method('$runCommandRaw')
     .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
-    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject')))
+    .setDocComment(ts.docComment`
       Executes a raw MongoDB command and returns the result of it.
       @example
       \`\`\`
@@ -417,7 +418,7 @@ function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runt
   if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
   }
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
+  return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
 }
 
 export class PrismaClientClass implements Generable {
@@ -643,7 +644,9 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           .setDocComment(ts.docComment('@default "colorless"')),
       )
       .add(
-        ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+        ts
+          .property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')])))
+          .optional()
           .setDocComment(ts.docComment`
              @example
              \`\`\`
@@ -672,7 +675,10 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     }
 
     clientOptions.add(
-      ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
+      ts
+        .property('transactionOptions', transactionOptions)
+        .optional()
+        .setDocComment(ts.docComment`
              The default values for transactionOptions
              maxWait ?= 2000
              timeout ?= 5000
@@ -691,7 +697,10 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     }
 
     clientOptions.add(
-      ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+      ts
+        .property('omit', ts.namedType('Prisma.GlobalOmitConfig'))
+        .optional()
+        .setDocComment(ts.docComment`
         Global configuration for omitting model fields by default.
 
         @example

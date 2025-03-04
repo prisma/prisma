@@ -92,8 +92,8 @@ class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
       if (executeRaw) {
         return await stmt.run()
       }
-        const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
-        return [columnNames, rows]
+      const [columnNames, ...rows] = await stmt.raw({ columnNames: true })
+      return [columnNames, rows]
     } catch (e) {
       onError(e as Error)
     }
@@ -101,7 +101,10 @@ class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
 }
 
 class D1Transaction extends D1Queryable<StdClient> implements Transaction {
-  constructor(client: StdClient, readonly options: TransactionOptions) {
+  constructor(
+    client: StdClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -144,7 +147,10 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient, private readonly release?: () => Promise<void>) {
+  constructor(
+    client: StdClient,
+    private readonly release?: () => Promise<void>,
+  ) {
     super(client)
   }
 

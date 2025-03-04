@@ -52,9 +52,6 @@
     "jest": "dotenv -e ../../.db.env -- jest",
     "test": "dotenv -e ../../.db.env -- jest --maxWorkers=1 --silent"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
+  "files": ["README.md", "dist"],
   "sideEffects": false
 }

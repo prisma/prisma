@@ -307,8 +307,9 @@ test('args - number - int', () => {
 })
 
 test('args - number - float', () => {
-  expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { height: { gt: 180.1234 } } } }))
-    .toMatchInlineSnapshot(`
+  expect(
+    serialize({ modelName: 'User', action: 'findMany', args: { where: { height: { gt: 180.1234 } } } }),
+  ).toMatchInlineSnapshot(`
     "{
       "modelName": "User",
       "action": "findMany",
@@ -350,8 +351,9 @@ test('args - string', () => {
 })
 
 test('args - boolean - true', () => {
-  expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { active: true } } }))
-    .toMatchInlineSnapshot(`
+  expect(
+    serialize({ modelName: 'User', action: 'findMany', args: { where: { active: true } } }),
+  ).toMatchInlineSnapshot(`
     "{
       "modelName": "User",
       "action": "findMany",
@@ -371,8 +373,9 @@ test('args - boolean - true', () => {
 })
 
 test('args - boolean - false', () => {
-  expect(serialize({ modelName: 'User', action: 'findMany', args: { where: { active: false } } }))
-    .toMatchInlineSnapshot(`
+  expect(
+    serialize({ modelName: 'User', action: 'findMany', args: { where: { active: false } } }),
+  ).toMatchInlineSnapshot(`
     "{
       "modelName": "User",
       "action": "findMany",
@@ -816,8 +819,9 @@ test('args - array', () => {
 })
 
 test('1 level include', () => {
-  expect(serialize({ modelName: 'User', action: 'findMany', args: { include: { posts: true } } }))
-    .toMatchInlineSnapshot(`
+  expect(
+    serialize({ modelName: 'User', action: 'findMany', args: { include: { posts: true } } }),
+  ).toMatchInlineSnapshot(`
     "{
       "modelName": "User",
       "action": "findMany",

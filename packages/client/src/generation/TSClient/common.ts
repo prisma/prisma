@@ -38,7 +38,7 @@ import {
   skip
 } from '${runtimeBase}/${runtimeNameJs}.js'`
     : browser
-    ? `
+      ? `
 const {
   Decimal,
   objectEnumValues,
@@ -48,7 +48,7 @@ const {
   skip
 } = require('${runtimeBase}/${runtimeNameJs}.js')
 `
-    : `
+      : `
 const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,

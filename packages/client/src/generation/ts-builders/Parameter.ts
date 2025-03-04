@@ -4,7 +4,10 @@ import type { Writer } from './Writer'
 
 export class Parameter implements BasicBuilder {
   private isOptional = false
-  constructor(private name: string, private type: TypeBuilder) {}
+  constructor(
+    private name: string,
+    private type: TypeBuilder,
+  ) {}
 
   optional(): this {
     this.isOptional = true

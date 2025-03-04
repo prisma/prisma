@@ -20,8 +20,6 @@
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build"
   },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "sideEffects": false
 }

@@ -38,9 +38,6 @@
     "cross-spawn": "7.0.6",
     "kleur": "4.1.5"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
+  "files": ["README.md", "dist"],
   "sideEffects": false
 }

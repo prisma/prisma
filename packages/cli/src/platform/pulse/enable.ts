@@ -112,8 +112,8 @@ export class Enable implements Command {
         `Pulse enabled. Use this Pulse connection string to authenticate requests:\n\n${generateConnectionString(serviceTokenCreate.value)}\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
       )
     }
-      return messages.success(
-        `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
-      )
+    return messages.success(
+      `Pulse enabled. Use your secure API key in your Pulse connection string to authenticate requests.\n\nFor more information, check out the Getting started guide here: ${gettingStartedUrl}`,
+    )
   }
 }

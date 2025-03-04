@@ -144,7 +144,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: pg.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -183,7 +186,11 @@ export type PrismaPgOptions = {
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
-  constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
+  constructor(
+    client: StdClient,
+    private options?: PrismaPgOptions,
+    private readonly release?: () => Promise<void>,
+  ) {
     // Note: Full `client instanceof pg.Pool` check would sometimes give false negatives depending on the package resolution.
     if (!client) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
@@ -227,7 +234,10 @@ export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapter {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
+  constructor(
+    private readonly config: pg.PoolConfig,
+    private readonly options?: PrismaPgOptions,
+  ) {}
 
   connect(): Promise<SqlConnection> {
     return Promise.resolve(new PrismaPg(new pg.Pool(this.config), this.options, async () => {}))

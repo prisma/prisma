@@ -99,7 +99,11 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 }
 
 class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
-  constructor(client: TransactionClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
+  constructor(
+    client: TransactionClient,
+    readonly options: TransactionOptions,
+    readonly unlockParent: () => void,
+  ) {
     super(client)
   }
 
@@ -127,7 +131,10 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
 }
 
 class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext {
-  constructor(readonly client: StdClient, readonly release: () => void) {
+  constructor(
+    readonly client: StdClient,
+    readonly release: () => void,
+  ) {
     super(client)
   }
 
@@ -152,7 +159,6 @@ class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements Tra
 }
 
 export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConnection {
-
   async executeScript(script: string): Promise<void> {
     const release = await this[LOCK_TAG].acquire()
     try {

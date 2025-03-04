@@ -190,13 +190,13 @@ export async function setupTestSuiteDatabase({
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join('\n'))
     }
-      await setupTestSuiteDatabase({
-        suiteMeta,
-        suiteConfig,
-        errors,
-        alterStatementCallback: undefined,
-        cfWorkerBindings,
-      }) // retry logic
+    await setupTestSuiteDatabase({
+      suiteMeta,
+      suiteConfig,
+      errors,
+      alterStatementCallback: undefined,
+      cfWorkerBindings,
+    }) // retry logic
   }
 }
 
@@ -285,7 +285,7 @@ export async function dropTestSuiteDatabase({
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join('\n'))
     }
-      await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
+    await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
   }
 }
 
@@ -299,7 +299,8 @@ async function prepareD1Database({ cfWorkerBindings }: { cfWorkerBindings: { [ke
 
     if (item.name === '_cf_KV' || item.name === 'sqlite_schema') {
       continue
-    }if (item.name === 'sqlite_sequence') {
+    }
+    if (item.name === 'sqlite_sequence') {
       batch.push(d1Client.prepare('DELETE FROM `sqlite_sequence`;'))
     } else if (item.type === 'view') {
       batch.push(d1Client.prepare(`DROP VIEW "${item.name}";`))

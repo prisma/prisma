@@ -226,8 +226,8 @@ export interface AdapterInfo {
 type ErrorCapturingFunction<T> = T extends (...args: infer A) => Promise<infer R>
   ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
   : T extends (...args: infer A) => infer R
-  ? (...args: A) => Result<ErrorCapturingInterface<R>>
-  : T
+    ? (...args: A) => Result<ErrorCapturingInterface<R>>
+    : T
 
 type ErrorCapturingInterface<T> = {
   [K in keyof T]: ErrorCapturingFunction<T[K]>

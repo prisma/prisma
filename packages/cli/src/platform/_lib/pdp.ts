@@ -52,9 +52,7 @@ export const requestOrThrow = async <
 
   const error = Object.values(json.data).filter(
     (rootFieldValue): rootFieldValue is { __typename: string } =>
-      typeof rootFieldValue === 'object' &&
-      rootFieldValue !== null &&
-      rootFieldValue.__typename?.startsWith('Error'),
+      typeof rootFieldValue === 'object' && rootFieldValue !== null && rootFieldValue.__typename?.startsWith('Error'),
   )[0]
   if (error) throw errorFromPlatformError({ message: '<message not selected from server>', ...error })
 

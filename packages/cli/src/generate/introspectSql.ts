@@ -1,5 +1,9 @@
 import { isValidJsIdentifier } from '@prisma/internals'
-import { introspectSql as migrateIntrospectSql, type IntrospectSqlError, type IntrospectSqlInput } from '@prisma/migrate'
+import {
+  introspectSql as migrateIntrospectSql,
+  type IntrospectSqlError,
+  type IntrospectSqlInput,
+} from '@prisma/migrate'
 import fs from 'node:fs/promises'
 import { bold } from 'kleur/colors'
 import path from 'node:path'

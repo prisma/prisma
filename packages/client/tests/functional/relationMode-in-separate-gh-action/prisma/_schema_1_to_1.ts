@@ -49,7 +49,7 @@ model ProfileOptionalOneToOne {
 }
 `
   }
-    return /* Prisma */ `
+  return /* Prisma */ `
 //
 // 1:1 relation
 //

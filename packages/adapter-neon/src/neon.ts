@@ -147,7 +147,10 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
-  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: neon.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -188,7 +191,10 @@ export type PrismaNeonOptions = {
 export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlConnection {
   private isRunning = true
 
-  constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
+  constructor(
+    pool: neon.Pool,
+    private options?: PrismaNeonOptions,
+  ) {
     if (!(pool instanceof neon.Pool)) {
       throw new TypeError(`PrismaNeon must be initialized with an instance of Pool:
 import { Pool } from '@neondatabase/serverless'

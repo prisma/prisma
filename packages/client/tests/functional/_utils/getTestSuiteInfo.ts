@@ -156,8 +156,8 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
         const driverAdapterStr = config.driverAdapter === undefined ? '' : `driverAdapter=${config.driverAdapter},`
         return `relationMode=${config.relationMode},provider=${config.provider},${driverAdapterStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       }
-        const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
-        return `${firstKey}=${config[firstKey]}`
+      const firstKey = Object.keys(config)[0] // ! TODO this can actually produce incorrect tests and break type checks ! \\ Replace with hash
+      return `${firstKey}=${config[firstKey]}`
     })
     .join(', ')
 }

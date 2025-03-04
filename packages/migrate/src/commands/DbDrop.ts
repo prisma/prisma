@@ -121,7 +121,7 @@ ${bold('Examples')}
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     }
-      return ''
+    return ''
   }
 
   public help(error?: string): string | HelpError {

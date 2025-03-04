@@ -10,7 +10,10 @@ import type { GenerateContext } from './GenerateContext'
 import { buildOutputType } from './Output'
 
 export class Count implements Generable {
-  constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
+  constructor(
+    protected readonly type: DMMF.OutputType,
+    protected readonly context: GenerateContext,
+  ) {}
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
 

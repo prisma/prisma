@@ -217,9 +217,7 @@ ${bold('Examples')}
 
     // Validate Cloudflare D1-related flags
     if (args['--shadow-database-url'] && (args['--from-local-d1'] || args['--to-local-d1'])) {
-      return this.help(
-        'The flag \`--shadow-database-url\` is not compatible with \`--from-local-d1\` or \`--to-local-d1\`.',
-      )
+      return this.help('The flag `--shadow-database-url` is not compatible with `--from-local-d1` or `--to-local-d1`.')
     }
 
     let from: EngineArgs.MigrateDiffTarget

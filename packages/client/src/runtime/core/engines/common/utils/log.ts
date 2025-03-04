@@ -19,7 +19,7 @@ export function getMessage(log: string | PrismaClientRustError): string {
   if (typeof log === 'string') {
     return log
   }
-    return log.message
+  return log.message
 }
 
 export function getBacktrace(log: RustLog): string {

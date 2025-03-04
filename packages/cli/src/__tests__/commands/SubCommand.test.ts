@@ -89,10 +89,10 @@ test('autoinstall', async () => {
 
   jest.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  jest.mocked(execa.command).mockImplementation((async () => {
+  jest.mocked(execa.command).mockImplementation(async () => {
     await copy(copySrc, copyDest)
     return { stdout: '', stderr: '', exitCode: 0 } as ReturnType<typeof execa.command>
-  }))
+  })
 
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
 

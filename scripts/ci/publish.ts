@@ -874,9 +874,9 @@ async function acquireLock(branch: string): Promise<() => void> {
 }
 
 async function writeToPkgJson(
-  pkgDir: string, 
-  cb: (pkg: Record<string, unknown>) => Record<string, unknown> | undefined, 
-  dryRun?: boolean
+  pkgDir: string,
+  cb: (pkg: Record<string, unknown>) => Record<string, unknown> | undefined,
+  dryRun?: boolean,
 ) {
   const pkgJsonPath = path.join(pkgDir, 'package.json')
   const file = await fs.promises.readFile(pkgJsonPath, 'utf-8')

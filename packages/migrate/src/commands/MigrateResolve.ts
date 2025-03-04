@@ -123,27 +123,27 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
       return ''
     }
-      if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
-        throw new Error(
-          `--rolled-back value must be a string like ${bold(
-            green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
-          )}`,
-        )
-      }
+    if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
+      throw new Error(
+        `--rolled-back value must be a string like ${bold(
+          green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
+        )}`,
+      )
+    }
 
-      await ensureCanConnectToDatabase(schemaPath)
+    await ensureCanConnectToDatabase(schemaPath)
 
-      const migrate = new Migrate(schemaPath)
-      try {
-        await migrate.markMigrationRolledBack({
-          migrationId: args['--rolled-back'],
-        })
-      } finally {
-        migrate.stop()
-      }
+    const migrate = new Migrate(schemaPath)
+    try {
+      await migrate.markMigrationRolledBack({
+        migrationId: args['--rolled-back'],
+      })
+    } finally {
+      migrate.stop()
+    }
 
-      process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
-      return ''
+    process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
+    return ''
   }
 
   public help(error?: string): string | HelpError {

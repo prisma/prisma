@@ -70,7 +70,7 @@ export type BufferClassMethods = {
   writeUIntLE(value: number, offset: number, byteLength: number): number
 }
 
-// Use a single class with the buffer methods type 
+// Use a single class with the buffer methods type
 export class BufferClass extends Uint8Array implements BufferClassMethods {
   readonly _isBuffer = true
 
@@ -387,8 +387,8 @@ export class BufferClass extends Uint8Array implements BufferClassMethods {
   write(string: string, offset: number, encoding?: Encoding): number
   write(string: string, offset: number, length: number, encoding?: Encoding): number
   write(string: string, offsetEnc?: number | Encoding, lengthEnc?: number | Encoding, encodingArg: Encoding = 'utf8') {
-    const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc ?? 0
-    let length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
+    const offset = typeof offsetEnc === 'string' ? 0 : (offsetEnc ?? 0)
+    let length = typeof lengthEnc === 'string' ? this.length - offset : (lengthEnc ?? this.length - offset)
     const encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encodingArg
 
     assertNumber(offset, 'offset')
@@ -412,7 +412,7 @@ export class BufferClass extends Uint8Array implements BufferClassMethods {
     const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc
     const end = typeof endEnc === 'string' ? this.length : endEnc
     const encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof endEnc === 'string' ? endEnc : encodingArg
-    const value = BufferClass.from(typeof valueArg === 'number' ? [valueArg] : valueArg ?? [], encoding)
+    const value = BufferClass.from(typeof valueArg === 'number' ? [valueArg] : (valueArg ?? []), encoding)
 
     assertString(encoding, 'encoding')
     assertUnsigned(offset, 'offset', this.length)

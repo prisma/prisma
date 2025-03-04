@@ -120,7 +120,8 @@ ${bold('Examples')}
         `--stdin and --file cannot be used at the same time. Only 1 must be provided. 
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
-    }if (!args['--stdin'] && !args['--file']) {
+    }
+    if (!args['--stdin'] && !args['--file']) {
       throw new Error(
         `Either --stdin or --file must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
@@ -133,7 +134,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         `--url and --schema cannot be used at the same time. Only 1 must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
-    }if (!args['--url'] && !args['--schema']) {
+    }
+    if (!args['--url'] && !args['--schema']) {
       throw new Error(
         `Either --url or --schema must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
@@ -149,8 +151,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         if (e.code === 'ENOENT') {
           throw new Error(`Provided --file at ${args['--file']} doesn't exist.`)
         }
-          console.error(`An error occurred while reading the provided --file at ${args['--file']}`)
-          throw e
+        console.error(`An error occurred while reading the provided --file at ${args['--file']}`)
+        throw e
       }
     }
     // Read stdin

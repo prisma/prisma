@@ -303,8 +303,9 @@ async function binaryNeedsToBeDownloaded(
         }
         return false
       }
-        return true
-    }if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+      return true
+    }
+    if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
       debug(
         `the checksum file ${sha256FilePath} is missing but this was ignored because the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is set`,
       )
@@ -318,7 +319,7 @@ async function binaryNeedsToBeDownloaded(
       }
       return true
     }
-      return true
+    return true
   }
 
   // If there is no cache and the file doesn't exist, we for sure need to download it
@@ -351,9 +352,9 @@ export async function getVersion(enginePath: string, binaryName: string) {
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`
     }
-      const result = await execa(enginePath, ['--version'])
+    const result = await execa(enginePath, ['--version'])
 
-      return result.stdout
+    return result.stdout
   } catch {}
 
   return undefined
@@ -420,7 +421,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     if (options.failSilent || (e as NodeJS.ErrnoException).code !== 'EACCES') {
       return
     }
-      throw new Error(`Can't write to ${targetDir} please make sure you install "prisma" with the right permissions.`)
+    throw new Error(`Can't write to ${targetDir} please make sure you install "prisma" with the right permissions.`)
   }
 
   debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)

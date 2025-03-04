@@ -14,7 +14,12 @@ import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, Request
 import type { Engine } from '../common/Engine'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import type { JsonQuery } from '../common/types/JsonProtocol'
-import type { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type {
+  EngineMetricsOptions,
+  Metrics,
+  MetricsOptionsJson,
+  MetricsOptionsPrometheus,
+} from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
   QueryEngineLogLevel,
@@ -43,7 +48,7 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   if ('level' in event) {
     return event.level === 'error' && event.message === 'PANIC'
   }
-    return false
+  return false
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
@@ -215,7 +220,8 @@ export class LibraryEngine implements Engine<undefined> {
         clientVersion: this.config.clientVersion as string,
         meta: response.meta,
       })
-    }if (typeof response.message === 'string') {
+    }
+    if (typeof response.message === 'string') {
       throw new PrismaClientUnknownRequestError(response.message, {
         clientVersion: this.config.clientVersion!,
       })
@@ -325,7 +331,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (typeof error === 'string') {
         throw e
       }
-        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+      throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
     }
   }
 
@@ -420,7 +426,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         if (typeof error === 'string') {
           throw err
         }
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       } finally {
         this.libraryStartingPromise = undefined
       }
@@ -501,7 +507,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
           clientVersion: this.config.clientVersion!,
         })
-      }if (this.loggerRustPanic) {
+      }
+      if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
       return { data }
@@ -516,9 +523,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (typeof error === 'string') {
         throw e
       }
-        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
-          clientVersion: this.config.clientVersion!,
-        })
+      throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
+        clientVersion: this.config.clientVersion!,
+      })
     }
   }
 
@@ -562,10 +569,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
       })
     }
-      if (errors && errors.length === 1) {
-        throw new Error(errors[0].error)
-      }
-      throw new Error(JSON.stringify(data))
+    if (errors && errors.length === 1) {
+      throw new Error(errors[0].error)
+    }
+    throw new Error(JSON.stringify(data))
   }
 
   private buildQueryError(error: RequestError) {

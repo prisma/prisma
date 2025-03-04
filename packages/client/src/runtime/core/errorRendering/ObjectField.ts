@@ -6,7 +6,10 @@ import type { Value } from './Value'
 const separator = ': '
 export class ObjectField implements ErrorBasicBuilder, Field {
   hasError = false
-  constructor(readonly name: string, public value: Value) {}
+  constructor(
+    readonly name: string,
+    public value: Value,
+  ) {}
 
   markAsError() {
     this.hasError = true

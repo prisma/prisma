@@ -170,7 +170,7 @@ export function getLogs(numChars = 7500): string {
           if (typeof arg === 'string') {
             return arg
           }
-            return JSON.stringify(arg)
+          return JSON.stringify(arg)
         })
         .join(' ')}`
     })

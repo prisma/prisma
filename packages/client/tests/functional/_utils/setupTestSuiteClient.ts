@@ -17,7 +17,12 @@ import {
   testSuiteHasTypedSql,
 } from './getTestSuiteInfo'
 import { AdapterProviders } from './providers'
-import { type DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import {
+  type DatasourceInfo,
+  setupTestSuiteDatabase,
+  setupTestSuiteFiles,
+  setupTestSuiteSchema,
+} from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import type { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
 

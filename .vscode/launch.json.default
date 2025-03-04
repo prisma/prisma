@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
   "configurations": [
-
     {
       "name": "Client - Current TS File",
       "type": "node",
@@ -26,7 +25,11 @@
       "name": "Build Blog",
       "type": "node",
       "request": "launch",
-      "args": ["${workspaceFolder}/packages/client/fixtures/generate.ts", "${workspaceFolder}/packages/client/fixtures/blog/", "--skip-transpile"],
+      "args": [
+        "${workspaceFolder}/packages/client/fixtures/generate.ts",
+        "${workspaceFolder}/packages/client/fixtures/blog/",
+        "--skip-transpile"
+      ],
       "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
         "TS_NODE_PROJECT": "${workspaceFolder}/packages/client/tsconfig.json"
@@ -45,6 +48,7 @@
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true    }
+      "disableOptimisticBPs": true
+    }
   ]
 }

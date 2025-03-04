@@ -9,7 +9,11 @@ import type { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types
  */
 export class CompositeFilesResolver implements FilesResolver {
   private _fileNameToKey: FileNameToKeyMapper
-  constructor(private primary: FilesResolver, private secondary: FilesResolver, options: CaseSensitivityOptions) {
+  constructor(
+    private primary: FilesResolver,
+    private secondary: FilesResolver,
+    options: CaseSensitivityOptions,
+  ) {
     this._fileNameToKey = createFileNameToKeyMapper(options)
   }
 

@@ -47,7 +47,7 @@ model PostOptionalOneToMany {
 }
 `
   }
-    return /* Prisma */ `
+  return /* Prisma */ `
 //
 // 1:n relation
 //

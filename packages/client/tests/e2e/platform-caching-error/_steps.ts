@@ -8,22 +8,22 @@ void executeSteps({
     process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = undefined
   },
   test: async () => {
-      // fake the vercel ci environment
-      process.env.VERCEL = '1'
+    // fake the vercel ci environment
+    process.env.VERCEL = '1'
 
-      // this will trigger auto generate
-      await $`npm install`
+    // this will trigger auto generate
+    await $`npm install`
 
-      process.env.VERCEL = undefined
-      await $`pnpm exec jest vercel-auto-generate`
-      // fake the vercel ci environment
-      process.env.VERCEL = '1'
+    process.env.VERCEL = undefined
+    await $`pnpm exec jest vercel-auto-generate`
+    // fake the vercel ci environment
+    process.env.VERCEL = '1'
 
-      // this will trigger manual generate
-      await $`npx prisma generate`
+    // this will trigger manual generate
+    await $`npx prisma generate`
 
-      process.env.VERCEL = undefined
-      await $`pnpm exec jest vercel-manual-generate`
+    process.env.VERCEL = undefined
+    await $`pnpm exec jest vercel-manual-generate`
   },
   finish: async () => {},
 })

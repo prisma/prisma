@@ -35,17 +35,17 @@ export class ProdNpsStatusLookup implements NpsStatusLookup {
     if (typeof obj !== 'object' || obj === null) {
       return false
     }
-    
+
     const candidate = obj as Record<string, unknown>
-    
+
     if (candidate.currentTimeframe === undefined || candidate.currentTimeframe === null) {
       return true
     }
-    
+
     if (typeof candidate.currentTimeframe !== 'object' || candidate.currentTimeframe === null) {
       return false
     }
-    
+
     const timeframe = candidate.currentTimeframe as Record<string, unknown>
     return typeof timeframe.start === 'string' && typeof timeframe.end === 'string'
   }

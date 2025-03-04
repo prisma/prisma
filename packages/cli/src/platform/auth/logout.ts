@@ -14,7 +14,8 @@ export class Logout implements Command {
   public async parse() {
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
-    if (!credentials) return `You are not currently logged in. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} to log in.` // prettier-ignore
+    if (!credentials)
+      return `You are not currently logged in. Run ${green(getCommandWithExecutor('prisma platform auth login --early-access'))} to log in.` // prettier-ignore
 
     if (credentials.token) {
       const jwt = decodeJwt(credentials.token)

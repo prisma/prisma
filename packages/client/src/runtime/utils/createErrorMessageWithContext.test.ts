@@ -25,7 +25,7 @@ beforeAll(() => {
 })
 
 afterAll(() => {
-  (globalThis as any).TARGET_BUILD_TYPE = undefined
+  ;(globalThis as any).TARGET_BUILD_TYPE = undefined
 })
 
 afterEach(() => vol.reset())

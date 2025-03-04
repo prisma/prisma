@@ -125,5 +125,5 @@ export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: B
   if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(binaryTarget, 'fs')
   }
-    return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`
+  return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`
 }

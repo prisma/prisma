@@ -196,8 +196,8 @@ async function main() {
 
     throw new Error('Some tests exited with a non-zero exit code')
   }
-    console.log('-----------------------------------------------------------------------')
-    console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
+  console.log('-----------------------------------------------------------------------')
+  console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
 }
 
 async function restoreOriginalState() {

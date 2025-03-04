@@ -186,7 +186,8 @@ function transformPathsInConfigToAbsolute(
         filePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filePath),
       },
     }
-  }if (prismaConfig.schema?.kind === 'multi') {
+  }
+  if (prismaConfig.schema?.kind === 'multi') {
     return {
       ...prismaConfig,
       schema: {
@@ -195,5 +196,5 @@ function transformPathsInConfigToAbsolute(
       },
     }
   }
-    return prismaConfig
+  return prismaConfig
 }

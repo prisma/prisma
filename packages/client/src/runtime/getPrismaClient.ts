@@ -20,7 +20,11 @@ import {
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import type { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import type { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import type { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
+import type {
+  CompilerWasmLoadingConfig,
+  CustomDataProxyFetch,
+  EngineWasmLoadingConfig,
+} from './core/engines/common/Engine'
 import type { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -215,8 +219,8 @@ type ExtendedEventType = LogLevel | 'beforeExit'
 type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   ? () => Promise<void>
   : [E] extends [LogLevel]
-  ? (event: EngineEvent<E>) => void
-  : never
+    ? (event: EngineEvent<E>) => void
+    : never
 
 /**
  * Config that is stored into the generated client. When the generated client is

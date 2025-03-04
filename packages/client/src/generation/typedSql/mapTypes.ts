@@ -82,7 +82,7 @@ export function getInputType(
   if (!nullable) {
     return inn
   }
-    return new ts.UnionType(inn).addVariant(ts.nullType)
+  return new ts.UnionType(inn).addVariant(ts.nullType)
 }
 
 export function getOutputType(
@@ -95,7 +95,7 @@ export function getOutputType(
   if (!nullable) {
     return out
   }
-    return new ts.UnionType(out).addVariant(ts.nullType)
+  return new ts.UnionType(out).addVariant(ts.nullType)
 }
 
 function getMappingConfig(

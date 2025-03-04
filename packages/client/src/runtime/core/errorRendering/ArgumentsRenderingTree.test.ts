@@ -264,7 +264,6 @@ test('error in nested selection', () => {
       },
     },
   })
-
   ;(tree.arguments.getDeepSubSelectionValue(['field1', 'field2', 'field3']) as ObjectValue)
     .getField('arg')
     ?.markAsError()

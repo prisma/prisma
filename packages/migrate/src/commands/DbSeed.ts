@@ -82,7 +82,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     }
-      process.exit(1)
+    process.exit(1)
   }
 
   public help(error?: string): string | HelpError {

@@ -29,7 +29,7 @@ function generateGraph(
 ) {
   const g = digraph('G')
   g.set('splines', 'ortho')
-  for (const pkg of (packages || [])) {
+  for (const pkg of packages || []) {
     try {
       const json = require(pkg.jsonPath)
       g.addNode(json.name, { shape: 'box' })

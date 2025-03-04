@@ -180,28 +180,28 @@ testMatrix.setupTestSuite(
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "SET TRANSACTION" query via underlying driver', AdapterQueryChildSpans.None)
       }
-        return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
+      return dbQuery(expect.stringContaining('SET TRANSACTION'), AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txBegin() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "BEGIN" query via underlying driver', AdapterQueryChildSpans.None)
       }
-        return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
+      return dbQuery(expect.stringContaining('BEGIN'), AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txCommit() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "COMMIT" query via underlying driver', AdapterQueryChildSpans.None)
       }
-        return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
+      return dbQuery('COMMIT', AdapterQueryChildSpans.ArgsOnly)
     }
 
     function txRollback() {
       if (usesSyntheticTxQueries) {
         return dbQuery('-- Implicit "ROLLBACK" query via underlying driver', AdapterQueryChildSpans.None)
       }
-        return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
+      return dbQuery('ROLLBACK', AdapterQueryChildSpans.ArgsOnly)
     }
 
     function operation(model: string | undefined, method: string, children: Tree[]) {
@@ -608,8 +608,8 @@ testMatrix.setupTestSuite(
               children: isMongoDb
                 ? [engineConnection()]
                 : isSqlServer
-                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
+                  ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                  : [engineConnection(), txBegin()],
             },
           ],
         })
@@ -657,8 +657,8 @@ testMatrix.setupTestSuite(
               children: isMongoDb
                 ? [engineConnection()]
                 : isSqlServer
-                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
+                  ? [engineConnection(), txSetIsolationLevel(), txBegin()]
+                  : [engineConnection(), txBegin()],
             },
           ],
         })

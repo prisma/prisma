@@ -80,7 +80,7 @@ export function getCallSite(errorFormat: ErrorFormat): CallSite {
     if (typeof $EnabledCallSite === 'function' && errorFormat !== 'minimal') {
       return new $EnabledCallSite()
     }
-      return new DisabledCallSite()
+    return new DisabledCallSite()
   }
-    return new EnabledCallSite()
+  return new EnabledCallSite()
 }

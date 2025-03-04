@@ -178,7 +178,8 @@ async function main(): Promise<number> {
     // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
     // https://tldp.org/LDP/abs/html/exitcodes.html
     return 1
-  }if (isError(result)) {
+  }
+  if (isError(result)) {
     console.error(result)
     return 1
   }

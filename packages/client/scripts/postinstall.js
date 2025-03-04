@@ -134,7 +134,7 @@ async function isInstalledGlobally() {
     if (result.stdout.includes('@prisma/client')) {
       return true
     }
-      console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
+    console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
 Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green('yarn global remove prisma')}.`)
   } catch (_e) {
     return false

@@ -15,8 +15,8 @@ export const createHelp = (content: HelpContent) => {
   const command_ = subcommand
     ? `prisma platform ${command} ${subcommand}`
     : command && subcommands
-    ? `prisma platform ${command} [command]`
-    : 'prisma platform [command]'
+      ? `prisma platform ${command} [command]`
+      : 'prisma platform [command]'
 
   const usage = format(`
 ${bold('Usage')}
@@ -25,29 +25,37 @@ ${bold('Usage')}
 `)
 
   // prettier-ignore
-  const commands = subcommands && format(`
+  const commands =
+    subcommands &&
+    format(`
 ${bold('Commands')}
 
 ${subcommands.map(([option, description]) => `${option.padStart(15)}   ${description}`).join('\n')}
   `)
 
   // prettier-ignore
-  const options_ = options && format(`
+  const options_ =
+    options &&
+    format(`
 ${bold('Options')}
 
 ${options.map(([option, alias, description]) => `  ${option.padStart(15)} ${alias && `${alias},`}   ${description}`).join('\n')}
   `)
 
   // prettier-ignore
-  const examples_ = examples && format(`
+  const examples_ =
+    examples &&
+    format(`
 ${bold('Examples')}
 
-${examples.map(example => `  ${dim('$')} ${example}`).join('\n')}
+${examples.map((example) => `  ${dim('$')} ${example}`).join('\n')}
   `)
 
   // prettier-ignore
-  const additionalContent_ = additionalContent && format(`
-${additionalContent.map(entry => `${entry}`).join('\n')}
+  const additionalContent_ =
+    additionalContent &&
+    format(`
+${additionalContent.map((entry) => `${entry}`).join('\n')}
   `)
 
   const help = [usage, commands, options_, examples_, additionalContent_].filter(Boolean).join('')

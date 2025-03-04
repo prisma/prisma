@@ -115,10 +115,7 @@ export function serializeJsonQuery({
   }
 }
 
-function serializeFieldSelection(
-  { select, include, ...args }: JsArgs,
-  context: SerializeContext,
-): JsonFieldSelection {
+function serializeFieldSelection({ select, include, ...args }: JsArgs, context: SerializeContext): JsonFieldSelection {
   const omit = args.omit
   args.omit = undefined
   return {
@@ -283,16 +280,16 @@ function serializeArgumentsValue(
     if (isValidDate(jsValue)) {
       return { $type: 'DateTime', value: jsValue.toISOString() }
     }
-      context.throwValidationError({
-        kind: 'InvalidArgumentValue',
-        selectionPath: context.getSelectionPath(),
-        argumentPath: context.getArgumentPath(),
-        argument: {
-          name: context.getArgumentName(),
-          typeNames: ['Date'],
-        },
-        underlyingError: 'Provided Date object is invalid',
-      })
+    context.throwValidationError({
+      kind: 'InvalidArgumentValue',
+      selectionPath: context.getSelectionPath(),
+      argumentPath: context.getArgumentPath(),
+      argument: {
+        name: context.getArgumentName(),
+        typeNames: ['Date'],
+      },
+      underlyingError: 'Provided Date object is invalid',
+    })
   }
 
   if (isParam(jsValue)) {

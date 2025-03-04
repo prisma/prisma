@@ -1,6 +1,14 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { arg, checkUnsupportedDataProxy, type Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  type Command,
+  format,
+  HelpError,
+  isError,
+  loadEnvFile,
+} from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
@@ -109,13 +117,9 @@ ${bold('Examples')}
     if (migrationIds.length === 0) {
       return green('No pending migrations to apply.')
     }
-      return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
-        'migrations',
-        migrationIds,
-        {
-          'migration.sql': '',
-        },
-      )}
+    return `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
+      'migration.sql': '',
+    })}
       
 ${green('All migrations have been successfully applied.')}`
   }

@@ -60,7 +60,7 @@ export function mergeSchemas(options: MergeSchemasOptions): string {
           type: 'wasm-error' as const,
           reason: '(mergeSchemas wasm)',
           error: e as Error | WasmPanic,
-        } as const),
+        }) as const,
     ),
   )
 

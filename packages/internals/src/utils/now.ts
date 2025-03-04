@@ -1,4 +1,4 @@
-const prefixZero = (value: number): string => (`0${value}`).slice(-2)
+const prefixZero = (value: number): string => `0${value}`.slice(-2)
 
 export function now(): string {
   const now = new Date()

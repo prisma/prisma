@@ -28,7 +28,7 @@
  */
 
 function isSpecificValue(val: unknown): boolean {
-  return !!(val instanceof Buffer || val instanceof Date || val instanceof RegExp )
+  return !!(val instanceof Buffer || val instanceof Date || val instanceof RegExp)
 }
 
 function cloneSpecificValue(val: Buffer | Date | RegExp): RegExp | Buffer | Date {
@@ -36,12 +36,14 @@ function cloneSpecificValue(val: Buffer | Date | RegExp): RegExp | Buffer | Date
     const x = Buffer.alloc ? Buffer.alloc(val.length) : new Buffer(val.length)
     val.copy(x)
     return x
-  }if (val instanceof Date) {
+  }
+  if (val instanceof Date) {
     return new Date(val.getTime())
-  }if (val instanceof RegExp) {
+  }
+  if (val instanceof RegExp) {
     return new RegExp(val)
   }
-    throw new Error('Unexpected situation')
+  throw new Error('Unexpected situation')
 }
 
 /**
@@ -102,7 +104,6 @@ export const deepExtend = (target: Record<string, unknown>, ...args: unknown[]):
 
       // recursion prevention
       if (val === target) {
-
         /**
          * if new value isn't object then just overwrite by new value
          * instead of extending.

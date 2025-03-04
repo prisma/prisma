@@ -13,7 +13,12 @@ import {
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
-import { type DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import {
+  type DatasourceInfo,
+  dropTestSuiteDatabase,
+  setupTestSuiteDatabase,
+  setupTestSuiteDbURI,
+} from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import type { ClientMeta, CliMeta, MatrixOptions } from './types'
 

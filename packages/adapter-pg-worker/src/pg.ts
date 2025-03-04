@@ -133,7 +133,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: pg.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -172,7 +175,10 @@ export type PrismaPgOptions = {
 }
 
 export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
-  constructor(client: pg.Pool, private options?: PrismaPgOptions) {
+  constructor(
+    client: pg.Pool,
+    private options?: PrismaPgOptions,
+  ) {
     if (!(client instanceof pg.Pool)) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
 import { Pool } from 'pg'

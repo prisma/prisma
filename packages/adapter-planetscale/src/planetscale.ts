@@ -114,7 +114,7 @@ function parseErrorMessage(message: string) {
       state: sqlstate,
     }
   }
-    return undefined
+  return undefined
 }
 
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {

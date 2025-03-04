@@ -157,8 +157,8 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<b
   if (canConnect === true) {
     return true
   }
-    const { code, message } = canConnect
-    throw new Error(`${code}: ${message}`)
+  const { code, message } = canConnect
+  throw new Error(`${code}: ${message}`)
 }
 
 export async function ensureDatabaseExists(_action: MigrateAction, schemaPath?: string) {
@@ -227,9 +227,11 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
 
   if (socket) {
     return `unix:${socket}`
-  }if (credentials.host && credentials.port) {
+  }
+  if (credentials.host && credentials.port) {
     return `${credentials.host}:${credentials.port}`
-  }if (credentials.host) {
+  }
+  if (credentials.host) {
     return `${credentials.host}`
   }
 

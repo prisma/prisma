@@ -85,7 +85,7 @@ it('throws if schema args path is invalid', async () => {
   })
 
   expect(res).toMatchInlineSnapshot(
-    '[Error: Could not load \`--schema\` from provided path \`../wrong_path\`: file or directory not found]',
+    '[Error: Could not load `--schema` from provided path `../wrong_path`: file or directory not found]',
   )
 })
 
@@ -187,9 +187,7 @@ it('reads schema path from the nearest package.json and throws if path does not 
 it('reads schema path from the nearest package.json and throws if path is not of type string', async () => {
   const res = await testSchemaPath({ fixtureName: 'pkg-json-invalid-path-not-string' })
 
-  expect(res).toMatchInlineSnapshot(
-    '[Error: Provided schema path \`123\` from \`package.json\` must be of type string]',
-  )
+  expect(res).toMatchInlineSnapshot('[Error: Provided schema path `123` from `package.json` must be of type string]')
 })
 
 it('reads from the nearest package.json of the cwd', async () => {
@@ -210,7 +208,7 @@ it('throws error if both schema file and folder exist at default locations', asy
   const res = await testSchemaPath({ fixtureName: 'conventional-path-file-dir-conflict' })
 
   expect(res).toMatchInlineSnapshot(
-    '[Error: Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one.]',
+    '[Error: Found Prisma Schemas at both `prisma/schema.prisma` and `prisma/schema`. Please remove one.]',
   )
 })
 

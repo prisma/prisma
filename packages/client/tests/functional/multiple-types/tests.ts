@@ -20,7 +20,7 @@ testMatrix.setupTestSuite(
       if (provider === Providers.MYSQL) {
         return prisma.$queryRaw`SELECT * FROM \`TestModel\`;`
       }
-        return prisma.$queryRaw`SELECT * FROM "TestModel";`
+      return prisma.$queryRaw`SELECT * FROM "TestModel";`
     }
 
     skipTestIf(isD1 || provider === Providers.MYSQL)('Bool field: true or false should succeed', async () => {

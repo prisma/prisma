@@ -19,7 +19,7 @@ export function timestampToDate(timestamp: string): Date | undefined {
   return new Date(Date.UTC(year, month - 1, date, hours, minutes, seconds))
 }
 
-const prefixZero = (value: number): string => (`0${value}`).slice(-2)
+const prefixZero = (value: number): string => `0${value}`.slice(-2)
 
 export function renderDate(date: Date): string {
   if (date.getDate() !== new Date().getDate()) {

@@ -71,7 +71,7 @@ export function validate(options: ValidateOptions): void {
           type: 'wasm-error' as const,
           reason: '(validate wasm)',
           error: e as Error | WasmPanic,
-        } as const),
+        }) as const,
     ),
   )
 

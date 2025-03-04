@@ -3,7 +3,10 @@ import type { SuggestionObjectValue } from './SuggestionObjectValue'
 
 export class ObjectFieldSuggestion implements ErrorBasicBuilder {
   public isRequired = false
-  constructor(readonly name: string, readonly value: string | SuggestionObjectValue) {}
+  constructor(
+    readonly name: string,
+    readonly value: string | SuggestionObjectValue,
+  ) {}
 
   makeRequired() {
     this.isRequired = true
