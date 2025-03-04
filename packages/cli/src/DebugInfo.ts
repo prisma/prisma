@@ -66,7 +66,7 @@ export class DebugInfo implements Command {
       return bold(`${line}: \`${value}\``)
     }
 
-    let schemaPath
+    let schemaPath: string | undefined
     try {
       schemaPath = link((await getSchemaWithPath(args['--schema'], config.schema))?.schemaPath)
     } catch (e) {

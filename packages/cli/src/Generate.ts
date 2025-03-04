@@ -37,7 +37,9 @@ import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
-const pkg = eval(`require('../package.json')`)
+// Import package.json directly instead of using eval
+import pkgJson from '../package.json'
+const pkg = pkgJson
 
 /**
  * $ prisma generate
@@ -156,7 +158,7 @@ ${bold('Examples')}
     const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
-    let hasJsClient
+    let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined

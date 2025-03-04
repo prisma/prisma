@@ -65,8 +65,9 @@ describe('artificial-panic introspection', () => {
         ",
           ],
         ]
-      `),
-        expect(e).toMatchObject({
+      `)
+        
+      expect(e).toMatchObject({
           area: 'LIFT_CLI',
         })
     }

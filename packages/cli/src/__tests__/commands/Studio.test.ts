@@ -18,6 +18,7 @@ const STUDIO_TEST_PORT = 5678
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
+// biome-ignore lint/suspicious/noExplicitAny: Using any for test flexibility
 async function sendRequest(message: any): Promise<any> {
   const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',

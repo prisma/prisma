@@ -81,7 +81,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
+  private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<unknown>> {
     const { sql, args: values } = query
 
     try {
@@ -121,7 +121,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     }
   }
 
-  protected onError(error: any): never {
+  protected onError(error: unknown): never {
     debug('Error in performIO: %O', error)
     if (
       error &&
@@ -148,16 +148,16 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     super(client)
   }
 
-  async commit(): Promise<void> {
+  commit(): Promise<void> {
     debug('[js::commit]')
-
     this.client.release()
+    return Promise.resolve()
   }
 
-  async rollback(): Promise<void> {
+  rollback(): Promise<void> {
     debug('[js::rollback]')
-
     this.client.release()
+    return Promise.resolve()
   }
 }
 
@@ -166,7 +166,7 @@ class PgTransactionContext extends PgQueryable<pg.PoolClient> implements Transac
     super(conn)
   }
 
-  async startTransaction(): Promise<Transaction> {
+  startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -174,7 +174,7 @@ class PgTransactionContext extends PgQueryable<pg.PoolClient> implements Transac
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new PgTransaction(this.conn, options)
+    return Promise.resolve(new PgTransaction(this.conn, options))
   }
 }
 
@@ -229,8 +229,8 @@ export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapter {
 
   constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
 
-  async connect(): Promise<SqlConnection> {
-    return new PrismaPg(new pg.Pool(this.config), this.options, async () => {})
+  connect(): Promise<SqlConnection> {
+    return Promise.resolve(new PrismaPg(new pg.Pool(this.config), this.options, async () => {}))
   }
 
   async connectToShadowDb(): Promise<SqlConnection> {

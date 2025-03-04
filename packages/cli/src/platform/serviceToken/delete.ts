@@ -19,8 +19,8 @@ export class Delete implements Command {
     })
     const token = await getTokenOrThrow(args)
     const serviceTokenId = this.legacy
-      ? getRequiredParameterOrThrow(args, ['--apikey'] as any)
-      : getRequiredParameterOrThrow(args, ['--serviceToken', '-s'] as any)
+      ? getRequiredParameterOrThrow(args, ['--apikey'] as unknown as string[])
+      : getRequiredParameterOrThrow(args, ['--serviceToken', '-s'] as unknown as string[])
     const { serviceTokenDelete } = await requestOrThrow<
       {
         serviceTokenDelete: {

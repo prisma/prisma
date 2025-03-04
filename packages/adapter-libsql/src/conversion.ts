@@ -110,7 +110,7 @@ function inferColumnType(value: NonNullable<Value>): ColumnType {
   }
 }
 
-function inferObjectType(value: {}): ColumnType {
+function inferObjectType(value: Record<string, unknown> | ArrayBuffer): ColumnType {
   if (value instanceof ArrayBuffer) {
     return ColumnTypeEnum.Bytes
   }

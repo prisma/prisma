@@ -26,7 +26,8 @@ const COMMANDS = [
   ['debug'],
 ]
 
-COMMANDS.forEach((command) => {
+// Using for...of instead of forEach for better performance
+for (const command of COMMANDS) {
   it(`test 'prisma ${command.join(' ')}' automatically detects config file`, async () => {
     ctx.fixture('prisma-config')
 
@@ -42,4 +43,4 @@ COMMANDS.forEach((command) => {
     const res = await ctx.cli(...command, '--config=./config/prisma.config.ts', '--help')
     expect(cleanSnapshot(res.stdout)).toContain(`Loaded Prisma config from "REDACTED_ROOT/config/prisma.config.ts".`)
   })
-})
+}

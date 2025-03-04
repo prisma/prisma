@@ -210,7 +210,8 @@ async function main(): Promise<number> {
 /**
  * Run our program
  */
-if (eval('require.main === module')) {
+// Check if this module is the entry point
+if (require.main === module) {
   main()
     .then((code) => {
       if (code !== 0) {

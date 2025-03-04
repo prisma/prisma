@@ -82,7 +82,7 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
 
 type RawPackage = {
   path: string
-  packageJson: any
+  packageJson: Record<string, unknown>
 }
 type RawPackages = { [packageName: string]: RawPackage }
 
@@ -114,7 +114,7 @@ interface Package {
   usedByDev: string[]
   uses: string[]
   usesDev: string[]
-  packageJson: any
+  packageJson: Record<string, unknown>
 }
 
 type Packages = { [packageName: string]: Package }
@@ -703,9 +703,9 @@ function increaseMinor(version: string) {
 function filterPublishOrder(publishOrder: string[][], packages: string[]): string[][] {
   return publishOrder.reduce<string[][]>((acc, curr) => {
     if (Array.isArray(curr)) {
-      curr = curr.filter((pkg) => !packages.includes(pkg))
-      if (curr.length > 0) {
-        acc.push(curr)
+      const filteredCurr = curr.filter((pkg) => !packages.includes(pkg))
+      if (filteredCurr.length > 0) {
+        acc.push(filteredCurr)
       }
     } else if (!packages.includes(curr)) {
       acc.push(curr)
@@ -873,7 +873,11 @@ async function acquireLock(branch: string): Promise<() => void> {
   }
 }
 
-async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
+async function writeToPkgJson(
+  pkgDir: string, 
+  cb: (pkg: Record<string, unknown>) => Record<string, unknown> | undefined, 
+  dryRun?: boolean
+) {
   const pkgJsonPath = path.join(pkgDir, 'package.json')
   const file = await fs.promises.readFile(pkgJsonPath, 'utf-8')
   let packageJson = JSON.parse(file)

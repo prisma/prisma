@@ -1,4 +1,4 @@
-export function isatty(..._args: any[]) {
+export function isatty(..._args: unknown[]) {
   return false
 }
 

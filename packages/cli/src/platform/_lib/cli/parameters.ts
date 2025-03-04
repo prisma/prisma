@@ -8,7 +8,7 @@ export const getRequiredParameter = <$Args extends Record<string, unknown>, $Nam
 ): Error | Exclude<$Args[$Names[number]], undefined> => {
   const value = getOptionalParameter(args, names, environmentVariable)
   if (value === undefined) return new Error(`Missing ${names.join(' or ')} parameter`)
-  return value as any
+  return value as Exclude<$Args[$Names[number]], undefined>
 }
 
 export function argOrThrow<T extends Arg.Spec>(argv: string[], spec: T): Arg.Result<T> {
@@ -38,9 +38,9 @@ export const getOptionalParameter = <$Args extends Record<string, unknown>, $Nam
     if (environmentVariable) {
       const value = process.env[environmentVariable]
       if (value) {
-        return value as any
+        return value as $Args[$Names[number]]
       }
     }
   }
-  return (entry?.[1] ?? undefined) as any
+  return (entry?.[1] ?? undefined) as $Args[$Names[number]]
 }

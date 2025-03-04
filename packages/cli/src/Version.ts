@@ -115,7 +115,9 @@ export class Version implements Command {
      */
     if (enginesMetaInfoErrors.length > 0) {
       process.exitCode = 1
-      enginesMetaInfoErrors.forEach((e) => console.error(e))
+      for (const e of enginesMetaInfoErrors) {
+        console.error(e)
+      }
     }
 
     let schemaPath: string | null = null

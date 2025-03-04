@@ -31,10 +31,22 @@ export class ProdNpsStatusLookup implements NpsStatusLookup {
     return obj
   }
 
-  checkSchema(obj: any): obj is NpsStatus {
-    return (
-      obj.currentTimeframe == null ||
-      (typeof obj.currentTimeframe.start === 'string' && typeof obj.currentTimeframe.end === 'string')
-    )
+  checkSchema(obj: unknown): obj is NpsStatus {
+    if (typeof obj !== 'object' || obj === null) {
+      return false
+    }
+    
+    const candidate = obj as Record<string, unknown>
+    
+    if (candidate.currentTimeframe === undefined || candidate.currentTimeframe === null) {
+      return true
+    }
+    
+    if (typeof candidate.currentTimeframe !== 'object' || candidate.currentTimeframe === null) {
+      return false
+    }
+    
+    const timeframe = candidate.currentTimeframe as Record<string, unknown>
+    return typeof timeframe.start === 'string' && typeof timeframe.end === 'string'
   }
 }

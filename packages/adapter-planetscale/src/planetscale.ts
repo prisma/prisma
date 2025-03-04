@@ -157,7 +157,7 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
 
     return new Promise<Transaction>((resolve, reject) => {
       const txResultPromise = this.conn
-        .transaction(async (tx) => {
+        .transaction((tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
 
@@ -203,10 +203,10 @@ const adapter = new PrismaPlanetScale(client)
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  transactionContext(): Promise<TransactionContext> {
     const conn = this.client.connection()
     const ctx = new PlanetScaleTransactionContext(conn)
-    return ctx
+    return Promise.resolve(ctx)
   }
 
   async dispose(): Promise<void> {}

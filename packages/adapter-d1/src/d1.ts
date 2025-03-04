@@ -105,12 +105,14 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
     super(client)
   }
 
-  async commit(): Promise<void> {
+  commit(): Promise<void> {
     debug('[js::commit]')
+    return Promise.resolve()
   }
 
-  async rollback(): Promise<void> {
+  rollback(): Promise<void> {
     debug('[js::rollback]')
+    return Promise.resolve()
   }
 }
 
@@ -119,7 +121,7 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
     super(client)
   }
 
-  async startTransaction(): Promise<Transaction> {
+  startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       // TODO: D1 does not have a Transaction API.
       usePhantomQuery: true,
@@ -128,7 +130,7 @@ class D1TransactionContext extends D1Queryable<StdClient> implements Transaction
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new D1Transaction(this.client, options)
+    return Promise.resolve(new D1Transaction(this.client, options))
   }
 }
 
@@ -177,13 +179,13 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  transactionContext(): Promise<TransactionContext> {
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return new D1TransactionContext(this.client)
+    return Promise.resolve(new D1TransactionContext(this.client))
   }
 
   async dispose(): Promise<void> {
@@ -197,8 +199,8 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
 
   constructor(private client: StdClient) {}
 
-  async connect(): Promise<SqlConnection> {
-    return new PrismaD1(this.client, async () => {})
+  connect(): Promise<SqlConnection> {
+    return Promise.resolve(new PrismaD1(this.client, async () => {}))
   }
 
   async connectToShadowDb(): Promise<SqlConnection> {

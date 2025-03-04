@@ -64,7 +64,7 @@ export class Enable implements Command {
     })
     const { serviceTokenCreate } = await requestOrThrow<
       {
-        accelerateEnable: {}
+        accelerateEnable: Record<string, never>
         serviceTokenCreate?: {
           value: string
         }

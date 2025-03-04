@@ -1,4 +1,4 @@
-type Listener = (...args: any[]) => void
+type Listener = (...args: unknown[]) => void
 
 export class EventEmitter {
   private events: Record<string, Listener[]> = {}
@@ -13,14 +13,14 @@ export class EventEmitter {
     return this
   }
 
-  emit(event: string, ...args: any[]) {
+  emit(event: string, ...args: unknown[]) {
     if (!this.events[event]) {
       return false
     }
 
-    this.events[event].forEach((listener) => {
+    for (const listener of this.events[event]) {
       listener(...args)
-    })
+    }
 
     return true
   }

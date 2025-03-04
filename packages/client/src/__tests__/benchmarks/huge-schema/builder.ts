@@ -67,9 +67,9 @@ main().catch(err => console.log(err))
     })
     modelMap.set(modelName, model)
   }
-  modelMap.forEach((model) => {
+  for (const model of modelMap.values()) {
     schema += model.build()
-  })
+  }
   const schemaPath = path.join(__dirname, 'schema.prisma')
   const tsPath = path.join(__dirname, 'compile.ts')
 

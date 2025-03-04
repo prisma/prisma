@@ -60,7 +60,7 @@ export class Enable implements Command {
     })
     const { serviceTokenCreate } = await requestOrThrow<
       {
-        pulseEnable: {}
+        pulseEnable: Record<string, never>
         serviceTokenCreate?: {
           value: string
         }

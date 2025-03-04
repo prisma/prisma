@@ -48,7 +48,8 @@ const loader = (cache: LoadCache) => (module: string) => {
     minify: true,
   })
 
-  return (cache[module] = outfile)
+  cache[module] = outfile
+  return outfile
 }
 
 /**

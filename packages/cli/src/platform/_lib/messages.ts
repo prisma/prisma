@@ -25,8 +25,11 @@ const table = <$Object extends object>(
 ) => {
   const renderers = {
     key: renderersInput.key ?? dim,
-    // eslint-disable-next-line
-    values: mapObjectValues(renderersInput.values ?? ({} as any), (_: true | Renderer<any>) => (_ === true ? id : _)),
+    // Converting empty object to proper renderer type
+    values: mapObjectValues(
+      renderersInput.values ?? ({} as ObjectValueRenderersInput<$Object>),
+      (_: true | Renderer<unknown>) => (_ === true ? id : _),
+    ),
   }
   return formatTable(
     Object.entries(renderers.values)

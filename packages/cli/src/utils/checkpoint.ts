@@ -192,7 +192,7 @@ export const redactCommandArray = (commandArray: string[]): string[] => {
   for (let i = 0; i < commandArray.length; i++) {
     const arg = commandArray[i]
     // redact --option arguments
-    SENSITIVE_CLI_OPTIONS.forEach((option: string) => {
+    for (const option of SENSITIVE_CLI_OPTIONS) {
       // --url file:./dev.db
       // arg is `--url` and a complete match
       const argIndexCompleteMatch = arg === option
@@ -208,7 +208,7 @@ export const redactCommandArray = (commandArray: string[]): string[] => {
       else if (argIndexPartialMatch !== -1) {
         commandArray[i] = `${option}=${REDACTED_TAG}`
       }
-    })
+    }
   }
 
   return commandArray

@@ -84,7 +84,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
     }
   }
 
-  protected onError(error: any): never {
+  protected onError(error: unknown): never {
     debug('Error in performIO: %O', error)
     const rawCode = error.rawCode ?? error.cause?.rawCode
     if (typeof rawCode === 'number') {

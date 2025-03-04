@@ -21,7 +21,7 @@ describe('version', () => {
 
   testIf(runLibraryTest)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
-    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+    return expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
   testIf(runLibraryTest)(
@@ -65,7 +65,7 @@ describe('version', () => {
     'basic version',
     async () => {
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+      return expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
     },
     10_000,
   )
@@ -104,7 +104,7 @@ describe('version', () => {
   )
 })
 
-function cleanSnapshot(str: string, versionOverride?: string): string {
+function cleanSnapshot(inputStr: string, versionOverride?: string): string {
   // sanitize engine path
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   // +                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -112,28 +112,28 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // =>                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
-  str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
+  let result = inputStr.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
+  result = result.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash
   const defaultEngineVersion = enginesVersion
   const currentEngineVersion = versionOverride ?? enginesVersion
-  str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
-  str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
-  str = str.replace(/(Operating System\s+:).*/g, '$1 OS')
-  str = str.replace(/(Architecture\s+:).*/g, '$1 ARCHITECTURE')
-  str = str.replace(/workspace:\*/g, 'ENGINE_VERSION')
-  str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
-  str = str.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
+  result = result.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
+  result = result.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  result = result.replace(/(Operating System\s+:).*/g, '$1 OS')
+  result = result.replace(/(Architecture\s+:).*/g, '$1 ARCHITECTURE')
+  result = result.replace(/workspace:\*/g, 'ENGINE_VERSION')
+  result = result.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
+  result = result.replace(new RegExp(`(TypeScript\\s+:) ${typeScriptVersion}`, 'g'), '$1 TYPESCRIPT_VERSION')
 
   // replace studio version
-  str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
+  result = result.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
 
   // sanitize windows specific engine names
-  str = str.replace(/\.exe/g, '')
+  result = result.replace(/\.exe/g, '')
 
-  return str
+  return result
 }

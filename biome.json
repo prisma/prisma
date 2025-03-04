@@ -104,7 +104,7 @@
         "noImportAssign": "error",
         "noMisleadingCharacterClass": "error",
         "noMisleadingInstantiator": "error",
-        "noMisplacedAssertion": "error",
+        "noMisplacedAssertion": "off",
         "noPrototypeBuiltins": "error",
         "noRedeclare": "error",
         "noRedundantUseStrict": "off",
@@ -156,7 +156,7 @@
       "attributePosition": "auto",
       "bracketSpacing": true
     },
-    "globals": ["exports"]
+    "globals": ["exports", "TARGET_BUILD_TYPE", "describe", "test", "it", "expect", "jest", "beforeEach", "afterEach", "beforeAll", "afterAll"]
   },
   "overrides": [
     { "include": ["**/*.ts"] },

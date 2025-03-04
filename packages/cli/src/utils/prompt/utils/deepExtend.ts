@@ -27,11 +27,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-function isSpecificValue(val): boolean {
+function isSpecificValue(val: unknown): boolean {
   return !!(val instanceof Buffer || val instanceof Date || val instanceof RegExp )
 }
 
-function cloneSpecificValue(val): RegExp | Buffer | Date {
+function cloneSpecificValue(val: Buffer | Date | RegExp): RegExp | Buffer | Date {
   if (val instanceof Buffer) {
     const x = Buffer.alloc ? Buffer.alloc(val.length) : new Buffer(val.length)
     val.copy(x)
@@ -47,8 +47,8 @@ function cloneSpecificValue(val): RegExp | Buffer | Date {
 /**
  * Recursive cloning array.
  */
-function deepCloneArray(arr): any {
-  const clone: any = []
+function deepCloneArray(arr: unknown[]): unknown[] {
+  const clone: unknown[] = []
   arr.forEach((item, index) => {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
@@ -65,7 +65,7 @@ function deepCloneArray(arr): any {
   return clone
 }
 
-function safeGetProperty(object, property): any {
+function safeGetProperty(object: Record<string, unknown>, property: string): unknown {
   return property === '__proto__' ? undefined : object[property]
 }
 
@@ -78,7 +78,7 @@ function safeGetProperty(object, property): any {
  * object as first argument, like this:
  *   deepExtend({}, yourObj_1, [yourObj_N]);
  */
-export const deepExtend = (target, ...args): any => {
+export const deepExtend = (target: Record<string, unknown>, ...args: unknown[]): Record<string, unknown> | false => {
   if (!target || typeof target !== 'object') {
     return false
   }
@@ -87,8 +87,8 @@ export const deepExtend = (target, ...args): any => {
     return target
   }
 
-  let val
-  let src
+  let val: unknown
+  let src: unknown
 
   for (const obj of args) {
     // skip argument if isn't an object, is null, or is an array

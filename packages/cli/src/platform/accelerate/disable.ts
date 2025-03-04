@@ -19,7 +19,7 @@ export class Disable implements Command {
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     await requestOrThrow<
       {
-        accelerateDisable: {}
+        accelerateDisable: Record<string, never>
       },
       { environmentId: string }
     >({
