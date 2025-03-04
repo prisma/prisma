@@ -62,7 +62,6 @@ const cliTypesBuildConfig: BuildOptions = {
   outdir: 'dist',
   bundle: false,
   emitTypes: true,
-  overrideDev: true,
   minify: false,
 }
 
@@ -112,11 +111,7 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-build([cliTypesBuildConfig, cliConfigBuildConfig, cliBuildConfig, preinstallBuildConfig])
-  .catch(e => {
-    console.error(e)
-    process.exit(1)
-  })
+void build([cliTypesBuildConfig, cliConfigBuildConfig, cliBuildConfig, preinstallBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
