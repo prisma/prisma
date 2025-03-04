@@ -21,9 +21,6 @@ const project = path.resolve(__dirname, 'tsconfig.json')
 
 module.exports = [
   {
-    files: ['**/*.ts'],
-  },
-  {
     ignores: [
       '.prisma',
       '.github',
@@ -50,35 +47,15 @@ module.exports = [
       '**/sandbox/**',
     ],
   },
-  ...compat.extends(
-    'eslint:recommended',
-    'plugin:@typescript-eslint/eslint-recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
-    'plugin:prettier/recommended',
-    'plugin:jest/recommended',
-  ),
+
+  ...compat.extends('eslint:recommended', 'plugin:prettier/recommended', 'plugin:jest/recommended'),
+
   {
     plugins: {
-      '@typescript-eslint': typescriptEslint,
       jest,
       'simple-import-sort': simpleImportSort,
       import: _import,
       'local-rules': localRules,
-    },
-
-    languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-
-      parser: tsParser,
-      ecmaVersion: 2020,
-      sourceType: 'module',
-
-      parserOptions: {
-        project,
-      },
     },
 
     settings: {
@@ -93,9 +70,65 @@ module.exports = [
 
     rules: {
       'prettier/prettier': 'warn',
+      'no-useless-escape': 'off',
+      'eslint-comments/no-unlimited-disable': 'off',
+      'eslint-comments/disable-enable-pair': 'off',
+      'jest/expect-expect': 'off',
+      'no-empty': 'off',
+      'no-restricted-properties': [
+        'error',
+        {
+          property: 'substr',
+          message: 'Deprecated: Use .slice() instead of .substr().',
+        },
+      ],
+      'jest/valid-title': 'off',
+      'jest/no-conditional-expect': 'off',
+      'jest/no-export': 'off',
+      'jest/no-standalone-expect': 'off',
+      'simple-import-sort/imports': 'error',
+      'simple-import-sort/exports': 'error',
+      'import/first': 'error',
+      'import/newline-after-import': 'error',
+      'import/no-duplicates': 'error',
+    },
+  },
+
+  {
+    files: ['**/*.js', '**/*.cjs', '**/*.mjs'],
+
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      ecmaVersion: 2021,
+      sourceType: 'module',
+    },
+  },
+
+  {
+    files: ['**/*.ts'],
+
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+    },
+
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
+      parser: tsParser,
+      parserOptions: {
+        project,
+      },
+    },
+
+    rules: {
+      ...typescriptEslint.configs['eslint-recommended'].rules,
+      ...typescriptEslint.configs['recommended'].rules,
+      ...typescriptEslint.configs['recommended-requiring-type-checking'].rules,
       '@typescript-eslint/no-use-before-define': 'off',
       '@typescript-eslint/no-non-null-assertion': 'off',
-      'no-useless-escape': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
@@ -105,7 +138,6 @@ module.exports = [
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-empty-function': 'off',
-
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -113,39 +145,17 @@ module.exports = [
           argsIgnorePattern: '^_',
         },
       ],
-
-      'eslint-comments/no-unlimited-disable': 'off',
-      'eslint-comments/disable-enable-pair': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
-      'jest/expect-expect': 'off',
-      'no-empty': 'off',
-
-      'no-restricted-properties': [
-        'error',
-        {
-          property: 'substr',
-          message: 'Deprecated: Use .slice() instead of .substr().',
-        },
-      ],
-
-      'jest/valid-title': 'off',
       '@typescript-eslint/no-unnecessary-type-assertion': 'off',
       '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'warn',
       '@typescript-eslint/ban-types': 'off',
       '@typescript-eslint/restrict-plus-operands': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
-      'jest/no-conditional-expect': 'off',
-      'jest/no-export': 'off',
-      'jest/no-standalone-expect': 'off',
       '@typescript-eslint/no-empty-interface': 'off',
-      'simple-import-sort/imports': 'error',
-      'simple-import-sort/exports': 'error',
-      'import/first': 'error',
-      'import/newline-after-import': 'error',
-      'import/no-duplicates': 'error',
     },
   },
+
   {
     files: ['./packages/client/src/runtime/core/types/exported/*.ts'],
     ignores: ['**/index.ts'],
@@ -155,6 +165,7 @@ module.exports = [
       'local-rules/imports-from-same-directory': 'error',
     },
   },
+
   {
     files: ['./packages/client/src/runtime/core/types/exported/index.ts'],
 
