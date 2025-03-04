@@ -234,10 +234,8 @@ export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapter {
   }
 
   async connectToShadowDb(): Promise<SqlConnection> {
-    const crypto = await import('crypto')
-
     const conn = await this.connect()
-    const database = `prisma_migrate_shadow_db_${crypto.randomUUID()}`
+    const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
     return new PrismaPg(new pg.Pool({ ...this.config, database }), undefined, async () => {
