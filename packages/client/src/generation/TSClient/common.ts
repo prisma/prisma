@@ -292,7 +292,7 @@ type Prisma__Pick<T, K extends keyof T> = {
 };
 
 
-export type Enumerable<T> = T | Array<T>;
+export type Enumerable<T> = T | Array<T> | ReadonlyArray<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
