@@ -111,7 +111,13 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliTypesBuildConfig, cliConfigBuildConfig, cliBuildConfig, preinstallBuildConfig])
+const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
+
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig])
+  .catch(e => {
+    console.error(e)
+    process.exit(1)
+  })
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
