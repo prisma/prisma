@@ -19,12 +19,17 @@ import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
-export type BuildOptions = esbuild.BuildOptions & {
-  name?: string
-  emitTypes?: boolean
-  emitMetafile?: boolean
-  outbase?: never // we don't support this
-}
+export type BuildOptions
+  = esbuild.BuildOptions
+  & {
+    name?: string
+    emitMetafile?: boolean
+    outbase?: never // we don't support this
+  } &
+  (
+    | { emitTypes?: true, overrideDev?: true }
+    | { emitTypes?: false, overrideDev?: never }
+  )
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
@@ -32,7 +37,7 @@ const DEFAULT_BUILD_OPTIONS = {
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
-} as const
+} satisfies esbuild.BuildOptions
 
 /**
  * Apply defaults to the original build options
@@ -55,7 +60,7 @@ const applyDefaults = (options: BuildOptions): BuildOptions => ({
     ...(options.plugins ?? []),
     resolvePathsPlugin,
     fixImportsPlugin,
-    tscPlugin(options.emitTypes),
+    tscPlugin(options),
     onErrorPlugin,
   ],
   external: [...(options.external ?? []), ...getProjectExternals(options)],
@@ -116,12 +121,12 @@ function addDefaultOutDir(options: BuildOptions) {
  */
 async function executeEsBuild(options: BuildOptions) {
   if (process.env.WATCH === 'true') {
-    const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile', 'overrideDev']) as any)
 
     watch(context, options)
   }
 
-  const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
+  const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile', 'overrideDev']) as any)
   const outdir = options.outdir ?? (options.outfile ? path.dirname(options.outfile) : undefined)
 
   if (build.metafile && options.emitMetafile) {
@@ -137,7 +142,7 @@ async function executeEsBuild(options: BuildOptions) {
  */
 async function dependencyCheck(options: BuildOptions) {
   // we only check our dependencies for a full build
-  if (process.env.DEV === 'true') return undefined
+  if (!options.overrideDev && process.env.DEV === 'true') return undefined
 
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
