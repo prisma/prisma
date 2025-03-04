@@ -47,7 +47,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ clientRuntime, engineType }) => {
     beforeAll(() => {
       inMemorySpanExporter.reset()
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
@@ -72,6 +72,10 @@ testMatrix.setupTestSuite(
         // 'prisma:engine:query',                       <-- Filtered out parent span
         'prisma:client:operation',
       ]
+
+      if (clientRuntime === 'wasm' || engineType === 'client') {
+        expectedSpans.shift() // With wasm we do not perform platform detection
+      }
 
       expect(spans.map((span) => span.name)).toEqual(expectedSpans)
     })
