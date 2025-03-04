@@ -121,7 +121,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
 
       case Providers.MONGODB:
         expect(executedBatchQuery).toMatchInlineSnapshot(
-          `"db.User.aggregate([ { $match: { $expr: { $and: [ { $or: [ { $eq: [ "$email", { $literal: "Pete.Runte93767@broaden-dungeon.info", }, ], }, { $eq: [ "$email", { $literal: "Sam.Mills50272@oozeastronomy.net", }, ], }, { $eq: [ "$email", { $literal: "Kyla_Beer587@fraternise-assassination.name", }, ], }, { $eq: [ "$email", { $literal: "Arielle.Reichel85426@hunker-string.org", }, ], }, ], }, { $ne: [ "$email", "$$REMOVE", ], }, ], }, }, }, { $project: { _id: 1, email: 1, age: 1, name: 1, }, }, ])"`,
+          `"db.User.aggregate([ { $match: { $expr: { $and: [ { $or: [ { $eq: [ "$email", { $literal: "Pete.Kassulke82520@fox-min.com", }, ], }, { $eq: [ "$email", { $literal: "Sam.Dickinson32909@memorableparticular.org", }, ], }, { $eq: [ "$email", { $literal: "Kyla_Crist96556@cancollaboration.biz", }, ], }, { $eq: [ "$email", { $literal: "Arielle.Oberbrunner94321@fulljuggernaut.org", }, ], }, ], }, { $ne: [ "$email", "$$REMOVE", ], }, ], }, }, }, { $project: { _id: 1, email: 1, age: 1, name: 1, }, }, ])"`,
         )
         break
 
@@ -133,25 +133,25 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
       [
         {
           "age": 20,
-          "email": "Pete.Runte93767@broaden-dungeon.info",
+          "email": "Pete.Kassulke82520@fox-min.com",
           "id": "341952ef935455f20a169c25",
           "name": null,
         },
         {
           "age": 45,
-          "email": "Sam.Mills50272@oozeastronomy.net",
+          "email": "Sam.Dickinson32909@memorableparticular.org",
           "id": "02d25579a73a72373fa4e846",
           "name": null,
         },
         {
           "age": 60,
-          "email": "Kyla_Beer587@fraternise-assassination.name",
+          "email": "Kyla_Crist96556@cancollaboration.biz",
           "id": "a85d5d75a3a886cb61eb3a0e",
           "name": null,
         },
         {
           "age": 63,
-          "email": "Arielle.Reichel85426@hunker-string.org",
+          "email": "Arielle.Oberbrunner94321@fulljuggernaut.org",
           "id": "a7fe5dac91ab6b0f529430c5",
           "name": null,
         },
