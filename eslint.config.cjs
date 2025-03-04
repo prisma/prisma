@@ -1,11 +1,9 @@
 const typescriptEslint = require('@typescript-eslint/eslint-plugin')
 const jest = require('eslint-plugin-jest')
 const simpleImportSort = require('eslint-plugin-simple-import-sort')
-const _import = require('eslint-plugin-import')
+const _import = require('eslint-plugin-import-x')
 const localRules = require('eslint-plugin-local-rules')
 const path = require('path')
-
-const { fixupPluginRules } = require('@eslint/compat')
 
 const globals = require('globals')
 const tsParser = require('@typescript-eslint/parser')
@@ -31,6 +29,7 @@ module.exports = [
       '.github',
       'helpers/blaze/**',
       '**/dist/**',
+      '**/declaration/**',
       '**/esm/**',
       '**/build/**',
       '**/fixtures/**',
@@ -66,7 +65,7 @@ module.exports = [
       '@typescript-eslint': typescriptEslint,
       jest,
       'simple-import-sort': simpleImportSort,
-      import: fixupPluginRules(_import),
+      import: _import,
       'local-rules': localRules,
     },
 
