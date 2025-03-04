@@ -221,7 +221,7 @@
     "@prisma/pg-worker": "workspace:*",
     "@prisma/query-compiler-wasm": "6.5.0-39.84310176c3f15859928b573ea73f2c1ec30188eb",
     "@prisma/query-engine-wasm": "6.5.0-39.84310176c3f15859928b573ea73f2c1ec30188eb",
-    "@snaplet/copycat": "0.17.3",
+    "@snaplet/copycat": "6.0.0",
     "@swc-node/register": "1.10.9",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
