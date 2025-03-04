@@ -46,6 +46,9 @@
   "files": [
     "README.md",
     "build",
+    "config.js",
+    "config.d.ts",
+    "dist/cli/src/types.d.ts",
     "install",
     "runtime/*.js",
     "runtime/*.d.ts",

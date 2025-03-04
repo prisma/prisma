@@ -1,1 +1,1 @@
-export { defineConfig, type PrismaConfig } from '@prisma/config'
+export { defineConfig, type PrismaConfig, type PrismaConfigInternal } from '@prisma/config'
