@@ -38,7 +38,7 @@
     "@types/resolve": "1.20.6",
     "archiver": "6.0.2",
     "checkpoint-client": "1.1.33",
-    "cli-truncate": "2.1.0",
+    "cli-truncate": "4.0.0",
     "dotenv": "16.4.7",
     "esbuild": "0.24.2",
     "escape-string-regexp": "4.0.0",
