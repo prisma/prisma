@@ -1,5 +1,3 @@
-import crypto from 'crypto'
-
 import { getSchemaWithPath, type SchemaPathFromConfig } from './getSchema'
 
 /**
@@ -13,7 +11,7 @@ export async function getProjectHash(
   // Default to cwd if the schema couldn't be found
   const projectPath = (await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig))?.schemaPath ?? process.cwd()
 
-  return crypto.createHash('sha256').update(projectPath).digest('hex').substring(0, 8)
+  return globalThis.crypto.createHash('sha256').update(projectPath).digest('hex').substring(0, 8)
 }
 
 /**
@@ -22,5 +20,5 @@ export async function getProjectHash(
  */
 export function getCLIPathHash(): string {
   const cliPath = process.argv[1]
-  return crypto.createHash('sha256').update(cliPath).digest('hex').substring(0, 8)
+  return globalThis.crypto.createHash('sha256').update(cliPath).digest('hex').substring(0, 8)
 }

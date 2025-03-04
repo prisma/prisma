@@ -17,7 +17,6 @@ import {
   pathToPosix,
   setClassName,
 } from '@prisma/internals'
-import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
 import fs from 'fs/promises'
@@ -810,7 +809,7 @@ async function deleteOutputDir(outputDir: string) {
  * @returns
  */
 function getUniquePackageName(datamodel: string) {
-  const hash = createHash('sha256')
+  const hash = globalThis.crypto.createHash('sha256')
   hash.write(datamodel)
   return `${GENERATED_PACKAGE_NAME_PREFIX}${hash.digest().toString('hex')}`
 }
