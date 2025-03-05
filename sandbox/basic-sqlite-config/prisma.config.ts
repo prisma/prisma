@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { defineConfig } from '@prisma/config'
+import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   earlyAccess: true,

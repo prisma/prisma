@@ -6,6 +6,7 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { copyPrismaClient } from './copy-prisma-client'
 
 /**
@@ -52,19 +53,52 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
-// we define the config for cli
+/**
+ * Setup `import type { ... } from 'prisma'`.
+ */
+const cliTypesBuildConfig: BuildOptions = {
+  name: 'cliTypes',
+  entryPoints: ['src/types.ts'],
+  outdir: 'dist',
+  bundle: false,
+  emitTypes: true,
+  minify: false,
+}
+
+/**
+ * Setup `import { ... } from 'prisma/config'`.
+ */
+const cliConfigBuildConfig: BuildOptions = {
+  name: 'cliConfig',
+  entryPoints: ['src/config.ts'],
+
+  /**
+   * We store `./config.js` and `./config.d.ts` in the root of the package to avoid TypeScript
+   * errors for:
+   * - users with default `"moduleResolution"` settings in their `tsconfig.json`
+   * - users with old and inconsistent bundlers, like `webpack`
+   */
+  outdir: '.',
+  plugins: [copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])],
+
+  bundle: false,
+  emitTypes: true,
+  minify: false,
+}
+
+// Setup build config for the cli
 const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
-  external: ['fsevents', 'esbuild', 'esbuild-register'],
+  external: ['fsevents', 'esbuild'],
   emitTypes: false,
   minify: true,
 }
 
-// we define the config for preinstall
+// Setup preinstall
 const preinstallBuildConfig: BuildOptions = {
   name: 'preinstall',
   entryPoints: ['scripts/preinstall.ts'],
@@ -74,7 +108,12 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliBuildConfig, preinstallBuildConfig])
+const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
+
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
