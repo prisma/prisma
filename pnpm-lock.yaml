@@ -397,15 +397,12 @@ importers:
 
   packages/cli:
     dependencies:
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
-      esbuild:
-        specifier: '>=0.12 <1'
-        version: 0.24.2
-      esbuild-register:
-        specifier: 3.6.0
-        version: 3.6.0(esbuild@0.24.2)
     optionalDependencies:
       fsevents:
         specifier: 2.3.3
@@ -426,9 +423,6 @@ importers:
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
-      '@prisma/config':
-        specifier: workspace:*
-        version: link:../config
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -495,6 +489,9 @@ importers:
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
+      esbuild:
+        specifier: 0.24.2
+        version: 0.24.2
       execa:
         specifier: 5.1.1
         version: 5.1.1

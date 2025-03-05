@@ -81,8 +81,7 @@ const cliConfigBuildConfig: BuildOptions = {
   outdir: '.',
   plugins: [copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])],
 
-  bundle: true,
-  external: ['fsevents', 'esbuild', 'esbuild-register'],
+  bundle: false,
   emitTypes: true,
   minify: false,
 }
@@ -94,7 +93,7 @@ const cliBuildConfig: BuildOptions = {
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
-  external: ['fsevents', 'esbuild', 'esbuild-register'],
+  external: ['fsevents', 'esbuild'],
   emitTypes: false,
   minify: true,
 }

@@ -102,7 +102,6 @@
     "@inquirer/prompts": "7.3.2",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/client": "workspace:*",
-    "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -164,9 +163,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "workspace:*",
-    "esbuild": ">=0.12 <1",
-    "esbuild-register": "3.6.0"
+    "@prisma/config": "workspace:*",
+    "@prisma/engines": "workspace:*"
   },
   "optionalDependencies": {
     "fsevents": "2.3.3"
