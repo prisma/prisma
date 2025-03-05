@@ -106,7 +106,6 @@ export class Login implements Command {
 
     {
       const writeResult = await credentialsFile.save({ token: callbackResult.token })
-      // @ts-ignore: Expected 0-1 arguments, but got 2.
       if (isError(writeResult)) throw new Error('Writing credentials to disk failed', { cause: writeResult })
     }
 
