@@ -44,7 +44,7 @@
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "fast-glob": "3.3.3",
-    "find-up": "5.0.0",
+    "find-up": "7.0.0",
     "fp-ts": "2.16.9",
     "fs-extra": "11.3.0",
     "fs-jetpack": "5.1.0",
