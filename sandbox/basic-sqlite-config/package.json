@@ -14,8 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "../../packages/client",
-    "@prisma/config": "../../packages/config"
+    "@prisma/client": "../../packages/client"
   },
   "devDependencies": {
     "@types/node": "18.19.76",

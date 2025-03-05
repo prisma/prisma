@@ -2,6 +2,8 @@ pnpm-lock.yaml
 dist/
 /.prisma
 /packages/cli/build
+/packages/cli/config.d.ts
+/packages/cli/config.js
 /packages/cli/prisma-client
 /packages/cli/preinstall
 /packages/client/runtime
