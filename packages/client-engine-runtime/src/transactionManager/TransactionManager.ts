@@ -1,5 +1,3 @@
-import crypto from 'node:crypto'
-
 import Debug from '@prisma/debug'
 import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
@@ -62,7 +60,7 @@ export class TransactionManager {
     const validatedOptions = this.validateOptions(options)
 
     const transaction: TransactionWrapper = {
-      id: crypto.randomUUID(),
+      id: globalThis.crypto.randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: validatedOptions.timeout,
