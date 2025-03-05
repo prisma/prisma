@@ -204,12 +204,11 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
 
   async connectToShadowDb(): Promise<SqlConnection> {
     const { Miniflare } = await import('miniflare')
-    const crypto = await import('crypto')
 
     const mf = new Miniflare({
       modules: true,
       d1Databases: {
-        db: crypto.randomUUID(),
+        db: globalThis.crypto.randomUUID(),
       },
       script: `
       export default {
