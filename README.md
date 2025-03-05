@@ -40,7 +40,6 @@ If you need a database to use with Prisma ORM, check out [Prisma Postgres](https
 **Prisma ORM can further be extended with these Prisma products:**
 
 - [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate?utm_source=github&utm_medium=prisma-readme): Global database cache with scalable connection pooling
-- [Prisma Pulse](https://www.prisma.io/docs/data-platform/pulse?utm_source=github&utm_medium=prisma-readme): Real-time database events with type-safe subscriptions
 - [Prisma Optimize](https://www.prisma.io/docs/optimize?utm_source=github&utm_medium=prisma-readme): AI-powered query optimization and performance insights
 - [Prisma Studio](https://www.prisma.io/docs/orm/tools/prisma-studio?utm_source=github&utm_medium=org-readme): A visual editor for the data in your database
 
