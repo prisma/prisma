@@ -249,7 +249,7 @@ importers:
         version: 0.2.37(@swc/core@1.11.5)
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -274,7 +274,7 @@ importers:
         version: 8.11.11
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -302,7 +302,7 @@ importers:
         version: 0.2.37(@swc/core@1.11.5)
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -314,8 +314,8 @@ importers:
         version: link:../driver-adapter-utils
     devDependencies:
       '@planetscale/database':
-        specifier: 1.18.0
-        version: 1.18.0
+        specifier: 1.19.0
+        version: 1.19.0
       '@swc/core':
         specifier: 1.11.5
         version: 1.11.5
@@ -324,7 +324,7 @@ importers:
         version: 0.2.37(@swc/core@1.11.5)
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -341,8 +341,8 @@ importers:
         specifier: 0.10.2
         version: 0.10.2
       '@planetscale/database':
-        specifier: 1.18.0
-        version: 1.18.0
+        specifier: 1.19.0
+        version: 1.19.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -386,8 +386,8 @@ importers:
         specifier: 0.10.2
         version: 0.10.2
       '@planetscale/database':
-        specifier: 1.18.0
-        version: 1.18.0
+        specifier: 1.19.0
+        version: 1.19.0
       '@types/pg':
         specifier: 8.11.11
         version: 8.11.11
@@ -616,8 +616,8 @@ importers:
         specifier: 1.30.0
         version: 1.30.0
       '@planetscale/database':
-        specifier: 1.18.0
-        version: 1.18.0
+        specifier: 1.19.0
+        version: 1.19.0
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
@@ -652,8 +652,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -679,11 +679,11 @@ importers:
         specifier: workspace:*
         version: link:../pg-worker
       '@prisma/query-compiler-wasm':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/query-engine-wasm':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@snaplet/copycat':
         specifier: 6.0.0
         version: 6.0.0
@@ -784,8 +784,8 @@ importers:
         specifier: 2.0.6
         version: 2.0.6
       mariadb:
-        specifier: 3.3.1
-        version: 3.3.1
+        specifier: 3.4.0
+        version: 3.4.0
       memfs:
         specifier: 4.17.0
         version: 4.17.0
@@ -907,7 +907,7 @@ importers:
         version: 3.12.10
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
@@ -951,8 +951,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -988,8 +988,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1259,8 +1259,8 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
       mariadb:
-        specifier: 3.3.1
-        version: 3.3.1
+        specifier: 3.4.0
+        version: 3.4.0
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -1310,8 +1310,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1482,8 +1482,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1555,8 +1555,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       mariadb:
-        specifier: 3.3.1
-        version: 3.3.1
+        specifier: 3.4.0
+        version: 3.4.0
       mock-stdin:
         specifier: 1.0.0
         version: 1.0.0
@@ -1634,15 +1634,15 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
-        version: 6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a
+        specifier: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
+        version: 6.5.0-43.56bd63f620196b375ea597255b04817886e98eca
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
     devDependencies:
       jest:
         specifier: 29.7.0
-        version: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
 
 packages:
 
@@ -3074,26 +3074,26 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@planetscale/database@1.18.0':
-    resolution: {integrity: sha512-t2XdOfrVgcF7AW791FtdPS27NyNqcE1SpoXgk3HpziousvUMsJi4Q6NL3JyOBpsMOrvk94749o8yyonvX5quPw==}
+  '@planetscale/database@1.19.0':
+    resolution: {integrity: sha512-Tv4jcFUFAFjOWrGSio49H6R2ijALv0ZzVBfJKIdm+kl9X046Fh4LLawrF9OMsglVbK6ukqMJsUCeucGAFTBcMA==}
     engines: {node: '>=16'}
 
-  '@prisma/engines-version@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a':
-    resolution: {integrity: sha512-BBzeD9vW/qCd3pwRxZYYZHOBzLsyupNIxnuor5yD8Jay+cIUejO3bPM330swDWdDT5Wg/vGxNW5qO8kkqm4tZw==}
+  '@prisma/engines-version@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca':
+    resolution: {integrity: sha512-bk4o0H2kXJBWGKVHedfiTqd6y8TCpQgYNTSph9tCP470XF4jQXJLvM5OqQXvsTsxjtQaVG7ep1mEHPjXS/WNAg==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a':
-    resolution: {integrity: sha512-x+ArJ2s8KJN/18Xdrb0wdLfWGr7jf/MltgtqZqUZ3eaBkCoAZOnqSuWn5COmd8zfA9+UwUoUne0mvtffszOSyw==}
+  '@prisma/prisma-schema-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca':
+    resolution: {integrity: sha512-q3bNsXXZRbeC1fHqh2j5OZUKHgBEFxLDf2e1Bs99yhwe0QMMS9WmH8pY1UcaJkgHkRTZ/ixI1Sovo1iamVXQVQ==}
 
-  '@prisma/query-compiler-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a':
-    resolution: {integrity: sha512-vkURCYy1+/FSVnx+QcMO0q29vlQh9IVTAbeGoBNgtQQv4hzriqoZR8zQ/AVNTmXu3FFLe53YhQu+G1qYdHnG2Q==}
+  '@prisma/query-compiler-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca':
+    resolution: {integrity: sha512-8ndzbdS30qcVX4D/XXlBI936LyoPvwLZiGPqvjENx9bqyupzYryBxiFI/TXa+1xOD4a4FiherJMbPtksGsTVcw==}
 
-  '@prisma/query-engine-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a':
-    resolution: {integrity: sha512-UGjF3V59Kro0mNKTlQtp4juK6QFBkGLDR5kBnGntVMVr68+Pxw8/4/E3wWHPxHaeSmoxeYkF3MOmhbsdJb+xCw==}
+  '@prisma/query-engine-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca':
+    resolution: {integrity: sha512-7qPNMIq2nl5Gg9tj2+p3fOuJIjO262pkpT+lN8gObFbqDKKDke+MGEzUCBYIEUUEe0au5PMR7a9DmI5Lgt3h7Q==}
 
   '@prisma/studio-common@0.510.0':
     resolution: {integrity: sha512-Fwq1r7vv/MzuUOGMi5JMwSpkCIpYbO+43dZTdoNLLylqkPvfuVnYVRpAVsANmY/UJ0heXup8a1s+OvSaYBMvUQ==}
@@ -3350,8 +3350,8 @@ packages:
   '@types/fs-extra@11.0.4':
     resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
 
-  '@types/geojson@7946.0.14':
-    resolution: {integrity: sha512-WCfD5Ht3ZesJUsONdhvm84dmzWOiOzOAqOncN0++w0lBw1o8OuDNJF2McvvCef/yBqb/HYRahp1BYtODFQ8bRg==}
+  '@types/geojson@7946.0.16':
+    resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
 
   '@types/glob@8.0.0':
     resolution: {integrity: sha512-l6NQsDDyQUVeoTynNpC9uRvCUint/gSUXQA2euwmTuWGvPY5LSDUu6tkCtJB2SvGQlJQzLaKqcGZP4//7EDveA==}
@@ -3400,6 +3400,9 @@ packages:
 
   '@types/node@20.12.7':
     resolution: {integrity: sha512-wq0cICSkRLVaf3UGLMGItu/PtdY7oaXaI/RVU+xliKVOtRna3PRY57ZDfztpDL0n11vfymMUnXv8QwYCO7L1wg==}
+
+  '@types/node@22.13.9':
+    resolution: {integrity: sha512-acBjXdRJ3A6Pb3tqnw9HZmyR3Fiol3aGxRCK1x3d+6CDAMjl7I649wpSd+yNURCjbOUGu9tqtLKnTGxmK6CyGw==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -5385,6 +5388,7 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
+    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@2.1.0:
@@ -5473,9 +5477,8 @@ packages:
     resolution: {integrity: sha512-9ie8ItPR6tjY5uYJh8K/Zrv/RMZ5VOlOWvtZdEHYSTFKZfIBPQa9tOAEeAWhd+AnIneLJ22w5fjOYtoutpWq5w==}
     engines: {node: '>=18'}
 
-  lru-cache@10.2.0:
-    resolution: {integrity: sha512-2bIM8x+VAf6JT4bKAljS1qUWgMsqZRPGJS6FSahIMPVvctcNhyVp7AJu7quxOW9jwkryBReKZY5tY5JYv2n/7Q==}
-    engines: {node: 14 || >=16.14}
+  lru-cache@10.4.3:
+    resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
 
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
@@ -5516,8 +5519,8 @@ packages:
   map-stream@0.1.0:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
 
-  mariadb@3.3.1:
-    resolution: {integrity: sha512-L8bh4iuZU3J8H7Co7rQ6OY9FDLItAN1rGy8kPA7Dyxo8AiHADuuONoypKKp1pE09drs6e5LR7UW9luLZ/A4znA==}
+  mariadb@3.4.0:
+    resolution: {integrity: sha512-hdRPcAzs+MTxK5VG1thBW18gGTlw6yWBe9YnLB65GLo7q0fO5DWsgomIevV/pXSaWRmD3qi6ka4oSFRTExRiEQ==}
     engines: {node: '>= 14'}
 
   media-typer@0.3.0:
@@ -6909,6 +6912,9 @@ packages:
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
+  undici-types@6.20.0:
+    resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
+
   undici@5.28.5:
     resolution: {integrity: sha512-zICwjrDrcrUE0pyyJc1I2QzBkLM8FINsgOrt6WjA+BgajVq9Nxu2PbFFXUrAggLfDXlZGZBVZYw7WNV5KiBiBA==}
     engines: {node: '>=14.0'}
@@ -8194,7 +8200,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))':
+  '@jest/core@29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))':
     dependencies:
       '@jest/console': 29.7.0
       '@jest/reporters': 29.7.0
@@ -8208,7 +8214,7 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      jest-config: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -8659,17 +8665,17 @@ snapshots:
   '@oxc-resolver/binding-win32-x64-msvc@1.10.2':
     optional: true
 
-  '@planetscale/database@1.18.0': {}
+  '@planetscale/database@1.19.0': {}
 
-  '@prisma/engines-version@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a': {}
+  '@prisma/engines-version@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a': {}
+  '@prisma/prisma-schema-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca': {}
 
-  '@prisma/query-compiler-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a': {}
+  '@prisma/query-compiler-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca': {}
 
-  '@prisma/query-engine-wasm@6.5.0-42.ebe92748df38ea968da11e62e111f2596014342a': {}
+  '@prisma/query-engine-wasm@6.5.0-43.56bd63f620196b375ea597255b04817886e98eca': {}
 
   '@prisma/studio-common@0.510.0':
     dependencies:
@@ -8949,7 +8955,7 @@ snapshots:
       '@types/jsonfile': 6.1.4
       '@types/node': 18.19.76
 
-  '@types/geojson@7946.0.14': {}
+  '@types/geojson@7946.0.16': {}
 
   '@types/glob@8.0.0':
     dependencies:
@@ -9007,6 +9013,10 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/node@22.13.9':
+    dependencies:
+      undici-types: 6.20.0
+
   '@types/normalize-package-data@2.4.4': {}
 
   '@types/pg@8.11.11':
@@ -9060,7 +9070,7 @@ snapshots:
 
   '@types/tedious@4.0.9':
     dependencies:
-      '@types/node': 18.19.76
+      '@types/node': 20.12.7
 
   '@types/webidl-conversions@7.0.0': {}
 
@@ -9866,13 +9876,13 @@ snapshots:
       - supports-color
       - ts-node
 
-  create-jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)):
+  create-jest@29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)):
     dependencies:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      jest-config: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -10685,7 +10695,7 @@ snapshots:
 
   hosted-git-info@7.0.1:
     dependencies:
-      lru-cache: 10.2.0
+      lru-cache: 10.4.3
 
   html-escaper@2.0.2: {}
 
@@ -11008,16 +11018,16 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-cli@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)):
+  jest-cli@29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      create-jest: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      jest-config: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.6.0
@@ -11089,7 +11099,7 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-config@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)):
+  jest-config@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)):
     dependencies:
       '@babel/core': 7.21.8
       '@jest/test-sequencer': 29.7.0
@@ -11115,12 +11125,12 @@ snapshots:
       strip-json-comments: 3.1.1
     optionalDependencies:
       '@types/node': 18.19.76
-      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)
+      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
 
-  jest-config@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)):
+  jest-config@29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)):
     dependencies:
       '@babel/core': 7.21.8
       '@jest/test-sequencer': 29.7.0
@@ -11145,8 +11155,8 @@ snapshots:
       slash: 3.0.0
       strip-json-comments: 3.1.1
     optionalDependencies:
-      '@types/node': 20.12.7
-      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)
+      '@types/node': 22.13.9
+      ts-node: 10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
@@ -11414,12 +11424,12 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest@29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2)):
+  jest@29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      '@jest/core': 29.7.0(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
       '@jest/types': 29.6.3
       import-local: 3.1.0
-      jest-cli: 29.7.0(@types/node@20.12.7)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2))
+      jest-cli: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -11633,7 +11643,7 @@ snapshots:
       strip-ansi: 7.1.0
       wrap-ansi: 9.0.0
 
-  lru-cache@10.2.0: {}
+  lru-cache@10.4.3: {}
 
   lru-cache@5.1.1:
     dependencies:
@@ -11690,13 +11700,13 @@ snapshots:
 
   map-stream@0.1.0: {}
 
-  mariadb@3.3.1:
+  mariadb@3.4.0:
     dependencies:
-      '@types/geojson': 7946.0.14
-      '@types/node': 20.12.7
+      '@types/geojson': 7946.0.16
+      '@types/node': 22.13.9
       denque: 2.1.0
       iconv-lite: 0.6.3
-      lru-cache: 10.2.0
+      lru-cache: 10.4.3
 
   media-typer@0.3.0: {}
 
@@ -13071,14 +13081,14 @@ snapshots:
       '@swc/core': 1.11.5
     optional: true
 
-  ts-node@10.9.2(@swc/core@1.11.5)(@types/node@20.12.7)(typescript@5.7.2):
+  ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.7.2):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       '@tsconfig/node10': 1.0.9
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 20.12.7
+      '@types/node': 22.13.9
       acorn: 8.9.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -13151,6 +13161,8 @@ snapshots:
   ufo@1.5.4: {}
 
   undici-types@5.26.5: {}
+
+  undici-types@6.20.0: {}
 
   undici@5.28.5:
     dependencies:
