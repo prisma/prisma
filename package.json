@@ -77,7 +77,7 @@
     "kleur": "4.1.5",
     "lint-staged": "15.4.3",
     "p-map": "4.0.0",
-    "p-reduce": "2.1.0",
+    "p-reduce": "3.0.0",
     "p-retry": "4.6.2",
     "prettier": "2.8.8",
     "redis": "3.1.2",
