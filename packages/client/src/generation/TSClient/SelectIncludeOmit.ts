@@ -103,7 +103,6 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
     objectType.add(ts.property(field.name, appendSkipType(context, fieldType)).optional())
   }
 
-
   return objectType
 }
 

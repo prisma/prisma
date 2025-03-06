@@ -63,11 +63,11 @@ testMatrix.setupTestSuite(
         expect(result).toMatchInlineSnapshot(`
           [
             {
-              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "email": "Kyla_Crist96556@cancollaboration.biz",
               "id": "a7fe5dac91ab6b0f529430c5",
             },
             {
-              "email": "Sam.Mills50272@oozeastronomy.net",
+              "email": "Sam.Dickinson32909@memorableparticular.org",
               "id": "a85d5d75a3a886cb61eb3a0e",
             },
           ]
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "email": "Pete.Kassulke82520@fox-min.com",
             "id": "02d25579a73a72373fa4e846",
           },
         ]
@@ -106,7 +106,7 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "email": "Pete.Kassulke82520@fox-min.com",
             "id": "02d25579a73a72373fa4e846",
           },
         ]
@@ -125,7 +125,7 @@ testMatrix.setupTestSuite(
       expect(result).toMatchInlineSnapshot(`
         [
           {
-            "email": "Pete.Runte93767@broaden-dungeon.info",
+            "email": "Pete.Kassulke82520@fox-min.com",
             "id": "02d25579a73a72373fa4e846",
           },
         ]
@@ -148,7 +148,7 @@ testMatrix.setupTestSuite(
         expect(result).toMatchInlineSnapshot(`
           [
             {
-              "email": "Sam.Mills50272@oozeastronomy.net",
+              "email": "Sam.Dickinson32909@memorableparticular.org",
               "id": "a85d5d75a3a886cb61eb3a0e",
             },
           ]
@@ -172,7 +172,7 @@ testMatrix.setupTestSuite(
         expect(result).toMatchInlineSnapshot(`
           [
             {
-              "email": "Kyla_Beer587@fraternise-assassination.name",
+              "email": "Kyla_Crist96556@cancollaboration.biz",
               "id": "a7fe5dac91ab6b0f529430c5",
             },
           ]

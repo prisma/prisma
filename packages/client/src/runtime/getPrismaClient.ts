@@ -533,12 +533,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
       } else if (eventType) {
         this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
+      return this
     }
 
     $connect() {

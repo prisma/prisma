@@ -479,7 +479,7 @@ export class ModelDelegate implements Generable {
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
 
-    const genericDelegateParams = [extArgsParam, ts.genericParameter('ClientOptions').default(ts.objectType())]
+    const genericDelegateParams = [extArgsParam, ts.genericParameter('GlobalOmitOptions').default(ts.objectType())]
 
     const excludedArgsForCount = ['select', 'include', 'distinct', 'omit']
     if (this.context.isPreviewFeatureOn('relationJoins')) {
@@ -751,7 +751,7 @@ function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullTyp
     .addGenericArgument(resultType)
     .addGenericArgument(nullType)
     .addGenericArgument(extArgsParam.toArgument())
-    .addGenericArgument(ts.namedType('ClientOptions'))
+    .addGenericArgument(ts.namedType('GlobalOmitOptions'))
 }
 
 function getResultType(modelName: string, actionName: DMMF.ModelAction) {
@@ -760,7 +760,7 @@ function getResultType(modelName: string, actionName: DMMF.ModelAction) {
     .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(ts.stringLiteral(actionName))
-    .addGenericArgument(ts.namedType('ClientOptions'))
+    .addGenericArgument(ts.namedType('GlobalOmitOptions'))
 }
 
 function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.OutputType, context: GenerateContext) {
@@ -769,7 +769,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
     .addGenericParameter(ts.genericParameter('T'))
     .addGenericParameter(ts.genericParameter('Null').default(ts.neverType))
     .addGenericParameter(extArgsParam)
-    .addGenericParameter(ts.genericParameter('ClientOptions').default(ts.objectType()))
+    .addGenericParameter(ts.genericParameter('GlobalOmitOptions').default(ts.objectType()))
     .extends(ts.prismaPromise(ts.namedType('T')))
 
   definition.add(ts.property(ts.toStringTag, ts.stringLiteral('PrismaPromise')).readonly())

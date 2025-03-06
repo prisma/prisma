@@ -531,17 +531,17 @@ export class Init implements Command {
       )} with scalable connection pooling, global caching, and real-time database events. Read: https://pris.ly/cli/beyond-orm`,
     )
 
-    if (!url || args['--datasource-provider']) {
-      if (!args['--datasource-provider']) {
-        steps.unshift(
-          `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
-            'schema.prisma',
-          )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
-            'sqlserver',
-          )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
-        )
-      }
+    if (!url && !args['--datasource-provider']) {
+      steps.unshift(
+        `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
+          'schema.prisma',
+        )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
+          'sqlserver',
+        )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
+      )
+    }
 
+    if (!args['--url']) {
       steps.unshift(
         `Set the ${green('DATABASE_URL')} in the ${green(
           '.env',

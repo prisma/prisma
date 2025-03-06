@@ -9,6 +9,7 @@ import prompt from 'prompts'
 
 import { DbExecute } from '../commands/DbExecute'
 import { MigrateDev } from '../commands/MigrateDev'
+import { MigrateReset } from '../commands/MigrateReset'
 import { CaptureStdout } from '../utils/captureStdout'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -61,7 +62,9 @@ function clearPromptInjection(position: string): void {
   const count = prompt._injected.length
   if (!count) return
 
-  process.stdout.write(`WARNING: Clearing ${count} prompt injection(s) ${position} test case\n: ${prompt._injected.join(", ")}`)
+  process.stdout.write(
+    `WARNING: Clearing ${count} prompt injection(s) ${position} test case\n: ${prompt._injected.join(', ')}`,
+  )
 
   prompt._injected.splice(0, count)
 }
@@ -434,47 +437,7 @@ describe('sqlite', () => {
     `)
   })
 
-  it('transition-db-push-migrate (--allow-reset)', async () => {
-    ctx.fixture('transition-db-push-migrate')
-
-    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      Drift detected: Your database schema is not in sync with your migration history.
-
-      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
-
-      It should be understood as the set of changes to get from the expected schema to the actual schema.
-
-      If you are running this the first time on an existing database, please make sure to read this documentation page:
-      https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
-
-      [+] Added tables
-        - Blog
-        - _Migration
-
-      We need to reset the SQLite database "dev.db" at "file:dev.db"
-      
-      Received --allow-reset, dropping the database. All data is lost.
-
-      Applying migration \`20201231000000_\`
-
-      The following migration(s) have been created and applied from new schema changes:
-
-      migrations/
-        └─ 20201231000000_/
-          └─ migration.sql
-
-      Your database is now in sync with your schema.
-      "
-    `)
-  })
-
-  it('transition-db-push-migrate (must refuse reset)', async () => {
+  it('transition-db-push-migrate (refuses to reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
@@ -502,7 +465,8 @@ describe('sqlite', () => {
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
       
-      You may use --allow-reset to drop the database. All data will be lost.
+      You may use prisma migrate reset to drop the development database.
+      All data will be lost.
       "
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -511,20 +475,17 @@ describe('sqlite', () => {
   it('edited migration and unapplied empty draft', async () => {
     ctx.fixture('edited-and-draft')
 
-    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    // migrate reset --force
+    const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The migration \`20201231000000_test\` was modified after it was applied.
-      We need to reset the SQLite database "dev.db" at "file:dev.db"
-      
-      Received --allow-reset, dropping the database. All data is lost.
-
       Applying migration \`20201231000000_test\`
       Applying migration \`20201231000000_draft\`
+
+      Database reset successful
 
       The following migration(s) have been applied:
 
@@ -533,8 +494,18 @@ describe('sqlite', () => {
           └─ migration.sql
         └─ 20201231000000_draft/
           └─ migration.sql
+      "
+    `)
+    captureStdout.clearCaptureText()
 
-      Your database is now in sync with your schema.
+    const result = MigrateDev.new().parse([], defaultTestConfig())
+
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Already in sync, no schema change or pending migration was found.
       "
     `)
   })
@@ -543,47 +514,44 @@ describe('sqlite', () => {
     ctx.fixture('edited-and-draft')
     fs.remove('prisma/migrations/20201117144659_test')
 
+    // migrate reset --force
+    const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      
+      Applying migration \`20201231000000_draft\`
+      
+      Database reset successful
+      
+      The following migration(s) have been applied:
+      
+      migrations/
+        └─ 20201231000000_draft/
+          └─ migration.sql
+      "
+    `)
+    captureStdout.clearCaptureText()
+
     prompt.inject(['new-change'])
 
-    const result = MigrateDev.new().parse(['--allow-reset'], defaultTestConfig())
+    const result = MigrateDev.new().parse([], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      - Drift detected: Your database schema is not in sync with your migration history.
-
-      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
-
-      It should be understood as the set of changes to get from the expected schema to the actual schema.
-
-      [+] Added tables
-        - Blog
-
-      - The migrations recorded in the database diverge from the local migrations directory.
-
-      We need to reset the SQLite database "dev.db" at "file:dev.db"
-
-      Received --allow-reset, dropping the database. All data is lost.
-
-      Applying migration \`20201231000000_draft\`
-
-      The following migration(s) have been applied:
-
-      migrations/
-        └─ 20201231000000_draft/
-          └─ migration.sql
+      
       Enter a name for the new migration:
       Applying migration \`20201231000000_new_change\`
-
-
+      
       The following migration(s) have been created and applied from new schema changes:
-
+      
       migrations/
         └─ 20201231000000_new_change/
           └─ migration.sql
-
+      
       Your database is now in sync with your schema.
       "
     `)
@@ -1249,6 +1217,46 @@ describe('postgresql', () => {
       "Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Already in sync, no schema change or pending migration was found.
+      "
+    `)
+  })
+
+  it('regression: enum array column type is introspected properly (gh-22456)', async () => {
+    ctx.fixture('enum-array-type-introspection')
+
+    // Reset the database
+    const reset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(reset).resolves.toMatchInlineSnapshot('""')
+
+    // The first (initial) migration should create the database objects
+    captureStdout.clearCaptureText()
+    const firstResult = MigrateDev.new().parse([], defaultTestConfig())
+    await expect(firstResult).resolves.toMatchInlineSnapshot('""')
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Applying migration \`20201231000000_\`
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      migrations/
+        └─ 20201231000000_/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+      "
+    `)
+
+    // No migration should be created on the second run, since there have been no changes to the schema
+    captureStdout.clearCaptureText()
+    const secondResult = MigrateDev.new().parse([], defaultTestConfig())
+    await expect(secondResult).resolves.toMatchInlineSnapshot('""')
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
 
       Already in sync, no schema change or pending migration was found.
       "
