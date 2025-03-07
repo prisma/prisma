@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -35,6 +36,7 @@ Check the status of your database migrations
   ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
   ${bold('Examples')}
@@ -46,13 +48,14 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -62,16 +65,16 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, true)
+    await checkUnsupportedDataProxy('migrate status', args, config.schema, true)
 
     if (args['--help']) {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     // TODO: handle the case where the schemaPath is null
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 

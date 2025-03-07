@@ -21,6 +21,7 @@ export function model(name: string, fields: DMMF.Field[]): DMMF.Model {
   return {
     name,
     dbName: null,
+    schema: null,
     fields: [
       field('scalar', 'id', 'String', {
         isUnique: true,

@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
@@ -74,7 +74,7 @@ describe('postgresql-extensions', () => {
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
@@ -124,7 +124,7 @@ describe('postgresql-extensions', () => {
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`

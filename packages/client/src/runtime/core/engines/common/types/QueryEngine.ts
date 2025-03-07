@@ -1,14 +1,13 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { EngineSpan, EngineSpanEvent } from '@prisma/internals'
+import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
 import { EngineProtocol } from '../Engine'
-import { LogLevel } from '../utils/log'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
 import * as Transaction from './Transaction'
 
 // Events
-export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent | EngineSpanEvent
+export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent
 
 export type QueryEngineLogEvent = {
   level: string
@@ -49,8 +48,8 @@ export type QueryEngineConfig = {
   datasourceOverrides: Record<string, string>
   env: Record<string, string | undefined>
   logLevel: QueryEngineLogLevel
-  telemetry?: QueryEngineTelemetry
   engineProtocol: EngineProtocol
+  enableTracing: boolean
 }
 
 export type QueryEngineTelemetry = {
@@ -63,7 +62,7 @@ export type QueryEngineRequest = {
   variables: Object
 }
 
-type WithResultExtensions<T> = T & {
+export type WithResultExtensions<T> = T & {
   extensions?: QueryEngineResultExtensions
 }
 
@@ -86,20 +85,8 @@ export type QueryEngineBatchResult<T> = WithErrorsAndResultExtensions<{
 }>
 
 export type QueryEngineResultExtensions = {
-  logs?: QueryEngineRawEvent[]
+  logs?: EngineTraceEvent[]
   traces?: EngineSpan[]
-}
-
-export type QueryEngineRawEvent = {
-  span_id: string
-  name: string
-  level: LogLevel
-  timestamp: [seconds: number, nanoseconds: number]
-  attributes: Record<string, unknown> & {
-    duration_ms: number
-    params: string
-    target: string
-  }
 }
 
 export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery

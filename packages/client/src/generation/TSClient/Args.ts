@@ -73,9 +73,6 @@ export class ArgsTypeBuilder {
   }
 
   addOmitArg(): this {
-    if (!this.context.isPreviewFeatureOn('omitApi')) {
-      return this
-    }
     this.addProperty(
       ts
         .property(

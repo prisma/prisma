@@ -22,6 +22,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export { createParam } from './core/model/Param'
 export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
@@ -32,6 +33,7 @@ export { makeTypedQueryFactory } from './core/types/exported/TypedSql'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { makeStrictEnum } from './strictEnum'
+export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'

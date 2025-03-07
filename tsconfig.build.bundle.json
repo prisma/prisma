@@ -4,6 +4,7 @@
     "paths": {
       "@prisma/client": ["./packages/client/src"],
       "@prisma/client/runtime/library": ["./packages/client/src/runtime"],
+      "@prisma/config": ["./packages/config/src"],
       "@prisma/internals": ["./packages/internals/src"],
       "@prisma/migrate": ["./packages/migrate/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],

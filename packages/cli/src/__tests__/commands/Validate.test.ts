@@ -2,6 +2,7 @@
 
 import path from 'node:path'
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { serializeQueryEngineName } from '@prisma/internals'
 
@@ -37,29 +38,29 @@ describe('validate', () => {
         `)
 
         // implicit: single schema file (`schema.prisma`)
-        await expect(Validate.new().parse([])).resolves.toMatchInlineSnapshot(
+        await expect(Validate.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
           `"The schema at schema.prisma is valid 🚀"`,
         )
 
         // explicit: single schema file (`schema.prisma`)
-        await expect(Validate.new().parse(['--schema=schema.prisma'])).resolves.toMatchInlineSnapshot(
-          `"The schema at schema.prisma is valid 🚀"`,
-        )
+        await expect(
+          Validate.new().parse(['--schema=schema.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"The schema at schema.prisma is valid 🚀"`)
 
         // explicit: single schema file (`custom.prisma`)
-        await expect(Validate.new().parse(['--schema=custom.prisma'])).resolves.toMatchInlineSnapshot(
-          `"The schema at custom.prisma is valid 🚀"`,
-        )
+        await expect(
+          Validate.new().parse(['--schema=custom.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"The schema at custom.prisma is valid 🚀"`)
 
         // explicit: single schema file (`prisma/custom.prisma`)
-        await expect(Validate.new().parse(['--schema=prisma/custom.prisma'])).resolves.toMatchInlineSnapshot(
-          `"The schema at prisma/custom.prisma is valid 🚀"`,
-        )
+        await expect(
+          Validate.new().parse(['--schema=prisma/custom.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"The schema at prisma/custom.prisma is valid 🚀"`)
 
         // explicit: multi schema files with `prismaSchemaFolder` enabled
-        await expect(Validate.new().parse(['--schema=prisma/schema'])).resolves.toMatchInlineSnapshot(
-          `"The schemas at prisma/schema are valid 🚀"`,
-        )
+        await expect(
+          Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)
 
         await ctx.fs.removeAsync('schema.prisma')
         expect(ctx.tree()).toMatchInlineSnapshot(`
@@ -75,7 +76,7 @@ describe('validate', () => {
         `)
 
         // implicit: single schema file (`prisma/schema.prisma`)
-        await expect(Validate.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
           `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
@@ -92,7 +93,7 @@ describe('validate', () => {
         `)
 
         // implicit: multi schema files with `prismaSchemaFolder` enabled
-        await expect(Validate.new().parse([])).resolves.toMatchInlineSnapshot(
+        await expect(Validate.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
           `"The schemas at prisma/schema are valid 🚀"`,
         )
       })
@@ -110,7 +111,7 @@ describe('validate', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Argument "value" is missing.
@@ -139,7 +140,7 @@ describe('validate', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating model "User": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
@@ -188,7 +189,7 @@ describe('validate', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
@@ -219,7 +220,7 @@ describe('validate', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Property not known: "custom".
@@ -249,7 +250,7 @@ describe('validate', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
           `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
@@ -265,7 +266,7 @@ describe('validate', () => {
         `)
 
         // implicit: multi schema files (`prisma/schema`)
-        await expect(Validate.new().parse([])).resolves.toMatchInlineSnapshot(
+        await expect(Validate.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
           `"The schemas at prisma/schema are valid 🚀"`,
         )
       })
@@ -274,24 +275,28 @@ describe('validate', () => {
 
   it('should succeed if schema is valid', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=schema.prisma'])).resolves.toContain('is valid')
+    await expect(Validate.new().parse(['--schema=schema.prisma'], defaultTestConfig())).resolves.toContain('is valid')
   })
 
   it('should throw if schema is invalid', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrow('Prisma schema validation')
+    await expect(Validate.new().parse(['--schema=broken.prisma'], defaultTestConfig())).rejects.toThrow(
+      'Prisma schema validation',
+    )
   })
 
   it('should throw if env var is not set', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'])).rejects.toThrow(
+    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'], defaultTestConfig())).rejects.toThrow(
       'Environment variable not found',
     )
   })
 
   it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Validate.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
+    await expect(
+      Validate.new().parse(['--schema=preview-feature-deprecated.prisma'], defaultTestConfig()),
+    ).resolves.toBeTruthy()
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -304,9 +309,9 @@ describe('validate', () => {
 
   it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Validate.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrow(
-      'P1012',
-    )
+    await expect(
+      Validate.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'], defaultTestConfig()),
+    ).rejects.toThrow('P1012')
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -322,7 +327,9 @@ describe('validate', () => {
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true'
 
-    await expect(Validate.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
+    await expect(
+      Validate.new().parse(['--schema=preview-feature-deprecated.prisma'], defaultTestConfig()),
+    ).resolves.toBeTruthy()
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toEqual('')
@@ -338,7 +345,7 @@ describe('validate', () => {
       expect.assertions(1)
 
       try {
-        await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
+        await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -368,7 +375,7 @@ describe('validate', () => {
       expect.assertions(1)
 
       try {
-        await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
+        await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -395,7 +402,7 @@ describe('validate', () => {
     })
 
     it('should accept NoAction referential action on e.g. MySQL when relationMode = "prisma"', async () => {
-      const result = await Validate.new().parse(['--schema', './prisma/mysql.prisma'])
+      const result = await Validate.new().parse(['--schema', './prisma/mysql.prisma'], defaultTestConfig())
       expect(result).toBeTruthy()
     })
   })

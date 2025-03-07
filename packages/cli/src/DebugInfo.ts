@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -32,14 +33,16 @@ export class DebugInfo implements Command {
   ${bold('Options')}
 
     -h, --help     Display this help message
+    --config       Custom path to your Prisma config file
     --schema       Custom path to your Prisma schema
 `)
 
-  async parse(argv: string[]): Promise<string | Error> {
+  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
@@ -51,7 +54,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
@@ -65,7 +68,7 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link((await getSchemaWithPath(args['--schema']))?.schemaPath)
+      schemaPath = link((await getSchemaWithPath(args['--schema'], config.schema))?.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }

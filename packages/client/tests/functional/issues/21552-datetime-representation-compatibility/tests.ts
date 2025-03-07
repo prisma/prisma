@@ -48,6 +48,10 @@ testMatrix.setupTestSuite(
     })
   },
   {
+    skipEngine: {
+      from: ['client'],
+      reason: 'Client engine cannot be used with native drivers but requires driver adapters / wasm.',
+    },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: `

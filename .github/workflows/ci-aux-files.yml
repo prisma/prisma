@@ -11,7 +11,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'

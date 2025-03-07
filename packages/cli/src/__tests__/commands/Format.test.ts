@@ -2,6 +2,7 @@
 
 import path from 'node:path'
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 import fs from 'fs-jetpack'
@@ -39,31 +40,33 @@ describe('format', () => {
         `)
 
         // implicit: single schema file (`schema.prisma`)
-        await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(`"Formatted schema.prisma in XXXms 🚀"`)
+        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
+          `"Formatted schema.prisma in XXXms 🚀"`,
+        )
 
-        await expect(Format.new().parse(['--check'])).resolves.toMatchInlineSnapshot(
+        await expect(Format.new().parse(['--check'], defaultTestConfig())).resolves.toMatchInlineSnapshot(
           `"All files are formatted correctly!"`,
         )
 
         // explicit: single schema file (`schema.prisma`)
-        await expect(Format.new().parse(['--schema=schema.prisma'])).resolves.toMatchInlineSnapshot(
-          `"Formatted schema.prisma in XXXms 🚀"`,
-        )
+        await expect(
+          Format.new().parse(['--schema=schema.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"Formatted schema.prisma in XXXms 🚀"`)
 
         // explicit: single schema file (`custom.prisma`)
-        await expect(Format.new().parse(['--schema=custom.prisma'])).resolves.toMatchInlineSnapshot(
-          `"Formatted custom.prisma in XXXms 🚀"`,
-        )
+        await expect(
+          Format.new().parse(['--schema=custom.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"Formatted custom.prisma in XXXms 🚀"`)
 
         // explicit: single schema file (`prisma/custom.prisma`)
-        await expect(Format.new().parse(['--schema=prisma/custom.prisma'])).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/custom.prisma in XXXms 🚀"`,
-        )
+        await expect(
+          Format.new().parse(['--schema=prisma/custom.prisma'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"Formatted prisma/custom.prisma in XXXms 🚀"`)
 
         // explicit: multi schema files with `prismaSchemaFolder` enabled
-        await expect(Format.new().parse(['--schema=prisma/schema'])).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/schema in XXXms 🚀"`,
-        )
+        await expect(
+          Format.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
 
         await ctx.fs.removeAsync('schema.prisma')
         expect(ctx.tree()).toMatchInlineSnapshot(`
@@ -79,7 +82,7 @@ describe('format', () => {
         `)
 
         // implicit: conflict between folder and file
-        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
           `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
@@ -96,7 +99,9 @@ describe('format', () => {
         `)
 
         // implicit: multi schema files with `prismaSchemaFolder` enabled
-        await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
+        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
+          `"Formatted prisma/schema in XXXms 🚀"`,
+        )
       })
     })
 
@@ -112,7 +117,7 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Format.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Argument "value" is missing.
@@ -143,7 +148,7 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Format.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
@@ -174,7 +179,7 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(`
+        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
           Error code: P1012
           error: Property not known: "custom".
@@ -205,7 +210,7 @@ describe('format', () => {
         `)
 
         // implicit: single schema file (`prisma/schema.prisma`)
-        await expect(Format.new().parse([])).rejects.toThrowErrorMatchingInlineSnapshot(
+        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
           `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
         )
 
@@ -221,7 +226,9 @@ describe('format', () => {
         `)
 
         // implicit: multi schema files (`prisma/schema`)
-        await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
+        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
+          `"Formatted prisma/schema in XXXms 🚀"`,
+        )
       })
 
       it('fixes invalid relations across multiple schema files', async () => {
@@ -239,7 +246,7 @@ describe('format', () => {
           "
         `)
 
-        await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating field \`user\` in model \`Link\`: The relation field \`user\` on model \`Link\` is missing an opposite relation field on the model \`User\`. Either run \`prisma format\` or add it manually.
@@ -255,8 +262,10 @@ describe('format', () => {
 
           Prisma CLI Version : 0.0.0"
         `)
-        await expect(Format.new().parse([])).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
-        await expect(Validate.new().parse([])).resolves.toMatchInlineSnapshot(
+        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
+          `"Formatted prisma/schema in XXXms 🚀"`,
+        )
+        await expect(Validate.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
           `"The schemas at prisma/schema are valid 🚀"`,
         )
 
@@ -304,24 +313,26 @@ describe('format', () => {
 
   it('should add a trailing EOL', async () => {
     ctx.fixture('example-project/prisma')
-    await Format.new().parse([])
+    await Format.new().parse([], defaultTestConfig())
     expect(fs.read('schema.prisma')).toMatchSnapshot()
   })
 
   it('should add missing backrelation', async () => {
     ctx.fixture('example-project/prisma')
-    await Format.new().parse(['--schema=missing-backrelation.prisma'])
+    await Format.new().parse(['--schema=missing-backrelation.prisma'], defaultTestConfig())
     expect(fs.read('missing-backrelation.prisma')).toMatchSnapshot()
   })
 
   it('should throw if schema is broken', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Format.new().parse(['--schema=broken.prisma'])).rejects.toThrow()
+    await expect(Format.new().parse(['--schema=broken.prisma'], defaultTestConfig())).rejects.toThrow()
   })
 
   it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
+    await expect(
+      Format.new().parse(['--schema=preview-feature-deprecated.prisma'], defaultTestConfig()),
+    ).resolves.toBeTruthy()
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -334,7 +345,9 @@ describe('format', () => {
 
   it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrow('P1012')
+    await expect(
+      Format.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'], defaultTestConfig()),
+    ).rejects.toThrow('P1012')
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -350,7 +363,9 @@ describe('format', () => {
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true'
 
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
+    await expect(
+      Format.new().parse(['--schema=preview-feature-deprecated.prisma'], defaultTestConfig()),
+    ).resolves.toBeTruthy()
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toEqual('')
@@ -359,8 +374,8 @@ describe('format', () => {
 
   it('check should fail on unformatted code', async () => {
     ctx.fixture('example-project/prisma-unformatted')
-    await expect(Format.new().parse(['--schema=unformatted.prisma', '--check'])).resolves.toMatchInlineSnapshot(
-      `"! There are unformatted files. Run prisma format to format them."`,
-    )
+    await expect(
+      Format.new().parse(['--schema=unformatted.prisma', '--check'], defaultTestConfig()),
+    ).resolves.toMatchInlineSnapshot(`"! There are unformatted files. Run prisma format to format them."`)
   })
 })

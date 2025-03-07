@@ -36,7 +36,7 @@ export default defineMatrix(() => [
   ],
   [
     {
-      previewFeatures: '"tracing"',
+      previewFeatures: '"relationJoins"',
     },
     {
       previewFeatures: '"referentialIntegrity"',
@@ -52,13 +52,13 @@ export default defineMatrix(() => [
       'provider': 'sqlite',
       'id': 'Int @id @default(autoincrement())',
       'randomString': 'foo',
-      'previewFeatures': '"tracing"',
+      'previewFeatures': '"relationJoins"',
     },
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
       'randomString': '"book", ',
-      'previewFeatures': '"tracing"',
+      'previewFeatures': '"relationJoins"',
     },
     {
       'provider': 'sqlite',

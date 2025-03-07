@@ -24,6 +24,7 @@ const rawClient = Symbol()
  */
 export function applyModelsAndClientExtensions(client: Client) {
   const layers = [
+    rootLayer(client),
     modelsLayer(client),
     addProperty(rawClient, () => client),
     addProperty('$parent', () => client._appliedParent),
@@ -33,6 +34,21 @@ export function applyModelsAndClientExtensions(client: Client) {
     layers.push(addObjectProperties(clientExtensions))
   }
   return createCompositeProxy(client, layers)
+}
+
+function rootLayer(client: Client): CompositeProxyLayer {
+  const prototype = Object.getPrototypeOf(client._originalClient)
+  const allKeys = [...new Set(Object.getOwnPropertyNames(prototype))]
+
+  return {
+    getKeys() {
+      return allKeys
+    },
+
+    getPropertyValue(prop) {
+      return client[prop]
+    },
+  }
 }
 
 function modelsLayer(client: Client): CompositeProxyLayer {

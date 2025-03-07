@@ -1,10 +1,11 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
-import prompt from 'prompts'
 
 import { DbPull } from '../commands/DbPull'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { MigrateDev } from '../commands/MigrateDev'
+import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
 
@@ -44,7 +45,7 @@ describe('Baselining', () => {
     process.env.DATABASE_URL = 'file:./dev.db'
 
     // db pull
-    const dbPull = DbPull.new().parse([])
+    const dbPull = DbPull.new().parse([], defaultTestConfig())
     await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -58,40 +59,37 @@ describe('Baselining', () => {
     `)
     captureStdout.clearCaptureText()
 
+    // migrate reset --force
+    const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
+    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+      "
+    `)
+    captureStdout.clearCaptureText()
+
     // migrate dev --create-only
-    prompt.inject(['y'])
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'])
+    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
     await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+"Prisma schema loaded from prisma/schema.prisma
+Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
-      Drift detected: Your database schema is not in sync with your migration history.
-
-      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
-
-      It should be understood as the set of changes to get from the expected schema to the actual schema.
-
-      If you are running this the first time on an existing database, please make sure to read this documentation page:
-      https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
-
-      [+] Added tables
-        - Blog
-
-      We need to reset the SQLite database "dev.db" at "file:./dev.db"
-      Do you want to continue? All data will be lost.
-
-      "
-    `)
+"
+`)
     captureStdout.clearCaptureText()
 
     // migrate dev
     captureStdout.startCapture()
-    const migrateDev = MigrateDev.new().parse([])
+    const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
     await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -115,7 +113,7 @@ describe('Baselining', () => {
 
     // migrate resolve --applied migration_name
     const migrationName = fs.list('prisma/migrations')![0]
-    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName])
+    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
     await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -128,7 +126,7 @@ describe('Baselining', () => {
     captureStdout.clearCaptureText()
 
     // migrate deploy
-    const migrateDeployProd = MigrateDeploy.new().parse([])
+    const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

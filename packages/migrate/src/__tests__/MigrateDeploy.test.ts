@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 
@@ -26,7 +27,7 @@ afterAll(() => {
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse([])
+    const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
@@ -44,7 +45,7 @@ describe('common', () => {
 describe('sqlite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'])
+    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -66,7 +67,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse([])
+    const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -78,7 +79,7 @@ describe('sqlite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([])
+    const resultBis = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -107,7 +108,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse([])
+    const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -119,7 +120,7 @@ describe('sqlite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([])
+    const resultBis = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -147,7 +148,7 @@ describe('sqlite', () => {
   it('should throw if database is not empty', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateDeploy.new().parse([])
+    const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P3005
 
@@ -196,7 +197,7 @@ describe('postgresql', () => {
 
   it('should fail if url is prisma://', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse([])
+    const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
@@ -209,7 +210,7 @@ describe('postgresql', () => {
 
   it('should work if directUrl is set as an env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from .env

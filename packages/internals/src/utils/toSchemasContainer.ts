@@ -1,4 +1,5 @@
-import { GetSchemaResult } from '../cli/getSchema'
+import { GetSchemaResult } from '@prisma/schema-files-loader'
+
 import { ConfigMetaFormat } from '../engine-commands'
 import { MigrateTypes } from '../migrateTypes'
 import { getMigrateConfigDir } from './getMigrateConfigDir'

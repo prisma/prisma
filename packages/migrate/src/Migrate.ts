@@ -4,6 +4,7 @@ import {
   getGeneratorSuccessMessage,
   type GetSchemaResult,
   getSchemaWithPath,
+  isPrismaPostgres,
   toSchemasContainer,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
@@ -12,6 +13,7 @@ import path from 'path'
 
 import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
+import { DatasourceInfo } from './utils/ensureDatabaseExists'
 
 // TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
 // We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
@@ -135,8 +137,11 @@ export class Migrate {
     }
   }
 
-  public async tryToRunGenerate(): Promise<void> {
+  public async tryToRunGenerate(datasourceInfo: DatasourceInfo): Promise<void> {
     if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+
+    // Auto-append the `--no-engine` flag to the `prisma generate` command when a Prisma Postgres URL is used.
+    const skipEngines = isPrismaPostgres(datasourceInfo.url)
 
     const message: string[] = []
 
@@ -148,6 +153,7 @@ export class Migrate {
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
+      noEngine: skipEngines,
     })
 
     for (const generator of generators) {

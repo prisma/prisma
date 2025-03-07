@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command } from '@prisma/internals'
 
 import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -10,55 +11,84 @@ export class Create implements Command {
     return new Create()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = argOrThrow(argv, {
       ...platformParameters.workspace,
       '--name': String,
       '-n': '--name',
     })
-    const token = await getTokenOrThrow(args)
     const workspaceId = getRequiredParameterOrThrow(args, ['--workspace', '-w'])
     const displayName = getOptionalParameter(args, ['--name', '-n'])
-    const { projectCreate } = await requestOrThrow<
-      {
-        projectCreate: {
-          __typename: string
+
+    const project = await createProjectOrThrow({
+      token: await getTokenOrThrow(args),
+      workspaceId,
+      displayName,
+    })
+
+    return messages.resourceCreated(project)
+  }
+}
+
+export const createProjectOrThrow = async (input: {
+  token: string
+  workspaceId: string
+  displayName?: string
+  environmentDisplayName?: string
+  allowRemoteDatabases?: boolean
+  ppgRegion?: string
+}) => {
+  const { token, ...mutationInput } = input
+  const { projectCreate } = await requestOrThrow<
+    {
+      projectCreate: {
+        __typename: string
+        id: string
+        createdAt: string
+        displayName: string
+        environmentDisplayName: string
+        allowRemoteDatabases: boolean
+        ppgRegion: string
+        defaultEnvironment: {
           id: string
-          createdAt: string
           displayName: string
         }
-      },
-      {
-        workspaceId: string
-        displayName?: string
       }
-    >({
-      token,
-      body: {
-        query: /* graphql */ `
-          mutation ($input: MutationProjectCreateInput!) {
-            projectCreate(input: $input) {
-              __typename
-              ...on Error {
-                message
-              }
-              ...on Project {
+    },
+    {
+      workspaceId: string
+      displayName?: string
+      environmentDisplayName?: string
+      allowRemoteDatabases?: boolean
+      ppgRegion?: string
+    }
+  >({
+    token,
+    body: {
+      query: /* graphql */ `
+        mutation ($input: MutationProjectCreateInput!) {
+          projectCreate(input: $input) {
+            __typename
+            ...on Error {
+              message
+            }
+            ...on Project {
+              id
+              createdAt
+              displayName
+              defaultEnvironment {
                 id
-                createdAt
                 displayName
               }
             }
           }
-        `,
-        variables: {
-          input: {
-            workspaceId,
-            displayName,
-          },
-        },
+        }
+      `,
+      variables: {
+        input: mutationInput,
       },
-    })
+    },
+  })
 
-    return messages.resourceCreated(projectCreate)
-  }
+  return projectCreate
 }

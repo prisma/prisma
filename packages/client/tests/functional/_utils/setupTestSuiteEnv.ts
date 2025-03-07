@@ -1,5 +1,6 @@
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
+import { defaultTestConfig } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
@@ -149,7 +150,7 @@ export async function setupTestSuiteDatabase({
         dbPushParams.push('--force-reset')
       }
 
-      await DbPush.new().parse(dbPushParams)
+      await DbPush.new().parse(dbPushParams, defaultTestConfig())
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -176,12 +177,10 @@ export async function setupTestSuiteDatabase({
         alterStatementCallback(provider),
       )
 
-      await DbExecute.new().parse([
-        '--file',
-        `${prismaDir}/migrations/${timestamp}/migration.sql`,
-        '--schema',
-        `${schemaPath}`,
-      ])
+      await DbExecute.new().parse(
+        ['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`, '--schema', `${schemaPath}`],
+        defaultTestConfig(),
+      )
     }
 
     consoleInfoMock.mockRestore()
@@ -279,7 +278,7 @@ export async function dropTestSuiteDatabase({
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
+    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'], defaultTestConfig())
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)
@@ -408,7 +407,7 @@ function getDbUrl(provider: Providers): string {
     case Providers.SQLSERVER:
       return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
     default:
-      assertNever(provider, `No URL for provider ${provider} configured`)
+      return assertNever(provider, `No URL for provider ${provider} configured`)
   }
 }
 

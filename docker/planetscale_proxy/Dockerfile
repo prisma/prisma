@@ -1,4 +1,4 @@
-FROM ghcr.io/mattrobenolt/ps-http-sim:v0.0.9 AS planetscale-proxy
+FROM ghcr.io/mattrobenolt/ps-http-sim:v0.0.11 AS planetscale-proxy
 
 # ps-http-sim provides a barebones image with nothing but the static binary
 # but we also rely on netcat being present. Alpine provides it as part of busybox.

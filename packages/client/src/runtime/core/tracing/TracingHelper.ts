@@ -1,5 +1,7 @@
 import type { Context } from '@opentelemetry/api'
-import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpan, ExtendedSpanOptions, SpanCallback, TracingHelper, version } from '@prisma/internals'
+
+const majorVersion = version.split('.')[0]
 
 export const disabledTracingHelper: TracingHelper = {
   isEnabled() {
@@ -12,7 +14,7 @@ export const disabledTracingHelper: TracingHelper = {
     return `00-10-10-00`
   },
 
-  async createEngineSpan() {},
+  dispatchEngineSpans() {},
 
   getActiveContext() {
     return undefined
@@ -36,8 +38,8 @@ class DynamicTracingHelper implements TracingHelper {
     return this.getGlobalTracingHelper().getTraceParent(context)
   }
 
-  createEngineSpan(event: EngineSpanEvent) {
-    return this.getGlobalTracingHelper().createEngineSpan(event)
+  dispatchEngineSpans(spans: EngineSpan[]) {
+    return this.getGlobalTracingHelper().dispatchEngineSpans(spans)
   }
 
   getActiveContext() {
@@ -48,15 +50,21 @@ class DynamicTracingHelper implements TracingHelper {
   }
 
   private getGlobalTracingHelper(): TracingHelper {
-    return globalThis.PRISMA_INSTRUMENTATION?.helper ?? disabledTracingHelper
+    // These globals are defined in `@prisma/instrumentation`
+    const versionedPrismaInstrumentationGlobal = globalThis[`V${majorVersion}_PRISMA_INSTRUMENTATION`]
+    const fallbackPrismaInstrumentationGlobal = globalThis.PRISMA_INSTRUMENTATION
+
+    return (
+      versionedPrismaInstrumentationGlobal?.helper ??
+      // TODO(v7): In future major versions, the tracing helper should only be read from the versioned global field.
+      // This is to ensure that instrumentation libraries (including `@prisma/instrumentation`) can register tracing helpers with compatible interfaces for each major version - thus preventing potential crashes in case instrumentation libraries are not yet updated for a new major, allowing for easier migration.
+      // Currently, the versioned helper is preferred and the fallback helper is picked up for backwards compatibility.
+      fallbackPrismaInstrumentationGlobal?.helper ??
+      disabledTracingHelper
+    )
   }
 }
 
-export function getTracingHelper(previewFeatures: string[]): TracingHelper {
-  if (!previewFeatures.includes('tracing')) {
-    // no preview feature - tracing is disabled and can never be enabled
-    return disabledTracingHelper
-  }
-  // preview feature is enabled - tracing is enabled if PRISMA_INSTRUMENTATION global is set
+export function getTracingHelper(): TracingHelper {
   return new DynamicTracingHelper()
 }

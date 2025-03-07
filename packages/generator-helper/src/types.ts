@@ -69,10 +69,11 @@ export type ConnectorType =
   | 'sqlite'
   | 'postgresql'
   | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
+  | 'prisma+postgres' // Note: used for Prisma Postgres, managed by PDP
   | 'sqlserver'
   | 'cockroachdb'
 
-export type ActiveConnectorType = Exclude<ConnectorType, 'postgres'>
+export type ActiveConnectorType = Exclude<ConnectorType, 'postgres' | 'prisma+postgres'>
 
 export interface DataSource {
   name: string

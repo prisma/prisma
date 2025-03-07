@@ -4,20 +4,20 @@ import { EngineConfig } from '../../common/Engine'
 import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type QueryEngineInstance = {
-  connect(headers: string): Promise<void>
-  disconnect(headers: string): Promise<void>
+  connect(headers: string, requestId: string): Promise<void>
+  disconnect(headers: string, requestId: string): Promise<void>
   /**
    * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
    * @param headersStr JSON.stringified `QueryEngineRequestHeaders`
    */
-  query(requestStr: string, headersStr: string, transactionId?: string): Promise<string>
-  sdlSchema(): Promise<string>
-  dmmf(traceparent: string): Promise<string>
-  startTransaction(options: string, traceHeaders: string): Promise<string>
-  commitTransaction(id: string, traceHeaders: string): Promise<string>
-  rollbackTransaction(id: string, traceHeaders: string): Promise<string>
-  metrics(options: string): Promise<string>
-  applyPendingMigrations(): Promise<void>
+  query(requestStr: string, headersStr: string, transactionId: string | undefined, requestId: string): Promise<string>
+  sdlSchema?(): Promise<string> // TODO: remove it from the library engine entirely
+  startTransaction(options: string, traceHeaders: string, requestId: string): Promise<string>
+  commitTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
+  rollbackTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
+  metrics?(options: string): Promise<string>
+  applyPendingMigrations?(): Promise<void>
+  trace(requestId: string): Promise<string | null>
 }
 
 export interface QueryEngineConstructor {

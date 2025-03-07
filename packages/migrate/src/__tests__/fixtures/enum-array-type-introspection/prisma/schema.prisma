@@ -1,0 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource my_db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
+
+model Post {
+  id             String                  @id
+  contentFilters ContentFilterCategory[]
+}
+
+enum ContentFilterCategory {
+  FIRST
+  SECOND
+
+  @@map("_foo")
+}

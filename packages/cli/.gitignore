@@ -20,3 +20,6 @@ prisma-cli*.tgz
 pnpm-lock.yaml
 
 version-test-engines
+
+config.js
+config.d.ts

@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -60,6 +61,7 @@ ${bold('Flags')}
 
 ${bold('Options')}
 
+                --config   Custom path to your Prisma config file
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
@@ -96,13 +98,14 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--config': String,
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
@@ -115,14 +118,14 @@ Set composite types introspection depth to 2 levels
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db pull', args, !args['--url'])
+    await checkUnsupportedDataProxy('db pull', args, config.schema, !args['--url'])
 
     if (args['--help']) {
       return this.help()
     }
 
     const url: string | undefined = args['--url']
-    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'])
+    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'], config.schema)
     let schemaPath = schemaPathResult?.schemaPath ?? null
     const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
     debug('schemaPathResult', schemaPathResult)
@@ -132,12 +135,12 @@ Set composite types introspection depth to 2 levels
       process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
       printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
     }
 
     const fromD1 = Boolean(args['--local-d1'])
@@ -163,14 +166,14 @@ Set composite types introspection depth to 2 levels
       .when(
         (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
         async (input) => {
-          const rawSchema = await getSchema(input.schemaPath)
-          const config = await getConfig({
+          const rawSchema = await getSchema(input.schemaPath, config.schema)
+          const engineConfig = await getConfig({
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,
           })
 
-          const previewFeatures = config.generators.find(({ name }) => name === 'client')?.previewFeatures
-          const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
+          const previewFeatures = engineConfig.generators.find(({ name }) => name === 'client')?.previewFeatures
+          const firstDatasource = engineConfig.datasources[0] ? engineConfig.datasources[0] : undefined
 
           if (input.url) {
             let providerFromSchema = firstDatasource?.provider
@@ -281,7 +284,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
       .run()
 
     if (schemaPath) {
-      const schemas = await getSchema(args['--schema'])
+      const schemas = await getSchema(args['--schema'], config.schema)
 
       // Re-Introspection is not supported on MongoDB
       const modelRegex = /\s*model\s*(\w+)\s*{/

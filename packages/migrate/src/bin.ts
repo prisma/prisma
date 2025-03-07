@@ -1,10 +1,12 @@
 #!/usr/bin/env tsx
 
+import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { handlePanic, HelpError, isError } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
 import { bold, red } from 'kleur/colors'
 
+import { version as packageVersion } from '../package.json'
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
@@ -34,7 +36,14 @@ process.once('SIGINT', () => {
 
 const commandArray = process.argv.slice(2)
 
-const packageJson = eval(`require('../package.json')`)
+const args = arg(
+  commandArray,
+  {
+    '--config': String,
+  },
+  false,
+  true,
+)
 
 /**
  * Main function
@@ -59,8 +68,14 @@ async function main(): Promise<number> {
     }),
   })
 
+  const { config, error } = await loadConfigFromFile({ configFile: args['--config'] })
+  if (error) {
+    console.error(`Failed to load config file: ${error._tag}`)
+    return 1
+  }
+
   // Execute the command
-  const result = await cli.parse(commandArray)
+  const result = await cli.parse(commandArray, config)
   // Did it error?
   if (result instanceof HelpError) {
     console.error(result)
@@ -91,7 +106,7 @@ main()
     if (error.rustStack) {
       handlePanic({
         error,
-        cliVersion: packageJson.version,
+        cliVersion: packageVersion,
         enginesVersion,
         command: commandArray.join(' '),
         getDatabaseVersionSafe,

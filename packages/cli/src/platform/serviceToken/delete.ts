@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { Command } from '@prisma/internals'
 
 import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -9,9 +10,10 @@ export class Delete implements Command {
   public static new(legacy: boolean = false) {
     return new Delete(legacy)
   }
+
   constructor(private readonly legacy: boolean = false) {}
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = argOrThrow(argv, {
       ...platformParameters[this.legacy ? 'apikey' : 'serviceToken'],
     })

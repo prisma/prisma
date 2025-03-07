@@ -22,6 +22,7 @@ export type JsonQueryAction =
   | 'createManyAndReturn'
   | 'updateOne'
   | 'updateMany'
+  | 'updateManyAndReturn'
   | 'deleteOne'
   | 'deleteMany'
   | 'upsertOne'

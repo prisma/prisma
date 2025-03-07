@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator-helper'
 import {
@@ -19,6 +20,7 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  type SchemaPathFromConfig,
 } from '@prisma/internals'
 import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
@@ -32,6 +34,7 @@ import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
+import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -40,6 +43,12 @@ const pkg = eval(`require('../package.json')`)
  * $ prisma generate
  */
 export class Generate implements Command {
+  surveyHandler: () => Promise<void>
+
+  constructor(surveyHandler: () => Promise<void> = handleNpsSurvey) {
+    this.surveyHandler = surveyHandler
+  }
+
   public static new(): Generate {
     return new Generate()
   }
@@ -53,6 +62,7 @@ ${bold('Usage')}
 
 ${bold('Options')}
           -h, --help   Display this help message
+            --config   Custom path to your Prisma config file
             --schema   Custom path to your Prisma schema
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
@@ -100,12 +110,13 @@ ${bold('Examples')}
     this.logText += message.join('\n')
   })
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
+      '--config': String,
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
@@ -133,16 +144,16 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], cwd, Boolean(postinstallCwd))
+    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
     const { schemas, schemaPath } = schemaResult
     printSchemaLoadedMessage(schemaPath)
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -228,6 +239,8 @@ Please run \`prisma generate\` manually.`
 
     const watchingText = `\n${green('Watching...')} ${dim(schemaPath)}\n`
 
+    const hideHints = args['--no-hints'] ?? false
+
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
         ({ options }) =>
@@ -251,8 +264,6 @@ When using Deno, you need to define \`output\` in the client generator section o
 ${breakingChangesMessage}`
           : ''
 
-        const hideHints = args['--no-hints'] ?? false
-
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
@@ -264,13 +275,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+          hint = `${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
@@ -285,6 +296,10 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         }
         throw new Error(message)
       } else {
+        if (!hideHints) {
+          await this.surveyHandler()
+        }
+
         return message
       }
     } else {
@@ -370,11 +385,12 @@ function getCurrentClientVersion(): string | null {
 
 async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
+  schemaFromConfig: SchemaPathFromConfig | undefined,
   cwd: string,
   isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {
   if (isPostinstall) {
-    const schema = await getSchemaWithPathOptional(schemaFromArgs, { cwd })
+    const schema = await getSchemaWithPathOptional(schemaFromArgs, schemaFromConfig, { cwd })
     if (schema) {
       return schema
     }
@@ -387,5 +403,5 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
     return null
   }
 
-  return getSchemaWithPath(schemaFromArgs, { cwd })
+  return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }

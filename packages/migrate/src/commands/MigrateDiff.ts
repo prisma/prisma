@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -32,6 +33,7 @@ const helpOptions = format(
 ${bold('Options')}
 
   -h, --help               Display this help message
+  --config                 Custom path to your Prisma config file
   -o, --output             Writes to a file instead of stdout
 
 ${italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
@@ -143,7 +145,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -170,6 +172,7 @@ ${bold('Examples')}
         '--script': Boolean,
         '--exit-code': Boolean,
         '--telemetry-information': String,
+        '--config': String,
       },
       false,
     )
@@ -178,7 +181,7 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate diff', args, false)
+    await checkUnsupportedDataProxy('migrate diff', args, config.schema, false)
 
     if (args['--help']) {
       return this.help()
@@ -226,17 +229,17 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false })
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
+      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), config.schema, {
         argumentName: '--from-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const engineConfig = await getConfig({ datamodel: schema.schemas })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, config),
+        ...toSchemasWithConfigDir(schema, engineConfig),
       }
     } else if (args['--from-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), config.schema, {
         argumentName: '--from-schema-datamodel',
       })
       from = {
@@ -268,17 +271,17 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false })
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
+      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), config.schema, {
         argumentName: '--to-schema-datasource',
       })
-      const config = await getConfig({ datamodel: schema.schemas })
+      const engineConfig = await getConfig({ datamodel: schema.schemas })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, config),
+        ...toSchemasWithConfigDir(schema, engineConfig),
       }
     } else if (args['--to-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), config.schema, {
         argumentName: '--to-schema-datamodel',
       })
       to = {

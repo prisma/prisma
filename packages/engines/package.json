@@ -12,17 +12,17 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@swc/core": "1.6.13",
-    "@swc/jest": "0.2.36",
-    "@types/jest": "29.5.12",
-    "@types/node": "18.19.31",
+    "@swc/core": "1.11.5",
+    "@swc/jest": "0.2.37",
+    "@types/jest": "29.5.14",
+    "@types/node": "18.19.76",
     "execa": "5.1.1",
     "jest": "29.7.0",
     "typescript": "5.4.5"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "5.23.0-13.06d4b2f30bf4fc71a1cb03bdc0f69f8c2a5c2b9c",
+    "@prisma/engines-version": "6.5.0-54.1ea2fdf6bb4482f4af05b7f54f20273ddb71a8fe",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },

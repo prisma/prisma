@@ -44,6 +44,7 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       update: mapping.updateOne || mapping.updateSingle || mapping.update,
       deleteMany: mapping.deleteMany,
       updateMany: mapping.updateMany,
+      updateManyAndReturn: mapping.updateManyAndReturn,
       upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
       aggregate: mapping.aggregate,
       groupBy: mapping.groupBy,

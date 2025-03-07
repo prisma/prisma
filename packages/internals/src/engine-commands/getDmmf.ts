@@ -4,7 +4,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
-import { blue, bold, red } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -57,10 +57,6 @@ ${detailsHeader} ${message}`
  * Wasm'd version of `getDMMF`.
  */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
-  // TODO: substitute this warning with `prismaSchemaWasm.lint()`.
-  // See https://github.com/prisma/prisma/issues/16538
-  warnOnDeprecatedFeatureFlag(options.previewFeatures)
-
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
 
@@ -176,36 +172,4 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     .exhaustive()
 
   throw error
-}
-
-// See also removedFlags at
-// https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/engine/BinaryEngine.ts
-function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
-  const getMessage = (flag: string) =>
-    `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
-
-  const removedFeatureFlagMap = {
-    insensitiveFilters: getMessage('insensitiveFilters'),
-    atomicNumberOperations: getMessage('atomicNumberOperations'),
-    connectOrCreate: getMessage('connectOrCreate'),
-    transaction: getMessage('transaction'),
-    nApi: getMessage('nApi'),
-    transactionApi: getMessage('transactionApi'),
-    uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
-    nativeTypes: getMessage('nativeTypes'),
-    createMany: getMessage('createMany'),
-    groupBy: getMessage('groupBy'),
-    referentialActions: getMessage('referentialActions'),
-    microsoftSqlServer: getMessage('microsoftSqlServer'),
-    selectRelationCount: getMessage('selectRelationCount'),
-    orderByRelation: getMessage('orderByRelation'),
-    orderByAggregateGroup: getMessage('orderByAggregateGroup'),
-  }
-
-  previewFeatures?.forEach((f) => {
-    const removedMessage = removedFeatureFlagMap[f]
-    if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-      console.warn(removedMessage)
-    }
-  })
 }

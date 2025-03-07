@@ -1,16 +1,4 @@
-export enum IsolationLevel {
-  ReadUncommitted = 'ReadUncommitted',
-  ReadCommitted = 'ReadCommitted',
-  RepeatableRead = 'RepeatableRead',
-  Snapshot = 'Snapshot',
-  Serializable = 'Serializable',
-}
-
-export type Options = {
-  maxWait?: number
-  timeout?: number
-  isolationLevel?: IsolationLevel
-}
+export { IsolationLevel, type TransactionOptions as Options } from '@prisma/client-engine-runtime'
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**

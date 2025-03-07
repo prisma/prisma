@@ -40,7 +40,7 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'edge' | 'wasm'
+export type ClientRuntime = 'node' | 'edge' | 'wasm' | 'client'
 
 export type CliMeta = {
   dataProxy: boolean

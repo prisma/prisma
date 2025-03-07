@@ -109,6 +109,10 @@ export async function setupTestSuiteClient({
       client: 'node_modules/@prisma/client/wasm',
       sql: 'node_modules/@prisma/client/sql/index.wasm.js',
     },
+    client: {
+      client: 'node_modules/@prisma/client',
+      sql: 'node_modules/@prisma/client/sql',
+    },
   }
 
   const clientModule = require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime].client))
@@ -153,6 +157,19 @@ export function setupTestSuiteClientDriverAdapter({
           const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
           return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+        },
+      }
+      return config
+    }
+  } else if (clientMeta.runtime === 'client') {
+    __internal.configOverride = (config) => {
+      config.compilerWasm = {
+        getRuntime: () => require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`)),
+        getQueryCompilerWasmModule: async () => {
+          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm`)
+          const queryCompilerWasmFileBytes = await readFile(queryCompilerWasmFilePath)
+
+          return new globalThis.WebAssembly.Module(queryCompilerWasmFileBytes)
         },
       }
       return config

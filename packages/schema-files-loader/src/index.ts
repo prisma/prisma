@@ -1,4 +1,6 @@
 export * from './loadRelatedSchemaFiles'
 export * from './loadSchemaFiles'
 export * from './resolver'
+export type { GetSchemaResult, LookupResult, NonFatalLookupError, PathType, SuccessfulLookupResult } from './types'
 export * from './usesPrismaSchemaFolder'
+export { ensureType } from './utils/ensureType'

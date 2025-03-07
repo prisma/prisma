@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { getDMMF, isRustPanic, MultipleSchemas, relativizePathInPSLError } from '@prisma/internals'
@@ -36,7 +37,7 @@ describe('artificial-panic introspection', () => {
 
     const command = new DbPull()
     try {
-      await command.parse(['--print'])
+      await command.parse(['--print'], defaultTestConfig())
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
         "Error in Schema engine.
@@ -86,7 +87,7 @@ describe('artificial-panic formatter', () => {
 
     const command = new Format()
     try {
-      await command.parse([])
+      await command.parse([], defaultTestConfig())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -133,7 +134,7 @@ describe('artificial-panic get-config', () => {
 
     const command = new Validate()
     try {
-      await command.parse([])
+      await command.parse([], defaultTestConfig())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -181,7 +182,7 @@ describe('artificial-panic validate', () => {
 
     const command = new Validate()
     try {
-      await command.parse([])
+      await command.parse([], defaultTestConfig())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:
@@ -219,7 +220,7 @@ describe('artificial-panic validate', () => {
 
     const command = new Format()
     try {
-      await command.parse([])
+      await command.parse([], defaultTestConfig())
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(`
         ""RuntimeError: panicked at prisma-schema-wasm/src/lib.rs:0:0:

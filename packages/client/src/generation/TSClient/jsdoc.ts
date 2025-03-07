@@ -110,7 +110,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Create many ${ctx.plural} and only return the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ 
+const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   select: { ${ctx.firstScalar.name}: true },
   data: [
     // ... provide data here
@@ -152,7 +152,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   },
   findUniqueOrThrow: {
     body: (ctx) =>
-      `Find one ${ctx.singular} that matches the filter or throw an error with \`error.code='P2025'\` 
+      `Find one ${ctx.singular} that matches the filter or throw an error with \`error.code='P2025'\`
 if no matches were found.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
@@ -376,6 +376,44 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     fields: {
       data: (singular, plural) => `The data used to update ${plural}.`,
       where: (singular, plural) => `Filter which ${plural} to update`,
+      limit: (singular, plural) => `Limit how many ${plural} to update.`,
+    },
+  },
+  updateManyAndReturn: {
+    body: (ctx) => {
+      const onlySelect = ctx.firstScalar
+        ? `\n// Update zero or more ${ctx.plural} and only return the \`${ctx.firstScalar.name}\`
+const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
+  select: { ${ctx.firstScalar.name}: true },
+  where: {
+    // ... provide filter here
+  },
+  data: [
+    // ... provide data here
+  ]
+})`
+        : ''
+
+      return `Update zero or more ${ctx.plural} and returns the data updated in the database.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update many ${ctx.plural}.
+@example
+// Update many ${ctx.plural}
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  where: {
+    // ... provide filter here
+  },
+  data: [
+    // ... provide data here
+  ]
+})
+${onlySelect}
+${undefinedNote}
+`
+    },
+    fields: {
+      data: (singular, plural) => `The data used to update ${plural}.`,
+      where: (singular, plural) => `Filter which ${plural} to update`,
+      limit: (singular, plural) => `Limit how many ${plural} to update.`,
     },
   },
   deleteMany: {
@@ -392,6 +430,7 @@ const { count } = await ${ctx.method}({
 `,
     fields: {
       where: (singular, plural) => `Filter which ${plural} to delete`,
+      limit: (singular, plural) => `Limit how many ${plural} to delete.`,
     },
   },
   aggregateRaw: {
@@ -418,7 +457,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
 @example
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
-  filter: { age: { $gt: 25 } } 
+  filter: { age: { $gt: 25 } }
 })`,
     fields: {
       filter: () =>

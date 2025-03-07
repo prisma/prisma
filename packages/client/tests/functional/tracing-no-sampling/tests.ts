@@ -66,7 +66,7 @@ testMatrix.setupTestSuite(
     })
 
     // https://github.com/prisma/prisma/issues/19088
-    test.skip('should perform a query and assert that no spans were generated', async () => {
+    test('should perform a query and assert that no spans were generated', async () => {
       await prisma.user.findMany()
 
       const spans = inMemorySpanExporter.getFinishedSpans()
@@ -76,7 +76,7 @@ testMatrix.setupTestSuite(
     })
 
     // https://github.com/prisma/prisma/issues/19088
-    test.skip('should perform a query and assert that no spans were generated via itx', async () => {
+    test('should perform a query and assert that no spans were generated via itx', async () => {
       await prisma.$transaction(async (prisma) => {
         await prisma.user.findMany()
       })
@@ -89,5 +89,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
+    skipDriverAdapter: {
+      from: ['js_d1'],
+      reason: 'D1 does not support interactive transactions',
+    },
   },
 )

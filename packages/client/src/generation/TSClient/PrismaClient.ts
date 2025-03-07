@@ -67,7 +67,11 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
     }),
   )
 
-  return ts.objectType().add(ts.property('meta', meta)).add(ts.property('model', model))
+  return ts
+    .objectType()
+    .add(ts.property('globalOmitOptions', ts.objectType().add(ts.property('omit', ts.namedType('GlobalOmitOptions')))))
+    .add(ts.property('meta', meta))
+    .add(ts.property('model', model))
 }
 
 function clientTypeMapModelsResultDefinition(
@@ -84,6 +88,7 @@ function clientTypeMapModelsResultDefinition(
   if (action === 'createMany') return ts.namedType('BatchPayload')
   if (action === 'createManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'updateMany') return ts.namedType('BatchPayload')
+  if (action === 'updateManyAndReturn') return ts.array(payloadToResult(modelName))
   if (action === 'findMany') return ts.array(payloadToResult(modelName))
   if (action === 'findFirst') return ts.unionType([payloadToResult(modelName), ts.nullType])
   if (action === 'findUnique') return ts.unionType([payloadToResult(modelName), ts.nullType])
@@ -143,11 +148,11 @@ function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
-  returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
+interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
+  returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
 }
 
-export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = ${typeMap}`
+export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(context: GenerateContext) {
@@ -166,22 +171,18 @@ function clientExtensionsDefinitions(context: GenerateContext) {
   return [typeMap, ts.stringify(define)].join('\n')
 }
 
-function extendsPropertyDefinition(context: GenerateContext) {
+function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('$Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
-    .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
+    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
     .addGenericArgument(ts.namedType('ExtArgs'))
-  if (context.isPreviewFeatureOn('omitApi')) {
-    extendsDefinition
-      .addGenericArgument(
-        ts
-          .namedType('$Utils.Call')
-          .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
-          .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
-      )
-      .addGenericArgument(ts.namedType('ClientOptions'))
-  }
+    .addGenericArgument(
+      ts
+        .namedType('$Utils.Call')
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
+        .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
+    )
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
 }
 
@@ -262,7 +263,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
@@ -274,7 +275,7 @@ function queryRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
@@ -293,7 +294,7 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
@@ -305,7 +306,7 @@ function executeRawDefinition(context: GenerateContext) {
    * \`\`\`
    * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
-   * 
+   *
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
@@ -357,7 +358,7 @@ function metricDefinition(context: GenerateContext) {
     .setDocComment(
       ts.docComment`
         Gives access to the client metrics in json or prometheus format.
-        
+
         @example
         \`\`\`
         const metrics = await prisma.$metrics.json()
@@ -390,7 +391,7 @@ function runCommandRawDefinition(context: GenerateContext) {
         explain: false,
       })
       \`\`\`
-   
+
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
@@ -414,9 +415,9 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
 
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
   if (runtimeNameTs === 'binary.js') {
-    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
+    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
   } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
+    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
   }
 }
 
@@ -445,7 +446,7 @@ export class PrismaClientClass implements Generable {
 
     return `/**
  * ##  Prisma Client ʲˢ
- * 
+ *
  * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
@@ -454,7 +455,7 @@ export class PrismaClientClass implements Generable {
  * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
- * 
+ *
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
@@ -500,7 +501,7 @@ ${[
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
   applyPendingMigrationsDefinition.bind(this)(),
-  extendsPropertyDefinition(this.context),
+  extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
   .join('\n')
@@ -514,10 +515,7 @@ ${[
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
-          const generics = ['ExtArgs']
-          if (this.context.isPreviewFeatureOn('omitApi')) {
-            generics.push('ClientOptions')
-          }
+          const generics = ['ExtArgs', 'ClientOptions']
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
@@ -536,14 +534,13 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
   }
   public toTS(): string {
     const clientOptions = this.buildClientOptions()
-    const isOmitEnabled = this.context.isPreviewFeatureOn('omitApi')
 
     return `${new Datasources(this.internalDatasources).toTS()}
 ${clientExtensionsDefinitions(this.context)}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${ts.stringify(ts.moduleExport(clientOptions))}
-${isOmitEnabled ? ts.stringify(globalOmitConfig(this.context.dmmf)) : ''}
+${ts.stringify(globalOmitConfig(this.context.dmmf))}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -584,6 +581,7 @@ export type PrismaAction =
   | 'createManyAndReturn'
   | 'update'
   | 'updateMany'
+  | 'updateManyAndReturn'
   | 'upsert'
   | 'delete'
   | 'deleteMany'
@@ -652,7 +650,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
              \`\`\`
              // Defaults to stdout
              log: ['query', 'info', 'warn', 'error']
-            
+
              // Emit as events
              log: [
                { emit: 'stdout', level: 'query' },
@@ -682,7 +680,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
     )
 
-    if (this.runtimeNameTs === 'library.js' && this.context.isPreviewFeatureOn('driverAdapters')) {
+    if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.DriverAdapter'), ts.namedType('null')]))
@@ -693,24 +691,23 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       )
     }
 
-    if (this.context.isPreviewFeatureOn('omitApi')) {
-      clientOptions.add(
-        ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
-            Global configuration for omitting model fields by default.
+    clientOptions.add(
+      ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+        Global configuration for omitting model fields by default.
 
-            @example
-            \`\`\`
-            const prisma = new PrismaClient({
-              omit: {
-                user: {
-                  password: true
-                }
-              }
-            })
-            \`\`\`
-          `),
-      )
-    }
+        @example
+        \`\`\`
+        const prisma = new PrismaClient({
+          omit: {
+            user: {
+              password: true
+            }
+          }
+        })
+        \`\`\`
+      `),
+    )
+
     return clientOptions
   }
 }

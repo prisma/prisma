@@ -1,4 +1,6 @@
-import type { Engine, Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
+import { Client } from '../../getPrismaClient'
+import type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
+import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
 export type MetricsOptions = {
   /**
@@ -7,11 +9,19 @@ export type MetricsOptions = {
   globalLabels?: Record<string, string>
 }
 
-export class MetricsClient {
-  private _engine: Engine
+function checkPreviewFeatureFlag(client: Client) {
+  if (!client._hasPreviewFlag('metrics')) {
+    throw new PrismaClientValidationError('`metrics` preview feature must be enabled in order to access metrics API', {
+      clientVersion: client._clientVersion,
+    })
+  }
+}
 
-  constructor(engine: Engine) {
-    this._engine = engine
+export class MetricsClient {
+  private _client: Client
+
+  constructor(client: Client) {
+    this._client = client
   }
 
   /**
@@ -22,7 +32,9 @@ export class MetricsClient {
    * @returns
    */
   prometheus(options?: MetricsOptions): Promise<string> {
-    return this._engine.metrics({ format: 'prometheus', ...options })
+    checkPreviewFeatureFlag(this._client)
+
+    return this._client._engine.metrics({ format: 'prometheus', ...options })
   }
 
   /**
@@ -32,7 +44,9 @@ export class MetricsClient {
    * @returns
    */
   json(options?: MetricsOptions): Promise<Metrics> {
-    return this._engine.metrics({ format: 'json', ...options })
+    checkPreviewFeatureFlag(this._client)
+
+    return this._client._engine.metrics({ format: 'json', ...options })
   }
 }
 

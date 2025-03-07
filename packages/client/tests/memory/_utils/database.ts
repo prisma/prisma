@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import { DbDrop, DbPush } from '@prisma/migrate'
 
 import { MemoryTestDir } from './MemoryTestDir'
@@ -9,7 +10,10 @@ import { MemoryTestDir } from './MemoryTestDir'
  */
 export async function setupMemoryTestDatabase(testDir: MemoryTestDir) {
   return withNoOutput(async () => {
-    await DbPush.new().parse(['--schema', testDir.schemaFilePath, '--force-reset', '--skip-generate'])
+    await DbPush.new().parse(
+      ['--schema', testDir.schemaFilePath, '--force-reset', '--skip-generate'],
+      defaultTestConfig(),
+    )
   })
 }
 
@@ -20,7 +24,7 @@ export async function setupMemoryTestDatabase(testDir: MemoryTestDir) {
  */
 export async function dropMemoryTestDatabase(testDir: MemoryTestDir) {
   return withNoOutput(async () => {
-    await DbDrop.new().parse(['--schema', testDir.schemaFilePath, '--force', '--preview-feature'])
+    await DbDrop.new().parse(['--schema', testDir.schemaFilePath, '--force', '--preview-feature'], defaultTestConfig())
   })
 }
 

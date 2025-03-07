@@ -224,7 +224,8 @@ testMatrix.setupTestSuite(
                       data: {
                         login: "user"
                       },
-                    ? where?: UserWhereInput
+                    ? where?: UserWhereInput,
+                    ? limit?: Int
                     })
 
           Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."
@@ -248,7 +249,8 @@ testMatrix.setupTestSuite(
           → XX     prisma.user.deleteMany({
                       relationLoadStrategy: "query",
                       ~~~~~~~~~~~~~~~~~~~~
-                    ? where?: UserWhereInput
+                    ? where?: UserWhereInput,
+                    ? limit?: Int
                     })
 
           Unknown argument \`relationLoadStrategy\`. Available options are marked with ?."

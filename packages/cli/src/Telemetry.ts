@@ -1,5 +1,5 @@
-import type { Command } from '@prisma/internals'
-import { getCLIPathHash, getProjectHash } from '@prisma/internals'
+import { PrismaConfigInternal } from '@prisma/config'
+import { arg, Command, getCLIPathHash, getProjectHash, HelpError, isError } from '@prisma/internals'
 import * as checkpoint from 'checkpoint-client'
 
 /**
@@ -11,10 +11,18 @@ export class Telemetry implements Command {
   }
 
   // parse arguments
-  public async parse(): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+    const args = arg(argv, {
+      '--schema': String,
+    })
+
+    if (isError(args)) {
+      throw new HelpError(`Invalid arguments supplied`)
+    }
+
     const info = await checkpoint.getInfo()
     // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash()
+    const projectPathHash = await getProjectHash(args['--schema'], config.schema)
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 

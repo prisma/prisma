@@ -162,7 +162,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlserver', 'sqlite'],
+      from: ['sqlserver'],
       reason: 'JSON column type is not supported',
     },
   },

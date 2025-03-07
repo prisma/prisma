@@ -1,6 +1,6 @@
 // describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getSchema, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
@@ -202,11 +202,12 @@ describe('postgresql-views', () => {
   describe('with preview feature, views defined and then removed', () => {
     const { setupParams, fixturePath } = setupPostgresForViewsIO()
 
+    // TODO: this test is too large in scope, it takes ~6s to run
     test('re-introspection with views removed', async () => {
       ctx.fixture(fixturePath)
 
       const introspectWithViews = new DbPull()
-      const resultWithViews = introspectWithViews.parse([])
+      const resultWithViews = introspectWithViews.parse([], defaultTestConfig())
       await expect(resultWithViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithViews = await ctx.fs.listAsync('views')
@@ -236,7 +237,7 @@ describe('postgresql-views', () => {
       await runQueryPostgres(setupParams, dropViewsSQL!)
 
       const introspectWithoutViews = new DbPull()
-      const resultWithoutViews = introspectWithoutViews.parse([])
+      const resultWithoutViews = introspectWithoutViews.parse([], defaultTestConfig())
       await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithoutViews = await ctx.fs.listAsync('views')
@@ -281,11 +282,12 @@ describe('postgresql-views', () => {
   describe('with preview feature and views defined', () => {
     const { fixturePath } = setupPostgresForViewsIO()
 
+    // TODO: this test is too large in scope, it takes ~5.2s to run
     test('basic introspection', async () => {
       ctx.fixture(fixturePath)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -359,6 +361,7 @@ describe('postgresql-views', () => {
       const viewsPath = path.posix.join(schemaDir, 'views')
       const testName = `introspection from ${schemaPath} creates view definition files`
 
+      // these tests is too large in scope, it takes ~4.6 to ~5.2s to run
       test(testName, async () => {
         ctx.fixture(fixturePath)
 
@@ -368,7 +371,7 @@ describe('postgresql-views', () => {
 
         const introspect = new DbPull()
         const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
-        const result = introspect.parse(args)
+        const result = introspect.parse(args, defaultTestConfig())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
         // the folders in `views` match the database schema names (public, work) of the views
@@ -417,6 +420,8 @@ describe('postgresql-views', () => {
       })
     }
 
+    // TODO: this test is too large in scope, it takes ~5.6s to run.
+    // Also: is it really useful to delete the extraneous files/folders?
     test('extraneous empty subdirectories should be deleted and top files kept in views directory on introspect', async () => {
       ctx.fixture(path.join(fixturePath))
 
@@ -440,7 +445,7 @@ describe('postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       // the folders in `views` match the database schema names (public, work) of the views
@@ -476,7 +481,7 @@ describe('postgresql-views', () => {
       ctx.fixture(path.join(fixturePath))
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -516,7 +521,7 @@ describe('postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([])
+      const result = introspect.parse([], defaultTestConfig())
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')

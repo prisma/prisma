@@ -1,3 +1,4 @@
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -8,7 +9,9 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, _clientMeta) => {
+  ({ provider }, _suiteMeta, _clientMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 
@@ -66,10 +69,15 @@ testMatrix.setupTestSuite(
       expectSql: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
     })
 
-    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements', async () => {
+    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements (unless running MSSQL)', async () => {
       await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})])
 
-      expect(queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))).toBeUndefined()
+      const match = queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))
+      if (isSqlServer) {
+        expect(match).toBeDefined()
+      } else {
+        expect(match).toBeUndefined()
+      }
     })
 
     test('invalid level generates run- and compile- time error', async () => {

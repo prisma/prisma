@@ -1,3 +1,4 @@
+import { defaultTestConfig } from '@prisma/config'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
@@ -10,7 +11,7 @@ describe('introspection panic', () => {
 
     const introspect = new DbPull()
     try {
-      await introspect.parse(['--print'])
+      await introspect.parse(['--print'], defaultTestConfig())
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
         "Error in Schema engine.

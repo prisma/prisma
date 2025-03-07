@@ -333,6 +333,12 @@ function allResultsGenericExtensionObjectViaDefault() {
         _updateMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'updateMany'>>) {
           return {} as PrismaDefault.Result<T, A, 'updateMany'>
         },
+        _updateManyAndReturn<T, A>(
+          this: T,
+          _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'updateManyAndReturn'>>,
+        ) {
+          return {} as PrismaDefault.Result<T, A, 'updateManyAndReturn'>
+        },
         _upsert<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'upsert'>>) {
           return {} as PrismaDefault.Result<T, A, 'upsert'>
         },
@@ -618,6 +624,12 @@ testMatrix.setupTestSuite(() => {
       const _updateMany = xprisma.user._updateMany({ where: { id: '1' }, data: { email: '' } })
       const updateMany = await prisma.user.updateMany({ where: { id: '1' }, data: { email: '' } })
       expectTypeOf<typeof _updateMany>().toEqualTypeOf<typeof updateMany>()
+
+      const _updateManyAndReturn = xprisma.user._updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      const updateManyAndReturn = await prisma.user.updateManyAndReturn({ where: { id: '1' }, data: { email: '' } })
+      // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+      expectTypeOf<typeof _updateManyAndReturn>().toEqualTypeOf<typeof updateManyAndReturn>()
 
       const _upsert = xprisma.user._upsert({
         where: { id: '1' },
