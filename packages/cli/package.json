@@ -117,7 +117,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
     "@types/node": "18.19.76",
-    "@types/rimraf": "3.0.2",
+    "@types/rimraf": "4.0.5",
     "async-listen": "3.0.1",
     "checkpoint-client": "1.1.33",
     "chokidar": "3.6.0",
