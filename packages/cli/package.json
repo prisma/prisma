@@ -95,6 +95,13 @@
         "default": "./config.js"
       },
       "default": "./config.js"
+    },
+    "./build/index.js": {
+      "require": {
+        "types": "./dist/cli/src/types.d.ts",
+        "default": "./build/index.js"
+      },
+      "default": "./build/index.js"
     }
   },
   "devDependencies": {
