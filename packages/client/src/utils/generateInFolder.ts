@@ -14,14 +14,12 @@ import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import rimraf from 'rimraf'
-import { promisify } from 'util'
+import { rimraf } from 'rimraf'
 
 import { generateClient } from '../generation/generateClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
 const debug = Debug('prisma:generateInFolder')
-const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
   projectDir: string
@@ -67,7 +65,7 @@ export async function generateInFolder({
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
-  await del(outputDir)
+  await rimraf(outputDir)
 
   if (packageSource) {
     await copy({

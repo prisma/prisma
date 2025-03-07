@@ -4,16 +4,14 @@ import hasha from 'hasha'
 import fetch from 'node-fetch'
 import retry from 'p-retry'
 import path from 'path'
-import rimraf from 'rimraf'
+import { rimraf } from 'rimraf'
 import tempy from 'tempy'
-import { promisify } from 'util'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
 import { overwriteFile } from './utils'
 
 const debug = Debug('prisma:fetch-engine:downloadZip')
-const del = promisify(rimraf)
 
 export type DownloadResult = {
   lastModified: string
@@ -148,8 +146,8 @@ export async function downloadZip(
 
   // it's ok if the unlink fails
   try {
-    await del(partial)
-    await del(tmpDir)
+    await rimraf(partial)
+    await rimraf(tmpDir)
   } catch (e) {
     debug(e)
   }
