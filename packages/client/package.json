@@ -244,7 +244,7 @@
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.3.0",
     "get-stream": "6.0.1",
-    "globby": "11.1.0",
+    "globby": "14.1.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
     "jest-extended": "4.0.2",

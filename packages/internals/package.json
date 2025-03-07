@@ -49,7 +49,7 @@
     "fs-extra": "11.3.0",
     "fs-jetpack": "5.1.0",
     "global-dirs": "4.0.0",
-    "globby": "11.1.0",
+    "globby": "14.1.0",
     "identifier-regex": "1.0.0",
     "indent-string": "4.0.0",
     "is-windows": "1.0.2",

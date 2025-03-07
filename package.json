@@ -69,7 +69,7 @@
     "format-util": "1.0.5",
     "fs-extra": "11.3.0",
     "globals": "15.13.0",
-    "globby": "11.1.0",
+    "globby": "14.1.0",
     "graphviz-mit": "0.0.9",
     "husky": "9.1.7",
     "is-ci": "4.1.0",
