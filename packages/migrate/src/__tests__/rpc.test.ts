@@ -1,7 +1,7 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getSchema, getSchemaWithPath, MultipleSchemas, toSchemasContainer } from '@prisma/internals'
+import { getSchema, getSchemaWithPath, type MultipleSchemas, toSchemasContainer } from '@prisma/internals'
 import fs from 'fs-jetpack'
-import path from 'path'
+import path from 'node:path'
 
 import { Migrate } from '../Migrate'
 
@@ -136,7 +136,7 @@ describe('dbExecute', () => {
       `,
     })
 
-    await expect(result).resolves.toMatchInlineSnapshot(`null`)
+    await expect(result).resolves.toMatchInlineSnapshot('null')
     migrate.stop()
   })
 })
@@ -246,7 +246,7 @@ describe('ensureConnectionValidity', () => {
       },
     })
 
-    await expect(result).resolves.toMatchInlineSnapshot(`{}`)
+    await expect(result).resolves.toMatchInlineSnapshot('{}')
     migrate.stop()
   })
 
@@ -261,7 +261,7 @@ describe('ensureConnectionValidity', () => {
       },
     })
 
-    await expect(result).resolves.toMatchInlineSnapshot(`{}`)
+    await expect(result).resolves.toMatchInlineSnapshot('{}')
     migrate.stop()
   })
 
@@ -527,7 +527,7 @@ describe('markMigrationApplied', () => {
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`{}`)
+    await expect(resultMarkApplied).resolves.toMatchInlineSnapshot('{}')
 
     migrate.stop()
   })

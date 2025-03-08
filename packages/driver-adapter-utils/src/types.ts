@@ -1,5 +1,5 @@
-import { ColumnTypeEnum } from './const'
-import { Result } from './result'
+import type { ColumnTypeEnum } from './const'
+import type { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
@@ -226,8 +226,8 @@ export interface AdapterInfo {
 type ErrorCapturingFunction<T> = T extends (...args: infer A) => Promise<infer R>
   ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
   : T extends (...args: infer A) => infer R
-  ? (...args: A) => Result<ErrorCapturingInterface<R>>
-  : T
+    ? (...args: A) => Result<ErrorCapturingInterface<R>>
+    : T
 
 type ErrorCapturingInterface<T> = {
   [K in keyof T]: ErrorCapturingFunction<T[K]>

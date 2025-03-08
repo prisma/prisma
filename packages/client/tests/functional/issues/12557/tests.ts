@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (_suiteConfig, _suiteMeta) => {
     describe('issue 12557', () => {
       afterAll(async () => {
         await prisma.$disconnect()

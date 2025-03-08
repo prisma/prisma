@@ -128,14 +128,14 @@ ${bold('2. Apply migrations')}
 Run the following command to create and apply a migration:
 ${green('npx prisma migrate dev --name init')}
 
-${bold(`3. Manage your data`)}
+${bold('3. Manage your data')}
 View and edit your data locally by running this command:
 ${green('npx prisma studio')}
 
 ...or online in Console:
 ${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`)}
 
-${bold(`4. Send queries from your app`)}
+${bold('4. Send queries from your app')}
 To access your database from a JavaScript/TypeScript app, you need to use Prisma ORM. Go here for step-by-step instructions: ${link(
     'https://pris.ly/ppg-init',
   )}
@@ -172,17 +172,17 @@ ${bold('2. Apply migrations')}
 Run the following command to create and apply a migration:
 ${green('npx prisma migrate dev')}
 
-${bold(`3. Manage your data`)}
+${bold('3. Manage your data')}
 View and edit your data locally by running this command:
 ${green('npx prisma studio')}
 
 ...or online in Console:
 ${link(`https://console.prisma.io/${workspaceId}/${projectId}/${environmentId}/studio`)}
 
-${bold(`4. Send queries from your app`)}
+${bold('4. Send queries from your app')}
 If you already have an existing app with Prisma ORM, you can now run it and it will send queries against your newly created Prisma Postgres instance.
 
-${bold(`5. Learn more`)}
+${bold('5. Learn more')}
 For more info, visit the Prisma Postgres docs: ${link('https://pris.ly/ppg-docs')}
 `
 

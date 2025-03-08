@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 
 import testMatrix from './_matrix'
 import { setup } from './_setup'

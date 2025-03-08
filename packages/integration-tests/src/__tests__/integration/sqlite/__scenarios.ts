@@ -814,7 +814,7 @@ export const scenarios = [
       })
       posts.forEach((post) => {
         expect(post.created_at).toBeInstanceOf(Date)
-        delete post.created_at
+        post.created_at = undefined
       })
       return posts
     },
@@ -889,7 +889,7 @@ export const scenarios = [
       })
       posts.forEach((post) => {
         expect(post.created_at).toBeInstanceOf(Date)
-        delete post.created_at
+        post.created_at = undefined
       })
       return posts
     },

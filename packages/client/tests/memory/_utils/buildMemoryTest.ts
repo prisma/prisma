@@ -1,6 +1,6 @@
 import esbuild from 'esbuild'
 
-import { MemoryTestDir } from './MemoryTestDir'
+import type { MemoryTestDir } from './MemoryTestDir'
 
 /**
  * Bundles memory test file and all its dependencies with esbuild

@@ -2,7 +2,7 @@
 
 import Debug from '../index'
 
-const assert = require('assert')
+const assert = require('node:assert')
 
 it('passes a basic sanity check', () => {
   const log = Debug('test')
@@ -73,7 +73,7 @@ describe('rebuild namespaces string (disable)', () => {
     const inst = Debug('foo')
     const messages = [] as string[]
     // ! slight deviation here in Prisma, we pass the namespace as the first argument
-    inst.log = (ns, msg) => messages.push(msg.replace(/^[^@]*@([^@]+)@.*$/, '$1'))
+    inst.log = (_ns, msg) => messages.push(msg.replace(/^[^@]*@([^@]+)@.*$/, '$1'))
 
     inst('@test@')
     assert.deepStrictEqual(messages, [])

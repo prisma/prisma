@@ -20,7 +20,7 @@ test('mixed transaction', async () => {
         },
       }),
     ])
-  } catch (e) {
+  } catch (_e) {
     //
     // console.error(e)
   }
@@ -28,12 +28,12 @@ test('mixed transaction', async () => {
   await new Promise<void>((r) => r())
 
   let users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`[]`)
+  expect(users).toMatchInlineSnapshot('[]')
 
   await new Promise<void>((r) => r())
 
   users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`[]`)
+  expect(users).toMatchInlineSnapshot('[]')
 
   await prisma.$disconnect()
 })

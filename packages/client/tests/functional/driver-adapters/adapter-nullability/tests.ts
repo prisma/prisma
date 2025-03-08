@@ -1,8 +1,8 @@
-import { NewPrismaClient } from '../../_utils/types'
+import type { NewPrismaClient } from '../../_utils/types'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
-import { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 

@@ -21,7 +21,7 @@ export class Generator {
   }
   generate(): Promise<void> {
     if (!this.options) {
-      throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
+      throw new Error('Please first run .setOptions() on the Generator to initialize the options')
     }
     return this.generatorProcess.generate(this.options)
   }
@@ -30,7 +30,7 @@ export class Generator {
   }
   setBinaryPaths(binaryPaths: BinaryPaths): void {
     if (!this.options) {
-      throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
+      throw new Error('Please first run .setOptions() on the Generator to initialize the options')
     }
     this.options.binaryPaths = binaryPaths
   }

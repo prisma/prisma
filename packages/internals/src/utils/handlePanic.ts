@@ -54,7 +54,7 @@ ${dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
       {
         title: 'Yes',
         value: true,
-        description: `Send error report once`,
+        description: 'Send error report once',
       },
       {
         title: 'No',

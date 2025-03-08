@@ -1,9 +1,9 @@
 import { select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import { arg, type Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
 import listen from 'async-listen'
-import http from 'http'
+import http from 'node:http'
 import { green } from 'kleur/colors'
 import open from 'open'
 
@@ -42,7 +42,8 @@ export class Login implements Command {
 
     const credentials = await credentialsFile.load()
     if (isError(credentials)) throw credentials
-    if (credentials) return `Already authenticated. Run ${green(getCommandWithExecutor("prisma platform auth show --early-access"))} to see the current user.`; // prettier-ignore
+    if (credentials)
+      return `Already authenticated. Run ${green(getCommandWithExecutor('prisma platform auth show --early-access'))} to see the current user.` // prettier-ignore
 
     console.info('Authenticating to Prisma Platform CLI via browser.\n')
 
@@ -102,7 +103,7 @@ export class Login implements Command {
       .then((results) => results[0])
       .catch(unknownToError)
 
-    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
+    if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
 
     {
       const writeResult = await credentialsFile.save({ token: callbackResult.token })
@@ -138,7 +139,7 @@ const encodeState = (state: State) => Buffer.from(JSON.stringify(state), 'utf-8'
 
 const decodeUser = (stringifiedUser: string) => {
   try {
-    const maybeUser = JSON.parse(Buffer.from(stringifiedUser, `base64`).toString(`utf-8`))
+    const maybeUser = JSON.parse(Buffer.from(stringifiedUser, 'base64').toString('utf-8'))
     if (typeof maybeUser !== 'object' || maybeUser === null) return false
     const isUser =
       typeof maybeUser.id === 'string' &&
@@ -218,7 +219,7 @@ export const loginOrSignup = async () => {
     .then((results) => results[0])
     .catch(unknownToError)
 
-  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`); // prettier-ignore
+  if (isError(callbackResult)) throw new Error(`Authentication failed: ${callbackResult.message}`) // prettier-ignore
 
   {
     const writeResult = await credentialsFile.save({ token: callbackResult.token })

@@ -1,4 +1,4 @@
-import { DMMFHelper } from '../dmmf'
+import type { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import { getOmitName } from '../utils'
 import { lowerCase } from '../utils/common'

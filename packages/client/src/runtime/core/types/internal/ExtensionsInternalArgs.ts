@@ -1,9 +1,9 @@
-import { RequestParams } from '../../../RequestHandler'
-import { CustomDataProxyFetch } from '../../engines'
-import { IsolationLevel } from '../../engines/common/types/Transaction'
-import { QueryOptions } from '../exported/ExtensionArgs'
-import { JsArgs } from '../exported/JsApi'
-import { RawQueryArgs } from '../exported/RawQueryArgs'
+import type { RequestParams } from '../../../RequestHandler'
+import type { CustomDataProxyFetch } from '../../engines'
+import type { IsolationLevel } from '../../engines/common/types/Transaction'
+import type { QueryOptions } from '../exported/ExtensionArgs'
+import type { JsArgs } from '../exported/JsApi'
+import type { RawQueryArgs } from '../exported/RawQueryArgs'
 
 export type BatchQueryOptionsCbArgs = {
   args: BatchArgs

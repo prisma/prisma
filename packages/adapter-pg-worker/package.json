@@ -27,10 +27,7 @@
     "build": "tsx helpers/build.ts",
     "test": "jest"
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "keywords": [],
   "author": "Pierre-Antoine Mills <mills@prisma.io>",
   "license": "Apache-2.0",

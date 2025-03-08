@@ -23,7 +23,7 @@ test('query', () => {
     },
   ])
 
-  expect(level).toMatchInlineSnapshot(`undefined`)
+  expect(level).toMatchInlineSnapshot('undefined')
 })
 
 test('strings and objects', () => {

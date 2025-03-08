@@ -1,4 +1,4 @@
-import { MigrateTypes } from '@prisma/internals'
+import type { MigrateTypes } from '@prisma/internals'
 
 type Counts = {
   modelsCount: number

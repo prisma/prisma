@@ -1,4 +1,4 @@
-import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
+import type { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
 export function schema_same_actions({
   id,

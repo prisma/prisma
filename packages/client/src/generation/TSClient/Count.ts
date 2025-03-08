@@ -1,16 +1,19 @@
 import indent from 'indent-string'
 
-import { DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { buildOutputType } from './Output'
 
 export class Count implements Generable {
-  constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
+  constructor(
+    protected readonly type: DMMF.OutputType,
+    protected readonly context: GenerateContext,
+  ) {}
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
 

@@ -1,4 +1,4 @@
-import { CompositeProxyLayer } from './createCompositeProxy'
+import type { CompositeProxyLayer } from './createCompositeProxy'
 
 export function removeProperties(keys: ReadonlyArray<string | symbol>): CompositeProxyLayer {
   return {

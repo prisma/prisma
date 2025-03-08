@@ -4,7 +4,7 @@ const secret = Symbol()
 export class Skip {
   constructor(param?: symbol) {
     if (param !== secret) {
-      throw new Error(`Skip instance can not be constructed directly`)
+      throw new Error('Skip instance can not be constructed directly')
     }
   }
 

@@ -2,10 +2,10 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 
 import { DbPull } from '../../commands/DbPull'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
+import { type SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -118,7 +118,7 @@ describe('postgresql', () => {
       await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+      expect(e.message).toContain('fromdotenvdoesnotexist')
     }
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -132,7 +132,7 @@ describe('postgresql', () => {
       await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], defaultTestConfig())
     } catch (e) {
       expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+      expect(e.message).toContain('fromdotenvdoesnotexist')
     }
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`

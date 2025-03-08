@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "start": "npm run generate && npm run dev",
     "test": "tsx src/proxy.ts",
-		"generate": "prisma generate",
+    "generate": "prisma generate",
     "execute": "npx wrangler d1 execute MY_DATABASE --local --file=./sql/schema.sql"
   },
   "dependencies": {

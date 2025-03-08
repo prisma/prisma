@@ -1,4 +1,4 @@
-import { inspect } from 'util'
+import { inspect } from 'node:util'
 
 import testMatrix from './_matrix'
 // @ts-ignore

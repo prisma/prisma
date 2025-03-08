@@ -1,6 +1,6 @@
-import { getTestSuiteMeta, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import type { getTestSuiteMeta, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { Providers } from './providers'
-import { MatrixOptions } from './types'
+import type { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 

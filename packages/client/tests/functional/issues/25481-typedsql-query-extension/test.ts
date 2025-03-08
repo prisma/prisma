@@ -1,7 +1,7 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 // @ts-ignore
-import * as Sql from '@prisma/client/sql'
+import type * as Sql from '@prisma/client/sql'
 
 import testMatrix from './_matrix'
 

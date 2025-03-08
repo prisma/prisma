@@ -3,7 +3,7 @@ import {
   arg,
   canPrompt,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   formatms,
   getCommandWithExecutor,
@@ -94,7 +94,7 @@ ${bold('Examples')}
       // Automatically create the database if it doesn't exist
       const wasDbCreated = await ensureDatabaseExists('push', schemaPath)
       if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
+        process.stdout.write(`\n${wasDbCreated}\n`)
       }
     } catch (e) {
       process.stdout.write('\n') // empty line
@@ -166,7 +166,7 @@ ${bold(red('All data will be lost.'))}
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
-      process.stdout.write(bold(yellow(`\n⚠️  There might be data loss when applying the changes:\n\n`)))
+      process.stdout.write(bold(yellow('\n⚠️  There might be data loss when applying the changes:\n\n')))
 
       for (const warning of migration.warnings) {
         process.stdout.write(`  • ${warning}\n\n`)
@@ -183,7 +183,7 @@ ${bold(red('All data will be lost.'))}
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
-          message: `Do you want to ignore the warning(s)?`,
+          message: 'Do you want to ignore the warning(s)?',
         })
 
         if (!confirmation.value) {
@@ -207,7 +207,7 @@ ${bold(red('All data will be lost.'))}
     migrate.stop()
 
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
-      process.stdout.write(`\nThe database is already in sync with the Prisma schema.\n`)
+      process.stdout.write('\nThe database is already in sync with the Prisma schema.\n')
     } else {
       const migrationTimeMessage = `Done in ${formatms(Math.round(performance.now()) - before)}`
       const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
@@ -229,12 +229,12 @@ ${bold(red('All data will be lost.'))}
       await migrate.tryToRunGenerate(datasourceInfo)
     }
 
-    return ``
+    return ''
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPush.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${DbPush.help}`)
     }
     return DbPush.help
   }

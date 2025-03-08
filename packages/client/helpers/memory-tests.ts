@@ -8,7 +8,7 @@ if (getClientEngineType() === ClientEngineType.Binary) {
 }
 
 if (process.argv.length > 3) {
-  console.error(`Usage: pnpm test:memory [filter]`)
+  console.error('Usage: pnpm test:memory [filter]')
   process.exit(1)
 }
 

@@ -54,7 +54,7 @@ describe('sqlite', () => {
   it('existing-db-1-failed-migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse([], defaultTestConfig())
@@ -91,7 +91,7 @@ describe('sqlite', () => {
   it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], defaultTestConfig())
@@ -149,7 +149,7 @@ describe('sqlite', () => {
   it('existing-db-1-migration-conflict', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse([], defaultTestConfig())
@@ -175,7 +175,7 @@ describe('sqlite', () => {
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse([], defaultTestConfig())
@@ -201,7 +201,7 @@ describe('sqlite', () => {
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse([], defaultTestConfig())
@@ -243,7 +243,7 @@ describe('sqlite', () => {
   it('existing-db-histories-diverge', async () => {
     ctx.fixture('existing-db-histories-diverge')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     const result = MigrateStatus.new().parse([], defaultTestConfig())

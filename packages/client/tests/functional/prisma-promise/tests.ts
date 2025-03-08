@@ -165,7 +165,7 @@ testMatrix.setupTestSuite(({ provider }) => {
             '$queryRawUnsafe',
             () => {
               // @ts-test-if: provider !== Providers.MONGODB
-              return prisma.$queryRawUnsafe(`SELECT 1 + 1;`)
+              return prisma.$queryRawUnsafe('SELECT 1 + 1;')
             },
           ],
           ...(provider !== Providers.SQLITE
@@ -181,7 +181,7 @@ testMatrix.setupTestSuite(({ provider }) => {
                   '$executeRawUnsafe',
                   () => {
                     // @ts-test-if: provider !== Providers.MONGODB
-                    return prisma.$executeRawUnsafe(`SELECT 1 + 1;`)
+                    return prisma.$executeRawUnsafe('SELECT 1 + 1;')
                   },
                 ],
               ]
@@ -224,7 +224,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     afterEach(async () => {
       try {
         await prisma.user.delete({ where: { email } })
-      } catch (error) {
+      } catch (_error) {
         // ignore
       }
     })

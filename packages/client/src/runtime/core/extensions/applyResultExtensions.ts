@@ -3,13 +3,13 @@ import { hasOwnProperty } from '@prisma/internals'
 import {
   addProperty,
   cacheProperties,
-  CompositeProxyLayer,
+  type CompositeProxyLayer,
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
-import { Omission, Selection } from '../types/exported/JsApi'
-import { MergedExtensionsList } from './MergedExtensionsList'
-import { ComputedField } from './resultUtils'
+import type { Omission, Selection } from '../types/exported/JsApi'
+import type { MergedExtensionsList } from './MergedExtensionsList'
+import type { ComputedField } from './resultUtils'
 
 type ApplyExtensionsArgs = {
   result: object

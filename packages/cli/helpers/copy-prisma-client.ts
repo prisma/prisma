@@ -1,6 +1,6 @@
 import { copySync } from 'fs-extra'
 import packlist from 'npm-packlist'
-import path from 'path'
+import path from 'node:path'
 
 export async function copyPrismaClient() {
   // that's where we want to copy the local client for @prisma/studio

@@ -1,10 +1,10 @@
-import { BasicBuilder } from './BasicBuilder'
-import { DocComment } from './DocComment'
-import { GenericParameter } from './GenericParameter'
-import { Parameter } from './Parameter'
+import type { BasicBuilder } from './BasicBuilder'
+import type { DocComment } from './DocComment'
+import type { GenericParameter } from './GenericParameter'
+import type { Parameter } from './Parameter'
 import { voidType } from './PrimitiveType'
-import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { TypeBuilder } from './TypeBuilder'
+import type { Writer } from './Writer'
 
 export class Method implements BasicBuilder {
   private docComment?: DocComment

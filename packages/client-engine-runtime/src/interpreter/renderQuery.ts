@@ -1,8 +1,8 @@
-import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
+import type { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { isPrismaValuePlaceholder, type PrismaValue, type QueryPlanDbQuery } from '../QueryPlan'
 import { renderQueryTemplate } from './renderQueryTemplate'
-import { ScopeBindings } from './scope'
+import type { ScopeBindings } from './scope'
 
 export function renderQuery({ query, params }: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
   const substitutedParams = params.map((param) => {

@@ -1,12 +1,12 @@
 import { getPlatformInfo } from '@prisma/get-platform'
 import { ClientEngineType, handleLibraryLoadingErrors } from '@prisma/internals'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { EngineConfig } from '../common/Engine'
+import type { EngineConfig } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
-import { Library, LibraryLoader } from './types/Library'
+import type { Library, LibraryLoader } from './types/Library'
 
 const libraryCacheSymbol = Symbol('PrismaLibraryEngineCache')
 

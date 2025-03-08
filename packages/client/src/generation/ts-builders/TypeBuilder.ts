@@ -1,6 +1,6 @@
-import { BasicBuilder } from './BasicBuilder'
+import type { BasicBuilder } from './BasicBuilder'
 import type { KeyType } from './KeyType'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export abstract class TypeBuilder implements BasicBuilder {
   // TODO(@SevInf): this should be replaced with precedence system that would

@@ -1,5 +1,5 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 describe('runtime .d.ts files', () => {
   const runtimeDir = path.resolve(__dirname, '..', '..', 'runtime')

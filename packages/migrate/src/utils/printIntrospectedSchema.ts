@@ -1,10 +1,10 @@
-import { MigrateTypes } from '@prisma/internals'
-import path from 'path'
-import { Writable } from 'stream'
+import type { MigrateTypes } from '@prisma/internals'
+import path from 'node:path'
+import type { Writable } from 'node:stream'
 
 export function printIntrospectedSchema(schema: MigrateTypes.SchemasContainer, out: Writable) {
   if (schema.files.length === 1) {
-    out.write(schema.files[0].content + '\n')
+    out.write(`${schema.files[0].content}\n`)
     return
   }
   // produce stable results

@@ -14,7 +14,7 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
  * 1:1 relation
  */
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig, _suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       .with('driverAdapter', suiteConfig.driverAdapter)

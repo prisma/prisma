@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 
 import { DMMFHelper } from './dmmf'
 import { GenericArgsInfo } from './GenericsArgsInfo'

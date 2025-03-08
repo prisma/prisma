@@ -7,7 +7,7 @@ export const id = <T>(value: T) => value
 
 export type Mapped<T> = { [Key in keyof T]: T[Key] }
 
-export type NoInfer<T> = [T][T extends any ? 0 : never]
+export type NoInfer<T> = [T][T extends unknown ? 0 : never]
 
 export const isObject = (obj: unknown): obj is object => {
   return obj !== null && typeof obj === 'object' && !Array.isArray(obj)

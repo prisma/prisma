@@ -1,5 +1,5 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import path from 'path'
+import path from 'node:path'
 import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
@@ -17,7 +17,7 @@ if (process.env.CI) {
 describe('validate', () => {
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
   // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
-  describe.skip('colors', () => {
+  describe('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
     const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
@@ -176,7 +176,7 @@ describe('validate', () => {
         }
       })
 
-      test(`throws an error when the given datamodel is of the wrong type`, () => {
+      test('throws an error when the given datamodel is of the wrong type', () => {
         expect.assertions(2)
 
         try {

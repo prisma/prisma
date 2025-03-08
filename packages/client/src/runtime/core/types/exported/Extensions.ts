@@ -1,13 +1,13 @@
-import { Sql } from 'sql-template-tag'
+import type { Sql } from 'sql-template-tag'
 
-import { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
-import { ITXClientDenyList } from './itxClientDenyList'
-import { InputJsonObject, JsonObject } from './Json'
-import { OperationPayload } from './Payload'
-import { PrismaPromise } from './Public'
-import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
-import { TypedSql } from './TypedSql'
-import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, UnwrapTuple } from './Utils'
+import type { RequiredExtensionArgs as UserArgs } from './ExtensionArgs'
+import type { ITXClientDenyList } from './itxClientDenyList'
+import type { InputJsonObject, JsonObject } from './Json'
+import type { OperationPayload } from './Payload'
+import type { PrismaPromise } from './Public'
+import type { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
+import type { TypedSql } from './TypedSql'
+import type { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, UnwrapTuple } from './Utils'
 
 export type InternalArgs<
   R = { [K in string]: { [K in string]: unknown } },

@@ -1,4 +1,4 @@
-import { CaseSensitivityOptions } from './types'
+import type { CaseSensitivityOptions } from './types'
 
 export type FileNameToKeyMapper = (fileName: string) => string
 

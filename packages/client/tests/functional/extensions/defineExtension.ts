@@ -126,7 +126,7 @@ function modelGenericExtensionCallbackViaDefault() {
         $allModels: {
           myGenericMethodViaDefault<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
             // eslint-disable-next-line
-            const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
+            const _ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
             return {} as {
               // just for testing the types
@@ -147,7 +147,7 @@ function modelGenericExtensionObjectViaDefault() {
       $allModels: {
         myGenericMethodViaDefault<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
           // eslint-disable-next-line
-          const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
+          const _ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
           return {} as {
             // just for testing the types
@@ -169,7 +169,7 @@ function clientGenericExtensionObjectViaDefault() {
         ..._args: PrismaDefault.Exact<A, [...PrismaDefault.Args<T, '$executeRaw'>]>
       ) {
         // eslint-disable-next-line
-        const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
+        const _ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
         return {} as {
           // just for testing the types
@@ -190,7 +190,7 @@ function queryGenericExtensionObjectViaDefault() {
       // eslint-disable-next-line @typescript-eslint/require-await
       async $queryRaw({ args, operation, query, model }) {
         expectTypeOf(args).toMatchTypeOf<object>()
-        expectTypeOf(args['select']).toMatchTypeOf<object | undefined>()
+        expectTypeOf(args.select).toMatchTypeOf<object | undefined>()
         expectTypeOf(operation).toEqualTypeOf<string>()
         expectTypeOf(query).toMatchTypeOf<Function>()
         expectTypeOf(model).toEqualTypeOf<string | undefined>()

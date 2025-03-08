@@ -16,5 +16,3 @@ test('can import enum from browser bundle', () => {
     D: 'D',
   })
 })
-
-export {}

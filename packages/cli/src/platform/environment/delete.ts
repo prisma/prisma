@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, isError } from '@prisma/internals'
+import { arg, type Command, isError } from '@prisma/internals'
 
 import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'

@@ -1,4 +1,4 @@
-import { EngineValidationError, OutputTypeDescription } from '../engines'
+import type { EngineValidationError, OutputTypeDescription } from '../engines'
 
 /**
  * There are couple of more validation errors we add on top of the engine ones.

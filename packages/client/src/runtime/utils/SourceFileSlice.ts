@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
@@ -20,7 +20,7 @@ export class SourceFileSlice {
     let content: string
     try {
       content = fs.readFileSync(filePath, 'utf-8')
-    } catch (e) {
+    } catch (_e) {
       return null
     }
 

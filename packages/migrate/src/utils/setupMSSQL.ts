@@ -1,7 +1,7 @@
-import fs from 'fs'
+import fs from 'node:fs'
 import mssql from 'mssql'
-import path from 'path'
-import { URL } from 'url'
+import path from 'node:path'
+import { URL } from 'node:url'
 
 export type SetupParams = {
   connectionString: string

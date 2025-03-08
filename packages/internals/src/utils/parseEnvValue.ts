@@ -9,7 +9,7 @@ import { dim } from 'kleur/colors'
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
 export function parseEnvValue(object: EnvValue) {
-  if (object.fromEnvVar && object.fromEnvVar != 'null') {
+  if (object.fromEnvVar && object.fromEnvVar !== 'null') {
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
@@ -35,7 +35,7 @@ export function parseEnvValue(object: EnvValue) {
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
 export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue): string[] | string {
-  if (object.fromEnvVar && object.fromEnvVar != 'null') {
+  if (object.fromEnvVar && object.fromEnvVar !== 'null') {
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(

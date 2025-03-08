@@ -1,7 +1,7 @@
 import { getProxyAgent } from '@prisma/fetch-engine'
 import fetch from 'node-fetch'
 
-import { ErrorArea } from './panic'
+import type { ErrorArea } from './panic'
 
 export enum ErrorKind {
   JS_ERROR = 'JS_ERROR',

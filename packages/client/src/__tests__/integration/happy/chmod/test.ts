@@ -1,7 +1,7 @@
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 

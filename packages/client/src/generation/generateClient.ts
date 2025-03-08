@@ -12,18 +12,18 @@ import type {
 import {
   assertNever,
   ClientEngineType,
-  EnvPaths,
+  type EnvPaths,
   getClientEngineType,
   pathToPosix,
   setClassName,
 } from '@prisma/internals'
-import { createHash } from 'crypto'
+import { createHash } from 'node:crypto'
 import paths from 'env-paths'
-import { existsSync } from 'fs'
-import fs from 'fs/promises'
+import { existsSync } from 'node:fs'
+import fs from 'node:fs/promises'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
@@ -31,7 +31,7 @@ import clientPkg from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
-import { TSClientOptions } from './TSClient/TSClient'
+import type { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
@@ -237,8 +237,8 @@ export async function buildClient({
       fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
     }
 
-    pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
-    pkgJson['imports'] = {
+    pkgJson.browser = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
+    pkgJson.imports = {
       // when `import('#wasm-engine-loader')` or `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
       [usesClientEngine ? '#wasm-compiler-loader' : '#wasm-engine-loader']: {
         // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
@@ -327,7 +327,7 @@ export * from './edge.js'`
       },
       default: './sql/index.js',
     } as any
-    fileMap['sql'] = buildTypedSql({
+    fileMap.sql = buildTypedSql({
       dmmf,
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
       mainRuntimeName: getNodeRuntimeName(clientEngineType),
@@ -436,10 +436,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
-      message += '\n         - ' + error.message
+      message += `\n         - ${error.message}`
     }
 
-    message += `\nTo learn more about how to rename models, check out https://pris.ly/d/naming-models`
+    message += '\nTo learn more about how to rename models, check out https://pris.ly/d/naming-models'
 
     throw new DenylistError(message)
   }
@@ -690,7 +690,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
     message.push('Suggestion:')
     const outputDeclaration = findOutputPathDeclaration(datamodel)
 
-    if (outputDeclaration && outputDeclaration.content.includes(clientPkg.name)) {
+    if (outputDeclaration?.content.includes(clientPkg.name)) {
       const outputLine = outputDeclaration.content
       message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')

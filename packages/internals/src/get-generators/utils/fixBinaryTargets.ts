@@ -1,5 +1,5 @@
-import { BinaryTargetsEnvValue } from '@prisma/generator-helper'
-import { BinaryTarget } from '@prisma/get-platform'
+import type { BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { BinaryTarget } from '@prisma/get-platform'
 
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function transformBinaryTargetToEnvValue(binaryTarget: BinaryTarget | string): BinaryTargetsEnvValue {

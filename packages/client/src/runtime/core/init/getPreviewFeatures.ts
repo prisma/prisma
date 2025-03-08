@@ -1,4 +1,4 @@
-import { GetPrismaClientConfig } from '../../getPrismaClient'
+import type { GetPrismaClientConfig } from '../../getPrismaClient'
 
 type Config = Pick<GetPrismaClientConfig, 'generator'>
 

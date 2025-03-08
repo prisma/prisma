@@ -1,5 +1,5 @@
-import { UserArgs } from './core/request/UserArgs'
-import { Action } from './core/types/exported/JsApi'
+import type { UserArgs } from './core/request/UserArgs'
+import type { Action } from './core/types/exported/JsApi'
 
 export type QueryMiddleware = (
   params: QueryMiddlewareParams,

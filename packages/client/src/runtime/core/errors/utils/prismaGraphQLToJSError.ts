@@ -1,4 +1,4 @@
-import { RequestError } from '../../engines/common/types/RequestError'
+import type { RequestError } from '../../engines/common/types/RequestError'
 import { PrismaClientKnownRequestError } from '../PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../PrismaClientUnknownRequestError'
 

@@ -1,10 +1,10 @@
 import Debug from '@prisma/debug'
-import { BinaryTarget, getNodeAPIName } from '@prisma/get-platform'
+import { type BinaryTarget, getNodeAPIName } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
-import fs from 'fs'
+import fs from 'node:fs'
 import { ensureDir } from 'fs-extra'
-import os from 'os'
-import path from 'path'
+import os from 'node:os'
+import path from 'node:path'
 
 import { BinaryType } from './BinaryType'
 
@@ -23,9 +23,9 @@ export async function getRootCacheDir(): Promise<string | null> {
   // if this is lambda, nope
   if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
     try {
-      await ensureDir(`/tmp/prisma-download`)
-      return `/tmp/prisma-download`
-    } catch (e) {
+      await ensureDir('/tmp/prisma-download')
+      return '/tmp/prisma-download'
+    } catch (_e) {
       return null
     }
   }

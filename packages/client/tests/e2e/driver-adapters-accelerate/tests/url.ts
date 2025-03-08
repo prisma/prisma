@@ -4,12 +4,12 @@ describe('driver adapters cannot be used with accelerate', () => {
   let dbURL: string | undefined
 
   beforeEach(() => {
-    dbURL = process.env['DATABASE_URL']
-    process.env['DATABASE_URL'] = 'prisma://localhost:1234'
+    dbURL = process.env.DATABASE_URL
+    process.env.DATABASE_URL = 'prisma://localhost:1234'
   })
 
   afterEach(() => {
-    process.env['DATABASE_URL'] = dbURL
+    process.env.DATABASE_URL = dbURL
   })
 
   test('driver adapters cannot be used with accelerate via @prisma/client/wasm', () => {
@@ -44,5 +44,3 @@ describe('driver adapters cannot be used with accelerate', () => {
     })
   })
 })
-
-export {}

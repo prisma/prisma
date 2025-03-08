@@ -1,19 +1,20 @@
 import type * as esbuild from 'esbuild'
-import fs from 'fs'
-import { builtinModules } from 'module'
+import fs from 'node:fs'
+import { builtinModules } from 'node:module'
 
 type Replacement = [RegExp, string | ((regex: RegExp, contents: string) => string | Promise<string>)]
 
-async function applyReplacements(contents: string, replacements: Replacement[]) {
+async function applyReplacements(originalContents: string, replacements: Replacement[]) {
+  let newContents = originalContents
   for (const [regex, replacement] of replacements) {
     if (typeof replacement === 'string') {
-      contents = contents.replace(regex, replacement)
+      newContents = newContents.replace(regex, replacement)
     } else {
-      contents = await replacement(regex, contents)
+      newContents = await replacement(regex, newContents)
     }
   }
 
-  return contents
+  return newContents
 }
 
 /**

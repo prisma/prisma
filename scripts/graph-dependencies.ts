@@ -1,6 +1,6 @@
-import { readdirSync, statSync } from 'fs'
+import { readdirSync, statSync } from 'node:fs'
 import { digraph } from 'graphviz-mit'
-import { join } from 'path'
+import { join } from 'node:path'
 
 const getDirectories = (path: string) => {
   const packages = readdirSync(path).filter((any) => statSync(join(path, any)).isDirectory())
@@ -12,10 +12,10 @@ const getDirectories = (path: string) => {
   return result
 }
 
-const getKeys = (obj: any, name) => {
-  if (obj && obj[name]) {
+const getKeys = (obj: Record<string, unknown>, name: string) => {
+  if (obj?.[name] && typeof obj[name] === 'object' && obj[name] !== null) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    return Object.keys(obj[name]).filter((name) => name.includes('prisma'))
+    return Object.keys(obj[name] as Record<string, unknown>).filter((name) => name.includes('prisma'))
   }
   return []
 }
@@ -29,17 +29,17 @@ function generateGraph(
 ) {
   const g = digraph('G')
   g.set('splines', 'ortho')
-  packages?.forEach((pkg) => {
+  for (const pkg of packages || []) {
     try {
       const json = require(pkg.jsonPath)
       g.addNode(json.name, { shape: 'box' })
       const keys = getKeys(json, type)
-      keys.forEach((key) => {
+      for (const key of keys) {
         g.addEdge(json.name, key, {})
-      })
+      }
     } catch {}
-  })
-  g.output('png', `./graphs/${type}.png`, (err, stdout, stderr) => {
+  }
+  g.output('png', `./graphs/${type}.png`, (_err, _stdout, stderr) => {
     console.log(stderr)
   })
 }

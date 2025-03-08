@@ -1,7 +1,7 @@
 // @ts-check
 
-const path = require('path')
-const fs = require('fs/promises')
+const path = require('node:path')
+const fs = require('node:fs/promises')
 
 // when client is bundled this gets its output path
 // regex works both on escaped and non-escaped code
@@ -59,7 +59,7 @@ class PrismaPlugin {
 
             // get sources
             const oldSourceAsset = compilation.getAsset(assetName)
-            const oldSourceContents = oldSourceAsset.source.source() + ''
+            const oldSourceContents = `${oldSourceAsset.source.source()}`
 
             // update sources
             for (const match of oldSourceContents.matchAll(prismaDirRegex)) {
@@ -127,7 +127,7 @@ class PrismaPlugin {
 
             // get sources
             const oldSourceAsset = compilation.getAsset(assetName)
-            const oldSourceContents = oldSourceAsset.source.source() + ''
+            const oldSourceContents = `${oldSourceAsset.source.source()}`
             const ntfLoadedAsJson = JSON.parse(oldSourceContents)
 
             // update sources

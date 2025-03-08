@@ -1,4 +1,4 @@
-import { ErrorBasicBuilder, ErrorWriter } from './base'
+import type { ErrorBasicBuilder, ErrorWriter } from './base'
 
 export type ColorFn = (str: string) => string
 

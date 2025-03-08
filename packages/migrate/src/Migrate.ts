@@ -9,11 +9,11 @@ import {
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
-import path from 'path'
+import path from 'node:path'
 
 import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
-import { DatasourceInfo } from './utils/ensureDatabaseExists'
+import type { DatasourceInfo } from './utils/ensureDatabaseExists'
 
 // TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
 // We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.

@@ -3,7 +3,7 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -112,7 +112,7 @@ Check the status of your database migrations
         `${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`,
       )
     } else {
-      process.stdout.write(`No migration found in prisma/migrations\n`)
+      process.stdout.write('No migration found in prisma/migrations\n')
     }
 
     let unappliedMigrations: string[] = []
@@ -122,8 +122,8 @@ Check the status of your database migrations
         `Following migration${unappliedMigrations.length > 1 ? 's' : ''} have not yet been applied:
 ${unappliedMigrations.join('\n')}
 
-To apply migrations in development run ${bold(green(getCommandWithExecutor(`prisma migrate dev`)))}.
-To apply migrations in production run ${bold(green(getCommandWithExecutor(`prisma migrate deploy`)))}.\n`,
+To apply migrations in development run ${bold(green(getCommandWithExecutor('prisma migrate dev')))}.
+To apply migrations in production run ${bold(green(getCommandWithExecutor('prisma migrate deploy')))}.\n`,
       )
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
@@ -184,7 +184,7 @@ https://pris.ly/d/migrate-baseline`)
 ${failedMigrations.join('\n')}
 
 During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${bold(
-          green(getCommandWithExecutor(`prisma migrate dev`)),
+          green(getCommandWithExecutor('prisma migrate dev')),
         )}.\n`,
       )
 
@@ -205,7 +205,7 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
       process.stdout.write('\n') // empty line
       if (unappliedMigrations.length === 0) {
         // Exit 0 to signal that the status is in sync
-        return `Database schema is up to date!`
+        return 'Database schema is up to date!'
       }
     }
 
@@ -215,7 +215,7 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateStatus.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateStatus.help}`)
     }
     return MigrateStatus.help
   }

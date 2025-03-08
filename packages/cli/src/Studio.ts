@@ -3,7 +3,7 @@ import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import {
   arg,
-  Command,
+  type Command,
   format,
   getConfig,
   getDirectUrl,
@@ -18,7 +18,7 @@ import { StudioServer } from '@prisma/studio-server'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
-import path from 'path'
+import path from 'node:path'
 
 // Note that we have a test relying on the namespace
 // Any change to the namespace must be done in the test as well
@@ -79,7 +79,7 @@ ${bold('Examples')}
    * @param argv Array of all arguments
    * @param config The loaded Prisma config
    */
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<unknown>): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -173,7 +173,7 @@ ${bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Studio.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Studio.help}`)
     }
 
     return Studio.help

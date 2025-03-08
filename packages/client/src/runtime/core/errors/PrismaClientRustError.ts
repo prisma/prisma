@@ -1,6 +1,6 @@
 import { setClassName } from '@prisma/internals'
 
-import { PrismaClientRustErrorArgs } from '../engines/common/types/PrismaClientRustErrorArgs'
+import type { PrismaClientRustErrorArgs } from '../engines/common/types/PrismaClientRustErrorArgs'
 import { getBacktrace, isPanic } from '../engines/common/utils/log'
 
 /**

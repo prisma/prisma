@@ -9,7 +9,6 @@ const prisma = new PrismaClient({
     },
   },
 })
-
 ;(async () => {
   const validator = Prisma.validator<Prisma.UserSelect>()
 

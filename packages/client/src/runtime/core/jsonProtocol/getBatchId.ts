@@ -1,4 +1,4 @@
-import { JsonQuery } from '../engines'
+import type { JsonQuery } from '../engines'
 
 export function getBatchId(query: JsonQuery): string | undefined {
   if (query.action !== 'findUnique' && query.action !== 'findUniqueOrThrow') {

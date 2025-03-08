@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
         distinct: ['OrderBy'],
       })
 
-      await expect(result).resolves.toMatchInlineSnapshot(`null`)
+      await expect(result).resolves.toMatchInlineSnapshot('null')
     })
 
     test('findMany', async () => {
@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
         distinct: ['OrderBy'],
       })
 
-      await expect(result).resolves.toMatchInlineSnapshot(`[]`)
+      await expect(result).resolves.toMatchInlineSnapshot('[]')
     })
 
     test('aggregate', async () => {
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(result).resolves.toMatchInlineSnapshot(`[]`)
+      await expect(result).resolves.toMatchInlineSnapshot('[]')
     })
   },
   {

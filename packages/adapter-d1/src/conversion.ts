@@ -1,4 +1,4 @@
-import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 // const debug = Debug('prisma:driver-adapter:d1:conversion')
 
@@ -88,8 +88,8 @@ function inferNumberType(_: number): ColumnType {
   return ColumnTypeEnum.UnknownNumber
 }
 
-function inferObjectType(value: Object): ColumnType {
-  if (value instanceof Array) {
+function inferObjectType(value: Record<string, unknown> | unknown[]): ColumnType {
+  if (Array.isArray(value)) {
     return ColumnTypeEnum.Bytes
   }
   throw new UnexpectedTypeError(value)
@@ -133,7 +133,7 @@ export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] 
     }
 
     if (columnTypes[i] === ColumnTypeEnum.Boolean) {
-      result[i] = JSON.parse(value as any)
+      result[i] = JSON.parse(String(value))
     }
   }
 

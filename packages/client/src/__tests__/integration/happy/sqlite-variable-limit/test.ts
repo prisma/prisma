@@ -1,9 +1,9 @@
 // const pMap = require('p-map')
 import { getTestClient } from '../../../../utils/getTestClient'
 
-const zlib = require('zlib')
-const fs = require('fs')
-const path = require('path')
+const zlib = require('node:zlib')
+const fs = require('node:fs')
+const path = require('node:path')
 
 jest.setTimeout(100_000)
 
@@ -43,7 +43,7 @@ test('sqlite-variable-limit', async () => {
 async function decompressFile(filename) {
   return new Promise<void>((resolve, reject) => {
     const decompress = zlib.createBrotliDecompress()
-    const input = fs.createReadStream(filename + '.br')
+    const input = fs.createReadStream(`${filename}.br`)
     const output = fs.createWriteStream(filename)
 
     input.pipe(decompress).pipe(output)

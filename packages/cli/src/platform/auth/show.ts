@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Command } from '@prisma/internals'
+import type { Command } from '@prisma/internals'
 import { green } from 'kleur/colors'
 
 import { argOrThrow, getOptionalParameter } from '../_lib/cli/parameters'

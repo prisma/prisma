@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'

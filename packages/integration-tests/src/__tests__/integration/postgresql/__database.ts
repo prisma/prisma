@@ -25,5 +25,5 @@ export const database = {
 } as Input<PG.Client>['database']
 
 function getConnectionString(ctx: Context) {
-  return process.env.TEST_POSTGRES_URI + `?schema=${ctx.id}&connection_limit=1`
+  return `${process.env.TEST_POSTGRES_URI}?schema=${ctx.id}&connection_limit=1`
 }

@@ -17,7 +17,7 @@ export abstract class DataProxyAPIError extends DataProxyError {
     const requestId = this.response.headers.get('prisma-request-id')
     if (requestId) {
       const messageSuffix = `(The request id was: ${requestId})`
-      this.message = this.message + ' ' + messageSuffix
+      this.message = `${this.message} ${messageSuffix}`
     }
   }
 }

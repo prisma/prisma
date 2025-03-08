@@ -51,7 +51,7 @@ function testRepeat(n: number) {
   const getRepeatProxy = (jestCall: jest.It) => {
     return new Proxy(jestCall, {
       // re-wrap the jest call to be repeated
-      apply(target, thisArg, [name, cb, timeout]) {
+      apply(target, _thisArg, [name, cb, timeout]) {
         for (let i = 0; i < n; i++) {
           target(`${name} #${i}`, cb, timeout)
         }
@@ -91,5 +91,3 @@ globalThis.$getTemplateParameters = getTemplateParameters
 // @ts-ignore, a global variable that is injected by us to make our snapshots
 // work in clients that cannot read from disk (e.g. wasm or edge clients)
 globalThis.$EnabledCallSite = EnabledCallSite
-
-export {}

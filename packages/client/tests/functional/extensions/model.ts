@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import { providersSupportingRelationJoins } from '../relation-load-strategy/_common'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -906,7 +906,7 @@ testMatrix.setupTestSuite(
               async findFirst() {
                 const ctx = Prisma.getExtensionContext(this)
 
-                const data = await ctx.$parent!['user'].findFirst('SomeString')
+                const data = await ctx.$parent!.user.findFirst('SomeString')
 
                 expect(data).toEqual('SomeString')
                 expectTypeOf(data).toEqualTypeOf<any>()

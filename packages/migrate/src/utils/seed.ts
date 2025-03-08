@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
 import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/internals'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, green, italic, red, yellow } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 import pkgUp from 'pkg-up'
 
 const debug = Debug('prisma:migrate:seed')
@@ -21,7 +21,7 @@ export async function verifySeedConfigAndReturnMessage(schemaPath: string | null
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
 
   // New config is set in the package.json, no need for an error message
-  if (prismaConfig && prismaConfig.data?.seed) {
+  if (prismaConfig?.data?.seed) {
     return undefined
   }
 
@@ -40,7 +40,7 @@ export async function verifySeedConfigAndReturnMessage(schemaPath: string | null
     await legacyTsNodeScriptWarning()
 
     // Probably was using seed before 3.0 and need to add the seed property in package.json
-    message += `2. Add the following example to it:`
+    message += '2. Add the following example to it:'
 
     if (detected.js) {
       message += `
@@ -170,7 +170,7 @@ export async function executeSeedCommand({
   } catch (_e) {
     const e = _e as execa.ExecaError
     debug({ e })
-    console.error(bold(red(`\nAn error occurred while running the seed command:`)))
+    console.error(bold(red('\nAn error occurred while running the seed command:')))
     console.error(red(e.stderr || String(e)))
     return false
   }

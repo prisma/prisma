@@ -1,8 +1,8 @@
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 
 import * as ts from '../ts-builders'
 import { Writer } from '../ts-builders/Writer'
-import { DbEnumsList, queryUsesEnums } from './buildDbEnums'
+import { type DbEnumsList, queryUsesEnums } from './buildDbEnums'
 import { getInputType, getOutputType } from './mapTypes'
 
 type BuildTypedQueryOptions = {

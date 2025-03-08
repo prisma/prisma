@@ -15,12 +15,12 @@ const create = () => {
   }
 
   const ansi = (style) => {
-    let open = (style.open = `\u001b[${style.codes[0]}m`)
-    let close = (style.close = `\u001b[${style.codes[1]}m`)
-    let regex = (style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g'))
+    const open = (style.open = `\u001b[${style.codes[0]}m`)
+    const close = (style.close = `\u001b[${style.codes[1]}m`)
+    const regex = (style.regex = new RegExp(`\\u001b\\[${style.codes[1]}m`, 'g'))
     style.wrap = (input, newline) => {
       if (input.includes(close)) input = input.replace(regex, close + open)
-      let output = open + input + close
+      const output = open + input + close
       // see https://github.com/chalk/chalk/pull/92, thanks to the
       // chalk contributors for this fix. However, we've confirmed that
       // this issue is also present in Windows terminals
@@ -37,8 +37,8 @@ const create = () => {
     if (input === '' || input == null) return ''
     if (colors.enabled === false) return input
     if (colors.visible === false) return ''
-    let str = '' + input
-    let nl = str.includes('\n')
+    let str = `${input}`
+    const nl = str.includes('\n')
     let n = stack.length
     if (n > 0 && stack.includes('unstyle')) {
       stack = [...new Set(['unstyle', ...stack])].reverse()
@@ -49,7 +49,7 @@ const create = () => {
 
   const define = (name, codes, type) => {
     colors.styles[name] = ansi({ name, codes })
-    let keys = colors.keys[type] || (colors.keys[type] = [])
+    const keys = colors.keys[type] || (colors.keys[type] = [])
     keys.push(name)
 
     Reflect.defineProperty(colors, name, {
@@ -59,7 +59,7 @@ const create = () => {
         colors.alias(name, value)
       },
       get() {
-        let color = (input) => style(input, color.stack)
+        const color = (input) => style(input, color.stack)
         Reflect.setPrototypeOf(color, colors)
         color.stack = this.stack ? this.stack.concat(name) : [name]
         return color
@@ -121,7 +121,7 @@ const create = () => {
   }
 
   colors.alias = (name, color) => {
-    let fn = typeof color === 'string' ? colors[color] : color
+    const fn = typeof color === 'string' ? colors[color] : color
 
     if (typeof fn !== 'function') {
       throw new TypeError('Expected alias to be the name of an existing color (string) or a function')
@@ -140,7 +140,7 @@ const create = () => {
         colors.alias(name, value)
       },
       get() {
-        let color = (input) => style(input, color.stack)
+        const color = (input) => style(input, color.stack)
         Reflect.setPrototypeOf(color, colors)
         color.stack = this.stack ? this.stack.concat(fn.stack) : fn.stack
         return color
@@ -150,7 +150,7 @@ const create = () => {
 
   colors.theme = (custom) => {
     if (!isObject(custom)) throw new TypeError('Expected theme to be an object')
-    for (let name of Object.keys(custom)) {
+    for (const name of Object.keys(custom)) {
       colors.alias(name, custom[name])
     }
     return colors

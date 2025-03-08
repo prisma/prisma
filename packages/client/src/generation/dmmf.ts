@@ -1,6 +1,6 @@
-import { type DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 
-import { type Dictionary } from './utils/common'
+import type { Dictionary } from './utils/common'
 import { keyBy } from './utils/common'
 
 export { datamodelEnumToSchemaEnum } from '@prisma/generator-helper'

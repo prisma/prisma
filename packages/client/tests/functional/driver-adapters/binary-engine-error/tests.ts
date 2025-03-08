@@ -2,7 +2,7 @@
 import type { PrismaClient } from '@prisma/client'
 import { ClientEngineType } from '@prisma/internals'
 
-import { NewPrismaClient } from '../../_utils/types'
+import type { NewPrismaClient } from '../../_utils/types'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 

@@ -1,7 +1,7 @@
 import type { Context, Input } from '../../__helpers__/integrationTest'
 
 const sql = require('mssql')
-const url = require('url')
+const url = require('node:url')
 
 export const database = {
   name: 'sqlserver',
@@ -39,7 +39,7 @@ function getConnectionInfo(ctx: Context) {
     password: 'Pr1sm4_Pr1sm4',
     server: connectionUrl.hostname,
     port: Number(connectionUrl.port),
-    database: `master`,
+    database: 'master',
     pool: {
       max: 1,
     },

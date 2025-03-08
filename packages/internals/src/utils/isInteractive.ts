@@ -6,5 +6,5 @@ type Options = {
   stream?: NodeJS.ReadStream
 }
 export const isInteractive = ({ stream = process.stdin }: Options = {}): boolean => {
-  return Boolean(stream && stream.isTTY && process.env.TERM !== 'dumb')
+  return Boolean(stream?.isTTY && process.env.TERM !== 'dumb')
 }

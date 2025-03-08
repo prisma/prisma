@@ -8,7 +8,7 @@ const keys = (ks: string | string[]) => (Array.isArray(ks) ? ks : ks.split('.'))
 // returning the current value in each iteration.
 // if at any point the value for the current key does not exist,
 // return the default value
-export const deepGet = (o, kp: string[]) => keys(kp).reduce((o, k) => o && o[k], o)
+export const deepGet = (o, kp: string[]) => keys(kp).reduce((o, k) => o?.[k], o)
 
 // traverse the set of keys right to left,
 // returning a new object containing both properties from the object

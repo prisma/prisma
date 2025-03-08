@@ -12,11 +12,11 @@ import {
   resolveBinary,
   RustPanic,
   SchemaEngineExitCode,
-  SchemaEngineLogLine,
+  type SchemaEngineLogLine,
   setClassName,
 } from '@prisma/internals'
-import type { ChildProcess } from 'child_process'
-import { spawn } from 'child_process'
+import type { ChildProcess } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { bold, red } from 'kleur/colors'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
@@ -312,7 +312,7 @@ export class SchemaEngine {
           if (result.method === 'print' && result.params?.content !== undefined) {
             // Here we print the content from the Schema Engine to stdout directly
             // (it is not returned to the caller)
-            process.stdout.write(result.params.content + '\n')
+            process.stdout.write(`${result.params.content}\n`)
 
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {
@@ -320,7 +320,7 @@ export class SchemaEngine {
               jsonrpc: '2.0',
               result: {},
             }
-            this.child!.stdin!.write(JSON.stringify(response) + '\n')
+            this.child!.stdin!.write(`${JSON.stringify(response)}\n`)
           }
         }
       }
@@ -341,7 +341,7 @@ export class SchemaEngine {
       try {
         const { PWD, ...processEnv } = process.env
         const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
-        debugRpc('starting Schema engine with binary: ' + binaryPath)
+        debugRpc(`starting Schema engine with binary: ${binaryPath}`)
         const args: string[] = []
 
         let projectDir: string = process.cwd()
@@ -450,7 +450,7 @@ export class SchemaEngine {
             if (json.level === 'ERROR') {
               this.lastError = json.fields
             }
-          } catch (e) {
+          } catch (_e) {
             //
           }
         })
@@ -543,7 +543,7 @@ export class SchemaEngine {
       }
 
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
-      this.child!.stdin!.write(JSON.stringify(request) + '\n')
+      this.child!.stdin!.write(`${JSON.stringify(request)}\n`)
       this.lastRequest = request
     })
   }

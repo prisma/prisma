@@ -1,13 +1,13 @@
 import * as Extensions from './core/extensions'
 import * as Public from './core/public'
-import * as Types from './core/types'
+import type * as Types from './core/types'
 
-export { type Types }
+export type { Types }
 export { Extensions }
 export { Public }
 
-export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
-export { type JsonBatchQuery, type JsonQuery } from './core/engines'
+export type { BaseDMMF, DMMF } from '../generation/dmmf-types'
+export type { JsonBatchQuery, JsonQuery } from './core/engines'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'

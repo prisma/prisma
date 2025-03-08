@@ -1,11 +1,11 @@
 import Debug from '@prisma/debug'
 import { Sql } from 'sql-template-tag'
 
-import { MiddlewareArgsMapper } from '../../getPrismaClient'
+import type { MiddlewareArgsMapper } from '../../getPrismaClient'
 import { mssqlPreparedStatement } from '../../utils/mssqlPreparedStatement'
 import { serializeRawParameters } from '../../utils/serializeRawParameters'
 import { isTypedSql } from '../types/exported'
-import { RawQueryArgs } from '../types/exported/RawQueryArgs'
+import type { RawQueryArgs } from '../types/exported/RawQueryArgs'
 
 const ALTER_RE = /^(\s*alter\s)/i
 

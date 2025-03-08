@@ -22,11 +22,11 @@ describe('middleware and transaction', () => {
         },
       }),
     ])
-    expect(typeof responses[0]).toEqual(`object`)
-    expect(responses[0].email).toMatchInlineSnapshot(`test@test.com`)
+    expect(typeof responses[0]).toEqual('object')
+    expect(responses[0].email).toMatchInlineSnapshot('test@test.com')
 
     const users = await prisma.user.findMany()
-    expect(users[0].email).toMatchInlineSnapshot(`test@test.com`)
+    expect(users[0].email).toMatchInlineSnapshot('test@test.com')
 
     await prisma.user.deleteMany()
 

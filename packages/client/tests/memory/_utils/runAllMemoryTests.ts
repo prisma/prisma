@@ -1,12 +1,12 @@
-import { existsSync } from 'fs'
-import fs from 'fs/promises'
+import { existsSync } from 'node:fs'
+import fs from 'node:fs/promises'
 import { bold, white } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { setupQueryEngine } from '../../_utils/setupQueryEngine'
 import { generateMemoryUsageReport } from './generateMemoryUsageReport'
 import { MemoryTestDir } from './MemoryTestDir'
-import { runMemoryTest, TestResult } from './runMemoryTest'
+import { runMemoryTest, type TestResult } from './runMemoryTest'
 
 /**
  * Runs all defined memory tests

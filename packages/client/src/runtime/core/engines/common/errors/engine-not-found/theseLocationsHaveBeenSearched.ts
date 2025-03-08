@@ -1,4 +1,4 @@
-import { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
+import type { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
 
 export function theseLocationsHaveBeenSearched(input: EngineNotFoundErrorInput) {
   const { searchedLocations } = input

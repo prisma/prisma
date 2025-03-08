@@ -1,5 +1,5 @@
 import { defaultTestConfig } from '@prisma/config'
-import path from 'path'
+import path from 'node:path'
 
 import { DbPull } from '../commands/DbPull'
 

@@ -1,4 +1,4 @@
-import path from 'path'
+import path from 'node:path'
 
 export function absolutizeRelativePath(url: string, cwd: string, outputDir: string, absolutePaths?: boolean): string {
   let filePath = url

@@ -2,13 +2,13 @@ import indent from 'indent-string'
 
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import type { DMMF } from '../dmmf-types'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
+import type { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import { appendSkipType } from '../utils'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 
 export class InputField implements Generable {
   constructor(
@@ -123,7 +123,10 @@ function xorTypes(types: ts.TypeBuilder[]) {
 
 export class InputType implements Generable {
   private generatedName: string
-  constructor(protected readonly type: DMMF.InputType, protected readonly context: GenerateContext) {
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly context: GenerateContext,
+  ) {
     this.generatedName = type.name
   }
 

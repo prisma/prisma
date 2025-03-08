@@ -1,4 +1,4 @@
-import { TSClientOptions } from '../TSClient/TSClient'
+import type { TSClientOptions } from '../TSClient/TSClient'
 
 /**
  * Builds the necessary glue code to load the query engine wasm module.
@@ -40,5 +40,5 @@ export function buildQueryEngineWasmModule(
 }`
   }
 
-  return `config.engineWasm = undefined`
+  return 'config.engineWasm = undefined'
 }

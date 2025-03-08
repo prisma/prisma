@@ -1,5 +1,5 @@
 import * as Extensions from './exported/Extensions'
-import { OperationPayload } from './exported/Payload'
+import type { OperationPayload } from './exported/Payload'
 import * as Public from './exported/Public'
 import * as Result from './exported/Result'
 import * as Utils from './exported/Utils'
@@ -11,7 +11,7 @@ export { Utils }
 export { Public }
 
 export { isSkip, Skip, skip } from './exported/Skip'
-export { type UnknownTypedSql } from './exported/TypedSql'
+export type { UnknownTypedSql } from './exported/TypedSql'
 
 /** General types */
-export { type OperationPayload as Payload }
+export type { OperationPayload as Payload }

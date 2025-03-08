@@ -1,7 +1,7 @@
 import type { BinaryTarget } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, parseAWSNodejsRuntimeEnvVarVersion, pathToPosix } from '@prisma/internals'
-import path from 'path'
+import path from 'node:path'
 
 import { map } from '../../../../../helpers/blaze/map'
 
@@ -32,7 +32,7 @@ export function buildNFTAnnotations(
 
   // Add annotation for Netlify for a specific binaryTarget (depending on Node version and special env var)
   if (process.env.NETLIFY) {
-    const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
+    const isNodeMajor20OrUp = Number.parseInt(process.versions.node.split('.')[0]) >= 20
 
     // Netlify reads and changes the runtime version based on this env var
     // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables

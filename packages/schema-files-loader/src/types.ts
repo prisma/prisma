@@ -1,4 +1,4 @@
-import { LoadedFile } from './loadSchemaFiles'
+import type { LoadedFile } from './loadSchemaFiles'
 
 export type GetSchemaResult = {
   /**

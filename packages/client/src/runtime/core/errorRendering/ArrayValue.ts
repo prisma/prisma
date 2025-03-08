@@ -1,6 +1,6 @@
 import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
 import { ArrayField } from './ArrayField'
-import { ErrorWriter, fieldsSeparator } from './base'
+import { type ErrorWriter, fieldsSeparator } from './base'
 import { FormattedString } from './FormattedString'
 import { Value } from './Value'
 

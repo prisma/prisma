@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js'
-import path from 'path'
+import path from 'node:path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'

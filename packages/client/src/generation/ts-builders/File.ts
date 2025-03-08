@@ -1,9 +1,9 @@
-import { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
-import { BasicBuilder } from './BasicBuilder'
-import { Export } from './Export'
-import { ExportFrom } from './ExportFrom'
-import { Import } from './Import'
-import { Writer } from './Writer'
+import type { AnyDeclarationBuilder } from './AnyDeclarationBuilder'
+import type { BasicBuilder } from './BasicBuilder'
+import type { Export } from './Export'
+import type { ExportFrom } from './ExportFrom'
+import type { Import } from './Import'
+import type { Writer } from './Writer'
 
 export type FileItem = AnyDeclarationBuilder | Export<any> | ExportFrom
 export class File implements BasicBuilder {

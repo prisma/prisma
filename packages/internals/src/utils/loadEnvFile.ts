@@ -17,7 +17,7 @@ export async function loadEnvFile({
   config: PrismaConfigInternal
 }) {
   if (config.loadedFromFile) {
-    process.stdout.write(`Prisma config detected, skipping environment variable loading.\n`)
+    process.stdout.write('Prisma config detected, skipping environment variable loading.\n')
     return
   }
 
@@ -25,6 +25,6 @@ export async function loadEnvFile({
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
 
   if (printMessage && envData && envData.message) {
-    process.stdout.write(envData.message + '\n')
+    process.stdout.write(`${envData.message}\n`)
   }
 }

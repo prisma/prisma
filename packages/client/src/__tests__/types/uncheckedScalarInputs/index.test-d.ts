@@ -9,7 +9,6 @@ const prisma = new PrismaClient({
     },
   },
 })
-
 ;(async () => {
   // only either authorId or author needed
   expectError(

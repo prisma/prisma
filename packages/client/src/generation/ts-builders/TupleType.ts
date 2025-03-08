@@ -1,6 +1,6 @@
-import { BasicBuilder } from './BasicBuilder'
+import type { BasicBuilder } from './BasicBuilder'
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export class TupleItem implements BasicBuilder {
   private name: string | undefined

@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 // @ts-ignore
-import * as Sql from './node_modules/@prisma/client/sql'
+import type * as Sql from './node_modules/@prisma/client/sql'
 
 declare let prisma: PrismaClient
 declare let sql: typeof Sql

@@ -1,5 +1,5 @@
-import { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, getCLIPathHash, getProjectHash, HelpError, isError } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@prisma/config'
+import { arg, type Command, getCLIPathHash, getProjectHash, HelpError, isError } from '@prisma/internals'
 import * as checkpoint from 'checkpoint-client'
 
 /**
@@ -17,7 +17,7 @@ export class Telemetry implements Command {
     })
 
     if (isError(args)) {
-      throw new HelpError(`Invalid arguments supplied`)
+      throw new HelpError('Invalid arguments supplied')
     }
 
     const info = await checkpoint.getInfo()

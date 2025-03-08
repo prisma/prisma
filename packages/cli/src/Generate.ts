@@ -1,16 +1,16 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import type { SqlQueryOutput } from '@prisma/generator-helper'
 import {
   arg,
-  Command,
+  type Command,
   format,
-  Generator,
+  type Generator,
   getCommandWithExecutor,
   getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
-  GetSchemaResult,
+  type GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
@@ -23,10 +23,10 @@ import {
   type SchemaPathFromConfig,
 } from '@prisma/internals'
 import { printSchemaLoadedMessage } from '@prisma/migrate'
-import fs from 'fs'
+import fs from 'node:fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
-import path from 'path'
+import path from 'node:path'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
@@ -37,7 +37,9 @@ import { getRandomPromotion, renderPromotion } from './utils/handlePromotions'
 import { handleNpsSurvey } from './utils/nps/survey'
 import { simpleDebounce } from './utils/simpleDebounce'
 
-const pkg = eval(`require('../package.json')`)
+// Import package.json directly instead of using eval
+import pkgJson from '../package.json'
+const pkg = pkgJson
 
 /**
  * $ prisma generate
@@ -98,7 +100,7 @@ ${bold('Examples')}
       try {
         await generator.generate()
         const after = Math.round(performance.now())
-        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
+        message.push(`${getGeneratorSuccessMessage(generator, after - before)}\n`)
         generator.stop()
       } catch (err) {
         this.hasGeneratorErrored = true
@@ -156,7 +158,7 @@ ${bold('Examples')}
     const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
-    let hasJsClient
+    let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
@@ -222,11 +224,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         if (clientVersionBeforeGenerate && typeof clientVersionBeforeGenerate === 'string') {
           const [major, minor] = clientVersionBeforeGenerate.split('.')
 
-          if (parseInt(major) == 2 && parseInt(minor) < 12) {
+          if (Number.parseInt(major) === 2 && Number.parseInt(minor) < 12) {
             printBreakingChangesMessage = true
           }
         }
-      } catch (e) {
+      } catch (_e) {
         //
       }
     }
@@ -285,7 +287,7 @@ ${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
-      const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
+      const message = `\n${this.logText}${hasJsClient && !this.hasGeneratorErrored ? hint : ''}`
 
       if (this.hasGeneratorErrored) {
         if (postinstallCwd) {
@@ -295,56 +297,54 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           return ''
         }
         throw new Error(message)
-      } else {
-        if (!hideHints) {
-          await this.surveyHandler()
-        }
-
-        return message
       }
-    } else {
-      logUpdate(watchingText + '\n' + this.logText)
-
-      const watcher = new Watcher(schemaPath)
-      if (args['--sql']) {
-        watcher.add(sqlDirPath(schemaPath))
+      if (!hideHints) {
+        await this.surveyHandler()
       }
 
-      for await (const changedPath of watcher) {
-        logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
-        let generatorsWatch: Generator[] | undefined
-        try {
-          if (args['--sql']) {
-            typedSql = await introspectSql(schemaPath)
-          }
+      return message
+    }
+    logUpdate(`${watchingText}\n${this.logText}`)
 
-          generatorsWatch = await getGenerators({
-            schemaPath,
-            printDownloadProgress: !watchMode,
-            version: enginesVersion,
-            cliVersion: pkg.version,
-            generatorNames: args['--generator'],
-            typedSql,
-          })
+    const watcher = new Watcher(schemaPath)
+    if (args['--sql']) {
+      watcher.add(sqlDirPath(schemaPath))
+    }
 
-          if (!generatorsWatch || generatorsWatch.length === 0) {
-            this.logText += `${missingGeneratorMessage}\n`
-          } else {
-            logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
-            try {
-              await this.runGenerate({
-                generators: generatorsWatch,
-              })
-              logUpdate(watchingText + '\n' + this.logText)
-            } catch (errRunGenerate) {
-              this.logText += `${errRunGenerate.message}\n\n`
-              logUpdate(watchingText + '\n' + this.logText)
-            }
-          }
-        } catch (errGetGenerators) {
-          this.logText += `${errGetGenerators.message}\n\n`
-          logUpdate(watchingText + '\n' + this.logText)
+    for await (const changedPath of watcher) {
+      logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+      let generatorsWatch: Generator[] | undefined
+      try {
+        if (args['--sql']) {
+          typedSql = await introspectSql(schemaPath)
         }
+
+        generatorsWatch = await getGenerators({
+          schemaPath,
+          printDownloadProgress: !watchMode,
+          version: enginesVersion,
+          cliVersion: pkg.version,
+          generatorNames: args['--generator'],
+          typedSql,
+        })
+
+        if (!generatorsWatch || generatorsWatch.length === 0) {
+          this.logText += `${missingGeneratorMessage}\n`
+        } else {
+          logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
+          try {
+            await this.runGenerate({
+              generators: generatorsWatch,
+            })
+            logUpdate(`${watchingText}\n${this.logText}`)
+          } catch (errRunGenerate) {
+            this.logText += `${errRunGenerate.message}\n\n`
+            logUpdate(`${watchingText}\n${this.logText}`)
+          }
+        }
+      } catch (errGetGenerators) {
+        this.logText += `${errGetGenerators.message}\n\n`
+        logUpdate(`${watchingText}\n${this.logText}`)
       }
     }
 
@@ -354,7 +354,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Generate.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${Generate.help}`)
     }
     return Generate.help
   }
@@ -376,7 +376,7 @@ function getCurrentClientVersion(): string | null {
         return program?.prismaVersion?.client ?? program?.Prisma?.prismaVersion?.client
       }
     }
-  } catch (e) {
+  } catch (_e) {
     return null
   }
 

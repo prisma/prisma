@@ -100,7 +100,7 @@ const expectedFindManyCategoriesOnPostsModelIfNoChange = [
 ]
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (suiteConfig, _suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       .with('driverAdapter', suiteConfig.driverAdapter)
@@ -201,7 +201,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -363,7 +363,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -456,7 +456,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  'Foreign key constraint violated:'
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -530,7 +530,7 @@ testMatrix.setupTestSuite(
           },
         )
 
-        describeIf(['DEFAULT', 'Cascade'].includes(onUpdate))(`onUpdate: DEFAULT, Cascade`, () => {
+        describeIf(['DEFAULT', 'Cascade'].includes(onUpdate))('onUpdate: DEFAULT, Cascade', () => {
           test('[update] post id should succeed', async () => {
             await prisma[postModel].update({
               where: {
@@ -637,7 +637,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['Restrict', 'NoAction'].includes(onUpdate))(`onUpdate: Restrict, NoAction`, () => {
+        describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
           test('[update] post id should throw', async () => {
             await expect(
               prisma[postModel].update({
@@ -737,7 +737,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: SetNull, SetDefault`, () => {
+        describeIf(['SetNull', 'SetDefault'].includes(onUpdate))('onUpdate: SetNull, SetDefault', () => {
           test('[update] post id should succeed', async () => {
             await prisma[postModel].update({
               where: {
@@ -893,7 +893,7 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
-          `onDelete: DEFAULT, Restrict, NoAction`,
+          'onDelete: DEFAULT, Restrict, NoAction',
           () => {
             test('[delete] post should throw', async () => {
               await expect(
@@ -980,7 +980,7 @@ testMatrix.setupTestSuite(
         // TODO check why SetDefault works because we don't have @default in the schema
         // Note: The test suite does not test `SetNull` with providers that errors during migration
         // see _utils/relationMode/computeMatrix.ts
-        describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
+        describeIf(['SetNull', 'SetDefault'].includes(onDelete))('onDelete: SetNull, SetDefault', () => {
           test('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({

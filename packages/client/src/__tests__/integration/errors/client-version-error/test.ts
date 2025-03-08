@@ -6,7 +6,7 @@ test('client-version-error', async () => {
   try {
     await prisma.user.findMany({ invalidArg: true })
   } catch (e) {
-    expect(e.clientVersion).toMatchInlineSnapshot(`0.0.0`)
+    expect(e.clientVersion).toMatchInlineSnapshot('0.0.0')
     expect(e).toMatchInlineSnapshot(`
 
             Invalid \`prisma.user.findMany()\` invocation in

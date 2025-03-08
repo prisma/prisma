@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'

@@ -1,10 +1,13 @@
-import { BasicBuilder } from './BasicBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { Writer } from './Writer'
 
 export type Import = NamespaceImport | BindingsImport | ModuleImport
 
 export class NamespaceImport implements BasicBuilder {
-  constructor(readonly alias: string, readonly from: string) {}
+  constructor(
+    readonly alias: string,
+    readonly from: string,
+  ) {}
   write(writer: Writer<undefined>): void {
     writer.write('import * as ').write(this.alias).write(` from "${this.from}"`)
   }

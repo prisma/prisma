@@ -1,4 +1,4 @@
-import { TransactionOptions } from '../Engine'
+import type { TransactionOptions } from '../Engine'
 
 export function getInteractiveTransactionId(transaction?: TransactionOptions<unknown>): string | undefined {
   if (transaction?.kind === 'itx') {

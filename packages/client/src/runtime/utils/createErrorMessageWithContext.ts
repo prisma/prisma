@@ -2,7 +2,7 @@ import { DMMF } from '@prisma/generator-helper'
 import indentString from 'indent-string'
 import { bold, dim, gray, red, underline } from 'kleur/colors'
 
-import { CallSite, LocationInFile } from './CallSite'
+import type { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
 
 declare global {
@@ -111,7 +111,7 @@ export function getTemplateParameters(
     source = colors.highlightSource(source)
     const numberColumnWidth = String(source.lastLineNumber).length
     templateParameters.contextLines = source
-      .mapLines((line, lineNumber) => colors.gray(String(lineNumber).padStart(numberColumnWidth)) + ' ' + line)
+      .mapLines((line, lineNumber) => `${colors.gray(String(lineNumber).padStart(numberColumnWidth))} ${line}`)
       .mapLines((line) => colors.dim(line))
       .prependSymbolAt(callLocation.lineNumber, colors.bold(colors.red('→')))
 

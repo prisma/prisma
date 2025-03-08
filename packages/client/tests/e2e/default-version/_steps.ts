@@ -4,7 +4,7 @@ import { executeSteps } from '../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
-    delete process.env.PRISMA_SKIP_POSTINSTALL_GENERATE
+    process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = undefined
     await $`pnpm install`
   },
   test: async () => {

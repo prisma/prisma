@@ -1,7 +1,7 @@
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { NewPrismaClient } from '../../_utils/types'
+import type { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 
 let prisma: PrismaClient

@@ -1,9 +1,10 @@
+import { writeFileSync } from 'node:fs'
+import path from 'node:path'
+
 import { watch as createWatcher } from 'chokidar'
+import type { BuildContext } from 'esbuild'
 import * as esbuild from 'esbuild'
-import { BuildContext } from 'esbuild'
-import { writeFileSync } from 'fs'
 import glob from 'globby'
-import path from 'path'
 
 import { debounce } from '../blaze/debounce'
 import { flatten } from '../blaze/flatten'
@@ -116,11 +117,13 @@ function addDefaultOutDir(options: BuildOptions) {
  */
 async function executeEsBuild(options: BuildOptions) {
   if (process.env.WATCH === 'true') {
+    // biome-ignore lint/suspicious/noExplicitAny: omit types seem to be broken
     const context = await esbuild.context(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
 
     watch(context, options)
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: omit types seem to be broken
   const build = await esbuild.build(omit(options, ['name', 'emitTypes', 'emitMetafile']) as any)
   const outdir = options.outdir ?? (options.outfile ? path.dirname(options.outfile) : undefined)
 
@@ -163,7 +166,7 @@ async function dependencyCheck(options: BuildOptions) {
  * Execution pipeline that applies a set of actions
  * @param options
  */
-export async function build(options: BuildOptions[]) {
+export function build(options: BuildOptions[]) {
   void transduce.async(options, dependencyCheck)
 
   return transduce.async(

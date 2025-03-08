@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Command } from '@prisma/internals'
+import type { Command } from '@prisma/internals'
 
 import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'
@@ -7,7 +7,7 @@ import { requestOrThrow } from '../_lib/pdp'
 import { getTokenOrThrow, platformParameters } from '../_lib/utils'
 
 export class Delete implements Command {
-  public static new(legacy: boolean = false) {
+  public static new(legacy = false) {
     return new Delete(legacy)
   }
 
@@ -19,8 +19,8 @@ export class Delete implements Command {
     })
     const token = await getTokenOrThrow(args)
     const serviceTokenId = this.legacy
-      ? getRequiredParameterOrThrow(args, ['--apikey'] as any)
-      : getRequiredParameterOrThrow(args, ['--serviceToken', '-s'] as any)
+      ? getRequiredParameterOrThrow(args, ['--apikey'] as unknown as string[])
+      : getRequiredParameterOrThrow(args, ['--serviceToken', '-s'] as unknown as string[])
     const { serviceTokenDelete } = await requestOrThrow<
       {
         serviceTokenDelete: {

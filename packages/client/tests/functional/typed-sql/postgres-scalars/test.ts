@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 // @ts-ignore
-import * as Sql from '@prisma/client/sql'
+import type * as Sql from '@prisma/client/sql'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'

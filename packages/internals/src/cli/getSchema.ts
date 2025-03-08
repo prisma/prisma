@@ -7,11 +7,11 @@ import type {
   SuccessfulLookupResult,
 } from '@prisma/schema-files-loader'
 import { ensureType, loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
-import fs from 'fs'
+import fs from 'node:fs'
 import { green } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 import { readPackageUp } from 'read-package-up'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
 import { getConfig } from '../engine-commands'
 import type { MultipleSchemas, MultipleSchemaTuple } from '../utils/schemaFileInput'
@@ -258,7 +258,7 @@ function renderLookupError(error: NonFatalLookupError) {
 
 function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   const parts: string[] = [
-    `Could not find Prisma Schema that is required for this command.`,
+    'Could not find Prisma Schema that is required for this command.',
     `You can either provide it with ${green(
       '`--schema`',
     )} argument, set it as \`prisma.schema\` in your package.json or put it into the default location.`,

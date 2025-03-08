@@ -10,11 +10,9 @@ import { binaryTargets } from '../binaryTargets'
  * whole instead of "darwin" and "arm" separately)
  */
 export const binaryTargetRegex = new RegExp(
-  '(' +
-    [...binaryTargets]
-      .sort((a, b) => b.length - a.length)
-      .map((p) => escapeString(p))
-      .join('|') +
-    ')',
+  `(${[...binaryTargets]
+    .sort((a, b) => b.length - a.length)
+    .map((p) => escapeString(p))
+    .join('|')})`,
   'g',
 )

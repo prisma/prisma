@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
-import { randomBytes } from 'crypto'
+import { randomBytes } from 'node:crypto'
 import { expectTypeOf } from 'expect-type'
-import https from 'https'
+import https from 'node:https'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   beforeEach(() => {
-    if (typeof globalThis['fetch'] === 'function') {
+    if (typeof globalThis.fetch === 'function') {
       mockedRequest = jest.spyOn(globalThis as any, 'fetch')
     } else {
       mockedRequest = jest.spyOn(https, 'request')

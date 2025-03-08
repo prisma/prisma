@@ -1,5 +1,5 @@
-import { GetResult, Operation } from './Result'
-import { Exact } from './Utils'
+import type { GetResult, Operation } from './Result'
+import type { Exact } from './Utils'
 
 /*
  * /!\ These types are exposed to the user. Proceed with caution.
@@ -8,20 +8,20 @@ import { Exact } from './Utils'
  */
 
 // prettier-ignore
-export type Args<T, F extends Operation> =
-  T extends { [K: symbol]: { types: { operations: { [K in F]: { args: any } } } } }
+export type Args<T, F extends Operation> = T extends {
+  [K: symbol]: { types: { operations: { [K in F]: { args: any } } } }
+}
   ? T[symbol]['types']['operations'][F]['args']
   : any
 
 // prettier-ignore
-export type Result<T, A, F extends Operation> =
-  T extends { [K: symbol]: { types: { payload: any } } }
+export type Result<T, A, F extends Operation> = T extends { [K: symbol]: { types: { payload: any } } }
   ? GetResult<T[symbol]['types']['payload'], A, F>
-  : GetResult<{ composites: {}, objects: {}, scalars: {}, name: '' }, {}, F>
+  : GetResult<{ composites: {}; objects: {}; scalars: {}; name: '' }, {}, F>
 
 // prettier-ignore
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type Payload<T, F extends Operation = never> = T extends { [K: symbol]: { types: { payload: any } } }
+export type Payload<T, _F extends Operation = never> = T extends { [K: symbol]: { types: { payload: any } } }
   ? T[symbol]['types']['payload']
   : any
 
@@ -30,6 +30,6 @@ export interface PrismaPromise<T> extends Promise<T> {
   [Symbol.toStringTag]: 'PrismaPromise'
 }
 
-export { type Operation }
+export type { Operation }
 
-export { type Exact }
+export type { Exact }

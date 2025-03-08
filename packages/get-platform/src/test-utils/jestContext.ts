@@ -2,7 +2,7 @@ import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import fs from 'fs-jetpack'
 import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
-import path from 'path'
+import path from 'node:path'
 import tempy from 'tempy'
 
 /**
@@ -46,7 +46,7 @@ export type BaseContext = {
  * - Fixture loader for bootstrapping the temporary directory with content
  */
 export const jestContext = {
-  new: function (ctx: BaseContext = {} as any) {
+  new: (ctx: BaseContext = {} as any) => {
     const c = ctx as BaseContext
 
     beforeEach(() => {
@@ -55,7 +55,7 @@ export const jestContext = {
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.tree = (startFrom = c.tmpDir, indent = '') => {
-        function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<String> {
+        function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<string> {
           for (const child of children) {
             if (child.name === 'node_modules' || child.name === '.git') {
               continue
@@ -63,7 +63,7 @@ export const jestContext = {
 
             if (child.type === 'dir') {
               yield `${indent}└── ${child.name}/`
-              yield* generateDirectoryTree(child.children, indent + '    ')
+              yield* generateDirectoryTree(child.children, `${indent}    `)
             } else if (child.type === 'symlink') {
               yield `${indent} -> ${child.relativePath}`
             } else {

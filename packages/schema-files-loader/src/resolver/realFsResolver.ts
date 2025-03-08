@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 
-import { FilesResolver, FsEntryType } from './types'
+import type { FilesResolver, FsEntryType } from './types'
 
 export const realFsResolver: FilesResolver = {
   listDirContents(path: string): Promise<string[]> {

@@ -22,10 +22,10 @@ export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Resp
     const [majorLatest] = latestVersionAvailable.split('.')
 
     if (majorInstalled < majorLatest) {
-      majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
+      majorText = '\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n'
       boxHeight = boxHeight + 4
     }
-  } catch (e) {}
+  } catch (_e) {}
 
   const boxText = `\n${blue(
     'Update available',

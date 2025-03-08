@@ -35,7 +35,7 @@ import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
@@ -50,7 +50,10 @@ export class Model implements Generable {
   protected updateManyAndReturnType: undefined | DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
-  constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
+  constructor(
+    protected readonly model: DMMF.Model,
+    protected readonly context: GenerateContext,
+  ) {
     this.dmmf = context.dmmf
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
@@ -302,7 +305,7 @@ ${indent(
       aggregateType.fields.map((f) => {
         let data = ''
         const comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, f.name)
-        data += comment ? wrapComment(comment) + '\n' : ''
+        data += comment ? `${wrapComment(comment)}\n` : ''
         if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
@@ -335,7 +338,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       .moduleExport(
         ts.typeDeclaration(
           model.name,
-          ts.namedType(`$Result.DefaultSelection`).addGenericArgument(ts.namedType(getPayloadName(model.name))),
+          ts.namedType('$Result.DefaultSelection').addGenericArgument(ts.namedType(getPayloadName(model.name))),
         ),
       )
       .setDocComment(ts.docComment(docs))
@@ -450,7 +453,10 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
   }
 }
 export class ModelDelegate implements Generable {
-  constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
+  constructor(
+    protected readonly outputType: DMMF.OutputType,
+    protected readonly context: GenerateContext,
+  ) {}
 
   /**
    * Returns all available non-aggregate or group actions
@@ -526,8 +532,8 @@ ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
-        name,
-      )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
+    name,
+  )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
 `
     : ''
 }
@@ -592,8 +598,8 @@ ${
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-        name,
-      )}<T> : Prisma.PrismaPromise<InputErrors>`
+    name,
+  )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
 /**

@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   // TODO: re-enable this or change it once we have decided the fix
-  test.skip('int overflow', async () => {
+  test('int overflow', async () => {
     const promise = prisma.resource.create({
       data: {
         number: 2265000000,

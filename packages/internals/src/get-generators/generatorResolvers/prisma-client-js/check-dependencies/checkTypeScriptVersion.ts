@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'node:fs'
 import { bold, dim } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { logger } from '../../../..'
 import { resolvePkg } from './resolve'
@@ -37,7 +37,7 @@ export async function checkTypeScriptVersion() {
         )
       }
     }
-  } catch (e) {
+  } catch (_e) {
     // They do not have TS installed, we ignore (example: JS project)
   }
 }

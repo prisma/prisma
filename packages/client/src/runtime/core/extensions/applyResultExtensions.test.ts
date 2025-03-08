@@ -372,8 +372,8 @@ test('caches the result', () => {
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
   })
-  extended['computed']
-  extended['computed']
+  extended.computed
+  extended.computed
 
   expect(compute).toHaveBeenCalledTimes(1)
 })

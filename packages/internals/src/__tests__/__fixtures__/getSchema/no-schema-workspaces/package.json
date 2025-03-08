@@ -1,7 +1,5 @@
 {
   "name": "no-schema-workspaces",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "private": true
 }

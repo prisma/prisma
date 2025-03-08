@@ -1,7 +1,7 @@
-export function promisify(fn: (...args: any[]) => any) {
-  return (...args: any[]) => {
+export function promisify(fn: (...args: unknown[]) => unknown) {
+  return (...args: unknown[]) => {
     return new Promise((resolve, reject) => {
-      fn(...args, (err: any, result: any) => {
+      fn(...args, (err: unknown, result: unknown) => {
         if (err) {
           reject(err)
         } else {
@@ -12,16 +12,16 @@ export function promisify(fn: (...args: any[]) => any) {
   }
 }
 
-export function deprecate(fn: (...args: any[]) => any, message: string) {
-  return (...args: any[]) => {
+export function deprecate(fn: (...args: unknown[]) => unknown, message: string) {
+  return (...args: unknown[]) => {
     console.warn(message)
     return fn(...args)
   }
 }
 
 // does not handle recursive objects or colors
-export function inspect(obj: any): string {
-  return JSON.stringify(obj, (key, value) => {
+export function inspect(obj: unknown): string {
+  return JSON.stringify(obj, (_key, value) => {
     if (typeof value === 'function') {
       return value.toString()
     }

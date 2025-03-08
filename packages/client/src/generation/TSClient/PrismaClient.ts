@@ -2,8 +2,8 @@ import type { DataSource, DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { ClientOtherOps } from '../../runtime'
-import { Operation } from '../../runtime/core/types/exported/Result'
+import type { ClientOtherOps } from '../../runtime'
+import type { Operation } from '../../runtime/core/types/exported/Result'
 import * as ts from '../ts-builders'
 import {
   capitalize,
@@ -20,9 +20,9 @@ import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { globalOmitConfig } from './globalOmit'
-import { TSClientOptions } from './TSClient'
+import type { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(context: GenerateContext) {
@@ -114,7 +114,7 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     }
 
     if (name === 'queryRaw' && context.isPreviewFeatureOn('typedSql')) {
-      results.push(`$queryRawTyped`)
+      results.push('$queryRawTyped')
     }
 
     return results
@@ -381,7 +381,8 @@ function runCommandRawDefinition(context: GenerateContext) {
   const method = ts
     .method('$runCommandRaw')
     .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
-    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject')))
+    .setDocComment(ts.docComment`
       Executes a raw MongoDB command and returns the result of it.
       @example
       \`\`\`
@@ -416,9 +417,8 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
   if (runtimeNameTs === 'binary.js') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
-  } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
   }
+  return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
 }
 
 export class PrismaClientClass implements Generable {
@@ -644,7 +644,9 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           .setDocComment(ts.docComment('@default "colorless"')),
       )
       .add(
-        ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+        ts
+          .property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')])))
+          .optional()
           .setDocComment(ts.docComment`
              @example
              \`\`\`
@@ -673,7 +675,10 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     }
 
     clientOptions.add(
-      ts.property('transactionOptions', transactionOptions).optional().setDocComment(ts.docComment`
+      ts
+        .property('transactionOptions', transactionOptions)
+        .optional()
+        .setDocComment(ts.docComment`
              The default values for transactionOptions
              maxWait ?= 2000
              timeout ?= 5000
@@ -692,7 +697,10 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     }
 
     clientOptions.add(
-      ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+      ts
+        .property('omit', ts.namedType('Prisma.GlobalOmitConfig'))
+        .optional()
+        .setDocComment(ts.docComment`
         Global configuration for omitting model fields by default.
 
         @example

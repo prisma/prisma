@@ -1,10 +1,13 @@
-import { BasicBuilder } from './BasicBuilder'
-import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { TypeBuilder } from './TypeBuilder'
+import type { Writer } from './Writer'
 
 export class Parameter implements BasicBuilder {
   private isOptional = false
-  constructor(private name: string, private type: TypeBuilder) {}
+  constructor(
+    private name: string,
+    private type: TypeBuilder,
+  ) {}
 
   optional(): this {
     this.isOptional = true

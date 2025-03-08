@@ -1,5 +1,5 @@
 import { Providers } from '../../_utils/providers'
-import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
+import type { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
 export function schema_mton({
   id,

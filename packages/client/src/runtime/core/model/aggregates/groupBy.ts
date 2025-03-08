@@ -14,14 +14,14 @@ function desugarUserArgs(args: UserArgs = {}) {
   const _args = desugarUserArgsAggregate(args)
 
   // we desugar the array into { [key]: boolean }
-  if (Array.isArray(_args['by'])) {
-    for (const key of _args['by']) {
+  if (Array.isArray(_args.by)) {
+    for (const key of _args.by) {
       if (typeof key === 'string') {
-        _args['select'][key] = true
+        _args.select[key] = true
       }
     }
-  } else if (typeof _args['by'] === 'string') {
-    _args['select'][_args['by']] = true
+  } else if (typeof _args.by === 'string') {
+    _args.select[_args.by] = true
   }
 
   return _args
@@ -35,9 +35,9 @@ function desugarUserArgs(args: UserArgs = {}) {
  */
 export function createUnpacker(args: UserArgs = {}) {
   return (data: object[]) => {
-    if (typeof args?.['_count'] === 'boolean') {
+    if (typeof args?._count === 'boolean') {
       data.forEach((row) => {
-        row['_count'] = row['_count']['_all']
+        row._count = row._count._all
       })
     }
 

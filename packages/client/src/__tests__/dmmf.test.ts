@@ -22,8 +22,9 @@ describe('dmmf', () => {
       }`
 
     const dmmf = await getDMMF({ datamodel })
-    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
-      .toMatchInlineSnapshot(`
+    expect(
+      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
+    ).toMatchInlineSnapshot(`
       {
         "constraints": {
           "maxNumFields": null,
@@ -195,8 +196,9 @@ describe('dmmf', () => {
       }`
 
     const dmmf = await getDMMF({ datamodel })
-    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
-      .toMatchInlineSnapshot(`
+    expect(
+      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
+    ).toMatchInlineSnapshot(`
       {
         "constraints": {
           "maxNumFields": null,

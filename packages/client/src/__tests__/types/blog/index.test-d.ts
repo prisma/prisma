@@ -9,7 +9,6 @@ const prisma = new PrismaClient({
     },
   },
 })
-
 ;(async () => {
   expectError(await prisma.$queryRaw(123))
   expectError(await prisma.post.create({}))

@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Command } from '@prisma/internals'
+import type { Command } from '@prisma/internals'
 
 import { argOrThrow, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'
@@ -19,7 +19,7 @@ export class Disable implements Command {
     const environmentId = getRequiredParameterOrThrow(args, ['--environment', '-e'])
     await requestOrThrow<
       {
-        accelerateDisable: {}
+        accelerateDisable: Record<string, never>
       },
       { environmentId: string }
     >({

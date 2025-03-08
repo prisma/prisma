@@ -1,10 +1,10 @@
-import { trace, TracerProvider } from '@opentelemetry/api'
+import { trace, type TracerProvider } from '@opentelemetry/api'
 import {
   InstrumentationBase,
-  InstrumentationConfig,
+  type InstrumentationConfig,
   InstrumentationNodeModuleDefinition,
 } from '@opentelemetry/instrumentation'
-import { PrismaInstrumentationGlobalValue } from '@prisma/internals'
+import type { PrismaInstrumentationGlobalValue } from '@prisma/internals'
 
 import { ActiveTracingHelper } from './ActiveTracingHelper'
 import {

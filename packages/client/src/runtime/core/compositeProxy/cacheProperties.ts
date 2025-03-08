@@ -1,5 +1,5 @@
 import { Cache } from '../../../generation/Cache'
-import { CompositeProxyLayer } from './createCompositeProxy'
+import type { CompositeProxyLayer } from './createCompositeProxy'
 
 /**
  * Composite proxy layer that adds caching to another

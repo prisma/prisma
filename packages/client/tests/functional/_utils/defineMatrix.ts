@@ -1,8 +1,8 @@
 import type { U } from 'ts-toolbelt'
 
-import { NamedTestSuiteConfig, TestSuiteMatrix } from './getTestSuiteInfo'
-import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, CliMeta, MatrixOptions } from './types'
+import type { NamedTestSuiteConfig, TestSuiteMatrix } from './getTestSuiteInfo'
+import { setupTestSuiteMatrix, type TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
+import type { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 

@@ -1,6 +1,6 @@
 import getStream from 'get-stream'
 import type { Dispatcher, Pool } from 'undici'
-import type { URL } from 'url'
+import type { URL } from 'node:url'
 
 export type Result<R> = {
   statusCode: Dispatcher.ResponseData['statusCode']
@@ -27,8 +27,6 @@ function assertHasPool<A>(pool: A): asserts pool is NonNullable<A> {
  */
 export class Connection {
   private _pool: Pool | undefined
-
-  constructor() {}
 
   /**
    * Wrapper to handle HTTP error codes. HTTP errors don't trigger any

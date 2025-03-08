@@ -1,6 +1,6 @@
-import fs from 'fs'
-import readline from 'readline'
-import { PassThrough } from 'stream'
+import fs from 'node:fs'
+import readline from 'node:readline'
+import { PassThrough } from 'node:stream'
 
 import { createSafeReadlineProxy, handleNpsSurveyImpl } from '../utils/nps/survey'
 

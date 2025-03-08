@@ -58,10 +58,10 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }
 
-  private static help = format(`This is the internal CLI for @prisma/migrate`)
+  private static help = format('This is the internal CLI for @prisma/migrate')
 }

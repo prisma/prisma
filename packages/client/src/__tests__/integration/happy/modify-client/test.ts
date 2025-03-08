@@ -1,6 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-let prisma, PrismaClient
+let prisma
+let PrismaClient
 describe('modify-client', () => {
   test('override method', async () => {
     prisma.user.findMany = () => ['override']
@@ -31,8 +32,8 @@ describe('modify-client', () => {
     const users = await client.user.findMany()
     client.prop = 'another value'
 
-    expect(users).toMatchInlineSnapshot(`[]`)
-    expect(client.prop).toMatchInlineSnapshot(`another value`)
+    expect(users).toMatchInlineSnapshot('[]')
+    expect(client.prop).toMatchInlineSnapshot('another value')
 
     await client.$disconnect()
   })

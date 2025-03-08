@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'node:fs'
 
 /**
  * Determines whether Node API is supported on the current platform and throws if not

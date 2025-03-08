@@ -1,5 +1,5 @@
-import { createFileNameToKeyMapper, FileNameToKeyMapper } from './caseSensitivity'
-import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
+import { createFileNameToKeyMapper, type FileNameToKeyMapper } from './caseSensitivity'
+import type { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
 
 /**
  * Files resolver that combines two other resolvers
@@ -9,7 +9,11 @@ import { CaseSensitivityOptions, FilesResolver, FsEntryType } from './types'
  */
 export class CompositeFilesResolver implements FilesResolver {
   private _fileNameToKey: FileNameToKeyMapper
-  constructor(private primary: FilesResolver, private secondary: FilesResolver, options: CaseSensitivityOptions) {
+  constructor(
+    private primary: FilesResolver,
+    private secondary: FilesResolver,
+    options: CaseSensitivityOptions,
+  ) {
     this._fileNameToKey = createFileNameToKeyMapper(options)
   }
 

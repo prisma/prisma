@@ -1,5 +1,5 @@
 export const process: Partial<NodeJS.Process> = {
-  nextTick: (fn: Function, ...args: unknown[]) => {
+  nextTick: (fn: (...args: unknown[]) => unknown, ...args: unknown[]) => {
     setTimeout(() => {
       fn(...args)
     }, 0)
@@ -7,6 +7,6 @@ export const process: Partial<NodeJS.Process> = {
   env: {},
   version: '',
   cwd: () => '/',
-  stderr: {} as any,
+  stderr: {} as NodeJS.Process['stderr'],
   argv: ['/bin/node'],
 }

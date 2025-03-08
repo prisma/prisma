@@ -1,7 +1,7 @@
 // This file is used to build large schemas for benchmarking purposes
 
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 function write(location: string, data: string) {
   if (fs.existsSync(location)) {
@@ -15,7 +15,7 @@ class Model {
   body: string
   constructor({ name, body }: { name: string; body?: string }) {
     this.name = name
-    this.body = body ?? ``
+    this.body = body ?? ''
   }
   public build() {
     return `
@@ -67,9 +67,9 @@ main().catch(err => console.log(err))
     })
     modelMap.set(modelName, model)
   }
-  modelMap.forEach((model) => {
+  for (const model of modelMap.values()) {
     schema += model.build()
-  })
+  }
   const schemaPath = path.join(__dirname, 'schema.prisma')
   const tsPath = path.join(__dirname, 'compile.ts')
 

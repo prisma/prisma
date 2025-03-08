@@ -1,10 +1,13 @@
-import { BasicBuilder } from './BasicBuilder'
-import { Writer } from './Writer'
+import type { BasicBuilder } from './BasicBuilder'
+import type { Writer } from './Writer'
 
 export type ExportFrom = NamespaceExport | BindingsExport | ExportAllFrom
 
 export class NamespaceExport implements BasicBuilder {
-  constructor(private from: string, private namespace: string) {}
+  constructor(
+    private from: string,
+    private namespace: string,
+  ) {}
 
   write(writer: Writer<undefined>): void {
     writer.write(`export * as ${this.namespace} from '${this.from}'`)

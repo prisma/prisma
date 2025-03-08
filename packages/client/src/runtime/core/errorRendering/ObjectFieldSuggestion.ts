@@ -1,9 +1,12 @@
-import { ErrorBasicBuilder, ErrorWriter } from './base'
-import { SuggestionObjectValue } from './SuggestionObjectValue'
+import type { ErrorBasicBuilder, ErrorWriter } from './base'
+import type { SuggestionObjectValue } from './SuggestionObjectValue'
 
 export class ObjectFieldSuggestion implements ErrorBasicBuilder {
   public isRequired = false
-  constructor(readonly name: string, readonly value: string | SuggestionObjectValue) {}
+  constructor(
+    readonly name: string,
+    readonly value: string | SuggestionObjectValue,
+  ) {}
 
   makeRequired() {
     this.isRequired = true
@@ -22,7 +25,7 @@ export class ObjectFieldSuggestion implements ErrorBasicBuilder {
       writer.write(green('?'))
     }
 
-    writer.write(green(`: `))
+    writer.write(green(': '))
     if (typeof this.value === 'string') {
       writer.write(green(this.value))
     } else {

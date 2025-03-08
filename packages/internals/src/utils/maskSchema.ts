@@ -1,4 +1,4 @@
-import { MultipleSchemas } from './schemaFileInput'
+import type { MultipleSchemas } from './schemaFileInput'
 
 export function maskSchemas(schemas: MultipleSchemas): MultipleSchemas {
   return schemas.map(([path, content]) => [path, maskSchema(content)])

@@ -1,7 +1,7 @@
-import { Client } from '../../getPrismaClient'
-import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
+import type { Client } from '../../getPrismaClient'
+import type { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { applyModelsAndClientExtensions } from '../model/applyModelsAndClientExtensions'
-import { ExtensionArgs } from '../types/exported'
+import type { ExtensionArgs } from '../types/exported'
 
 /**
  * @param this

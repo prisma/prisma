@@ -1,10 +1,10 @@
-import { DMMF } from '@prisma/generator-helper'
-import Decimal from 'decimal.js'
+import type { DMMF } from '@prisma/generator-helper'
+import type Decimal from 'decimal.js'
 
-import { DecimalJsLike } from './DecimalJsLike'
-import { FieldRef } from './FieldRef'
-import { ObjectEnumValue } from './ObjectEnums'
-import { Skip } from './Skip'
+import type { DecimalJsLike } from './DecimalJsLike'
+import type { FieldRef } from './FieldRef'
+import type { ObjectEnumValue } from './ObjectEnums'
+import type { Skip } from './Skip'
 
 export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 

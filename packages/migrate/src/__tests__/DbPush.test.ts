@@ -2,12 +2,12 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
 import { CaptureStdout } from '../utils/captureStdout'
-import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
+import { setupMongo, type SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
@@ -186,7 +186,7 @@ describe('push', () => {
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject([new Error()]) // simulate user cancellation
@@ -258,7 +258,7 @@ describe('push', () => {
   it('unexecutable - drop refused', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject([new Error()]) // simulate user cancellation
@@ -506,7 +506,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
+      throw new Error(`process.exit: ${number}`)
     })
 
     prompt.inject([new Error()]) // simulate user cancellation

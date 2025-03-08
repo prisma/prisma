@@ -41,7 +41,10 @@ export async function smokeTest(adapter: DriverAdapter) {
 }
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly provider: DriverAdapter['provider']) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    readonly provider: DriverAdapter['provider'],
+  ) {}
 
   async testJSON() {
     const json = JSON.stringify({

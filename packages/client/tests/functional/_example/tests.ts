@@ -1,4 +1,4 @@
-import * as path from 'path'
+import * as path from 'node:path'
 
 import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import { Providers } from '../_utils/providers'
@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(
   // },
   {
     skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
+      when(clientRuntime === 'wasm', 'Tracing preview feature creates a panic in the wasm engine')
     },
   },
 )

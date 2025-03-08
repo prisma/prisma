@@ -1,4 +1,4 @@
-import { executionAsyncId } from 'async_hooks'
+import { executionAsyncId } from 'node:async_hooks'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 

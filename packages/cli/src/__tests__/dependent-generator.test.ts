@@ -1,5 +1,5 @@
 import execa from 'execa'
-import path from 'path'
+import path from 'node:path'
 
 process.removeAllListeners('warning')
 

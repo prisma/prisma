@@ -1,6 +1,6 @@
 import type { Client } from '../../getPrismaClient'
 import type { UserArgs } from '../request/UserArgs'
-import { Action } from '../types/exported/JsApi'
+import type { Action } from '../types/exported/JsApi'
 import { aggregate } from './aggregates/aggregate'
 import { count } from './aggregates/count'
 import { groupBy } from './aggregates/groupBy'
@@ -16,7 +16,7 @@ import type { ModelAction } from './applyModel'
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function applyAggregates(client: Client, action: Action, modelAction: ModelAction) {
+export function applyAggregates(_client: Client, action: Action, modelAction: ModelAction) {
   // we effectively take over the aggregate api to perform data changes
   if (action === 'aggregate') return (userArgs?: UserArgs) => aggregate(userArgs, modelAction)
   if (action === 'count') return (userArgs?: UserArgs) => count(userArgs, modelAction)

@@ -3,7 +3,7 @@ import {
   addObjectProperties,
   addProperty,
   cacheProperties,
-  CompositeProxyLayer,
+  type CompositeProxyLayer,
   createCompositeProxy,
 } from '../compositeProxy'
 import { applyModel } from './applyModel'

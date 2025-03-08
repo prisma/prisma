@@ -9,7 +9,7 @@ import {
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
-import path from 'path'
+import path from 'node:path'
 import { parse } from 'stacktrace-parser'
 
 import { getDMMF } from '../generation/getDMMF'

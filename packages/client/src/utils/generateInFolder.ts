@@ -11,11 +11,11 @@ import {
   getPackedPackage,
 } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
-import fs from 'fs'
-import path from 'path'
-import { performance } from 'perf_hooks'
+import fs from 'node:fs'
+import path from 'node:path'
+import { performance } from 'node:perf_hooks'
 import rimraf from 'rimraf'
-import { promisify } from 'util'
+import { promisify } from 'node:util'
 
 import { generateClient } from '../generation/generateClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
@@ -36,7 +36,7 @@ export async function generateInFolder({
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
-    throw new Error(`Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`)
+    throw new Error('Project dir missing. Usage: ts-node examples/generate.ts examples/accounts')
   }
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)

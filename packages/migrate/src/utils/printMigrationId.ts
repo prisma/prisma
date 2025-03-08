@@ -10,6 +10,6 @@ export function printMigrationId(migrationId: string): string {
 
 export function printMigrationIds(migrationIds: string[]): string {
   return migrationIds.reduce((acc, migrationId) => {
-    return acc + '- ' + printMigrationId(migrationId) + '\n'
+    return `${acc}- ${printMigrationId(migrationId)}\n`
   }, '')
 }

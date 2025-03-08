@@ -3,7 +3,7 @@ const jest = require('eslint-plugin-jest')
 const simpleImportSort = require('eslint-plugin-simple-import-sort')
 const _import = require('eslint-plugin-import-x')
 const localRules = require('eslint-plugin-local-rules')
-const path = require('path')
+const path = require('node:path')
 
 const globals = require('globals')
 const tsParser = require('@typescript-eslint/parser')

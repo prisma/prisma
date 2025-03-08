@@ -2,7 +2,7 @@
 
 // Inlined from
 // https://github.com/zkochan/packages/blob/80a87115e134b2222124e1af91e01b074b4921b6/which-pm-runs/index.js
-const whichPMRuns = function () {
+const whichPMRuns = () => {
   if (!process.env.npm_config_user_agent) {
     return undefined
   }

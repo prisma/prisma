@@ -34,12 +34,7 @@ export function drawBox({ title, width, height, str, horizontalPadding }: BoxOpt
   width = Math.max(width, maxLineLength(str) + horizontalPadding * 2)
 
   const topLine = title
-    ? grey(chars.topLeft + chars.horizontal) +
-      ' ' +
-      reset(bold(title)) +
-      ' ' +
-      grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight) +
-      reset()
+    ? `${grey(chars.topLeft + chars.horizontal)} ${reset(bold(title))} ${grey(chars.horizontal.repeat(width - title.length - 2 - 3) + chars.topRight)}${reset()}`
     : grey(chars.topLeft + chars.horizontal) + grey(chars.horizontal.repeat(width - 3) + chars.topRight)
 
   const bottomLine = chars.bottomLeft + chars.horizontal.repeat(width - 2) + chars.bottomRight
@@ -61,5 +56,5 @@ export function drawBox({ title, width, height, str, horizontalPadding }: BoxOpt
     })
     .join('\n')
 
-  return grey(topLine + '\n' + mappedLines + '\n' + bottomLine)
+  return grey(`${topLine}\n${mappedLines}\n${bottomLine}`)
 }

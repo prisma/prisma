@@ -1,6 +1,6 @@
-import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
+import type { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 
-import { EngineConfig } from '../../common/Engine'
+import type { EngineConfig } from '../../common/Engine'
 
 export type QueryCompiler = {
   compile(request: string): Promise<string>

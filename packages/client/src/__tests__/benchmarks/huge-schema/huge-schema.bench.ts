@@ -3,15 +3,15 @@
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
 import execa from 'execa'
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
 
 let suite = withCodSpeed(new Benchmark.Suite('typescript')).add('client generation ~50 Models', {
   defer: true,
-  fn: function (deferred) {
+  fn: (deferred) => {
     generateTestClient({ projectDir: __dirname })
       .then(() => {
         deferred.resolve()
@@ -26,7 +26,7 @@ let suite = withCodSpeed(new Benchmark.Suite('typescript')).add('client generati
 if (!process.env.CODSPEED_BENCHMARK) {
   suite = suite.add('typescript compilation ~50 Models', {
     defer: true,
-    fn: function (deferred) {
+    fn: (deferred) => {
       compileFile(path.join(__dirname, './compile.ts'), { isolateCompiler: false })
         .then(() => {
           deferred.resolve()
@@ -54,7 +54,7 @@ suite
     if (process.env.CI) {
       printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node')
     }
-    execa.sync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
+    execa.sync('rm', ['-rf', './dotPlusAtPrismaClientFolder.zip'], {
       stdout: 'pipe',
       cwd: __dirname,
     })

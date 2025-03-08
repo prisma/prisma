@@ -1,4 +1,4 @@
-import { TSClientOptions } from '../TSClient/TSClient'
+import type { TSClientOptions } from '../TSClient/TSClient'
 
 /**
  * Builds the necessary bits so that our users can get a helpful warning during

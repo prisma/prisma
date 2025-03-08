@@ -1,10 +1,10 @@
 import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
 import { ArrayValue } from './ArrayValue'
-import { ErrorWriter, fieldsSeparator } from './base'
-import { Field } from './Field'
+import { type ErrorWriter, fieldsSeparator } from './base'
+import type { Field } from './Field'
 import { FormattedString } from './FormattedString'
-import { ObjectField } from './ObjectField'
-import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
+import type { ObjectField } from './ObjectField'
+import type { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { Value } from './Value'
 
 type SelectionParent = {
@@ -163,7 +163,7 @@ export class ObjectValue extends Value {
 
   override getPrintWidth(): number {
     const fields = Object.values(this.fields)
-    if (fields.length == 0) {
+    if (fields.length === 0) {
       return 2 // {}
     }
     const maxFieldWidth = Math.max(...fields.map((f) => f.getPrintWidth()))

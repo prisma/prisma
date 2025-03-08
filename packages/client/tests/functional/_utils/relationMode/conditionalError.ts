@@ -1,6 +1,6 @@
 import type { O } from 'ts-toolbelt'
 
-import { AdapterProviders, Providers } from '../providers'
+import type { AdapterProviders, Providers } from '../providers'
 
 type RelationMode = 'prisma' | 'foreignKeys'
 
@@ -46,8 +46,8 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
     // The errors are exactly the same for SQLite and these driverAdapters
     if (driverAdapter === 'js_d1' || driverAdapter === 'js_libsql') {
       return (
-        errorBase['sqlite'] ||
-        `TODO: add error for provider=sqlite (which will be used for libSQL and D1 driver adapters snapshots)`
+        errorBase.sqlite ||
+        'TODO: add error for provider=sqlite (which will be used for libSQL and D1 driver adapters snapshots)'
       )
     }
 

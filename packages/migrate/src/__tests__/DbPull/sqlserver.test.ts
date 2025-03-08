@@ -2,11 +2,11 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
+import path from 'node:path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../../utils/setupMSSQL'
-import { SetupParams } from '../../utils/setupPostgres'
+import type { SetupParams } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -174,7 +174,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
       ['--print', '--schema', 'without-schemas-in-datasource.prisma'],
       defaultTestConfig(),
     )
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -211,14 +211,14 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   // Examples
   // https://github.com/prisma/prisma/actions/runs/4013789656/jobs/6893546711 (most recent)
   // https://buildkite.com/prisma/test-prisma-typescript/builds/18825#01855966-3d90-4362-b130-502021a1047b
-  test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
+  test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
       defaultTestConfig(),
     )
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).resolves.toMatchInlineSnapshot('')
     expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -255,7 +255,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
       defaultTestConfig(),
     )
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -277,7 +277,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     const introspect = new DbPull()
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
-    await expect(result).rejects.toThrow(`P4001`)
+    await expect(result).rejects.toThrow('P4001')
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

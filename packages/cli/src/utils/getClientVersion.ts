@@ -1,5 +1,5 @@
-import fs from 'fs'
-import Module from 'module'
+import fs from 'node:fs'
+import Module from 'node:module'
 import pkgUp from 'pkg-up'
 
 /**
@@ -64,7 +64,7 @@ async function getPrismaClientVersionFromLocalPackageJson(cwd: string = process.
 function requireResolveFrom(moduleId: string, fromDir: string): string | null {
   try {
     const resolvedPath = require.resolve(moduleId, {
-      paths: (Module as any)._nodeModulePaths(fromDir),
+      paths: (Module as unknown as { _nodeModulePaths(dir: string): string[] })._nodeModulePaths(fromDir),
     })
 
     return resolvedPath

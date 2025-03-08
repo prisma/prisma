@@ -7,7 +7,7 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  (_suiteConfig, _suiteMeta) => {
     describe('relationMode with deprecated `referentialIntegrity` datasource property', () => {
       beforeEach(async () => {
         await prisma.$transaction([prisma.profileOneToOne.deleteMany(), prisma.userOneToOne.deleteMany()])

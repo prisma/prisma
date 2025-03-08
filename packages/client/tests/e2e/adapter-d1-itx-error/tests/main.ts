@@ -20,7 +20,7 @@ test('errors when iTx is used', async () => {
     })
   } catch (e: any) {
     // Message from client/src/runtime/getPrismaClient.ts
-    expect(e.message).toMatch(`Cloudflare D1 does not support interactive transactions.`)
+    expect(e.message).toMatch('Cloudflare D1 does not support interactive transactions.')
   }
 })
 

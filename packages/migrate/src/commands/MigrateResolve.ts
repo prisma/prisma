@@ -2,7 +2,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -96,7 +96,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       )
     }
     // if both are defined
-    else if (args['--applied'] && args['--rolled-back']) {
+    if (args['--applied'] && args['--rolled-back']) {
       throw new Error('Pass either --applied or --rolled-back, not both.')
     }
 
@@ -121,35 +121,34 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       }
 
       process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
-      return ``
-    } else {
-      if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
-        throw new Error(
-          `--rolled-back value must be a string like ${bold(
-            green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
-          )}`,
-        )
-      }
-
-      await ensureCanConnectToDatabase(schemaPath)
-
-      const migrate = new Migrate(schemaPath)
-      try {
-        await migrate.markMigrationRolledBack({
-          migrationId: args['--rolled-back'],
-        })
-      } finally {
-        migrate.stop()
-      }
-
-      process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
-      return ``
+      return ''
     }
+    if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
+      throw new Error(
+        `--rolled-back value must be a string like ${bold(
+          green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
+        )}`,
+      )
+    }
+
+    await ensureCanConnectToDatabase(schemaPath)
+
+    const migrate = new Migrate(schemaPath)
+    try {
+      await migrate.markMigrationRolledBack({
+        migrationId: args['--rolled-back'],
+      })
+    } finally {
+      migrate.stop()
+    }
+
+    process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)
+    return ''
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateResolve.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateResolve.help}`)
     }
     return MigrateResolve.help
   }

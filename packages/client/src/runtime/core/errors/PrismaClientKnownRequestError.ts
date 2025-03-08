@@ -1,6 +1,6 @@
 import { setClassName } from '@prisma/internals'
 
-import { ErrorWithBatchIndex } from './ErrorWithBatchIndex'
+import type { ErrorWithBatchIndex } from './ErrorWithBatchIndex'
 
 type KnownErrorParams = {
   code: string

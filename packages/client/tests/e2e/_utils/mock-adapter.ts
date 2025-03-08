@@ -1,4 +1,4 @@
-import { DriverAdapter } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 
 export const mockAdapterErrors = {
   queryRaw: new Error('Not implemented: queryRaw'),

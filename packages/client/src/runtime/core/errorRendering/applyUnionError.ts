@@ -1,9 +1,9 @@
 import { maxWithComparator } from '@prisma/internals'
 
-import { EngineValidationError, InvalidArgumentTypeError, UnionError } from '../engines'
-import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
+import type { EngineValidationError, InvalidArgumentTypeError, UnionError } from '../engines'
+import type { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { applyValidationError } from './applyValidationError'
-import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import type { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 
 type NonUnionError = Exclude<EngineValidationError, UnionError>
 
@@ -109,12 +109,12 @@ function getBestScoringError(errors: NonUnionError[]) {
 
 function getCombinedPathLength(error: EngineValidationError) {
   let score = 0
-  if (Array.isArray(error['selectionPath'])) {
-    score += error['selectionPath'].length
+  if (Array.isArray(error.selectionPath)) {
+    score += error.selectionPath.length
   }
 
-  if (Array.isArray(error['argumentPath'])) {
-    score += error['argumentPath'].length
+  if (Array.isArray(error.argumentPath)) {
+    score += error.argumentPath.length
   }
   return score
 }

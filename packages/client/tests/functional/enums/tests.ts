@@ -53,7 +53,7 @@ testMatrix.setupTestSuite(
       expectTypeOf<imports.Plan>().toEqualTypeOf<'CUSTOM' | 'FREE' | 'PAID'>()
     })
 
-    testIf(provider == Providers.SQLITE)(
+    testIf(provider === Providers.SQLITE)(
       'fails at runtime when an invalid entry is entered manually in SQLite',
       async () => {
         // @ts-test-if: provider !== Providers.MONGODB
@@ -65,7 +65,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(provider == Providers.MONGODB)(
+    testIf(provider === Providers.MONGODB)(
       'fails at runtime when an invalid entry is entered manually in Mongo',
       async () => {
         // @ts-test-if: provider === Providers.MONGODB

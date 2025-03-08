@@ -1,7 +1,7 @@
-import { DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
 import { extArgsParam, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { buildInputField } from './Input'
 

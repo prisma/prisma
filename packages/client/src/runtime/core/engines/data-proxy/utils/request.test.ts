@@ -10,7 +10,7 @@ test('native fetch is used if it exists', async () => {
       method: 'GET',
     },
     (fetch) => {
-      const nodeVersion = parseInt(process.versions.node.split('.')[0])
+      const nodeVersion = Number.parseInt(process.versions.node.split('.')[0])
 
       if (nodeVersion >= 18) {
         expect(fetch).toBe(globalThis.fetch)

@@ -4,7 +4,7 @@
 // import * as wasmBindgenRuntime from '@prisma/query-compiler-wasm/query_compiler_bg.js'
 import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
+import type { QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
 
 declare const WebAssembly: any // TODO not defined in Node types?
 

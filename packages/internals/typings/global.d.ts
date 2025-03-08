@@ -1,4 +1,4 @@
-import { WasmPanicRegistry } from '../src/WasmPanicRegistry'
+import type { WasmPanicRegistry } from '../src/WasmPanicRegistry'
 
 declare global {
   /// Global registry for Wasm panics.

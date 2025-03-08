@@ -11,8 +11,6 @@
     "@types/node": "18.19.50"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/client"
-    ]
+    "onlyBuiltDependencies": ["@prisma/client"]
   }
 }

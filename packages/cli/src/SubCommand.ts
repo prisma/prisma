@@ -2,8 +2,8 @@ import { getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
-import { existsSync } from 'fs'
-import { tmpdir } from 'os'
+import { existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 
 /**
  * Sub-CLIs that are installed on demand need to implement this interface

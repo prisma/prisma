@@ -11,7 +11,7 @@ const suite = withCodSpeed(new Benchmark.Suite('typescript'))
 suite
   .add('client generation 100 models with relations', {
     defer: true,
-    fn: function (deferred) {
+    fn: (deferred) => {
       generateTestClient({ projectDir: __dirname })
         .then(() => {
           deferred.resolve()

@@ -1,7 +1,7 @@
-import { Method } from './Method'
-import { Property } from './Property'
+import type { Method } from './Method'
+import type { Property } from './Property'
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 type ObjectTypeItem = Method | Property
 

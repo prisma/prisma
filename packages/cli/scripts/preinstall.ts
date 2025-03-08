@@ -13,7 +13,7 @@ function extractSemanticVersionParts(version: MajorMinor | MajorMinorPatch) {
   return version
     .split('.')
     .slice(0, 2) // only major and minor version
-    .map((v) => parseInt(v, 10)) as [number, number]
+    .map((v) => Number.parseInt(v, 10)) as [number, number]
 }
 
 /**

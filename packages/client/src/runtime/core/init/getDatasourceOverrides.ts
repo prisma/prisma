@@ -1,4 +1,4 @@
-import { Datasources, PrismaClientOptions } from '../../getPrismaClient'
+import type { Datasources, PrismaClientOptions } from '../../getPrismaClient'
 
 export function getDatasourceOverrides(
   options: PrismaClientOptions | undefined,

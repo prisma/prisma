@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import { EnvPaths } from '@prisma/generator-helper'
-import { findUpSync, Options as FindUpOptions, pathExistsSync } from 'find-up'
-import fs from 'fs'
-import path from 'path'
+import type { EnvPaths } from '@prisma/generator-helper'
+import { findUpSync, type Options as FindUpOptions, pathExistsSync } from 'find-up'
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { getSchemaFromPackageJson } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
@@ -56,11 +56,11 @@ function getProjectRootEnvPath(opts: FindUpOptions | undefined): string | null {
     if (pathExistsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
-        if (pkg['name'] !== '.prisma/client') {
+        if (pkg.name !== '.prisma/client') {
           debug(`project root found at ${pkgPath}`)
           return pkgPath
         }
-      } catch (e) {
+      } catch (_e) {
         debug(`skipping package.json at ${pkgPath}`)
       }
     }

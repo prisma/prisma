@@ -1,4 +1,4 @@
-import { DriverAdapter } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 
 import { Providers as Provider } from '../../_utils/providers'
 

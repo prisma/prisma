@@ -7,7 +7,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
 
-import { IsolationLevel, Options } from './Transaction'
+import { IsolationLevel, type Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,

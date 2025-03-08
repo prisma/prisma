@@ -326,7 +326,7 @@ describe('transaction', () => {
   // TODO: Enable this test, once query engine allows it
   // will be fixed in https://github.com/prisma/prisma-engines/issues/1481
   /* eslint-disable-next-line jest/no-disabled-tests */
-  test.skip('all mixed', async () => {
+  test('all mixed', async () => {
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [

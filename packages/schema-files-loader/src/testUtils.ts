@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { LoadedFile } from './loadSchemaFiles'
+import type { LoadedFile } from './loadSchemaFiles'
 
 export function line(text: string) {
   return `${text}${process.platform === 'win32' ? '\r\n' : '\n'}`

@@ -14,7 +14,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
   test('simple', async () => {
     const value = await prisma.user.count()
 
-    expect(value).toMatchInlineSnapshot(`3`)
+    expect(value).toMatchInlineSnapshot('3')
   })
 
   test('take', async () => {
@@ -22,7 +22,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
       take: 2,
     })
 
-    expect(value).toMatchInlineSnapshot(`2`)
+    expect(value).toMatchInlineSnapshot('2')
   })
 
   test('where', async () => {
@@ -32,7 +32,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
       },
     })
 
-    expect(value).toMatchInlineSnapshot(`1`)
+    expect(value).toMatchInlineSnapshot('1')
   })
 
   test('select where', async () => {
@@ -43,7 +43,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
       },
     })
 
-    expect(value).toMatchInlineSnapshot(`1`)
+    expect(value).toMatchInlineSnapshot('1')
   })
 
   test('select mixed where', async () => {
@@ -74,7 +74,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
       select: true, // count with a selection
     })
 
-    expect(value).toMatchInlineSnapshot(`3`)
+    expect(value).toMatchInlineSnapshot('3')
   })
 
   test('select all false', async () => {
@@ -83,7 +83,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, _clientMeta) => {
       select: false, // count with no selection
     })
 
-    expect(value).toMatchInlineSnapshot(`3`)
+    expect(value).toMatchInlineSnapshot('3')
   })
 
   test('select mixed', async () => {

@@ -1,7 +1,7 @@
 import { pipe } from 'fp-ts/lib/function'
-import * as T from 'fp-ts/lib/Task'
+import type * as T from 'fp-ts/lib/Task'
 import * as TE from 'fp-ts/lib/TaskEither'
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 
 import * as fsUtils from './fs-utils'
 
@@ -41,5 +41,5 @@ function createTaggedSystemError<Tag extends string, Meta extends Record<string,
       type,
       error: e as Error & { code: string },
       meta,
-    } as const)
+    }) as const
 }

@@ -1,5 +1,5 @@
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export class KeyofType extends TypeBuilder {
   constructor(public baseType: TypeBuilder) {
@@ -7,7 +7,7 @@ export class KeyofType extends TypeBuilder {
   }
 
   write(writer: Writer): void {
-    writer.write(`keyof `)
+    writer.write('keyof ')
     if (this.baseType.needsParenthesisInKeyof) {
       writer.write('(').write(this.baseType).write(')')
     } else {

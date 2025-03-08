@@ -3,11 +3,11 @@ import { renderQueryTemplate } from './renderQueryTemplate'
 test('no template', () => {
   expect(
     renderQueryTemplate({
-      query: `SELECT * FROM users WHERE id = $1`,
+      query: 'SELECT * FROM users WHERE id = $1',
       params: [1],
     }),
   ).toEqual({
-    query: `SELECT * FROM users WHERE id = $1`,
+    query: 'SELECT * FROM users WHERE id = $1',
     params: [1],
   })
 })
@@ -15,11 +15,11 @@ test('no template', () => {
 test('no template and scalar list parameter', () => {
   expect(
     renderQueryTemplate({
-      query: `SELECT * FROM users WHERE id = $1 AND numbers = $2`,
+      query: 'SELECT * FROM users WHERE id = $1 AND numbers = $2',
       params: [1, [1, 2, 3]],
     }),
   ).toEqual({
-    query: `SELECT * FROM users WHERE id = $1 AND numbers = $2`,
+    query: 'SELECT * FROM users WHERE id = $1 AND numbers = $2',
     params: [1, [1, 2, 3]],
   })
 })

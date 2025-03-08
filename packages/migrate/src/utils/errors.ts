@@ -43,7 +43,7 @@ export class MigrateResetEnvNonInteractiveError extends Error {
     super(
       `Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
-Use ${bold(green(`--force`))} to run this command without user interaction.
+Use ${bold(green('--force'))} to run this command without user interaction.
 See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset')}`,
     )
   }
@@ -56,7 +56,7 @@ export class MigrateDevEnvNonInteractiveError extends Error {
       `Prisma Migrate has detected that the environment is non-interactive, which is not supported.
 
 \`prisma migrate dev\` is an interactive command designed to create new migrations and evolve the database in development.
-To apply existing migrations in deployments, use ${bold(green(`prisma migrate deploy`))}.
+To apply existing migrations in deployments, use ${bold(green('prisma migrate deploy'))}.
 See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-deploy')}`,
     )
   }

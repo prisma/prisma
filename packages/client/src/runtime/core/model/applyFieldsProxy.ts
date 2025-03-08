@@ -1,6 +1,6 @@
 import { keyBy } from '@prisma/internals'
 
-import { RuntimeModel } from '../runtimeDataModel'
+import type { RuntimeModel } from '../runtimeDataModel'
 import { FieldRefImpl } from './FieldRef'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 

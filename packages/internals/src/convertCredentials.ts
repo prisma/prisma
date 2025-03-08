@@ -1,6 +1,6 @@
 import type { ConnectorType } from '@prisma/generator-helper'
-import path from 'path'
-import * as NodeURL from 'url'
+import path from 'node:path'
+import * as NodeURL from 'node:url'
 
 import type { DatabaseCredentials } from './types'
 import { PRISMA_POSTGRES_PROTOCOL } from './utils/prismaPostgres'
@@ -15,7 +15,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   }
 
   // construct URL object with protocol
-  const url = new NodeURL.URL(type + '//')
+  const url = new NodeURL.URL(`${type}//`)
 
   if (credentials.host) {
     url.hostname = credentials.host
@@ -23,7 +23,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
 
   if (credentials.type === 'postgresql') {
     if (credentials.database) {
-      url.pathname = '/' + credentials.database
+      url.pathname = `/${credentials.database}`
     }
 
     if (credentials.schema) {
@@ -36,12 +36,12 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   } else if (credentials.type === 'mysql') {
     // why `credentials.schema` in mysql here? doesn't exist for mysql
     // try removing it and see how the tests react
-    url.pathname = '/' + (credentials.database || credentials.schema || '')
+    url.pathname = `/${credentials.database || credentials.schema || ''}`
     if (credentials.socket) {
       url.searchParams.set('socket', credentials.socket)
     }
   } else if (credentials.type === 'mongodb') {
-    url.pathname = '/' + credentials.database
+    url.pathname = `/${credentials.database}`
   }
 
   if (credentials.ssl) {
@@ -84,7 +84,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
   let uri: NodeURL.URL
   try {
     uri = new NodeURL.URL(connectionString)
-  } catch (e) {
+  } catch (_e) {
     throw new Error(
       'Invalid data source URL, see https://www.prisma.io/docs/reference/database-reference/connection-urls',
     )

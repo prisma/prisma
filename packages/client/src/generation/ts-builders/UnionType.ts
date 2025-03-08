@@ -1,5 +1,5 @@
 import { TypeBuilder } from './TypeBuilder'
-import { Writer } from './Writer'
+import type { Writer } from './Writer'
 
 export class UnionType<VariantType extends TypeBuilder = TypeBuilder> extends TypeBuilder {
   needsParenthesisWhenIndexed = true

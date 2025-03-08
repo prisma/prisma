@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import type { DataSource } from '@prisma/generator-helper'
 
 type InjectableEnv = {
   parsed: {
@@ -24,7 +24,7 @@ export function buildInjectableEdgeEnv(edge: boolean, datasources: DataSource[])
     return declareInjectableEdgeEnv(datasources)
   }
 
-  return ``
+  return ''
 }
 
 /**

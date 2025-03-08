@@ -350,7 +350,7 @@ describe('loadConfigFromFile', () => {
       assertErrorTypeScriptImportFailed(error)
       expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
       expect(error.error).toMatchInlineSnapshot(
-        `[SyntaxError: await is only valid in async functions and the top level bodies of modules]`,
+        '[SyntaxError: await is only valid in async functions and the top level bodies of modules]',
       )
 
       expect(process.env).toMatchObject(processEnvBackup)

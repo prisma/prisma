@@ -1,4 +1,4 @@
-import { Error } from './types'
+import type { Error } from './types'
 
 export type Result<T> = {
   // common methods

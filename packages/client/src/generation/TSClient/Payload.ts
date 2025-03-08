@@ -1,8 +1,8 @@
-import { DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
 import { extArgsParam, getPayloadName } from '../utils'
 import { lowerCase } from '../utils/common'
-import { GenerateContext } from './GenerateContext'
+import type { GenerateContext } from './GenerateContext'
 import { buildModelOutputProperty } from './Output'
 
 export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {

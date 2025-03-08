@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'node:fs'
 
 const debug = Debug('chmodPlusX')
 

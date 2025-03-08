@@ -1,5 +1,5 @@
 import { bold, dim } from 'kleur/colors'
-import path from 'path'
+import path from 'node:path'
 
 import { ClientEngineType, getClientEngineType } from '../client/getClientEngineType'
 import type { Generator } from '../Generator'

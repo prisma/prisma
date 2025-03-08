@@ -9,7 +9,7 @@ export function defaultProxyHandlers<T extends object>(ownKeys: (string | symbol
   return {
     getPrototypeOf: () => Object.prototype,
     getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
-    has: (target: T, prop: string | symbol) => _ownKeys.has(prop),
+    has: (_target: T, prop: string | symbol) => _ownKeys.has(prop),
     set: (target: T, prop: string | symbol, value: any) => {
       return _ownKeys.add(prop) && Reflect.set(target, prop, value)
     },

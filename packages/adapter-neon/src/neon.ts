@@ -21,7 +21,7 @@ const debug = Debug('prisma:driver-adapter:neon')
 
 type ARRAY_MODE_ENABLED = true
 
-type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
+type PerformIOResult = neon.QueryResult<unknown> | neon.FullQueryResults<ARRAY_MODE_ENABLED>
 
 /**
  * Base class for http client, ws client and ws transaction
@@ -129,7 +129,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     }
   }
 
-  protected onError(e: any): never {
+  protected onError(e: unknown): never {
     debug('Error in onError: %O', e)
     if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
       throw new DriverAdapterError({
@@ -147,20 +147,23 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
-  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: neon.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
-  async commit(): Promise<void> {
-    debug(`[js::commit]`)
-
+  commit(): Promise<void> {
+    debug('[js::commit]')
     this.client.release()
+    return Promise.resolve()
   }
 
-  async rollback(): Promise<void> {
-    debug(`[js::rollback]`)
-
+  rollback(): Promise<void> {
+    debug('[js::rollback]')
     this.client.release()
+    return Promise.resolve()
   }
 }
 
@@ -169,7 +172,7 @@ class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements
     super(conn)
   }
 
-  async startTransaction(): Promise<Transaction> {
+  startTransaction(): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -177,7 +180,7 @@ class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new NeonTransaction(this.conn, options)
+    return Promise.resolve(new NeonTransaction(this.conn, options))
   }
 }
 
@@ -188,7 +191,10 @@ export type PrismaNeonOptions = {
 export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlConnection {
   private isRunning = true
 
-  constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
+  constructor(
+    pool: neon.Pool,
+    private options?: PrismaNeonOptions,
+  ) {
     if (!(pool instanceof neon.Pool)) {
       throw new TypeError(`PrismaNeon must be initialized with an instance of Pool:
 import { Pool } from '@neondatabase/serverless'
@@ -223,7 +229,7 @@ const adapter = new PrismaNeon(pool)
 }
 
 export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
-  constructor(private client: neon.NeonQueryFunction<any, any>) {
+  constructor(private client: neon.NeonQueryFunction<unknown, unknown>) {
     super()
   }
 

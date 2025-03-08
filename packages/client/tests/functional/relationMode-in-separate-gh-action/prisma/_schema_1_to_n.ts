@@ -1,5 +1,5 @@
 import { Providers } from '../../_utils/providers'
-import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
+import type { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
 export function schema_1ton({
   id,
@@ -46,8 +46,8 @@ model PostOptionalOneToMany {
   @@map("PostOptionalOneToMany_AtAtMap")
 }
 `
-  } else {
-    return /* Prisma */ `
+  }
+  return /* Prisma */ `
 //
 // 1:n relation
 //
@@ -72,5 +72,4 @@ model PostOptionalOneToMany {
   authorId      String?
 }
 `
-  }
 }

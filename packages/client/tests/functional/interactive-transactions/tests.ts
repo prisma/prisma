@@ -2,7 +2,7 @@ import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
 import { Providers } from '../_utils/providers'
-import { NewPrismaClient } from '../_utils/types'
+import type { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -179,7 +179,7 @@ testMatrix.setupTestSuite(
         throw 'you better rollback now'
       })
 
-      await expect(result).rejects.toBe(`you better rollback now`)
+      await expect(result).rejects.toBe('you better rollback now')
 
       const users = await prisma.user.findMany()
 

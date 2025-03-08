@@ -10,8 +10,8 @@ import { getPlatformProxy } from 'wrangler'
 
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
 import { Providers } from '../../_utils/providers'
-import { type DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
-import { NewPrismaClient } from '../../_utils/types'
+import type { DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
+import type { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'

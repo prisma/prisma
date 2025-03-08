@@ -1,9 +1,9 @@
-import { GetSchemaResult } from '@prisma/schema-files-loader'
+import type { GetSchemaResult } from '@prisma/schema-files-loader'
 
-import { ConfigMetaFormat } from '../engine-commands'
-import { MigrateTypes } from '../migrateTypes'
+import type { ConfigMetaFormat } from '../engine-commands'
+import type { MigrateTypes } from '../migrateTypes'
 import { getMigrateConfigDir } from './getMigrateConfigDir'
-import { MultipleSchemas } from './schemaFileInput'
+import type { MultipleSchemas } from './schemaFileInput'
 
 export function toSchemasContainer(schemas: MultipleSchemas): MigrateTypes.SchemasContainer {
   return {

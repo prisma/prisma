@@ -1,4 +1,4 @@
-import { CustomDataProxyFetch } from '../../common/Engine'
+import type { CustomDataProxyFetch } from '../../common/Engine'
 import { RequestError } from '../errors/NetworkError'
 
 /**

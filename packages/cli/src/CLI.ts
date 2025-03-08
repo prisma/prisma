@@ -14,7 +14,10 @@ export class CLI implements Command {
     return new CLI(cmds, ensureBinaries)
   }
 
-  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
+  private constructor(
+    private readonly cmds: Commands,
+    private readonly ensureBinaries: string[],
+  ) {}
 
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
@@ -51,7 +54,7 @@ export class CLI implements Command {
       throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
     }
     // warn if "introspect"
-    else if (cmdName === 'introspect') {
+    if (cmdName === 'introspect') {
       logger.warn('')
       logger.warn(
         `${bold(
@@ -87,7 +90,7 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }

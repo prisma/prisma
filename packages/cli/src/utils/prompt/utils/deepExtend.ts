@@ -27,30 +27,31 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-function isSpecificValue(val): boolean {
-  return val instanceof Buffer || val instanceof Date || val instanceof RegExp ? true : false
+function isSpecificValue(val: unknown): boolean {
+  return !!(val instanceof Buffer || val instanceof Date || val instanceof RegExp)
 }
 
-function cloneSpecificValue(val): RegExp | Buffer | Date {
+function cloneSpecificValue(val: Buffer | Date | RegExp): RegExp | Buffer | Date {
   if (val instanceof Buffer) {
     const x = Buffer.alloc ? Buffer.alloc(val.length) : new Buffer(val.length)
     val.copy(x)
     return x
-  } else if (val instanceof Date) {
-    return new Date(val.getTime())
-  } else if (val instanceof RegExp) {
-    return new RegExp(val)
-  } else {
-    throw new Error('Unexpected situation')
   }
+  if (val instanceof Date) {
+    return new Date(val.getTime())
+  }
+  if (val instanceof RegExp) {
+    return new RegExp(val)
+  }
+  throw new Error('Unexpected situation')
 }
 
 /**
  * Recursive cloning array.
  */
-function deepCloneArray(arr): any {
-  const clone: any = []
-  arr.forEach(function (item, index) {
+function deepCloneArray(arr: unknown[]): unknown[] {
+  const clone: unknown[] = []
+  arr.forEach((item, index) => {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
         clone[index] = deepCloneArray(item)
@@ -66,7 +67,7 @@ function deepCloneArray(arr): any {
   return clone
 }
 
-function safeGetProperty(object, property): any {
+function safeGetProperty(object: Record<string, unknown>, property: string): unknown {
   return property === '__proto__' ? undefined : object[property]
 }
 
@@ -79,7 +80,7 @@ function safeGetProperty(object, property): any {
  * object as first argument, like this:
  *   deepExtend({}, yourObj_1, [yourObj_N]);
  */
-export const deepExtend = function (target, ...args): any {
+export const deepExtend = (target: Record<string, unknown>, ...args: unknown[]): Record<string, unknown> | false => {
   if (!target || typeof target !== 'object') {
     return false
   }
@@ -88,7 +89,8 @@ export const deepExtend = function (target, ...args): any {
     return target
   }
 
-  let val, src
+  let val: unknown
+  let src: unknown
 
   for (const obj of args) {
     // skip argument if isn't an object, is null, or is an array
@@ -102,35 +104,28 @@ export const deepExtend = function (target, ...args): any {
 
       // recursion prevention
       if (val === target) {
-        continue
-
         /**
          * if new value isn't object then just overwrite by new value
          * instead of extending.
          */
       } else if (typeof val !== 'object' || val === null) {
         target[key] = val
-        continue
 
         // just clone arrays (and recursive clone objects inside)
       } else if (Array.isArray(val)) {
         target[key] = deepCloneArray(val)
-        continue
 
         // custom cloning and overwrite for specific objects
       } else if (isSpecificValue(val)) {
         target[key] = cloneSpecificValue(val)
-        continue
 
         // overwrite by new value if source isn't object or array
       } else if (typeof src !== 'object' || src === null || Array.isArray(src)) {
         target[key] = deepExtend({}, val)
-        continue
 
         // source value and new value is objects both, extending...
       } else {
         target[key] = deepExtend(src, val)
-        continue
       }
     }
   }

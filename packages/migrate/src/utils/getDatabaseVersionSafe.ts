@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { MigrateTypes } from '@prisma/internals'
+import type { MigrateTypes } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'
 
@@ -20,7 +20,7 @@ export async function getDatabaseVersionSafe(
   } catch (e) {
     debug(e)
   } finally {
-    if (engine && engine.isRunning) {
+    if (engine?.isRunning) {
       engine.stop()
     }
   }

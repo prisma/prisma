@@ -3,7 +3,7 @@ import {
   arg,
   canPrompt,
   checkUnsupportedDataProxy,
-  Command,
+  type Command,
   format,
   getSchemaWithPath,
   HelpError,
@@ -86,7 +86,7 @@ ${bold('Examples')}
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
-      process.stdout.write('\n' + wasDbCreated + '\n')
+      process.stdout.write(`\n${wasDbCreated}\n`)
     }
 
     process.stdout.write('\n')
@@ -162,12 +162,12 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
       }
     }
 
-    return ``
+    return ''
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateReset.help}`)
+      return new HelpError(`\n${bold(red('!'))} ${error}\n${MigrateReset.help}`)
     }
     return MigrateReset.help
   }

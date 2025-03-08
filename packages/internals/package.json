@@ -19,13 +19,7 @@
     "test": "dotenv -e ../../.db.env -- jest --silent",
     "prepublishOnly": "pnpm run build"
   },
-  "files": [
-    "README.md",
-    "dist",
-    "!**/libquery_engine*",
-    "!dist/get-generators/engines/*",
-    "scripts"
-  ],
+  "files": ["README.md", "dist", "!**/libquery_engine*", "!dist/get-generators/engines/*", "scripts"],
   "devDependencies": {
     "@antfu/ni": "0.21.12",
     "@babel/helper-validator-identifier": "7.25.9",

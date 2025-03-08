@@ -8,5 +8,5 @@ test('removes specified properties', () => {
 
   expect(proxy).not.toHaveProperty('secret')
   expect(Object.keys(proxy)).toEqual(['someProp'])
-  expect(proxy['secret']).toBeUndefined()
+  expect(proxy.secret).toBeUndefined()
 })

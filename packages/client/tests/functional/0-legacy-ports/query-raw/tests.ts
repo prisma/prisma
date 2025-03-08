@@ -160,7 +160,7 @@ testMatrix.setupTestSuite(
     test('select * via queryRawUnsafe with values', async () => {
       let result: any[] = []
       if (provider === Providers.MYSQL) {
-        result = await prisma.$queryRawUnsafe(`SELECT * FROM User WHERE age >= ? AND age <= ?`, 45, 60)
+        result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE age >= ? AND age <= ?', 45, 60)
       } else if (provider === Providers.SQLSERVER) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= @P1 AND age <= @P2`, 45, 60)
       } else {

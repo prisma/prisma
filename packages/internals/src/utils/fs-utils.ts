@@ -1,6 +1,6 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
 import globby from 'globby'
-import path from 'path'
+import path from 'node:path'
 
 import { pathToPosix } from './path'
 
@@ -56,7 +56,7 @@ export async function removeEmptyDirs(dir: string): Promise<void> {
     if (!fileStats.isDirectory()) {
       return
     }
-  } catch (e) {
+  } catch (_e) {
     // If the directory doesn't exist, we don't need to remove it.
     // This is not an error.
     return

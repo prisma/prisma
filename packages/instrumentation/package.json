@@ -28,15 +28,8 @@
   "peerDependencies": {
     "@opentelemetry/api": "^1.8"
   },
-  "files": [
-    "dist"
-  ],
-  "keywords": [
-    "prisma",
-    "instrumentation",
-    "opentelemetry",
-    "otel"
-  ],
+  "files": ["dist"],
+  "keywords": ["prisma", "instrumentation", "opentelemetry", "otel"],
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",

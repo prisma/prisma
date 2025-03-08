@@ -42,10 +42,7 @@
     "test": "jest",
     "prepublishOnly": "pnpm run build"
   },
-  "files": [
-    "README.md",
-    "dist"
-  ],
+  "files": ["README.md", "dist"],
   "dependencies": {},
   "sideEffects": false
 }

@@ -1,7 +1,7 @@
 import { bold, dim, green, red } from 'kleur/colors'
 
-import { BasicBuilder } from '../../../generation/ts-builders/BasicBuilder'
-import { Writer } from '../../../generation/ts-builders/Writer'
+import type { BasicBuilder } from '../../../generation/ts-builders/BasicBuilder'
+import type { Writer } from '../../../generation/ts-builders/Writer'
 
 type ColorFn = (str: string) => string
 export type Colors = {

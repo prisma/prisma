@@ -1,4 +1,4 @@
-export const enum IsolationLevel {
+export enum IsolationLevel {
   ReadUncommitted = 'ReadUncommitted',
   ReadCommitted = 'ReadCommitted',
   RepeatableRead = 'RepeatableRead',

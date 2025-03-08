@@ -1,4 +1,4 @@
-import { Value } from './scope'
+import type { Value } from './scope'
 
 /**
  * A `QueryPlanDbQuery` in which all placeholders have been substituted with
@@ -12,10 +12,10 @@ export type QueryWithSubstitutedPlaceholders = {
 const BEGIN_REPEAT = '/* prisma-comma-repeatable-start */'
 const END_REPEAT = '/* prisma-comma-repeatable-end */'
 
-const enum State {
-  Normal,
-  Quoted,
-  Repeating,
+enum State {
+  Normal = 0,
+  Quoted = 1,
+  Repeating = 2,
 }
 
 // Renders a query template by expanding the repetition macros, renumbering
@@ -113,7 +113,7 @@ export function renderQueryTemplate({
 
       templatePos += paramMatch[0].length + 1
 
-      const originalParamIdx = parseInt(paramMatch[0])
+      const originalParamIdx = Number.parseInt(paramMatch[0])
       const paramValue = params[originalParamIdx - 1]
 
       switch (state) {

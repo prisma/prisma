@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
-import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { Generate } from '../../Generate'
@@ -477,7 +477,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    expect(data.stdout).toContain(`I am a minimal generator`)
+    expect(data.stdout).toContain('I am a minimal generator')
   }, 75_000) // timeout
 })
 

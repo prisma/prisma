@@ -26,15 +26,9 @@
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts"
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "keywords": [],
-  "contributors": [
-    "Sophie Atkins <atkins@prisma.io>",
-    "Joël Galeran <galeran@prisma.io>"
-  ],
+  "contributors": ["Sophie Atkins <atkins@prisma.io>", "Joël Galeran <galeran@prisma.io>"],
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {

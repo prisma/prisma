@@ -1,4 +1,4 @@
-import { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
+import type { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
@@ -50,7 +50,7 @@ To solve this, provide the connection string directly: https://pris.ly/d/cloudfl
   // should not happen: no override, no env, no direct value
   if (resolvedUrl === undefined) {
     throw new PrismaClientInitializationError(
-      `error: Missing URL environment variable, value, or override.`,
+      'error: Missing URL environment variable, value, or override.',
       clientVersion,
     )
   }
