@@ -1,3 +1,4 @@
+import type { Client } from '../../getPrismaClient'
 import { cacheProperties } from './cacheProperties'
 import { createCompositeProxy } from './createCompositeProxy'
 
@@ -10,7 +11,7 @@ test('caches getPropertyValue calls', () => {
     getPropertyValue,
   })
 
-  const proxy = createCompositeProxy({} as Record<string, number>, [layer])
+  const proxy = createCompositeProxy({} as Client, {} as Record<string, number>, [layer])
 
   expect(proxy.prop).toBe(1)
   expect(proxy.prop).toBe(1)
@@ -32,7 +33,7 @@ test('forwards getPropertyDescriptor calls', () => {
     },
   })
 
-  const proxy = createCompositeProxy({}, [layer])
+  const proxy = createCompositeProxy({} as Client, {}, [layer])
 
   expect(Object.keys(proxy)).toEqual(['prop2'])
 })
@@ -49,7 +50,7 @@ test('keeps separate cache entries for separate properties', () => {
     getPropertyValue,
   })
 
-  const proxy = createCompositeProxy({} as Record<string, number>, [layer])
+  const proxy = createCompositeProxy({} as Client, {} as Record<string, number>, [layer])
 
   expect(proxy.first).toBe(1)
   expect(proxy.first).toBe(1)
