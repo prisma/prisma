@@ -22,6 +22,7 @@ const nonSampledTraceParent = `00-10-10-00`
 type Options = {
   traceMiddleware: boolean
   tracerProvider: TracerProvider
+  ignoreSpanTypes: (string | RegExp)[]
 }
 
 function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
@@ -35,12 +36,14 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
 }
 
 export class ActiveTracingHelper implements TracingHelper {
-  traceMiddleware: boolean
-  tracerProvider: TracerProvider
+  private traceMiddleware: boolean
+  private tracerProvider: TracerProvider
+  private ignoreSpanTypes: (string | RegExp)[]
 
-  constructor({ traceMiddleware, tracerProvider }: Options) {
+  constructor({ traceMiddleware, tracerProvider, ignoreSpanTypes }: Options) {
     this.traceMiddleware = traceMiddleware
     this.tracerProvider = tracerProvider
+    this.ignoreSpanTypes = ignoreSpanTypes
   }
 
   isEnabled(): boolean {
@@ -61,7 +64,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const roots = spans.filter((span) => span.parentId === null)
 
     for (const root of roots) {
-      dispatchEngineSpan(tracer, root, spans, linkIds)
+      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes)
     }
   }
 
@@ -85,6 +88,11 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
+
+    if (shouldIgnoreSpan(name, this.ignoreSpanTypes)) {
+      return callback()
+    }
+
     // these spans will not be nested by default even in recursive calls
     // it's useful for showing middleware sequentially instead of nested
     if (options.active === false) {
@@ -103,7 +111,10 @@ function dispatchEngineSpan(
   engineSpan: EngineSpan,
   allSpans: EngineSpan[],
   linkIds: Map<string, string>,
+  ignoreSpanTypes: (string | RegExp)[],
 ) {
+  if (shouldIgnoreSpan(engineSpan.name, ignoreSpanTypes)) return
+
   const spanOptions = {
     attributes: engineSpan.attributes as Attributes,
     kind: engineSpanKindToOtelSpanKind(engineSpan.kind),
@@ -133,7 +144,7 @@ function dispatchEngineSpan(
 
     const children = allSpans.filter((s) => s.parentId === engineSpan.id)
     for (const child of children) {
-      dispatchEngineSpan(tracer, child, allSpans, linkIds)
+      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes)
     }
 
     span.end(engineSpan.endTime)
@@ -159,4 +170,10 @@ function endSpan<T>(span: Span, result: T): T {
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return value != null && typeof value['then'] === 'function'
+}
+
+function shouldIgnoreSpan(spanName: string, ignoreSpanTypes: (string | RegExp)[]): boolean {
+  return ignoreSpanTypes.some((pattern) =>
+    typeof pattern === 'string' ? pattern === spanName : pattern.test(spanName),
+  )
 }
