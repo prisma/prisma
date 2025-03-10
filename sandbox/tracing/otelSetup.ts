@@ -1,5 +1,5 @@
 import * as api from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
@@ -15,7 +15,7 @@ import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 export function otelSetup() {
   // a context manager is required to propagate the context
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
 
   // it's for node.js for span nesting and ctx propagation
   api.context.setGlobalContextManager(contextManager)

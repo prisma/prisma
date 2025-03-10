@@ -1,5 +1,5 @@
 import { context } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import { BasicTracerProvider, InMemorySpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
@@ -17,7 +17,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 let inMemorySpanExporter: InMemorySpanExporter
 
 beforeAll(() => {
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
   context.setGlobalContextManager(contextManager)
 
   inMemorySpanExporter = new InMemorySpanExporter()
