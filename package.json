@@ -79,7 +79,7 @@
     "p-map": "4.0.0",
     "p-reduce": "3.0.0",
     "p-retry": "4.6.2",
-    "prettier": "2.8.8",
+    "prettier": "3.5.3",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "regenerator-runtime": "0.14.1",
