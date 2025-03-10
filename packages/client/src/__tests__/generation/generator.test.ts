@@ -1,13 +1,10 @@
 import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
-import rimraf from 'rimraf'
+import { rimraf } from 'rimraf'
 import stripAnsi from 'strip-ansi'
-import { promisify } from 'util'
 
 import { omit } from '../../omit'
-
-const del = promisify(rimraf)
 
 if (process.env.CI) {
   jest.setTimeout(100_000)
@@ -18,7 +15,7 @@ describe('generator', () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
-      await del(prismaClientTarget)
+      await rimraf(prismaClientTarget)
     } catch (e) {
       //
     }
@@ -104,7 +101,7 @@ describe('generator', () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
-      await del(prismaClientTarget)
+      await rimraf(prismaClientTarget)
     } catch (e) {
       //
     }
@@ -153,7 +150,7 @@ describe('generator', () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
-      await del(prismaClientTarget)
+      await rimraf(prismaClientTarget)
     } catch (e) {
       //
     }
@@ -210,7 +207,7 @@ describe('generator', () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
-      await del(prismaClientTarget)
+      await rimraf(prismaClientTarget)
     } catch (e) {
       //
     }
