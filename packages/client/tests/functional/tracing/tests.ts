@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
@@ -64,7 +64,7 @@ let inMemorySpanExporter: InMemorySpanExporter
 let processor: SpanProcessor
 
 beforeAll(() => {
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
   context.setGlobalContextManager(contextManager)
 
   inMemorySpanExporter = new InMemorySpanExporter()
@@ -111,9 +111,9 @@ testMatrix.setupTestSuite(
         const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
         if (Array.isArray(expectedTree)) {
-          expect(expectedTree).toEqual(trees)
+          expect(trees).toEqual(expectedTree)
         } else {
-          expect(expectedTree).toEqual(trees[0])
+          expect(trees[0]).toEqual(expectedTree)
         }
       })
     }
