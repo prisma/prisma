@@ -893,6 +893,9 @@ importers:
       '@types/node':
         specifier: 18.19.76
         version: 18.19.76
+      dotenv:
+        specifier: 16.4.7
+        version: 16.4.7
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.8.2))
