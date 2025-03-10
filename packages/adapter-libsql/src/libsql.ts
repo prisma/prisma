@@ -1,10 +1,9 @@
-import {
-  type Client as LibSqlClientRaw,
-  type Config as LibSqlConfig,
-  createClient,
-  type InStatement,
-  type ResultSet as LibSqlResultSet,
-  type Transaction as LibSqlTransactionRaw,
+import type {
+  Client as LibSqlClientRaw,
+  Config as LibSqlConfig,
+  InStatement,
+  ResultSet as LibSqlResultSet,
+  Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
 import type {
   SqlConnection,
@@ -184,12 +183,25 @@ export class PrismaLibSQLWithMigration implements SqlMigrationAwareDriverAdapter
 
   constructor(private readonly config: LibSqlConfig) {}
 
-  connect(): Promise<SqlConnection> {
-    return Promise.resolve(new PrismaLibSQL(createClient(this.config)))
+  async connect(): Promise<SqlConnection> {
+    return new PrismaLibSQL(await createLibSQLClient(this.config))
   }
 
-  connectToShadowDb(): Promise<SqlConnection> {
+  async connectToShadowDb(): Promise<SqlConnection> {
     // TODO: the user should be able to provide a custom URL for the shadow database
-    return Promise.resolve(new PrismaLibSQL(createClient({ ...this.config, url: ':memory:' })))
+    return new PrismaLibSQL(await createLibSQLClient({ ...this.config, url: ':memory:' }))
+  }
+}
+
+async function createLibSQLClient(config: LibSqlConfig): Promise<StdClient> {
+  try {
+    // The import below fails in AWS Lambda when bundled with esbuild.
+    // We fall back to the web version of the client if the native version fails.
+    // https://github.com/tursodatabase/libsql-client-ts/issues/112
+    const { createClient } = await import('@libsql/client')
+    return createClient(config)
+  } catch (e) {
+    const { createClient } = await import('@libsql/client/web')
+    return createClient(config)
   }
 }

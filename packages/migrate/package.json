@@ -36,7 +36,7 @@
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "log-update": "4.0.0",
-    "mariadb": "3.3.1",
+    "mariadb": "3.4.0",
     "mock-stdin": "1.0.0",
     "mongoose": "8.9.5",
     "mssql": "11.0.1",
@@ -57,7 +57,7 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.5.0-39.84310176c3f15859928b573ea73f2c1ec30188eb",
+    "@prisma/engines-version": "6.5.0-70.d3fd11690486b166608fd9d9091a0e94f299a99d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

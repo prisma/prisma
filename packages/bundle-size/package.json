@@ -11,7 +11,7 @@
   "dependencies": {
     "@libsql/client": "0.8.0",
     "@neondatabase/serverless": "0.10.2",
-    "@planetscale/database": "1.18.0",
+    "@planetscale/database": "1.19.0",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
