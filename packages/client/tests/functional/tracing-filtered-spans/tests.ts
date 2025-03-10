@@ -36,7 +36,7 @@ beforeAll(() => {
     instrumentations: [
       new PrismaInstrumentation({
         middleware: true,
-        ignoreSpanTypes: [/prisma:client:ser.*/, 'prisma:client:connect', 'prisma:engine:query'],
+        ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/],
       }),
     ],
   })
@@ -54,6 +54,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should filter out spans and their children based on name', async () => {
+      await prisma.$connect()
       await prisma.user.findMany()
 
       const spans = inMemorySpanExporter.getFinishedSpans()
@@ -61,16 +62,16 @@ testMatrix.setupTestSuite(
       const expectedSpans = [
         'prisma:client:detect_platform',
         'prisma:client:load_engine',
-        // 'prisma:client:serialize',                   <-- Filtered out by regex
-        'prisma:engine:connection',
+        // 'prisma:engine:connection',                  <-- Filtered out individually
         'prisma:engine:connect',
-        // 'prisma:client:connect',                     <-- Filtered out individually
-        // 'prisma:engine:connection',                  <-- Child span of filtered out parent span
-        // 'prisma:engine:db_query',                    <-- Child span of filtered out parent span
-        // 'prisma:engine:serialize',                   <-- Child span of filtered out parent span
-        // 'prisma:engine:response_json_serialization', <-- Child span of filtered out parent span
-        // 'prisma:engine:query',                       <-- Filtered out parent span
-        'prisma:client:operation',
+        'prisma:client:connect',
+        'prisma:client:serialize',
+        // 'prisma:engine:connection',                  <-- Child span of filtered out parent span 'prisma:engine:query'
+        // 'prisma:engine:db_query',                    <-- Child span of filtered out parent span 'prisma:engine:query'
+        // 'prisma:engine:serialize',                   <-- Child span of filtered out parent span 'prisma:engine:query'
+        // 'prisma:engine:response_json_serialization', <-- Child span of filtered out parent span 'prisma:engine:query'
+        // 'prisma:engine:query',                       <-- Child span of filtered out parent span 'prisma:client:operation'
+        // 'prisma:client:operation',                   <-- Filtered out parent span (by regex)
       ]
 
       if (clientRuntime === 'wasm') {
