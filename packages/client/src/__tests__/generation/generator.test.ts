@@ -123,20 +123,20 @@ describe('generator', () => {
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  src/__tests__/generation/denylist.prisma:10
-           |
-         9 |
+           | 
+         9 | 
         10 | model public {
         11 |   id Int @id
         12 | }
-           |
+           | 
         error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  src/__tests__/generation/denylist.prisma:14
-           |
-        13 |
+           | 
+        13 | 
         14 | model return {
         15 |   id Int @id
         16 | }
-           |
+           | 
 
         Validation Error Count: 2
         [Context: getDmmf]
