@@ -4,7 +4,7 @@ import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
-import rimraf from 'rimraf'
+import * as rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
