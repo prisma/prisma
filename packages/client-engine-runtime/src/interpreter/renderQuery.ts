@@ -1,11 +1,28 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
+import * as fs from 'fs'
 
-import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
-import { renderQueryTemplate } from './renderQueryTemplate'
+import { Fragment, isPrismaValuePlaceholder, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
 import { ScopeBindings } from './scope'
 
-export function renderQuery({ query, params }: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
-  const substitutedParams = params.map((param) => {
+export function renderQuery(dbQuery: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
+  // DEBUG
+  fs.writeFileSync('/home/viktor/tmp/query.json', JSON.stringify(dbQuery, null, 2))
+  fs.writeFileSync('/home/viktor/tmp/scope.json', JSON.stringify(dbQuery, null, 2))
+
+  switch (dbQuery.type) {
+    case 'RawSql':
+      return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope))
+
+    case 'TemplateSql':
+      return renderTemplateSql(dbQuery.fragments, dbQuery.placeholder, substituteParams(dbQuery.params, scope))
+
+    default:
+      return dbQuery // never
+  }
+}
+
+function substituteParams(params: PrismaValue[], scope: ScopeBindings): PrismaValue[] {
+  return params.map((param) => {
     if (!isPrismaValuePlaceholder(param)) {
       return param
     }
@@ -15,16 +32,62 @@ export function renderQuery({ query, params }: QueryPlanDbQuery, scope: ScopeBin
       throw new Error(`Missing value for query variable ${param.prisma__value.name}`)
     }
 
-    return value
+    return value as PrismaValue
   })
+}
 
-  const { query: renderedQuery, params: expandedParams } = renderQueryTemplate({ query, params: substitutedParams })
+function renderTemplateSql(
+  fragments: Fragment[],
+  placeholderFormat: PlaceholderFormat,
+  params: PrismaValue[],
+): SqlQuery {
+  let paramIndex = 0
+  let placeholderNumber = 1
+  const flattenedParams: PrismaValue[] = []
+  const sql = fragments
+    .map((fragment) => {
+      switch (fragment.type) {
+        case 'Parameter':
+          flattenedParams.push(params[paramIndex++])
+          return formatPlaceholder(placeholderFormat, placeholderNumber++)
 
-  const argTypes = expandedParams.map((param) => toArgType(param as PrismaValue))
+        case 'StringChunk':
+          return fragment.value
+
+        case 'ParameterTuple': {
+          const paramValue = params[paramIndex++]
+          const paramArray = Array.isArray(paramValue) ? paramValue : [paramValue]
+          const placeholders =
+            paramArray.length == 0
+              ? 'NULL'
+              : paramArray
+                  .map((value) => {
+                    flattenedParams.push(value)
+                    return formatPlaceholder(placeholderFormat, placeholderNumber++)
+                  })
+                  .join(', ')
+          return `(${placeholders})`
+        }
+
+        default:
+          return fragment // never
+      }
+    })
+    .join('')
+
+  return renderRawSql(sql, flattenedParams)
+}
+
+function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumber: number): string {
+  return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
+}
+
+function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
+  const argTypes = params.map((param) => toArgType(param as PrismaValue))
 
   return {
-    sql: renderedQuery,
-    args: expandedParams,
+    sql: sql,
+    args: params,
     argTypes,
   }
 }
