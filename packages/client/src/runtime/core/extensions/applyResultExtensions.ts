@@ -1,5 +1,6 @@
 import { hasOwnProperty } from '@prisma/internals'
 
+import type { Client } from '../../getPrismaClient'
 import {
   addProperty,
   cacheProperties,
@@ -31,7 +32,7 @@ type ApplyExtensionsArgs = {
  * @param params
  * @returns
  */
-export function applyResultExtensions({ result, modelName, select, omit, extensions }: ApplyExtensionsArgs) {
+export function applyResultExtensions(client: Client, { result, modelName, select, omit, extensions }: ApplyExtensionsArgs) {
   const computedFields = extensions.getAllComputedFields(modelName)
   if (!computedFields) {
     return result
@@ -62,13 +63,13 @@ export function applyResultExtensions({ result, modelName, select, omit, extensi
 
     if (areNeedsMet(result, field.needs)) {
       computedPropertiesLayers.push(
-        computedPropertyLayer(field, createCompositeProxy(result, computedPropertiesLayers)),
+        computedPropertyLayer(field, createCompositeProxy(client, result, computedPropertiesLayers)),
       )
     }
   }
 
   if (computedPropertiesLayers.length > 0 || maskingLayers.length > 0) {
-    return createCompositeProxy(result, [...computedPropertiesLayers, ...maskingLayers])
+    return createCompositeProxy(client, result, [...computedPropertiesLayers, ...maskingLayers])
   }
   return result
 }
