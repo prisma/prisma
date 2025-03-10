@@ -223,8 +223,14 @@ const adapter = new PrismaNeon(pool)
 }
 
 export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
-  constructor(private client: neon.NeonQueryFunction<any, any>) {
+  private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
+
+  constructor(client: neon.NeonQueryFunction<any, any>) {
     super()
+    // `client.query` is for @neondatabase/serverless v1.0.0 and up, where the
+    // root query function `client` is only usable as a template function;
+    // `client` is a fallback for earlier versions
+    this.client = (client as any).query ?? (client as any)
   }
 
   executeScript(_script: string): Promise<void> {
