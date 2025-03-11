@@ -47,9 +47,6 @@ importers:
       '@types/node':
         specifier: 18.19.76
         version: 18.19.76
-      '@types/redis':
-        specifier: 4.0.11
-        version: 4.0.11
       '@types/resolve':
         specifier: 1.20.6
         version: 1.20.6
@@ -3445,10 +3442,6 @@ packages:
 
   '@types/readable-stream@4.0.14':
     resolution: {integrity: sha512-xZn/AuUbCMShGsqH/ehZtGDwQtbx00M9rZ2ENLe4tOjFZ/JFeWMhEZkk2fEe1jAUqqEAURIkFJ7Az/go8mM1/w==}
-
-  '@types/redis@4.0.11':
-    resolution: {integrity: sha512-bI+gth8La8Wg/QCR1+V1fhrL9+LZUSWfcqpOj2Kc80ZQ4ffbdL173vQd5wovmoV9i071FU9oP2g6etLuEwb6Rg==}
-    deprecated: This is a stub types definition. redis provides its own type definitions, so you do not need this installed.
 
   '@types/resolve@1.20.6':
     resolution: {integrity: sha512-A4STmOXPhMUtHH+S6ymgE2GiBSMqf4oTvcQZMcHzokuTLVYzXTB8ttjcgxOVaAp2lGwEdzZ0J+cRbbeevQj1UQ==}
@@ -9157,10 +9150,6 @@ snapshots:
     dependencies:
       '@types/node': 18.19.76
       safe-buffer: 5.1.2
-
-  '@types/redis@4.0.11':
-    dependencies:
-      redis: 4.7.0
 
   '@types/resolve@1.20.6': {}
 
