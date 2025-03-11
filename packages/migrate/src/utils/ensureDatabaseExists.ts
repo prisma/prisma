@@ -1,4 +1,4 @@
-import type { ConfigMetaFormat, DatabaseCredentials } from '@prisma/internals'
+import type { ConfigMetaFormat, DatabaseCredentials, GetSchemaResult } from '@prisma/internals'
 import {
   canConnectToDatabase,
   createDatabase,
@@ -162,21 +162,18 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
   }
 }
 
-export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
-  const schemas = await getSchema(schemaPath)
-
-  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: false })
+export async function ensureDatabaseExists(schema: GetSchemaResult) {
+  const config = await getConfig({ datamodel: schema.schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = getMigrateConfigDir(config, schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  const canConnect = await canConnectToDatabase(url!, schemaDir)
+  const canConnect = await canConnectToDatabase(url!, schema.schemaRootDir)
   if (canConnect === true) {
     return
   }
@@ -189,13 +186,8 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
 
   // last case: status === 'DatabaseDoesNotExist'
 
-  // a bit weird, is that ever reached?
-  if (!schemaDir) {
-    throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
-  }
-
   // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  if (await createDatabase(url!, schemaDir)) {
+  if (await createDatabase(url!, schema.schemaRootDir)) {
     // URI parsing is not implemented for SQL server yet
     if (firstDatasource.provider === 'sqlserver') {
       return `SQL Server database created.\n`

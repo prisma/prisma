@@ -64,15 +64,15 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schema = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath: schema.schemaRootDir }) })
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schema.schemaRootDir)
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('apply', schemaPath)
+      const wasDbCreated = await ensureDatabaseExists(schema)
       if (wasDbCreated) {
         process.stdout.write('\n' + wasDbCreated + '\n')
       }

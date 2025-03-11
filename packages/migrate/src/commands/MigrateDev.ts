@@ -98,29 +98,29 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schema = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    const datasourceInfo = await getDatasourceInfo({ schemaPath: schema.schemaRootDir })
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
     validate({
-      schemas,
+      schemas: schema.schemas,
     })
     await getConfig({
-      datamodel: schemas,
+      datamodel: schema.schemas,
       ignoreEnvVarErrors: false,
     })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
+    const wasDbCreated = await ensureDatabaseExists(schema)
     if (wasDbCreated) {
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schema.schemaRootDir)
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
