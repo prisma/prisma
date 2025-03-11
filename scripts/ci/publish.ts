@@ -855,9 +855,6 @@ async function acquireLock(branch: string): Promise<() => void> {
   }
   const client = redis.createClient({
     url: process.env.REDIS_URL,
-    retry_strategy: () => {
-      return 1000
-    },
   })
   const lock = promisify(require('redis-lock')(client))
 
@@ -869,7 +866,7 @@ async function acquireLock(branch: string): Promise<() => void> {
     const after = Math.round(performance.now())
     console.log(`Lock removed after ${after - before}ms`)
     await new Promise((r) => setTimeout(r, 200))
-    client.quit()
+    await client.quit()
   }
 }
 
