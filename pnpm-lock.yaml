@@ -156,8 +156,8 @@ importers:
         specifier: 4.7.0
         version: 4.7.0
       redis-lock:
-        specifier: 0.1.4
-        version: 0.1.4
+        specifier: 1.0.0
+        version: 1.0.0
       regenerator-runtime:
         specifier: 0.14.1
         version: 0.14.1
@@ -6379,9 +6379,9 @@ packages:
     resolution: {integrity: sha512-6tDA8g98We0zd0GvVeMT9arEOnTw9qM03L9cJXaCjrip1OO764RDBLBfrB4cwzNGDj5OA5ioymC9GkizgWJDUg==}
     engines: {node: '>=8'}
 
-  redis-lock@0.1.4:
-    resolution: {integrity: sha512-7/+zu86XVQfJVx1nHTzux5reglDiyUCDwmW7TSlvVezfhH2YLc/Rc8NE0ejQG+8/0lwKzm29/u/4+ogKeLosiA==}
-    engines: {node: '>=0.6'}
+  redis-lock@1.0.0:
+    resolution: {integrity: sha512-zfI+Il36jXwRT/W8SBsG132Bc2yp3tMuf3KTGjSzXimadI17NEGBvb/KrDkCuAC2hzVxW5uR5ns/rxuqiWeV3Q==}
+    engines: {node: '>=12'}
 
   redis@4.7.0:
     resolution: {integrity: sha512-zvmkHEAdGMn+hMRXuMBtu4Vo5P6rHQjLoHftu+lBqq8ZTA3RCVC/WzD790bkKKiNFp7d5/9PcSD19fJyyRvOdQ==}
@@ -12649,7 +12649,7 @@ snapshots:
       indent-string: 4.0.0
       strip-indent: 3.0.0
 
-  redis-lock@0.1.4: {}
+  redis-lock@1.0.0: {}
 
   redis@4.7.0:
     dependencies:

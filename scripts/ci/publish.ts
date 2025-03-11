@@ -10,8 +10,8 @@ import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import pRetry from 'p-retry'
 import path from 'path'
 import redis from 'redis'
+import redisLock from 'redis-lock'
 import semver from 'semver'
-import { promisify } from 'util'
 
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
@@ -856,16 +856,15 @@ async function acquireLock(branch: string): Promise<() => void> {
   const client = redis.createClient({
     url: process.env.REDIS_URL,
   })
-  const lock = promisify(require('redis-lock')(client))
+  const lock = redisLock(client)
 
   // get a lock of max 15 min
   // the lock is specific to the branch name
-  const cb = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
+  const done = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
   return async () => {
-    cb()
+    await done()
     const after = Math.round(performance.now())
     console.log(`Lock removed after ${after - before}ms`)
-    await new Promise((r) => setTimeout(r, 200))
     await client.quit()
   }
 }
