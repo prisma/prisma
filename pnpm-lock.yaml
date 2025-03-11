@@ -1558,8 +1558,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       mongoose:
-        specifier: 8.9.5
-        version: 8.9.5(socks@2.7.1)
+        specifier: 8.12.1
+        version: 8.12.1(socks@2.7.1)
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -2939,8 +2939,8 @@ packages:
   '@microsoft/tsdoc@0.15.1':
     resolution: {integrity: sha512-4aErSrCR/On/e5G2hDP0wjooqDdauzEbIq8hIkIe5pXV0rtWJZvdCEKL0ykZxex+IxIwBp0eGeV48hQN07dXtw==}
 
-  '@mongodb-js/saslprep@1.1.9':
-    resolution: {integrity: sha512-tVkljjeEaAhCqTzajSdgbQ6gE6f3oneVwa3iXR6csiEwXXOFsiC6Uh9iAjAhXPtqa/XMDHWjjeNH/77m/Yq2dw==}
+  '@mongodb-js/saslprep@1.2.0':
+    resolution: {integrity: sha512-+ywrb0AqkfaYuhHs6LxKWgqbh3I72EpEgESCw37o+9qPx9WTCkgDm2B+eMrwehGtHBWHFU4GXvnSCNiFhhausg==}
 
   '@napi-rs/wasm-runtime@0.2.5':
     resolution: {integrity: sha512-kwUxR7J9WLutBbulqg1dfOrMTwhMdXLdcGUhcbCcGwnPLt3gz19uHVdwH1syKVDbE022ZS2vZxOWflFLS0YTjw==}
@@ -3442,11 +3442,11 @@ packages:
   '@types/tedious@4.0.9':
     resolution: {integrity: sha512-ipwFvfy9b2m0gjHsIX0D6NAAwGCKokzf5zJqUZHUGt+7uWVlBIy6n2eyMgiKQ8ChLFVxic/zwQUhjLYNzbHDRA==}
 
-  '@types/webidl-conversions@7.0.0':
-    resolution: {integrity: sha512-xTE1E+YF4aWPJJeUzaZI5DRntlkY3+BCVJi0axFptnjGmAoWxkyREIh/XMrfxVLejwQxMCfDXdICo0VLxThrog==}
+  '@types/webidl-conversions@7.0.3':
+    resolution: {integrity: sha512-CiJJvcRtIgzadHCYXw7dqEnMNRjhGZlYK05Mj9OyktqV8uVT8fD2BFOB7S1uwBE3Kj2Z+4UyPmFw/Ixgw/LAlA==}
 
-  '@types/whatwg-url@11.0.4':
-    resolution: {integrity: sha512-lXCmTWSHJvf0TRSO58nm978b8HJ/EdsSsEKLd3ODHFjo+3VGAyyTp4v50nWvwtzBxSMQrVOK7tcuN0zGPLICMw==}
+  '@types/whatwg-url@11.0.5':
+    resolution: {integrity: sha512-coYR071JRaHa+xoEvvYqvnIHaVqaYrLPbsufM9BF63HkwI5Lgmy2QR8Q5K/lYDYo5AK82wOvSOS0UsLTpTG7uQ==}
 
   '@types/which@3.0.0':
     resolution: {integrity: sha512-ASCxdbsrwNfSMXALlC3Decif9rwDMu+80KGp5zI2RLRotfMsTv7fHL8W8VDp24wymzDyIFudhUeSCugrgRFfHQ==}
@@ -3875,10 +3875,9 @@ packages:
   bser@2.1.1:
     resolution: {integrity: sha512-gQxTNE/GAfIIrmHLUE3oJyp5FO6HRBfhjnw4/wMmA63ZGDJnWBmgY/lyQBpnDUkGmAhbSe39tx2d/iTOAfglwQ==}
 
-  bson@6.10.1:
-    resolution: {integrity: sha512-P92xmHDQjSKPLHqFxefqMxASNq/aWJMEZugpCjf+AF/pgcUpMMQCg7t7+ewko0/u8AapvF3luf/FoehddEK+sA==}
+  bson@6.10.3:
+    resolution: {integrity: sha512-MTxGsqgYTwfshYWTRdmZRC+M7FnG1b4y7RO7p2k3X24Wq0yv1m77Wsj0BzlPzd/IowgESfsruQCUToa7vbOpPQ==}
     engines: {node: '>=16.20.1'}
-    deprecated: a critical bug affecting only useBigInt64=true deserialization usage is fixed in bson@6.10.3
 
   buffer-crc32@0.2.13:
     resolution: {integrity: sha512-VO9Ht/+p3SN7SKWqcrgEzjGbRSJYTx+Q1pTQC0wrWqHx0vpJraQ6GtHx8tvcg1rlK1byhU5gccxgOgj7B0TDkQ==}
@@ -5720,11 +5719,11 @@ packages:
   module-details-from-path@1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
 
-  mongodb-connection-string-url@3.0.0:
-    resolution: {integrity: sha512-t1Vf+m1I5hC2M5RJx/7AtxgABy1cZmIPQRMXw+gEIPn/cZNF3Oiy+l0UIypUwVB5trcWHq3crg2g3uAR9aAwsQ==}
+  mongodb-connection-string-url@3.0.2:
+    resolution: {integrity: sha512-rMO7CGo/9BFwyZABcKAWL8UJwH/Kc2x0g72uhDWzG48URRax5TCIcJ7Rc3RZqffZzO/Gwff/jyKwCU9TN8gehA==}
 
-  mongodb@6.12.0:
-    resolution: {integrity: sha512-RM7AHlvYfS7jv7+BXund/kR64DryVI+cHbVAy9P61fnb1RcWZqOW1/Wj2YhqMCx+MuYhqTRGv7AwHBzmsCKBfA==}
+  mongodb@6.14.2:
+    resolution: {integrity: sha512-kMEHNo0F3P6QKDq17zcDuPeaywK/YaJVCEQRzPF3TOM/Bl9MFg64YE5Tu7ifj37qZJMhwU1tl2Ioivws5gRG5Q==}
     engines: {node: '>=16.20.1'}
     peerDependencies:
       '@aws-sdk/credential-providers': ^3.188.0
@@ -5750,8 +5749,8 @@ packages:
       socks:
         optional: true
 
-  mongoose@8.9.5:
-    resolution: {integrity: sha512-SPhOrgBm0nKV3b+IIHGqpUTOmgVL5Z3OO9AwkFEmvOZznXTvplbomstCnPOGAyungtRXE5pJTgKpKcZTdjeESg==}
+  mongoose@8.12.1:
+    resolution: {integrity: sha512-UW22y8QFVYmrb36hm8cGncfn4ARc/XsYWQwRTaj0gxtQk1rDuhzDO1eBantS+hTTatfAIS96LlRCJrcNHvW5+Q==}
     engines: {node: '>=16.20.1'}
 
   mpath@0.9.0:
@@ -6861,9 +6860,9 @@ packages:
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
-  tr46@4.1.1:
-    resolution: {integrity: sha512-2lv/66T7e5yNyhAAC4NaKe5nVavzuGJQVVtRYLyQ2OI8tsJ61PMLlelehb0wi2Hx6+hT/OJUWZcw8MjlSRnxvw==}
-    engines: {node: '>=14'}
+  tr46@5.0.0:
+    resolution: {integrity: sha512-tk2G5R2KRwBd+ZN0zaEXpmzdKyOYksXwywulIX95MBODjSzMIuQnQ3m8JxgbhnL1LeVo7lqQKsYa1O3Htl7K5g==}
+    engines: {node: '>=18'}
 
   tree-dump@1.0.1:
     resolution: {integrity: sha512-WCkcRBVPSlHHq1dc/px9iOfqklvzCbdRwvlNfxGZsrHqf6aZttfPrd7DJTt6oR10dwUfpFFQeVTkPbBIZxX/YA==}
@@ -7103,9 +7102,9 @@ packages:
     resolution: {integrity: sha512-cSwwQIeg8v4i3p4ajHhwgR7N6VyxAf+KYSSsY6Pd3aETE+xEU4vbitz7qQkB0I321xnhDdgtxuiSfk5r/FVtjg==}
     hasBin: true
 
-  whatwg-url@13.0.0:
-    resolution: {integrity: sha512-9WWbymnqj57+XEuqADHrCJ2eSXzn8WXIW/YSGaZtb2WKAInQ6CHfaUUcTyyver0p8BDg5StLQq8h1vtZuwmOig==}
-    engines: {node: '>=16'}
+  whatwg-url@14.1.1:
+    resolution: {integrity: sha512-mDGf9diDad/giZ/Sm9Xi2YcyzaFpbdLpJPr+E9fSkyQ7KpQD4SdFcugkRQYzhmfI4KeV4Qpnn2sKPdo+kmsgRQ==}
+    engines: {node: '>=18'}
 
   whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
@@ -8614,7 +8613,7 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@mongodb-js/saslprep@1.1.9':
+  '@mongodb-js/saslprep@1.2.0':
     dependencies:
       sparse-bitfield: 3.0.3
 
@@ -9132,11 +9131,11 @@ snapshots:
     dependencies:
       '@types/node': 20.12.7
 
-  '@types/webidl-conversions@7.0.0': {}
+  '@types/webidl-conversions@7.0.3': {}
 
-  '@types/whatwg-url@11.0.4':
+  '@types/whatwg-url@11.0.5':
     dependencies:
-      '@types/webidl-conversions': 7.0.0
+      '@types/webidl-conversions': 7.0.3
 
   '@types/which@3.0.0': {}
 
@@ -9672,7 +9671,7 @@ snapshots:
     dependencies:
       node-int64: 0.4.0
 
-  bson@6.10.1: {}
+  bson@6.10.3: {}
 
   buffer-crc32@0.2.13: {}
 
@@ -11987,24 +11986,24 @@ snapshots:
 
   module-details-from-path@1.0.3: {}
 
-  mongodb-connection-string-url@3.0.0:
+  mongodb-connection-string-url@3.0.2:
     dependencies:
-      '@types/whatwg-url': 11.0.4
-      whatwg-url: 13.0.0
+      '@types/whatwg-url': 11.0.5
+      whatwg-url: 14.1.1
 
-  mongodb@6.12.0(socks@2.7.1):
+  mongodb@6.14.2(socks@2.7.1):
     dependencies:
-      '@mongodb-js/saslprep': 1.1.9
-      bson: 6.10.1
-      mongodb-connection-string-url: 3.0.0
+      '@mongodb-js/saslprep': 1.2.0
+      bson: 6.10.3
+      mongodb-connection-string-url: 3.0.2
     optionalDependencies:
       socks: 2.7.1
 
-  mongoose@8.9.5(socks@2.7.1):
+  mongoose@8.12.1(socks@2.7.1):
     dependencies:
-      bson: 6.10.1
+      bson: 6.10.3
       kareem: 2.6.3
-      mongodb: 6.12.0(socks@2.7.1)
+      mongodb: 6.14.2(socks@2.7.1)
       mpath: 0.9.0
       mquery: 5.0.0
       ms: 2.1.3
@@ -13150,7 +13149,7 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  tr46@4.1.1:
+  tr46@5.0.0:
     dependencies:
       punycode: 2.3.1
 
@@ -13421,9 +13420,9 @@ snapshots:
 
   webpod@0.0.2: {}
 
-  whatwg-url@13.0.0:
+  whatwg-url@14.1.1:
     dependencies:
-      tr46: 4.1.1
+      tr46: 5.0.0
       webidl-conversions: 7.0.0
 
   whatwg-url@5.0.0:
