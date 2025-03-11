@@ -1,9 +1,4 @@
-import {
-  type GetSchemaOptions,
-  type GetSchemaResult,
-  getSchemaWithPath,
-  type SchemaPathFromConfig,
-} from '@prisma/internals'
+import { type GetSchemaResult, getSchemaWithPath, type SchemaPathFromConfig } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import path from 'path'
 
@@ -11,19 +6,20 @@ import path from 'path'
 // then replace the 2 hardcoded errors to NoSchemaFoundError in
 // https://github.com/prisma/prisma/blob/bbdf1c23653a77b0b5bf7d62efd243dcebea018b/packages/sdk/src/cli/getSchema.ts#L383:L383
 
+export type SchemaFilesEnvelope = GetSchemaResult
+
 /**
  * If a path is provided checks that it exists or error
  * If no path provided check in default location(s) or error
  * Schema found: print to console its relative path
  *
- * @returns {GetSchemaResult}
+ * @returns {SchemaFilesEnvelope}
  */
-export async function getSchemaPathAndPrint(
+export async function getSchemaFilesEnvelope(
   schemaPathProvided?: string,
   schemaPathFromConfig?: SchemaPathFromConfig,
-  options?: GetSchemaOptions,
-): Promise<GetSchemaResult> {
-  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, schemaPathFromConfig, options)
+): Promise<SchemaFilesEnvelope> {
+  const schemaPathResult = await getSchemaWithPath(schemaPathProvided, schemaPathFromConfig)
 
   printSchemaLoadedMessage(schemaPathResult.schemaPath)
 

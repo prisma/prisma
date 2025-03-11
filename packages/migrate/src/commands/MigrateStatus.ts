@@ -16,7 +16,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('prisma:migrate:status')
@@ -74,13 +74,13 @@ Check the status of your database migrations
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     // TODO: handle the case where the schemaPath is null
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaFilesEnvelope = (await getSchemaFilesEnvelope(args['--schema'], config.schema))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaFilesEnvelope }) })
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
 
-    await ensureCanConnectToDatabase(schemaPath)
+    await ensureCanConnectToDatabase(schemaFilesEnvelope)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

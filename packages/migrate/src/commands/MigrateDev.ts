@@ -23,7 +23,7 @@ import type { EngineResults } from '../types'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
@@ -98,29 +98,29 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schema = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaFilesEnvelope = (await getSchemaFilesEnvelope(args['--schema'], config.schema))!
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath: schema.schemaRootDir })
+    const datasourceInfo = await getDatasourceInfo({ schemaFilesEnvelope })
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
     validate({
-      schemas: schema.schemas,
+      schemas: schemaFilesEnvelope.schemas,
     })
     await getConfig({
-      datamodel: schema.schemas,
+      datamodel: schemaFilesEnvelope.schemas,
       ignoreEnvVarErrors: false,
     })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schema)
+    const wasDbCreated = await ensureDatabaseExists(schemaFilesEnvelope)
     if (wasDbCreated) {
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schema.schemaRootDir)
+    const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

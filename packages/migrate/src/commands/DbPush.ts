@@ -19,7 +19,7 @@ import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
@@ -83,16 +83,16 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schema = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const schemaFilesEnvelope = await getSchemaFilesEnvelope(args['--schema'], config.schema)
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath: schema.schemaRootDir })
+    const datasourceInfo = await getDatasourceInfo({ schemaFilesEnvelope })
     printDatasource({ datasourceInfo })
 
-    const migrate = new Migrate(schema.schemaRootDir)
+    const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schema)
+      const wasDbCreated = await ensureDatabaseExists(schemaFilesEnvelope)
       if (wasDbCreated) {
         process.stdout.write('\n' + wasDbCreated + '\n')
       }

@@ -1,16 +1,16 @@
-import type { ConfigMetaFormat, DatabaseCredentials, GetSchemaResult } from '@prisma/internals'
+import type { ConfigMetaFormat, DatabaseCredentials } from '@prisma/internals'
 import {
   canConnectToDatabase,
   createDatabase,
   getConfig,
   getEffectiveUrl,
   getMigrateConfigDir,
-  getSchema,
   PRISMA_POSTGRES_PROVIDER,
   uriToCredentials,
 } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
+import { SchemaFilesEnvelope } from './getSchemaFilesEnvelope'
 import { ConnectorType } from './printDatasources'
 import { getSocketFromDatabaseCredentials } from './unixSocket'
 
@@ -37,26 +37,26 @@ export type DatasourceInfo = {
   configDir?: string
 }
 
-// TODO: sometimes this function is called with a `schemaPath`, even though the schema(s) have already been read from disk.
-// (e.g., check `MigrateDev.ts`).
 export async function getDatasourceInfo({
-  schemaPath,
+  schemaFilesEnvelope,
   throwIfEnvError,
-}: { schemaPath?: string; throwIfEnvError?: boolean } = {}): Promise<DatasourceInfo> {
-  const schema = await getSchema(schemaPath)
+}: {
+  schemaFilesEnvelope: SchemaFilesEnvelope
+  throwIfEnvError?: boolean
+}): Promise<DatasourceInfo> {
   let config: ConfigMetaFormat
 
   // Try parsing the env var if defined
   // Because we want to get the database name from the url later in the function
   // If it fails we try again but ignore the env var error
   try {
-    config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+    config = await getConfig({ datamodel: schemaFilesEnvelope.schemas, ignoreEnvVarErrors: false })
   } catch (error) {
     // Note: only used for db drop (which is not exposed in the CLI)
     if (throwIfEnvError) {
       throw error
     }
-    config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
+    config = await getConfig({ datamodel: schemaFilesEnvelope.schemas, ignoreEnvVarErrors: true })
   }
 
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
@@ -87,7 +87,7 @@ export async function getDatasourceInfo({
       url: url || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config, schemaPath),
+      configDir: schemaFilesEnvelope.schemaRootDir,
     }
   }
 
@@ -95,12 +95,12 @@ export async function getDatasourceInfo({
     const credentials = uriToCredentials(url)
     const dbLocation = getDbLocation(credentials)
 
-    let schema: string | undefined = undefined
+    let dbSchema: string | undefined = undefined
     if (['postgresql', 'cockroachdb'].includes(firstDatasource.provider)) {
       if (credentials.schema) {
-        schema = credentials.schema
+        dbSchema = credentials.schema
       } else {
-        schema = 'public'
+        dbSchema = 'public'
       }
     }
 
@@ -110,9 +110,9 @@ export async function getDatasourceInfo({
       dbName: credentials.database,
       dbLocation,
       url,
-      schema,
+      schema: dbSchema,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config, schemaPath),
+      configDir: schemaFilesEnvelope.schemaRootDir,
     }
 
     // Default to `postgres` database name for PostgreSQL
@@ -131,7 +131,7 @@ export async function getDatasourceInfo({
       url,
       schema: undefined,
       schemas: firstDatasource.schemas,
-      configDir: getMigrateConfigDir(config, schemaPath),
+      configDir: schemaFilesEnvelope.schemaRootDir,
     }
   }
 }
@@ -139,16 +139,15 @@ export async function getDatasourceInfo({
 // check if we can connect to the database
 // if true: return true
 // if false: throw error
-export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
-  const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+export async function ensureCanConnectToDatabase(schemaFilesEnvelope: SchemaFilesEnvelope): Promise<Boolean | Error> {
+  const config = await getConfig({ datamodel: schemaFilesEnvelope.schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const schemaDir = getMigrateConfigDir(config, schemaPath)
+  const schemaDir = getMigrateConfigDir(config, schemaFilesEnvelope.schemaPath)
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
@@ -162,8 +161,8 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
   }
 }
 
-export async function ensureDatabaseExists(schema: GetSchemaResult) {
-  const config = await getConfig({ datamodel: schema.schemas, ignoreEnvVarErrors: false })
+export async function ensureDatabaseExists(schemaFilesEnvelope: SchemaFilesEnvelope) {
+  const config = await getConfig({ datamodel: schemaFilesEnvelope.schemas, ignoreEnvVarErrors: false })
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
@@ -173,7 +172,7 @@ export async function ensureDatabaseExists(schema: GetSchemaResult) {
   const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  const canConnect = await canConnectToDatabase(url!, schema.schemaRootDir)
+  const canConnect = await canConnectToDatabase(url!, schemaFilesEnvelope.schemaRootDir)
   if (canConnect === true) {
     return
   }
@@ -187,7 +186,7 @@ export async function ensureDatabaseExists(schema: GetSchemaResult) {
   // last case: status === 'DatabaseDoesNotExist'
 
   // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  if (await createDatabase(url!, schema.schemaRootDir)) {
+  if (await createDatabase(url!, schemaFilesEnvelope.schemaRootDir)) {
     // URI parsing is not implemented for SQL server yet
     if (firstDatasource.provider === 'sqlserver') {
       return `SQL Server database created.\n`

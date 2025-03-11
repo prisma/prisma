@@ -14,7 +14,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 
 export class MigrateResolve implements Command {
@@ -83,9 +83,9 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaFilesEnvelope = (await getSchemaFilesEnvelope(args['--schema'], config.schema))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaFilesEnvelope }) })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -109,9 +109,9 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      await ensureCanConnectToDatabase(schemaFilesEnvelope)
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
@@ -131,9 +131,9 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      await ensureCanConnectToDatabase(schemaFilesEnvelope)
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],

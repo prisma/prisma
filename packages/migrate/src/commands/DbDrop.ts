@@ -17,7 +17,7 @@ import prompt from 'prompts'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
@@ -85,9 +85,9 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const schemaFilesEnvelope = await getSchemaFilesEnvelope(args['--schema'], config.schema)
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
+    const datasourceInfo = await getDatasourceInfo({ schemaFilesEnvelope, throwIfEnvError: true })
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line

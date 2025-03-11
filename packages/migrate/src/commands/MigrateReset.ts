@@ -16,7 +16,7 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
@@ -79,12 +79,12 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schema = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
-    const datasourceInfo = await getDatasourceInfo({ schemaPath: schema.schemaRootDir })
+    const schemaFilesEnvelope = (await getSchemaFilesEnvelope(args['--schema'], config.schema))!
+    const datasourceInfo = await getDatasourceInfo({ schemaFilesEnvelope })
     printDatasource({ datasourceInfo })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schema)
+    const wasDbCreated = await ensureDatabaseExists(schemaFilesEnvelope)
     if (wasDbCreated) {
       process.stdout.write('\n' + wasDbCreated + '\n')
     }
@@ -110,7 +110,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schema.schemaRootDir)
+    const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
 
     let migrationIds: string[]
     try {

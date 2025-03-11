@@ -14,7 +14,7 @@ import {
   logger,
   validate,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
+import { getSchemaFilesEnvelope } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -70,15 +70,15 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const schemaFilesEnvelope = await getSchemaFilesEnvelope(args['--schema'], config.schema)
 
     const { lintDiagnostics } = handleLintPanic(
       () => {
         // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schemas })
+        const lintDiagnostics = lintSchema({ schemas: schemaFilesEnvelope.schemas })
         return { lintDiagnostics }
       },
-      { schemas },
+      { schemas: schemaFilesEnvelope.schemas },
     )
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
@@ -88,18 +88,18 @@ ${bold('Examples')}
     }
 
     validate({
-      schemas,
+      schemas: schemaFilesEnvelope.schemas,
     })
 
     // We could have a CLI flag to ignore env var validation
     await getConfig({
-      datamodel: schemas,
+      datamodel: schemaFilesEnvelope.schemas,
       ignoreEnvVarErrors: false,
     })
 
-    const schemaRelativePath = path.relative(process.cwd(), schemaPath)
+    const schemaRelativePath = path.relative(process.cwd(), schemaFilesEnvelope.schemaPath)
 
-    if (schemas.length > 1) {
+    if (schemaFilesEnvelope.schemas.length > 1) {
       return `The schemas at ${underline(schemaRelativePath)} are valid 🚀`
     }
 

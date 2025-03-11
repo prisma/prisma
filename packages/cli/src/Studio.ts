@@ -13,7 +13,7 @@ import {
   mergeSchemas,
   resolveUrl,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
+import { getSchemaFilesEnvelope } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
@@ -104,7 +104,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const schemaFilesEnvelope = await getSchemaFilesEnvelope(args['--schema'], config.schema)
 
     const hostname = args['--hostname']
     const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
@@ -113,15 +113,15 @@ ${bold('Examples')}
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const mergedSchema = mergeSchemas({
-      schemas,
+      schemas: schemaFilesEnvelope.schemas,
     })
 
-    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemaFilesEnvelope.schemas, ignoreEnvVarErrors: true })
     const adapter = await config.studio?.adapter(process.env)
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
-      schemaPath,
+      schemaPath: schemaFilesEnvelope.schemaPath,
       adapter,
       schemaText: mergedSchema,
       hostname,

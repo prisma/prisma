@@ -5,7 +5,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { getSchemaFilesEnvelope } from '../utils/getSchemaFilesEnvelope'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
@@ -64,15 +64,15 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schema = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaFilesEnvelope = (await getSchemaFilesEnvelope(args['--schema'], config.schema))!
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath: schema.schemaRootDir }) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaFilesEnvelope }) })
 
-    const migrate = new Migrate(schema.schemaRootDir)
+    const migrate = new Migrate(schemaFilesEnvelope.schemaRootDir)
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schema)
+      const wasDbCreated = await ensureDatabaseExists(schemaFilesEnvelope)
       if (wasDbCreated) {
         process.stdout.write('\n' + wasDbCreated + '\n')
       }
