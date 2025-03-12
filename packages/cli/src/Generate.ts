@@ -146,6 +146,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
+    // TODO: replace with schema context!
     const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
 

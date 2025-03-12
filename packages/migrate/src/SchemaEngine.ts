@@ -4,13 +4,11 @@ import Debug from '@prisma/debug'
 import {
   BinaryType,
   ErrorArea,
-  getConfig,
-  getMigrateConfigDir,
-  getSchema,
   type MigrateTypes,
   relativizePathInPSLError,
   resolveBinary,
   RustPanic,
+  SchemaContext,
   SchemaEngineExitCode,
   SchemaEngineLogLine,
   setClassName,
@@ -28,7 +26,7 @@ const debugStderr = Debug('prisma:schemaEngine:stderr')
 const debugStdin = Debug('prisma:schemaEngine:stdin')
 
 export interface SchemaEngineOptions {
-  schemaPath?: string
+  schemaContext?: SchemaContext
   debug?: boolean
   enabledPreviewFeatures?: string[]
 }
@@ -49,7 +47,7 @@ let messageId = 1
 export class SchemaEngine {
   private debug: boolean
   private child?: ChildProcess
-  private schemaPath?: string
+  private schemaContext?: SchemaContext
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
@@ -65,8 +63,8 @@ export class SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  constructor({ debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
-    this.schemaPath = schemaPath
+  constructor({ debug = false, schemaContext, enabledPreviewFeatures }: SchemaEngineOptions) {
+    this.schemaContext = schemaContext
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
@@ -189,8 +187,8 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
-        // TODO: this needs to call `getSchemaPath` instead
-        const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
+        // TODO: pass views directory from the top based on config - see ORM-664
+        const schemaPath = this.schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma')
         await handleViewsIO({ views, schemaPath })
       }
 
@@ -345,11 +343,9 @@ export class SchemaEngine {
         const args: string[] = []
 
         let projectDir: string = process.cwd()
-        if (this.schemaPath) {
-          const schema = await getSchema(this.schemaPath)
-          const config = await getConfig({ datamodel: schema })
-          projectDir = getMigrateConfigDir(config, this.schemaPath)
-          const schemaArgs = schema.flatMap(([path]) => ['-d', path])
+        if (this.schemaContext) {
+          projectDir = this.schemaContext.primaryDatasourceDirectory
+          const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)
         }
 
@@ -411,7 +407,7 @@ export class SchemaEngine {
                 stackTrace,
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
-                /* schemaPath */ this.schemaPath,
+                /* schemaPath */ this.schemaContext?.loadedFromPathForLogMessages,
                 /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
               ),
             )
@@ -507,7 +503,7 @@ export class SchemaEngine {
                   stackTrace,
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
-                  /* schemaPath */ this.schemaPath,
+                  /* schemaPath */ this.schemaContext?.loadedFromPathForLogMessages,
                   /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
                 ),
               )

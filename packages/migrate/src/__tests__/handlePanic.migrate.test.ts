@@ -154,9 +154,9 @@ describe('handlePanic migrate', () => {
     }
     const schemaPath = join(testRootDir, Object.keys(files)[0])
     await writeFiles(testRootDir, files)
+    const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
 
     try {
-      const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
       const migrate = new Migrate(schemaContext)
       await migrate.createMigration({
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
@@ -170,7 +170,7 @@ describe('handlePanic migrate', () => {
       expect(error).toMatchSnapshot()
       expect(JSON.parse(JSON.stringify(error))).toMatchObject({
         area: 'LIFT_CLI',
-        schemaPath,
+        schemaPath: schemaContext.loadedFromPathForLogMessages,
       })
       expect(error.message).toContain('This is the debugPanic artificial panic')
       expect(error.rustStack).toContain('[EXIT_PANIC]')

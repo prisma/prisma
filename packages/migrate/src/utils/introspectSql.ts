@@ -1,5 +1,5 @@
-import { SqlQueryOutput } from '@prisma/generator-helper'
-import { type ConfigMetaFormat, getConfig, getEffectiveUrl, getSchemaWithPath } from '@prisma/internals'
+import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator-helper'
+import { getEffectiveUrl, loadSchemaContext } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs } from '../types'
@@ -39,25 +39,27 @@ export async function introspectSql(
   schemaPath: string | undefined,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
-  const schema = await getSchemaWithPath(schemaPath)
-  const config = await getConfig({ datamodel: schema.schemas })
-  if (!supportedProviders.includes(config.datasources?.[0]?.activeProvider)) {
+  const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+
+  if (!supportedProviders.includes(schemaContext.datasources?.[0]?.activeProvider)) {
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
-  if (!isTypedSqlEnabled(config)) {
-    throw new Error(`\`typedSql\` preview feature needs to be enabled in ${schema.schemaPath}`)
+  if (!isTypedSqlEnabled(schemaContext.generators)) {
+    throw new Error(`\`typedSql\` preview feature needs to be enabled in ${schemaContext.loadedFromPathForLogMessages}`)
   }
 
-  const firstDatasource = config.datasources[0]
+  const firstDatasource = schemaContext.datasources[0]
   if (!firstDatasource) {
-    throw new Error(`Could not find datasource in schema ${schema.schemaPath}`)
+    throw new Error(`Could not find datasource in schema ${schemaContext.loadedFromPathForLogMessages}`)
   }
   const url = getEffectiveUrl(firstDatasource).value
   if (!url) {
-    throw new Error(`Could not get url from datasource ${firstDatasource.name} in ${schema.schemaPath}`)
+    throw new Error(
+      `Could not get url from datasource ${firstDatasource.name} in ${schemaContext.loadedFromPathForLogMessages}`,
+    )
   }
 
-  const schemaEngine = new SchemaEngine({ schemaPath: schema.schemaPath })
+  const schemaEngine = new SchemaEngine({ schemaContext })
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []
   try {
@@ -116,6 +118,6 @@ async function introspectSingleQuery(
   }
 }
 
-function isTypedSqlEnabled(config: ConfigMetaFormat) {
-  return config.generators.some((gen) => gen?.previewFeatures?.includes('typedSql'))
+function isTypedSqlEnabled(generators: GeneratorConfig[]) {
+  return generators.some((gen) => gen?.previewFeatures?.includes('typedSql'))
 }
