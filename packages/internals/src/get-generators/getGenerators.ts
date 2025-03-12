@@ -135,8 +135,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   const config = await getConfig({
     datamodel: schemas,
-    datamodelPath: schemaPath,
-    prismaPath,
     ignoreEnvVarErrors: true,
   })
 
