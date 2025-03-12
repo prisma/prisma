@@ -361,3 +361,10 @@ test('ignore .gitignore file if already present (do not override)', async () => 
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')
   expect(gitignoreAfter).toEqual(gitignoreBefore)
 })
+
+test('uses determineClientOutputPath when no output is specified', async () => {
+  ctx.fixture('client-output-path/with-lib')
+  await ctx.cli('init')
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toContain('output   = "../lib/generated/prisma"')
+})

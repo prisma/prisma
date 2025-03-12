@@ -129,6 +129,7 @@
     "checkpoint-client": "1.1.33",
     "chokidar": "3.6.0",
     "debug": "4.4.0",
+    "effect": "3.12.10",
     "dotenv": "16.4.7",
     "env-paths": "2.2.1",
     "esbuild": "0.24.2",
