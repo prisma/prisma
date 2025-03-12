@@ -82,7 +82,6 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      ignoreEnvVarErrors: false,
     })
     const datasourceInfo = parseDatasourceInfo(schemaContext.datasources[0])
     printDatasource({ datasourceInfo })

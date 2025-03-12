@@ -19,12 +19,10 @@ export type SchemaContext = {
 export async function loadSchemaContextOptional({
   schemaPathFromArg,
   schemaPathFromConfig,
-  ignoreEnvVarErrors = true,
   printLoadMessage = true,
 }: {
   schemaPathFromArg: string | undefined
   schemaPathFromConfig: SchemaPathFromConfig | undefined
-  ignoreEnvVarErrors?: boolean
   printLoadMessage?: boolean
 }): Promise<SchemaContext | null> {
   const schemaWithPath = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig)
@@ -33,32 +31,28 @@ export async function loadSchemaContextOptional({
     return null
   }
 
-  return processSchemaResult({ schemaWithPath, ignoreEnvVarErrors, printLoadMessage })
+  return processSchemaResult({ schemaWithPath, printLoadMessage })
 }
 
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
-  ignoreEnvVarErrors = true,
   printLoadMessage = true,
 }: {
   schemaPathFromArg: string | undefined
   schemaPathFromConfig: SchemaPathFromConfig | undefined
-  ignoreEnvVarErrors?: boolean
   printLoadMessage?: boolean
 }): Promise<SchemaContext> {
   const schemaWithPath = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
 
-  return processSchemaResult({ schemaWithPath, ignoreEnvVarErrors, printLoadMessage })
+  return processSchemaResult({ schemaWithPath, printLoadMessage })
 }
 
 async function processSchemaResult({
   schemaWithPath,
-  ignoreEnvVarErrors,
   printLoadMessage,
 }: {
   schemaWithPath: GetSchemaResult
-  ignoreEnvVarErrors: boolean
   printLoadMessage: boolean
 }) {
   if (printLoadMessage) {
@@ -67,7 +61,7 @@ async function processSchemaResult({
     )
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaWithPath.schemas, ignoreEnvVarErrors })
+  const configFromPsl = await getConfig({ datamodel: schemaWithPath.schemas })
 
   return {
     schemaFiles: schemaWithPath.schemas,

@@ -88,7 +88,6 @@ ${bold('Examples')}
     const { datasources } = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      ignoreEnvVarErrors: false,
     })
 
     const datasourceInfo = parseDatasourceInfo(datasources[0])
