@@ -12,7 +12,6 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
-  toSchemasContainer,
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -116,7 +115,7 @@ ${bold('Examples')}
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+    const migrate = new Migrate(schemaContext)
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
@@ -238,7 +237,7 @@ ${bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
+        schema: migrate.getPrismaSchema(),
       })
       debug({ createMigrationResult })
 
