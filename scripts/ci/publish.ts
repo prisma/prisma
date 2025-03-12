@@ -9,7 +9,7 @@ import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import pRetry from 'p-retry'
 import path from 'path'
-import redis from 'redis'
+import { createClient as createRedisClient } from 'redis'
 import redisLock from 'redis-lock'
 import semver from 'semver'
 
@@ -853,7 +853,7 @@ async function acquireLock(branch: string): Promise<() => void> {
       console.log(`Lock removed after ${Math.round(performance.now()) - before}ms`)
     }
   }
-  const client = redis.createClient({
+  const client = createRedisClient({
     url: process.env.REDIS_URL,
   })
   const lock = redisLock(client)
