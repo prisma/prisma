@@ -148,8 +148,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   const dmmf = await getDMMF({
     datamodel: schemas,
-    datamodelPath: schemaPath,
-    prismaPath,
     previewFeatures,
   })
 
@@ -337,8 +335,6 @@ generator gen {
         ) {
           const customDmmf = await getDMMF({
             datamodel: schemas,
-            datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths[queryEngineType]?.[binaryTarget],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
