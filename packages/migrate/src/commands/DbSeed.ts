@@ -59,6 +59,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
+      // TODO: remove reliance on schema loading here => Do we still need the verifySeedConfigAndReturnMessage logic?
       // Only used to help users to set up their seeds from old way to new package.json config
       const schemaResult = await getSchemaWithPath(args['--schema'], config.schema)
 

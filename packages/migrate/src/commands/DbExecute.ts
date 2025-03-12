@@ -5,12 +5,11 @@ import {
   Command,
   format,
   getCommandWithExecutor,
-  getConfig,
-  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
-  toSchemasWithConfigDir,
+  loadSchemaContext,
+  toSchemasContainer,
 } from '@prisma/internals'
 import fs from 'fs'
 import getStdin from 'get-stdin'
@@ -172,13 +171,16 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaWithPath = (await getSchemaWithPath(args['--schema'], config.schema))!
-      const engineConfig = await getConfig({ datamodel: schemaWithPath.schemas })
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--schema'],
+        schemaPathFromConfig: config.schema,
+      })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        ...toSchemasWithConfigDir(schemaWithPath, engineConfig),
+        ...toSchemasContainer(schemaContext.schemaFiles),
+        configDir: schemaContext.primaryDatasourceDirectory,
       }
     }
 

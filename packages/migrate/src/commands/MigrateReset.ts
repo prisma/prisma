@@ -9,14 +9,14 @@ import {
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
@@ -79,12 +79,16 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+      ignoreEnvVarErrors: false,
+    })
+    const datasourceInfo = parseDatasourceInfo(schemaContext.datasources[0])
     printDatasource({ datasourceInfo })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
+    const wasDbCreated = await ensureDatabaseExists(schemaContext.datasources[0])
     if (wasDbCreated) {
       process.stdout.write('\n' + wasDbCreated + '\n')
     }
@@ -110,7 +114,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
     let migrationIds: string[]
     try {

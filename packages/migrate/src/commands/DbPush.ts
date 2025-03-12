@@ -10,6 +10,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
   protocolToConnectorType,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
@@ -17,9 +18,8 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
@@ -83,16 +83,19 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    const datasourceInfo = parseDatasourceInfo(schemaContext.datasources[0])
     printDatasource({ datasourceInfo })
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('push', schemaPath)
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.datasources[0])
       if (wasDbCreated) {
         process.stdout.write('\n' + wasDbCreated + '\n')
       }
