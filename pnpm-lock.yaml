@@ -486,6 +486,9 @@ importers:
       dotenv:
         specifier: 16.4.7
         version: 16.4.7
+      effect:
+        specifier: 3.12.10
+        version: 3.12.10
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -6269,9 +6272,6 @@ packages:
   pure-rand@5.0.3:
     resolution: {integrity: sha512-9N8x1h8dptBQpHyC7aZMS+iNOAm97WMGY0AFrguU1cpfW3I5jINkWe5BIY5md0ofy+1TCIELsVcm/GJXZSaPbw==}
 
-  pure-rand@6.0.2:
-    resolution: {integrity: sha512-6Yg0ekpKICSjPswYOuC5sku/TSWaRYlA0qsXqJgM/d/4pLPHPuTxK7Nbf7jFKzAeedUhR8C7K9Uv63FBsSo8xQ==}
-
   pure-rand@6.1.0:
     resolution: {integrity: sha512-bVWawvoZoBYpp6yIoQtQXHZjmz35RSVHnUOTefl8Vcjr8snTPY1wnpSPMWekcFwbxI6gtmT7rSYPFvz71ldiOA==}
 
@@ -11052,7 +11052,7 @@ snapshots:
       jest-util: 29.7.0
       p-limit: 3.1.0
       pretty-format: 29.7.0
-      pure-rand: 6.0.2
+      pure-rand: 6.1.0
       slash: 3.0.0
       stack-utils: 2.0.5
     transitivePeerDependencies:
@@ -12505,8 +12505,6 @@ snapshots:
   punycode@2.3.1: {}
 
   pure-rand@5.0.3: {}
-
-  pure-rand@6.0.2: {}
 
   pure-rand@6.1.0: {}
 
