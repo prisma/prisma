@@ -7,13 +7,34 @@ import { getConfig } from '../engine-commands'
 import { getSchemaWithPath, getSchemaWithPathOptional, SchemaPathFromConfig } from './getSchema'
 
 export type SchemaContext = {
+  /**
+   * All loaded schema files and their paths.
+   */
   schemaFiles: LoadedFile[]
+  /**
+   * The root directory of the schema files.
+   * Either set explicitly from a schema folder based config or the parent directory of the schema.prisma file.
+   */
   schemaRootDir: string
+  /**
+   * The directory of the schema.prisma file that contains the datasource block.
+   * Some relative paths like SQLite paths or SSL file paths are resolved relative to it.
+   */
   primaryDatasourceDirectory: string
+  /**
+   * The path that shall be printed in user facing logs messages informing them from where the schema was loaded.
+   */
+  loadedFromPathForLogMessages: string
+  /**
+   * The datasources extracted from the Prisma schema.
+   */
+  datasources: DataSource[] | []
+  /**
+   * The generators extracted from the Prisma schema.
+   */
+  generators: GeneratorConfig[] | []
   // @deprecated Only used during the refactoring for backwards compatibility. Use `schemaFiles` instead or determine needed file paths otherwise.
   schemaPath: string
-  datasources: DataSource[] | []
-  generators: GeneratorConfig[] | []
 }
 
 export async function loadSchemaContextOptional({
@@ -55,10 +76,10 @@ async function processSchemaResult({
   schemaWithPath: GetSchemaResult
   printLoadMessage: boolean
 }) {
+  const loadedFromPathForLogMessages = path.relative(process.cwd(), schemaWithPath.schemaPath)
+
   if (printLoadMessage) {
-    process.stdout.write(
-      dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaWithPath.schemaPath)}`) + '\n',
-    )
+    process.stdout.write(dim(`Prisma schema loaded from ${loadedFromPathForLogMessages}`) + '\n')
   }
 
   const configFromPsl = await getConfig({ datamodel: schemaWithPath.schemas })
@@ -70,6 +91,7 @@ async function processSchemaResult({
     datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasourceDirectory: primaryDatasourceDirectory(configFromPsl.datasources, schemaWithPath.schemaRootDir),
+    loadedFromPathForLogMessages,
   }
 }
 

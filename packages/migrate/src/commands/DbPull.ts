@@ -134,9 +134,7 @@ Set composite types introspection depth to 2 levels
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
-      process.stdout.write(
-        dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaContext.schemaRootDir)}`) + '\n',
-      )
+      process.stdout.write(dim(`Prisma schema loaded from ${schemaContext.loadedFromPathForLogMessages}`) + '\n')
 
       // Load and print where the .env was loaded (if loaded)
       await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
@@ -307,9 +305,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
     const basedOn =
       !args['--url'] && schemaContext?.datasources[0]
-        ? ` based on datasource defined in ${underline(
-            path.relative(process.cwd(), schemaContext.datasources[0].sourceFilePath),
-          )}`
+        ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
         : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
@@ -430,10 +426,7 @@ Or run this command with the ${green(
 
       const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
 
-      const introspectedSchemaPath =
-        schemaContext && introspectionSchema.files.length > 1
-          ? schemaContext.schemaRootDir
-          : introspectionSchema.files[0].path
+      const introspectedSchemaPath = schemaContext?.loadedFromPathForLogMessages || introspectionSchema.files[0].path
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
