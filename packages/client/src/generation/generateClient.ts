@@ -185,10 +185,14 @@ export async function buildClient({
     main: 'index.js',
     types: 'index.d.ts',
     browser: 'index-browser.js',
+    // The order of exports is important:
+    // * `./client` before `...clientPkg.exports` allows it to have a higher priority than the `./*` export in `clientPkg.exports`
+    // * `.` after `...clientPkg.exports` makes it override the `.` export in `clientPkgs.exports`
     exports: {
+      './client': exportsMapDefault,
       ...clientPkg.exports,
       // TODO: remove on DA ga
-      ...{ '.': exportsMapDefault },
+      '.': exportsMapDefault,
     },
     version: clientVersion,
     sideEffects: false,
@@ -203,6 +207,8 @@ export async function buildClient({
   fileMap['index-browser.js'] = BrowserJS(nodeClient)
   fileMap['edge.js'] = JS(edgeClient)
   fileMap['edge.d.ts'] = TS(edgeClient)
+  fileMap['client.js'] = JS(defaultClient)
+  fileMap['client.d.ts'] = TS(defaultClient)
 
   if (generator.previewFeatures.includes('reactNative')) {
     fileMap['react-native.js'] = JS(rnTsClient)
