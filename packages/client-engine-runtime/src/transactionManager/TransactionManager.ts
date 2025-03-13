@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'

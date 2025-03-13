@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 
 import type { GetPrismaClientConfig } from '../../getPrismaClient'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'

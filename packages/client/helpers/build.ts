@@ -181,12 +181,22 @@ const edgeEsmRuntimeBuildConfig: BuildOptions = {
 }
 
 // we define the config for generator
-const generatorBuildConfig: BuildOptions = {
-  name: 'generator',
-  entryPoints: ['src/generation/generator.ts'],
+const legacyGeneratorBuildConfig: BuildOptions = {
+  name: 'prisma-client-js-generator',
+  entryPoints: ['src/generation/prisma-client-js/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
   emitTypes: false,
+}
+
+const newGeneratorBuildConfig: BuildOptions = {
+  name: 'prisma-client-ts-generator',
+  entryPoints: ['src/generation/prisma-client-ts/generator.ts'],
+  outfile: 'generator-build/generator',
+  bundle: true,
+  emitTypes: false,
+  format: 'esm',
+  outExtension: { '.js': '.mjs' },
 }
 
 // default-index.js file in scripts
@@ -212,7 +222,8 @@ function writeDtsRexport(fileName: string) {
 }
 
 void build([
-  generatorBuildConfig,
+  legacyGeneratorBuildConfig,
+  newGeneratorBuildConfig,
   nodeRuntimeBuildConfig(ClientEngineType.Binary),
   nodeRuntimeBuildConfig(ClientEngineType.Library),
   nodeRuntimeBuildConfig(ClientEngineType.Client),

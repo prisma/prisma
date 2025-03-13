@@ -19,4 +19,5 @@ export type GeneratorResolvers = {
  */
 export const generatorResolvers: GeneratorResolvers = {
   'prisma-client-js': prismaClientResolver,
+  // 'prisma-client-ts': modernPrismaClientResolver,
 }

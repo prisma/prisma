@@ -3,17 +3,14 @@ import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
 import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
 
-import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
+import { version as clientVersion } from '../../../package.json'
+import { externalToInternalDmmf } from '../../runtime/externalToInternalDmmf'
+import { dmmfToTypes } from '../utils/types/dmmfToTypes'
 import { generateClient } from './generateClient'
-import { dmmfToTypes } from './utils/types/dmmfToTypes'
 
 const debug = Debug('prisma:client:generator')
 
 // See https://www.notion.so/prismaio/Prisma-Generators-a2cdf262207a4e9dbcd0e362dfac8dc0
-
-const pkg = require('../../package.json')
-
-const clientVersion = pkg.version
 
 // if the file has been run as a CLI
 if (process.argv[1] === __filename) {

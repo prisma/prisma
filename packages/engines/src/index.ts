@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import type { BinaryTarget } from '@prisma/get-platform'

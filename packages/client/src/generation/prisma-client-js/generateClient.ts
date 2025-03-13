@@ -27,12 +27,12 @@ import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import clientPkg from '../../package.json'
-import type { DMMF as PrismaClientDMMF } from './dmmf-types'
-import { getPrismaClientDMMF } from './getDMMF'
-import { BrowserJS, JS, TS, TSClient } from './TSClient'
-import { TSClientOptions } from './TSClient/TSClient'
-import { buildTypedSql } from './typedSql/typedSql'
+import clientPkg from '../../../package.json'
+import type { DMMF as PrismaClientDMMF } from '../dmmf-types'
+import { getPrismaClientDMMF } from '../getDMMF'
+import { BrowserJS, JS, TS, TSClient } from '../TSClient'
+import { TSClientOptions } from '../TSClient/TSClient'
+import { buildTypedSql } from '../typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
 
