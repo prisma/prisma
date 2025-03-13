@@ -1,5 +1,4 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -63,11 +62,9 @@ testMatrix.setupTestSuite(
     })
 
     describeIf(driverAdapter === 'js_pg')('custom datasource should not be used with driver adapter', () => {
-      const pool = new Pool({
+      const adapter = new PrismaPg({
         connectionString: dbURL,
       })
-
-      const adapter = new PrismaPg(pool)
 
       test('throws when both `datasourceUrl` and `adapter` are used at the same time', () => {
         expect(() => {

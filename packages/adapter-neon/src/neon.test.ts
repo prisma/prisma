@@ -1,6 +1,6 @@
 import { Client, Pool } from '@neondatabase/serverless'
 
-import { PrismaNeon, PrismaNeonHTTP } from './neon'
+import { PrismaNeonAdapter, PrismaNeonHTTPAdapter } from './neon'
 
 describe('validation', () => {
   test('throws if passed Client instance', () => {
@@ -8,7 +8,7 @@ describe('validation', () => {
 
     expect(() => {
       // @ts-ignore
-      new PrismaNeon(client)
+      new PrismaNeonAdapter(client)
     }).toThrowErrorMatchingInlineSnapshot(`
       "PrismaNeon must be initialized with an instance of Pool:
       import { Pool } from '@neondatabase/serverless'
@@ -22,7 +22,7 @@ describe('validation', () => {
     const pool = new Pool()
 
     expect(() => {
-      new PrismaNeon(pool)
+      new PrismaNeonAdapter(pool)
     }).not.toThrow()
   })
 })
@@ -35,7 +35,7 @@ describe('neon version support', () => {
       .mockResolvedValue({ fields: [], command: '', rowCount: 0, rows: [], rowAsArray: false })
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const adapter = new PrismaNeonHTTP(v0NeonClientMock as any)
+    const adapter = new PrismaNeonHTTPAdapter(v0NeonClientMock as any)
 
     await adapter.queryRaw({ sql: 'SELECT 1', args: [], argTypes: [] })
 
@@ -56,7 +56,7 @@ describe('neon version support', () => {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-    const adapter = new PrismaNeonHTTP(v1NeonClientMock as any)
+    const adapter = new PrismaNeonHTTPAdapter(v1NeonClientMock as any)
 
     await adapter.queryRaw({ sql: 'SELECT 1', args: [], argTypes: [] })
 

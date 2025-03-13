@@ -14,7 +14,7 @@ let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
 
     beforeEach(() => {
@@ -403,11 +403,14 @@ testMatrix.setupTestSuite(
 
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
@@ -460,11 +463,14 @@ testMatrix.setupTestSuite(
 
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }

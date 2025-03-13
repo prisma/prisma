@@ -17,12 +17,10 @@ export default defineConfig({
   studio: {
     adapter: async (env: Env) => {
       const { PrismaLibSQL } = await import('@prisma/adapter-libsql')
-      const { createClient } = await import('@libsql/client')
 
-      const libsql = createClient({
+      return new PrismaLibSQL({
         url: env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL,
       })
-      return new PrismaLibSQL(libsql)
     },
   },
 })

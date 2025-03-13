@@ -1,10 +1,10 @@
+import type { IsolationLevel } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
 import { EngineProtocol } from '../Engine'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
-import * as Transaction from './Transaction'
 
 // Events
 export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent
@@ -94,7 +94,7 @@ export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatch
 export type QueryEngineBatchGraphQLRequest = {
   batch: QueryEngineRequest[]
   transaction?: boolean
-  isolationLevel?: Transaction.IsolationLevel
+  isolationLevel?: IsolationLevel
 }
 
 export type GetConfigOptions = {

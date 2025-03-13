@@ -1,13 +1,13 @@
 import { Pool } from 'pg'
 
-import { PrismaPg } from './pg'
+import { PrismaPgAdapter } from './pg'
 
 describe('validation', () => {
   test('accepts Pool instance', () => {
     const pool = new Pool()
 
     expect(() => {
-      new PrismaPg(pool)
+      new PrismaPgAdapter(pool)
     }).not.toThrow()
   })
 })

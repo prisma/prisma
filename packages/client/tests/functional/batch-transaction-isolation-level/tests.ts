@@ -9,7 +9,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, _clientMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
 
     const queries: string[] = []
@@ -38,7 +38,8 @@ testMatrix.setupTestSuite(
       name: string,
       { level, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; expectSql: string },
     ) => {
-      test(name, async () => {
+      // Driver adapters do not issue SET TRANSACTION ISOLATION LEVEL through the query engine.
+      testIf(driverAdapter === undefined)(name, async () => {
         await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
           isolationLevel: level(),
         })
