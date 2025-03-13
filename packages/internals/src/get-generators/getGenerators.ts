@@ -120,7 +120,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     }
   }
 
-  if (schemaContext.datasources.length === 0) {
+  if (!schemaContext.primaryDatasource) {
     throw new Error(missingDatasource)
   }
 
@@ -135,7 +135,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   if (dmmf.datamodel.models.length === 0 && !allowNoModels) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId
-    if (schemaContext.datasources.some((d) => d.provider === 'mongodb')) {
+    if (schemaContext.primaryDatasource.provider === 'mongodb') {
       throw new Error(missingModelMessageMongoDB)
     }
 

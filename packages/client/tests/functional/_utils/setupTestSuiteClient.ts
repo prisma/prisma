@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import { SqlQueryOutput } from '@prisma/generator-helper'
-import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { getDMMF, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
@@ -53,8 +53,11 @@ export async function setupTestSuiteClient({
   const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]], previewFeatures })
-  const config = await getConfig({ datamodel: [[schemaPath, schema]], ignoreEnvVarErrors: true })
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const schemaContext = await processSchemaResult({
+    schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
+    ignoreEnvVarErrors: true, // Some tests check the missing env var errors => we should not blow up here right away
+  })
+  const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
   await setupTestSuiteFiles({ suiteMeta, suiteConfig })
@@ -69,7 +72,11 @@ export async function setupTestSuiteClient({
 
   let typedSql: SqlQueryOutput[] | undefined
   if (hasTypedSql) {
-    typedSql = await introspectSql(schemaPath)
+    const schemaContextIntrospect = await processSchemaResult({
+      schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
+      ignoreEnvVarErrors: false, // need to rerun processSchemaResult including proper env var resolving for introspect to work
+    })
+    typedSql = await introspectSql(schemaContextIntrospect)
   }
 
   if (clientMeta.dataProxy === true) {
@@ -82,7 +89,7 @@ export async function setupTestSuiteClient({
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
-    datasources: config.datasources,
+    datasources: schemaContext.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
     copyRuntime: false,
     dmmf: dmmf,

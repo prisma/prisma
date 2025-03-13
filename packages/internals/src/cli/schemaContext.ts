@@ -34,6 +34,10 @@ export type SchemaContext = {
    */
   warnings: string[] | []
   /**
+   * The datasources extracted from the Prisma schema. Prefer to use primaryDatasource for most cases.
+   */
+  datasources: DataSource[] | []
+  /**
    * The generators extracted from the Prisma schema.
    */
   generators: GeneratorConfig[] | []
@@ -59,7 +63,7 @@ export async function loadSchemaContext({
   printLoadMessage = true,
   ignoreEnvVarErrors = false,
   allowNull = false,
-}: LoadSchemaContextOptions): Promise<SchemaContext | null> {
+}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
@@ -96,6 +100,7 @@ export async function processSchemaResult({
     schemaFiles: schemaResult.schemas,
     schemaPath: schemaResult.schemaPath,
     schemaRootDir: schemaResult.schemaRootDir || cwd,
+    datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasource,
     primaryDatasourceDirectory: primaryDatasourceDirectory(primaryDatasource) || schemaResult.schemaRootDir || cwd,
