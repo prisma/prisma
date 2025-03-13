@@ -115,7 +115,7 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
 // check if we can connect to the database
 // if true: return true
 // if false: throw error
-export async function ensureCanConnectToDatabase(datasource: DataSource): Promise<Boolean | Error> {
+export async function ensureCanConnectToDatabase(datasource: DataSource | undefined): Promise<Boolean | Error> {
   if (!datasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
@@ -134,7 +134,7 @@ export async function ensureCanConnectToDatabase(datasource: DataSource): Promis
   }
 }
 
-export async function ensureDatabaseExists(datasource: DataSource) {
+export async function ensureDatabaseExists(datasource: DataSource | undefined) {
   if (!datasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
