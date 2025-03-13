@@ -83,11 +83,11 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const datasourceInfo = parseDatasourceInfo(schemaContext.datasources[0])
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schemaContext.datasources[0])
+    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
     if (wasDbCreated) {
       process.stdout.write('\n' + wasDbCreated + '\n')
     }

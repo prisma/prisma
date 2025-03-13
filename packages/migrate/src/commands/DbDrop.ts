@@ -85,12 +85,12 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { datasources } = await loadSchemaContext({
+    const { primaryDatasource } = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
 
-    const datasourceInfo = parseDatasourceInfo(datasources[0])
+    const datasourceInfo = parseDatasourceInfo(primaryDatasource)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line

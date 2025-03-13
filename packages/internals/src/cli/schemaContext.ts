@@ -26,9 +26,9 @@ export type SchemaContext = {
    */
   loadedFromPathForLogMessages: string
   /**
-   * The datasources extracted from the Prisma schema.
+   * The datasource extracted from the Prisma schema. So far we only support a single datasource block.
    */
-  datasources: DataSource[] | []
+  primaryDatasource: DataSource
   /**
    * The generators extracted from the Prisma schema.
    */
@@ -37,68 +37,68 @@ export type SchemaContext = {
   schemaPath: string
 }
 
-export async function loadSchemaContextOptional({
-  schemaPathFromArg,
-  schemaPathFromConfig,
-  printLoadMessage = true,
-}: {
-  schemaPathFromArg: string | undefined
-  schemaPathFromConfig: SchemaPathFromConfig | undefined
+type LoadSchemaContextOptions = {
+  schemaPathFromArg?: string
+  schemaPathFromConfig?: SchemaPathFromConfig
   printLoadMessage?: boolean
-}): Promise<SchemaContext | null> {
-  const schemaWithPath = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig)
-
-  if (!schemaWithPath) {
-    return null
-  }
-
-  return processSchemaResult({ schemaWithPath, printLoadMessage })
+  allowNull?: boolean
 }
 
+export async function loadSchemaContext(
+  opts: LoadSchemaContextOptions & { allowNull: true },
+): Promise<SchemaContext | null>
+export async function loadSchemaContext(opts: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
   printLoadMessage = true,
-}: {
-  schemaPathFromArg: string | undefined
-  schemaPathFromConfig: SchemaPathFromConfig | undefined
-  printLoadMessage?: boolean
-}): Promise<SchemaContext> {
-  const schemaWithPath = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
+  allowNull = false,
+}: LoadSchemaContextOptions): Promise<SchemaContext | null> {
+  let schemaResult: GetSchemaResult | null = null
 
-  return processSchemaResult({ schemaWithPath, printLoadMessage })
+  if (allowNull) {
+    schemaResult = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig)
+    if (!schemaResult) return null
+  } else {
+    schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
+  }
+
+  return processSchemaResult({ schemaResult, printLoadMessage })
 }
 
 async function processSchemaResult({
-  schemaWithPath,
+  schemaResult,
   printLoadMessage,
 }: {
-  schemaWithPath: GetSchemaResult
+  schemaResult: GetSchemaResult
   printLoadMessage: boolean
-}) {
-  const loadedFromPathForLogMessages = path.relative(process.cwd(), schemaWithPath.schemaPath)
+}): Promise<SchemaContext> {
+  const cwd = process.cwd()
+
+  const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
 
   if (printLoadMessage) {
     process.stdout.write(dim(`Prisma schema loaded from ${loadedFromPathForLogMessages}`) + '\n')
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaWithPath.schemas })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
   return {
-    schemaFiles: schemaWithPath.schemas,
-    schemaPath: schemaWithPath.schemaPath,
-    schemaRootDir: schemaWithPath.schemaRootDir,
-    datasources: configFromPsl.datasources,
+    schemaFiles: schemaResult.schemas,
+    schemaPath: schemaResult.schemaPath,
+    schemaRootDir: schemaResult.schemaRootDir || cwd,
     generators: configFromPsl.generators,
-    primaryDatasourceDirectory: primaryDatasourceDirectory(configFromPsl.datasources, schemaWithPath.schemaRootDir),
+    primaryDatasource: configFromPsl.datasources[0],
+    primaryDatasourceDirectory:
+      primaryDatasourceDirectory(configFromPsl.datasources) || schemaResult.schemaRootDir || cwd,
     loadedFromPathForLogMessages,
   }
 }
 
-function primaryDatasourceDirectory(datasources: DataSource[], schemaRootDir: string) {
+function primaryDatasourceDirectory(datasources: DataSource[]) {
   const datasourcePath = datasources[0]?.sourceFilePath
   if (datasourcePath) {
     return path.dirname(datasourcePath)
   }
-  return schemaRootDir || process.cwd()
+  return null
 }

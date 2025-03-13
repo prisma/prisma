@@ -102,7 +102,7 @@ ${bold('Examples')}
       schemaPathFromConfig: config.schema,
     })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.datasources[0])
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
@@ -111,7 +111,7 @@ ${bold('Examples')}
     validate({ schemas: schemaContext.schemaFiles })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schemaContext.datasources[0])
+    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
     if (wasDbCreated) {
       process.stdout.write(wasDbCreated + '\n\n')
     }

@@ -78,11 +78,11 @@ Check the status of your database migrations
       schemaPathFromConfig: config.schema,
     })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.datasources[0]) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
     const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
-    await ensureCanConnectToDatabase(schemaContext.datasources[0])
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

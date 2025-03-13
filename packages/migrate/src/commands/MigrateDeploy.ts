@@ -77,13 +77,13 @@ ${bold('Examples')}
       schemaPathFromConfig: config.schema,
     })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.datasources[0]) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
     const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schemaContext.datasources[0])
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
       if (wasDbCreated) {
         process.stdout.write('\n' + wasDbCreated + '\n')
       }

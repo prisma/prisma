@@ -88,7 +88,7 @@ ${bold('Examples')}
       schemaPathFromConfig: config.schema,
     })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.datasources[0]) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -112,7 +112,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.datasources[0])
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
       const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
       try {
@@ -134,7 +134,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.datasources[0])
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
       const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
       try {

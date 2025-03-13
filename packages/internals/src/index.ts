@@ -13,7 +13,7 @@ export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
 export { HelpError } from './cli/Help'
-export { loadSchemaContext, loadSchemaContextOptional, type SchemaContext } from './cli/schemaContext'
+export { loadSchemaContext, type SchemaContext } from './cli/schemaContext'
 export type {
   Command,
   Commands,
