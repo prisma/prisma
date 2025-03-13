@@ -124,7 +124,8 @@ DROP TABLE 'test-dbexecute';`
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    // On Windows: snapshot output = "-- Drop & Create & Drop"
+    // On Windows: snapshot output = "-- Drop & Create & Drop".
+    // TODO: check why it fails locally with `env: tsx: No such file or directory`.
     testIf(process.platform !== 'win32')(
       'should pass with --stdin --schema',
       async () => {

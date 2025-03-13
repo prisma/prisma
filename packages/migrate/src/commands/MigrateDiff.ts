@@ -22,6 +22,7 @@ import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
 import { CaptureStdout } from '../utils/captureStdout'
+import { listMigrations } from '../utils/listMigrations'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -254,7 +255,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        path: path.resolve(args['--from-migrations']),
+        migrationsList: await listMigrations(args['--from-migrations']),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -296,7 +297,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        path: path.resolve(args['--to-migrations']),
+        migrationsList: await listMigrations(args['--to-migrations']),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })

@@ -3,7 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
-import type { SqlQueryOutput } from '@prisma/generator-helper'
+import type { ActiveConnectorType, SqlQueryOutput } from '@prisma/generator-helper'
 import type { MigrateTypes } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
@@ -86,15 +86,15 @@ export namespace EngineArgs {
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
   export interface ApplyMigrationsInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
   }
 
   export interface CreateMigrationInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
-    migrationName?: string
+    migrationName: string
   }
 
   // The path to a live database taken as input.
@@ -147,11 +147,11 @@ export namespace EngineArgs {
   }
 
   export interface DevDiagnosticInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
   }
 
   export interface DiagnoseMigrationHistoryInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     /// Whether creating shadow/temporary databases is allowed.
     optInToShadowDatabase: boolean
   }
@@ -161,7 +161,7 @@ export namespace EngineArgs {
   }
 
   export interface EvaluateDataLossInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
   }
 
@@ -170,7 +170,7 @@ export namespace EngineArgs {
   }
 
   export interface MarkMigrationAppliedInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     migrationName: string
   }
 
@@ -186,10 +186,9 @@ export namespace EngineArgs {
   type MigrateDiffTargetSchemaDatamodel = MigrateTypes.Tagged<'schemaDatamodel', MigrateTypes.SchemasContainer>
   type MigrateDiffTargetSchemaDatasource = MigrateTypes.Tagged<'schemaDatasource', MigrateTypes.SchemasWithConfigDir>
   type MigrateDiffTargetMigrations = {
-    // The path to a migrations directory of the shape expected by Prisma Migrate.
     // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
     tag: 'migrations'
-    path: string
+    migrationsList: MigrateTypes.MigrationList
   }
   export type MigrateDiffTarget =
     | MigrateDiffTargetUrl
@@ -240,8 +239,21 @@ export namespace EngineResults {
   }
 
   export interface CreateMigrationOutput {
-    /// The name of the newly generated migration directory, if any.
-    generatedMigrationName: string | null
+    /// The active connector type used.
+    connectorType: ActiveConnectorType
+
+    /// The generated name of migration directory, which the caller must use to create the new directory.
+    generatedMigrationName: string
+
+    /// The migration script that was generated, if any.
+    /// It will be null if:
+    /// 1. The migration we generate would be empty, **AND**
+    /// 2. the `draft` param was not true, because in that case the engine would still generate an empty
+    ///     migration script.
+    migrationScript: string | null
+
+    /// The file extension for generated migration files.
+    extension: string
   }
 
   export interface DbExecuteOutput {}
@@ -272,6 +284,7 @@ export namespace EngineResults {
   }
 
   export interface ListMigrationDirectoriesOutput {
+    /// The names of the migrations in the migration directory. Empty if no migrations are found.
     migrations: string[]
   }
 
