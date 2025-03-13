@@ -144,7 +144,7 @@ export class Migrate {
     logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({
-      schemaPath: this.schemaContext.schemaPath, // TODO: refactor getGenerators to not rely on schema path!
+      schemaContext: this.schemaContext,
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,

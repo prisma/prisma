@@ -1,5 +1,5 @@
 import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator-helper'
-import { getEffectiveUrl, loadSchemaContext } from '@prisma/internals'
+import { getEffectiveUrl, SchemaContext } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs } from '../types'
@@ -36,21 +36,19 @@ export type IntrospectSqlResult =
     }
 
 export async function introspectSql(
-  schemaPath: string | undefined,
+  schemaContext: SchemaContext,
   queries: IntrospectSqlInput[],
 ): Promise<IntrospectSqlResult> {
-  const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
-
-  if (!supportedProviders.includes(schemaContext.datasources?.[0]?.activeProvider)) {
-    throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
-  }
   if (!isTypedSqlEnabled(schemaContext.generators)) {
     throw new Error(`\`typedSql\` preview feature needs to be enabled in ${schemaContext.loadedFromPathForLogMessages}`)
   }
 
-  const firstDatasource = schemaContext.datasources[0]
+  const firstDatasource = schemaContext.primaryDatasource
   if (!firstDatasource) {
     throw new Error(`Could not find datasource in schema ${schemaContext.loadedFromPathForLogMessages}`)
+  }
+  if (!supportedProviders.includes(firstDatasource.activeProvider)) {
+    throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
   const url = getEffectiveUrl(firstDatasource).value
   if (!url) {

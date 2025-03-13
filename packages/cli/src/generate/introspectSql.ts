@@ -1,4 +1,4 @@
-import { isValidJsIdentifier } from '@prisma/internals'
+import { isValidJsIdentifier, SchemaContext } from '@prisma/internals'
 import { introspectSql as migrateIntrospectSql, IntrospectSqlError, IntrospectSqlInput } from '@prisma/migrate'
 import fs from 'fs/promises'
 import { bold } from 'kleur/colors'
@@ -6,21 +6,21 @@ import path from 'path'
 
 const SQL_DIR = 'sql'
 
-export async function introspectSql(schemaPath: string) {
-  const sqlFiles = await readTypedSqlFiles(schemaPath)
-  const introspectionResult = await migrateIntrospectSql(schemaPath, sqlFiles)
+export async function introspectSql(schemaContext: SchemaContext) {
+  const sqlFiles = await readTypedSqlFiles(schemaContext.schemaRootDir)
+  const introspectionResult = await migrateIntrospectSql(schemaContext, sqlFiles)
   if (introspectionResult.ok) {
     return introspectionResult.queries
   }
   throw new Error(renderErrors(introspectionResult.errors))
 }
 
-export function sqlDirPath(schemaPath: string) {
-  return path.join(path.dirname(schemaPath), SQL_DIR)
+export function sqlDirPath(schemaRootDir: string) {
+  return path.join(schemaRootDir, SQL_DIR)
 }
 
-async function readTypedSqlFiles(schemaPath: string): Promise<IntrospectSqlInput[]> {
-  const sqlPath = path.join(path.dirname(schemaPath), SQL_DIR)
+async function readTypedSqlFiles(schemaRootDir: string): Promise<IntrospectSqlInput[]> {
+  const sqlPath = sqlDirPath(schemaRootDir)
   const files = await fs.readdir(sqlPath)
   const results: IntrospectSqlInput[] = []
   for (const fileName of files) {
