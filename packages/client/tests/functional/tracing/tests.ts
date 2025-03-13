@@ -630,7 +630,7 @@ testMatrix.setupTestSuite(
                 : isSqlServer
                 ? [engineConnection(), txSetIsolationLevel(), txBegin()]
                 : driverAdapter === undefined
-                ? [txBegin(), engineConnection()]
+                ? [engineConnection(), txBegin()]
                 : [engineConnection()],
             },
           ],

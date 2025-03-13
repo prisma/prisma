@@ -206,12 +206,11 @@ const adapter = new PrismaNeon(pool)
           argTypes: [],
         })
       }
+      return tx
     } catch (error) {
       conn.release(error)
       throw error
     }
-
-    return tx
   }
 
   getConnectionInfo(): ConnectionInfo {

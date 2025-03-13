@@ -588,10 +588,10 @@ testMatrix.setupTestSuite(
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         const expectation = [
@@ -687,10 +687,10 @@ testMatrix.setupTestSuite(
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         if (provider !== Providers.MONGODB) {
