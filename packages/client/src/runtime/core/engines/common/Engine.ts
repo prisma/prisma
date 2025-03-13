@@ -1,4 +1,4 @@
-import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { DriverAdapter } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
@@ -158,7 +158,7 @@ export interface EngineConfig {
    * rather than Prisma's Rust drivers.
    * @remarks only used by LibraryEngine.ts
    */
-  adapter?: ErrorCapturingDriverAdapter
+  adapter?: DriverAdapter
 
   /**
    * The contents of the schema encoded into a string

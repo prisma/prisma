@@ -5,7 +5,7 @@ import type {
   Transaction,
   TransactionContext,
 } from '@prisma/driver-adapter-utils'
-import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
+import { ok } from '@prisma/driver-adapter-utils'
 
 import { IsolationLevel, Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
@@ -102,7 +102,7 @@ async function startTransaction(transactionManager: TransactionManager, options:
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager)
@@ -122,7 +122,7 @@ test('transaction executes normally', async () => {
 test('transaction is rolled back', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager)
@@ -142,7 +142,7 @@ test('transaction is rolled back', async () => {
 test('transactions are rolled back when shutting down', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id1 = await startTransaction(transactionManager)
@@ -167,7 +167,7 @@ test('transactions are rolled back when shutting down', async () => {
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager)
@@ -185,7 +185,7 @@ test('when driver adapter requires phantom queries does not execute transaction 
 test('with explicit isolation level', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
@@ -206,7 +206,7 @@ test('with explicit isolation level', async () => {
 test('for MySQL with explicit isolation level requires isolation level set before BEGIN', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
@@ -220,7 +220,7 @@ test('for MySQL with explicit isolation level requires isolation level set befor
 test('for SQLite with unsupported isolation level', async () => {
   const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   await expect(
@@ -231,7 +231,7 @@ test('for SQLite with unsupported isolation level', async () => {
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   await expect(
@@ -242,7 +242,7 @@ test('with isolation level only supported in MS SQL Server, "snapshot"', async (
 test('transaction times out during starting', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
@@ -253,7 +253,7 @@ test('transaction times out during starting', async () => {
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   const id = await startTransaction(transactionManager)
@@ -267,7 +267,7 @@ test('transaction times out during execution', async () => {
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter: driverAdapter,
   })
 
   await expect(transactionManager.commitTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)

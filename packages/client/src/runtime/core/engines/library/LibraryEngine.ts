@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type ErrorCapturingDriverAdapter, type ErrorRecord } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -39,6 +39,7 @@ const debug = Debug('prisma:client:libraryEngine')
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
+
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   if ('level' in event) {
     return event.level === 'error' && event['message'] === 'PANIC'
@@ -82,6 +83,7 @@ export class LibraryEngine implements Engine<undefined> {
   lastQuery?: string
   loggerRustPanic?: any
   tracingHelper: TracingHelper
+  errorCapturingDriverAdapter?: ErrorCapturingDriverAdapter
 
   versionInfo?: {
     commit: string
@@ -124,6 +126,8 @@ export class LibraryEngine implements Engine<undefined> {
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
+
+    this.errorCapturingDriverAdapter = config.adapter ? bindAdapter(config.adapter) : undefined
   }
 
   private wrapEngine(engine: QueryEngineInstance) {
@@ -295,10 +299,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // same time, `this.engine` field will prevent native instance from
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
-      const { adapter } = this.config
 
-      if (adapter) {
-        debug('Using driver adapter: %O', adapter)
+      if (this.errorCapturingDriverAdapter) {
+        debug('Using driver adapter: %O', this.config.adapter)
       }
 
       this.engine = this.wrapEngine(
@@ -317,7 +320,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
-          adapter,
+          this.errorCapturingDriverAdapter,
         ),
       )
     } catch (_e) {
@@ -473,6 +476,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
   }
+
   /**
    * Triggers an artificial panic
    */
@@ -589,10 +593,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
-    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.errorCapturingDriverAdapter) {
       const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
+      const errorRecord = this.errorCapturingDriverAdapter.errorRegistry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
       return errorRecord
     }
