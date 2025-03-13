@@ -1,5 +1,5 @@
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
-import { bindAdapter, IsolationLevel, ok } from '@prisma/driver-adapter-utils'
+import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
 
 import { Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
@@ -173,7 +173,7 @@ test('with explicit isolation level', async () => {
     driverAdapter: bindAdapter(driverAdapter),
   })
 
-  const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
+  const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
 
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
@@ -194,7 +194,7 @@ test('for MySQL with explicit isolation level requires isolation level set befor
     driverAdapter: bindAdapter(driverAdapter),
   })
 
-  const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
+  const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
 
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
   expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
@@ -208,9 +208,9 @@ test('for SQLite with unsupported isolation level', async () => {
     driverAdapter: bindAdapter(driverAdapter),
   })
 
-  await expect(
-    startTransaction(transactionManager, { isolationLevel: IsolationLevel.RepeatableRead }),
-  ).rejects.toBeInstanceOf(InvalidTransactionIsolationLevelError)
+  await expect(startTransaction(transactionManager, { isolationLevel: 'REPEATABLE READ' })).rejects.toBeInstanceOf(
+    InvalidTransactionIsolationLevelError,
+  )
 })
 
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
@@ -219,9 +219,9 @@ test('with isolation level only supported in MS SQL Server, "snapshot"', async (
     driverAdapter: bindAdapter(driverAdapter),
   })
 
-  await expect(
-    startTransaction(transactionManager, { isolationLevel: IsolationLevel.Snapshot }),
-  ).rejects.toBeInstanceOf(InvalidTransactionIsolationLevelError)
+  await expect(startTransaction(transactionManager, { isolationLevel: 'SNAPSHOT' })).rejects.toBeInstanceOf(
+    InvalidTransactionIsolationLevelError,
+  )
 })
 
 test('transaction times out during starting', async () => {

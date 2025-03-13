@@ -1,10 +1,5 @@
 import Debug from '@prisma/debug'
-import {
-  ErrorCapturingSqlDriverAdapter,
-  ErrorCapturingTransaction,
-  IsolationLevel,
-  SqlQuery,
-} from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlDriverAdapter, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
@@ -211,15 +206,10 @@ export class TransactionManager {
     if (!options.maxWait) throw new TransactionManagerError('maxWait is required')
 
     // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
-    if (options.isolationLevel === IsolationLevel.Snapshot)
-      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
+    if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
 
     // SQLite only has serializable isolation level.
-    if (
-      this.driverAdapter.provider === 'sqlite' &&
-      options.isolationLevel &&
-      options.isolationLevel !== IsolationLevel.Serializable
-    )
+    if (this.driverAdapter.provider === 'sqlite' && options.isolationLevel && options.isolationLevel !== 'SERIALIZABLE')
       throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
 
     return {

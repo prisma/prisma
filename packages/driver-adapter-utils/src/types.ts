@@ -71,13 +71,7 @@ export type ArgType =
   // A time value.
   | 'Time'
 
-export enum IsolationLevel {
-  ReadUncommitted = 'ReadUncommitted',
-  ReadCommitted = 'ReadCommitted',
-  RepeatableRead = 'RepeatableRead',
-  Snapshot = 'Snapshot',
-  Serializable = 'Serializable',
-}
+export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SNAPSHOT' | 'SERIALIZABLE'
 
 export type SqlQuery = {
   sql: string
@@ -93,6 +87,10 @@ export type Error =
   | {
       kind: 'UnsupportedNativeDataType'
       type: string
+    }
+  | {
+      kind: 'InvalidIsolationLevel'
+      level: string
     }
   | {
       kind: 'postgres'

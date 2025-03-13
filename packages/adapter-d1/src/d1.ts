@@ -5,6 +5,7 @@ import {
   ConnectionInfo,
   Debug,
   DriverAdapterError,
+  IsolationLevel,
   SqlDriverAdapter,
   SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
@@ -159,7 +160,14 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlDriverAdapter
     }
   }
 
-  async startTransaction(): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    if (isolationLevel && isolationLevel !== 'SNAPSHOT') {
+      throw new DriverAdapterError({
+        kind: 'InvalidIsolationLevel',
+        level: isolationLevel,
+      })
+    }
+
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",

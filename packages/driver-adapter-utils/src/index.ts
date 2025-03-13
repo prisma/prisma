@@ -7,13 +7,16 @@ export type {
   ArgType,
   ColumnType,
   ConnectionInfo,
+  DriverAdapterFactory,
   Error,
   ErrorCapturingSqlDriverAdapter,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
   ErrorRecord,
   ErrorRegistry,
+  IsolationLevel,
   Provider,
+  Queryable,
   SqlDriverAdapter,
   SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
@@ -22,4 +25,3 @@ export type {
   Transaction,
   TransactionOptions,
 } from './types'
-export { IsolationLevel } from './types'

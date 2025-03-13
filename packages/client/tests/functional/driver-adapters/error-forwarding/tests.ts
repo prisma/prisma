@@ -35,17 +35,17 @@ testMatrix.setupTestSuite(
           },
         },
       })
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
     test('correctly forwards error for batch transactions', async () => {
       const result = prisma.$transaction([prisma.user.create({}), prisma.user.create({})])
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
     test('correctly forwards error for itx', async () => {
       const result = prisma.$transaction(() => Promise.resolve())
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
   },
   {

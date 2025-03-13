@@ -142,6 +142,13 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDrive
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    if (isolationLevel && isolationLevel !== 'SNAPSHOT') {
+      throw new DriverAdapterError({
+        kind: 'InvalidIsolationLevel',
+        level: isolationLevel,
+      })
+    }
+
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -150,23 +157,11 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDrive
     debug('%s options: %O', tag, options)
 
     const release = await this[LOCK_TAG].acquire()
-    let rawTx: LibSqlTransactionRaw | undefined
 
     try {
-      rawTx = await this.client.transaction('deferred')
-      const tx = new LibSqlTransaction(rawTx, options, release)
-
-      if (isolationLevel) {
-        await tx.executeRaw({
-          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
-          args: [],
-          argTypes: [],
-        })
-      }
-
-      return tx
+      const tx = await this.client.transaction('deferred')
+      return new LibSqlTransaction(tx, options, release)
     } catch (e) {
-      rawTx?.close()
       // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
       // hence `catch` and rethrowing the error and not `finally`.
       release()

@@ -85,19 +85,23 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
       return result
     } catch (e) {
       const error = e as Error
-      if (error.name === 'DatabaseError') {
-        const parsed = parseErrorMessage(error.message)
-        if (parsed) {
-          throw new DriverAdapterError({
-            kind: 'mysql',
-            ...parsed,
-          })
-        }
-      }
-      debug('Error in performIO: %O', error)
-      throw error
+      onError(error)
     }
   }
+}
+
+function onError(error: Error): never {
+  if (error.name === 'DatabaseError') {
+    const parsed = parseErrorMessage(error.message)
+    if (parsed) {
+      throw new DriverAdapterError({
+        kind: 'mysql',
+        ...parsed,
+      })
+    }
+  }
+  debug('Error in performIO: %O', error)
+  throw error
 }
 
 function parseErrorMessage(message: string) {
@@ -179,7 +183,7 @@ const adapter = new PrismaPlanetScale(client)
 
     const conn = this.client.connection()
     if (isolationLevel) {
-      await conn.execute(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`)
+      await conn.execute(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`).catch((error) => onError(error))
     }
     return this.startTransactionInner(conn, options)
   }
