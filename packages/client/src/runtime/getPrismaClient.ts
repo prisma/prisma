@@ -1,6 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type ErrorCapturingSqlDriverAdapter,type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type ErrorCapturingSqlDriverAdapter, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import type { LoadedEnv } from '@prisma/internals'
