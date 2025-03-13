@@ -221,7 +221,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
               defaultOutput: generatorInstance.manifest.defaultOutput,
               baseDir,
             }),
-            fromEnvVar: 'null',
+            fromEnvVar: null,
           }
         }
 
