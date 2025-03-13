@@ -23,6 +23,7 @@ import ora from 'ora'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
+import { determineClientOutputPath } from './init/client-output-path'
 import { poll, printPpgInitOutput } from './platform/_'
 import { credentialsFile } from './platform/_lib/credentials'
 import { successMessage } from './platform/_lib/messages'
@@ -40,9 +41,9 @@ export const defaultSchema = (props?: {
     datasourceProvider = 'postgresql',
     generatorProvider = defaultGeneratorProvider,
     previewFeatures = defaultPreviewFeatures,
-    output = defaultOutput,
+    output = '../generated/prisma',
     withModel = false,
-  } = props || {}
+  } = props ?? {}
 
   const aboutAccelerate = `\n// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init\n`
@@ -58,7 +59,8 @@ ${
   previewFeatures.length > 0
     ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
     : ''
-}${output != defaultOutput ? `  output = "${output}"\n` : ''}}
+}  output   = "${output}"
+}
 
 datasource db {
   provider = "${datasourceProvider}"
@@ -168,8 +170,6 @@ export const defaultGitIgnore = () => {
 export const defaultGeneratorProvider = 'prisma-client-js'
 
 export const defaultPreviewFeatures = []
-
-export const defaultOutput = 'node_modules/.prisma/client'
 
 export class Init implements Command {
   static new(): Init {
@@ -464,13 +464,15 @@ export class Init implements Command {
       fs.mkdirSync(prismaFolder)
     }
 
+    const clientOutput = output ?? determineClientOutputPath(prismaFolder)
+
     fs.writeFileSync(
       path.join(prismaFolder, 'schema.prisma'),
       defaultSchema({
         datasourceProvider,
         generatorProvider,
         previewFeatures,
-        output,
+        output: clientOutput,
         withModel: args['--with-model'],
       }),
     )
