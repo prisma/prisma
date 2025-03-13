@@ -156,7 +156,7 @@
     "ts-pattern": "5.6.2",
     "typescript": "5.4.5",
     "xdg-app-paths": "8.3.0",
-    "zx": "7.2.3"
+    "zx": "8.4.1"
   },
   "scripts": {
     "prisma": "tsx src/bin.ts",
