@@ -37,7 +37,7 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.3"
+    "postgres-array": "3.0.4"
   },
   "devDependencies": {
     "@neondatabase/serverless": "0.10.2",
@@ -47,6 +47,6 @@
     "jest-junit": "16.0.0"
   },
   "peerDependencies": {
-    "@neondatabase/serverless": "^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0 || ^0.10.0"
+    "@neondatabase/serverless": ">0.6.0 <2"
   }
 }

@@ -58,7 +58,7 @@
     "dotenv-cli": "7.4.4",
     "esbuild": "0.24.2",
     "esbuild-register": "3.6.0",
-    "eslint": "9.19.0",
+    "eslint": "9.22.0",
     "eslint-config-prettier": "10.0.2",
     "eslint-plugin-import-x": "4.6.1",
     "eslint-plugin-jest": "28.10.0",
@@ -94,7 +94,7 @@
     "ts-toolbelt": "9.6.0",
     "tsx": "4.15.6",
     "typescript": "5.4.5",
-    "zx": "7.2.3"
+    "zx": "8.4.1"
   },
   "pnpm": {
     "peerDependencyRules": {
