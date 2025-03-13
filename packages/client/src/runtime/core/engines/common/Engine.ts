@@ -1,4 +1,4 @@
-import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlDriverAdapter, IsolationLevel } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
@@ -18,7 +18,7 @@ import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
 export type BatchTransactionOptions = {
-  isolationLevel?: Transaction.IsolationLevel
+  isolationLevel?: IsolationLevel
 }
 
 export type TransactionOptions<InteractiveTransactionPayload> =
@@ -158,7 +158,7 @@ export interface EngineConfig {
    * rather than Prisma's Rust drivers.
    * @remarks only used by LibraryEngine.ts
    */
-  adapter?: ErrorCapturingDriverAdapter
+  adapter?: ErrorCapturingSqlDriverAdapter
 
   /**
    * The contents of the schema encoded into a string

@@ -1,6 +1,7 @@
+import { IsolationLevel } from '@prisma/driver-adapter-utils'
+
 import { RequestParams } from '../../../RequestHandler'
 import { CustomDataProxyFetch } from '../../engines'
-import { IsolationLevel } from '../../engines/common/types/Transaction'
 import { QueryOptions } from '../exported/ExtensionArgs'
 import { JsArgs } from '../exported/JsApi'
 import { RawQueryArgs } from '../exported/RawQueryArgs'

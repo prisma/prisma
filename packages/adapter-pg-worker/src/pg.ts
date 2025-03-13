@@ -3,12 +3,12 @@
 import type {
   ColumnType,
   ConnectionInfo,
-  SqlConnection,
+  IsolationLevel,
+  SqlDriverAdapter,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -150,28 +150,11 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext {
-  constructor(readonly conn: pg.PoolClient) {
-    super(conn)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    return new PgTransaction(this.conn, options)
-  }
-}
-
 export type PrismaPgOptions = {
   schema?: string
 }
 
-export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
+export class PrismaPg extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
     if (!(client instanceof pg.Pool)) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
@@ -193,9 +176,32 @@ const adapter = new PrismaPg(pool)
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
     const conn = await this.client.connect()
-    return new PgTransactionContext(conn)
+    const tx = new PgTransaction(conn, options)
+
+    try {
+      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      if (isolationLevel) {
+        await tx.executeRaw({
+          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+          args: [],
+          argTypes: [],
+        })
+      }
+    } catch (error) {
+      conn.release(error)
+      throw error
+    }
+
+    return tx
   }
 
   dispose(): Promise<void> {

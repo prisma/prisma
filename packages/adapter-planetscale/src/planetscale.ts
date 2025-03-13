@@ -5,12 +5,12 @@
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  SqlConnection,
+  IsolationLevel,
+  SqlDriverAdapter,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -143,42 +143,7 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
-class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {
-  constructor(private conn: planetScale.Connection) {
-    super(conn)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    return new Promise<Transaction>((resolve, reject) => {
-      const txResultPromise = this.conn
-        .transaction(async (tx) => {
-          const [txDeferred, deferredPromise] = createDeferred<void>()
-          const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
-
-          resolve(txWrapper)
-          return deferredPromise
-        })
-        .catch((error) => {
-          // Rollback error is ignored (so that tx.rollback() won't crash)
-          // any other error is legit and is re-thrown
-          if (!(error instanceof RollbackError)) {
-            return reject(error)
-          }
-
-          return undefined
-        })
-    })
-  }
-}
-
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlConnection {
+export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
@@ -204,10 +169,47 @@ const adapter = new PrismaPlanetScale(client)
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    const options: TransactionOptions = {
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    const tx = await this.startTransactionInner(options)
+    if (isolationLevel) {
+      await tx.executeRaw({
+        sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+        args: [],
+        argTypes: [],
+      })
+    }
+    await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+    return tx
+  }
+
+  async startTransactionInner(options: TransactionOptions): Promise<Transaction> {
     const conn = this.client.connection()
-    const ctx = new PlanetScaleTransactionContext(conn)
-    return ctx
+    return new Promise<Transaction>((resolve, reject) => {
+      const txResultPromise = conn
+        .transaction(async (tx) => {
+          const [txDeferred, deferredPromise] = createDeferred<void>()
+          const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
+
+          resolve(txWrapper)
+          return deferredPromise
+        })
+        .catch((error) => {
+          // Rollback error is ignored (so that tx.rollback() won't crash)
+          // any other error is legit and is re-thrown
+          if (!(error instanceof RollbackError)) {
+            return reject(error)
+          }
+
+          return undefined
+        })
+    })
   }
 
   async dispose(): Promise<void> {}

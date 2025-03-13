@@ -1,13 +1,7 @@
-import type {
-  SqlConnection,
-  SqlQuery,
-  SqlResultSet,
-  Transaction,
-  TransactionContext,
-} from '@prisma/driver-adapter-utils'
-import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
+import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
+import { bindAdapter, IsolationLevel, ok } from '@prisma/driver-adapter-utils'
 
-import { IsolationLevel, Options } from './Transaction'
+import { Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,
@@ -24,16 +18,16 @@ jest.useFakeTimers()
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
 
-class MockDriverAdapter implements SqlConnection {
+class MockDriverAdapter implements SqlDriverAdapter {
   adapterName = 'mock-adapter'
-  provider: SqlConnection['provider']
+  provider: SqlDriverAdapter['provider']
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
-  constructor({ provider = 'postgres' as SqlConnection['provider'], usePhantomQuery = false } = {}) {
+  constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
   }
@@ -54,36 +48,27 @@ class MockDriverAdapter implements SqlConnection {
     throw new Error('Method not implemented.')
   }
 
-  transactionContext(): Promise<TransactionContext> {
+  startTransaction(): Promise<Transaction> {
     const executeRawMock = this.executeRawMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
 
-    const mockTransactionContext: TransactionContext = {
-      adapterName: this.adapterName,
-      provider: this.provider,
+    const mockTransaction: Transaction = {
+      adapterName: 'mock-adapter',
+      provider: 'postgres',
+      options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
-      startTransaction(): Promise<Transaction> {
-        const mockTransaction: Transaction = {
-          adapterName: 'mock-adapter',
-          provider: 'postgres',
-          options: { usePhantomQuery },
-          queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
-          executeRaw: executeRawMock,
-          commit: commitMock,
-          rollback: rollbackMock,
-        }
-
-        return new Promise((resolve) =>
-          setTimeout(() => {
-            resolve(mockTransaction)
-          }, START_TRANSACTION_TIME),
-        )
-      },
+      commit: commitMock,
+      rollback: rollbackMock,
     }
-    return Promise.resolve(mockTransactionContext)
+
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        resolve(mockTransaction)
+      }, START_TRANSACTION_TIME),
+    )
   }
 }
 

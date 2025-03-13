@@ -6,13 +6,13 @@ import type {
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
 import type {
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -125,32 +125,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext {
-  constructor(readonly client: StdClient, readonly release: () => void) {
-    super(client)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    try {
-      const tx = await this.client.transaction('deferred')
-      return new LibSqlTransaction(tx, options, this.release)
-    } catch (e) {
-      // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
-      // hence `catch` and rethrowing the error and not `finally`.
-      this.release()
-      throw e
-    }
-  }
-}
-
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConnection {
+export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient) {
     super(client)
   }
@@ -166,9 +141,38 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConne
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    const options: TransactionOptions = {
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
     const release = await this[LOCK_TAG].acquire()
-    return new LibSqlTransactionContext(this.client, release)
+    let rawTx: LibSqlTransactionRaw | undefined
+
+    try {
+      rawTx = await this.client.transaction('deferred')
+      const tx = new LibSqlTransaction(rawTx, options, release)
+
+      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      if (isolationLevel) {
+        await tx.executeRaw({
+          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+          args: [],
+          argTypes: [],
+        })
+      }
+
+      return tx
+    } catch (e) {
+      rawTx?.close()
+      // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
+      // hence `catch` and rethrowing the error and not `finally`.
+      release()
+      throw e
+    }
   }
 
   dispose(): Promise<void> {
@@ -177,17 +181,17 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConne
   }
 }
 
-export class PrismaLibSQLWithMigration implements SqlMigrationAwareDriverAdapter {
+export class PrismaLibSQLWithMigration implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private readonly config: LibSqlConfig) {}
 
-  async connect(): Promise<SqlConnection> {
+  async connect(): Promise<SqlDriverAdapter> {
     return new PrismaLibSQL(await createLibSQLClient(this.config))
   }
 
-  async connectToShadowDb(): Promise<SqlConnection> {
+  async connectToShadowDb(): Promise<SqlDriverAdapter> {
     // TODO: the user should be able to provide a custom URL for the shadow database
     return new PrismaLibSQL(await createLibSQLClient({ ...this.config, url: ':memory:' }))
   }

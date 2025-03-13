@@ -7,7 +7,7 @@ import {
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
 import Debug from '@prisma/debug'
-import { type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import { type ErrorCapturingSqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -46,7 +46,7 @@ export class ClientEngine implements Engine<undefined> {
   config: EngineConfig
   datamodel: string
 
-  driverAdapter: ErrorCapturingDriverAdapter
+  driverAdapter: ErrorCapturingSqlDriverAdapter
   transactionManager: TransactionManager
 
   logEmitter: LogEmitter

@@ -7,24 +7,19 @@ export type {
   ArgType,
   ColumnType,
   ConnectionInfo,
-  // exported as DriverAdapter for backward compatibility
-  SqlConnection as DriverAdapter,
   Error,
-  // exported as ErrorCapturingDriverAdapter for backward compatibility
-  ErrorCapturingSqlConnection as ErrorCapturingDriverAdapter,
-  ErrorCapturingSqlConnection,
+  ErrorCapturingSqlDriverAdapter,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
-  ErrorCapturingTransactionContext,
   ErrorRecord,
   ErrorRegistry,
   Provider,
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  SqlDriverAdapter,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from './types'
+export { IsolationLevel } from './types'

@@ -1,8 +1,13 @@
 import Debug from '@prisma/debug'
-import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
+import {
+  ErrorCapturingSqlDriverAdapter,
+  ErrorCapturingTransaction,
+  IsolationLevel,
+  SqlQuery,
+} from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'
-import { IsolationLevel, Options, TransactionInfo } from './Transaction'
+import { Options, TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
@@ -17,14 +22,6 @@ import {
 
 const MAX_CLOSED_TRANSACTIONS = 100
 
-const isolationLevelMap = {
-  ReadUncommitted: 'READ UNCOMMITTED',
-  ReadCommitted: 'READ COMMITTED',
-  RepeatableRead: 'REPEATABLE READ',
-  Snapshot: 'SNAPSHOT',
-  Serializable: 'SERIALIZABLE',
-}
-
 type TransactionWrapper = {
   id: string
   status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out'
@@ -38,11 +35,6 @@ const debug = Debug('prisma:client:transactionManager')
 
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SqlQuery => ({
-  sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
-  args: [],
-  argTypes: [],
-})
 
 export class TransactionManager {
   // The map of active transactions.
@@ -50,9 +42,9 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: ErrorCapturingSqlConnection
+  private readonly driverAdapter: ErrorCapturingSqlDriverAdapter
 
-  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlConnection }) {
+  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlDriverAdapter }) {
     this.driverAdapter = driverAdapter
   }
 
@@ -72,29 +64,12 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
 
-    const txContext = await this.driverAdapter.transactionContext()
-    if (!txContext.ok)
-      throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: txContext.error,
-      })
+    const startedTransaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
 
-    if (this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-      await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
-    }
-
-    const startedTransaction = await txContext.value.startTransaction()
     if (!startedTransaction.ok)
       throw new TransactionDriverAdapterError('Failed to start transaction.', {
         driverAdapterError: startedTransaction.error,
       })
-
-    if (!startedTransaction.value.options.usePhantomQuery) {
-      await startedTransaction.value.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
-
-      if (!this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-        await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
-      }
-    }
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {

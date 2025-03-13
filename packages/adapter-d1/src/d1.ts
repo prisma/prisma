@@ -5,13 +5,12 @@ import {
   ConnectionInfo,
   Debug,
   DriverAdapterError,
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  SqlDriverAdapter,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { blue, cyan, red, yellow } from 'kleur/colors'
@@ -115,25 +114,7 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 }
 
-class D1TransactionContext extends D1Queryable<StdClient> implements TransactionContext {
-  constructor(readonly client: StdClient) {
-    super(client)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      // TODO: D1 does not have a Transaction API.
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    return new D1Transaction(this.client, options)
-  }
-}
-
-export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
+export class PrismaD1 extends D1Queryable<StdClient> implements SqlDriverAdapter {
   readonly tags = {
     error: red('prisma:error'),
     warn: yellow('prisma:warn'),
@@ -178,13 +159,20 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  async startTransaction(): Promise<Transaction> {
     this.warnOnce(
       'D1 Transaction',
       "Cloudflare D1 does not support transactions yet. When using Prisma's D1 adapter, implicit & explicit transactions will be ignored and run as individual queries, which breaks the guarantees of the ACID properties of transactions. For more details see https://pris.ly/d/d1-transactions",
     )
 
-    return new D1TransactionContext(this.client)
+    const options: TransactionOptions = {
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    return new D1Transaction(this.client, options)
   }
 
   async dispose(): Promise<void> {
@@ -192,17 +180,17 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlConnection {
   }
 }
 
-export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapter {
+export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private client: StdClient) {}
 
-  async connect(): Promise<SqlConnection> {
+  async connect(): Promise<SqlDriverAdapter> {
     return new PrismaD1(this.client, async () => {})
   }
 
-  async connectToShadowDb(): Promise<SqlConnection> {
+  async connectToShadowDb(): Promise<SqlDriverAdapter> {
     const { Miniflare } = await import('miniflare')
 
     const mf = new Miniflare({
