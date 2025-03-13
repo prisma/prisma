@@ -142,7 +142,7 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDrive
   }
 
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
-    if (isolationLevel && isolationLevel !== 'SNAPSHOT') {
+    if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
         kind: 'InvalidIsolationLevel',
         level: isolationLevel,
