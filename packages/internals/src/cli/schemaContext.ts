@@ -28,7 +28,7 @@ export type SchemaContext = {
   /**
    * The datasource extracted from the Prisma schema. So far we only support a single datasource block.
    */
-  primaryDatasource: DataSource
+  primaryDatasource: DataSource | undefined
   /**
    * The generators extracted from the Prisma schema.
    */
@@ -83,20 +83,21 @@ async function processSchemaResult({
 
   const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
+  const primaryDatasource = configFromPsl.datasources.at(0)
+
   return {
     schemaFiles: schemaResult.schemas,
     schemaPath: schemaResult.schemaPath,
     schemaRootDir: schemaResult.schemaRootDir || cwd,
     generators: configFromPsl.generators,
-    primaryDatasource: configFromPsl.datasources[0],
-    primaryDatasourceDirectory:
-      primaryDatasourceDirectory(configFromPsl.datasources) || schemaResult.schemaRootDir || cwd,
+    primaryDatasource,
+    primaryDatasourceDirectory: primaryDatasourceDirectory(primaryDatasource) || schemaResult.schemaRootDir || cwd,
     loadedFromPathForLogMessages,
   }
 }
 
-function primaryDatasourceDirectory(datasources: DataSource[]) {
-  const datasourcePath = datasources[0]?.sourceFilePath
+function primaryDatasourceDirectory(primaryDatasource: DataSource | undefined) {
+  const datasourcePath = primaryDatasource?.sourceFilePath
   if (datasourcePath) {
     return path.dirname(datasourcePath)
   }
