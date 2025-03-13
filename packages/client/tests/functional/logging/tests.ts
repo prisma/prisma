@@ -112,13 +112,13 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       }
       if (driverAdapter === undefined) {
         // Driver adapters do not issue BEGIN through the query engine.
-        expect(logs.shift().query).toContain('BEGIN')
+        expect(logs.shift()?.query).toContain('BEGIN')
       }
       if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
         expect(logs).toHaveLength(3)
-        expect(logs[1].query).toContain('INSERT')
-        expect(logs[2].query).toContain('SELECT')
-        expect(logs[3].query).toContain('COMMIT')
+        expect(logs.shift()?.query).toContain('INSERT')
+        expect(logs.shift()?.query).toContain('SELECT')
+        expect(logs.shift()?.query).toContain('COMMIT')
       } else {
         expect(logs).toHaveLength(4)
         expect(logs.shift()?.query).toContain('INSERT')
@@ -188,7 +188,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       }
       if (driverAdapter === undefined) {
         // Driver adapters do not issue BEGIN through the query engine.
-        expect(logs.shift().query).toContain('BEGIN')
+        expect(logs.shift()?.query).toContain('BEGIN')
       }
       expect(logs).toHaveLength(3)
       expect(logs.shift()?.query).toContain('SELECT')
@@ -254,7 +254,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       }
       if (driverAdapter === undefined) {
         // Driver adapters do not issue BEGIN through the query engine.
-        expect(logs.shift().query).toContain('BEGIN')
+        expect(logs.shift()?.query).toContain('BEGIN')
       }
       expect(logs).toHaveLength(3)
       expect(logs.shift()?.query).toContain('SELECT')
