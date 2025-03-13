@@ -177,20 +177,14 @@ const adapter = new PrismaPlanetScale(client)
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const tx = await this.startTransactionInner(options)
+    const conn = this.client.connection()
     if (isolationLevel) {
-      await tx.executeRaw({
-        sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
-        args: [],
-        argTypes: [],
-      })
+      await conn.execute(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`)
     }
-    await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
-    return tx
+    return this.startTransactionInner(conn, options)
   }
 
-  async startTransactionInner(options: TransactionOptions): Promise<Transaction> {
-    const conn = this.client.connection()
+  async startTransactionInner(conn: planetScale.Connection, options: TransactionOptions): Promise<Transaction> {
     return new Promise<Transaction>((resolve, reject) => {
       const txResultPromise = conn
         .transaction(async (tx) => {

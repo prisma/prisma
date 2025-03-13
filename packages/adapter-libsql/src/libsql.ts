@@ -156,7 +156,6 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDrive
       rawTx = await this.client.transaction('deferred')
       const tx = new LibSqlTransaction(rawTx, options, release)
 
-      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
           sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
