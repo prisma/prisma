@@ -485,7 +485,7 @@ testMatrix.setupTestSuite(
           ]
           if (driverAdapter === undefined) {
             // Driver adapters do not issue BEGIN through the query engine.
-            expectation.push([{ query: expect.stringContaining('BEGIN') }])
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
@@ -702,7 +702,7 @@ testMatrix.setupTestSuite(
 
           if (driverAdapter === undefined) {
             // Driver adapters do not issue BEGIN through the query engine.
-            expectation.push([{ query: expect.stringContaining('BEGIN') }])
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
