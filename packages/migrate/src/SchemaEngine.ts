@@ -187,8 +187,7 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
-        // TODO: pass views directory from the top based on config - see ORM-664
-        const schemaPath = this.schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma')
+        const schemaPath = this.schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma') // TODO:(schemaPath) pass views directory from the top based on config - see ORM-664
         await handleViewsIO({ views, schemaPath })
       }
 

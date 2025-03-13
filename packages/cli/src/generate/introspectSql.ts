@@ -20,7 +20,7 @@ export function sqlDirPath(schemaRootDir: string) {
 }
 
 async function readTypedSqlFiles(schemaRootDir: string): Promise<IntrospectSqlInput[]> {
-  const sqlPath = sqlDirPath(schemaRootDir)
+  const sqlPath = sqlDirPath(schemaRootDir) // TODO:(schemaPath) uplift to schemaContext
   const files = await fs.readdir(sqlPath)
   const results: IntrospectSqlInput[] = []
   for (const fileName of files) {

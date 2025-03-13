@@ -305,7 +305,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
           const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
-          await verifySeedConfigAndReturnMessage(schemaPath)
+          await verifySeedConfigAndReturnMessage(schemaPath) // TODO:(schemaPath) ORM-667 get rid of this use of schemaPath
         }
       } catch (e) {
         console.error(e)

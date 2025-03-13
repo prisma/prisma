@@ -210,7 +210,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           generator,
           dmmf,
           otherGenerators: skipIndex(generatorConfigs, index),
-          schemaPath: schemaContext.schemaPath, // TODO: can we get rid of schema path passing here?
+          schemaPath: schemaContext.schemaPath, // TODO:(schemaPath) can we get rid of schema path passing here?
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           postinstall,
           noEngine,

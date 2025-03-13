@@ -29,7 +29,7 @@ export class Migrate {
     // like migrate diff and db execute
     if (schemaContext) {
       this.schemaContext = schemaContext
-      this.migrationsDirectoryPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations') // TODO: refactor in scope of ORM-663
+      this.migrationsDirectoryPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations') // TODO:(schemaPath) refactor in scope of ORM-663
       this.engine = new SchemaEngine({ schemaContext, enabledPreviewFeatures })
     } else {
       this.engine = new SchemaEngine({
