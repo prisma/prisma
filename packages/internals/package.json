@@ -41,7 +41,7 @@
     "cli-truncate": "4.0.0",
     "dotenv": "16.4.7",
     "esbuild": "0.24.2",
-    "escape-string-regexp": "4.0.0",
+    "escape-string-regexp": "5.0.0",
     "execa": "5.1.1",
     "fast-glob": "3.3.3",
     "find-up": "7.0.0",
