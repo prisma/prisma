@@ -156,7 +156,7 @@ async function readSchemaFromDirectory(schemaPath: string): Promise<LookupResult
   debug('Loading config')
   const config = await getConfig({
     datamodel: files,
-    ignoreEnvVarErrors: true,
+    resolveEnvVars: false,
   })
   debug('Ok')
 

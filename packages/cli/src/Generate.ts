@@ -151,7 +151,7 @@ ${bold('Examples')}
     if (!schemaResult) return ''
 
     // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
-    const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+    const schemaContext = await processSchemaResult({ schemaResult, resolveEnvVars: args['--sql'] })
 
     // TODO Extract logic from here
     let hasJsClient

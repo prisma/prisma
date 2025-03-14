@@ -142,7 +142,7 @@ export class Version implements Command {
       const datamodel = await getSchema(schemaPath)
       const config = await getConfig({
         datamodel,
-        ignoreEnvVarErrors: true,
+        resolveEnvVars: false,
       })
       const generator = config.generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {

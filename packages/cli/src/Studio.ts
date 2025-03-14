@@ -116,7 +116,7 @@ ${bold('Examples')}
       schemas,
     })
 
-    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const engineConfig = await getConfig({ datamodel: schemas, resolveEnvVars: false })
     const adapter = await config.studio?.adapter(process.env)
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings

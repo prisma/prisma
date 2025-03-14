@@ -5,7 +5,6 @@ import { getConfig } from '../..'
 describe('getConfig', () => {
   test('empty config', async () => {
     const config = await getConfig({
-      ignoreEnvVarErrors: false,
       datamodel: `
       datasource db {
         provider = "sqlite"
@@ -27,7 +26,6 @@ describe('getConfig', () => {
 
   test('with generator and datasource', async () => {
     const config = await getConfig({
-      ignoreEnvVarErrors: false,
       datamodel: `
     datasource db {
       url = "file:dev.db"
@@ -55,7 +53,6 @@ describe('getConfig', () => {
     process.env.TEST_POSTGRES_URI_FOR_DATASOURCE = 'postgres://user:password@something:5432/db'
 
     const config = await getConfig({
-      ignoreEnvVarErrors: false,
       datamodel: `
       datasource db {
         provider = "postgresql"
@@ -67,9 +64,9 @@ describe('getConfig', () => {
     expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
-  test('datasource with env var - ignoreEnvVarErrors', async () => {
+  test('datasource with env var - resolveEnvVars', async () => {
     const config = await getConfig({
-      ignoreEnvVarErrors: true,
+      resolveEnvVars: false,
       datamodel: `
       datasource db {
         provider = "postgresql"
@@ -82,7 +79,6 @@ describe('getConfig', () => {
   })
   test('with engineType="binary"', async () => {
     const binaryConfig = await getConfig({
-      ignoreEnvVarErrors: false,
       datamodel: `
       datasource db {
         provider = "sqlite"
@@ -143,7 +139,6 @@ describe('getConfig', () => {
   })
   test('with engineType="library"', async () => {
     const libraryConfig = await getConfig({
-      ignoreEnvVarErrors: false,
       datamodel: `
       datasource db {
         provider = "sqlite"

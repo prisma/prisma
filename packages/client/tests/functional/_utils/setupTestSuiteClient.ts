@@ -55,7 +55,7 @@ export async function setupTestSuiteClient({
   const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]], previewFeatures })
   const schemaContext = await processSchemaResult({
     schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
-    ignoreEnvVarErrors: true, // Some tests check the missing env var errors => we should not blow up here right away
+    resolveEnvVars: false, // Some tests check the missing env var errors => we should not blow up here right away
   })
   const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
@@ -74,7 +74,7 @@ export async function setupTestSuiteClient({
   if (hasTypedSql) {
     const schemaContextIntrospect = await processSchemaResult({
       schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
-      ignoreEnvVarErrors: false, // need to rerun processSchemaResult including proper env var resolving for introspect to work
+      resolveEnvVars: true, // need to rerun processSchemaResult including proper env var resolving for introspect to work
     })
     typedSql = await introspectSql(schemaContextIntrospect)
   }
