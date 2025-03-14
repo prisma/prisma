@@ -508,7 +508,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw await this.buildQueryError(data.errors[0], adapter?.errorRegistry)
+          throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
@@ -558,7 +558,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw await this.buildQueryError(data.errors[0], adapter?.errorRegistry)
+        throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
