@@ -1,3 +1,4 @@
+import { pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { SchemaContext } from './schemaContext'
@@ -14,16 +15,18 @@ export function inferDirectoryConfig(schemaContext?: SchemaContext | null): Dire
 
   // If the schemaPath points to a file => place the migrations folder next to it.
   // If the schemaPath points to a directory => also place the migrations folder nxt to it. NOT inside of it!
-  const migrationsDirPath = path.join(path.dirname(schemaContext?.schemaPath ?? process.cwd()), 'migrations')
+  const migrationsDirPath = pathToPosix(
+    path.join(path.dirname(schemaContext?.schemaPath ?? process.cwd()), 'migrations'),
+  )
 
   // TODO: for now simply ported the existing view folder logic here but did not refine it
   const schemaPath = schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma')
   const prismaDir = path.dirname(schemaPath)
-  const viewsDirPath = path.join(prismaDir, 'views')
+  const viewsDirPath = pathToPosix(path.join(prismaDir, 'views'))
 
   return {
     viewsDirPath,
-    typedSqlDirPath: path.join(rootDir, 'sql'),
+    typedSqlDirPath: pathToPosix(path.join(rootDir, 'sql')),
     migrationsDirPath,
   }
 }
