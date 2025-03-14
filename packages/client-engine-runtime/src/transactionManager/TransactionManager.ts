@@ -6,6 +6,7 @@ import { IsolationLevel, Options, TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
+  TransactionDriverAdapterError,
   TransactionExecutionTimeoutError,
   TransactionInternalConsistencyError,
   TransactionManagerError,
@@ -71,13 +72,21 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
 
-    const txContext = await this.driverAdapter.transactionContext()
+    const txContext = await this.driverAdapter.transactionContext().catch((error) => {
+      throw new TransactionDriverAdapterError('Failed to start transaction.', {
+        driverAdapterError: error,
+      })
+    })
 
     if (this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
       await txContext.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
     }
 
-    const startedTransaction = await txContext.startTransaction()
+    const startedTransaction = await txContext.startTransaction().catch((error) => {
+      throw new TransactionDriverAdapterError('Failed to start transaction.', {
+        driverAdapterError: error,
+      })
+    })
 
     if (!startedTransaction.options.usePhantomQuery) {
       await startedTransaction.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
@@ -191,12 +200,20 @@ export class TransactionManager {
     tx.status = status
 
     if (tx.transaction && status === 'committed') {
-      await tx.transaction.commit()
+      await tx.transaction.commit().catch((error) => {
+        throw new TransactionDriverAdapterError('Failed to commit transaction.', {
+          driverAdapterError: error,
+        })
+      })
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(COMMIT_QUERY())
       }
     } else if (tx.transaction) {
-      await tx.transaction.rollback()
+      await tx.transaction.rollback().catch((error) => {
+        throw new TransactionDriverAdapterError('Failed to rollback transaction.', {
+          driverAdapterError: error,
+        })
+      })
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(ROLLBACK_QUERY())
       }
