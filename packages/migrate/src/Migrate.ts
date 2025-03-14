@@ -24,17 +24,21 @@ export class Migrate {
   private schemaContext?: SchemaContext
   public migrationsDirectoryPath?: string
 
-  constructor(schemaContext?: SchemaContext, enabledPreviewFeatures?: string[]) {
+  constructor(schemaContext?: SchemaContext, migrationsDirPath?: string, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaContext) {
       this.schemaContext = schemaContext
-      this.migrationsDirectoryPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations') // TODO:(schemaPath) refactor in scope of ORM-663
+      const legacyMigrationsPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations')
+      if (migrationsDirPath !== legacyMigrationsPath) {
+        throw new Error(
+          `migrationsDirPath must be ${legacyMigrationsPath} but was ${migrationsDirPath} | path: ${schemaContext.schemaPath} | root: ${schemaContext.schemaRootDir}`,
+        )
+      }
+      this.migrationsDirectoryPath = migrationsDirPath
       this.engine = new SchemaEngine({ schemaContext, enabledPreviewFeatures })
     } else {
-      this.engine = new SchemaEngine({
-        enabledPreviewFeatures,
-      })
+      this.engine = new SchemaEngine({ enabledPreviewFeatures })
     }
   }
 

@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import { SqlQueryOutput } from '@prisma/generator-helper'
-import { getDMMF, parseEnvValue, processSchemaResult } from '@prisma/internals'
+import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
@@ -58,6 +58,7 @@ export async function setupTestSuiteClient({
     ignoreEnvVarErrors: true, // Some tests check the missing env var errors => we should not blow up here right away
   })
   const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const directoryConfig = inferDirectoryConfig(schemaContext)
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
   await setupTestSuiteFiles({ suiteMeta, suiteConfig })
@@ -76,7 +77,7 @@ export async function setupTestSuiteClient({
       schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
       ignoreEnvVarErrors: false, // need to rerun processSchemaResult including proper env var resolving for introspect to work
     })
-    typedSql = await introspectSql(schemaContextIntrospect)
+    typedSql = await introspectSql(directoryConfig, schemaContextIntrospect)
   }
 
   if (clientMeta.dataProxy === true) {

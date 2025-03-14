@@ -1,4 +1,4 @@
-import { fsFunctional, pathToPosix } from '@prisma/internals'
+import { fsFunctional } from '@prisma/internals'
 import * as E from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as T from 'fp-ts/lib/Task'
@@ -19,7 +19,7 @@ export interface IntrospectionViewDefinition {
 
 type HandleViewsIOParams = {
   views: IntrospectionViewDefinition[]
-  schemaPath: string
+  viewsDirectoryPath: string
 }
 
 /**
@@ -28,17 +28,14 @@ type HandleViewsIOParams = {
  * If some other non ".sql" files or folders exist within the `views` directory, the CLI must preserve them.
  * In case of empty folders, these are deleted silently.
  */
-export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(pathToPosix(schemaPath))
-  const viewsDir = path.posix.join(prismaDir, 'views')
-
+export async function handleViewsIO({ views, viewsDirectoryPath }: HandleViewsIOParams): Promise<void> {
   if (views.length === 0) {
-    await cleanLeftoversIO(viewsDir)
+    await cleanLeftoversIO(viewsDirectoryPath)
     return
   }
 
-  const { viewFilesToKeep } = await createViewsIO(viewsDir, views)
-  await cleanLeftoversIO(viewsDir, viewFilesToKeep)
+  const { viewFilesToKeep } = await createViewsIO(viewsDirectoryPath, views)
+  await cleanLeftoversIO(viewsDirectoryPath, viewFilesToKeep)
 }
 
 async function createViewsIO(

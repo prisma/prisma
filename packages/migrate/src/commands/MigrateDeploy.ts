@@ -6,6 +6,7 @@ import {
   Command,
   format,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
   loadSchemaContext,
@@ -76,10 +77,11 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     try {
       // Automatically create the database if it doesn't exist
