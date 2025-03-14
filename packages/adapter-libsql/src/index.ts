@@ -1,1 +1,1 @@
-export { PrismaLibSQL } from './libsql'
+export { PrismaLibSQLAdapterFactory as PrismaLibSQL } from './libsql'

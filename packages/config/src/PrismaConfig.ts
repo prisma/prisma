@@ -1,4 +1,4 @@
-import { Debug, DriverAdapter } from '@prisma/driver-adapter-utils'
+import { Debug, SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -10,7 +10,7 @@ type EnvVars = Record<string, string | undefined>
 
 const adapterShape = <Env extends EnvVars = never>() =>
   Shape.declare(
-    (input: any): input is (env: Env) => Promise<DriverAdapter> => {
+    (input: any): input is (env: Env) => Promise<SqlDriverAdapter> => {
       return input instanceof Function
     },
     {
@@ -21,7 +21,7 @@ const adapterShape = <Env extends EnvVars = never>() =>
   )
 
 export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<DriverAdapter>
+  adapter: (env: Env) => Promise<SqlDriverAdapter>
 }
 
 const createPrismaStudioConfigInternalShape = <Env extends EnvVars = never>() =>

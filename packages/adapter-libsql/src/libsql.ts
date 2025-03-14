@@ -5,14 +5,15 @@ import type {
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
+import { createClient } from '@libsql/client'
 import type {
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -125,32 +126,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-class LibSqlTransactionContext extends LibSqlQueryable<StdClient> implements TransactionContext {
-  constructor(readonly client: StdClient, readonly release: () => void) {
-    super(client)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      usePhantomQuery: true,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    try {
-      const tx = await this.client.transaction('deferred')
-      return new LibSqlTransaction(tx, options, this.release)
-    } catch (e) {
-      // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
-      // hence `catch` and rethrowing the error and not `finally`.
-      this.release()
-      throw e
-    }
-  }
-}
-
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConnection {
+export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient) {
     super(client)
   }
@@ -166,9 +142,32 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConne
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
+      throw new DriverAdapterError({
+        kind: 'InvalidIsolationLevel',
+        level: isolationLevel,
+      })
+    }
+
+    const options: TransactionOptions = {
+      usePhantomQuery: true,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
     const release = await this[LOCK_TAG].acquire()
-    return new LibSqlTransactionContext(this.client, release)
+
+    try {
+      const tx = await this.client.transaction('deferred')
+      return new LibSqlTransaction(tx, options, release)
+    } catch (e) {
+      // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
+      // hence `catch` and rethrowing the error and not `finally`.
+      release()
+      throw e
+    }
   }
 
   dispose(): Promise<void> {
@@ -177,31 +176,22 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlConne
   }
 }
 
-export class PrismaLibSQLWithMigration implements SqlMigrationAwareDriverAdapter {
+export class PrismaLibSQLAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private readonly config: LibSqlConfig) {}
 
-  async connect(): Promise<SqlConnection> {
-    return new PrismaLibSQL(await createLibSQLClient(this.config))
+  connect(): Promise<SqlDriverAdapter> {
+    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient(this.config)))
   }
 
-  async connectToShadowDb(): Promise<SqlConnection> {
+  connectToShadowDb(): Promise<SqlDriverAdapter> {
     // TODO: the user should be able to provide a custom URL for the shadow database
-    return new PrismaLibSQL(await createLibSQLClient({ ...this.config, url: ':memory:' }))
+    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient({ ...this.config, url: ':memory:' })))
   }
 }
 
-async function createLibSQLClient(config: LibSqlConfig): Promise<StdClient> {
-  try {
-    // The import below fails in AWS Lambda when bundled with esbuild.
-    // We fall back to the web version of the client if the native version fails.
-    // https://github.com/tursodatabase/libsql-client-ts/issues/112
-    const { createClient } = await import('@libsql/client')
-    return createClient(config)
-  } catch (e) {
-    const { createClient } = await import('@libsql/client/web')
-    return createClient(config)
-  }
+function createLibSQLClient(config: LibSqlConfig): StdClient {
+  return createClient(config)
 }

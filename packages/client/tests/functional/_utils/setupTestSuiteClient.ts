@@ -177,18 +177,18 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_PG) {
-    const { Pool } = require('pg') as typeof import('pg')
     const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
-    const pool = new Pool({
-      connectionString: datasourceInfo.databaseUrl,
-    })
-
-    return { adapter: new PrismaPg(pool), __internal }
+    return {
+      adapter: new PrismaPg({
+        connectionString: datasourceInfo.databaseUrl,
+      }),
+      __internal,
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_NEON) {
-    const { neonConfig, Pool } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
+    const { neonConfig } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
     const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
 
     neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
@@ -196,38 +196,39 @@ export function setupTestSuiteClientDriverAdapter({
     neonConfig.useSecureWebSocket = false // disable tls
     neonConfig.pipelineConnect = false
 
-    const pool = new Pool({
-      connectionString: datasourceInfo.databaseUrl,
-    })
-
-    return { adapter: new PrismaNeon(pool), __internal }
+    return {
+      adapter: new PrismaNeon({
+        connectionString: datasourceInfo.databaseUrl,
+      }),
+      __internal,
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_PLANETSCALE) {
-    const { Client } = require('@planetscale/database') as typeof import('@planetscale/database')
     const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
 
     const url = new URL('http://root:root@127.0.0.1:8085')
     url.pathname = new URL(datasourceInfo.databaseUrl).pathname
 
-    const client = new Client({
-      url: url.toString(),
-      fetch, // TODO remove when Node 16 is deprecated
-    })
-
-    return { adapter: new PrismaPlanetScale(client), __internal }
+    return {
+      adapter: new PrismaPlanetScale({
+        url: url.toString(),
+        fetch, // TODO remove when Node 16 is deprecated
+      }),
+      __internal,
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_LIBSQL) {
-    const { createClient } = require('@libsql/client') as typeof import('@libsql/client')
     const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
 
-    const client = createClient({
-      url: datasourceInfo.databaseUrl,
-      intMode: 'bigint',
-    })
-
-    return { adapter: new PrismaLibSQL(client), __internal }
+    return {
+      adapter: new PrismaLibSQL({
+        url: datasourceInfo.databaseUrl,
+        intMode: 'bigint',
+      }),
+      __internal,
+    }
   }
 
   if (driverAdapter === AdapterProviders.JS_D1) {

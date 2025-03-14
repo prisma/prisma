@@ -1,1 +1,1 @@
-export { PrismaPlanetScale } from './planetscale'
+export { PrismaPlanetScaleAdapterFactory as PrismaPlanetScale } from './planetscale'

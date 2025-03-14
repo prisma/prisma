@@ -71,6 +71,8 @@ export type ArgType =
   // A time value.
   | 'Time'
 
+export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SNAPSHOT' | 'SERIALIZABLE'
+
 export type SqlQuery = {
   sql: string
   args: Array<unknown>
@@ -85,6 +87,10 @@ export type Error =
   | {
       kind: 'UnsupportedNativeDataType'
       type: string
+    }
+  | {
+      kind: 'InvalidIsolationLevel'
+      level: string
     }
   | {
       kind: 'postgres'
@@ -130,26 +136,26 @@ const officialPrismaAdapters = [
 ] as const
 
 /**
- * A generic driver adapter that allows the user to connect to a
- * database. The query and result types are specific to the adapter.
+ * A generic driver adapter factory that allows the user to instantiate a
+ * driver adapter. The query and result types are specific to the adapter.
  */
-export interface DriverAdapter<Query, Result> extends AdapterInfo {
+export interface DriverAdapterFactory<Query, Result> extends AdapterInfo {
   /**
-   * Connect to the database.
+   * Instantiate a driver adapter.
    */
   connect(): Promise<Queryable<Query, Result>>
 }
 
-export interface SqlDriverAdapter extends DriverAdapter<SqlQuery, SqlResultSet> {
-  connect(): Promise<SqlConnection>
+export interface SqlDriverAdapterFactory extends DriverAdapterFactory<SqlQuery, SqlResultSet> {
+  connect(): Promise<SqlDriverAdapter>
 }
 
 /**
  * An SQL migration adapter that is aware of the notion of a shadow database
  * and can create a connection to it.
  */
-export interface SqlMigrationAwareDriverAdapter extends SqlDriverAdapter {
-  connectToShadowDb(): Promise<SqlConnection>
+export interface SqlMigrationAwareDriverAdapterFactory extends SqlDriverAdapterFactory {
+  connectToShadowDb(): Promise<SqlDriverAdapter>
 }
 
 export interface Queryable<Query, Result> extends AdapterInfo {
@@ -166,7 +172,7 @@ export interface Queryable<Query, Result> extends AdapterInfo {
 
 export interface SqlQueryable extends Queryable<SqlQuery, SqlResultSet> {}
 
-export interface SqlConnection extends SqlQueryable {
+export interface SqlDriverAdapter extends SqlQueryable {
   /**
    * Execute multiple SQL statements separated by semicolon.
    */
@@ -175,7 +181,7 @@ export interface SqlConnection extends SqlQueryable {
   /**
    * Start new transaction.
    */
-  transactionContext(): Promise<TransactionContext>
+  startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction>
 
   /**
    * Optional method that returns extra connection info
@@ -186,13 +192,6 @@ export interface SqlConnection extends SqlQueryable {
    * Dispose of the connection and release any resources.
    */
   dispose(): Promise<void>
-}
-
-export interface TransactionContext extends AdapterInfo, SqlQueryable {
-  /**
-   * Start new transaction.
-   */
-  startTransaction(): Promise<Transaction>
 }
 
 export type TransactionOptions = {
@@ -233,11 +232,9 @@ type ErrorCapturingInterface<T> = {
   [K in keyof T]: ErrorCapturingFunction<T[K]>
 }
 
-export interface ErrorCapturingSqlConnection extends ErrorCapturingInterface<SqlConnection> {
+export interface ErrorCapturingSqlDriverAdapter extends ErrorCapturingInterface<SqlDriverAdapter> {
   readonly errorRegistry: ErrorRegistry
 }
-
-export type ErrorCapturingTransactionContext = ErrorCapturingInterface<TransactionContext>
 
 export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
 

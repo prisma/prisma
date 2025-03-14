@@ -1,4 +1,4 @@
-import { mockAdapter } from '../../_utils/mock-adapter'
+import { mockAdapterFactory } from '../../_utils/mock-adapter'
 
 test('driver adapters cannot be used via @prisma/client/edge', () => {
   jest.isolateModules(() => {
@@ -6,7 +6,7 @@ test('driver adapters cannot be used via @prisma/client/edge', () => {
 
     const newClient = () =>
       new PrismaClient({
-        adapter: mockAdapter('postgres'),
+        adapter: mockAdapterFactory('postgres'),
       })
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`

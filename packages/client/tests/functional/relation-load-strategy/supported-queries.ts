@@ -34,7 +34,12 @@ testMatrix.setupTestSuite(
 
         async function expectQueryCountAtLeast(count: Record<RelationLoadStrategy, number>) {
           await waitFor(() => {
-            expect(logs.length).toBeGreaterThanOrEqual(count[suiteConfig.strategy])
+            let expected = count[suiteConfig.strategy]
+            if (suiteConfig.driverAdapter !== undefined) {
+              // Driver adapters do not issue BEGIN through the query engine.
+              expected -= 1
+            }
+            expect(logs.length).toBeGreaterThanOrEqual(expected)
           })
         }
 

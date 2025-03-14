@@ -1,12 +1,10 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
 
 import { PrismaClient } from './client/wasm'
 
 export default {
   async fetch(request, env) {
-    const pool = new Pool({ connectionString: env.DATABASE_URL })
-    const adapter = new PrismaPg(pool)
+    const adapter = new PrismaPg({ connectionString: env.DATABASE_URL })
     const prisma = new PrismaClient({ adapter })
 
     const users = await prisma.user.findMany()

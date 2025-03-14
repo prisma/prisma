@@ -1,6 +1,6 @@
 import { Client, Pool } from '@prisma/pg-worker'
 
-import { PrismaPg } from './pg'
+import { PrismaPgAdapter } from './pg'
 
 describe('validation', () => {
   test('throws if passed Client instance', () => {
@@ -8,7 +8,7 @@ describe('validation', () => {
 
     expect(() => {
       // @ts-ignore
-      new PrismaPg(client)
+      new PrismaPgAdapter(client)
     }).toThrowErrorMatchingInlineSnapshot(`
       "PrismaPg must be initialized with an instance of Pool:
       import { Pool } from 'pg'
@@ -22,7 +22,7 @@ describe('validation', () => {
     const pool = new Pool()
 
     expect(() => {
-      new PrismaPg(pool)
+      new PrismaPgAdapter(pool)
     }).not.toThrow()
   })
 })

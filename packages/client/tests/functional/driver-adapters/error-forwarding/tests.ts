@@ -2,7 +2,7 @@
 import type { PrismaClient } from '@prisma/client'
 
 import { NewPrismaClient } from '../../_utils/types'
-import { mockAdapter, mockAdapterErrors } from '../_utils/mock-adapter'
+import { mockAdapterErrors, mockAdapterFactory } from '../_utils/mock-adapter'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 
@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({
-        adapter: mockAdapter(provider),
+        adapter: mockAdapterFactory(provider),
       })
     })
     test('correctly forwards error for queryRaw', async () => {
@@ -35,17 +35,17 @@ testMatrix.setupTestSuite(
           },
         },
       })
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
     test('correctly forwards error for batch transactions', async () => {
       const result = prisma.$transaction([prisma.user.create({}), prisma.user.create({})])
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
 
     test('correctly forwards error for itx', async () => {
       const result = prisma.$transaction(() => Promise.resolve())
-      await expect(result).rejects.toBe(mockAdapterErrors.transactionContext)
+      await expect(result).rejects.toBe(mockAdapterErrors.startTransaction)
     })
   },
   {

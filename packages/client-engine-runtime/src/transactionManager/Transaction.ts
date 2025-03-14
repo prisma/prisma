@@ -1,10 +1,4 @@
-export const enum IsolationLevel {
-  ReadUncommitted = 'ReadUncommitted',
-  ReadCommitted = 'ReadCommitted',
-  RepeatableRead = 'RepeatableRead',
-  Snapshot = 'Snapshot',
-  Serializable = 'Serializable',
-}
+import type { IsolationLevel } from '@prisma/driver-adapter-utils'
 
 export type Options = {
   maxWait?: number

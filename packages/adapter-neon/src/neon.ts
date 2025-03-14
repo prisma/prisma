@@ -4,12 +4,13 @@ import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
-  SqlConnection,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -164,28 +165,11 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   }
 }
 
-class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {
-  constructor(readonly conn: neon.PoolClient) {
-    super(conn)
-  }
-
-  async startTransaction(): Promise<Transaction> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    return new NeonTransaction(this.conn, options)
-  }
-}
-
 export type PrismaNeonOptions = {
   schema?: string
 }
 
-export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlConnection {
+export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
@@ -203,15 +187,37 @@ const adapter = new PrismaNeon(pool)
     throw new Error('Not implemented yet')
   }
 
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    const conn = await this.client.connect()
+    const tx = new NeonTransaction(conn, options)
+
+    try {
+      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      if (isolationLevel) {
+        await tx.executeRaw({
+          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+          args: [],
+          argTypes: [],
+        })
+      }
+      return tx
+    } catch (error) {
+      conn.release(error)
+      throw error
+    }
+  }
+
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
     }
-  }
-
-  async transactionContext(): Promise<TransactionContext> {
-    const conn = await this.client.connect()
-    return new NeonTransactionContext(conn)
   }
 
   async dispose(): Promise<void> {
@@ -222,7 +228,18 @@ const adapter = new PrismaNeon(pool)
   }
 }
 
-export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
+export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
+  }
+}
+
+export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
   private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
 
   constructor(client: neon.NeonQueryFunction<any, any>) {
@@ -235,6 +252,10 @@ export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
 
   executeScript(_script: string): Promise<void> {
     throw new Error('Not implemented yet')
+  }
+
+  async startTransaction(): Promise<Transaction> {
+    return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
   }
 
   override async performIO(query: SqlQuery): Promise<PerformIOResult> {
@@ -260,9 +281,19 @@ export class PrismaNeonHTTP extends NeonQueryable implements SqlConnection {
     } as neon.HTTPQueryOptions<true, true>)
   }
 
-  transactionContext(): Promise<TransactionContext> {
-    return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
-  }
-
   async dispose(): Promise<void> {}
+}
+
+export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(
+    private readonly connectionString: string,
+    private readonly options: neon.HTTPQueryOptions<boolean, boolean>,
+  ) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
+  }
 }

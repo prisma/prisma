@@ -22,10 +22,6 @@ testMatrix.setupTestSuite(
         }
       })
 
-      afterAll(async () => {
-        await prisma.$disconnect()
-      })
-
       test('when deleting an item, the corresponding entry in the implicit pivot table should be deleted', async () => {
         // Create one category
         const category = await prisma.category.create({

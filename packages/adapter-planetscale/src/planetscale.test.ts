@@ -1,7 +1,7 @@
 import { Client, connect } from '@planetscale/database'
 import { fetch as undiciFetch } from 'undici'
 
-import { PrismaPlanetScale } from './planetscale'
+import { PrismaPlanetScaleAdapter } from './planetscale'
 
 describe('validation', () => {
   test('throws if passed Connection instance', () => {
@@ -9,7 +9,7 @@ describe('validation', () => {
 
     expect(() => {
       // @ts-ignore
-      new PrismaPlanetScale(connection)
+      new PrismaPlanetScaleAdapter(connection)
     }).toThrowErrorMatchingInlineSnapshot(`
       "PrismaPlanetScale must be initialized with an instance of Client:
       import { Client } from '@planetscale/database'
@@ -23,7 +23,7 @@ describe('validation', () => {
     const client = new Client({ url: 'http://example.com' })
 
     expect(() => {
-      new PrismaPlanetScale(client)
+      new PrismaPlanetScaleAdapter(client)
     }).not.toThrow()
   })
 })
