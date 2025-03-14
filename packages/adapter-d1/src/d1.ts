@@ -115,7 +115,7 @@ class D1Transaction extends D1Queryable<StdClient> implements Transaction {
   }
 }
 
-export class PrismaD1 extends D1Queryable<StdClient> implements SqlDriverAdapter {
+export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriverAdapter {
   readonly tags = {
     error: red('prisma:error'),
     warn: yellow('prisma:warn'),
@@ -188,14 +188,14 @@ export class PrismaD1 extends D1Queryable<StdClient> implements SqlDriverAdapter
   }
 }
 
-export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private client: StdClient) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaD1(this.client, async () => {})
+    return new PrismaD1Adapter(this.client, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -213,7 +213,7 @@ export class PrismaD1WithMigration implements SqlMigrationAwareDriverAdapterFact
       `,
     })
     const db = await mf.getD1Database('db')
-    return new PrismaD1(db, () => mf.dispose())
+    return new PrismaD1Adapter(db, () => mf.dispose())
   }
 }
 

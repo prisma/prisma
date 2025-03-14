@@ -18,6 +18,7 @@ export type {
   Provider,
   Queryable,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,

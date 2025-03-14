@@ -165,7 +165,7 @@ export type PrismaPgOptions = {
   schema?: string
 }
 
-export class PrismaPg extends PgQueryable<StdClient> implements SqlDriverAdapter {
+export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
     // Note: Full `client instanceof pg.Pool` check would sometimes give false negatives depending on the package resolution.
     if (!client) {
@@ -229,14 +229,14 @@ const adapter = new PrismaPg(pool)
   }
 }
 
-export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapterFactory {
-  readonly provider = 'sqlite'
+export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+  readonly provider = 'postgres'
   readonly adapterName = packageName
 
   constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPg(new pg.Pool(this.config), this.options, async () => {})
+    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -244,7 +244,7 @@ export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapterFact
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaPg(new pg.Pool({ ...this.config, database }), undefined, async () => {
+    return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
       await conn.dispose()
     })

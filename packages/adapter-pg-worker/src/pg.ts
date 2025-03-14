@@ -5,6 +5,7 @@ import type {
   ConnectionInfo,
   IsolationLevel,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
@@ -154,7 +155,7 @@ export type PrismaPgOptions = {
   schema?: string
 }
 
-export class PrismaPg extends PgQueryable<StdClient> implements SqlDriverAdapter {
+export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: pg.Pool, private options?: PrismaPgOptions) {
     if (!(client instanceof pg.Pool)) {
       throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
@@ -206,5 +207,16 @@ const adapter = new PrismaPg(pool)
 
   dispose(): Promise<void> {
     return this.client.end()
+  }
+}
+
+export class PrismaPgAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaPgAdapter(new pg.Pool(this.config), this.options)
   }
 }

@@ -7,7 +7,7 @@ import {
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
 import Debug from '@prisma/debug'
-import { type ErrorCapturingSqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { bindAdapter, type ErrorCapturingSqlDriverAdapter, Provider } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -43,11 +43,12 @@ export class ClientEngine implements Engine<undefined> {
   QueryCompilerConstructor?: QueryCompilerConstructor
   queryCompilerLoader: QueryCompilerLoader
 
-  config: EngineConfig
-  datamodel: string
+  adapterPromise: Promise<ErrorCapturingSqlDriverAdapter>
+  transactionManagerPromise: Promise<TransactionManager>
 
-  driverAdapter: ErrorCapturingSqlDriverAdapter
-  transactionManager: TransactionManager
+  config: EngineConfig
+  provider: Provider
+  datamodel: string
 
   logEmitter: LogEmitter
   logQueries: boolean // TODO: actually implement
@@ -65,16 +66,16 @@ export class ClientEngine implements Engine<undefined> {
         CLIENT_ENGINE_ERROR,
       )
     }
-    const { adapter } = config
-    if (!adapter) {
+    if (!config.adapter) {
       throw new PrismaClientInitializationError(
         'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
         config.clientVersion!,
         CLIENT_ENGINE_ERROR,
       )
     } else {
-      this.driverAdapter = adapter
-      debug('Using driver adapter: %O', adapter)
+      this.adapterPromise = config.adapter.connect().then(bindAdapter)
+      this.provider = config.adapter.provider
+      debug('Using driver adapter: %O', config.adapter)
     }
 
     if (TARGET_BUILD_TYPE === 'client') {
@@ -112,9 +113,9 @@ export class ClientEngine implements Engine<undefined> {
       }
     }
 
-    this.transactionManager = new TransactionManager({
-      driverAdapter: this.driverAdapter,
-    })
+    this.transactionManagerPromise = this.adapterPromise.then(
+      (driverAdapter) => new TransactionManager({ driverAdapter }),
+    )
 
     this.instantiateQueryCompilerPromise = this.instantiateQueryCompiler()
   }
@@ -135,7 +136,7 @@ export class ClientEngine implements Engine<undefined> {
     try {
       this.queryCompiler = new this.QueryCompilerConstructor({
         datamodel: this.datamodel,
-        provider: this.driverAdapter.provider,
+        provider: this.provider,
         connectionInfo: {},
       })
     } catch (e) {
@@ -183,12 +184,14 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   async start(): Promise<void> {
+    await this.adapterPromise
     await this.instantiateQueryCompilerPromise
   }
 
   async stop(): Promise<void> {
     await this.instantiateQueryCompilerPromise
-    await this.transactionManager.cancelAllTransactions()
+    await (await this.transactionManagerPromise)?.cancelAllTransactions()
+    await (await this.adapterPromise).dispose()
   }
 
   version(): string {
@@ -217,16 +220,17 @@ export class ClientEngine implements Engine<undefined> {
   ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
     let result: TransactionInfo | undefined
 
+    const transactionManager = await this.transactionManagerPromise
     try {
       if (action === 'start') {
         const options: Tx.Options = arg
-        result = await this.transactionManager.startTransaction(options)
+        result = await transactionManager.startTransaction(options)
       } else if (action === 'commit') {
         const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-        await this.transactionManager.commitTransaction(txInfo.id)
+        await transactionManager.commitTransaction(txInfo.id)
       } else if (action === 'rollback') {
         const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-        await this.transactionManager.rollbackTransaction(txInfo.id)
+        await transactionManager.rollbackTransaction(txInfo.id)
       } else {
         assertNever(action, 'Invalid transaction action.')
       }
@@ -255,8 +259,8 @@ export class ClientEngine implements Engine<undefined> {
       debug(`query plan created`, queryPlanString)
 
       const queryable = interactiveTransaction
-        ? this.transactionManager.getTransaction(interactiveTransaction, query.action)
-        : this.driverAdapter
+        ? (await this.transactionManagerPromise).getTransaction(interactiveTransaction, query.action)
+        : await this.adapterPromise
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
@@ -306,7 +310,7 @@ export class ClientEngine implements Engine<undefined> {
       // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
       const results: BatchQueryEngineResult<T>[] = []
       for (const { query, plan } of queriesWithPlans) {
-        const queryable = this.transactionManager.getTransaction(txInfo, query.action)
+        const queryable = (await this.transactionManagerPromise).getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
           queryable,
           placeholderValues: {},

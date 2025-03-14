@@ -6,6 +6,7 @@ import type {
   ConnectionInfo,
   IsolationLevel,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
@@ -168,7 +169,7 @@ export type PrismaNeonOptions = {
   schema?: string
 }
 
-export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
+export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
@@ -227,7 +228,22 @@ const adapter = new PrismaNeon(pool)
   }
 }
 
-export class PrismaNeonHTTP extends NeonQueryable implements SqlDriverAdapter {
+export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
+  }
+
+  connectToShadowDb(): Promise<SqlDriverAdapter> {
+    throw new Error('Method not implemented yet.')
+  }
+}
+
+export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
   private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
 
   constructor(client: neon.NeonQueryFunction<any, any>) {
@@ -270,4 +286,18 @@ export class PrismaNeonHTTP extends NeonQueryable implements SqlDriverAdapter {
   }
 
   async dispose(): Promise<void> {}
+}
+
+export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(
+    private readonly connectionString: string,
+    private readonly options: neon.HTTPQueryOptions<boolean, boolean>,
+  ) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
+  }
 }

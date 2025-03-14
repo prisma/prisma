@@ -7,6 +7,7 @@ import type {
   ConnectionInfo,
   IsolationLevel,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
@@ -147,7 +148,7 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
+export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
   constructor(client: planetScale.Client) {
     // this used to be a check for constructor name at same point (more reliable when having multiple copies
     // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
@@ -211,4 +212,15 @@ const adapter = new PrismaPlanetScale(client)
   }
 
   async dispose(): Promise<void> {}
+}
+
+export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'mysql'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: planetScale.Config) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
+  }
 }

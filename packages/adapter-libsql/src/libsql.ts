@@ -5,6 +5,7 @@ import type {
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
+import { createClient } from '@libsql/client'
 import type {
   IsolationLevel,
   SqlDriverAdapter,
@@ -125,7 +126,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
   }
 }
 
-export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDriverAdapter {
+export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient) {
     super(client)
   }
@@ -175,31 +176,22 @@ export class PrismaLibSQL extends LibSqlQueryable<StdClient> implements SqlDrive
   }
 }
 
-export class PrismaLibSQLWithMigration implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaLibSQLAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private readonly config: LibSqlConfig) {}
 
-  async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaLibSQL(await createLibSQLClient(this.config))
+  connect(): Promise<SqlDriverAdapter> {
+    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient(this.config)))
   }
 
-  async connectToShadowDb(): Promise<SqlDriverAdapter> {
+  connectToShadowDb(): Promise<SqlDriverAdapter> {
     // TODO: the user should be able to provide a custom URL for the shadow database
-    return new PrismaLibSQL(await createLibSQLClient({ ...this.config, url: ':memory:' }))
+    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient({ ...this.config, url: ':memory:' })))
   }
 }
 
-async function createLibSQLClient(config: LibSqlConfig): Promise<StdClient> {
-  try {
-    // The import below fails in AWS Lambda when bundled with esbuild.
-    // We fall back to the web version of the client if the native version fails.
-    // https://github.com/tursodatabase/libsql-client-ts/issues/112
-    const { createClient } = await import('@libsql/client')
-    return createClient(config)
-  } catch (e) {
-    const { createClient } = await import('@libsql/client/web')
-    return createClient(config)
-  }
+function createLibSQLClient(config: LibSqlConfig): StdClient {
+  return createClient(config)
 }
