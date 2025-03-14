@@ -123,6 +123,7 @@ export namespace EngineArgs {
   export interface IntrospectParams {
     schema: MigrateTypes.SchemasContainer
     baseDirectoryPath: string
+    viewsDirectoryPath: string
     force?: Boolean
 
     // Note: this must be a non-negative integer

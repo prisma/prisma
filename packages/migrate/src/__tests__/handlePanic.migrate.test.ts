@@ -1,4 +1,4 @@
-import { handlePanic, isCi, loadSchemaContext, RustPanic } from '@prisma/internals'
+import { handlePanic, inferDirectoryConfig, isCi, loadSchemaContext, RustPanic } from '@prisma/internals'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
@@ -91,12 +91,13 @@ describe('handlePanic migrate', () => {
     await writeFiles(testRootDir, files)
 
     const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     captureStdout.startCapture()
 
     let error
     try {
-      const migrate = new Migrate(schemaContext)
+      const migrate = new Migrate(schemaContext, migrationsDirPath)
       await migrate.createMigration({
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
@@ -155,9 +156,10 @@ describe('handlePanic migrate', () => {
     const schemaPath = join(testRootDir, Object.keys(files)[0])
     await writeFiles(testRootDir, files)
     const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     try {
-      const migrate = new Migrate(schemaContext)
+      const migrate = new Migrate(schemaContext, migrationsDirPath)
       await migrate.createMigration({
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',

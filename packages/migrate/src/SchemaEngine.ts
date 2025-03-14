@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -174,6 +172,7 @@ export class SchemaEngine {
     schema,
     force = false,
     baseDirectoryPath,
+    viewsDirectoryPath,
     compositeTypeDepth = -1, // cannot be undefined
     namespaces,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
@@ -187,8 +186,7 @@ export class SchemaEngine {
       const { views } = introspectResult
 
       if (views) {
-        const schemaPath = this.schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma') // TODO:(schemaPath) pass views directory from the top based on config - see ORM-664
-        await handleViewsIO({ views, schemaPath })
+        await handleViewsIO({ views, viewsDirectoryPath })
       }
 
       return introspectResult

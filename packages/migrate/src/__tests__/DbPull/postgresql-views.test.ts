@@ -100,6 +100,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
@@ -121,6 +122,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
@@ -147,6 +149,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          viewsDirectoryPath: path.join(process.cwd(), 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
@@ -173,6 +176,7 @@ describe('postgresql-views', () => {
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemas),
+          viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
         })
