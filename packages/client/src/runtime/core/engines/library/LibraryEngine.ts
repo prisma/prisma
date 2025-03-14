@@ -300,7 +300,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
 
-      if (this.errorCapturingDriverAdapter) {
+      if (this.config.adapter) {
         debug('Using driver adapter: %O', this.config.adapter)
       }
 
