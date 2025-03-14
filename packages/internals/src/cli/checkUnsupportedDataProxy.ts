@@ -68,7 +68,7 @@ async function checkUnsupportedDataProxyMessage(
       await loadEnvFile({ schemaPath: argValue, printMessage: false, config: defaultTestConfig() })
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
-      const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+      const config = await getConfig({ datamodel, resolveEnvVars: false })
       const url = resolveUrl(getEffectiveUrl(config.datasources[0]))
 
       if (url?.startsWith('prisma://')) {

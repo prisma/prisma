@@ -88,7 +88,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   // Fallback logic for prisma studio which still only passes a schema path
   const schemaContext =
     !options.schemaContext && schemaPath
-      ? await loadSchemaContext({ schemaPathFromArg: schemaPath, ignoreEnvVarErrors: true })
+      ? await loadSchemaContext({ schemaPathFromArg: schemaPath, resolveEnvVars: false })
       : options.schemaContext
 
   if (!schemaContext) {

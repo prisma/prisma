@@ -91,11 +91,7 @@ ${bold('Examples')}
       schemas,
     })
 
-    // We could have a CLI flag to ignore env var validation
-    await getConfig({
-      datamodel: schemas,
-      ignoreEnvVarErrors: false,
-    })
+    await getConfig({ datamodel: schemas })
 
     const schemaRelativePath = path.relative(process.cwd(), schemaPath)
 

@@ -41,7 +41,7 @@ function isPrismaFolderEnabled(files: LoadedFile[]): boolean {
   const params = JSON.stringify({
     prismaSchema: files,
     datasourceOverrides: {},
-    ignoreEnvVarErrors: true,
+    resolveEnvVars: false,
     env: {},
   })
 

@@ -29,7 +29,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
 
   const { schemaPath, schemas: datamodel } = (await getSchemaWithPath(undefined, undefined, { cwd: absSchemaDir }))!
 
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel, resolveEnvVars: false })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
   }

@@ -118,7 +118,7 @@ ${bold('Examples')}
       }
     }
 
-    // Url exists because we set `ignoreEnvVarErrors: false` when calling `loadSchemaContext`
+    // Url exists because `loadSchemaContext` resolves env vars and would blow up otherwise earlier
     if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName

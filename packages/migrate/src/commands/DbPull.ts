@@ -218,7 +218,7 @@ Set composite types introspection depth to 2 levels
             ]
             const config = await getConfig({
               datamodel: schema,
-              ignoreEnvVarErrors: true,
+              resolveEnvVars: false,
             })
 
             const result = { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
@@ -240,7 +240,6 @@ Set composite types introspection depth to 2 levels
             // It will  throw an error if the env var is not set or if it is invalid
             await getConfig({
               datamodel: input.schemaContext.schemaFiles,
-              ignoreEnvVarErrors: false,
             })
           }
 
@@ -263,7 +262,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
           const config = await getConfig({
             datamodel: schema,
-            ignoreEnvVarErrors: true,
+            resolveEnvVars: false,
           })
 
           return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
@@ -279,7 +278,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           const schema: MultipleSchemas = [['schema.prisma', this.urlToDatasource(input.url)]]
           const config = await getConfig({
             datamodel: schema,
-            ignoreEnvVarErrors: true,
+            resolveEnvVars: false,
           })
           return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
         },

@@ -823,7 +823,7 @@ describe('getGenerators', () => {
     }
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
-      ignoreEnvVarErrors: true,
+      resolveEnvVars: false,
     })
 
     try {
@@ -922,7 +922,7 @@ describe('getGenerators', () => {
     }
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
-      ignoreEnvVarErrors: true,
+      resolveEnvVars: false,
     })
 
     const generators = await getGenerators({

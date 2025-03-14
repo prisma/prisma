@@ -49,7 +49,7 @@ type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
   schemaPathFromConfig?: SchemaPathFromConfig
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
+  resolveEnvVars?: boolean
   allowNull?: boolean
 }
 
@@ -61,7 +61,7 @@ export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
+  resolveEnvVars = true,
   allowNull = false,
 }: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
@@ -73,17 +73,17 @@ export async function loadSchemaContext({
     schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
   }
 
-  return processSchemaResult({ schemaResult, printLoadMessage, ignoreEnvVarErrors })
+  return processSchemaResult({ schemaResult, printLoadMessage, resolveEnvVars })
 }
 
 export async function processSchemaResult({
   schemaResult,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
+  resolveEnvVars = true,
 }: {
   schemaResult: GetSchemaResult
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
+  resolveEnvVars?: boolean
 }): Promise<SchemaContext> {
   const cwd = process.cwd()
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
@@ -92,7 +92,7 @@ export async function processSchemaResult({
     process.stdout.write(dim(`Prisma schema loaded from ${loadedFromPathForLogMessages}`) + '\n')
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, resolveEnvVars })
 
   const primaryDatasource = configFromPsl.datasources.at(0)
 

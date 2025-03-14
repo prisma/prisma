@@ -39,7 +39,7 @@ interface GetConfigValidationError {
 
 export type GetConfigOptions = {
   datamodel: SchemaFileInput
-  ignoreEnvVarErrors?: boolean
+  resolveEnvVars?: boolean
 }
 
 export class GetConfigError extends Error {
@@ -87,7 +87,7 @@ export function resolveUrl(envValue: EnvValue | undefined) {
 /**
  * Wasm'd version of `getConfig`.
  */
-export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
+export async function getConfig({ datamodel, resolveEnvVars = true }: GetConfigOptions): Promise<ConfigMetaFormat> {
   const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
   debug(`Using getConfig Wasm`)
 
@@ -100,9 +100,11 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         }
 
         const params = JSON.stringify({
-          prismaSchema: options.datamodel,
+          prismaSchema: datamodel,
           datasourceOverrides: {},
-          ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+          // `ignoreEnvVarErrors` does not just ignore errors, but it will also not even attempt to resolve them.
+          // TODO: rename this also in the schema engine
+          ignoreEnvVarErrors: resolveEnvVars ?? true,
           env: process.env,
         })
 
@@ -169,7 +171,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ undefined,
-          /* schema */ toMultipleSchemas(options.datamodel),
+          /* schema */ toMultipleSchemas(datamodel),
         )
         return panic
       }

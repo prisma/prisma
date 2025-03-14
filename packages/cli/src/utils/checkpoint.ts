@@ -117,7 +117,7 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
     try {
       const config = await getConfig({
         datamodel: schema,
-        ignoreEnvVarErrors: true,
+        resolveEnvVars: false,
       })
 
       if (config.datasources.length > 0) {
