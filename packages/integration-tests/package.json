@@ -34,7 +34,7 @@
     "pg": "8.13.3",
     "sqlite-async": "1.2.0",
     "string-hash": "1.1.3",
-    "strip-ansi": "6.0.1",
+    "strip-ansi": "7.1.0",
     "tempy": "1.0.1",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
