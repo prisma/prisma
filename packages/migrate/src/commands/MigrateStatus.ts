@@ -10,13 +10,13 @@ import {
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('prisma:migrate:status')
@@ -73,14 +73,16 @@ Check the status of your database migrations
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    // TODO: handle the case where the schemaPath is null
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
-    await ensureCanConnectToDatabase(schemaPath)
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
