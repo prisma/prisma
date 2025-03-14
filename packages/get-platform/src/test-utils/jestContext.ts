@@ -52,6 +52,10 @@ export const jestContext = {
     beforeEach(() => {
       const originalCwd = process.cwd()
 
+      c.mocked = c.mocked ?? {
+        cwd: process.cwd(),
+      }
+
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.tree = (startFrom = c.tmpDir, indent = '') => {
@@ -87,9 +91,7 @@ ${[...generateDirectoryTree(children, indent)].join('\n')}
         // symlink to local client version in tmp dir
         c.fs.symlink(path.join(originalCwd, '..', 'client'), path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'))
       }
-      c.mocked = c.mocked ?? {
-        cwd: process.cwd(),
-      }
+
       c.cli = (...input) => {
         return execa.node(path.join(originalCwd, '../cli/build/index.js'), input, {
           cwd: c.fs.cwd(),

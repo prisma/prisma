@@ -71,6 +71,7 @@ function clearPromptInjection(position: string): void {
 
 describe('common', () => {
   it('invalid schema', async () => {
+    expect.assertions(2)
     ctx.fixture('schema-only-sqlite')
 
     try {
@@ -102,6 +103,7 @@ describe('common', () => {
   })
 
   it('provider array should fail', async () => {
+    expect.assertions(2)
     ctx.fixture('schema-only-sqlite')
 
     try {

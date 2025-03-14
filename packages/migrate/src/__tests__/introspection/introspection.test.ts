@@ -1,4 +1,4 @@
-import { toSchemasContainer } from '@prisma/internals'
+import { loadSchemaContext, toSchemasContainer } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -6,10 +6,8 @@ import { SchemaEngine } from '../../SchemaEngine'
 
 test('introspection basic', async () => {
   const schemaPath = path.join(__dirname, 'schema.prisma')
-  const engine = new SchemaEngine({
-    projectDir: __dirname,
-    schemaPath,
-  })
+  const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+  const engine = new SchemaEngine({ schemaContext })
 
   const schemaContent = await fs.promises.readFile(schemaPath, { encoding: 'utf-8' })
 

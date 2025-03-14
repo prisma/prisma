@@ -94,10 +94,7 @@ describe('postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new SchemaEngine({
-          projectDir: process.cwd(),
-          schemaPath: undefined,
-        })
+        const engine = new SchemaEngine({})
 
         const schemas = await getSchema()
 
@@ -118,10 +115,7 @@ describe('postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new SchemaEngine({
-          projectDir: process.cwd(),
-          schemaPath: undefined,
-        })
+        const engine = new SchemaEngine({})
 
         const schemas = await getSchema()
 
@@ -147,10 +141,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const engine = new SchemaEngine({
-          projectDir: process.cwd(),
-          schemaPath: undefined,
-        })
+        const engine = new SchemaEngine({})
 
         const schemas = await getSchema()
 
@@ -176,10 +167,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const engine = new SchemaEngine({
-          projectDir: process.cwd(),
-          schemaPath: undefined,
-        })
+        const engine = new SchemaEngine({})
 
         const schemas = await getSchema()
 

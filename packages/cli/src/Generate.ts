@@ -7,7 +7,6 @@ import {
   format,
   Generator,
   getCommandWithExecutor,
-  getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
   GetSchemaResult,
@@ -22,13 +21,13 @@ import {
   parseEnvValue,
   type SchemaPathFromConfig,
 } from '@prisma/internals'
-import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
@@ -151,9 +150,8 @@ ${bold('Examples')}
 
     if (!schemaResult) return ''
 
-    const { schemas, schemaPath } = schemaResult
-    printSchemaLoadedMessage(schemaPath)
-    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
+    const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -161,11 +159,11 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(schemaPath)
+      typedSql = await introspectSql(schemaContext)
     }
     try {
       generators = await getGenerators({
-        schemaPath,
+        schemaContext,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
@@ -237,7 +235,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
 Please run \`prisma generate\` manually.`
     }
 
-    const watchingText = `\n${green('Watching...')} ${dim(schemaPath)}\n`
+    const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
 
     const hideHints = args['--no-hints'] ?? false
 
@@ -275,13 +273,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
+          hint = `${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
@@ -305,9 +303,9 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      const watcher = new Watcher(schemaPath)
+      const watcher = new Watcher(schemaContext.schemaRootDir)
       if (args['--sql']) {
-        watcher.add(sqlDirPath(schemaPath))
+        watcher.add(sqlDirPath(schemaContext.schemaRootDir))
       }
 
       for await (const changedPath of watcher) {
@@ -315,11 +313,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            typedSql = await introspectSql(schemaPath)
+            typedSql = await introspectSql(schemaContext)
           }
 
           generatorsWatch = await getGenerators({
-            schemaPath,
+            schemaContext,
             printDownloadProgress: !watchMode,
             version: enginesVersion,
             cliVersion: pkg.version,

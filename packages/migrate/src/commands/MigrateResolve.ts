@@ -114,7 +114,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+      const migrate = new Migrate(schemaContext)
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
@@ -136,7 +136,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+      const migrate = new Migrate(schemaContext)
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],

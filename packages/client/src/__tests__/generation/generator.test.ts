@@ -171,7 +171,7 @@ describe('generator', () => {
       doesNotExistError = e
     } finally {
       expect(stripAnsi(doesNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
-        `"doesnotexist.prisma does not exist"`,
+        `"doesnotexist.prisma\`: file or directory not found"`,
       )
     }
   })

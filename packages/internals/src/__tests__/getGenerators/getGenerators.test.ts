@@ -4,6 +4,7 @@ import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } fr
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
+import { loadSchemaContext } from '../../cli/schemaContext'
 import { getGenerators } from '../../get-generators/getGenerators'
 import { resolveBinary } from '../../resolveBinary'
 import { omit } from '../../utils/omit'
@@ -43,8 +44,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -128,8 +132,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -221,8 +228,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -314,8 +324,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -408,8 +421,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -516,8 +532,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      schemaContext,
       providerAliases: aliases,
     })
 
@@ -613,8 +632,11 @@ describe('getGenerators', () => {
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
+      schemaContext,
       providerAliases: aliases,
       binaryPathsOverride: {
         queryEngine: queryEnginePath,
@@ -649,8 +671,11 @@ describe('getGenerators', () => {
       },
     }
 
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'multiple-generators-schema.prisma'),
+    })
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      schemaContext,
       providerAliases: aliases,
       generatorNames: ['client_1', 'client_3'],
     })
@@ -671,10 +696,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'invalid-platforms-schema.prisma'),
+    })
 
     await expect(
       getGenerators({
-        schemaPath: path.join(__dirname, 'invalid-platforms-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
       }),
     ).rejects.toThrow('deprecated')
@@ -687,10 +715,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
+    })
 
     await expect(
       getGenerators({
-        schemaPath: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
       }),
     ).rejects.toThrow('Unknown')
@@ -709,10 +740,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'missing-datasource-schema.prisma'),
+    })
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-datasource-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
       })
     } catch (e) {
@@ -746,10 +780,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+    })
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
       })
     } catch (e) {
@@ -784,10 +821,14 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      ignoreEnvVarErrors: true,
+    })
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
       })
     } catch (e) {
@@ -831,10 +872,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'multiple-generators-schema.prisma'),
+    })
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+        schemaContext,
         providerAliases: aliases,
         generatorNames: ['client_1', 'invalid_generator'],
       })
@@ -854,9 +898,12 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+    })
 
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+      schemaContext,
       providerAliases: aliases,
       allowNoModels: true,
     })
@@ -873,9 +920,13 @@ describe('getGenerators', () => {
         outputPath: __dirname,
       },
     }
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      ignoreEnvVarErrors: true,
+    })
 
     const generators = await getGenerators({
-      schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
+      schemaContext,
       providerAliases: aliases,
       allowNoModels: true,
     })
