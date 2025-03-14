@@ -8,6 +8,7 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
   loadSchemaContext,
@@ -99,6 +100,7 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
@@ -114,7 +116,7 @@ ${bold('Examples')}
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

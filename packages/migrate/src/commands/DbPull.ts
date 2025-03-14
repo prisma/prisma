@@ -9,6 +9,7 @@ import {
   getCommandWithExecutor,
   getConfig,
   HelpError,
+  inferDirectoryConfig,
   link,
   loadEnvFile,
   loadSchemaContext,
@@ -313,9 +314,11 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionSchema: MigrateTypes.SchemasContainer | undefined = undefined
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
+      const directoryConfig = inferDirectoryConfig(schemaContext)
       const introspectionResult = await engine.introspect({
         schema: toSchemasContainer(schema),
         baseDirectoryPath: schemaContext?.schemaRootDir ?? process.cwd(),
+        viewsDirectoryPath: directoryConfig.viewsDirPath,
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
         namespaces: args['--schemas']?.split(','),

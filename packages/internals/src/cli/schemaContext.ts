@@ -96,15 +96,16 @@ export async function processSchemaResult({
   const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
 
   const primaryDatasource = configFromPsl.datasources.at(0)
+  const schemaRootDir = schemaResult.schemaRootDir || cwd
 
   return {
     schemaFiles: schemaResult.schemas,
     schemaPath: schemaResult.schemaPath,
-    schemaRootDir: schemaResult.schemaRootDir || cwd,
+    schemaRootDir,
     datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasource,
-    primaryDatasourceDirectory: primaryDatasourceDirectory(primaryDatasource) || schemaResult.schemaRootDir || cwd,
+    primaryDatasourceDirectory: primaryDatasourceDirectory(primaryDatasource) || schemaRootDir,
     warnings: configFromPsl.warnings,
     loadedFromPathForLogMessages,
   }
