@@ -30,14 +30,20 @@ env:
 jobs:
   release:
     timeout-minutes: 45
-    # environment: 'npm-latest'
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
+
     permissions:
       # required for publishing to npm with --provenance
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
+
     outputs:
       prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
+
     steps:
       - name: Print input
         env:
