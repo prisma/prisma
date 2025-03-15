@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
+import { SqlConnection, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
 
 import { assertNever } from '../utils'
 import { IsolationLevel, Options, TransactionInfo } from './Transaction'
@@ -31,7 +31,7 @@ type TransactionWrapper = {
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
-  transaction?: ErrorCapturingTransaction
+  transaction?: Transaction
 }
 
 const debug = Debug('prisma:client:transactionManager')
@@ -50,9 +50,9 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: ErrorCapturingSqlConnection
+  private readonly driverAdapter: SqlConnection
 
-  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlConnection }) {
+  constructor({ driverAdapter }: { driverAdapter: SqlConnection }) {
     this.driverAdapter = driverAdapter
   }
 
@@ -72,34 +72,34 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
 
-    const txContext = await this.driverAdapter.transactionContext()
-    if (!txContext.ok)
+    const txContext = await this.driverAdapter.transactionContext().catch((error) => {
       throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: txContext.error,
+        driverAdapterError: error,
       })
+    })
 
     if (this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-      await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
+      await txContext.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
     }
 
-    const startedTransaction = await txContext.value.startTransaction()
-    if (!startedTransaction.ok)
+    const startedTransaction = await txContext.startTransaction().catch((error) => {
       throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: startedTransaction.error,
+        driverAdapterError: error,
       })
+    })
 
-    if (!startedTransaction.value.options.usePhantomQuery) {
-      await startedTransaction.value.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+    if (!startedTransaction.options.usePhantomQuery) {
+      await startedTransaction.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
 
       if (!this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-        await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
+        await txContext.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
       }
     }
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        transaction.transaction = startedTransaction.value
+        transaction.transaction = startedTransaction
         clearTimeout(transaction.timer)
         transaction.timer = undefined
         transaction.status = 'running'
@@ -131,7 +131,7 @@ export class TransactionManager {
     await this.closeTransaction(txw, 'rolled_back')
   }
 
-  getTransaction(txInfo: TransactionInfo, operation: string): ErrorCapturingTransaction {
+  getTransaction(txInfo: TransactionInfo, operation: string): Transaction {
     const tx = this.getActiveTransaction(txInfo.id, operation)
     if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
@@ -200,20 +200,20 @@ export class TransactionManager {
     tx.status = status
 
     if (tx.transaction && status === 'committed') {
-      const result = await tx.transaction.commit()
-      if (!result.ok)
+      await tx.transaction.commit().catch((error) => {
         throw new TransactionDriverAdapterError('Failed to commit transaction.', {
-          driverAdapterError: result.error,
+          driverAdapterError: error,
         })
+      })
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(COMMIT_QUERY())
       }
     } else if (tx.transaction) {
-      const result = await tx.transaction.rollback()
-      if (!result.ok)
+      await tx.transaction.rollback().catch((error) => {
         throw new TransactionDriverAdapterError('Failed to rollback transaction.', {
-          driverAdapterError: result.error,
+          driverAdapterError: error,
         })
+      })
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(ROLLBACK_QUERY())
       }
