@@ -479,11 +479,14 @@ testMatrix.setupTestSuite(
         `)
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
@@ -524,11 +527,14 @@ testMatrix.setupTestSuite(
         `)
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
@@ -579,23 +585,24 @@ testMatrix.setupTestSuite(
         ]
       `)
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         const expectation = [
-          [{ query: expect.stringContaining('BEGIN') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
         ]
+        if (driverAdapter === undefined) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+        }
         if (isSqlServer) {
           expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
         }
@@ -677,24 +684,26 @@ testMatrix.setupTestSuite(
       `)
 
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         if (provider !== Providers.MONGODB) {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
+
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }

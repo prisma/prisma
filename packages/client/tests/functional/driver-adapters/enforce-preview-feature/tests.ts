@@ -1,5 +1,5 @@
 import { NewPrismaClient } from '../../_utils/types'
-import { mockAdapter } from '../_utils/mock-adapter'
+import { mockAdapterFactory } from '../_utils/mock-adapter'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -13,7 +13,7 @@ testMatrix.setupTestSuite((suiteConfig, _, clientMeta) => {
   testIf(!clientMeta.driverAdapter)('enforce driverAdapters preview feature', () => {
     const initialize = () => {
       // @ts-test-if: previewFeatures.includes('driverAdapters')
-      newPrismaClient({ adapter: mockAdapter(suiteConfig.provider) })
+      newPrismaClient({ adapter: mockAdapterFactory(suiteConfig.provider) })
     }
 
     if (suiteConfig.previewFeatures.includes('driverAdapters')) {

@@ -1,12 +1,10 @@
-import { createClient } from '@libsql/client'
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
 import { PrismaClient } from 'db'
 
-const libsqlClient = createClient({
-  url: 'libsql://test-prisma.turso.io',
-  authToken: '',
-})
 export const libsqlPrismaClient = new PrismaClient({
-  adapter: new PrismaLibSQL(libsqlClient),
+  adapter: new PrismaLibSQL({
+    url: 'libsql://test-prisma.turso.io',
+    authToken: '',
+  }),
 })
 void libsqlPrismaClient.user.findMany()
