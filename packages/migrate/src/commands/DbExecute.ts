@@ -105,8 +105,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db execute', args, config.schema, !args['--url'])
-
     if (args['--help']) {
       return this.help()
     }
@@ -162,6 +160,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
 
     // Execute command(s) to url passed
     if (args['--url']) {
+      checkUnsupportedDataProxy({ cmd: 'db execute', urls: [args['--url']] })
+
       datasourceType = {
         tag: 'url',
         url: args['--url'],
@@ -176,6 +176,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         schemaPathFromConfig: config.schema,
         printLoadMessage: false,
       })
+
+      checkUnsupportedDataProxy({ cmd: 'db execute', schemaContext })
 
       // Execute command(s) to url from schema
       datasourceType = {

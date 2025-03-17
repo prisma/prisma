@@ -64,8 +64,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate deploy', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -76,6 +74,8 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 

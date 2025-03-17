@@ -118,13 +118,13 @@ Set composite types introspection depth to 2 levels
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db pull', args, config.schema, !args['--url'])
-
     if (args['--help']) {
       return this.help()
     }
 
     const url: string | undefined = args['--url']
+
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
@@ -133,17 +133,17 @@ Set composite types introspection depth to 2 levels
       allowNull: true,
     })
 
+    checkUnsupportedDataProxy({
+      cmd: 'db pull',
+      schemaContext: schemaContext && !url ? schemaContext : undefined,
+      urls: [url],
+    })
+
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       process.stdout.write(dim(`Prisma schema loaded from ${schemaContext.loadedFromPathForLogMessages}`) + '\n')
 
-      // Load and print where the .env was loaded (if loaded)
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
       printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource) })
-    } else {
-      // Load .env but don't print
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
     }
 
     const fromD1 = Boolean(args['--local-d1'])

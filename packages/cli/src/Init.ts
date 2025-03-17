@@ -221,7 +221,7 @@ export class Init implements Command {
     ${dim('$')} prisma init --with-model
   `)
 
-  async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -238,7 +238,7 @@ export class Init implements Command {
       return this.help()
     }
 
-    await checkUnsupportedDataProxy('init', args, config.schema, false)
+    checkUnsupportedDataProxy({ cmd: 'init', urls: [args['--url']] })
 
     /**
      * Validation
