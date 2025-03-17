@@ -95,7 +95,7 @@ test('transaction executes normally', async () => {
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('COMMIT')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
@@ -113,7 +113,7 @@ test('transaction is rolled back', async () => {
   await transactionManager.rollbackTransaction(id)
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
@@ -132,8 +132,8 @@ test('transactions are rolled back when shutting down', async () => {
   await transactionManager.cancelAllTransactions()
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('ROLLBACK')
-  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('ROLLBACK')
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id1)).rejects.toBeInstanceOf(TransactionRolledBackError)
@@ -171,7 +171,7 @@ test('with explicit isolation level', async () => {
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
