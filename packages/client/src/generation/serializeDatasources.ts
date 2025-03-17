@@ -1,4 +1,4 @@
-import type { DataSource } from '@prisma/generator-helper'
+import type { DataSource } from '@prisma/generator'
 
 import type { DatasourceOverwrite } from './extractSqliteSources'
 

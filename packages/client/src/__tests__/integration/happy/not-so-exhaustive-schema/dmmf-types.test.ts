@@ -21,7 +21,7 @@ test('dmmf-types', async () => {
 
   fs.writeFileSync(
     dmmfFile,
-    `import { DMMF } from '@prisma/generator-helper'
+    `import type * as DMMF from '@prisma/dmmf'
 
   const dmmf: DMMF.Document = ${JSON.stringify(dmmf, null, 2)}`,
   )

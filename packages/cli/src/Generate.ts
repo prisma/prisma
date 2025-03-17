@@ -1,6 +1,6 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
   Command,

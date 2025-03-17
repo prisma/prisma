@@ -878,6 +878,14 @@ jobs:
         name: 'client-engine-runtime'
         working-directory: packages/client-engine-runtime
 
+      - run: pnpm run test
+        name: 'dmmf'
+        working-directory: packages/dmmf
+
+      - run: pnpm run test
+        name: 'generator'
+        working-directory: packages/generator
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -1099,6 +1107,16 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'client-engine-runtime'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'dmmf'
+        working-directory: packages/dmmf
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'generator'
+        working-directory: packages/generator
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

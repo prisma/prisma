@@ -1,6 +1,6 @@
 import { confirm, input, select } from '@inquirer/prompts'
 import type { PrismaConfigInternal } from '@prisma/config'
-import type { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator'
 import {
   arg,
   canConnectToDatabase,

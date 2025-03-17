@@ -1,4 +1,4 @@
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 import { dim } from 'kleur/colors'
 import path from 'path'

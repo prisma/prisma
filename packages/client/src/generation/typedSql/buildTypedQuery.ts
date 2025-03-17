@@ -1,4 +1,4 @@
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import { SqlQueryOutput } from '@prisma/generator'
 
 import * as ts from '../ts-builders'
 import { Writer } from '../ts-builders/Writer'

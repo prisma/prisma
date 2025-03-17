@@ -81,8 +81,10 @@
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
+    "@prisma/dmmf": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
+    "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/prisma-schema-wasm": "6.6.0-25.0302bd9e49a13a657a302c060e529d54b08fad04",

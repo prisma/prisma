@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import { DataSource } from '@prisma/generator'
 import { link } from '@prisma/internals'
 
 export function getHardcodedUrlWarning(datasource: DataSource | undefined) {

@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import { DataSource } from '@prisma/generator'
 import type { DatabaseCredentials } from '@prisma/internals'
 import {
   canConnectToDatabase,

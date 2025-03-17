@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import type { ActiveConnectorType } from '@prisma/generator-helper'
+import type { ActiveConnectorType } from '@prisma/generator'
 import type { MigrateTypes } from '@prisma/internals'
 
 type CreateMigrationInput = {

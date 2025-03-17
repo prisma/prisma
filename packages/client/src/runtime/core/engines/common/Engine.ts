@@ -1,5 +1,5 @@
 import type { IsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
 import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'

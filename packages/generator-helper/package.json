@@ -15,7 +15,9 @@
   "homepage": "https://www.prisma.io",
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
-    "@prisma/debug": "workspace:*"
+    "@prisma/debug": "workspace:*",
+    "@prisma/dmmf": "workspace:*",
+    "@prisma/generator": "workspace:*"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

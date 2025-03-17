@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import * as DMMF from '@prisma/dmmf'
 import indentString from 'indent-string'
 import { bold, dim, gray, red, underline } from 'kleur/colors'
 

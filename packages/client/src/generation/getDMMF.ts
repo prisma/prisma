@@ -1,4 +1,4 @@
-import type { DMMF } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
 import type { GetDMMFOptions } from '@prisma/internals'
 import { getDMMF as getRawDMMF } from '@prisma/internals'
 

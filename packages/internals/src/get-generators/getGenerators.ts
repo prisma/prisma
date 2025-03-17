@@ -8,7 +8,7 @@ import type {
   GeneratorConfig,
   GeneratorOptions,
   SqlQueryOutput,
-} from '@prisma/generator-helper'
+} from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
