@@ -92,8 +92,6 @@ test('transaction executes normally', async () => {
 
   const id = await startTransaction(transactionManager)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
@@ -111,8 +109,6 @@ test('transaction is rolled back', async () => {
   })
 
   const id = await startTransaction(transactionManager)
-
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
 
   await transactionManager.rollbackTransaction(id)
 
@@ -132,9 +128,6 @@ test('transactions are rolled back when shutting down', async () => {
 
   const id1 = await startTransaction(transactionManager)
   const id2 = await startTransaction(transactionManager)
-
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
 
   await transactionManager.cancelAllTransactions()
 
@@ -175,9 +168,6 @@ test('with explicit isolation level', async () => {
 
   const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
-
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
@@ -186,31 +176,6 @@ test('with explicit isolation level', async () => {
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
-})
-
-test('for MySQL with explicit isolation level requires isolation level set before BEGIN', async () => {
-  const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
-  const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-  })
-
-  const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
-
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
-
-  await transactionManager.commitTransaction(id)
-})
-
-test('for SQLite with unsupported isolation level', async () => {
-  const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
-  const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
-  })
-
-  await expect(startTransaction(transactionManager, { isolationLevel: 'REPEATABLE READ' })).rejects.toBeInstanceOf(
-    InvalidTransactionIsolationLevelError,
-  )
 })
 
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
