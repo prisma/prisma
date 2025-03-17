@@ -86,7 +86,7 @@ describe('listMigrations', () => {
     })
   })
 
-   itIf(process.platform !== 'win32')('gracefully handles non accessible files', async () => {
+  itIf(process.platform !== 'win32')('gracefully handles non accessible files', async () => {
     ctx.fixture('schema-only-sqlite')
 
     const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')

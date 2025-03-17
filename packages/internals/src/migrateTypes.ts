@@ -12,9 +12,8 @@ export namespace MigrateTypes {
     migrationFile: {
       /**
        * Relative path to the migration file from `path`.
-       * E.g., `./migration.sql`.
        */
-      path: 'migration.sql' | (string & {})
+      path: 'migration.sql'
       /**
        * Content of the migration file.
        * E.g.,
@@ -34,9 +33,8 @@ export namespace MigrateTypes {
   export type MigrationLockfile = {
     /**
      * Relative path to the lockfile from `baseDir`.
-     * E.g., `./migration_lock.toml`.
      */
-    path: 'migration_lock.toml' | (string & {})
+    path: 'migration_lock.toml'
     /**
      * Content of the lockfile, if it exists.
      * E.g.,
