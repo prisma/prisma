@@ -90,7 +90,7 @@ const commonRuntimesOverrides = {
 }
 
 const runtimesCommonBuildConfig = {
-  target: 'ES2021',
+  target: 'ES2022',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
   minify: true,
@@ -159,7 +159,6 @@ function wasmRuntimeBuildConfig(type: 'engine' | 'compiler'): BuildOptions {
 const reactNativeBuildConfig: BuildOptions = {
   ...runtimesCommonBuildConfig,
   name: 'react-native',
-  target: 'ES2022',
   outfile: 'runtime/react-native',
   emitTypes: true,
   define: {

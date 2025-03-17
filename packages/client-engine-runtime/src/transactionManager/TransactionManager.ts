@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
 import { ErrorCapturingSqlDriverAdapter, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
 
+import { randomUUID } from '../crypto'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
@@ -47,7 +48,7 @@ export class TransactionManager {
     const validatedOptions = this.validateOptions(options)
 
     const transaction: TransactionWrapper = {
-      id: globalThis.crypto.randomUUID(),
+      id: await randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: validatedOptions.timeout,

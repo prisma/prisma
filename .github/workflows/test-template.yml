@@ -881,6 +881,14 @@ jobs:
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
 
+      - run: pnpm run test
+        name: 'config'
+        working-directory: packages/config
+
+      - run: pnpm run test
+        name: 'client-engine-runtime'
+        working-directory: packages/client-engine-runtime
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -1085,6 +1093,22 @@ jobs:
         working-directory: packages/schema-files-loader
         env:
           JEST_JUNIT_SUITE_NAME: 'schema-files-loader'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Test packages/config
+        if: contains(inputs.jobsToRun, '-all-')
+        run: pnpm run test
+        working-directory: packages/config
+        env:
+          JEST_JUNIT_SUITE_NAME: 'config'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Test packages/client-engine-runtime
+        if: contains(inputs.jobsToRun, '-all-')
+        run: pnpm run test
+        working-directory: packages/client-engine-runtime
+        env:
+          JEST_JUNIT_SUITE_NAME: 'client-engine-runtime'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - name: Upload test results to BuildPulse for flaky test detection
