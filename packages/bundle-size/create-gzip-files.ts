@@ -5,6 +5,13 @@ void (async () => {
   const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
   const mysqlProjects = ['da-workers-planetscale']
 
+  const nodeCompatProjects = new Set([
+    'da-workers-pg',
+    'da-workers-pg-worker',
+    'da-workers-d1',
+    'da-workers-planetscale',
+  ])
+
   const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
 
   const getSchemaFile = (project: string) => {
@@ -22,9 +29,7 @@ void (async () => {
   await $`pnpm list -r --depth -2` // print the versions of the dependencies installed
 
   for (const project of projects) {
-    // `nodejs_compat` is only needed when using `pg`
-    const compatFlags = project === 'da-workers-pg-worker' ? 'nodejs_compat' : ''
-    const nodeCompat = project === 'da-workers-pg' ? '--node-compat' : ''
+    const compatFlags = nodeCompatProjects.has(project) ? 'nodejs_compat' : ''
     const projectDir = `${__dirname}/${project}`
 
     // Install deps & copy schema & generate Prisma Client
@@ -39,8 +44,8 @@ void (async () => {
     await $`pnpm wrangler deploy ${projectDir}/index.js \
       --dry-run \
       --outdir=${projectDir}/output \
-      --compatibility-date 2024-01-26 \
-      --compatibility-flags [${compatFlags}] ${nodeCompat} \
+      --compatibility-date 2024-09-23 \
+      --compatibility-flags "${compatFlags}" \
       --name ${project} \
       --tsconfig ${__dirname}/tsconfig.json`
 

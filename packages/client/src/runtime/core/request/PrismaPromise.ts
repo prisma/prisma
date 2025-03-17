@@ -1,4 +1,4 @@
-import { IsolationLevel } from '../engines'
+import type { IsolationLevel } from '@prisma/driver-adapter-utils'
 
 export type PrismaOperationSpec<TArgs, TAction = string> = {
   args: TArgs

@@ -1,4 +1,3 @@
-import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
@@ -21,8 +20,7 @@ export const replicaClient = client.$extends(readReplicas({ url: '' }))
 void replicaClient.user.findMany()
 
 /* Driver Adapters */
-const planetScaleClient = new PlanetScaleClient({ url: connectionString })
 export const planetScalePrismaClient = new PrismaClient({
-  adapter: new PrismaPlanetScale(planetScaleClient),
+  adapter: new PrismaPlanetScale({ url: connectionString }),
 })
 void planetScalePrismaClient.user.findMany()

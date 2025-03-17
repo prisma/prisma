@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -82,6 +82,7 @@ export class LibraryEngine implements Engine<undefined> {
   lastQuery?: string
   loggerRustPanic?: any
   tracingHelper: TracingHelper
+  adapterPromise: Promise<ErrorCapturingSqlDriverAdapter> | undefined
 
   versionInfo?: {
     commit: string
@@ -186,6 +187,7 @@ export class LibraryEngine implements Engine<undefined> {
   ): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
+    const adapter = await this.adapterPromise
 
     const headerStr = JSON.stringify(headers)
 
@@ -207,7 +209,7 @@ export class LibraryEngine implements Engine<undefined> {
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
     if (isUserFacingError(response)) {
-      const externalError = this.getExternalAdapterError(response)
+      const externalError = this.getExternalAdapterError(response, adapter?.errorRegistry)
       if (externalError) {
         throw externalError.error
       }
@@ -295,7 +297,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // same time, `this.engine` field will prevent native instance from
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
-      const { adapter } = this.config
+
+      if (!this.adapterPromise) {
+        this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+      }
+      const adapter = await this.adapterPromise
 
       if (adapter) {
         debug('Using driver adapter: %O', adapter)
@@ -461,6 +467,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
 
+      await (await this.adapterPromise)?.dispose()
+      this.adapterPromise = undefined
+
       debug('library stopped')
     }
 
@@ -490,6 +499,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
+      const adapter = await this.adapterPromise
 
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
@@ -498,7 +508,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.buildQueryError(data.errors[0])
+          throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
@@ -533,6 +543,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     debug('requestBatch')
     const request = getBatchRequestPayload(queries, transaction)
     await this.start()
+    const adapter = await this.adapterPromise
 
     this.lastQuery = JSON.stringify(request)
 
@@ -547,7 +558,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw this.buildQueryError(data.errors[0])
+        throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
@@ -559,7 +570,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
         if (result.errors && result.errors.length > 0) {
-          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0])
+          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0], adapter?.errorRegistry)
         }
         return {
           data: result,
@@ -573,7 +584,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private buildQueryError(error: RequestError) {
+  private buildQueryError(error: RequestError, registry?: ErrorRegistry) {
     if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
       return new PrismaClientRustPanicError(
         getErrorMessageWithLink(this, error.user_facing_error.message),
@@ -581,18 +592,21 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    const externalError = this.getExternalAdapterError(error.user_facing_error)
+    const externalError = this.getExternalAdapterError(error.user_facing_error, registry)
 
     return externalError
       ? externalError.error
       : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
   }
 
-  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
-    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+  private getExternalAdapterError(
+    error: RequestError['user_facing_error'],
+    registry?: ErrorRegistry,
+  ): ErrorRecord | undefined {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && registry) {
       const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
+      const errorRecord = registry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
       return errorRecord
     }

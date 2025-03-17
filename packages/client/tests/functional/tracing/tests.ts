@@ -316,7 +316,10 @@ testMatrix.setupTestSuite(
         if (isSqlServer) {
           dbQueries.push(txSetIsolationLevel())
         }
-        dbQueries.push(txBegin())
+        if (driverAdapter === undefined) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          dbQueries.push(txBegin())
+        }
       }
 
       dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
@@ -386,12 +389,15 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
         } else {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
             dbQuery(expect.stringContaining('SELECT')),
             txCommit(),
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
           if (isSqlServer) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
@@ -418,11 +424,14 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify'))]
         } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
           if (isSqlServer) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
@@ -458,11 +467,14 @@ testMatrix.setupTestSuite(
           ]
         } else if (relationMode === RelationModes.PRISMA) {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
           if (isSqlServer) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
@@ -546,7 +558,11 @@ testMatrix.setupTestSuite(
         if (isMongoDb) {
           expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
-          expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
+          expectedDbQueries = [...createDbQueries(false), findManyDbQuery(), txCommit()]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
           if (isSqlServer) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
@@ -613,7 +629,9 @@ testMatrix.setupTestSuite(
                 ? [engineConnection()]
                 : isSqlServer
                 ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
+                : driverAdapter === undefined
+                ? [engineConnection(), txBegin()]
+                : [engineConnection()],
             },
           ],
         })
@@ -662,7 +680,9 @@ testMatrix.setupTestSuite(
                 ? [engineConnection()]
                 : isSqlServer
                 ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
+                : driverAdapter === undefined
+                ? [engineConnection(), txBegin()]
+                : [engineConnection()],
             },
           ],
         })

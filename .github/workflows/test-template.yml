@@ -863,17 +863,6 @@ jobs:
         working-directory: packages/engines
 
       - run: pnpm run test
-        name: 'adapter-planetscale'
-        working-directory: packages/adapter-planetscale
-
-      - run: pnpm run test
-        name: 'adapter-neon'
-        working-directory: packages/adapter-neon
-
-      - run: pnpm run test
-        name: 'adapter-pg'
-        working-directory: packages/adapter-pg
-      - run: pnpm run test
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
