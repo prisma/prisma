@@ -13,7 +13,9 @@ import path from 'path'
 
 import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
+import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { DatasourceInfo } from './utils/ensureDatabaseExists'
+import { listMigrations } from './utils/listMigrations'
 
 // TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
 // We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
@@ -52,44 +54,95 @@ export class Migrate {
     return this.engine.reset()
   }
 
-  public createMigration(params: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
-    return this.engine.createMigration(params)
+  public async createMigration(
+    params: Omit<EngineArgs.CreateMigrationInput, 'migrationsList'>,
+  ): Promise<{ generatedMigrationName: string | undefined }> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
+      ...params,
+      migrationsList,
+    })
+    const { baseDir, lockfile } = migrationsList
+
+    if (migrationScript === null) {
+      return {
+        generatedMigrationName: undefined,
+      }
+    }
+
+    const directoryPath = await createMigration({
+      baseDir,
+      generatedMigrationName,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to create a new migration directory: ${e.message}`)
+    })
+
+    await writeMigrationScript({
+      baseDir,
+      extension,
+      migrationName: generatedMigrationName,
+      script: migrationScript,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to write migration script to ${directoryPath}: ${e.message}`)
+    })
+
+    await writeMigrationLockfile({
+      baseDir,
+      connectorType,
+      lockfile,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to write the migration lock file to ${baseDir}: ${e.message}`)
+    })
+
+    return {
+      generatedMigrationName,
+    }
   }
 
-  public diagnoseMigrationHistory({
+  public async diagnoseMigrationHistory({
     optInToShadowDatabase,
   }: {
     optInToShadowDatabase: boolean
   }): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+
     return this.engine.diagnoseMigrationHistory({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
       optInToShadowDatabase,
     })
   }
 
-  public listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+  public async listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    return this.engine.listMigrationDirectories({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-    })
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+
+    return {
+      migrations: migrationsList.migrationDirectories.map((dir) => dir.path),
+    }
   }
 
-  public devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
+  public async devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+
     return this.engine.devDiagnostic({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
     })
   }
 
   public async markMigrationApplied({ migrationId }: { migrationId: string }): Promise<void> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+
     return await this.engine.markMigrationApplied({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
       migrationName: migrationId,
     })
   }
@@ -100,20 +153,25 @@ export class Migrate {
     })
   }
 
-  public applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
+  public async applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+
     return this.engine.applyMigrations({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
     })
   }
 
   public async evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const schema = this.getPrismaSchema()
+
     return this.engine.evaluateDataLoss({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-      schema: this.getPrismaSchema(),
+      migrationsList,
+      schema: schema,
     })
   }
 

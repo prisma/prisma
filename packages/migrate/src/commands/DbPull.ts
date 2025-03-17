@@ -303,7 +303,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const engine = new SchemaEngine({ schemaContext: schemaContext ?? undefined })
-
     const basedOn =
       !args['--url'] && schemaContext?.primaryDatasource
         ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`

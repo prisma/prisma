@@ -63,7 +63,7 @@ export async function loadSchemaContext({
   printLoadMessage = true,
   ignoreEnvVarErrors = false,
   allowNull = false,
-}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
+}: LoadSchemaContextOptions): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
@@ -86,6 +86,7 @@ export async function processSchemaResult({
   ignoreEnvVarErrors?: boolean
 }): Promise<SchemaContext> {
   const cwd = process.cwd()
+
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
 
   if (printLoadMessage) {
