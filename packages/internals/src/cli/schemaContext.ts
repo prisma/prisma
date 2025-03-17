@@ -56,14 +56,14 @@ type LoadSchemaContextOptions = {
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(opts: LoadSchemaContextOptions): Promise<SchemaContext>
+export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
   printLoadMessage = true,
   ignoreEnvVarErrors = false,
   allowNull = false,
-}: LoadSchemaContextOptions): Promise<SchemaContext | null> {
+}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
