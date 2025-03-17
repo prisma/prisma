@@ -6,6 +6,8 @@ import { listMigrations } from '../utils/listMigrations'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
+const itIf = (condition: boolean) => (condition ? it : it.skip)
+
 describe('listMigrations', () => {
   describe('sqlite', () => {
     it('lists migrations without error if the directory does not exist', async () => {
@@ -84,7 +86,7 @@ describe('listMigrations', () => {
     })
   })
 
-  it('gracefully handles non accessible files', async () => {
+   itIf(process.platform !== 'win32')('gracefully handles non accessible files', async () => {
     ctx.fixture('schema-only-sqlite')
 
     const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')

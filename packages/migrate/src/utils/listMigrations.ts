@@ -14,13 +14,13 @@ import type { MigrateTypes } from '@prisma/internals'
 export async function listMigrations(migrationsDirectoryPath: string): Promise<MigrateTypes.MigrationList> {
   const baseDir = migrationsDirectoryPath
 
-  const lockfilePath = 'migration_lock.toml'
+  const lockfileName = 'migration_lock.toml'
   const lockfileContent = await fs
-    .readFile(path.join(migrationsDirectoryPath, lockfilePath), { encoding: 'utf-8' })
+    .readFile(path.join(migrationsDirectoryPath, lockfileName), { encoding: 'utf-8' })
     .catch(() => null)
 
   const lockfile = {
-    path: lockfilePath,
+    path: lockfileName,
     content: lockfileContent,
   } satisfies MigrateTypes.MigrationList['lockfile']
 
@@ -48,16 +48,16 @@ export async function listMigrations(migrationsDirectoryPath: string): Promise<M
   for (const entry of entries.filter((entry) => entry.isDirectory())) {
     const migrationPath = path.join(baseDir, entry.name)
 
-    const migrationFilePath = 'migration.sql'
+    const migrationFileName = 'migration.sql'
     const migrationFileContent = await fs
-      .readFile(path.join(migrationPath, migrationFilePath), { encoding: 'utf-8' })
+      .readFile(path.join(migrationPath, migrationFileName), { encoding: 'utf-8' })
       .then((content) => ({ tag: 'ok' as const, value: content }))
       .catch((error) => ({ tag: 'error' as const, value: error as Error }))
 
     migrationDirectories.push({
       path: entry.name,
       migrationFile: {
-        path: migrationFilePath,
+        path: migrationFileName,
         content: migrationFileContent,
       },
     })
