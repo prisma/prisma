@@ -184,14 +184,21 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   async start(): Promise<void> {
-    await this.adapterPromise
-    await this.instantiateQueryCompilerPromise
+    await this.ensureStarted()
   }
 
   async stop(): Promise<void> {
     await this.instantiateQueryCompilerPromise
     await (await this.transactionManagerPromise)?.cancelAllTransactions()
     await (await this.adapterPromise).dispose()
+  }
+
+  async ensureStarted(): Promise<[ErrorCapturingSqlDriverAdapter, TransactionManager]> {
+    const adapter = await this.adapterPromise
+    const transactionManager = await this.transactionManagerPromise
+    await this.instantiateQueryCompilerPromise
+
+    return [adapter, transactionManager]
   }
 
   version(): string {
@@ -251,7 +258,7 @@ export class ClientEngine implements Engine<undefined> {
     this.lastStartedQuery = queryStr
 
     try {
-      await this.start()
+      const [adapter, transactionManager] = await this.ensureStarted()
 
       const queryPlanString = await this.queryCompiler!.compile(queryStr)
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
@@ -259,8 +266,8 @@ export class ClientEngine implements Engine<undefined> {
       debug(`query plan created`, queryPlanString)
 
       const queryable = interactiveTransaction
-        ? (await this.transactionManagerPromise).getTransaction(interactiveTransaction, query.action)
-        : await this.adapterPromise
+        ? transactionManager.getTransaction(interactiveTransaction, query.action)
+        : adapter
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
@@ -286,7 +293,7 @@ export class ClientEngine implements Engine<undefined> {
     this.lastStartedQuery = JSON.stringify(queries)
 
     try {
-      await this.start()
+      const [, transactionManager] = await this.ensureStarted()
 
       const queriesWithPlans = await Promise.all(
         queries.map(async (query) => {
@@ -310,7 +317,7 @@ export class ClientEngine implements Engine<undefined> {
       // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
       const results: BatchQueryEngineResult<T>[] = []
       for (const { query, plan } of queriesWithPlans) {
-        const queryable = (await this.transactionManagerPromise).getTransaction(txInfo, query.action)
+        const queryable = transactionManager.getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
           queryable,
           placeholderValues: {},

@@ -208,18 +208,10 @@ export class TransactionManager {
     // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
     if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
 
-    // SQLite only has serializable isolation level.
-    if (this.driverAdapter.provider === 'sqlite' && options.isolationLevel && options.isolationLevel !== 'SERIALIZABLE')
-      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
-
     return {
       ...options,
       timeout: options.timeout,
       maxWait: options.maxWait,
     }
-  }
-
-  private requiresSettingIsolationLevelFirst() {
-    return this.driverAdapter.provider === 'mysql'
   }
 }

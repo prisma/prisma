@@ -150,15 +150,6 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
 
 export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
   constructor(client: planetScale.Client) {
-    // this used to be a check for constructor name at same point (more reliable when having multiple copies
-    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
-    if (!(client instanceof planetScale.Client)) {
-      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
-import { Client } from '@planetscale/database'
-const client = new Client({ url })
-const adapter = new PrismaPlanetScale(client)
-`)
-    }
     super(client)
   }
 

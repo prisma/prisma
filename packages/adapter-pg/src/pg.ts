@@ -167,14 +167,6 @@ export type PrismaPgOptions = {
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
-    // Note: Full `client instanceof pg.Pool` check would sometimes give false negatives depending on the package resolution.
-    if (!client) {
-      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
-import { Pool } from 'pg'
-const pool = new Pool({ connectionString: url })
-const adapter = new PrismaPg(pool)
-`)
-    }
     super(client)
   }
 
