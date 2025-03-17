@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 
 import { jestContext } from '@prisma/get-platform'
@@ -15,12 +16,6 @@ const ctx = jestContext.new().assemble()
  * backslash is a valid filename character, it will be treated as such and will
  * not be replaced.
  */
-function pathToPosix(filePath: string): string {
-  if (path.sep === path.posix.sep) {
-    return filePath
-  }
-  return filePath.split(path.sep).join(path.posix.sep)
-}
 
 describe('loadConfigFromFile', () => {
   function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
@@ -168,18 +163,22 @@ describe('loadConfigFromFile', () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
-      console.log('[1] resolvedPath', resolvedPath)
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toBeUndefined()
       assertErrorTypeScriptImportFailed(error)
 
-      console.log('[2] pathToPosix(resolvedPath)', pathToPosix(resolvedPath!))
+      const normalisedPath = (() => {
+        if (process.platform === 'win32') {
+          const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
+          console.log('actualPath:', actualPath)
 
-      console.log(`[3] resolvedPath!.replaceAll('\\\\', '\\')`, resolvedPath!.replaceAll('\\\\', '\\'))
+          return actualPath
+        } else {
+          return resolvedPath
+        }
+      })()
 
-      console.log('[4] error.error.message', error.error.message)
-
-      expect(error.error.message.replaceAll(resolvedPath!.replaceAll('\\\\', '\\'), '<prisma-config>.ts')).toMatchInlineSnapshot(`
+      expect(error.error.message.replaceAll(normalisedPath, '<prisma-config>.ts')).toMatchInlineSnapshot(`
         "  [31m×[0m Unexpected eof
            ╭─[[36;1;4m<prisma-config>.ts[0m:5:3]
          [2m3[0m │ export default defineConfig({
