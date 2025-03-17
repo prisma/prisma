@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ErrorCapturingSqlDriverAdapter, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
+import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
 import { assertNever } from '../utils'
@@ -24,7 +24,7 @@ type TransactionWrapper = {
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
-  transaction?: ErrorCapturingTransaction
+  transaction?: Transaction
 }
 
 const debug = Debug('prisma:client:transactionManager')
@@ -38,9 +38,9 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: ErrorCapturingSqlDriverAdapter
+  private readonly driverAdapter: SqlDriverAdapter
 
-  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlDriverAdapter }) {
+  constructor({ driverAdapter }: { driverAdapter: SqlDriverAdapter }) {
     this.driverAdapter = driverAdapter
   }
 
@@ -60,17 +60,19 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
 
-    const startedTransaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
-
-    if (!startedTransaction.ok)
+    let startedTransaction: Transaction
+    try {
+      startedTransaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+    } catch (error) {
       throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: startedTransaction.error,
+        driverAdapterError: error,
       })
+    }
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        transaction.transaction = startedTransaction.value
+        transaction.transaction = startedTransaction
         clearTimeout(transaction.timer)
         transaction.timer = undefined
         transaction.status = 'running'
@@ -102,7 +104,7 @@ export class TransactionManager {
     await this.closeTransaction(txw, 'rolled_back')
   }
 
-  getTransaction(txInfo: TransactionInfo, operation: string): ErrorCapturingTransaction {
+  getTransaction(txInfo: TransactionInfo, operation: string): Transaction {
     const tx = this.getActiveTransaction(txInfo.id, operation)
     if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
@@ -171,20 +173,24 @@ export class TransactionManager {
     tx.status = status
 
     if (tx.transaction && status === 'committed') {
-      const result = await tx.transaction.commit()
-      if (!result.ok)
+      try {
+        await tx.transaction.commit()
+      } catch (error) {
         throw new TransactionDriverAdapterError('Failed to commit transaction.', {
-          driverAdapterError: result.error,
+          driverAdapterError: error,
         })
+      }
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(COMMIT_QUERY())
       }
     } else if (tx.transaction) {
-      const result = await tx.transaction.rollback()
-      if (!result.ok)
+      try {
+        await tx.transaction.rollback()
+      } catch (error) {
         throw new TransactionDriverAdapterError('Failed to rollback transaction.', {
-          driverAdapterError: result.error,
+          driverAdapterError: error,
         })
+      }
       if (!tx.transaction.options.usePhantomQuery) {
         await tx.transaction.executeRaw(ROLLBACK_QUERY())
       }
