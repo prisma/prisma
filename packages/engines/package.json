@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.6.0-17.refactor-migrate-to-new-interface-a65ab979bf81a122861f2a68231321419d7fb303",
+    "@prisma/engines-version": "6.6.0-24.933fc09bcbebf77a522ae2ac61fb5203f656749f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },
