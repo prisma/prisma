@@ -93,8 +93,8 @@ importers:
         specifier: 4.6.1
         version: 4.6.1(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5)
       eslint-plugin-jest:
-        specifier: 28.10.0
-        version: 28.10.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)))(typescript@5.4.5)
+        specifier: 28.11.0
+        version: 28.11.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)))(typescript@5.4.5)
       eslint-plugin-local-rules:
         specifier: 3.0.2
         version: 3.0.2
@@ -4395,8 +4395,8 @@ packages:
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
 
-  eslint-plugin-jest@28.10.0:
-    resolution: {integrity: sha512-hyMWUxkBH99HpXT3p8hc7REbEZK3D+nk8vHXGgpB+XXsi0gO4PxMSP+pjfUzb67GnV9yawV9a53eUmcde1CCZA==}
+  eslint-plugin-jest@28.11.0:
+    resolution: {integrity: sha512-QAfipLcNCWLVocVbZW8GimKn5p5iiMcgGbRzz8z/P5q7xw+cNEpYqyzFMtIF/ZgF2HLOyy+dYBut+DoYolvqig==}
     engines: {node: ^16.10.0 || ^18.12.0 || >=20.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^6.0.0 || ^7.0.0 || ^8.0.0
@@ -10163,7 +10163,7 @@ snapshots:
       - supports-color
       - typescript
 
-  eslint-plugin-jest@28.10.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)))(typescript@5.4.5):
+  eslint-plugin-jest@28.11.0(@typescript-eslint/eslint-plugin@7.15.0(@typescript-eslint/parser@7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5))(eslint@9.22.0(jiti@2.4.2))(jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)))(typescript@5.4.5):
     dependencies:
       '@typescript-eslint/utils': 7.15.0(eslint@9.22.0(jiti@2.4.2))(typescript@5.4.5)
       eslint: 9.22.0(jiti@2.4.2)
