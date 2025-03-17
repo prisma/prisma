@@ -234,7 +234,6 @@ ${bold('Examples')}
     let migrationIds: string[]
     try {
       const createMigrationResult = await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
         schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
