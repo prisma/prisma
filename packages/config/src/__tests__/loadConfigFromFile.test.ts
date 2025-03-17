@@ -9,14 +9,6 @@ import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigF
 
 const ctx = jestContext.new().assemble()
 
-/**
- * Normalize `filePath` to use forward slashes as a separator. `filePath` is
- * treated as a path specific to the current platform, so backslashes will only
- * be replaced with forward slashes on Windows. On other platforms, where a
- * backslash is a valid filename character, it will be treated as such and will
- * not be replaced.
- */
-
 describe('loadConfigFromFile', () => {
   function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
     _tag: 'TypeScriptImportFailed'
@@ -170,8 +162,6 @@ describe('loadConfigFromFile', () => {
       const normalisedPath = (() => {
         if (process.platform === 'win32') {
           const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
-          console.log('actualPath:', actualPath)
-
           return actualPath
         } else {
           return resolvedPath
