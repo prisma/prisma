@@ -28,7 +28,7 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  target: 'ES2021',
+  target: 'ES2022',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
