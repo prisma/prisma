@@ -93,7 +93,6 @@ declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVa
 declare const __testPrismaMigrateConfigShapeValueA: ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
 declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigShape<EnvVars>
 
-
 // eslint-disable-next-line no-constant-condition
 if (false) {
   __testPrismaSchemaConfigShapeValueA satisfies PrismaSchemaConfigShape
