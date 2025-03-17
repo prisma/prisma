@@ -73,7 +73,7 @@ export async function loadConfigFromFile({
 
   if (configFile) {
     // The user gave us a specific config file to load. If it doesn't exist, we should raise an error.
-    resolvedPath = path.resolve(configRoot, configFile)
+    resolvedPath = pathToPosix(path.resolve(configRoot, configFile))
 
     if (!fs.existsSync(resolvedPath)) {
       debug(`The given config file was not found at %s`, resolvedPath)
@@ -197,4 +197,11 @@ function transformPathsInConfigToAbsolute(
   } else {
     return prismaConfig
   }
+}
+
+function pathToPosix(filePath: string): string {
+  if (path.sep === path.posix.sep) {
+    return filePath
+  }
+  return filePath.split(path.sep).join(path.posix.sep)
 }
