@@ -5,7 +5,6 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
-  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -19,7 +18,7 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -156,12 +155,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
         } else {
           process.exit(1)
         }
-      } else {
-        // Only used to help users to set up their seeds from old way to new package.json config
-        const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
-        // we don't want to output the returned warning message
-        // but we still want to run it for `legacyTsNodeScriptWarning()`
-        await verifySeedConfigAndReturnMessage(schemaPath)
       }
     }
 

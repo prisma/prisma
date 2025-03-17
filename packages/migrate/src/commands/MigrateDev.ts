@@ -7,7 +7,6 @@ import {
   Command,
   format,
   getCommandWithExecutor,
-  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
@@ -27,7 +26,7 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -287,8 +286,6 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
     // If database was created we want to run the seed if not skipped
     if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      // Run seed if 1 or more seed files are present
-      // And catch the error to continue execution
       try {
         const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
@@ -300,12 +297,6 @@ ${green('Your database is now in sync with your schema.')}\n`,
           } else {
             process.exit(1)
           }
-        } else {
-          // Only used to help users to set up their seeds from old way to new package.json config
-          const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
-          // we don't want to output the returned warning message
-          // but we still want to run it for `legacyTsNodeScriptWarning()`
-          await verifySeedConfigAndReturnMessage(schemaPath) // TODO:(schemaPath) ORM-667 get rid of this use of schemaPath
         }
       } catch (e) {
         console.error(e)
