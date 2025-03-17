@@ -7,10 +7,10 @@ import {
   Command,
   format,
   getCommandWithExecutor,
-  getConfig,
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
   toSchemasContainer,
   validate,
 } from '@prisma/internals'
@@ -20,9 +20,8 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
@@ -97,29 +96,26 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
-    validate({
-      schemas,
-    })
-    await getConfig({
-      datamodel: schemas,
-      ignoreEnvVarErrors: false,
-    })
+    validate({ schemas: schemaContext.schemaFiles })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
+    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
     if (wasDbCreated) {
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaPath)
+    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
