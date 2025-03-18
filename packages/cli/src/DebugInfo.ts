@@ -68,7 +68,7 @@ export class DebugInfo implements Command {
 
     let schemaPath
     try {
-      schemaPath = link((await getSchemaWithPath(args['--schema'], config.schemaPath))?.schemaPath)
+      schemaPath = link((await getSchemaWithPath(args['--schema'], config.schema))?.schemaPath)
     } catch (e) {
       schemaPath = e.message
     }

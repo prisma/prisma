@@ -178,10 +178,10 @@ function transformPathsInConfigToAbsolute(
   prismaConfig: PrismaConfigInternal,
   resolvedPath: string,
 ): PrismaConfigInternal {
-  if (prismaConfig.schemaPath) {
+  if (prismaConfig.schema) {
     return {
       ...prismaConfig,
-      schemaPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schemaPath),
+      schema: path.resolve(path.dirname(resolvedPath), prismaConfig.schema),
     }
   } else {
     return prismaConfig

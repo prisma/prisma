@@ -66,7 +66,7 @@ if (false) {
 const createPrismaConfigShape = () =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
-    schemaPath: Shape.optional(Shape.String),
+    schema: Shape.optional(Shape.String),
   })
 
 /**
@@ -81,7 +81,7 @@ export type PrismaConfig<Env extends EnvVars = never> = {
   /**
    * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
-  schemaPath?: string
+  schema?: string
   /**
    * The configuration for Prisma Studio.
    */
@@ -117,7 +117,7 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
-    schemaPath: Shape.optional(Shape.String),
+    schema: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
@@ -129,9 +129,9 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
    */
   earlyAccess: true
   /**
-   * The configuration for the Prisma schema file(s).
+   * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
-  schemaPath?: string
+  schema?: string
   /**
    * The configuration for Prisma Studio.
    */

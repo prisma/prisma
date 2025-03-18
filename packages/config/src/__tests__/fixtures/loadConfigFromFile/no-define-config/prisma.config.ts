@@ -2,5 +2,5 @@ import type { PrismaConfig } from 'src/index'
 
 export default {
   earlyAccess: true,
-  schemaPath: 'schema.prisma',
+  schema: 'schema.prisma',
 } satisfies PrismaConfig

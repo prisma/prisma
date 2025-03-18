@@ -74,7 +74,7 @@ Check the status of your database migrations
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schemaPath,
+      schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 

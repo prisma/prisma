@@ -35,12 +35,12 @@ function defineSchemaConfig<Env extends Record<string, string | undefined> = nev
   config: DeepMutable<PrismaConfigInternal<Env>>,
   configInput: PrismaConfig<Env>,
 ) {
-  if (!configInput.schemaPath) {
+  if (!configInput.schema) {
     return
   }
 
-  config.schemaPath = configInput.schemaPath
-  debug('Prisma config [schema]: %o', config.schemaPath)
+  config.schema = configInput.schema
+  debug('Prisma config [schema]: %o', config.schema)
 }
 
 function defineStudioConfig<Env extends Record<string, string | undefined> = never>(

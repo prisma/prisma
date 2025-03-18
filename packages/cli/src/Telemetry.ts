@@ -22,7 +22,7 @@ export class Telemetry implements Command {
 
     const info = await checkpoint.getInfo()
     // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash(args['--schema'], config.schemaPath)
+    const projectPathHash = await getProjectHash(args['--schema'], config.schema)
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 

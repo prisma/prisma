@@ -245,7 +245,7 @@ ${bold('Examples')}
         ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--from-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), config.schemaPath, {
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), config.schema, {
         argumentName: '--from-schema-datamodel',
       })
       from = {
@@ -289,7 +289,7 @@ ${bold('Examples')}
         ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--to-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), config.schemaPath, {
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), config.schema, {
         argumentName: '--to-schema-datamodel',
       })
       to = {

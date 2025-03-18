@@ -194,7 +194,7 @@ async function main(): Promise<number> {
     command: redactedCommandAsString,
     isPrismaInstalledGlobally,
     schemaPath: args['--schema'],
-    schemaPathFromConfig: config.schemaPath,
+    schemaPathFromConfig: config.schema,
     telemetryInformation: args['--telemetry-information'],
     version: packageJson.version,
   })

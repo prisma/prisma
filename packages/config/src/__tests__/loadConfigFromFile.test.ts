@@ -34,7 +34,7 @@ describe('loadConfigFromFile', () => {
       expect(error).toBeUndefined()
       expect(config).toMatchObject({
         earlyAccess: true,
-        schemaPath: path.join(cwd, 'schema.prisma'),
+        schema: path.join(cwd, 'schema.prisma'),
       })
     })
   })
@@ -51,7 +51,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema.prisma'),
+          schema: path.join(cwd, 'prisma', 'schema.prisma'),
         })
       })
 
@@ -65,7 +65,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema.prisma'),
+          schema: path.join(cwd, 'prisma', 'schema.prisma'),
         })
       })
 
@@ -79,7 +79,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema.prisma'),
+          schema: path.join(cwd, 'prisma', 'schema.prisma'),
         })
       })
     })
@@ -95,7 +95,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema'),
+          schema: path.join(cwd, 'prisma', 'schema'),
         })
       })
 
@@ -109,7 +109,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema'),
+          schema: path.join(cwd, 'prisma', 'schema'),
         })
       })
 
@@ -123,7 +123,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toMatchObject({
           earlyAccess: true,
           loadedFromFile: resolvedPath,
-          schemaPath: path.join(cwd, 'prisma', 'schema'),
+          schema: path.join(cwd, 'prisma', 'schema'),
         })
       })
     })
@@ -161,7 +161,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schemaPath?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -174,9 +174,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schemaPath?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: Adapter<Env> } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "earlyAccess" | "schemaPath" | "studio" | "migrate" | "loadedFromFile""
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrate" | "loadedFromFile""
       `)
     })
   })
