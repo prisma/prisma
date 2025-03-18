@@ -138,8 +138,8 @@ importers:
         specifier: 15.4.3
         version: 15.4.3
       p-map:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 7.0.3
+        version: 7.0.3
       p-reduce:
         specifier: 3.0.0
         version: 3.0.0
@@ -1034,8 +1034,8 @@ importers:
         specifier: 4.1.0
         version: 4.1.0
       p-map:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 7.0.3
+        version: 7.0.3
       p-retry:
         specifier: 4.6.2
         version: 4.6.2
@@ -1419,8 +1419,8 @@ importers:
         specifier: 7.4.2
         version: 7.4.2
       p-map:
-        specifier: 4.0.0
-        version: 4.0.0
+        specifier: 7.0.3
+        version: 7.0.3
       read-package-up:
         specifier: 11.0.0
         version: 11.0.0
