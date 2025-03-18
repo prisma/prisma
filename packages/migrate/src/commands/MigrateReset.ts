@@ -70,8 +70,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate reset', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -84,6 +82,8 @@ ${bold('Examples')}
     })
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)

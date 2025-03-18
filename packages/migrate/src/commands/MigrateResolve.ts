@@ -75,8 +75,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -87,6 +85,8 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
