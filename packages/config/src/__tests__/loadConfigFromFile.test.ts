@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 
 import { jestContext } from '@prisma/get-platform'
@@ -157,18 +158,20 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toBeUndefined()
       assertErrorTypeScriptImportFailed(error)
-      expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "  [31mx[0m Unexpected eof
-           ,-[[36;1;4m<prisma-config>.ts[0m:5:3]
-         [2m3[0m | export default defineConfig({
-         [2m4[0m |   earlyAccess: true,
-         [2m5[0m | }
-           \`----
 
+      const { message: errorMessage } = error.error
+      const { normalisedPath } = (() => {
+        if (process.platform === 'win32') {
+          const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
+          return { normalisedPath: actualPath }
+        } else {
+          return { normalisedPath: resolvedPath }
+        }
+      })()
 
-        Caused by:
-            Syntax Error"
-      `)
+      expect(errorMessage).toContain('Unexpected eof')
+      expect(errorMessage).toContain('Syntax Error')
+      expect(errorMessage).toContain(normalisedPath)
     })
 
     it('fails with `ConfigFileParseError` when the Prisma config file has no default export', async () => {
