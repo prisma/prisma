@@ -23,7 +23,6 @@ export interface CreateErrorReportInput {
   // https://github.com/prisma/error-handling-backend
   platform: string
   rustStackTrace: string
-  schemaFile?: string
   fingerprint?: string
   sqlDump?: string
   dbVersion?: string

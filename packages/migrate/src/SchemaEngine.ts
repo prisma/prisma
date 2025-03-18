@@ -389,16 +389,7 @@ export class SchemaEngine {
              */
             const stackTrace = `[EXIT_PANIC]\n${processMessages}\n${this.lastError?.backtrace ?? ''}`
 
-            exitWithErr(
-              new RustPanic(
-                serializePanic(engineMessage),
-                stackTrace,
-                this.lastRequest,
-                ErrorArea.LIFT_CLI,
-                /* schemaPath */ this.schemaContext?.loadedFromPathForLogMessages,
-                /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
-              ),
-            )
+            exitWithErr(new RustPanic(serializePanic(engineMessage), stackTrace, this.lastRequest, ErrorArea.LIFT_CLI))
           }
 
           switch (code) {
@@ -486,14 +477,7 @@ export class SchemaEngine {
 
               reject(
                 // Handle error and displays the interactive dialog to send panic error
-                new RustPanic(
-                  message,
-                  stackTrace,
-                  this.lastRequest,
-                  ErrorArea.LIFT_CLI,
-                  /* schemaPath */ this.schemaContext?.loadedFromPathForLogMessages,
-                  /* schema */ this.latestSchema?.files.map((schema) => [schema.path, schema.content]),
-                ),
+                new RustPanic(message, stackTrace, this.lastRequest, ErrorArea.LIFT_CLI),
               )
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
