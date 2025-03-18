@@ -2596,7 +2596,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Embed model
-   */ 
+   */
   interface EmbedFieldRefs {
     readonly text: FieldRef<"Embed", 'String'>
     readonly boolean: FieldRef<"Embed", 'Boolean'>
@@ -2664,7 +2664,7 @@ export namespace Prisma {
 
   /**
    * Fields of the EmbedEmbed model
-   */ 
+   */
   interface EmbedEmbedFieldRefs {
     readonly text: FieldRef<"EmbedEmbed", 'String'>
     readonly boolean: FieldRef<"EmbedEmbed", 'Boolean'>
@@ -3281,7 +3281,7 @@ export namespace Prisma {
 
   /**
    * Fields of the Post model
-   */ 
+   */
   interface PostFieldRefs {
     readonly id: FieldRef<"Post", 'String'>
     readonly createdAt: FieldRef<"Post", 'DateTime'>
@@ -4405,7 +4405,7 @@ export namespace Prisma {
 
   /**
    * Fields of the User model
-   */ 
+   */
   interface UserFieldRefs {
     readonly id: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
@@ -5417,7 +5417,7 @@ export namespace Prisma {
 
   /**
    * Fields of the EmbedHolder model
-   */ 
+   */
   interface EmbedHolderFieldRefs {
     readonly id: FieldRef<"EmbedHolder", 'String'>
     readonly time: FieldRef<"EmbedHolder", 'DateTime'>
@@ -6545,7 +6545,7 @@ export namespace Prisma {
 
   /**
    * Fields of the M model
-   */ 
+   */
   interface MFieldRefs {
     readonly id: FieldRef<"M", 'String'>
     readonly n_ids: FieldRef<"M", 'String[]'>
@@ -7683,7 +7683,7 @@ export namespace Prisma {
 
   /**
    * Fields of the N model
-   */ 
+   */
   interface NFieldRefs {
     readonly id: FieldRef<"N", 'String'>
     readonly m_ids: FieldRef<"N", 'String[]'>
@@ -8815,7 +8815,7 @@ export namespace Prisma {
 
   /**
    * Fields of the OneOptional model
-   */ 
+   */
   interface OneOptionalFieldRefs {
     readonly id: FieldRef<"OneOptional", 'String'>
     readonly int: FieldRef<"OneOptional", 'Int'>
@@ -9954,7 +9954,7 @@ export namespace Prisma {
 
   /**
    * Fields of the ManyRequired model
-   */ 
+   */
   interface ManyRequiredFieldRefs {
     readonly id: FieldRef<"ManyRequired", 'String'>
     readonly oneOptionalId: FieldRef<"ManyRequired", 'String'>
@@ -11089,7 +11089,7 @@ export namespace Prisma {
 
   /**
    * Fields of the OptionalSide1 model
-   */ 
+   */
   interface OptionalSide1FieldRefs {
     readonly id: FieldRef<"OptionalSide1", 'String'>
     readonly optionalSide2Id: FieldRef<"OptionalSide1", 'String'>
@@ -12214,7 +12214,7 @@ export namespace Prisma {
 
   /**
    * Fields of the OptionalSide2 model
-   */ 
+   */
   interface OptionalSide2FieldRefs {
     readonly id: FieldRef<"OptionalSide2", 'String'>
     readonly int: FieldRef<"OptionalSide2", 'Int'>
@@ -13271,7 +13271,7 @@ export namespace Prisma {
 
   /**
    * Fields of the A model
-   */ 
+   */
   interface AFieldRefs {
     readonly id: FieldRef<"A", 'String'>
     readonly email: FieldRef<"A", 'String'>
@@ -14222,7 +14222,7 @@ export namespace Prisma {
 
   /**
    * Fields of the B model
-   */ 
+   */
   interface BFieldRefs {
     readonly id: FieldRef<"B", 'String'>
     readonly float: FieldRef<"B", 'Float'>
@@ -15172,7 +15172,7 @@ export namespace Prisma {
 
   /**
    * Fields of the C model
-   */ 
+   */
   interface CFieldRefs {
     readonly id: FieldRef<"C", 'String'>
     readonly char: FieldRef<"C", 'String'>
@@ -16148,7 +16148,7 @@ export namespace Prisma {
 
   /**
    * Fields of the D model
-   */ 
+   */
   interface DFieldRefs {
     readonly id: FieldRef<"D", 'String'>
     readonly bool: FieldRef<"D", 'Boolean'>
@@ -17072,7 +17072,7 @@ export namespace Prisma {
 
   /**
    * Fields of the E model
-   */ 
+   */
   interface EFieldRefs {
     readonly id: FieldRef<"E", 'String'>
     readonly date: FieldRef<"E", 'DateTime'>

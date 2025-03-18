@@ -1,5 +1,5 @@
-import { Cache } from '../../../generation/Cache'
-import { lazyProperty } from '../../../generation/lazyProperty'
+import { Cache, lazyProperty } from '@prisma/client-common'
+
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { ClientArg, ExtensionArgs, ModelArg, QueryOptionsCb } from '../types/exported/ExtensionArgs'
 import { BatchQueryOptionsCb, QueryOptionsPrivate } from '../types/internal/ExtensionsInternalArgs'

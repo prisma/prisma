@@ -180,7 +180,7 @@ const edgeEsmRuntimeBuildConfig: BuildOptions = {
   format: 'esm',
 }
 
-// we define the config for generator
+// old-style generator compatiblity shim for studio
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
   entryPoints: ['src/generation/generator.ts'],

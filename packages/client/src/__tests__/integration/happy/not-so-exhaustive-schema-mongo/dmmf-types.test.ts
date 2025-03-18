@@ -1,7 +1,8 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
-import { getDMMF } from '../../../../generation/getDMMF'
+import { getDMMF } from '@prisma/client-generator-js'
+
 import { compileFile } from '../../../../utils/compileFile'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)

@@ -1,7 +1,7 @@
+import { type ChildProcessByStdio, fork } from 'node:child_process'
+
 import { Debug } from '@prisma/debug'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import type { ChildProcessByStdio } from 'child_process'
-import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
 import { Readable, Writable } from 'stream'
@@ -15,10 +15,6 @@ let globalMessageId = 1
 
 type GeneratorProcessOptions = {
   isNode?: boolean
-  /**
-   * Time to wait before we consider generator successfully started, ms
-   */
-  initWaitTime?: number
 }
 
 export class GeneratorError extends Error {

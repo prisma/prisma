@@ -6,7 +6,6 @@ export { type Types }
 export { Extensions }
 export { Public }
 
-export { type BaseDMMF, type DMMF } from '../generation/dmmf-types'
 export { type JsonBatchQuery, type JsonQuery } from './core/engines'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
@@ -23,7 +22,6 @@ export {
   MetricsClient,
 } from './core/metrics/MetricsClient'
 export { createParam } from './core/model/Param'
-export { dmmfToRuntimeDataModel, type RuntimeDataModel } from './core/runtimeDataModel'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
@@ -36,7 +34,9 @@ export { makeStrictEnum } from './strictEnum'
 export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
 export { warnEnvConflicts } from './warnEnvConflicts'
+export { type BaseDMMF, dmmfToRuntimeDataModel, type RuntimeDataModel } from '@prisma/client-common'
 export { Debug } from '@prisma/debug'
+export type * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 export { warnOnce } from '@prisma/internals'
 export { default as Decimal } from 'decimal.js'

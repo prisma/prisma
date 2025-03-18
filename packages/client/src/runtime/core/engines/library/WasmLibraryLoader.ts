@@ -2,9 +2,11 @@
 // wasm-bindgen --browser. --browser is the leanest and most agnostic option
 // that is also easy to integrate with our bundling.
 // import * as wasmBindgenRuntime from '@prisma/query-engine-wasm/query_engine_bg.js'
+import { QueryEngineConstructor } from '@prisma/client-common'
+
 import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { LibraryLoader, QueryEngineConstructor } from './types/Library'
+import { LibraryLoader } from './types/Library'
 
 declare const WebAssembly: any // TODO not defined in Node types?
 

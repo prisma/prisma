@@ -1,3 +1,4 @@
+import { defaultRegistry } from '@prisma/client-generator-registry'
 import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
@@ -15,10 +16,6 @@ import type { EngineArgs, EngineResults } from './types'
 import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { DatasourceInfo } from './utils/ensureDatabaseExists'
 import { listMigrations } from './utils/listMigrations'
-
-// TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
-// We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
-const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: SchemaEngine
@@ -202,8 +199,8 @@ export class Migrate {
       schemaContext: this.schemaContext,
       printDownloadProgress: true,
       version: enginesVersion,
-      cliVersion: packageJson.version,
       noEngine: skipEngines,
+      registry: defaultRegistry.toInternal(),
     })
 
     for (const generator of generators) {

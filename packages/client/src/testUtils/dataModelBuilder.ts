@@ -1,6 +1,5 @@
+import { dmmfToRuntimeDataModel, RuntimeDataModel } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
-
-import { dmmfToRuntimeDataModel, RuntimeDataModel } from '../runtime/core/runtimeDataModel'
 
 export function field(kind: DMMF.FieldKind, name: string, type: string, extra?: Partial<DMMF.Field>): DMMF.Field {
   return {

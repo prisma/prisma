@@ -12,7 +12,7 @@ generatorHandler({
   onManifest() {
     console.log('Logging in onManifest should be fine')
     return {
-      defaultOutput: 'default-output',
+      defaultOutput: __dirname,
       denylist: ['SomeForbiddenType'],
       prettyName: 'This is a pretty name',
       requiresEngines: ['queryEngine', 'schemaEngine'],

@@ -1,5 +1,6 @@
-import { Writer } from '../../../generation/ts-builders/Writer'
-import { lowerCase } from '../../../generation/utils/common'
+import { lowerCase } from '@prisma/client-common'
+import { Writer } from '@prisma/ts-builders'
+
 import { ErrorFormat } from '../../getPrismaClient'
 import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
