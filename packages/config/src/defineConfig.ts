@@ -22,6 +22,7 @@ export function defineConfig<Env extends Record<string, string | undefined> = ne
 
   defineSchemaConfig<Env>(config, configInput)
   defineStudioConfig<Env>(config, configInput)
+  defineMigrateConfig<Env>(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
@@ -54,4 +55,18 @@ function defineStudioConfig<Env extends Record<string, string | undefined> = nev
     adapter: configInput.studio.adapter,
   }
   debug('Prisma config [studio]: %o', config.studio)
+}
+
+function defineMigrateConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
+  if (!configInput.migrate) {
+    return
+  }
+
+  config.migrate = {
+    adapter: configInput.migrate.adapter,
+  }
+  debug('Prisma config [migrate]: %o', config.migrate)
 }
