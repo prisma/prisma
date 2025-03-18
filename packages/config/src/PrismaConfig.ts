@@ -32,6 +32,18 @@ const createPrismaStudioConfigInternalShape = <Env extends EnvVars = never>() =>
     adapter: adapterShape<Env>(),
   })
 
+export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
+  adapter: (env: Env) => Promise<SqlDriverAdapter>
+}
+
+const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
+  Shape.Struct({
+    /**
+     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
+     */
+    adapter: adapterShape<Env>(),
+  })
+
 const PrismaConfigSchemaSingleShape = Shape.Struct({
   kind: Shape.Literal('single'),
   filePath: Shape.String,
@@ -78,6 +90,8 @@ declare const __testPrismaSchemaConfigShapeValueA: typeof PrismaSchemaConfigShap
 declare const __testPrismaSchemaConfigShapeValueB: PrismaSchemaConfigShape
 declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
 declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVars>
+declare const __testPrismaMigrateConfigShapeValueA: ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
+declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigShape<EnvVars>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
@@ -85,6 +99,8 @@ if (false) {
   __testPrismaSchemaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
   __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<EnvVars>
   __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
+  __testPrismaMigrateConfigShapeValueA satisfies PrismaMigrateConfigShape<EnvVars>
+  __testPrismaMigrateConfigShapeValueB satisfies ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
 }
 
 // Define the shape for the `PrismaConfig` type.
@@ -111,6 +127,10 @@ export type PrismaConfig<Env extends EnvVars = never> = {
    * The configuration for Prisma Studio.
    */
   studio?: PrismaStudioConfigShape<Env>
+  /**
+   * The configuration for Prisma Migrate + Introspect
+   */
+  migrate?: PrismaMigrateConfigShape<Env>
 }
 
 declare const __testPrismaConfigValueA: ReturnType<typeof createPrismaConfigShape>['Type']
@@ -140,6 +160,7 @@ const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(PrismaSchemaConfigShape),
     studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
+    migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
   })
 
@@ -156,6 +177,10 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
    * The configuration for Prisma Studio.
    */
   studio?: PrismaStudioConfigShape<Env>
+  /**
+   * The configuration for Prisma Migrate + Introspect
+   */
+  migrate?: PrismaMigrateConfigShape<Env>
   /**
    * The path from where the config was loaded.
    * It's set to `null` if no config file was found and only default config is applied.
