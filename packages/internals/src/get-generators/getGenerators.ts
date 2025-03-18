@@ -116,6 +116,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         skipDownload,
       }
 
+      // Ignoring return value - just downloading binaries to ensure they are in the right location
       await download(downloadParams)
     }
   }
