@@ -1,4 +1,4 @@
-import { ErrorCapturingSqlQueryable, SqlQuery } from '@prisma/driver-adapter-utils'
+import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
@@ -7,13 +7,13 @@ import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serialize'
 
 export type QueryInterpreterOptions = {
-  queryable: ErrorCapturingSqlQueryable
+  queryable: SqlQueryable
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
 }
 
 export class QueryInterpreter {
-  #queryable: ErrorCapturingSqlQueryable
+  #queryable: SqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
 
@@ -71,24 +71,14 @@ export class QueryInterpreter {
       case 'execute': {
         const query = renderQuery(node.args, scope)
         return this.#withQueryEvent(query, async () => {
-          const result = await this.#queryable.executeRaw(query)
-          if (result.ok) {
-            return result.value
-          } else {
-            throw result.error
-          }
+          return await this.#queryable.executeRaw(query)
         })
       }
 
       case 'query': {
         const query = renderQuery(node.args, scope)
         return this.#withQueryEvent(query, async () => {
-          const result = await this.#queryable.queryRaw(query)
-          if (result.ok) {
-            return serialize(result.value)
-          } else {
-            throw result.error
-          }
+          return serialize(await this.#queryable.queryRaw(query))
         })
       }
 
