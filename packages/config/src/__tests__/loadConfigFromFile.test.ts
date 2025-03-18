@@ -169,7 +169,7 @@ describe('loadConfigFromFile', () => {
       })()
 
       // eslint-disable-next-line jest/no-interpolation-in-snapshots
-      expect(error.error.message.replaceAll(normalisedPath, '<prisma-config>.ts')).toMatchInlineSnapshot(`
+      expect(error.error.message.replaceAll(normalisedPath, '<prisma-config>.ts')).toEqual(`
         "  [31mx[0m Unexpected eof
            ,-[[36;1;4m<prisma-config>.ts[0m:5:${columnNumber}]
          [2m3[0m | export default defineConfig({
