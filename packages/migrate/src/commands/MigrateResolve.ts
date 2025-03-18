@@ -6,6 +6,7 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
@@ -75,8 +76,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -87,6 +86,9 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+
+    checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
@@ -114,7 +116,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaContext)
+      const migrate = new Migrate(schemaContext, migrationsDirPath)
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
@@ -136,7 +138,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaContext)
+      const migrate = new Migrate(schemaContext, migrationsDirPath)
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],

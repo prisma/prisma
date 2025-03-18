@@ -8,6 +8,7 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
   loadSchemaContext,
@@ -87,8 +88,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate dev', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -99,6 +98,9 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+
+    checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
@@ -114,7 +116,7 @@ ${bold('Examples')}
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

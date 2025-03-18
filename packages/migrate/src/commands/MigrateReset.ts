@@ -6,6 +6,7 @@ import {
   Command,
   format,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
   loadSchemaContext,
@@ -70,8 +71,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate reset', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -82,8 +81,11 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
@@ -112,7 +114,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     let migrationIds: string[]
     try {

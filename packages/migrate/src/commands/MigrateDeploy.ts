@@ -6,6 +6,7 @@ import {
   Command,
   format,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
   loadSchemaContext,
@@ -64,8 +65,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate deploy', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -76,10 +75,13 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+
+    checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     try {
       // Automatically create the database if it doesn't exist

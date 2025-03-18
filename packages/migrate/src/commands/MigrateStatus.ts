@@ -7,6 +7,7 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
@@ -65,8 +66,6 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -77,10 +76,13 @@ Check the status of your database migrations
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+
+    checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext)
+    const migrate = new Migrate(schemaContext, migrationsDirPath)
 
     await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 

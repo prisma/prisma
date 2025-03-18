@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import { SqlQueryOutput } from '@prisma/generator-helper'
-import { getDMMF, parseEnvValue, processSchemaResult } from '@prisma/internals'
+import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
@@ -61,6 +61,7 @@ export async function setupTestSuiteClient({
     ignoreEnvVarErrors: true,
   })
   const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const directoryConfig = inferDirectoryConfig(schemaContext)
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
   await setupTestSuiteFiles({ suiteMeta, suiteConfig })
@@ -80,7 +81,7 @@ export async function setupTestSuiteClient({
       // TypedSQL requires a connection to the database => ENV vars in the schema must be resolved for the test to work.
       ignoreEnvVarErrors: false,
     })
-    typedSql = await introspectSql(schemaContextIntrospect)
+    typedSql = await introspectSql(directoryConfig, schemaContextIntrospect)
   }
 
   if (clientMeta.dataProxy === true) {

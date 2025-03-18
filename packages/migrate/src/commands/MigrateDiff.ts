@@ -5,11 +5,11 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
-  getConfig,
   HelpError,
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
   locateLocalCloudflareD1,
   toSchemasContainer,
   toSchemasWithConfigDir,
@@ -182,7 +182,10 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate diff', args, config.schema, false)
+    checkUnsupportedDataProxy({
+      cmd: 'migrate diff',
+      urls: [args['--to-url'], args['--from-url'], args['--shadow-database-url']],
+    })
 
     if (args['--help']) {
       return this.help()
@@ -231,13 +234,15 @@ ${bold('Examples')}
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
       await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), config.schema, {
-        argumentName: '--from-schema-datasource',
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--from-schema-datasource'],
+        schemaPathArgumentName: '--from-schema-datasource',
+        printLoadMessage: false,
       })
-      const engineConfig = await getConfig({ datamodel: schema.schemas })
+      checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, engineConfig),
+        ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--from-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), config.schema, {
@@ -273,13 +278,15 @@ ${bold('Examples')}
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
       await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), config.schema, {
-        argumentName: '--to-schema-datasource',
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--to-schema-datasource'],
+        schemaPathArgumentName: '--to-schema-datasource',
+        printLoadMessage: false,
       })
-      const engineConfig = await getConfig({ datamodel: schema.schemas })
+      checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, engineConfig),
+        ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--to-schema-datamodel']) {
       const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), config.schema, {
