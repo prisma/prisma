@@ -1,3 +1,4 @@
+import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
 import Debug from '@prisma/debug'
 import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
@@ -17,7 +18,6 @@ import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
-  QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   RustRequestError,
@@ -30,7 +30,7 @@ import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../co
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
-import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import type { Library, LibraryLoader } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
 const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'

@@ -1,3 +1,4 @@
+import { QueryEngineInstance } from '@prisma/client-common'
 import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -6,7 +7,7 @@ import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicEr
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
-import { LibraryLoader, QueryEngineInstance } from './types/Library'
+import { LibraryLoader } from './types/Library'
 
 const dummyQuery = { modelName: 'Foo', action: 'findMany', query: { selection: {} } } as const
 

@@ -1,3 +1,4 @@
+import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
@@ -16,7 +17,6 @@ import path from 'path'
 import { performance } from 'perf_hooks'
 import { rimraf } from 'rimraf'
 
-import { generateClient } from '../generation/generateClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
 const debug = Debug('prisma:generateInFolder')
@@ -120,6 +120,7 @@ export async function generateInFolder({
     schemaPath,
     testMode: true,
     copyRuntime: false,
+    runtimeSourcePath: path.join(__dirname, '../../runtime'),
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
