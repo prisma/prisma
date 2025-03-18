@@ -1,6 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
 import { SqlQueryOutput } from '@prisma/generator-helper'
-import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { getDMMF, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
@@ -53,8 +53,14 @@ export async function setupTestSuiteClient({
   const schema = getTestSuiteSchema({ cliMeta, suiteMeta, matrixOptions: suiteConfig.matrixOptions })
   const previewFeatures = getTestSuitePreviewFeatures(schema)
   const dmmf = await getDMMF({ datamodel: [[schemaPath, schema]], previewFeatures })
-  const config = await getConfig({ datamodel: [[schemaPath, schema]], ignoreEnvVarErrors: true })
-  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const schemaContext = await processSchemaResult({
+    schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
+    // Only TypedSQL tests strictly require env vars in the schema to resolveSome tests. (see below)
+    // We also have some tests that verify error messages when env vars in the schema are not resolvable.
+    // => We do not resolve env vars in the schema here and hence ignore potential errors at this point.
+    ignoreEnvVarErrors: true,
+  })
+  const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
   await setupTestSuiteFiles({ suiteMeta, suiteConfig })
@@ -69,7 +75,12 @@ export async function setupTestSuiteClient({
 
   let typedSql: SqlQueryOutput[] | undefined
   if (hasTypedSql) {
-    typedSql = await introspectSql(schemaPath)
+    const schemaContextIntrospect = await processSchemaResult({
+      schemaResult: { schemas: [[schemaPath, schema]], schemaPath, schemaRootDir: path.dirname(schemaPath) },
+      // TypedSQL requires a connection to the database => ENV vars in the schema must be resolved for the test to work.
+      ignoreEnvVarErrors: false,
+    })
+    typedSql = await introspectSql(schemaContextIntrospect)
   }
 
   if (clientMeta.dataProxy === true) {
@@ -82,7 +93,7 @@ export async function setupTestSuiteClient({
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
-    datasources: config.datasources,
+    datasources: schemaContext.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
     copyRuntime: false,
     dmmf: dmmf,

@@ -91,7 +91,7 @@ ${bold('Examples')}
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
-    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+    const migrate = new Migrate(schemaContext)
 
     try {
       // Automatically create the database if it doesn't exist

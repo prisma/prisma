@@ -30,6 +30,14 @@ export type SchemaContext = {
    */
   primaryDatasource: DataSource | undefined
   /**
+   * Warnings that were raised during Prisma schema parsing.
+   */
+  warnings: string[] | []
+  /**
+   * The datasources extracted from the Prisma schema. Prefer to use primaryDatasource for most cases.
+   */
+  datasources: DataSource[] | []
+  /**
    * The generators extracted from the Prisma schema.
    */
   generators: GeneratorConfig[] | []
@@ -41,19 +49,21 @@ type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
   schemaPathFromConfig?: SchemaPathFromConfig
   printLoadMessage?: boolean
+  ignoreEnvVarErrors?: boolean
   allowNull?: boolean
 }
 
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(opts: LoadSchemaContextOptions): Promise<SchemaContext>
+export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
   printLoadMessage = true,
+  ignoreEnvVarErrors = false,
   allowNull = false,
-}: LoadSchemaContextOptions): Promise<SchemaContext | null> {
+}: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
@@ -63,15 +73,17 @@ export async function loadSchemaContext({
     schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
   }
 
-  return processSchemaResult({ schemaResult, printLoadMessage })
+  return processSchemaResult({ schemaResult, printLoadMessage, ignoreEnvVarErrors })
 }
 
-async function processSchemaResult({
+export async function processSchemaResult({
   schemaResult,
-  printLoadMessage,
+  printLoadMessage = true,
+  ignoreEnvVarErrors = false,
 }: {
   schemaResult: GetSchemaResult
-  printLoadMessage: boolean
+  printLoadMessage?: boolean
+  ignoreEnvVarErrors?: boolean
 }): Promise<SchemaContext> {
   const cwd = process.cwd()
 
@@ -81,7 +93,7 @@ async function processSchemaResult({
     process.stdout.write(dim(`Prisma schema loaded from ${loadedFromPathForLogMessages}`) + '\n')
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
 
   const primaryDatasource = configFromPsl.datasources.at(0)
 
@@ -89,9 +101,11 @@ async function processSchemaResult({
     schemaFiles: schemaResult.schemas,
     schemaPath: schemaResult.schemaPath,
     schemaRootDir: schemaResult.schemaRootDir || cwd,
+    datasources: configFromPsl.datasources,
     generators: configFromPsl.generators,
     primaryDatasource,
     primaryDatasourceDirectory: primaryDatasourceDirectory(primaryDatasource) || schemaResult.schemaRootDir || cwd,
+    warnings: configFromPsl.warnings,
     loadedFromPathForLogMessages,
   }
 }

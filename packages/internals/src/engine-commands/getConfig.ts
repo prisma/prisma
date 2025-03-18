@@ -39,10 +39,6 @@ interface GetConfigValidationError {
 
 export type GetConfigOptions = {
   datamodel: SchemaFileInput
-  cwd?: string
-  prismaPath?: string
-  datamodelPath?: string
-  retry?: number
   ignoreEnvVarErrors?: boolean
 }
 
@@ -172,7 +168,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* rustStack */ stack,
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
-          /* schemaPath */ options.prismaPath,
+          /* schemaPath */ undefined,
           /* schema */ toMultipleSchemas(options.datamodel),
         )
         return panic
