@@ -7,7 +7,7 @@ import {
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
 import Debug from '@prisma/debug'
-import { bindAdapter, type ErrorCapturingSqlDriverAdapter, Provider } from '@prisma/driver-adapter-utils'
+import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -43,7 +43,7 @@ export class ClientEngine implements Engine<undefined> {
   QueryCompilerConstructor?: QueryCompilerConstructor
   queryCompilerLoader: QueryCompilerLoader
 
-  adapterPromise: Promise<ErrorCapturingSqlDriverAdapter>
+  adapterPromise: Promise<SqlDriverAdapter>
   transactionManagerPromise: Promise<TransactionManager>
 
   config: EngineConfig
@@ -73,7 +73,7 @@ export class ClientEngine implements Engine<undefined> {
         CLIENT_ENGINE_ERROR,
       )
     } else {
-      this.adapterPromise = config.adapter.connect().then(bindAdapter)
+      this.adapterPromise = config.adapter.connect()
       this.provider = config.adapter.provider
       debug('Using driver adapter: %O', config.adapter)
     }
@@ -193,7 +193,7 @@ export class ClientEngine implements Engine<undefined> {
     await (await this.adapterPromise).dispose()
   }
 
-  async ensureStarted(): Promise<[ErrorCapturingSqlDriverAdapter, TransactionManager]> {
+  async ensureStarted(): Promise<[SqlDriverAdapter, TransactionManager]> {
     const adapter = await this.adapterPromise
     const transactionManager = await this.transactionManagerPromise
     await this.instantiateQueryCompilerPromise
