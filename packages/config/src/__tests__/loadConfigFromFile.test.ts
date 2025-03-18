@@ -159,18 +159,19 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorTypeScriptImportFailed(error)
 
-      const normalisedPath = (() => {
+      const { normalisedPath, columnNumber } = (() => {
         if (process.platform === 'win32') {
           const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
-          return actualPath
+          return { normalisedPath: actualPath, columnNumber: 4 }
         } else {
-          return resolvedPath
+          return { normalisedPath: resolvedPath, columnNumber: 3 }
         }
       })()
 
+      // eslint-disable-next-line jest/no-interpolation-in-snapshots
       expect(error.error.message.replaceAll(normalisedPath, '<prisma-config>.ts')).toMatchInlineSnapshot(`
         "  [31m×[0m Unexpected eof
-           ╭─[[36;1;4m<prisma-config>.ts[0m:5:3]
+           ╭─[[36;1;4m<prisma-config>.ts[0m:5:${columnNumber}]
          [2m3[0m │ export default defineConfig({
          [2m4[0m │   earlyAccess: true,
          [2m5[0m │ }
