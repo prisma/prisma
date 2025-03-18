@@ -72,14 +72,11 @@ ${bold('Examples')}
 
     const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
 
-    const { lintDiagnostics } = handleLintPanic(
-      () => {
-        // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schemas })
-        return { lintDiagnostics }
-      },
-      { schemas },
-    )
+    const { lintDiagnostics } = handleLintPanic(() => {
+      // the only possible error here is a Rust panic
+      const lintDiagnostics = lintSchema({ schemas })
+      return { lintDiagnostics }
+    })
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
     if (lintWarnings && logger.should.warn()) {

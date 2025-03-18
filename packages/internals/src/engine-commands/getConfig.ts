@@ -7,7 +7,7 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { type SchemaFileInput, toMultipleSchemas } from '../utils/schemaFileInput'
+import { type SchemaFileInput } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
@@ -168,8 +168,6 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* rustStack */ stack,
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
-          /* schemaPath */ undefined,
-          /* schema */ toMultipleSchemas(options.datamodel),
         )
         return panic
       }
