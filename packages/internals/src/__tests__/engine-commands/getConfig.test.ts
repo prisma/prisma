@@ -1,8 +1,20 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 
-import { getConfig } from '../..'
+import { getConfig, isRustPanic } from '../..'
 
 describe('getConfig', () => {
+  test('should raise a Rust panic when given arguments of the wrong type', async () => {
+    expect.assertions(1)
+
+    try {
+      // @ts-expect-error
+      await getConfig({ datamodel: true, ignoreEnvVarErrors: false })
+    } catch (e) {
+      const error = e as Error
+      expect(isRustPanic(error)).toBe(true)
+    }
+  })
+
   test('empty config', async () => {
     const config = await getConfig({
       ignoreEnvVarErrors: false,
