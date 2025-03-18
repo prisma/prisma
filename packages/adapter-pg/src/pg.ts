@@ -3,13 +3,13 @@
 import type {
   ColumnType,
   ConnectionInfo,
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -161,12 +161,16 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   }
 }
 
-class PgTransactionContext extends PgQueryable<pg.PoolClient> implements TransactionContext {
-  constructor(readonly conn: pg.PoolClient) {
-    super(conn)
+export type PrismaPgOptions = {
+  schema?: string
+}
+
+export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
+  constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
+    super(client)
   }
 
-  async startTransaction(): Promise<Transaction> {
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: false,
     }
@@ -174,25 +178,23 @@ class PgTransactionContext extends PgQueryable<pg.PoolClient> implements Transac
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    return new PgTransaction(this.conn, options)
-  }
-}
+    const conn = await this.client.connect()
+    const tx = new PgTransaction(conn, options)
 
-export type PrismaPgOptions = {
-  schema?: string
-}
-
-export class PrismaPg extends PgQueryable<StdClient> implements SqlConnection {
-  constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
-    // Note: Full `client instanceof pg.Pool` check would sometimes give false negatives depending on the package resolution.
-    if (!client) {
-      throw new TypeError(`PrismaPg must be initialized with an instance of Pool:
-import { Pool } from 'pg'
-const pool = new Pool({ connectionString: url })
-const adapter = new PrismaPg(pool)
-`)
+    try {
+      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      if (isolationLevel) {
+        await tx.executeRaw({
+          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+          args: [],
+          argTypes: [],
+        })
+      }
+      return tx
+    } catch (error) {
+      conn.release(error)
+      throw error
     }
-    super(client)
   }
 
   async executeScript(script: string): Promise<void> {
@@ -212,33 +214,28 @@ const adapter = new PrismaPg(pool)
     }
   }
 
-  async transactionContext(): Promise<TransactionContext> {
-    const conn = await this.client.connect()
-    return new PgTransactionContext(conn)
-  }
-
   async dispose(): Promise<void> {
     await this.release?.()
     return await this.client.end()
   }
 }
 
-export class PrismaPgWithMigration implements SqlMigrationAwareDriverAdapter {
-  readonly provider = 'sqlite'
+export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+  readonly provider = 'postgres'
   readonly adapterName = packageName
 
   constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
 
-  async connect(): Promise<SqlConnection> {
-    return new PrismaPg(new pg.Pool(this.config), this.options, async () => {})
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
   }
 
-  async connectToShadowDb(): Promise<SqlConnection> {
+  async connectToShadowDb(): Promise<SqlDriverAdapter> {
     const conn = await this.connect()
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaPg(new pg.Pool({ ...this.config, database }), undefined, async () => {
+    return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
       await conn.dispose()
     })

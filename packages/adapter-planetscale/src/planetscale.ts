@@ -5,12 +5,13 @@
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  SqlConnection,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
@@ -85,19 +86,23 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
       return result
     } catch (e) {
       const error = e as Error
-      if (error.name === 'DatabaseError') {
-        const parsed = parseErrorMessage(error.message)
-        if (parsed) {
-          throw new DriverAdapterError({
-            kind: 'mysql',
-            ...parsed,
-          })
-        }
-      }
-      debug('Error in performIO: %O', error)
-      throw error
+      onError(error)
     }
   }
+}
+
+function onError(error: Error): never {
+  if (error.name === 'DatabaseError') {
+    const parsed = parseErrorMessage(error.message)
+    if (parsed) {
+      throw new DriverAdapterError({
+        kind: 'mysql',
+        ...parsed,
+      })
+    }
+  }
+  debug('Error in performIO: %O', error)
+  throw error
 }
 
 function parseErrorMessage(message: string) {
@@ -143,12 +148,24 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 }
 
-class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Connection> implements TransactionContext {
-  constructor(private conn: planetScale.Connection) {
-    super(conn)
+export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
+  constructor(client: planetScale.Client) {
+    super(client)
   }
 
-  async startTransaction(): Promise<Transaction> {
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
+  }
+
+  getConnectionInfo(): ConnectionInfo {
+    const url = this.client.connection()['url'] as string
+    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
+    return {
+      schemaName: dbName,
+    }
+  }
+
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
@@ -156,8 +173,16 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
+    const conn = this.client.connection()
+    if (isolationLevel) {
+      await conn.execute(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`).catch((error) => onError(error))
+    }
+    return this.startTransactionInner(conn, options)
+  }
+
+  async startTransactionInner(conn: planetScale.Connection, options: TransactionOptions): Promise<Transaction> {
     return new Promise<Transaction>((resolve, reject) => {
-      const txResultPromise = this.conn
+      const txResultPromise = conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
@@ -176,39 +201,17 @@ class PlanetScaleTransactionContext extends PlanetScaleQueryable<planetScale.Con
         })
     })
   }
-}
-
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements SqlConnection {
-  constructor(client: planetScale.Client) {
-    // this used to be a check for constructor name at same point (more reliable when having multiple copies
-    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
-    if (!(client instanceof planetScale.Client)) {
-      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
-import { Client } from '@planetscale/database'
-const client = new Client({ url })
-const adapter = new PrismaPlanetScale(client)
-`)
-    }
-    super(client)
-  }
-
-  executeScript(_script: string): Promise<void> {
-    throw new Error('Not implemented yet')
-  }
-
-  getConnectionInfo(): ConnectionInfo {
-    const url = this.client.connection()['url'] as string
-    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
-    return {
-      schemaName: dbName,
-    }
-  }
-
-  async transactionContext(): Promise<TransactionContext> {
-    const conn = this.client.connection()
-    const ctx = new PlanetScaleTransactionContext(conn)
-    return ctx
-  }
 
   async dispose(): Promise<void> {}
+}
+
+export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'mysql'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: planetScale.Config) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
+  }
 }

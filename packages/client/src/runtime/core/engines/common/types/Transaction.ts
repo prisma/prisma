@@ -1,4 +1,4 @@
-export { IsolationLevel, type TransactionOptions as Options } from '@prisma/client-engine-runtime'
+export { type TransactionOptions as Options } from '@prisma/client-engine-runtime'
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**
