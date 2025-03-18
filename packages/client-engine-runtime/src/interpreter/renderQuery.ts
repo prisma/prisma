@@ -1,10 +1,12 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { Fragment, isPrismaValuePlaceholder, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { assertNever } from '../utils'
 import { ScopeBindings } from './scope'
 
 export function renderQuery(dbQuery: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
-  switch (dbQuery.type) {
+  const queryType = dbQuery.type
+  switch (queryType) {
     case 'rawSql':
       return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope))
 
@@ -12,7 +14,7 @@ export function renderQuery(dbQuery: QueryPlanDbQuery, scope: ScopeBindings): Sq
       return renderTemplateSql(dbQuery.fragments, dbQuery.placeholder, substituteParams(dbQuery.params, scope))
 
     default:
-      return dbQuery // never
+      assertNever(queryType, 'Invalid query type')
   }
 }
 
@@ -41,7 +43,8 @@ function renderTemplateSql(
   const flattenedParams: PrismaValue[] = []
   const sql = fragments
     .map((fragment) => {
-      switch (fragment.type) {
+      const fragmentType = fragment.type
+      switch (fragmentType) {
         case 'parameter':
           flattenedParams.push(params[paramIndex++])
           return formatPlaceholder(placeholderFormat, placeholderNumber++)
@@ -65,7 +68,7 @@ function renderTemplateSql(
         }
 
         default:
-          return fragment // never
+          assertNever(fragmentType, 'Invalid fragment type')
       }
     })
     .join('')
@@ -78,10 +81,10 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
 }
 
 function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
-  const argTypes = params.map((param) => toArgType(param as PrismaValue))
+  const argTypes = params.map((param) => toArgType(param))
 
   return {
-    sql: sql,
+    sql,
     args: params,
     argTypes,
   }
