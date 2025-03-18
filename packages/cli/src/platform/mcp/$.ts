@@ -1,5 +1,8 @@
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, link } from '@prisma/internals'
+import { z } from 'zod'
 
 import { createHelp } from '../_lib/help'
 
@@ -23,9 +26,19 @@ export class Mcp implements Command {
   })
 
   public async parse(_argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
+    const server = new McpServer({
+      name: 'Prisma',
+      version: '1.0.0',
+    })
 
-    const result = await Promise.resolve("Starting MCP Server ...")
+    // Add an addition tool
+    server.tool('add', { a: z.number(), b: z.number() }, ({ a, b }) => ({
+      content: [{ type: 'text', text: String(a + b) }],
+    }))
 
-    return result
+    const transport = new StdioServerTransport()
+    await server.connect(transport)
+
+    return ''
   }
 }
