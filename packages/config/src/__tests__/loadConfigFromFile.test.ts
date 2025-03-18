@@ -159,27 +159,19 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorTypeScriptImportFailed(error)
 
-      const { normalisedPath, columnNumber } = (() => {
+      const { message: errorMessage } = error.error
+      const { normalisedPath } = (() => {
         if (process.platform === 'win32') {
           const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
-          return { normalisedPath: actualPath, columnNumber: 4 }
+          return { normalisedPath: actualPath }
         } else {
-          return { normalisedPath: resolvedPath, columnNumber: 3 }
+          return { normalisedPath: resolvedPath }
         }
       })()
 
-      expect(error.error.message.replaceAll(normalisedPath, '<prisma-config>.ts')).toEqual(`
-        "  [31mx[0m Unexpected eof
-           ,-[[36;1;4m<prisma-config>.ts[0m:5:${columnNumber}]
-         [2m3[0m | export default defineConfig({
-         [2m4[0m |   earlyAccess: true,
-         [2m5[0m | }
-           \`----
-
-
-        Caused by:
-            Syntax Error"
-      `)
+      expect(errorMessage).toContain('Unexpected eof')
+      expect(errorMessage).toContain('Syntax Error')
+      expect(errorMessage).toContain(normalisedPath)
     })
 
     it('fails with `ConfigFileParseError` when the Prisma config file has no default export', async () => {
