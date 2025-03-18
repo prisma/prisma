@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 
 import { logger } from '..'
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
-import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
+import { type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
@@ -15,12 +15,9 @@ export async function formatSchema(
   inputFormattingOptions?: Partial<DocumentFormattingParams['options']>,
 ): Promise<MultipleSchemas> {
   if (process.env.FORCE_PANIC_PRISMA_SCHEMA) {
-    handleFormatPanic(
-      () => {
-        prismaSchemaWasm.debug_panic()
-      },
-      { schemas } as FormatSchemaParams,
-    )
+    handleFormatPanic(() => {
+      prismaSchemaWasm.debug_panic()
+    })
   }
 
   const defaultFormattingOptions: DocumentFormattingParams['options'] = {
@@ -45,17 +42,14 @@ export async function formatSchema(
    *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
    *   If we called `getConfig` instead, we wouldn't have any validation check.
    */
-  const { formattedMultipleSchemas, lintDiagnostics } = handleFormatPanic(
-    () => {
-      // the only possible error here is a Rust panic
-      const formattedMultipleSchemasRaw = formatWasm(JSON.stringify(schemas), documentFormattingParams)
-      const formattedMultipleSchemas = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
+  const { formattedMultipleSchemas, lintDiagnostics } = handleFormatPanic(() => {
+    // the only possible error here is a Rust panic
+    const formattedMultipleSchemasRaw = formatWasm(JSON.stringify(schemas), documentFormattingParams)
+    const formattedMultipleSchemas = JSON.parse(formattedMultipleSchemasRaw) as MultipleSchemas
 
-      const lintDiagnostics = lintSchema({ schemas: formattedMultipleSchemas })
-      return { formattedMultipleSchemas, lintDiagnostics }
-    },
-    { schemas } as FormatSchemaParams,
-  )
+    const lintDiagnostics = lintSchema({ schemas: formattedMultipleSchemas })
+    return { formattedMultipleSchemas, lintDiagnostics }
+  })
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
   if (lintWarnings && logger.should.warn()) {
@@ -66,7 +60,7 @@ export async function formatSchema(
   return Promise.resolve(formattedMultipleSchemas)
 }
 
-function handleFormatPanic<T>(tryCb: () => T, { schemas }: FormatSchemaParams) {
+function handleFormatPanic<T>(tryCb: () => T) {
   try {
     return tryCb()
   } catch (e: unknown) {
@@ -79,8 +73,6 @@ function handleFormatPanic<T>(tryCb: () => T, { schemas }: FormatSchemaParams) {
       /* rustStack */ stack,
       /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
-      /* schemaPath */ debugMultipleSchemaPaths(schemas),
-      /* schema */ schemas,
     )
 
     throw panic

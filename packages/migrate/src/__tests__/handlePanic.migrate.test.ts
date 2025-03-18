@@ -98,7 +98,6 @@ describe('handlePanic migrate', () => {
     try {
       const migrate = new Migrate(schemaContext)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         schema: migrate.getPrismaSchema(),
@@ -159,7 +158,6 @@ describe('handlePanic migrate', () => {
     try {
       const migrate = new Migrate(schemaContext)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         schema: migrate.getPrismaSchema(),
@@ -170,7 +168,6 @@ describe('handlePanic migrate', () => {
       expect(error).toMatchSnapshot()
       expect(JSON.parse(JSON.stringify(error))).toMatchObject({
         area: 'LIFT_CLI',
-        schemaPath: schemaContext.loadedFromPathForLogMessages,
       })
       expect(error.message).toContain('This is the debugPanic artificial panic')
       expect(error.rustStack).toContain('[EXIT_PANIC]')
