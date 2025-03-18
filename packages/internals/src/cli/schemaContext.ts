@@ -1,10 +1,9 @@
 import { DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
-import { dim } from 'kleur/colors'
 import path from 'path'
 
 import { getConfig } from '../engine-commands'
-import { getSchemaWithPath, getSchemaWithPathOptional } from './getSchema'
+import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
 
 export type SchemaContext = {
   /**
@@ -100,7 +99,7 @@ export async function processSchemaResult({
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
 
   if (printLoadMessage) {
-    process.stdout.write(dim(`Prisma schema loaded from ${loadedFromPathForLogMessages}`) + '\n')
+    printSchemaLoadedMessage(loadedFromPathForLogMessages)
   }
 
   const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })

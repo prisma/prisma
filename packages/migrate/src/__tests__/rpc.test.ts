@@ -1,6 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import {
-  getSchema,
   getSchemaWithPath,
   inferDirectoryConfig,
   loadSchemaContext,
@@ -75,12 +74,12 @@ describe('createDatabase', () => {
 
   it('should succeed - Schema - postgresql', async () => {
     ctx.fixture('schema-only')
-    const schemas = await getSchema()
+    const schemaContext = await loadSchemaContext()
     const migrate = new Migrate()
     const result = migrate.engine.createDatabase({
       datasource: {
         tag: 'Schema',
-        ...toSchemasContainer(schemas),
+        ...toSchemasContainer(schemaContext.schemaFiles),
       },
     })
 

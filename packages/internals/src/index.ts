@@ -3,11 +3,10 @@ export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfi
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getPrismaConfigFromPackageJson,
-  getSchema,
-  getSchemaDir,
   type GetSchemaOptions,
   getSchemaWithPath,
   getSchemaWithPathOptional,
+  printSchemaLoadedMessage,
 } from './cli/getSchema'
 export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'

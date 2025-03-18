@@ -2,7 +2,7 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { getSchema, pathToPosix, toSchemasContainer } from '@prisma/internals'
+import { loadSchemaContext, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
@@ -96,10 +96,10 @@ describe('postgresql-views', () => {
 
         const engine = new SchemaEngine({})
 
-        const schemas = await getSchema()
+        const schemaContext = await loadSchemaContext()
 
         const introspectionResult = await engine.introspect({
-          schema: toSchemasContainer(schemas),
+          schema: toSchemasContainer(schemaContext.schemaFiles),
           viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
@@ -118,10 +118,10 @@ describe('postgresql-views', () => {
 
         const engine = new SchemaEngine({})
 
-        const schemas = await getSchema()
+        const schemaContext = await loadSchemaContext()
 
         const introspectionResult = await engine.introspect({
-          schema: toSchemasContainer(schemas),
+          schema: toSchemasContainer(schemaContext.schemaFiles),
           viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
@@ -145,10 +145,10 @@ describe('postgresql-views', () => {
 
         const engine = new SchemaEngine({})
 
-        const schemas = await getSchema()
+        const schemaContext = await loadSchemaContext()
 
         const introspectionResult = await engine.introspect({
-          schema: toSchemasContainer(schemas),
+          schema: toSchemasContainer(schemaContext.schemaFiles),
           viewsDirectoryPath: path.join(process.cwd(), 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
@@ -172,10 +172,10 @@ describe('postgresql-views', () => {
 
         const engine = new SchemaEngine({})
 
-        const schemas = await getSchema()
+        const schemaContext = await loadSchemaContext()
 
         const introspectionResult = await engine.introspect({
-          schema: toSchemasContainer(schemas),
+          schema: toSchemasContainer(schemaContext.schemaFiles),
           viewsDirectoryPath: path.join(process.cwd(), 'prisma', 'views'),
           baseDirectoryPath: ctx.tmpDir,
           force: false,
