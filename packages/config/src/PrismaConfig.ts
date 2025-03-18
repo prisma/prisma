@@ -33,7 +33,7 @@ const createPrismaStudioConfigInternalShape = <Env extends EnvVars = never>() =>
   })
 
 export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<DriverAdapter>
+  adapter: (env: Env) => Promise<SqlDriverAdapter>
 }
 
 const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
