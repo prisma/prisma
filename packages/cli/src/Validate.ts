@@ -70,7 +70,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schemaPath)
 
     const { lintDiagnostics } = handleLintPanic(() => {
       // the only possible error here is a Rust panic

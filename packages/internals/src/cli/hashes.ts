@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import { getSchemaWithPath, type SchemaPathFromConfig } from './getSchema'
+import { getSchemaWithPath } from './getSchema'
 
 /**
  * Get a unique identifier for the project by hashing
@@ -8,7 +8,7 @@ import { getSchemaWithPath, type SchemaPathFromConfig } from './getSchema'
  */
 export async function getProjectHash(
   schemaPathFromArgs: string | undefined,
-  schemaPathFromConfig: SchemaPathFromConfig | undefined,
+  schemaPathFromConfig: string | undefined,
 ): Promise<string> {
   // Default to cwd if the schema couldn't be found
   const projectPath = (await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig))?.schemaPath ?? process.cwd()

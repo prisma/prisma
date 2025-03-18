@@ -104,7 +104,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schemaPath)
 
     const hostname = args['--hostname']
     const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))

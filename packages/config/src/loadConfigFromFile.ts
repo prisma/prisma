@@ -178,21 +178,10 @@ function transformPathsInConfigToAbsolute(
   prismaConfig: PrismaConfigInternal,
   resolvedPath: string,
 ): PrismaConfigInternal {
-  if (prismaConfig.schema?.kind === 'single') {
+  if (prismaConfig.schemaPath) {
     return {
       ...prismaConfig,
-      schema: {
-        ...prismaConfig.schema,
-        filePath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.filePath),
-      },
-    }
-  } else if (prismaConfig.schema?.kind === 'multi') {
-    return {
-      ...prismaConfig,
-      schema: {
-        ...prismaConfig.schema,
-        folderPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schema.folderPath),
-      },
+      schemaPath: path.resolve(path.dirname(resolvedPath), prismaConfig.schemaPath),
     }
   } else {
     return prismaConfig

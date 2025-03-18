@@ -120,7 +120,7 @@ export class Version implements Command {
 
     let schemaPath: string | null = null
     try {
-      schemaPath = (await getSchemaWithPath(undefined, config.schema)).schemaPath
+      schemaPath = (await getSchemaWithPath(undefined, config.schemaPath)).schemaPath
     } catch {
       schemaPath = null
     }

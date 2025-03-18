@@ -4,8 +4,5 @@ import { defineConfig } from 'src/index'
 
 export default defineConfig({
   earlyAccess: true,
-  schema: {
-    kind: 'multi',
-    folderPath: path.join(process.cwd(), 'prisma', 'schema'),
-  },
+  schemaPath: path.join(process.cwd(), 'prisma', 'schema'),
 })

@@ -96,7 +96,7 @@ ${bold('Examples')}
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPathFromConfig: config.schemaPath,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 

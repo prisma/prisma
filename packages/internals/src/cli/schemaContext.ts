@@ -4,7 +4,7 @@ import { dim } from 'kleur/colors'
 import path from 'path'
 
 import { getConfig } from '../engine-commands'
-import { getSchemaWithPath, getSchemaWithPathOptional, SchemaPathFromConfig } from './getSchema'
+import { getSchemaWithPath, getSchemaWithPathOptional } from './getSchema'
 
 export type SchemaContext = {
   /**
@@ -47,7 +47,7 @@ export type SchemaContext = {
 
 type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
-  schemaPathFromConfig?: SchemaPathFromConfig
+  schemaPathFromConfig?: string
   printLoadMessage?: boolean
   ignoreEnvVarErrors?: boolean
   allowNull?: boolean

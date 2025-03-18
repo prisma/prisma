@@ -56,7 +56,7 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schemaPath)
 
     const formattedDatamodel = await formatSchema({ schemas })
 

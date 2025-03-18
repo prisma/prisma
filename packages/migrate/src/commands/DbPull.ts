@@ -129,7 +129,7 @@ Set composite types introspection depth to 2 levels
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
-      schemaPathFromConfig: config.schema,
+      schemaPathFromConfig: config.schemaPath,
       printLoadMessage: false,
       allowNull: true,
     })

@@ -20,7 +20,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  type SchemaPathFromConfig,
 } from '@prisma/internals'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
@@ -146,7 +145,7 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schemaPath, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
@@ -385,7 +384,7 @@ function getCurrentClientVersion(): string | null {
 
 async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
-  schemaFromConfig: SchemaPathFromConfig | undefined,
+  schemaFromConfig: string | undefined,
   cwd: string,
   isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {

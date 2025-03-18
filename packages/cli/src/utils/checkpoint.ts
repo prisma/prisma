@@ -1,12 +1,5 @@
 import Debug from '@prisma/debug'
-import {
-  getCLIPathHash,
-  getConfig,
-  getProjectHash,
-  getSchema,
-  parseEnvValue,
-  type SchemaPathFromConfig,
-} from '@prisma/internals'
+import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue } from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
 
@@ -34,7 +27,7 @@ export async function runCheckpointClientCheck({
   command: string
   telemetryInformation: string
   schemaPath?: string
-  schemaPathFromConfig?: SchemaPathFromConfig
+  schemaPathFromConfig?: string
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {
@@ -106,7 +99,7 @@ export async function runCheckpointClientCheck({
  * Tries to read some data from the Prisma Schema
  * if an error occurs it will silently fail and return undefined values
  */
-export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: SchemaPathFromConfig) {
+export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: string) {
   let schemaProvider: string | undefined
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
