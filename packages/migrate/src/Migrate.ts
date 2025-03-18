@@ -9,7 +9,6 @@ import {
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
-import path from 'path'
 
 import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
@@ -26,17 +25,15 @@ export class Migrate {
   private schemaContext?: SchemaContext
   public migrationsDirectoryPath?: string
 
-  constructor(schemaContext?: SchemaContext, enabledPreviewFeatures?: string[]) {
+  constructor(schemaContext?: SchemaContext, migrationsDirPath?: string, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaContext) {
       this.schemaContext = schemaContext
-      this.migrationsDirectoryPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations') // TODO:(schemaPath) refactor in scope of ORM-663
+      this.migrationsDirectoryPath = migrationsDirPath
       this.engine = new SchemaEngine({ schemaContext, enabledPreviewFeatures })
     } else {
-      this.engine = new SchemaEngine({
-        enabledPreviewFeatures,
-      })
+      this.engine = new SchemaEngine({ enabledPreviewFeatures })
     }
   }
 

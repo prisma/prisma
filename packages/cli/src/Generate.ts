@@ -13,6 +13,7 @@ import {
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
@@ -152,6 +153,7 @@ ${bold('Examples')}
 
     // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
     const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+    const directoryConfig = inferDirectoryConfig(schemaContext)
 
     // TODO Extract logic from here
     let hasJsClient
@@ -159,7 +161,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(schemaContext)
+      typedSql = await introspectSql(directoryConfig, schemaContext)
     }
     try {
       generators = await getGenerators({
@@ -313,7 +315,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            typedSql = await introspectSql(schemaContext)
+            typedSql = await introspectSql(directoryConfig, schemaContext)
           }
 
           generatorsWatch = await getGenerators({
