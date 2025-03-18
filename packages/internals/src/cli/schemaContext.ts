@@ -51,6 +51,7 @@ type LoadSchemaContextOptions = {
   printLoadMessage?: boolean
   ignoreEnvVarErrors?: boolean
   allowNull?: boolean
+  schemaPathArgumentName?: string
 }
 
 export async function loadSchemaContext(
@@ -63,14 +64,19 @@ export async function loadSchemaContext({
   printLoadMessage = true,
   ignoreEnvVarErrors = false,
   allowNull = false,
+  schemaPathArgumentName = '--schema',
 }: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
   if (allowNull) {
-    schemaResult = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig)
+    schemaResult = await getSchemaWithPathOptional(schemaPathFromArg, schemaPathFromConfig, {
+      argumentName: schemaPathArgumentName,
+    })
     if (!schemaResult) return null
   } else {
-    schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig)
+    schemaResult = await getSchemaWithPath(schemaPathFromArg, schemaPathFromConfig, {
+      argumentName: schemaPathArgumentName,
+    })
   }
 
   return processSchemaResult({ schemaResult, printLoadMessage, ignoreEnvVarErrors })

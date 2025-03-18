@@ -136,9 +136,9 @@ describe('postgresql', () => {
     }
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/using-dotenv.prisma
+      "Environment variables loaded from prisma/.env
 
-      Environment variables loaded from prisma/.env
+      Prisma schema loaded from prisma/using-dotenv.prisma
 
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "fromdotenvdoesnotexist:5432"
 
@@ -182,9 +182,9 @@ describe('postgresql', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
+      "Environment variables loaded from .env
 
-      Environment variables loaded from .env
+      Prisma schema loaded from with-directUrl-env.prisma
 
       Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql", schema "public" at "localhost:5432"
 

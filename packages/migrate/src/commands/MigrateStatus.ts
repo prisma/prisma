@@ -65,8 +65,6 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -77,6 +75,8 @@ Check the status of your database migrations
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
