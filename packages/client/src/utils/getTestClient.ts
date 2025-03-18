@@ -35,7 +35,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   }
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
-  const previewFeatures = extractPreviewFeatures(config)
+  const previewFeatures = extractPreviewFeatures(config.generators)
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
   ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'

@@ -2,9 +2,9 @@ import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
   getGeneratorSuccessMessage,
-  type GetSchemaResult,
-  getSchemaWithPath,
   isPrismaPostgres,
+  MigrateTypes,
+  SchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
@@ -23,19 +23,16 @@ const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: SchemaEngine
-  private schemaPath?: string
+  private schemaContext?: SchemaContext
   public migrationsDirectoryPath?: string
 
-  constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
+  constructor(schemaContext?: SchemaContext, enabledPreviewFeatures?: string[]) {
     // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
-    if (schemaPath) {
-      this.schemaPath = path.resolve(process.cwd(), schemaPath)
-      this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
-      this.engine = new SchemaEngine({
-        schemaPath: this.schemaPath,
-        enabledPreviewFeatures,
-      })
+    if (schemaContext) {
+      this.schemaContext = schemaContext
+      this.migrationsDirectoryPath = path.join(path.dirname(schemaContext.schemaPath), 'migrations') // TODO:(schemaPath) refactor in scope of ORM-663
+      this.engine = new SchemaEngine({ schemaContext, enabledPreviewFeatures })
     } else {
       this.engine = new SchemaEngine({
         enabledPreviewFeatures,
@@ -47,10 +44,10 @@ export class Migrate {
     this.engine.stop()
   }
 
-  public getPrismaSchema(): Promise<GetSchemaResult> {
-    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+  public getPrismaSchema(): MigrateTypes.SchemasContainer {
+    if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
 
-    return getSchemaWithPath(this.schemaPath)
+    return toSchemasContainer(this.schemaContext.schemaFiles)
   }
 
   public reset(): Promise<void> {
@@ -170,7 +167,7 @@ export class Migrate {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
     const migrationsList = await listMigrations(this.migrationsDirectoryPath)
-    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
+    const schema = this.getPrismaSchema()
 
     return this.engine.evaluateDataLoss({
       migrationsList,
@@ -179,7 +176,7 @@ export class Migrate {
   }
 
   public async push({ force = false }: { force?: boolean }): Promise<EngineResults.SchemaPush> {
-    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
+    const schema = this.getPrismaSchema()
 
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,
@@ -194,7 +191,7 @@ export class Migrate {
   }
 
   public async tryToRunGenerate(datasourceInfo: DatasourceInfo): Promise<void> {
-    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+    if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
 
     // Auto-append the `--no-engine` flag to the `prisma generate` command when a Prisma Postgres URL is used.
     const skipEngines = isPrismaPostgres(datasourceInfo.url)
@@ -205,7 +202,7 @@ export class Migrate {
     logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({
-      schemaPath: this.schemaPath,
+      schemaContext: this.schemaContext,
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,

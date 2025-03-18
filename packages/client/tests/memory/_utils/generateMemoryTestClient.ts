@@ -7,10 +7,9 @@ import { MemoryTestDir } from './MemoryTestDir'
 
 export async function generateMemoryTestClient(testDir: MemoryTestDir) {
   const schema = await fs.readFile(testDir.schemaFilePath, 'utf8')
-  const dmmf = await getDMMF({ datamodel: schema, datamodelPath: testDir.schemaFilePath })
+  const dmmf = await getDMMF({ datamodel: schema })
   const config = await getConfig({
     datamodel: [[testDir.schemaFilePath, schema]],
-    datamodelPath: testDir.schemaFilePath,
     ignoreEnvVarErrors: false,
   })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!

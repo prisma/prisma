@@ -112,7 +112,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+    const migrate = new Migrate(schemaContext)
 
     let migrationIds: string[]
     try {

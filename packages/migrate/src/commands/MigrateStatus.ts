@@ -80,7 +80,7 @@ Check the status of your database migrations
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext.schemaPath) // TODO: pass schemaContext and refactor internals of Migrate class
+    const migrate = new Migrate(schemaContext)
 
     await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
