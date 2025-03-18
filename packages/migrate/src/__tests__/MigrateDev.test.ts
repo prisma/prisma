@@ -227,7 +227,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse(['--name=first', '--schema=./prisma/schema'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
+    expect(fs.exists('prisma/schema/migrations/migration_lock.toml')).toEqual('file')
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema

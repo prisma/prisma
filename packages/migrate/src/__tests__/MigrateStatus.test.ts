@@ -134,12 +134,12 @@ describe('sqlite', () => {
 
   it('schema-folder-db-exists', async () => {
     ctx.fixture('schema-folder-sqlite-db-exists')
-    const result = MigrateStatus.new().parse(['--schema=./prisma/schema'], defaultTestConfig())
+    const result = MigrateStatus.new().parse(['--schema=./prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+      "Prisma schema loaded from prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       1 migration found in prisma/migrations
 

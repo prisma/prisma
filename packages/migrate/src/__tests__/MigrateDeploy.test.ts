@@ -110,7 +110,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse(['--schema=./prisma/schema'], defaultTestConfig())
+    const result = MigrateDeploy.new().parse(['--schema=./prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -122,11 +122,11 @@ describe('sqlite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma/schema'], defaultTestConfig())
+    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma'], defaultTestConfig())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
+      "Prisma schema loaded from prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
@@ -135,7 +135,7 @@ describe('sqlite', () => {
 
       Applying migration \`20201231000000_init\`
 
-      Prisma schema loaded from prisma/schema
+      Prisma schema loaded from prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations

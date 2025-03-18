@@ -114,10 +114,10 @@ describe('reset', () => {
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
-    const result = MigrateReset.new().parse(['--force', '--schema=./prisma/schema'], defaultTestConfig())
+    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
+      "Prisma schema loaded from prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db

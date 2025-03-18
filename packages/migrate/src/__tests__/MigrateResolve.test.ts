@@ -128,13 +128,13 @@ describe('sqlite', () => {
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
     const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/schema', '--applied', '20240527130802_init'],
+      ['--schema=./prisma', '--applied', '20240527130802_init'],
       defaultTestConfig(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+      "Prisma schema loaded from prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Migration 20201231000000_init marked as applied.
       "
