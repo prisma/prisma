@@ -9,7 +9,7 @@ test('no template', () => {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE id = $1',
         params: [1],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
@@ -35,7 +35,7 @@ test('no template and scalar list parameter', () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [1, [1, 2, 3]],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
@@ -61,11 +61,11 @@ test('transforms IN template', () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [[1, 2, 3], 0],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
-    sql: 'SELECT * FROM users WHERE "userId" IN ($1, $2, $3) OFFSET $4',
+    sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) OFFSET $4',
     args: [1, 2, 3, 0],
     argTypes: ['Numeric', 'Numeric', 'Numeric', 'Numeric'],
   })
@@ -87,7 +87,7 @@ test('transforms IN template with empty list', () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [[], 0],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
@@ -113,7 +113,7 @@ test('handles singleton list in IN template', () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [[1], 0],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
@@ -139,7 +139,7 @@ test('treats non-array element as a singleton list in IN template', () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [1, 0],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
@@ -167,11 +167,11 @@ test("transforms IN template, doesn't touch scalar list", () => {
           hasNumbering: true,
         } as PlaceholderFormat,
         params: [[1, 2, 3], [1, 2, 3], 0],
-      } as QueryPlanDbQuery,
+      } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
     ),
   ).toEqual({
-    sql: 'SELECT * FROM users WHERE "userId" IN ($1, $2, $3) AND numbers = $4 OFFSET $5',
+    sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) AND numbers = $4 OFFSET $5',
     args: [1, 2, 3, [1, 2, 3], 0],
     argTypes: ['Numeric', 'Numeric', 'Numeric', 'Array', 'Numeric'],
   })
