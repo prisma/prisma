@@ -153,12 +153,14 @@ describe('common', () => {
     const result = MigrateDev.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your \`prisma.config.ts\`,
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -222,7 +224,7 @@ describe('sqlite', () => {
 
   it('first migration (--name) (folder)', async () => {
     ctx.fixture('schema-folder-sqlite')
-    const result = MigrateDev.new().parse(['--name=first'], defaultTestConfig())
+    const result = MigrateDev.new().parse(['--name=first', '--schema=./prisma/schema'], defaultTestConfig())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')

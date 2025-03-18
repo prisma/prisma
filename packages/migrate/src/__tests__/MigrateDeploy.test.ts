@@ -30,12 +30,14 @@ describe('common', () => {
     const result = MigrateDeploy.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your \`prisma.config.ts\`,
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -108,7 +110,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse([], defaultTestConfig())
+    const result = MigrateDeploy.new().parse(['--schema=./prisma/schema'], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -120,7 +122,7 @@ describe('sqlite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([], defaultTestConfig())
+    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma/schema'], defaultTestConfig())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
