@@ -1,4 +1,4 @@
-import { loadSchemaContext, toSchemasContainer } from '@prisma/internals'
+import { inferDirectoryConfig, loadSchemaContext, toSchemasContainer } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -7,6 +7,7 @@ import { SchemaEngine } from '../../SchemaEngine'
 test('introspection basic', async () => {
   const schemaPath = path.join(__dirname, 'schema.prisma')
   const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
+  const { viewsDirPath } = inferDirectoryConfig(schemaContext)
   const engine = new SchemaEngine({ schemaContext })
 
   const schemaContent = await fs.promises.readFile(schemaPath, { encoding: 'utf-8' })
@@ -21,7 +22,11 @@ test('introspection basic', async () => {
   })
   expect(dbVersion.length > 0).toBe(true)
 
-  const result = await engine.introspect({ schema, baseDirectoryPath: __dirname })
+  const result = await engine.introspect({
+    schema,
+    viewsDirectoryPath: viewsDirPath,
+    baseDirectoryPath: __dirname,
+  })
   expect(result).toMatchInlineSnapshot(`
     {
       "schema": {
