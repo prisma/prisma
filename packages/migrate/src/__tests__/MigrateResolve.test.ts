@@ -26,12 +26,14 @@ describe('common', () => {
     const result = MigrateResolve.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your \`prisma.config.ts\`,
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -125,11 +127,14 @@ describe('sqlite', () => {
 
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
-    const result = MigrateResolve.new().parse(['--applied', '20240527130802_init'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(
+      ['--schema=./prisma', '--applied', '20240527130802_init'],
+      defaultTestConfig(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+      "Prisma schema loaded from prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       Migration 20201231000000_init marked as applied.
       "

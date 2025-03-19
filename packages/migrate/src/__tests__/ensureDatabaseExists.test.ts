@@ -15,7 +15,7 @@ it('can create database - sqlite', async () => {
 
 it('can create database - sqlite - folder', async () => {
   ctx.fixture('schema-folder-sqlite')
-  const schema = (await getSchemaWithPath())!
+  const schema = (await getSchemaWithPath('./prisma/schema'))!
   const { datasources } = await getConfig({ datamodel: schema.schemas })
   const result = ensureDatabaseExists(datasources[0])
   await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:../dev.db"`)

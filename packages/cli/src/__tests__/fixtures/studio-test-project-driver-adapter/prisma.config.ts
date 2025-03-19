@@ -10,10 +10,7 @@ process.env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL = `file:${path.join(__dirna
 
 export default defineConfig({
   earlyAccess: true,
-  schema: {
-    kind: 'single',
-    filePath: path.join(__dirname, 'schema-c.prisma'),
-  },
+  schema: path.join(__dirname, 'schema-c.prisma'),
   studio: {
     adapter: async (env: Env) => {
       const { PrismaLibSQL } = await import('@prisma/adapter-libsql')

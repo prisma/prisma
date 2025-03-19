@@ -8,7 +8,6 @@ export {
   type GetSchemaOptions,
   getSchemaWithPath,
   getSchemaWithPathOptional,
-  type SchemaPathFromConfig,
 } from './cli/getSchema'
 export { getTypescriptVersion } from './cli/getTypescriptVersion'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'

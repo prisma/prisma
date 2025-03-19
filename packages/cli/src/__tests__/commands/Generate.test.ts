@@ -67,7 +67,7 @@ describe('using cli', () => {
 
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
-    const data = await ctx.cli('generate')
+    const data = await ctx.cli('generate', '--schema=./prisma/schema')
     const stdout = sanitiseStdout(data.stdout)
 
     if (getClientEngineType() === ClientEngineType.Binary) {
@@ -568,12 +568,14 @@ describe('--schema from project directory', () => {
     const output = Generate.new().parse([], defaultTestConfig())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your \`prisma.config.ts\`,
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
