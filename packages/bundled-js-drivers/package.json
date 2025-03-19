@@ -33,6 +33,6 @@
     "@neondatabase/serverless": "0.10.2",
     "@planetscale/database": "1.19.0",
     "@types/pg": "8.11.11",
-    "pg": "8.13.3"
+    "pg": "8.14.1"
   }
 }

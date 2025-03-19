@@ -45,7 +45,7 @@
     "@types/pg": "8.11.11",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
-    "pg": "8.13.3"
+    "pg": "8.14.1"
   },
   "peerDependencies": {
     "pg": "^8.11.3"
