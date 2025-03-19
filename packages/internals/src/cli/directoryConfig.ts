@@ -9,21 +9,23 @@ export type DirectoryConfig = {
 }
 
 // TODO: Pass PrismaConfig as second argument to enable setting custom directory paths. See ORM-663 & ORM-664.
-export function inferDirectoryConfig(schemaContext?: SchemaContext | null): DirectoryConfig {
-  const rootDir = schemaContext?.schemaRootDir ?? path.join(process.cwd(), 'prisma')
-
-  // If the schemaPath points to a file => place the migrations folder next to it.
-  // If the schemaPath points to a directory => also place the migrations folder next to it. NOT inside of it!
-  const migrationsDirPath = path.join(path.dirname(schemaContext?.schemaPath ?? process.cwd()), 'migrations')
-
-  // TODO: for now simply ported the existing view folder logic here but did not refine it
-  const schemaPath = schemaContext?.schemaPath ?? path.join(process.cwd(), 'prisma')
-  const prismaDir = path.dirname(schemaPath)
-  const viewsDirPath = path.join(prismaDir, 'views')
+export function inferDirectoryConfig(
+  schemaContext?: SchemaContext | null,
+  cwd: string = process.cwd(),
+): DirectoryConfig {
+  const baseDir =
+    // All default paths are relative to the `schema.prisma` file that contains the primary datasource.
+    // That schema file should usually be the users "root" aka main schema file.
+    schemaContext?.primaryDatasourceDirectory ??
+    // If no primary datasource exists we use the schemaRootDir.
+    // `schemaRootDir` is either the directory the user supplied as schemaPath or the directory the single schema file is in.
+    schemaContext?.schemaRootDir ??
+    // Should also that not be defined because there is no schema yet we fallback to CWD + `/prisma`.
+    path.join(cwd, 'prisma')
 
   return {
-    viewsDirPath,
-    typedSqlDirPath: path.join(rootDir, 'sql'),
-    migrationsDirPath,
+    viewsDirPath: path.join(baseDir, 'views'),
+    typedSqlDirPath: path.join(baseDir, 'sql'),
+    migrationsDirPath: path.join(baseDir, 'migrations'),
   }
 }

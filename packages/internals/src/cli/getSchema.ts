@@ -3,7 +3,6 @@ import type {
   GetSchemaResult,
   LookupResult,
   NonFatalLookupError,
-  PathType,
   SuccessfulLookupResult,
 } from '@prisma/schema-files-loader'
 import { ensureType, loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
@@ -21,18 +20,8 @@ const stat = promisify(fs.stat)
 
 const debug = Debug('prisma:getSchema')
 
-type DefaultLocationPath = {
-  path: string
-  kind: PathType
-}
-
-type DefaultLookupRule = {
-  schemaPath: DefaultLocationPath
-  conflictsWith?: DefaultLocationPath
-}
-
 type DefaultLookupRuleFailure = {
-  rule: DefaultLookupRule
+  path: string
   error: NonFatalLookupError
 }
 
@@ -57,29 +46,6 @@ type PackageJsonLookupResult =
       }
     }
 
-export type SchemaPathFromConfig =
-  | {
-      /**
-       * Tell Prisma to use a single `.prisma` schema file.
-       */
-      kind: 'single'
-      /**
-       * The path to a single `.prisma` schema file.
-       */
-      filePath: string
-    }
-  | {
-      /**
-       * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
-       */
-      kind: 'multi'
-      /**
-       * The path to a folder containing multiple `.prisma` schema files.
-       * All of the files in this folder will be used.
-       */
-      folderPath: string
-    }
-
 export type GetSchemaOptions = {
   cwd?: string
   argumentName?: string
@@ -95,7 +61,7 @@ type GetSchemaInternalOptions = Required<GetSchemaOptions>
  */
 export async function getSchemaWithPath(
   schemaPathFromArgs?: string,
-  schemaPathFromConfig?: SchemaPathFromConfig,
+  schemaPathFromConfig?: string,
   { cwd = process.cwd(), argumentName = '--schema' }: GetSchemaOptions = {},
 ): Promise<GetSchemaResult> {
   const result = await getSchemaWithPathInternal(schemaPathFromArgs, schemaPathFromConfig, { cwd, argumentName })
@@ -117,7 +83,7 @@ export async function getSchemaWithPath(
  */
 export async function getSchemaWithPathOptional(
   schemaPathFromArgs?: string,
-  schemaPathFromConfig?: SchemaPathFromConfig,
+  schemaPathFromConfig?: string,
   { cwd = process.cwd(), argumentName = '--schema' }: GetSchemaOptions = {},
 ): Promise<GetSchemaResult | null> {
   const result = await getSchemaWithPathInternal(schemaPathFromArgs, schemaPathFromConfig, { cwd, argumentName })
@@ -200,7 +166,7 @@ async function readSchemaFromFileOrDirectory(schemaPath: string): Promise<Lookup
  */
 async function getSchemaWithPathInternal(
   schemaPathFromArgs: string | undefined,
-  schemaPathFromConfig: SchemaPathFromConfig | undefined,
+  schemaPathFromConfig: string | undefined,
   { cwd, argumentName }: GetSchemaInternalOptions,
 ): Promise<DefaultLookupResult> {
   // 1. Try the user custom path, when provided.
@@ -259,15 +225,16 @@ function renderLookupError(error: NonFatalLookupError) {
 function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   const parts: string[] = [
     `Could not find Prisma Schema that is required for this command.`,
-    `You can either provide it with ${green(
-      '`--schema`',
-    )} argument, set it as \`prisma.schema\` in your package.json or put it into the default location.`,
+    `You can either provide it with ${green('`--schema`')} argument,`,
+    `set it in your ${green('`prisma.config.ts`')},`,
+    `set it as ${green('`prisma.schema`')} in your ${green('package.json')},`,
+    `or put it into the default location (${green('`./prisma/schema.prisma`')}, or ${green('`./schema.prisma`')}.`,
     'Checked following paths:\n',
   ]
   const printedPaths = new Set<string>()
   for (const failure of error.failures) {
-    const filePath = failure.rule.schemaPath.path
-    if (!printedPaths.has(failure.rule.schemaPath.path)) {
+    const filePath = failure.path
+    if (!printedPaths.has(failure.path)) {
       parts.push(`${path.relative(cwd, filePath)}: ${renderLookupError(failure.error)}`)
       printedPaths.add(filePath)
     }
@@ -300,7 +267,7 @@ export async function getPrismaConfigFromPackageJson(cwd: string) {
   }
 }
 
-async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: SchemaPathFromConfig | undefined) {
+async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: string | undefined) {
   if (!schemaPathFromConfig) {
     return {
       ok: false,
@@ -308,25 +275,14 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: Sch
     } as const
   }
 
-  let schemaResult: LookupResult
-  if (schemaPathFromConfig.kind === 'single') {
-    schemaResult = await readSchemaFromSingleFile(schemaPathFromConfig.filePath)
-    if (!schemaResult.ok) {
-      throw new Error(
-        `Could not load schema from file \`${
-          schemaPathFromConfig.filePath
-        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
-      )
-    }
-  } else {
-    schemaResult = await readSchemaFromDirectory(schemaPathFromConfig.folderPath)
-    if (!schemaResult.ok) {
-      throw new Error(
-        `Could not load schema from folder \`${
-          schemaPathFromConfig.folderPath
-        }\` provided by "prisma.config.ts"\`: ${renderLookupError(schemaResult.error)}`,
-      )
-    }
+  const schemaResult = await readSchemaFromFileOrDirectory(schemaPathFromConfig)
+
+  if (!schemaResult.ok) {
+    throw new Error(
+      `Could not load schema from \`${schemaPathFromConfig}\` provided by "prisma.config.ts"\`: ${renderLookupError(
+        schemaResult.error,
+      )}`,
+    )
   }
 
   return schemaResult
@@ -372,53 +328,15 @@ export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJson
 }
 
 async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[] = []): Promise<DefaultLookupResult> {
-  const schemaPrisma: DefaultLookupRule = {
-    schemaPath: {
-      path: path.join(cwd, 'schema.prisma'),
-      kind: 'file',
-    },
-  }
-  const prismaSchemaFile: DefaultLookupRule = {
-    schemaPath: {
-      path: path.join(cwd, 'prisma', 'schema.prisma'),
-      kind: 'file',
-    },
-    conflictsWith: {
-      path: path.join(cwd, 'prisma', 'schema'),
-      kind: 'directory',
-    },
-  }
-
-  const prismaSchemaFolder: DefaultLookupRule = {
-    schemaPath: {
-      path: path.join(cwd, 'prisma', 'schema'),
-      kind: 'directory',
-    },
-    conflictsWith: {
-      path: path.join(cwd, 'prisma', 'schema.prisma'),
-      kind: 'file',
-    },
-  }
-
-  const rules = [schemaPrisma, prismaSchemaFile, prismaSchemaFolder]
-  for (const rule of rules) {
-    debug(`Checking existence of ${rule.schemaPath.path}`)
-    const schema = await loadSchemaFromDefaultLocation(rule.schemaPath)
+  const lookupPaths = [path.join(cwd, 'schema.prisma'), path.join(cwd, 'prisma', 'schema.prisma')]
+  for (const path of lookupPaths) {
+    debug(`Checking existence of ${path}`)
+    const schema = await readSchemaFromSingleFile(path)
     if (!schema.ok) {
-      failures.push({ rule, error: schema.error })
+      failures.push({ path, error: schema.error })
       continue
     }
-    if (rule.conflictsWith) {
-      const conflictingSchema = await loadSchemaFromDefaultLocation(rule.conflictsWith)
-      if (conflictingSchema.ok) {
-        throw new Error(
-          `Found Prisma Schemas at both \`${path.relative(cwd, rule.schemaPath.path)}\` and \`${path.relative(
-            cwd,
-            rule.conflictsWith.path,
-          )}\`. Please remove one.`,
-        )
-      }
-    }
+
     return schema
   }
 
@@ -428,15 +346,6 @@ async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[
       kind: 'NotFoundMultipleLocations',
       failures,
     },
-  }
-}
-
-async function loadSchemaFromDefaultLocation(lookupPath: DefaultLocationPath) {
-  switch (lookupPath.kind) {
-    case 'file':
-      return readSchemaFromSingleFile(lookupPath.path)
-    case 'directory':
-      return readSchemaFromDirectory(lookupPath.path)
   }
 }
 
@@ -456,10 +365,7 @@ export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string 
   return path.dirname(schemaPathResult.schemaPath)
 }
 
-export async function getSchema(
-  schemaPathFromArgs?: string,
-  schemaPathFromConfig?: SchemaPathFromConfig,
-): Promise<MultipleSchemas> {
+export async function getSchema(schemaPathFromArgs?: string, schemaPathFromConfig?: string): Promise<MultipleSchemas> {
   const schemaPathResult = await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig)
 
   return schemaPathResult.schemas

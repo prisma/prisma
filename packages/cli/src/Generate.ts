@@ -20,7 +20,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  type SchemaPathFromConfig,
 } from '@prisma/internals'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
@@ -385,7 +384,7 @@ function getCurrentClientVersion(): string | null {
 
 async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
-  schemaFromConfig: SchemaPathFromConfig | undefined,
+  schemaFromConfig: string | undefined,
   cwd: string,
   isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {

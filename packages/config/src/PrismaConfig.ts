@@ -44,50 +44,11 @@ const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =
     adapter: adapterShape<Env>(),
   })
 
-const PrismaConfigSchemaSingleShape = Shape.Struct({
-  kind: Shape.Literal('single'),
-  filePath: Shape.String,
-})
-
-const PrismaConfigSchemaMultiShape = Shape.Struct({
-  kind: Shape.Literal('multi'),
-  folderPath: Shape.String,
-})
-
-// Define the shape for the `schema` property.
-// This is shared between `PrismaConfig` and `PrismaConfigInput`.
-const PrismaSchemaConfigShape = Shape.Union(PrismaConfigSchemaSingleShape, PrismaConfigSchemaMultiShape)
-
-export type PrismaSchemaConfigShape =
-  | {
-      /**
-       * Tell Prisma to use a single `.prisma` schema file.
-       */
-      kind: 'single'
-      /**
-       * The path to a single `.prisma` schema file.
-       */
-      filePath: string
-    }
-  | {
-      /**
-       * Tell Prisma to use multiple `.prisma` schema files, via the `prismaSchemaFolder` preview feature.
-       */
-      kind: 'multi'
-      /**
-       * The path to a folder containing multiple `.prisma` schema files.
-       * All of the files in this folder will be used.
-       */
-      folderPath: string
-    }
-
 // The exported types are re-declared manually instead of using the Shape.Type
 // types because `effect` types make API Extractor crash, making it impossible
 // to bundle them, and `effect` is too large to ship as a full dependency
 // without bundling and tree-shaking. The following tests ensure that the
 // exported types are structurally equal to the ones defined by the schemas.
-declare const __testPrismaSchemaConfigShapeValueA: typeof PrismaSchemaConfigShape.Type
-declare const __testPrismaSchemaConfigShapeValueB: PrismaSchemaConfigShape
 declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
 declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVars>
 declare const __testPrismaMigrateConfigShapeValueA: ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
@@ -95,8 +56,6 @@ declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigShape<Env
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaSchemaConfigShapeValueA satisfies PrismaSchemaConfigShape
-  __testPrismaSchemaConfigShapeValueB satisfies typeof PrismaSchemaConfigShape.Type
   __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<EnvVars>
   __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
   __testPrismaMigrateConfigShapeValueA satisfies PrismaMigrateConfigShape<EnvVars>
@@ -107,7 +66,7 @@ if (false) {
 const createPrismaConfigShape = () =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
-    schema: Shape.optional(PrismaSchemaConfigShape),
+    schema: Shape.optional(Shape.String),
   })
 
 /**
@@ -120,9 +79,9 @@ export type PrismaConfig<Env extends EnvVars = never> = {
    */
   earlyAccess: true
   /**
-   * The configuration for the Prisma schema file(s).
+   * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
-  schema?: PrismaSchemaConfigShape
+  schema?: string
   /**
    * The configuration for Prisma Studio.
    */
@@ -158,7 +117,7 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
-    schema: Shape.optional(PrismaSchemaConfigShape),
+    schema: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
@@ -170,9 +129,9 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
    */
   earlyAccess: true
   /**
-   * The configuration for the Prisma schema file(s).
+   * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
-  schema?: PrismaSchemaConfigShape
+  schema?: string
   /**
    * The configuration for Prisma Studio.
    */

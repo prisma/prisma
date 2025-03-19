@@ -3,7 +3,7 @@ generator client {
   previewFeatures = ["prismaSchemaFolder"]
 }
 
-datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
+model Foo {
+  id   Int    @id
+  name String
 }

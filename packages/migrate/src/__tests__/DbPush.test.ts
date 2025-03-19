@@ -42,12 +42,14 @@ describe('push', () => {
     const result = DbPush.new().parse([], defaultTestConfig())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your \`prisma.config.ts\`,
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -104,12 +106,12 @@ describe('push', () => {
     expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
   })
 
-  it('missing SQLite db should be created next to the schema folder', async () => {
+  it('missing SQLite db should be created relative to the schema file with the datasource', async () => {
     ctx.fixture('schema-folder-sqlite')
-    ctx.fs.remove('prisma/dev.db')
+    ctx.fs.remove('prisma/schema/dev.db')
     const schemaPath = 'prisma/schema'
 
-    const result = DbPush.new().parse([], defaultTestConfig())
+    const result = DbPush.new().parse([`--schema=${schemaPath}`], defaultTestConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
