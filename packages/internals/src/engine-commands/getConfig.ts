@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'

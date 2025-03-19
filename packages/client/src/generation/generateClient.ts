@@ -5,10 +5,9 @@ import type {
   BinaryPaths,
   ConnectorType,
   DataSource,
-  DMMF,
   GeneratorConfig,
   SqlQueryOutput,
-} from '@prisma/generator-helper'
+} from '@prisma/generator'
 import {
   assertNever,
   ClientEngineType,
@@ -28,7 +27,7 @@ import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
 import clientPkg from '../../package.json'
-import type { DMMF as PrismaClientDMMF } from './dmmf-types'
+import type { DMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
@@ -80,7 +79,7 @@ export interface FileMap {
 
 export interface BuildClientResult {
   fileMap: FileMap
-  prismaClientDmmf: PrismaClientDMMF.Document
+  prismaClientDmmf: DMMF.Document
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -558,7 +557,7 @@ function isWasmEngineSupported(provider: ConnectorType) {
   return provider === 'postgresql' || provider === 'postgres' || provider === 'mysql' || provider === 'sqlite'
 }
 
-function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
+function validateDmmfAgainstDenylists(prismaClientDmmf: DMMF.Document): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {

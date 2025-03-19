@@ -1,4 +1,4 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator'
 
 export enum ClientEngineType {
   Library = 'library',

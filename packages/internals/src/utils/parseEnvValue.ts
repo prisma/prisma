@@ -1,4 +1,4 @@
-import type { BinaryTargetsEnvValue, EnvValue } from '@prisma/generator-helper'
+import type { BinaryTargetsEnvValue, EnvValue } from '@prisma/generator'
 import { dim } from 'kleur/colors'
 
 /**

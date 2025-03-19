@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
-import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'

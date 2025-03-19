@@ -3,7 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
-import type { ActiveConnectorType, SqlQueryOutput } from '@prisma/generator-helper'
+import type { ActiveConnectorType, SqlQueryOutput } from '@prisma/generator'
 import type { MigrateTypes } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'

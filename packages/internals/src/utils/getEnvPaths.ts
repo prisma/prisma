@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { EnvPaths } from '@prisma/generator-helper'
+import { EnvPaths } from '@prisma/generator'
 import { findUpSync, Options as FindUpOptions, pathExistsSync } from 'find-up'
 import fs from 'fs'
 import path from 'path'

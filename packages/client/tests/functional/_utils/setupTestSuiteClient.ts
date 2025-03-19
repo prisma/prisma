@@ -1,5 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import { SqlQueryOutput } from '@prisma/generator'
 import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
 import path from 'path'

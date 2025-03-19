@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import { DataSource } from '@prisma/generator'
 
 type InjectableEnv = {
   parsed: {
