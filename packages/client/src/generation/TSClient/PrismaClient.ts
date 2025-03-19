@@ -1,4 +1,5 @@
-import type { DataSource, DMMF } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
+import type { DataSource } from '@prisma/generator'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 

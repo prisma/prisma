@@ -51,14 +51,13 @@
     "wrangler": "3.111.0"
   },
   "peerDependencies": {
-    "@prisma/generator-helper": "*",
     "@prisma/internals": "*"
   },
   "dependencies": {
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/engines-version": "6.6.0-25.0302bd9e49a13a657a302c060e529d54b08fad04",
-    "@prisma/generator-helper": "workspace:*",
+    "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "prompts": "2.4.2"

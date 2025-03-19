@@ -1,4 +1,5 @@
-import { DMMF, SqlQueryOutput } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
+import { SqlQueryOutput } from '@prisma/generator'
 
 import { FileMap } from '../generateClient'
 import { buildDbEnums, DbEnumsList } from './buildDbEnums'

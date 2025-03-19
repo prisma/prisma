@@ -1,4 +1,4 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator'
 
 import { parseEnvValue } from './parseEnvValue'
 

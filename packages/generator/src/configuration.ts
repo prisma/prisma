@@ -1,32 +1,6 @@
-import type { DMMF } from './dmmf'
+import type * as DMMF from '@prisma/dmmf'
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace JsonRPC {
-  export type Request = {
-    jsonrpc: '2.0'
-    method: string
-    params?: any
-    id: number
-  }
-
-  export type Response = SuccessResponse | ErrorResponse
-
-  export type SuccessResponse = {
-    jsonrpc: '2.0'
-    result: any
-    id: number
-  }
-
-  export type ErrorResponse = {
-    jsonrpc: '2.0'
-    error: {
-      code: number
-      message: string
-      data: any
-    }
-    id: number
-  }
-}
+import { SqlQueryOutput } from './typedSql'
 
 export interface GeneratorConfig {
   name: string
@@ -132,65 +106,3 @@ export type GeneratorManifest = {
   version?: string
   requiresEngineVersion?: string
 }
-
-export type SqlQueryOutput = {
-  name: string
-  source: string
-  documentation: string | null
-  parameters: SqlQueryParameterOutput[]
-  resultColumns: SqlQueryColumnOutput[]
-}
-
-export type SqlQueryParameterOutput = {
-  name: string
-  query: string
-  typ: QueryIntrospectionType
-  documentation: string | null
-  nullable: boolean
-}
-
-export type SqlQueryColumnOutput = {
-  name: string
-  typ: QueryIntrospectionType
-  nullable: boolean
-}
-
-// can refer to user-defined enums, so does not map to QueryIntrospectionType 1:1
-export type QueryIntrospectionType = QueryIntrospectionBuiltinType | (string & {})
-
-// This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
-// ./quaint/src/connector/column_type.rs
-export type QueryIntrospectionBuiltinType =
-  | 'int'
-  | 'bigint'
-  | 'float'
-  | 'double'
-  | 'string'
-  | 'enum'
-  | 'bytes'
-  | 'bool'
-  | 'char'
-  | 'decimal'
-  | 'json'
-  | 'xml'
-  | 'uuid'
-  | 'datetime'
-  | 'date'
-  | 'time'
-  | 'int-array'
-  | 'bigint-array'
-  | 'float-array'
-  | 'double-array'
-  | 'string-array'
-  | 'char-array'
-  | 'bytes-array'
-  | 'bool-array'
-  | 'decimal-array'
-  | 'json-array'
-  | 'xml-array'
-  | 'uuid-array'
-  | 'datetime-array'
-  | 'date-array'
-  | 'time-array'
-  | 'null'
-  | 'unknown'

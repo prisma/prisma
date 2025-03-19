@@ -1,5 +1,5 @@
-import type { IsolationLevel } from '@prisma/driver-adapter-utils'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { IsolationLevel } from '@prisma/driver-adapter-utils'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
 import { EngineProtocol } from '../Engine'

@@ -1,5 +1,7 @@
+import type { GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
+
 import byline from './byline'
-import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
+import * as JsonRpc from './json-rpc'
 
 export interface Handler {
   onGenerate(options: GeneratorOptions): Promise<any>
@@ -74,6 +76,6 @@ export function generatorHandler(handler: Handler): void {
   process.stdin.resume()
 }
 
-function respond(response: JsonRPC.Response): void {
+function respond(response: JsonRpc.Response): void {
   console.error(JSON.stringify(response))
 }

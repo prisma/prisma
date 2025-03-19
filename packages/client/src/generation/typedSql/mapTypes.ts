@@ -1,4 +1,4 @@
-import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator-helper'
+import { QueryIntrospectionBuiltinType, QueryIntrospectionType } from '@prisma/generator'
 import { isValidJsIdentifier } from '@prisma/internals'
 
 import * as ts from '../ts-builders'

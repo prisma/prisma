@@ -1,4 +1,4 @@
-import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator-helper'
+import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
 import { getEffectiveUrl, SchemaContext } from '@prisma/internals'
 
 import { SchemaEngine } from '../SchemaEngine'

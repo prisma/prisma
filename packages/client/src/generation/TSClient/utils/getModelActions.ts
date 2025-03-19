@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
 
 import { DMMFHelper } from '../../dmmf'
 

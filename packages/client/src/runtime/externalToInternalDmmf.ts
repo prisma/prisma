@@ -1,4 +1,4 @@
-import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
+import * as ExternalDMMF from '@prisma/dmmf'
 import pluralize from 'pluralize'
 
 import type { DMMF } from '../generation/dmmf-types'

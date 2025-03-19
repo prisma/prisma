@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'

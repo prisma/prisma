@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import * as DMMF from '@prisma/dmmf'
 import type { O } from 'ts-toolbelt'
 
 import { type Client, type InternalRequestParams } from '../../getPrismaClient'
