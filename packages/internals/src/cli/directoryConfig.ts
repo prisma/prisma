@@ -9,7 +9,10 @@ export type DirectoryConfig = {
 }
 
 // TODO: Pass PrismaConfig as second argument to enable setting custom directory paths. See ORM-663 & ORM-664.
-export function inferDirectoryConfig(schemaContext?: SchemaContext | null): DirectoryConfig {
+export function inferDirectoryConfig(
+  schemaContext?: SchemaContext | null,
+  cwd: string = process.cwd(),
+): DirectoryConfig {
   const baseDir =
     // All default paths are relative to the `schema.prisma` file that contains the primary datasource.
     // That schema file should usually be the users "root" aka main schema file.
@@ -18,7 +21,7 @@ export function inferDirectoryConfig(schemaContext?: SchemaContext | null): Dire
     // `schemaRootDir` is either the directory the user supplied as schemaPath or the directory the single schema file is in.
     schemaContext?.schemaRootDir ??
     // Should also that not be defined because there is no schema yet we fallback to CWD + `/prisma`.
-    path.join(process.cwd(), 'prisma')
+    path.join(cwd, 'prisma')
 
   return {
     viewsDirPath: path.join(baseDir, 'views'),

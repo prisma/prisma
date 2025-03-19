@@ -1,0 +1,9 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["prismaSchemaFolder"]
+}
+
+model Foo {
+  id   Int    @id
+  name String
+}
