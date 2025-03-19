@@ -268,7 +268,7 @@
     "resolve": "1.22.10",
     "rimraf": "6.0.1",
     "simple-statistics": "7.8.7",
-    "sort-keys": "4.2.0",
+    "sort-keys": "5.1.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.2.1",
     "stacktrace-parser": "0.1.11",
