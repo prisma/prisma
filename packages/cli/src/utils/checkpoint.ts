@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue } from '@prisma/internals'
+import { getCLIPathHash, getProjectHash, loadSchemaContext, parseEnvValue } from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
 
@@ -105,40 +105,36 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
   let schemaGeneratorsProviders: string[] | undefined
 
   try {
-    const schema = await getSchema(schemaPath, schemaPathFromConfig)
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: schemaPath,
+      schemaPathFromConfig,
+      ignoreEnvVarErrors: true,
+      printLoadMessage: false,
+    })
 
-    try {
-      const config = await getConfig({
-        datamodel: schema,
-        ignoreEnvVarErrors: true,
-      })
+    if (schemaContext.datasources.length > 0) {
+      schemaProvider = schemaContext.datasources[0].provider
+    }
 
-      if (config.datasources.length > 0) {
-        schemaProvider = config.datasources[0].provider
-      }
+    // Example 'prisma-client-js'
+    schemaGeneratorsProviders = schemaContext.generators
+      // Check that value is defined
+      .filter((generator) => generator && generator.provider)
+      .map((generator) => parseEnvValue(generator.provider))
 
-      // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators
-        // Check that value is defined
-        .filter((generator) => generator && generator.provider)
-        .map((generator) => parseEnvValue(generator.provider))
-
-      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-      const prismaClientJSGenerator = config.generators.find(
-        (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
-      )
-      if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
-        schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
-      }
-    } catch (e) {
-      debug(
-        'Error from tryToReadDataFromSchema() while processing the schema. This is not a fatal error. It will continue without the processed data.',
-      )
-      debug(e)
+    // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
+    // (this was not scoped to `prisma-client-js` before Prisma 3.0)
+    const prismaClientJSGenerator = schemaContext.generators.find(
+      (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
+    )
+    if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
+      schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
     }
   } catch (e) {
-    // fail silently if schema can't be read
+    debug(
+      'Error from tryToReadDataFromSchema() while processing the schema. This is not a fatal error. It will continue without the processed data.',
+    )
+    debug(e)
   }
 
   return {

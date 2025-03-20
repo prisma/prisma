@@ -1,20 +1,18 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
+  Command,
   format,
   formatTable,
-  getConfig,
   getEnginesMetaInfo,
-  getSchema,
-  getSchemaWithPath,
   getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
@@ -118,13 +116,7 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    let schemaPath: string | null = null
-    try {
-      schemaPath = (await getSchemaWithPath(undefined, config.schema)).schemaPath
-    } catch {
-      schemaPath = null
-    }
-    const featureFlags = await this.getFeatureFlags(schemaPath)
+    const featureFlags = await this.getFeatureFlags(config.schema)
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
@@ -133,18 +125,10 @@ export class Version implements Command {
     return formatTable(rows, { json: args['--json'] })
   }
 
-  private async getFeatureFlags(schemaPath: string | null): Promise<string[]> {
-    if (!schemaPath) {
-      return []
-    }
-
+  private async getFeatureFlags(schemaPath: string | undefined): Promise<string[]> {
     try {
-      const datamodel = await getSchema(schemaPath)
-      const config = await getConfig({
-        datamodel,
-        ignoreEnvVarErrors: true,
-      })
-      const generator = config.generators.find((g) => g.previewFeatures.length > 0)
+      const { generators } = await loadSchemaContext({ schemaPathFromConfig: schemaPath })
+      const generator = generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {
         return generator.previewFeatures
       }

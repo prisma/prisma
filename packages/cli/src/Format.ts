@@ -2,8 +2,17 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
+import {
+  arg,
+  Command,
+  format,
+  formatms,
+  formatSchema,
+  getSchemaWithPath,
+  HelpError,
+  printSchemaLoadedMessage,
+  validate,
+} from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -56,7 +65,8 @@ Or specify a Prisma schema path
       return this.help()
     }
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    printSchemaLoadedMessage(schemaPath)
 
     const formattedDatamodel = await formatSchema({ schemas })
 
