@@ -116,6 +116,43 @@ export class Mcp implements Command {
       },
     )
 
+    server.tool(
+      'Prisma-Postgres-account-status',
+      `Prisma Platform Auth Show provides information about the currently logged in user. If the user is not logged in, you should instruct them to do so by running \`npx prisma platform auth login --early-access\` and then re-running this command to verify.`,
+      async () => {
+        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'show', '--early-access'])
+
+        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+      },
+    )
+
+    server.tool(
+      'Create-Prisma-Postgres-Database',
+      `Create a new online Prisma Postgres database.
+      Specify a name that makes sense to the user - maybe the name of the project they are working on
+      Specify a region that makes sense for the user. Pick between these three options: us-east-1, eu-west-3, ap-northeast-1. If you are unsure, pick us-east-1
+      If the response idicates that you have reached the workspace plan limit, you should instruct the user to do one of these things:
+      - If they want to connect to an existing database, they should go to console.prisma.io and copy the connection string
+      - If they want to upgrade their plan, they should go to console.prisma.io and upgrade their plan in order to be able to create more databases
+      - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
+      { name: z.string(), region: z.string() },
+      async ({ name, region }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'init', '--db', '--name', name, '--region', region])
+
+        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+      },
+    )
+
+    server.tool(
+      'Prisma-Login',
+      `Login or create an account in order to be able to use Prisma Postgres.`,
+      async () => {
+        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'])
+
+        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+      },
+    )
+
     const transport = new StdioServerTransport()
     await server.connect(transport)
 
