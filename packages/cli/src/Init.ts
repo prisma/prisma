@@ -232,6 +232,8 @@ export class Init implements Command {
       '--output': String,
       '--with-model': Boolean,
       '--db': Boolean,
+      '--region': String,
+      '--name': String,
     })
 
     if (isError(args) || args['--help']) {
@@ -349,7 +351,7 @@ export class Init implements Command {
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
 
-      const ppgRegionSelection = await select({
+      const ppgRegionSelection = args['--region'] || (await select({
         message: 'Select your region:',
         default: 'us-east-1',
         choices: regions.map((region) => ({
@@ -358,12 +360,12 @@ export class Init implements Command {
           disabled: region.ppgStatus === 'unavailable',
         })),
         loop: true,
-      })
+      }))
 
-      const projectDisplayNameAnswer = await input({
+      const projectDisplayNameAnswer = args['--name'] || (await input({
         message: 'Enter a project name:',
         default: 'My Prisma Project',
-      })
+      }))
 
       const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 
