@@ -7,13 +7,13 @@ import type {
 } from '@prisma/schema-files-loader'
 import { ensureType, loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
 import fs from 'fs'
-import { green } from 'kleur/colors'
+import { dim, green } from 'kleur/colors'
 import path from 'path'
 import { readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
 import { getConfig } from '../engine-commands'
-import type { MultipleSchemas, MultipleSchemaTuple } from '../utils/schemaFileInput'
+import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
 
 const readFile = promisify(fs.readFile)
 const stat = promisify(fs.stat)
@@ -91,6 +91,10 @@ export async function getSchemaWithPathOptional(
     return result.schema
   }
   return null
+}
+
+export function printSchemaLoadedMessage(schemaPath: string) {
+  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 }
 
 async function readSchemaFromSingleFile(schemaPath: string): Promise<LookupResult> {
@@ -347,26 +351,4 @@ async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[
       failures,
     },
   }
-}
-
-/**
- * Small helper that returns the directory which contains the `schema.prisma` file
- */
-export async function getSchemaDir(schemaPathFromArgs?: string): Promise<string | null> {
-  if (schemaPathFromArgs) {
-    return path.resolve(path.dirname(schemaPathFromArgs))
-  }
-
-  const schemaPathResult = await getSchemaWithPath()
-  if (!schemaPathResult) {
-    return null
-  }
-
-  return path.dirname(schemaPathResult.schemaPath)
-}
-
-export async function getSchema(schemaPathFromArgs?: string, schemaPathFromConfig?: string): Promise<MultipleSchemas> {
-  const schemaPathResult = await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig)
-
-  return schemaPathResult.schemas
 }
