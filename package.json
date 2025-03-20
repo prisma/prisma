@@ -39,7 +39,7 @@
     "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@size-limit/file": "11.2.0",
-    "@slack/webhook": "7.0.4",
+    "@slack/webhook": "7.0.5",
     "@types/benchmark": "2.1.5",
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
