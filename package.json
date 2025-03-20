@@ -44,7 +44,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
+    "@types/node": "22.13.10",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
