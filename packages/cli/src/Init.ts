@@ -234,6 +234,7 @@ export class Init implements Command {
       '--db': Boolean,
       '--region': String,
       '--name': String,
+      '--non-interactive': Boolean,
     })
 
     if (isError(args) || args['--help']) {
@@ -335,6 +336,9 @@ export class Init implements Command {
       if (isError(credentials)) throw credentials
 
       if (!credentials) {
+        if (args['--non-interactive']) {
+          return 'Please authenticate before creating a Prisma Postgres project.'
+        }
         console.log('This will create a project for you on console.prisma.io and requires you to be authenticated.')
         const authAnswer = await confirm({
           message: 'Would you like to authenticate?',
