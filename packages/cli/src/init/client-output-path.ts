@@ -1,8 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { Schema as Shape } from 'effect'
-import { readConfigFile } from 'typescript'
+import { getTsconfig } from 'get-tsconfig'
 
 /**
  * Determines the client output path relative to the schema directory.
@@ -44,55 +43,13 @@ function getSourceDir(): string {
 }
 
 function getSourceDirFromTypeScriptConfig(): string | undefined {
-  try {
-    const tsconfig = loadTypeScriptConfig('tsconfig.json')
-    return (
-      tsconfig.compilerOptions?.rootDir ?? tsconfig.compilerOptions?.baseUrl ?? tsconfig.compilerOptions?.rootDirs?.[0]
-    )
-  } catch {
+  const tsconfig = getTsconfig()
+
+  if (!tsconfig) {
     return undefined
   }
-}
 
-const tsconfigSchema = Shape.partial(
-  Shape.Struct(
-    {
-      extends: Shape.String,
-      compilerOptions: Shape.partial(
-        Shape.Struct(
-          {
-            rootDir: Shape.String,
-            rootDirs: Shape.Array(Shape.String),
-            baseUrl: Shape.String,
-          },
-          { key: Shape.String, value: Shape.Unknown },
-        ),
-      ),
-    },
-    { key: Shape.String, value: Shape.Unknown },
-  ),
-)
+  const { config } = tsconfig
 
-const parseTsConfig = Shape.decodeUnknownSync(tsconfigSchema)
-
-function loadTypeScriptConfig(configPath: string): typeof tsconfigSchema.Type {
-  const loadResult = readConfigFile(configPath, (path) => fs.readFileSync(path, 'utf8'))
-
-  if (loadResult.error) {
-    throw loadResult.error
-  }
-
-  const config = parseTsConfig(loadResult.config)
-
-  if (config.extends) {
-    const parentConfigPath = path.join(path.dirname(configPath), config.extends)
-    const parentConfig = loadTypeScriptConfig(parentConfigPath)
-    return {
-      ...parentConfig,
-      ...config,
-      compilerOptions: { ...(parentConfig.compilerOptions ?? {}), ...(config.compilerOptions ?? {}) },
-    }
-  }
-
-  return config
+  return config.compilerOptions?.rootDir ?? config.compilerOptions?.baseUrl ?? config.compilerOptions?.rootDirs?.[0]
 }
