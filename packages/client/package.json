@@ -240,7 +240,7 @@
     "ci-info": "4.2.0",
     "decimal.js": "10.5.0",
     "env-paths": "2.2.1",
-    "esbuild": "0.24.2",
+    "esbuild": "0.25.1",
     "execa": "5.1.1",
     "expect-type": "1.2.0",
     "flat-map-polyfill": "0.3.8",
