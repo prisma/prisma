@@ -137,21 +137,26 @@ export class Mcp implements Command {
       - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
       { name: z.string(), region: z.string() },
       async ({ name, region }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'init', '--db', '--name', name, '--region', region, '--non-interactive'])
+        const res = await spawnAsPromise('npx', [
+          'prisma',
+          'init',
+          '--db',
+          '--name',
+          name,
+          '--region',
+          region,
+          '--non-interactive',
+        ])
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
     )
 
-    server.tool(
-      'Prisma-Login',
-      `Login or create an account in order to be able to use Prisma Postgres.`,
-      async () => {
-        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'])
+    server.tool('Prisma-Login', `Login or create an account in order to be able to use Prisma Postgres.`, async () => {
+      const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'])
 
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
-      },
-    )
+      return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+    })
 
     const transport = new StdioServerTransport()
     await server.connect(transport)
