@@ -31,10 +31,12 @@ export * from './engine-commands'
 export { resolveUrl } from './engine-commands/getConfig'
 export { relativizePathInPSLError } from './engine-commands/relativizePathInPSLError'
 export { Generator } from './Generator'
-export type { GeneratorPaths } from './get-generators/generatorResolvers/generatorResolvers'
-export { getPackageCmd } from './get-generators/generatorResolvers/prisma-client-js/auto-installation/getPackageCmd'
-export type { ProviderAliases } from './get-generators/getGenerators'
-export { getGenerator, getGenerators } from './get-generators/getGenerators'
+export {
+  type GeneratorRegistry,
+  type GeneratorRegistryEntry,
+  getGenerator,
+  getGenerators,
+} from './get-generators/getGenerators'
 export { fixBinaryTargets } from './get-generators/utils/fixBinaryTargets'
 export { printGeneratorConfig } from './get-generators/utils/printGeneratorConfig'
 export { getPackedPackage } from './getPackedPackage'
@@ -44,6 +46,7 @@ export type { MigrateTypes } from './migrateTypes'
 export { ErrorArea, isRustPanic, RustPanic } from './panic'
 export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'
+export { resolvePkg } from './resolvePkg'
 export type { SchemaEngineLogLine } from './schemaEngineCommands'
 export { canConnectToDatabase, createDatabase, dropDatabase } from './schemaEngineCommands'
 export { SchemaEngineExitCode } from './schemaEngineCommands'

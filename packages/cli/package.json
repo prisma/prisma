@@ -109,6 +109,7 @@
     "@inquirer/prompts": "7.3.3",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/client": "workspace:*",
+    "@prisma/client-generator-registry": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",

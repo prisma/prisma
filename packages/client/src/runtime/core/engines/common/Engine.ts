@@ -1,15 +1,14 @@
+import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
 import type { IsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
-import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
+import { Datasources } from '../../../getPrismaClient'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
-import { QueryCompilerConstructor } from '../client/types/QueryCompiler'
-import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -37,8 +36,6 @@ export type GraphQLQuery = {
   query: string
   variables: object
 }
-
-export type EngineProtocol = 'graphql' | 'json'
 
 /**
  * Custom fetch function for `DataProxyEngine`.
@@ -213,42 +210,6 @@ export interface EngineConfig {
     engineVersion: string
     clientVersion: string
   }
-}
-
-export type EngineWasmLoadingConfig = {
-  /**
-   * WASM-bindgen runtime for corresponding module
-   */
-  getRuntime: () => {
-    __wbg_set_wasm(exports: unknown)
-    QueryEngine: QueryEngineConstructor
-  }
-  /**
-   * Loads the raw wasm module for the wasm query engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
-   * @remarks only used by LibraryEngine
-   */
-  getQueryEngineWasmModule: () => Promise<unknown>
-}
-
-export type CompilerWasmLoadingConfig = {
-  /**
-   * WASM-bindgen runtime for corresponding module
-   */
-  getRuntime: () => {
-    __wbg_set_wasm(exports: unknown)
-    QueryCompiler: QueryCompilerConstructor
-  }
-  /**
-   * Loads the raw wasm module for the wasm compiler engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
-   * @remarks only used by ClientEngine
-   */
-  getQueryCompilerWasmModule: () => Promise<unknown>
 }
 
 export type GetConfigResult = {

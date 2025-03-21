@@ -1,3 +1,4 @@
+import { defaultRegistry } from '@prisma/client-generator-registry'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator'
@@ -155,7 +156,7 @@ ${bold('Examples')}
     const directoryConfig = inferDirectoryConfig(schemaContext)
 
     // TODO Extract logic from here
-    let hasJsClient
+    let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
@@ -167,7 +168,6 @@ ${bold('Examples')}
         schemaContext,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
-        cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
         typedSql,
@@ -179,6 +179,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
         allowNoModels: Boolean(args['--allow-no-models']),
+        registry: defaultRegistry.toInternal(),
       })
 
       if (!generators || generators.length === 0) {
@@ -321,9 +322,9 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
             schemaContext,
             printDownloadProgress: !watchMode,
             version: enginesVersion,
-            cliVersion: pkg.version,
             generatorNames: args['--generator'],
             typedSql,
+            registry: defaultRegistry.toInternal(),
           })
 
           if (!generatorsWatch || generatorsWatch.length === 0) {

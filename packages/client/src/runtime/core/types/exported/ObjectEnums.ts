@@ -1,9 +1,4 @@
 /**
- * List of Prisma enums that must use unique objects instead of strings as their values.
- */
-export const objectEnumNames = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
-
-/**
  * Module-private symbol used to distinguish between instances of
  * `ObjectEnumValue` created inside and outside this module.
  */

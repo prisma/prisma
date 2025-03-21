@@ -1,6 +1,6 @@
+import { lowerCase } from '@prisma/client-common'
 import levenshtein from 'js-levenshtein'
 
-import { lowerCase } from '../../../utils/lowerCase'
 import {
   ArgumentDescription,
   EmptySelectionError,

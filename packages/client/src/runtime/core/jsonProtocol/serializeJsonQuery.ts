@@ -1,6 +1,6 @@
+import { lowerCase, RuntimeDataModel, RuntimeModel } from '@prisma/client-common'
 import { assertNever } from '@prisma/internals'
 
-import { lowerCase } from '../../../utils/lowerCase'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
@@ -19,7 +19,6 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { isParam } from '../model/Param'
-import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
 import { isSkip, Skip } from '../types'
 import {
   Action,

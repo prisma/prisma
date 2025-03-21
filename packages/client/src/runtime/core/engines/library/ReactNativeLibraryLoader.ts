@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
 
+import { QueryEngineConfig, QueryEngineInstance } from '@prisma/client-common'
+
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { QueryEngineConfig } from '../common/types/QueryEngine'
-import { LibraryLoader, QueryEngineInstance } from './types/Library'
+import { LibraryLoader } from './types/Library'
 
 type PrismaCreateOptions = {
   datamodel: string
