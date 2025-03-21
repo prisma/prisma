@@ -8,7 +8,6 @@ import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const originalEnv = { ...process.env }
 
 const captureStdout = new CaptureStdout()
 
@@ -183,15 +182,12 @@ describe('postgresql', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })

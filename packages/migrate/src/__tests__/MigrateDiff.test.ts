@@ -18,7 +18,6 @@ import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const originalEnv = { ...process.env }
 const captureStdout = new CaptureStdout()
 
 const isWindows = os.platform() === 'win32'
@@ -634,15 +633,12 @@ describe('migrate diff', () => {
       await setupCockroach(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
@@ -712,15 +708,12 @@ describe('migrate diff', () => {
       await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
@@ -811,15 +804,12 @@ describe('migrate diff', () => {
       await setupMysql(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_MYSQL_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
@@ -882,8 +872,7 @@ describe('migrate diff', () => {
       await setupMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
         'tests-migrate',
@@ -896,8 +885,6 @@ describe('migrate diff', () => {
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })

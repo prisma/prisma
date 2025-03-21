@@ -23,16 +23,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const captureStdout = new CaptureStdout()
 
-// Disable prompts
-process.env.GITHUB_ACTIONS = '1'
-// Disable generate
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
 function removeSeedlingEmoji(str: string) {
   return str.replace('🌱  ', '')
 }
-
-const originalEnv = { ...process.env }
 
 beforeAll(() => {
   captureStdout.startCapture()
@@ -40,6 +33,10 @@ beforeAll(() => {
 
 beforeEach(() => {
   clearPromptInjection('before')
+  // Disable prompts
+  process.env.GITHUB_ACTIONS = '1'
+  // Disable generate
+  process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 })
 
 afterEach(() => {
@@ -945,8 +942,7 @@ describe('postgresql', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
     process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
@@ -956,8 +952,6 @@ describe('postgresql', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1289,8 +1283,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     await setupCockroach(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
     process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
@@ -1300,8 +1293,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1479,8 +1470,7 @@ describe('mysql', () => {
     await setupMysql(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
     process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
@@ -1490,8 +1480,6 @@ describe('mysql', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1689,8 +1677,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
       'tests-migrate',
@@ -1703,8 +1690,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })

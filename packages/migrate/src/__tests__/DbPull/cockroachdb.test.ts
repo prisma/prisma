@@ -17,11 +17,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   const captureStdout = new CaptureStdout()
 
@@ -62,15 +57,12 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     await setupCockroach(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })

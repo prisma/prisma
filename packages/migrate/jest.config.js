@@ -1,6 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   preset: '../../helpers/test/presets/withSnapshotSerializer.js',
+  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
   coveragePathIgnorePatterns: [
     'bin.ts',
     'setupMysql.ts',
