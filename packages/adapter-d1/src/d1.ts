@@ -257,7 +257,6 @@ type D1HTTPRawResult = {
   success?: boolean
 }
 
-
 function onUnsuccessfulD1HTTPResponse({ errors }: { errors: D1HTTPResponseInfo[] }): never {
   debug('D1 HTTP Errors: %O', errors)
   const { message = 'Unknown error', code = GENERIC_SQLITE_ERROR } = errors.at(0) ?? {}
@@ -268,7 +267,6 @@ function onUnsuccessfulD1HTTPResponse({ errors }: { errors: D1HTTPResponseInfo[]
     message,
   })
 }
-
 
 function onGenericD1HTTPError(error: Error): never {
   debug('HTTP Error: %O', error)
@@ -534,7 +532,6 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
       debug(`${tag} creating database %s`, CLOUDFLARE_SHADOW_DATABASE_NAME)
 
       try {
-
         const response = (await client
           .post(D1_API_BASE_URL, {
             json: {
