@@ -10,8 +10,6 @@ import { CaptureStdout } from '../utils/captureStdout'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -23,6 +21,7 @@ const captureStdout = new CaptureStdout()
 
 beforeEach(() => {
   captureStdout.startCapture()
+  process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 })
 
 afterEach(() => {
@@ -32,8 +31,6 @@ afterEach(() => {
 afterAll(() => {
   captureStdout.stopCapture()
 })
-
-const originalEnv = { ...process.env }
 
 describe('push', () => {
   it('should fail if no schema file', async () => {
@@ -322,15 +319,12 @@ describe('postgresql', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -403,15 +397,12 @@ describe('postgresql-multischema', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })

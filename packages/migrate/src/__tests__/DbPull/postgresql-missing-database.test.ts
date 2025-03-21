@@ -13,9 +13,6 @@ if (isMacOrWindowsCI) {
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
 describe('postgresql - missing database', () => {
   const captureStdout = new CaptureStdout()
 

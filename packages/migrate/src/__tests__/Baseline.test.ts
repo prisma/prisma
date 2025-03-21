@@ -12,11 +12,6 @@ import { CaptureStdout } from '../utils/captureStdout'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const captureStdout = new CaptureStdout()
 
-// Disable prompts
-process.env.GITHUB_ACTIONS = '1'
-// Disable generate
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
 // Covered in docs: https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/add-prisma-migrate-to-a-project
 // We have a dev and prod database
 // And we want to baseline the production database with a baseline migration
@@ -27,6 +22,10 @@ describe('Baselining', () => {
 
   beforeEach(() => {
     captureStdout.startCapture()
+    // Disable prompts
+    process.env.GITHUB_ACTIONS = '1'
+    // Disable generate
+    process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
   })
 
   afterEach(() => {

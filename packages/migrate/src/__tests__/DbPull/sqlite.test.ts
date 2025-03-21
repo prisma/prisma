@@ -24,9 +24,6 @@ afterAll(() => {
   captureStdout.stopCapture()
 })
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
 describe('D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 

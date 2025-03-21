@@ -18,11 +18,6 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
 describe('mysql', () => {
   const captureStdout = new CaptureStdout()
 
@@ -57,15 +52,12 @@ describe('mysql', () => {
     await setupMysql(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })

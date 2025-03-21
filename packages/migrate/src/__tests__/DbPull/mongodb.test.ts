@@ -15,9 +15,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
 describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   const captureStdout = new CaptureStdout()
 
