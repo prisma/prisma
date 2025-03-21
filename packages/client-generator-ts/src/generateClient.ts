@@ -83,8 +83,7 @@ export interface BuildClientResult {
   prismaClientDmmf: DMMF.Document
 }
 
-// eslint-disable-next-line @typescript-eslint/require-await
-export async function buildClient({
+export function buildClient({
   schemaPath,
   runtimeBase,
   runtimeSourcePath,
@@ -101,7 +100,7 @@ export async function buildClient({
   copyEngine,
   envPaths,
   typedSql,
-}: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
+}: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
@@ -416,7 +415,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const clientEngineType = getClientEngineType(generator)
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
-  const { prismaClientDmmf, fileMap } = await buildClient({
+  const { prismaClientDmmf, fileMap } = buildClient({
     datamodel,
     schemaPath,
     runtimeBase,
