@@ -232,6 +232,9 @@ export class Init implements Command {
       '--output': String,
       '--with-model': Boolean,
       '--db': Boolean,
+      '--region': String,
+      '--name': String,
+      '--non-interactive': Boolean,
     })
 
     if (isError(args) || args['--help']) {
@@ -333,6 +336,9 @@ export class Init implements Command {
       if (isError(credentials)) throw credentials
 
       if (!credentials) {
+        if (args['--non-interactive']) {
+          return 'Please authenticate before creating a Prisma Postgres project.'
+        }
         console.log('This will create a project for you on console.prisma.io and requires you to be authenticated.')
         const authAnswer = await confirm({
           message: 'Would you like to authenticate?',
@@ -349,21 +355,25 @@ export class Init implements Command {
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
 
-      const ppgRegionSelection = await select({
-        message: 'Select your region:',
-        default: 'us-east-1',
-        choices: regions.map((region) => ({
-          name: `${region.id} - ${region.displayName}`,
-          value: region.id,
-          disabled: region.ppgStatus === 'unavailable',
-        })),
-        loop: true,
-      })
+      const ppgRegionSelection =
+        args['--region'] ||
+        (await select({
+          message: 'Select your region:',
+          default: 'us-east-1',
+          choices: regions.map((region) => ({
+            name: `${region.id} - ${region.displayName}`,
+            value: region.id,
+            disabled: region.ppgStatus === 'unavailable',
+          })),
+          loop: true,
+        }))
 
-      const projectDisplayNameAnswer = await input({
-        message: 'Enter a project name:',
-        default: 'My Prisma Project',
-      })
+      const projectDisplayNameAnswer =
+        args['--name'] ||
+        (await input({
+          message: 'Enter a project name:',
+          default: 'My Prisma Project',
+        }))
 
       const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 

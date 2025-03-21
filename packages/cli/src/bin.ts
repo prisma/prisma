@@ -127,6 +127,7 @@ async function main(): Promise<number> {
           delete: Platform.ServiceToken.Delete.new(true),
           show: Platform.ServiceToken.Show.new(true),
         }),
+        mcp: Platform.Mcp.Mcp.new(),
       }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
