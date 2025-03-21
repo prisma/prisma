@@ -20,6 +20,15 @@ testMatrix.setupTestSuite(
       expect(keys).toInclude('user')
       expect(keys).toInclude('$transaction')
     })
+
+    test('original constructor can be retrieved for @prisma/extension-read-replicas', async () => {
+      const Constructor = Object.getPrototypeOf(Reflect.get(prisma, '_originalClient')).constructor
+
+      const prisma2 = new Constructor()
+      await prisma2.$disconnect()
+
+      expect(prisma2.user).toBeDefined()
+    })
   },
   {
     optOut: {
