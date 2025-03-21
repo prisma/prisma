@@ -31,11 +31,6 @@ afterAll(() => {
   captureStdout.stopCapture()
 })
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
 // We want to remove unique IDs to have stable snapshots
 // Example:
 // `PK__User__3213E83E450CDF1F` will be changed to `PK__User__RANDOM_ID_SANITIZED`
@@ -78,8 +73,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
       'tests-migrate',
@@ -92,8 +85,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
@@ -150,8 +141,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
     await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
       'tests-migrate',
@@ -160,8 +150,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })

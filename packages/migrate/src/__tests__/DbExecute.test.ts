@@ -20,8 +20,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const originalEnv = { ...process.env }
-
 describe('db execute', () => {
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
@@ -281,15 +279,12 @@ COMMIT;`,
       await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
@@ -522,15 +517,12 @@ COMMIT;`,
       await setupCockroach(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
@@ -733,15 +725,12 @@ COMMIT;`,
       await setupMysql(setupParams).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_MYSQL_URI_MIGRATE = connectionString
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
@@ -933,8 +922,7 @@ COMMIT;`,
       await setupMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
-      // Back to original env vars
-      process.env = { ...originalEnv }
+
       // Update env var because it's the one that is used in the schemas tested
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
         'tests-migrate',
@@ -947,8 +935,6 @@ COMMIT;`,
     })
 
     afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
       await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })

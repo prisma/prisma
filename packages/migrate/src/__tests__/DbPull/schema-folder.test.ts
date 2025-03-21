@@ -24,9 +24,6 @@ afterAll(() => {
   captureStdout.stopCapture()
 })
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
 test('reintrospection - no changes', async () => {
   ctx.fixture('introspection-folder')
   const introspect = new DbPull()

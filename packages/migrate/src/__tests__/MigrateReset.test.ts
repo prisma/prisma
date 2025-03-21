@@ -5,14 +5,13 @@ import prompt from 'prompts'
 import { MigrateReset } from '../commands/MigrateReset'
 import { CaptureStdout } from '../utils/captureStdout'
 
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const captureStdout = new CaptureStdout()
 
 beforeEach(() => {
   captureStdout.startCapture()
+  process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 })
 
 afterEach(() => {
