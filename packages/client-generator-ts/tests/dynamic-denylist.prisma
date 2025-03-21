@@ -1,0 +1,29 @@
+datasource db {
+  provider = "postgres"
+  url      = env("SOME_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id Int @id
+}
+
+model UserClient {
+  id   Int    @id
+  text String
+}
+
+model UserArgs {
+  id Int @id
+}
+
+model Prisma {
+  id Int @id
+}
+
+model Earth {
+  id Int @id
+}
