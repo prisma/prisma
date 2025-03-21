@@ -1,13 +1,16 @@
 import { defaultTestConfig } from '@prisma/config'
+import { jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+
+const ctx = jestContext.new().assemble()
 
 describe('introspection panic', () => {
   test('force panic', async () => {
     expect.assertions(1)
     process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
-    process.chdir(path.join(__dirname, 'fixtures', 'introspection', 'sqlite'))
+    ctx.fixture(path.join('introspection', 'sqlite'))
 
     const introspect = new DbPull()
     try {
