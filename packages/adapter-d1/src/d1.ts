@@ -21,6 +21,8 @@ import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
 import { cleanArg, matchSQLiteErrorCode } from './utils'
 
+const MAX_BIND_VALUES = 98
+
 const debug = Debug('prisma:driver-adapter:d1')
 
 type D1ResultsWithColumnNames = [string[], unknown[][]]
@@ -161,7 +163,7 @@ export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriver
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      maxBindValues: 98,
+      maxBindValues: MAX_BIND_VALUES,
     }
   }
 
@@ -237,6 +239,10 @@ function onError(error: Error): never {
  * HTTP API binding.
  */
 
+// The SQLITE_ERROR result code is a generic error code that is used when no other more specific error code is available.
+// See: https://www.sqlite.org/rescode.html.
+const GENERIC_SQLITE_ERROR = 1
+
 type D1HTTPResponseInfo = {
   code: number // >= 1000
   message: string
@@ -251,13 +257,26 @@ type D1HTTPRawResult = {
   success?: boolean
 }
 
-function onHTTPError(error: Error): never {
+
+function onUnsuccessfulD1HTTPResponse({ errors }: { errors: D1HTTPResponseInfo[] }): never {
+  debug('D1 HTTP Errors: %O', errors)
+  const { message = 'Unknown error', code = GENERIC_SQLITE_ERROR } = errors.at(0) ?? {}
+
+  throw new DriverAdapterError({
+    kind: 'sqlite',
+    extendedCode: code,
+    message,
+  })
+}
+
+
+function onGenericD1HTTPError(error: Error): never {
   debug('HTTP Error: %O', error)
   const { message } = error
 
   throw new DriverAdapterError({
     kind: 'sqlite',
-    extendedCode: 1,
+    extendedCode: GENERIC_SQLITE_ERROR,
     message,
   })
 }
@@ -280,12 +299,12 @@ async function performRawQuery(client: KyInstance, options: KyOptions) {
     })
 
     if (!response.success) {
-      throw new Error(response.errors[0].message, { cause: response.errors[0].code })
+      onUnsuccessfulD1HTTPResponse(response)
     }
 
     return response.result
   } catch (e) {
-    onHTTPError(e as Error)
+    onGenericD1HTTPError(e as Error)
   }
 }
 
@@ -455,7 +474,7 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      maxBindValues: 98,
+      maxBindValues: MAX_BIND_VALUES,
     }
   }
 
@@ -531,7 +550,7 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
         debug(`${tag} %O`, response)
 
         if (!response.success) {
-          throw new Error(response.errors[0].message, { cause: response.errors[0].code })
+          onUnsuccessfulD1HTTPResponse(response)
         }
 
         const { uuid: CLOUDFLARE_SHADOW_DATABASE_ID } = response.result
@@ -539,7 +558,7 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
 
         return CLOUDFLARE_SHADOW_DATABASE_ID
       } catch (e) {
-        onHTTPError(e as Error)
+        onGenericD1HTTPError(e as Error)
       }
     }
 
@@ -560,10 +579,10 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
         debug(`${tag} %O`, response)
 
         if (!response.success) {
-          throw new Error(response.messages[0].message, { cause: response.errors[0].code })
+          onUnsuccessfulD1HTTPResponse(response)
         }
       } catch (e) {
-        onHTTPError(e as Error)
+        onGenericD1HTTPError(e as Error)
       }
     }
 
