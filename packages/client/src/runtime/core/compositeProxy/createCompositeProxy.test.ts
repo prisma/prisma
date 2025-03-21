@@ -1,16 +1,17 @@
 import util from 'util'
 
+import type { Client } from '../../getPrismaClient'
 import { createCompositeProxy } from './createCompositeProxy'
 
 test('forwards properties to the target', () => {
   const target = { foo: 'bar' }
-  const proxy = createCompositeProxy(target, [])
+  const proxy = createCompositeProxy({} as Client, target, [])
 
   expect(proxy.foo).toBe('bar')
 })
 
 test('allows to set property', () => {
-  const proxy = createCompositeProxy({} as Record<string, unknown>, [])
+  const proxy = createCompositeProxy({} as Client, {} as Record<string, unknown>, [])
 
   proxy.foo = 1
 
@@ -19,7 +20,7 @@ test('allows to set property', () => {
 })
 
 test('allows to add extra properties via layers', () => {
-  const proxy = createCompositeProxy({ first: 1 }, [
+  const proxy = createCompositeProxy({} as Client, { first: 1 }, [
     {
       getKeys() {
         return ['second']
@@ -37,12 +38,12 @@ test('allows to add extra properties via layers', () => {
 })
 
 test('preserves correct Object.prototype.hasOwnProperty result', () => {
-  const proxy = createCompositeProxy({}, [])
+  const proxy = createCompositeProxy({} as Client, {}, [])
   expect(Object.prototype.hasOwnProperty.call(proxy, 'notThere')).toBe(false)
 })
 
 test('allows to add multiple properties via single layer', () => {
-  const proxy = createCompositeProxy({}, [
+  const proxy = createCompositeProxy({} as Client, {}, [
     {
       getKeys() {
         return ['first', 'second']
@@ -60,7 +61,7 @@ test('allows to add multiple properties via single layer', () => {
 })
 
 test('logs proxy properties if used in console.log/util.inspect', () => {
-  const proxy = createCompositeProxy({}, [
+  const proxy = createCompositeProxy({} as Client, {}, [
     {
       getKeys() {
         return ['first', 'second']
@@ -76,7 +77,7 @@ test('logs proxy properties if used in console.log/util.inspect', () => {
 })
 
 test('allows to set property descriptor via layer', () => {
-  const proxy = createCompositeProxy({}, [
+  const proxy = createCompositeProxy({} as Client, {}, [
     {
       getKeys() {
         return ['first', 'second']
@@ -105,7 +106,7 @@ test('allows to set property descriptor via layer', () => {
 })
 
 test('allows to hide properties via layers', () => {
-  const proxy = createCompositeProxy({ prop: 1, secret: "It's a secret to everybody" }, [
+  const proxy = createCompositeProxy({} as Client, { prop: 1, secret: "It's a secret to everybody" }, [
     {
       getKeys() {
         return ['secret']
@@ -128,7 +129,7 @@ test('allows to hide properties via layers', () => {
 
 test('does not add layers for undeclared keys', () => {
   const getPropertyValue = jest.fn()
-  const proxy = createCompositeProxy({} as Record<string, unknown>, [
+  const proxy = createCompositeProxy({} as Client, {} as Record<string, unknown>, [
     {
       getKeys() {
         return ['first']
@@ -143,7 +144,7 @@ test('does not add layers for undeclared keys', () => {
 })
 
 test('allows to have several layers', () => {
-  const proxy = createCompositeProxy({ first: 1 }, [
+  const proxy = createCompositeProxy({} as Client, { first: 1 }, [
     {
       getKeys() {
         return ['second']
@@ -171,7 +172,7 @@ test('allows to have several layers', () => {
 })
 
 test('allows to override target property', () => {
-  const proxy = createCompositeProxy({ value: 'original' }, [
+  const proxy = createCompositeProxy({} as Client, { value: 'original' }, [
     {
       getKeys() {
         return ['value']
@@ -187,7 +188,7 @@ test('allows to override target property', () => {
 })
 
 test('last override wins', () => {
-  const proxy = createCompositeProxy({ value: 'original' }, [
+  const proxy = createCompositeProxy({} as Client, { value: 'original' }, [
     {
       getKeys() {
         return ['value']
@@ -214,7 +215,7 @@ test('last override wins', () => {
 
 test('recalculates property on every access', () => {
   let counter = 0
-  const proxy = createCompositeProxy({} as Record<string, number>, [
+  const proxy = createCompositeProxy({} as Client, {} as Record<string, number>, [
     {
       getKeys() {
         return ['prop']
@@ -234,7 +235,7 @@ test('recalculates property on every access', () => {
 test('allows to override a property from a layer', () => {
   const target = {} as Record<string, unknown>
 
-  const proxy = createCompositeProxy(target, [
+  const proxy = createCompositeProxy({} as Client, target, [
     {
       getKeys() {
         return ['prop']
@@ -255,7 +256,7 @@ test('allows to override a property from a layer', () => {
 test('allows to override a property from a layer using defineProperty', () => {
   const target = {} as Record<string, unknown>
 
-  const proxy = createCompositeProxy(target, [
+  const proxy = createCompositeProxy({} as Client, target, [
     {
       getKeys() {
         return ['prop']
@@ -278,7 +279,7 @@ test('allows to override a property from a layer using defineProperty', () => {
 test('does not allow to overriding property from a layer if it is non writable', () => {
   const target = {} as Record<string, unknown>
 
-  const proxy = createCompositeProxy(target, [
+  const proxy = createCompositeProxy({} as Client, target, [
     {
       getKeys() {
         return ['prop']
