@@ -137,7 +137,7 @@ export class Mcp implements Command {
       - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
       { name: z.string(), region: z.string() },
       async ({ name, region }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'init', '--db', '--name', name, '--region', region])
+        const res = await spawnAsPromise('npx', ['prisma', 'init', '--db', '--name', name, '--region', region, '--non-interactive'])
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
