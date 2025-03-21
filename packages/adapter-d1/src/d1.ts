@@ -529,10 +529,11 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
 
     const createShadowDatabase = async () => {
       const tag = '[js::connectToShadowDb::createShadowDatabase]'
+      const SHADOW_DATABASE_PREFIX = '_prisma_shadow_'
+      const CLOUDFLARE_SHADOW_DATABASE_NAME = `${SHADOW_DATABASE_PREFIX}${globalThis.crypto.randomUUID()}`
+      debug(`${tag} creating database %s`, CLOUDFLARE_SHADOW_DATABASE_NAME)
 
       try {
-        const CLOUDFLARE_SHADOW_DATABASE_NAME = `_shadow_${globalThis.crypto.randomUUID()}`
-        debug(`${tag} creating database %s`, CLOUDFLARE_SHADOW_DATABASE_NAME)
 
         const response = (await client
           .post(D1_API_BASE_URL, {
