@@ -42,5 +42,9 @@ testMatrix.setupTestSuite(
       from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'This is a client-only test',
     },
+    skipEngine: {
+      from: ['client'],
+      reason: 'constructor is missing driver adapter params',
+    },
   },
 )
