@@ -66,7 +66,6 @@ ${indent(
 )}
 }
 
-// Custom InputTypes
 ${this.argsTypes.map((typeExport) => ts.stringify(typeExport)).join('\n\n')}
 `
   }
