@@ -44,6 +44,10 @@ export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
 
+export function getCountOutputTypeName(modelName: string): string {
+  return `${capitalize(modelName)}CountOutputType`
+}
+
 export function getGroupByName(modelName: string): string {
   return `${capitalize(modelName)}GroupByOutputType`
 }

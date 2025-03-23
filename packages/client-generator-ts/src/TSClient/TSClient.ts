@@ -210,11 +210,15 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 import * as runtime from '${context.runtimeJsPath}'
 import $Public = runtime.Types.Public
 import $Result = runtime.Types.Result
+
 import type * as Prisma from './common'
 ${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
+
 export * as Prisma from './common'
 ${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
+
 export { PrismaClient } from './client'
+
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
