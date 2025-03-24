@@ -10,7 +10,7 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
-import type { Database as BetterSqlite3, Options as BetterSqlite3Options } from 'better-sqlite3'
+import type { Database as BetterSQLite3, Options as BetterSQLite3Options } from 'better-sqlite3'
 import Database from 'better-sqlite3'
 
 import { name as packageName } from '../package.json'
@@ -30,15 +30,15 @@ class RollbackError extends Error {
   }
 }
 
-type StdClient = BetterSqlite3
+type StdClient = BetterSQLite3
 
-type BetterSqlite3ResultSet = {
+type BetterSQLite3ResultSet = {
   declaredTypes: Array<string | null>
   columnNames: string[]
   values: unknown[][]
 }
 
-type BetterSqlite3Meta = {
+type BetterSQLite3Meta = {
   /**
    * the total number of rows that were inserted, updated, or deleted by an operation.
    */
@@ -52,7 +52,7 @@ type BetterSqlite3Meta = {
 
 const LOCK_TAG = Symbol()
 
-class BetterSqlite3Queryable<ClientT extends StdClient> implements SqlQueryable {
+class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName;
 
@@ -96,7 +96,7 @@ class BetterSqlite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async executeIO(query: SqlQuery): Promise<BetterSqlite3Meta> {
+  private async executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     const release = await this[LOCK_TAG].acquire()
     try {
       const stmt = this.client.prepare(query.sql).bind(query.args)
@@ -115,7 +115,7 @@ class BetterSqlite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: SqlQuery): Promise<BetterSqlite3ResultSet> {
+  private async performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     const release = await this[LOCK_TAG].acquire()
     try {
       const stmt = this.client.prepare(query.sql).bind(query.args) // TODO: double-check `Date` serialisation
@@ -150,7 +150,7 @@ class BetterSqlite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   }
 }
 
-class BetterSqlite3Transaction extends BetterSqlite3Queryable<StdClient> implements Transaction {
+class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> implements Transaction {
   constructor(
     client: StdClient,
     readonly options: TransactionOptions,
@@ -175,7 +175,7 @@ class BetterSqlite3Transaction extends BetterSqlite3Queryable<StdClient> impleme
   }
 }
 
-export class PrismaBetterSqlite3Adapter extends BetterSqlite3Queryable<StdClient> implements SqlDriverAdapter {
+export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
   constructor(client: StdClient) {
     super(client)
   }
@@ -208,28 +208,52 @@ export class PrismaBetterSqlite3Adapter extends BetterSqlite3Queryable<StdClient
 
     const release = await this[LOCK_TAG].acquire()
 
-    return new Promise<Transaction>((resolve, reject) => {
-      const txResultPromise = this.client
-        .transaction(async () => {
-          const [txDeferred, deferredPromise] = createDeferred<void>()
-          const txWrapper = new BetterSqlite3Transaction(this.client, options, txDeferred, txResultPromise)
-
-          resolve(txWrapper)
-          return deferredPromise
-        })
-        .deferred()
-        .catch((error) => {
-          // Rollback error is ignored, any other error is legit and is re-thrown.
-          if (!(error instanceof RollbackError)) {
-            return reject(error)
-          }
-
-          // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
-          // hence `catch` and rethrowing the error and not `finally`.
-          release()
-          throw error
-        })
-    })
+    try {
+      // Create the deferred promise and transaction result promise first
+      const [txDeferred, deferredPromise] = createDeferred<void>()
+      
+      // Create a promise that will resolve with the transaction
+      const transactionPromise = new Promise<Transaction>((resolve, reject) => {
+        try {
+          // Start the transaction with BetterSQLite3
+          this.client.transaction(() => {
+            // Create transaction wrapper now that txResultPromise exists
+            const txWrapper = new BetterSQLite3Transaction(
+              this.client, 
+              options,
+              txDeferred,
+              deferredPromise
+            )
+            
+            // Resolve the outer promise with the transaction wrapper
+            resolve(txWrapper)
+            
+            // Return the promise that will be resolved/rejected by commit/rollback
+            return deferredPromise
+          })
+          .deferred()
+          .catch((error) => {
+            // Special case for rollback - don't treat it as an error
+            if (error instanceof RollbackError) {
+              return
+            }
+            reject(error)
+          })
+        } catch (error) {
+          reject(error)
+        }
+      })
+      
+      // When any error occurs during transaction creation, release the lock
+      transactionPromise.catch(() => {
+        release()
+      })
+      
+      return await transactionPromise
+    } catch (error) {
+      release()
+      throw error
+    }
   }
 
   dispose(): Promise<void> {
@@ -238,28 +262,28 @@ export class PrismaBetterSqlite3Adapter extends BetterSqlite3Queryable<StdClient
   }
 }
 
-type BetterSqlite3InputParams = BetterSqlite3Options & {
+type BetterSQLite3InputParams = BetterSQLite3Options & {
   url: ':memory:' | (string & {})
   shadowDatabaseURL?: ':memory:' | (string & {})
 }
 
-export class PrismaBetterSqlite3AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaBetterSQLite3AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(private readonly config: BetterSqlite3InputParams) {}
+  constructor(private readonly config: BetterSQLite3InputParams) {}
 
   connect(): Promise<SqlDriverAdapter> {
-    return Promise.resolve(new PrismaBetterSqlite3Adapter(createBetterSqlite3Client(this.config)))
+    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client(this.config)))
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
     const url = this.config.shadowDatabaseURL ?? ':memory:'
-    return Promise.resolve(new PrismaBetterSqlite3Adapter(createBetterSqlite3Client({ ...this.config, url })))
+    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client({ ...this.config, url })))
   }
 }
 
-function createBetterSqlite3Client(input: BetterSqlite3InputParams): StdClient {
+function createBetterSQLite3Client(input: BetterSQLite3InputParams): StdClient {
   const { url, ...config } = input
   return new Database(url, config)
 }
