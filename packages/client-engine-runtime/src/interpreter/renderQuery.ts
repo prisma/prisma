@@ -1,6 +1,7 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import { Fragment, isPrismaValuePlaceholder, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import type { Fragment, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { ScopeBindings } from './scope'
 
@@ -11,10 +12,10 @@ export function renderQuery(dbQuery: QueryPlanDbQuery, scope: ScopeBindings): Sq
       return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope))
 
     case 'templateSql':
-      return renderTemplateSql(dbQuery.fragments, dbQuery.placeholder, substituteParams(dbQuery.params, scope))
+      return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, substituteParams(dbQuery.params, scope))
 
     default:
-      assertNever(queryType, 'Invalid query type')
+      assertNever(queryType, `Invalid query type`)
   }
 }
 

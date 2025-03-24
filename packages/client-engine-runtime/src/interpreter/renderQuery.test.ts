@@ -1,4 +1,4 @@
-import { PlaceholderFormat, QueryPlanDbQuery } from '../QueryPlan'
+import type { PlaceholderFormat, QueryPlanDbQuery } from '../QueryPlan'
 import { renderQuery } from './renderQuery'
 import { ScopeBindings } from './scope'
 
@@ -30,10 +30,10 @@ test('no template and scalar list parameter', () => {
           { type: 'stringChunk', value: ' AND numbers = ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [1, [1, 2, 3]],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -56,10 +56,10 @@ test('transforms IN template', () => {
           { type: 'stringChunk', value: ' OFFSET ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [[1, 2, 3], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -82,10 +82,10 @@ test('transforms IN template with empty list', () => {
           { type: 'stringChunk', value: ' OFFSET ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [[], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -108,10 +108,10 @@ test('handles singleton list in IN template', () => {
           { type: 'stringChunk', value: ' OFFSET ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [[1], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -134,10 +134,10 @@ test('treats non-array element as a singleton list in IN template', () => {
           { type: 'stringChunk', value: ' OFFSET ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [1, 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -162,10 +162,10 @@ test("transforms IN template, doesn't touch scalar list", () => {
           { type: 'stringChunk', value: ' OFFSET ' },
           { type: 'parameter' },
         ],
-        placeholder: {
+        placeholderFormat: {
           prefix: '$',
           hasNumbering: true,
-        } as PlaceholderFormat,
+        } satisfies PlaceholderFormat,
         params: [[1, 2, 3], [1, 2, 3], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,

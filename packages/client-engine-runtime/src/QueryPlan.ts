@@ -27,7 +27,7 @@ export type QueryPlanDbQuery =
   | {
       type: 'templateSql'
       fragments: Fragment[]
-      placeholder: PlaceholderFormat
+      placeholderFormat: PlaceholderFormat
       params: PrismaValue[]
     }
 
