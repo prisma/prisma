@@ -241,7 +241,7 @@
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "decimal.js": "10.5.0",
-    "esbuild": "0.24.2",
+    "esbuild": "0.25.1",
     "execa": "5.1.1",
     "expect-type": "1.2.0",
     "fs-extra": "11.3.0",
