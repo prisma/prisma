@@ -46,5 +46,9 @@ testMatrix.setupTestSuite(
       from: ['client'],
       reason: 'constructor is missing driver adapter params',
     },
+    skipDriverAdapter: {
+      from: ['js_d1', 'js_libsql', 'js_neon', 'js_pg', 'js_planetscale', 'vitess_8'],
+      reason: 'constructor is missing driver adapter params',
+    },
   },
 )
