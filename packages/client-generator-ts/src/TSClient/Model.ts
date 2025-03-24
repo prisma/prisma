@@ -71,7 +71,7 @@ export class Model implements Generable {
   }
 
   public fileName(): string {
-    return `${this.model.name}.d.ts`
+    return `${this.model.name}.ts`
   }
 
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {

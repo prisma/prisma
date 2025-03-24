@@ -292,11 +292,11 @@ Object.assign(exports, Prisma)
     const modelsFileMap: FileMap = createModelFiles(context)
 
     return {
-      'models.d.ts': createModelsFile(context, modelsFileMap),
+      'models.ts': createModelsFile(context, modelsFileMap),
       'common.d.ts': createCommonFile(context, this.options),
       'commonInputTypes.ts': createCommonInputTypeFiles(context),
       'class.d.ts': createClassFile(context, this.options),
-      'enums.d.ts': createEnumsFile(context),
+      'enums.ts': createEnumsFile(context),
       models: modelsFileMap,
     }
   }
