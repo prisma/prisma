@@ -27,6 +27,7 @@ module.exports = [
     ignores: [
       '.prisma',
       '.github',
+      'target/**',
       'helpers/blaze/**',
       '**/dist/**',
       '**/declaration/**',
