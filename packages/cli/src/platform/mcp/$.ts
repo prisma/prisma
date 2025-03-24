@@ -138,7 +138,7 @@ export class Mcp implements Command {
       { name: z.string(), region: z.string() },
       async ({ name, region }) => {
         const res = await spawnAsPromise('npx', [
-          'prisma',
+          'prisma@6.6.0-integration-mcp.2',
           'init',
           '--db',
           '--name',
