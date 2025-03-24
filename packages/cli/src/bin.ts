@@ -152,8 +152,8 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
-      // TODO: add policy subcommand to --help after EA
-      policy: new SubCommand('@prisma/cli-policy'),
+      // TODO: add rules subcommand to --help after EA
+      rules: new SubCommand('@prisma/cli-rules'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
