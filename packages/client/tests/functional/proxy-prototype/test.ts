@@ -20,11 +20,35 @@ testMatrix.setupTestSuite(
       expect(keys).toInclude('user')
       expect(keys).toInclude('$transaction')
     })
+
+    test('original constructor can be retrieved for @prisma/extension-read-replicas', () => {
+      const Constructor = Object.getPrototypeOf(Reflect.get(prisma, '_originalClient')).constructor
+      const prisma2 = new Constructor()
+      void prisma2.$disconnect()
+      expect(prisma2.user).toBeDefined()
+
+      prisma.$extends((client) => {
+        const Constructor = Object.getPrototypeOf(Reflect.get(prisma, '_originalClient')).constructor
+        const prisma2 = new Constructor()
+        void prisma2.$disconnect()
+        expect(prisma2.user).toBeDefined()
+
+        return client.$extends({})
+      })
+    })
   },
   {
     optOut: {
       from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason: 'This is a client-only test',
+    },
+    skipEngine: {
+      from: ['client'],
+      reason: 'constructor is missing driver adapter params',
+    },
+    skipDriverAdapter: {
+      from: ['js_d1', 'js_libsql', 'js_neon', 'js_pg', 'js_planetscale', 'vitess_8'],
+      reason: 'constructor is missing driver adapter params',
     },
   },
 )
