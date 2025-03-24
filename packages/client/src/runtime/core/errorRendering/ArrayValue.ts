@@ -1,4 +1,5 @@
-import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
+import { INDENT_SIZE } from '@prisma/ts-builders'
+
 import { ArrayField } from './ArrayField'
 import { ErrorWriter, fieldsSeparator } from './base'
 import { FormattedString } from './FormattedString'

@@ -417,6 +417,9 @@ importers:
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
+      '@prisma/client-generator-registry':
+        specifier: workspace:*
+        version: link:../client-generator-registry
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
@@ -633,9 +636,15 @@ importers:
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
+      '@prisma/client-common':
+        specifier: workspace:*
+        version: link:../client-common
       '@prisma/client-engine-runtime':
         specifier: workspace:*
         version: link:../client-engine-runtime
+      '@prisma/client-generator-js':
+        specifier: workspace:*
+        version: link:../client-generator-js
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
@@ -687,6 +696,9 @@ importers:
       '@prisma/query-engine-wasm':
         specifier: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
         version: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
+      '@prisma/ts-builders':
+        specifier: workspace:*
+        version: link:../ts-builders
       '@snaplet/copycat':
         specifier: 6.0.0
         version: 6.0.0
@@ -729,15 +741,9 @@ importers:
       benchmark:
         specifier: 2.1.4
         version: 2.1.4
-      ci-info:
-        specifier: 4.2.0
-        version: 4.2.0
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      env-paths:
-        specifier: 2.2.1
-        version: 2.2.1
       esbuild:
         specifier: 0.24.2
         version: 0.24.2
@@ -747,9 +753,6 @@ importers:
       expect-type:
         specifier: 1.2.0
         version: 1.2.0
-      flat-map-polyfill:
-        specifier: 0.3.8
-        version: 0.3.8
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
@@ -807,12 +810,6 @@ importers:
       pg:
         specifier: 8.14.1
         version: 8.14.1
-      pkg-up:
-        specifier: 3.1.0
-        version: 3.1.0
-      pluralize:
-        specifier: 8.0.0
-        version: 8.0.0
       resolve:
         specifier: 1.22.10
         version: 1.22.10
@@ -862,6 +859,25 @@ importers:
         specifier: 8.4.1
         version: 8.4.1
 
+  packages/client-common:
+    dependencies:
+      '@prisma/dmmf':
+        specifier: workspace:*
+        version: link:../dmmf
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      '@prisma/generator':
+        specifier: workspace:*
+        version: link:../generator
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
+    devDependencies:
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
   packages/client-engine-runtime:
     dependencies:
       '@prisma/debug':
@@ -883,6 +899,86 @@ importers:
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
+
+  packages/client-generator-js:
+    dependencies:
+      '@antfu/ni':
+        specifier: 0.21.12
+        version: 0.21.12
+      '@prisma/client-common':
+        specifier: workspace:*
+        version: link:../client-common
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+      '@prisma/dmmf':
+        specifier: workspace:*
+        version: link:../dmmf
+      '@prisma/engines-version':
+        specifier: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
+        version: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
+      '@prisma/fetch-engine':
+        specifier: workspace:*
+        version: link:../fetch-engine
+      '@prisma/generator':
+        specifier: workspace:*
+        version: link:../generator
+      '@prisma/get-platform':
+        specifier: workspace:*
+        version: link:../get-platform
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
+      '@prisma/ts-builders':
+        specifier: workspace:*
+        version: link:../ts-builders
+      ci-info:
+        specifier: 4.2.0
+        version: 4.2.0
+      env-paths:
+        specifier: 2.2.1
+        version: 2.2.1
+      indent-string:
+        specifier: 4.0.0
+        version: 4.0.0
+      klona:
+        specifier: 2.0.6
+        version: 2.0.6
+      pkg-up:
+        specifier: 3.1.0
+        version: 3.1.0
+      pluralize:
+        specifier: 8.0.0
+        version: 8.0.0
+      ts-pattern:
+        specifier: 5.6.2
+        version: 5.6.2
+    devDependencies:
+      '@types/pluralize':
+        specifier: 0.0.33
+        version: 0.0.33
+      strip-ansi:
+        specifier: 7.1.0
+        version: 7.1.0
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
+  packages/client-generator-registry:
+    dependencies:
+      '@prisma/client-generator-js':
+        specifier: workspace:*
+        version: link:../client-generator-js
+      '@prisma/generator':
+        specifier: workspace:*
+        version: link:../generator
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
+    devDependencies:
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/config:
     dependencies:
@@ -1352,9 +1448,6 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
     devDependencies:
-      '@antfu/ni':
-        specifier: 0.21.12
-        version: 0.21.12
       '@babel/helper-validator-identifier':
         specifier: 7.25.9
         version: 7.25.9
@@ -1505,6 +1598,9 @@ importers:
 
   packages/migrate:
     dependencies:
+      '@prisma/client-generator-registry':
+        specifier: workspace:*
+        version: link:../client-generator-registry
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
@@ -1673,6 +1769,16 @@ importers:
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
+
+  packages/ts-builders:
+    dependencies:
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
+    devDependencies:
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
 packages:
 
@@ -3554,6 +3660,9 @@ packages:
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
 
+  '@types/pluralize@0.0.33':
+    resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
+
   '@types/progress@2.0.7':
     resolution: {integrity: sha512-iadjw02vte8qWx7U0YM++EybBha2CQLPGu9iJ97whVgJUT5Zq9MjAPYUnbfRI2Kpehimf1QjFJYxD0t8nqzu5w==}
 
@@ -4844,9 +4953,6 @@ packages:
     resolution: {integrity: sha512-f7ccFPK3SXFHpx15UIGyRJ/FJQctuKZ0zVuN3frBo4HnK3cay9VEW0R6yPYFHC0AgqhukPzKjq22t5DmAyqGyw==}
     engines: {node: '>=16'}
 
-  flat-map-polyfill@0.3.8:
-    resolution: {integrity: sha512-ZfmD5MnU7GglUEhiky9C7yEPaNq1/wh36RDohe+Xr3nJVdccwHbdTkFIYvetcdsoAckUKT51fuf44g7Ni5Doyg==}
-
   flatted@3.3.3:
     resolution: {integrity: sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==}
 
@@ -5069,10 +5175,6 @@ packages:
     resolution: {integrity: sha512-Hrp5vIK/xr5SkeN2onO32H0MgNZ0f17HRNH39WfL0SYUNOTZ5Lz1TJ8Pajo/87dYGEFlLMm7mIc/k/s6Bvz9HQ==}
     engines: {node: '>=8'}
 
-  hasown@2.0.0:
-    resolution: {integrity: sha512-vUptKVTpIJhcczKBbgnS+RtcuYMB8+oNzPK2/Hp3hanz8JmpATdmmgLgSaadVREkDm+e2giHwY3ZRkyjSIDDFA==}
-    engines: {node: '>= 0.4'}
-
   hasown@2.0.2:
     resolution: {integrity: sha512-0hJU9SCPvmMzIBdZFqNPXWa6dqh7WdH0cII9y+CyS8rG3nL48Bclra9HmKhVVUHyPWNH5Y7xDwAB7bfgSjkUMQ==}
     engines: {node: '>= 0.4'}
@@ -5235,9 +5337,6 @@ packages:
   is-ci@4.1.0:
     resolution: {integrity: sha512-Ab9bQDQ11lWootZUI5qxgN2ZXwxNI5hTwnsvOc1wyxQ7zQ8OkEDw79mI0+9jI3x432NfwbVRru+3noJfXF6lSQ==}
     hasBin: true
-
-  is-core-module@2.13.1:
-    resolution: {integrity: sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==}
 
   is-core-module@2.16.1:
     resolution: {integrity: sha512-UfoeMA6fIJ8wTYFEUjelnaGI67v6+N7qXJEvQuIGa99l4xsCruSYOVSQ0uPANn4dAzm8lkYPaKLrrijLq7x23w==}
@@ -9468,6 +9567,8 @@ snapshots:
       pg-protocol: 1.6.1
       pg-types: 4.0.2
 
+  '@types/pluralize@0.0.33': {}
+
   '@types/progress@2.0.7':
     dependencies:
       '@types/node': 18.19.76
@@ -11003,8 +11104,6 @@ snapshots:
       flatted: 3.3.3
       keyv: 4.5.4
 
-  flat-map-polyfill@0.3.8: {}
-
   flatted@3.3.3: {}
 
   fnv-plus@1.3.1: {}
@@ -11218,10 +11317,6 @@ snapshots:
       is-stream: 2.0.1
       type-fest: 0.8.1
 
-  hasown@2.0.0:
-    dependencies:
-      function-bind: 1.1.2
-
   hasown@2.0.2:
     dependencies:
       function-bind: 1.1.2
@@ -11380,10 +11475,6 @@ snapshots:
   is-ci@4.1.0:
     dependencies:
       ci-info: 4.2.0
-
-  is-core-module@2.13.1:
-    dependencies:
-      hasown: 2.0.0
 
   is-core-module@2.16.1:
     dependencies:
@@ -12589,7 +12680,7 @@ snapshots:
   normalize-package-data@6.0.0:
     dependencies:
       hosted-git-info: 7.0.1
-      is-core-module: 2.13.1
+      is-core-module: 2.16.1
       semver: 7.7.0
       validate-npm-package-license: 3.0.4
 

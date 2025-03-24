@@ -1,6 +1,6 @@
+import { Writer } from '@prisma/ts-builders'
 import Decimal from 'decimal.js'
 
-import { Writer } from '../../../generation/ts-builders/Writer'
 import { FieldRefImpl } from '../model/FieldRef'
 import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'

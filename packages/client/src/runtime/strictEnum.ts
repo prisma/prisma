@@ -1,5 +1,3 @@
-export const strictEnumNames = ['TransactionIsolationLevel']
-
 /**
  * List of properties that won't throw exception on access and return undefined instead
  */

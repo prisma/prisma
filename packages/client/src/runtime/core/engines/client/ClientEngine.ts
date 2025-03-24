@@ -1,3 +1,4 @@
+import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@prisma/client-common'
 import {
   QueryEvent,
   QueryInterpreter,
@@ -19,16 +20,11 @@ import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import {
-  QueryEngineLogLevel,
-  QueryEngineResultData,
-  RustRequestError,
-  SyncRustError,
-} from '../common/types/QueryEngine'
+import { QueryEngineResultData, RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
-import { QueryCompiler, QueryCompilerConstructor, QueryCompilerLoader } from './types/QueryCompiler'
+import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
 const CLIENT_ENGINE_ERROR = 'P2038'
