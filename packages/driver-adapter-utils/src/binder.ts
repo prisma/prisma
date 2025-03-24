@@ -2,10 +2,12 @@ import { isDriverAdapterError } from './error'
 import { err, ok, Result } from './result'
 import type {
   ErrorCapturingSqlDriverAdapter,
+  ErrorCapturingSqlDriverAdapterFactory,
   ErrorCapturingTransaction,
   ErrorRecord,
   ErrorRegistry,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   Transaction,
 } from './types'
 
@@ -26,11 +28,25 @@ class ErrorRegistryInternal implements ErrorRegistry {
   }
 }
 
-// *.bind(adapter) is required to preserve the `this` context of functions whose
-// execution is delegated to napi.rs.
-export const bindAdapter = (adapter: SqlDriverAdapter): ErrorCapturingSqlDriverAdapter => {
+export const bindSqlAdapterFactory = (adapterFactory: SqlDriverAdapterFactory): ErrorCapturingSqlDriverAdapterFactory => {
   const errorRegistry = new ErrorRegistryInternal()
 
+  const boundFactory: ErrorCapturingSqlDriverAdapterFactory = {
+    adapterName: adapterFactory.adapterName,
+    provider: adapterFactory.provider,
+    errorRegistry,
+    connect: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    }
+  }
+
+  return boundFactory
+}
+
+// *.bind(adapter) is required to preserve the `this` context of functions whose
+// execution is delegated to napi.rs.
+export const bindAdapter = (adapter: SqlDriverAdapter, errorRegistry = new ErrorRegistryInternal()): ErrorCapturingSqlDriverAdapter => {
   const boundAdapter: ErrorCapturingSqlDriverAdapter = {
     adapterName: adapter.adapterName,
     errorRegistry,
