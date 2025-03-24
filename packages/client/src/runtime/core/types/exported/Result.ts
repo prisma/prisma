@@ -1,51 +1,9 @@
+import { Operation } from '@prisma/client-common'
+
 import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
 import { Skip } from './Skip'
 import { Compute, Equals, PatchFlat, Select } from './Utils'
-
-// prettier-ignore
-export type Operation =
-// finds
-| 'findFirst'
-| 'findFirstOrThrow'
-| 'findUnique'
-| 'findUniqueOrThrow'
-| 'findMany'
-// creates
-| 'create'
-| 'createMany'
-| 'createManyAndReturn'
-// updates
-| 'update'
-| 'updateMany'
-| 'updateManyAndReturn'
-| 'upsert'
-// deletes
-| 'delete'
-| 'deleteMany'
-// aggregates
-| 'aggregate'
-| 'count'
-| 'groupBy'
-// raw sql
-| '$queryRaw'
-| '$executeRaw'
-| '$queryRawUnsafe'
-| '$executeRawUnsafe'
-// raw mongo
-| 'findRaw'
-| 'aggregateRaw'
-| '$runCommandRaw'
-
-export type FluentOperation =
-  | 'findUnique'
-  | 'findUniqueOrThrow'
-  | 'findFirst'
-  | 'findFirstOrThrow'
-  | 'create'
-  | 'update'
-  | 'upsert'
-  | 'delete'
 
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 

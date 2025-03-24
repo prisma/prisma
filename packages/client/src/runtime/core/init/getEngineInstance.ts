@@ -1,6 +1,6 @@
+import { GetPrismaClientConfig } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType, isPrismaPostgres, warnOnce } from '@prisma/internals'
 
-import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
 import { BinaryEngine, ClientEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'

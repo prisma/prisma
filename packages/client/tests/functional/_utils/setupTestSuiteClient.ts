@@ -1,4 +1,5 @@
 import type { D1Database } from '@cloudflare/workers-types'
+import { generateClient } from '@prisma/client-generator-js'
 import { SqlQueryOutput } from '@prisma/generator'
 import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
@@ -6,7 +7,6 @@ import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
 import { introspectSql } from '../../../../cli/src/generate/introspectSql'
-import { generateClient } from '../../../src/generation/generateClient'
 import { PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
@@ -103,7 +103,8 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     testMode: true,
     activeProvider: suiteConfig.matrixOptions.provider,
-    runtimeBase: runtimeBase,
+    runtimeBase,
+    runtimeSourcePath: path.join(__dirname, '../../../runtime'),
     copyEngine: !clientMeta.dataProxy,
     typedSql,
   })

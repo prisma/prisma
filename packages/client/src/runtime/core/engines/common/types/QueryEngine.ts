@@ -2,7 +2,6 @@ import { IsolationLevel } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
-import { EngineProtocol } from '../Engine'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
 
@@ -34,22 +33,6 @@ export type QueryEnginePanicEvent = {
   file: string
   line: string
   column: string
-}
-
-// Configuration
-export type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-
-export type QueryEngineConfig = {
-  // TODO rename datamodel here and other places
-  datamodel: string
-  configDir: string
-  logQueries: boolean
-  ignoreEnvVarErrors: boolean
-  datasourceOverrides: Record<string, string>
-  env: Record<string, string | undefined>
-  logLevel: QueryEngineLogLevel
-  engineProtocol: EngineProtocol
-  enableTracing: boolean
 }
 
 export type QueryEngineTelemetry = {

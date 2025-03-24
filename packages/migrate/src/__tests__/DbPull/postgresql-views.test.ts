@@ -1,5 +1,3 @@
-// describeIf is making eslint unhappy about the test names
-
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { loadSchemaContext, pathToPosix, toSchemasContainer } from '@prisma/internals'
@@ -10,9 +8,12 @@ import { SchemaEngine } from '../../SchemaEngine'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
-const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
-if (isMacOrWindowsCI) {
-  jest.setTimeout(60_000)
+if (process.env.CI) {
+  if (['darwin', 'win32'].includes(process.platform)) {
+    jest.setTimeout(120_000)
+  } else {
+    jest.setTimeout(20_000)
+  }
 }
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()

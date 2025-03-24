@@ -1,9 +1,8 @@
 import type { Context } from '@opentelemetry/api'
+import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator'
-import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -20,7 +19,7 @@ import {
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { CompilerWasmLoadingConfig, CustomDataProxyFetch, EngineWasmLoadingConfig } from './core/engines/common/Engine'
+import { CustomDataProxyFetch } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -55,7 +54,6 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
-import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
@@ -217,93 +215,6 @@ type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   : [E] extends [LogLevel]
   ? (event: EngineEvent<E>) => void
   : never
-
-/**
- * Config that is stored into the generated client. When the generated client is
- * loaded, this same config is passed to {@link getPrismaClient} which creates a
- * closure with that config around a non-instantiated [[PrismaClient]].
- */
-export type GetPrismaClientConfig = {
-  // Case for normal client (with both protocols) or data proxy
-  // client (with json protocol): only runtime datamodel is provided,
-  // full DMMF document is not
-  runtimeDataModel: RuntimeDataModel
-  generator?: GeneratorConfig
-  relativeEnvPaths: {
-    rootEnvPath?: string | null
-    schemaEnvPath?: string | null
-  }
-  relativePath: string
-  dirname: string
-  filename?: string
-  clientVersion: string
-  engineVersion: string
-  datasourceNames: string[]
-  activeProvider: ActiveConnectorType
-
-  /**
-   * The contents of the schema encoded into a string
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineSchema: string
-
-  /**
-   * A special env object just for the data proxy edge runtime.
-   * Allows bundlers to inject their own env variables (Vercel).
-   * Allows platforms to declare global variables as env (Workers).
-   * @remarks only used for the purpose of data proxy
-   */
-  injectableEdgeEnv?: () => LoadedEnv
-
-  /**
-   * The contents of the datasource url saved in a string.
-   * This can either be an env var name or connection string.
-   * It is needed by the client to connect to the Data Proxy.
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineDatasources: { [name in string]: { url: EnvValue } }
-
-  /**
-   * The string hash that was produced for a given schema
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineSchemaHash: string
-
-  /**
-   * A marker to indicate that the client was not generated via `prisma
-   * generate` but was generated via `generate --postinstall` script instead.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  postinstall?: boolean
-
-  /**
-   * Information about the CI where the Prisma Client has been generated. The
-   * name of the CI environment is stored at generation time because CI
-   * information is not always available at runtime. Moreover, the edge client
-   * has no notion of environment variables, so this works around that.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  ciName?: string
-
-  /**
-   * Information about whether we have not found a schema.prisma file in the
-   * default location, and that we fell back to finding the schema.prisma file
-   * in the current working directory. This usually means it has been bundled.
-   */
-  isBundled?: boolean
-
-  /**
-   * A boolean that is `false` when the client was generated with --no-engine. At
-   * runtime, this means the client will be bound to be using the Data Proxy.
-   */
-  copyEngine?: boolean
-
-  /**
-   * Optional wasm loading configuration
-   */
-  engineWasm?: EngineWasmLoadingConfig
-  compilerWasm?: CompilerWasmLoadingConfig
-}
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
