@@ -655,6 +655,9 @@ importers:
       '@planetscale/database':
         specifier: 1.19.0
         version: 1.19.0
+      '@prisma/adapter-better-sqlite3':
+        specifier: workspace:*
+        version: link:../adapter-better-sqlite3
       '@prisma/adapter-d1':
         specifier: workspace:*
         version: link:../adapter-d1
