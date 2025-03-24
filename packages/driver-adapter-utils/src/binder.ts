@@ -28,7 +28,9 @@ class ErrorRegistryInternal implements ErrorRegistry {
   }
 }
 
-export const bindSqlAdapterFactory = (adapterFactory: SqlDriverAdapterFactory): ErrorCapturingSqlDriverAdapterFactory => {
+export const bindSqlAdapterFactory = (
+  adapterFactory: SqlDriverAdapterFactory,
+): ErrorCapturingSqlDriverAdapterFactory => {
   const errorRegistry = new ErrorRegistryInternal()
 
   const boundFactory: ErrorCapturingSqlDriverAdapterFactory = {
@@ -38,7 +40,7 @@ export const bindSqlAdapterFactory = (adapterFactory: SqlDriverAdapterFactory): 
     connect: async (...args) => {
       const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
       return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
-    }
+    },
   }
 
   return boundFactory
@@ -46,7 +48,10 @@ export const bindSqlAdapterFactory = (adapterFactory: SqlDriverAdapterFactory): 
 
 // *.bind(adapter) is required to preserve the `this` context of functions whose
 // execution is delegated to napi.rs.
-export const bindAdapter = (adapter: SqlDriverAdapter, errorRegistry = new ErrorRegistryInternal()): ErrorCapturingSqlDriverAdapter => {
+export const bindAdapter = (
+  adapter: SqlDriverAdapter,
+  errorRegistry = new ErrorRegistryInternal(),
+): ErrorCapturingSqlDriverAdapter => {
   const boundAdapter: ErrorCapturingSqlDriverAdapter = {
     adapterName: adapter.adapterName,
     errorRegistry,
