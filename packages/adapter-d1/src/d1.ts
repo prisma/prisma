@@ -17,6 +17,7 @@ import {
 import { blue, cyan, red, yellow } from 'kleur/colors'
 
 import { name as packageName } from '../package.json'
+import { MAX_BIND_VALUES } from './constants'
 import { getColumnTypes, mapRow } from './conversion'
 import { cleanArg, matchSQLiteErrorCode } from './utils'
 
@@ -26,6 +27,9 @@ type D1ResultsWithColumnNames = [string[], unknown[][]]
 type PerformIOResult = D1ResultsWithColumnNames | D1Response
 type StdClient = D1Database
 
+/**
+ * Env binding for Cloudflare D1.
+ */
 class D1Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
@@ -156,7 +160,7 @@ export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriver
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      maxBindValues: 98,
+      maxBindValues: MAX_BIND_VALUES,
     }
   }
 
