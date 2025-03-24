@@ -35,6 +35,10 @@ export function buildTypedSql({
     fileMap[`${query.name}.${edgeRuntimeName}.js`] = buildTypedQueryCjs(edgeOptions)
     fileMap[`${query.name}.mjs`] = buildTypedQueryEsm(options)
     fileMap[`${query.name}.edge.mjs`] = buildTypedQueryEsm(edgeOptions)
+    
+    if (edgeRuntimeName === 'wasm') {
+      fileMap[`${query.name}.wasm.mjs`] = buildTypedQueryEsm(edgeOptions)
+    }
   }
   fileMap['index.d.ts'] = buildIndexTs(queries, enums)
   fileMap['index.js'] = buildIndexCjs(queries)
