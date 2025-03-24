@@ -2,6 +2,7 @@ import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
@@ -9,34 +10,38 @@ import { serialize } from './serialize'
 
 export type QueryInterpreterOptions = {
   queryable: SqlQueryable
+  transactionManager: TransactionManager
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
 }
 
 export class QueryInterpreter {
   #queryable: SqlQueryable
+  #transactionManager: TransactionManager
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
 
-  constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
+  constructor({ queryable, transactionManager, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#queryable = queryable
+    this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
   }
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
-    return this.interpretNode(queryPlan, this.#placeholderValues, this.#generators.snapshot())
+    return this.interpretNode(queryPlan, this.#placeholderValues, this.#generators.snapshot(), this.#queryable)
   }
 
   private async interpretNode(
     node: QueryPlanNode,
     scope: ScopeBindings,
     generators: GeneratorRegistrySnapshot,
+    queryable: SqlQueryable,
   ): Promise<Value> {
     switch (node.type) {
       case 'seq': {
-        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
+        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators, queryable)))
         return results[results.length - 1]
       }
 
@@ -48,10 +53,10 @@ export class QueryInterpreter {
         const nestedScope: ScopeBindings = Object.create(scope)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
-            nestedScope[binding.name] = await this.interpretNode(binding.expr, scope, generators)
+            nestedScope[binding.name] = await this.interpretNode(binding.expr, scope, generators, queryable)
           }),
         )
-        return this.interpretNode(node.args.expr, nestedScope, generators)
+        return this.interpretNode(node.args.expr, nestedScope, generators, queryable)
       }
 
       case 'getFirstNonEmpty': {
@@ -65,36 +70,36 @@ export class QueryInterpreter {
       }
 
       case 'concat': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators, queryable)))
         return parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), [])
       }
 
       case 'sum': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators, queryable)))
         return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
       }
 
       case 'execute': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, async () => {
-          return await this.#queryable.executeRaw(query)
+          return await queryable.executeRaw(query)
         })
       }
 
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, async () => {
-          return serialize(await this.#queryable.queryRaw(query))
+          return serialize(await queryable.queryRaw(query))
         })
       }
 
       case 'reverse': {
-        const value = await this.interpretNode(node.args, scope, generators)
+        const value = await this.interpretNode(node.args, scope, generators, queryable)
         return Array.isArray(value) ? value.reverse() : value
       }
 
       case 'unique': {
-        const value = await this.interpretNode(node.args, scope, generators)
+        const value = await this.interpretNode(node.args, scope, generators, queryable)
         if (!Array.isArray(value)) {
           return value
         }
@@ -105,7 +110,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const value = await this.interpretNode(node.args, scope, generators)
+        const value = await this.interpretNode(node.args, scope, generators, queryable)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -113,17 +118,17 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const value = await this.interpretNode(node.args.records, scope, generators)
+        const value = await this.interpretNode(node.args.records, scope, generators, queryable)
         return mapField(value, node.args.field)
       }
 
       case 'join': {
-        const parent = await this.interpretNode(node.args.parent, scope, generators)
+        const parent = await this.interpretNode(node.args.parent, scope, generators, queryable)
 
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: await this.interpretNode(joinExpr.child, scope, generators),
+            childRecords: await this.interpretNode(joinExpr.child, scope, generators, queryable),
           })),
         )) satisfies JoinExpressionWithRecords[]
 
@@ -135,6 +140,19 @@ export class QueryInterpreter {
         }
 
         return attachChildrenToParent(asRecord(parent), children)
+      }
+
+      case 'transaction': {
+        const transactionInfo = await this.#transactionManager.startTransaction()
+        const transaction = this.#transactionManager.getTransaction(transactionInfo, 'unused')
+        try {
+          const value = await this.interpretNode(node.args, scope, generators, transaction)
+          await this.#transactionManager.commitTransaction(transactionInfo.id)
+          return value
+        } catch (e) {
+          await this.#transactionManager.rollbackTransaction(transactionInfo.id)
+          throw e
+        }
       }
 
       default: {

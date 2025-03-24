@@ -109,9 +109,12 @@ export class ClientEngine implements Engine<undefined> {
       }
     }
 
-    this.transactionManagerPromise = this.adapterPromise.then(
-      (driverAdapter) => new TransactionManager({ driverAdapter }),
-    )
+    this.transactionManagerPromise = this.adapterPromise.then((driverAdapter) => {
+      return new TransactionManager({
+        driverAdapter,
+        transactionOptions: this.config.transactionOptions,
+      })
+    })
 
     this.instantiateQueryCompilerPromise = this.instantiateQueryCompiler()
   }
@@ -269,6 +272,7 @@ export class ClientEngine implements Engine<undefined> {
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
         queryable,
+        transactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
@@ -316,6 +320,7 @@ export class ClientEngine implements Engine<undefined> {
         const queryable = transactionManager.getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
           queryable,
+          transactionManager,
           placeholderValues: {},
           onQuery: this.#emitQueryEvent,
         })
