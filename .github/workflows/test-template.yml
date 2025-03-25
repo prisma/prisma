@@ -625,6 +625,10 @@ jobs:
         working-directory: packages/client-generator-js
 
       - run: pnpm run test
+        name: 'client-generator-ts'
+        working-directory: packages/client-generator-ts
+
+      - run: pnpm run test
         name: 'client-generator-registry'
         working-directory: packages/client-generator-registry
 
@@ -1172,6 +1176,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'client-generator-js'
         working-directory: packages/client-generator-js
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'client-generator-ts'
+        working-directory: packages/client-generator-ts
 
       - run: pnpm run test
         if: contains(inputs.jobsToRun, '-all-')

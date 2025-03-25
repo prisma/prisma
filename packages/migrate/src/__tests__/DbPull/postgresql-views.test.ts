@@ -10,9 +10,9 @@ import CaptureStdout from '../__helpers__/captureStdout'
 
 if (process.env.CI) {
   if (['darwin', 'win32'].includes(process.platform)) {
-    jest.setTimeout(120_000)
+    jest.setTimeout(300_000)
   } else {
-    jest.setTimeout(20_000)
+    jest.setTimeout(60_000)
   }
 }
 

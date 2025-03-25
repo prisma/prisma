@@ -969,6 +969,9 @@ importers:
       '@prisma/client-generator-js':
         specifier: workspace:*
         version: link:../client-generator-js
+      '@prisma/client-generator-ts':
+        specifier: workspace:*
+        version: link:../client-generator-ts
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -976,6 +979,70 @@ importers:
         specifier: workspace:*
         version: link:../internals
     devDependencies:
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
+  packages/client-generator-ts:
+    dependencies:
+      '@antfu/ni':
+        specifier: 0.21.12
+        version: 0.21.12
+      '@prisma/client-common':
+        specifier: workspace:*
+        version: link:../client-common
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+      '@prisma/dmmf':
+        specifier: workspace:*
+        version: link:../dmmf
+      '@prisma/engines-version':
+        specifier: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
+        version: 6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452
+      '@prisma/fetch-engine':
+        specifier: workspace:*
+        version: link:../fetch-engine
+      '@prisma/generator':
+        specifier: workspace:*
+        version: link:../generator
+      '@prisma/get-platform':
+        specifier: workspace:*
+        version: link:../get-platform
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
+      '@prisma/ts-builders':
+        specifier: workspace:*
+        version: link:../ts-builders
+      ci-info:
+        specifier: 4.2.0
+        version: 4.2.0
+      env-paths:
+        specifier: 2.2.1
+        version: 2.2.1
+      indent-string:
+        specifier: 4.0.0
+        version: 4.0.0
+      klona:
+        specifier: 2.0.6
+        version: 2.0.6
+      pkg-up:
+        specifier: 3.1.0
+        version: 3.1.0
+      pluralize:
+        specifier: 8.0.0
+        version: 8.0.0
+      ts-pattern:
+        specifier: 5.6.2
+        version: 5.6.2
+    devDependencies:
+      '@types/pluralize':
+        specifier: 0.0.33
+        version: 0.0.33
+      strip-ansi:
+        specifier: 7.1.0
+        version: 7.1.0
       vitest:
         specifier: 3.0.9
         version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
