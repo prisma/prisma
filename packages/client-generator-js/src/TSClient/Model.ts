@@ -445,7 +445,6 @@ ${isComposite ? '' : new ModelDelegate(this.type, this.context).toTS()}
 ${new ModelFieldRefs(this.type).toTS()}
 
 // Custom InputTypes
-
 ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 `
   }
