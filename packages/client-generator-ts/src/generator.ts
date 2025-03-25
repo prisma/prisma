@@ -4,6 +4,7 @@ import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
+import { bold, dim, green } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
@@ -13,23 +14,37 @@ import { resolvePrismaClient } from './resolvePrismaClient'
 const debug = Debug('prisma:client:generator')
 
 type PrismaClientTsGeneratorOptions = {
-  shouldResolvePrismaClient?: boolean
   runtimePath?: string
+}
+
+const missingOutputErrorMessage = `An output path is required for the \`prisma-client-ts\` generator. Please provide an output path in your schema file:
+
+${dim(`generator client {
+  provider = "prisma-client-ts"`)}
+${green('  output   = "../src/generated"')}
+${dim('}')}
+
+${bold('Note:')} the output path is relative to the schema directory.
+`
+
+function getOutputPath(config: GeneratorConfig): string {
+  if (!config.output) {
+    throw new Error(missingOutputErrorMessage)
+  }
+  return parseEnvValue(config.output)
 }
 
 export class PrismaClientTsGenerator implements Generator {
   readonly name = 'prisma-client-ts'
 
-  #shouldResolvePrismaClient = true
   #runtimePath?: string
   #cachedPrismaClientPath: string | undefined
 
-  constructor({ shouldResolvePrismaClient = true, runtimePath }: PrismaClientTsGeneratorOptions = {}) {
-    this.#shouldResolvePrismaClient = shouldResolvePrismaClient
+  constructor({ runtimePath }: PrismaClientTsGeneratorOptions = {}) {
     this.#runtimePath = runtimePath
   }
 
-  async getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
+  getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
     const requiresEngines = match<ClientEngineType, EngineType[]>(getClientEngineType(config))
       .with(ClientEngineType.Library, () => ['libqueryEngine'])
       .with(ClientEngineType.Binary, () => ['queryEngine'])
@@ -38,46 +53,23 @@ export class PrismaClientTsGenerator implements Generator {
 
     debug('requiresEngines', requiresEngines)
 
-    // If `this.#shouldResolvePrismaClient` is true, which is normally the case,
-    // we find the default output path by resolving the path to the
-    // `@prisma/client` package. While we resolve the absolute path to the
-    // package itself, the generator will rewrite it to replace
-    // `.../@prisma/client` with `.../.prisma/client`, as long as
-    // `config.isCustomOutput` is false.
-    //
-    // If a custom output path is provided, then the default output path doesn't
-    // matter and we could use a static value here, but that unfortunately
-    // wouldn't allow us to avoid resolving the client directory and would only
-    // delay that until the `generate` method call because we copy the runtime
-    // files if a custom output path is used, and we also copy the WASM modules
-    // regardles of the output path. Not copying the runtime files is a breaking
-    // change, so we can only completely get rid of this behaviour in the new
-    // generator.
-    //
-    // If `this.#shouldResolvePrismaClient` is false, which is the case when
-    // using the JSON-RPC compatibility adapter for Prisma Studio, we should use
-    // a static value here.
-    const defaultOutput = this.#shouldResolvePrismaClient ? await this.#getPrismaClientPath(config) : '.prisma/client'
-
-    return {
-      defaultOutput,
+    return Promise.resolve({
+      defaultOutput: getOutputPath(config),
       prettyName: 'Prisma Client',
       version: clientVersion,
       requiresEngines,
       requiresEngineVersion: enginesVersion,
-    }
+    })
   }
 
   async generate(options: GeneratorOptions): Promise<void> {
-    const outputDir = parseEnvValue(options.generator.output!)
-
     await generateClient({
       datamodel: options.datamodel,
       schemaPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
       datasources: options.datasources,
       envPaths: options.envPaths,
-      outputDir,
+      outputDir: getOutputPath(options.generator),
       copyRuntime: Boolean(options.generator.config.copyRuntime),
       copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
       runtimeSourcePath: await this.#getRuntimePath(options.generator),

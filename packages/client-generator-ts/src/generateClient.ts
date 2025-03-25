@@ -19,10 +19,9 @@ import {
 } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
-import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import { ensureDir } from 'fs-extra'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -34,11 +33,6 @@ import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
-
-type OutputDeclaration = {
-  content: string
-  lineNumber: number
-}
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -366,31 +360,6 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
   return `../${runtimeBase}`
 }
 
-// TODO: explore why we have a special case for excluding pnpm
-async function getDefaultOutdir(outputDir: string): Promise<string> {
-  if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
-    return path.join(outputDir, '../../.prisma/client')
-  }
-  if (
-    process.env.INIT_CWD &&
-    process.env.npm_lifecycle_event === 'postinstall' &&
-    !process.env.PWD?.includes('.pnpm')
-  ) {
-    // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
-    // If we're in ./ - there'll also be a package.json, so we can directly go for it
-    // otherwise, we'll go up in the filesystem and look for the first package.json
-    if (existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
-      return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
-    }
-    const packagePath = await pkgUp({ cwd: process.env.INIT_CWD })
-    if (packagePath) {
-      return path.join(path.dirname(packagePath), 'node_modules/.prisma/client')
-    }
-  }
-
-  return path.join(outputDir, '../../.prisma/client')
-}
-
 export async function generateClient(options: GenerateClientOptions): Promise<void> {
   const {
     datamodel,
@@ -465,7 +434,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   await writeFileMap(outputDir, fileMap)
 
   // if users use a custom output dir
-  if (copyRuntime || generator.isCustomOutput === true) {
+  if (copyRuntime) {
     const copiedRuntimeDir = path.join(outputDir, 'runtime')
     await ensureDir(copiedRuntimeDir)
 
@@ -646,93 +615,23 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: DMMF.Document): Error[] 
 
 /**
  * Get all the directories involved in the generation process.
- *
- * @returns
  */
-async function getGenerationDirs({
-  runtimeBase,
-  generator,
-  outputDir,
-  datamodel,
-  schemaPath,
-  testMode,
-}: GenerateClientOptions) {
-  const isCustomOutput = generator.isCustomOutput === true
+async function getGenerationDirs({ runtimeBase, outputDir, testMode, copyRuntime }: GenerateClientOptions) {
   const normalizedOutputDir = path.normalize(outputDir)
-  let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
+  let userRuntimeImport = copyRuntime ? './runtime' : '@prisma/client/runtime'
 
   if (testMode && runtimeBase) {
-    userOutputDir = outputDir
     userRuntimeImport = pathToPosix(runtimeBase)
   }
 
-  if (isCustomOutput) {
-    await verifyOutputDirectory(userOutputDir, datamodel, schemaPath)
-  }
-
-  const userPackageRoot = await pkgUp({ cwd: path.dirname(userOutputDir) })
+  const userPackageRoot = await pkgUp({ cwd: path.dirname(normalizedOutputDir) })
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
     runtimeBase: userRuntimeImport,
-    outputDir: userOutputDir,
+    outputDir: normalizedOutputDir,
     projectRoot: userProjectRoot,
   }
-}
-
-async function verifyOutputDirectory(directory: string, datamodel: string, schemaPath: string) {
-  let content: string
-  try {
-    content = await fs.readFile(path.join(directory, 'package.json'), 'utf8')
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      // no package.json exists, we are good
-      return
-    }
-    throw e
-  }
-  const { name } = JSON.parse(content)
-  if (name === clientPkg.name) {
-    const message = [`Generating client into ${bold(directory)} is not allowed.`]
-    message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
-    message.push('')
-    message.push('Suggestion:')
-    const outputDeclaration = findOutputPathDeclaration(datamodel)
-
-    if (outputDeclaration && outputDeclaration.content.includes(clientPkg.name)) {
-      const outputLine = outputDeclaration.content
-      message.push(`In ${bold(schemaPath)} replace:`)
-      message.push('')
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPkg.name))}`)
-      message.push('with')
-
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
-    } else {
-      message.push(`Generate client into ${bold(replacePackageName(directory, green('.prisma/client')))} instead`)
-    }
-
-    message.push('')
-    message.push("You won't need to change your imports.")
-    message.push('Imports from `@prisma/client` will be automatically forwarded to `.prisma/client`')
-    const error = new Error(message.join('\n'))
-    throw error
-  }
-}
-
-function replacePackageName(directoryPath: string, replacement: string): string {
-  return directoryPath.replace(clientPkg.name, replacement)
-}
-
-function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null {
-  const lines = datamodel.split(/\r?\n/)
-
-  for (const [i, line] of lines.entries()) {
-    if (/output\s*=/.test(line)) {
-      return { lineNumber: i + 1, content: line.trim() }
-    }
-  }
-  return null
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
