@@ -10,6 +10,8 @@ export class GeneratorRegistry {
     const registry = new GeneratorRegistry()
     registry.register('now', new NowGenerator())
     registry.register('uuid', new UuidGenerator(crypto))
+    // TODO: replace with an actual CUID generator
+    registry.register('cuid', new UuidGenerator(crypto))
     return registry
   }
 
