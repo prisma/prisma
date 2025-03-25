@@ -8,6 +8,7 @@ tmp
 pnpm-debug.log
 .DS_Store
 
+/target
 query-engine*
 migration-engine*
 schema-engine*
