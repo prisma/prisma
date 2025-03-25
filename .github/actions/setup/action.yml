@@ -49,6 +49,11 @@ runs:
           target/release/libquery_engine.so
           target/release/libquery_engine.dylib
           target/release/query_engine.dll
+          target/prisma-schema-wasm
+          query-engine/query-engine-wasm/pkg
+          query-compiler/query-compiler-wasm/pkg
+          schema-engine/schema-engine-wasm/pkg
+
     - name: Set environment variables for custom engine
       if: steps.custom-engine.outputs.cache-hit == 'true'
       run: |
@@ -72,6 +77,26 @@ runs:
           exit 1
         fi
       shell: bash
+
+    - name: Override WASM modules
+      if: steps.custom-engine.outputs.cache-hit == 'true'
+      shell: bash
+      run: |
+        ENGINE_PATH="$(pwd)/target"
+
+        mv query-engine/query-engine-wasm/pkg "$ENGINE_PATH/query-engine-wasm"
+        mv query-compiler/query-compiler-wasm/pkg "$ENGINE_PATH/query-compiler-wasm"
+        mv schema-engine/schema-engine-wasm/pkg "$ENGINE_PATH/schema-engine-wasm"
+
+        if [ "$RUNNER_OS" == "Windows" ]; then
+          ENGINE_PATH=$(cygpath -w "$ENGINE_PATH")
+        fi
+
+        pnpm update -r "@prisma/prisma-schema-wasm@$ENGINE_PATH/prisma-schema-wasm"
+        pnpm update -r "@prisma/query-engine-wasm@$ENGINE_PATH/query-engine-wasm"
+        pnpm update -r "@prisma/query-compiler-wasm@$ENGINE_PATH/query-compiler-wasm"
+        pnpm update -r "@prisma/schema-engine-wasm@$ENGINE_PATH/schema-engine-wasm"
+
     - run: pnpm run build
       if: inputs.skip-tsc == 'false' && inputs.skip-build != 'true'
       shell: bash
