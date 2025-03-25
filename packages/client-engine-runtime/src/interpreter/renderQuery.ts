@@ -1,11 +1,25 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import { isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { isPrismaValueGenerator, isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { GeneratorRegistrySnapshot } from './generators'
 import { renderQueryTemplate } from './renderQueryTemplate'
 import { ScopeBindings } from './scope'
 
-export function renderQuery({ query, params }: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
+export function renderQuery(
+  { query, params }: QueryPlanDbQuery,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): SqlQuery {
   const substitutedParams = params.map((param) => {
+    if (isPrismaValueGenerator(param)) {
+      const { name, args } = param.prisma__value
+      const generator = generators[name]
+      if (!generator) {
+        throw new Error(`Encountered an unknown generator '${name}'`)
+      }
+      return generator.generate(args)
+    }
+
     if (!isPrismaValuePlaceholder(param)) {
       return param
     }
