@@ -1039,6 +1039,9 @@ importers:
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
+      fast-glob:
+        specifier: 3.3.3
+        version: 3.3.3
       indent-string:
         specifier: 4.0.0
         version: 4.0.0
@@ -5685,7 +5688,6 @@ packages:
 
   libsql@0.3.10:
     resolution: {integrity: sha512-/8YMTbwWFPmrDWY+YFK3kYqVPFkMgQre0DGmBaOmjogMdSe+7GHm1/q9AZ61AWkEub/vHmi+bA4tqIzVhKnqzg==}
-    cpu: [x64, arm64, wasm32]
     os: [darwin, linux, win32]
 
   lilconfig@3.1.3:
