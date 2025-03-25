@@ -1,4 +1,4 @@
-export { bindAdapter } from './binder'
+export { bindAdapter, bindSqlAdapterFactory } from './binder'
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
 export { DriverAdapterError } from './error'
@@ -10,6 +10,7 @@ export type {
   DriverAdapterFactory,
   Error,
   ErrorCapturingSqlDriverAdapter,
+  ErrorCapturingSqlDriverAdapterFactory,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
   ErrorRecord,
