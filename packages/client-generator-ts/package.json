@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/client-generator-registry",
+  "name": "@prisma/client-generator-ts",
   "version": "0.0.0",
   "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
@@ -12,7 +12,7 @@
         "default": "./dist/index.js"
       },
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
       }
     }
@@ -20,16 +20,31 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/client-generator-registry"
+    "directory": "packages/client-generator-ts"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@prisma/client-generator-js": "workspace:*",
-    "@prisma/client-generator-ts": "workspace:*",
+    "@antfu/ni": "0.21.12",
+    "@prisma/client-common": "workspace:*",
+    "@prisma/debug": "workspace:*",
+    "@prisma/dmmf": "workspace:*",
+    "@prisma/engines-version": "6.6.0-30.baa69bfeca2f318076d19b6ce650fd8c9b4cb452",
+    "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
-    "@prisma/internals": "workspace:*"
+    "@prisma/get-platform": "workspace:*",
+    "@prisma/internals": "workspace:*",
+    "@prisma/ts-builders": "workspace:*",
+    "ci-info": "4.2.0",
+    "env-paths": "2.2.1",
+    "indent-string": "4.0.0",
+    "klona": "2.0.6",
+    "pkg-up": "3.1.0",
+    "pluralize": "8.0.0",
+    "ts-pattern": "5.6.2"
   },
   "devDependencies": {
+    "@types/pluralize": "0.0.33",
+    "strip-ansi": "7.1.0",
     "vitest": "3.0.9"
   },
   "scripts": {
