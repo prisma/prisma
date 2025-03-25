@@ -1,18 +1,22 @@
-import { randomUUID } from '../crypto'
+import { Crypto, getCrypto } from '../crypto'
 import { PrismaValue } from '../QueryPlan'
 
 export class GeneratorRegistry {
-  #generators: GeneratorRegistrySnapshot
+  #generators: GeneratorRegistrySnapshot = {}
 
-  constructor() {
-    this.#generators = {}
-    this.register('uuid', new UuidGenerator())
+  static async createWithDefaults(): Promise<GeneratorRegistry> {
+    const crypto = await getCrypto()
+
+    const registry = new GeneratorRegistry()
+    registry.register('now', new NowGenerator())
+    registry.register('uuid', new UuidGenerator(crypto))
+    return registry
   }
 
   /**
-   * Returns a snapshot of the generator registry. It's 'frozen' in time at the moment of being
-   * called, meaning that the built-in time-based generators will always return the same value
-   * on repeated calls as long as the same snapshot is used.
+   * Returns a snapshot of the generator registry. It's 'frozen' in time at the moment of this
+   * method being called, meaning that the built-in time-based generators will always return
+   * the same value on repeated calls as long as the same snapshot is used.
    */
   snapshot(): Readonly<GeneratorRegistrySnapshot> {
     return Object.create(this.#generators, {
@@ -33,19 +37,25 @@ export interface GeneratorRegistrySnapshot {
 }
 
 export interface ValueGenerator {
-  generate(args: PrismaValue[]): Promise<PrismaValue>
-}
-
-class UuidGenerator implements ValueGenerator {
-  generate(): Promise<string> {
-    return Promise.resolve(randomUUID())
-  }
+  generate(args: PrismaValue[]): PrismaValue
 }
 
 class NowGenerator implements ValueGenerator {
   #now: Date = new Date()
 
-  generate(): Promise<string> {
-    return Promise.resolve(this.#now.toDateString())
+  generate(): string {
+    return this.#now.toISOString()
+  }
+}
+
+class UuidGenerator implements ValueGenerator {
+  #crypto: Crypto
+
+  constructor(crypto: Crypto) {
+    this.#crypto = crypto
+  }
+
+  generate(): string {
+    return this.#crypto.randomUUID()
   }
 }

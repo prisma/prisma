@@ -17,16 +17,19 @@ export class QueryInterpreter {
   #queryable: SqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
-  #generators: GeneratorRegistry
+  #generators: GeneratorRegistry | undefined
 
   constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#queryable = queryable
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
-    this.#generators = new GeneratorRegistry()
   }
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
+    if (!this.#generators) {
+      this.#generators = await GeneratorRegistry.createWithDefaults()
+    }
+
     return this.interpretNode(queryPlan, this.#placeholderValues, this.#generators.snapshot())
   }
 
