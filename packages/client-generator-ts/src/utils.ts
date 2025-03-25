@@ -200,5 +200,5 @@ export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
 
 export const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.InternalArgs'))
-  .default(ts.namedType('$Extensions.DefaultArgs'))
+  .extends(ts.namedType('$Runtime.Types.Extensions.InternalArgs'))
+  .default(ts.namedType('$Runtime.Types.Extensions.DefaultArgs'))

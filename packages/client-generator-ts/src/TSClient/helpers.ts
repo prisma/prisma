@@ -1,5 +1,6 @@
 import { capitalize, lowerCase } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
+import { NamedType, namedType, TypeBuilder } from '@prisma/ts-builders'
 import pluralize from 'pluralize'
 
 import type { JSDocMethodBodyCtx } from './jsdoc'
@@ -49,4 +50,20 @@ export function getArgFieldJSDoc(
 
 export function escapeJson(str: string): string {
   return str.replace(/\\n/g, '\\\\n').replace(/\\r/g, '\\\\r').replace(/\\t/g, '\\\\t')
+}
+
+export function omit(type: TypeBuilder, keyType: TypeBuilder): NamedType {
+  return namedType('Omit').addGenericArgument(type).addGenericArgument(keyType)
+}
+
+export function promise(resultType: TypeBuilder): NamedType {
+  return new NamedType('$Runtime.Types.Utils.JsPromise').addGenericArgument(resultType)
+}
+
+export function prismaPromise(resultType: TypeBuilder): NamedType {
+  return new NamedType('Prisma.PrismaPromise').addGenericArgument(resultType)
+}
+
+export function optional(innerType: TypeBuilder) {
+  return new NamedType('$Runtime.Types.Utils.Optional').addGenericArgument(innerType)
 }

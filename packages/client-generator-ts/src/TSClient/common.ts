@@ -139,59 +139,58 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
 }
 
 export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions) => ({
-  ts: () => `export import DMMF = runtime.DMMF
+  ts: () => `export type DMMF = typeof $Runtime.DMMF
 
-export type PrismaPromise<T> = $Public.PrismaPromise<T>
+export type PrismaPromise<T> = $Runtime.Types.Public.PrismaPromise<T>
 
 /**
  * Validator
  */
-export import validator = runtime.Public.validator
+export type validator = typeof $Runtime.Public.validator
 
 /**
  * Prisma Errors
  */
-export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export import PrismaClientValidationError = runtime.PrismaClientValidationError
+export type PrismaClientKnownRequestError = $Runtime.PrismaClientKnownRequestError
+export type PrismaClientUnknownRequestError = $Runtime.PrismaClientUnknownRequestError
+export type PrismaClientRustPanicError = $Runtime.PrismaClientRustPanicError
+export type PrismaClientInitializationError = $Runtime.PrismaClientInitializationError
+export type PrismaClientValidationError = $Runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
  */
-export import sql = runtime.sqltag
-export import empty = runtime.empty
-export import join = runtime.join
-export import raw = runtime.raw
-export import Sql = runtime.Sql
+export type sql = typeof $Runtime.sqltag
+export type empty = typeof $Runtime.empty
+export type join = typeof $Runtime.join
+export type raw = typeof $Runtime.raw
+export type Sql = $Runtime.Sql
 
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
  * Decimal.js
  */
-export import Decimal = runtime.Decimal
-
-export type DecimalJsLike = runtime.DecimalJsLike
+export type Decimal = $Runtime.Decimal
+export type DecimalJsLike = $Runtime.DecimalJsLike
 
 /**
  * Metrics
  */
-export type Metrics = runtime.Metrics
-export type Metric<T> = runtime.Metric<T>
-export type MetricHistogram = runtime.MetricHistogram
-export type MetricHistogramBucket = runtime.MetricHistogramBucket
+export type Metrics = $Runtime.Metrics
+export type Metric<T> = $Runtime.Metric<T>
+export type MetricHistogram = $Runtime.MetricHistogram
+export type MetricHistogramBucket = $Runtime.MetricHistogramBucket
 
 /**
 * Extensions
 */
-export import Extension = $Extensions.UserArgs
-export import getExtensionContext = runtime.Extensions.getExtensionContext
-export import Args = $Public.Args
-export import Payload = $Public.Payload
-export import Result = $Public.Result
-export import Exact = $Public.Exact
+export type Extension = $Runtime.Types.Extensions.UserArgs
+export type getExtensionContext = typeof $Runtime.Extensions.getExtensionContext
+export type Args<T, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Args<T, F>
+export type Payload<T, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Payload<T, F>
+export type Result<T, A, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Result<T, A, F>
+export type Exact<A, W> = $Runtime.Types.Public.Exact<A, W>
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -259,7 +258,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 /**
  * Get the return type of a function which returns a Promise.
  */
-export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => $Runtime.Types.Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
 /**
  * From T, pick a set of properties whose keys are in the union K
@@ -532,7 +531,7 @@ export type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma_
 export type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
-export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
+export type FieldRef<Model, FieldType> = $Runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
@@ -560,7 +559,7 @@ function buildPrismaSkipTs(previewFeatures: string[]) {
 /**
  * Prisma.skip
  */
-export import skip = runtime.skip
+export import skip = $Runtime.skip
 `
   }
 

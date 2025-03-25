@@ -16,6 +16,7 @@ export class InputField implements Generable {
     protected readonly context: GenerateContext,
     protected readonly source?: string,
   ) {}
+
   public toTS(): string {
     const property = buildInputField(this.field, this.context, this.source)
     return ts.stringify(property)
@@ -58,7 +59,6 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
       return union.mapVariants((variant) => ts.array(variant))
     }
     return union
-
   } else if (t.namespace === 'prisma') {
     type = namedInputType(`Prisma.${t.type}`)
   } else {
@@ -126,6 +126,7 @@ function xorTypes(types: ts.TypeBuilder[]) {
 
 export class InputType implements Generable {
   private generatedName: string
+
   constructor(protected readonly type: DMMF.InputType, protected readonly context: GenerateContext) {
     this.generatedName = type.name
   }

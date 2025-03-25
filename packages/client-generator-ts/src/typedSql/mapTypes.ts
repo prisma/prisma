@@ -9,11 +9,11 @@ type TypeMappingConfig = {
   out: ts.TypeBuilder
 }
 
-const decimal = ts.namedType('$runtime.Decimal')
+const decimal = ts.namedType('$Runtime.Decimal')
 const uint8Array = ts.namedType('Uint8Array')
 const date = ts.namedType('Date')
-const inputJsonValue = ts.namedType('$runtime.InputJsonObject')
-const jsonValue = ts.namedType('$runtime.JsonValue')
+const inputJsonValue = ts.namedType('$Runtime.InputJsonObject')
+const jsonValue = ts.namedType('$Runtime.JsonValue')
 
 const bigintIn = ts.unionType([ts.numberType, ts.bigintType])
 const decimalIn = ts.unionType([ts.numberType, decimal])
