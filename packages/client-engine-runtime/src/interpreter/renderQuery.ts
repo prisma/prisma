@@ -1,26 +1,47 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
 import type { Fragment, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
-import { isPrismaValuePlaceholder } from '../QueryPlan'
+import { isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
+import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
 
-export function renderQuery(dbQuery: QueryPlanDbQuery, scope: ScopeBindings): SqlQuery {
+export function renderQuery(
+  dbQuery: QueryPlanDbQuery,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): SqlQuery {
   const queryType = dbQuery.type
   switch (queryType) {
     case 'rawSql':
-      return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope))
+      return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope, generators))
 
     case 'templateSql':
-      return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, substituteParams(dbQuery.params, scope))
+      return renderTemplateSql(
+        dbQuery.fragments,
+        dbQuery.placeholderFormat,
+        substituteParams(dbQuery.params, scope, generators),
+      )
 
     default:
       assertNever(queryType, `Invalid query type`)
   }
 }
 
-function substituteParams(params: PrismaValue[], scope: ScopeBindings): PrismaValue[] {
+function substituteParams(
+  params: PrismaValue[],
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): PrismaValue[] {
   return params.map((param) => {
+    if (isPrismaValueGenerator(param)) {
+      const { name, args } = param.prisma__value
+      const generator = generators[name]
+      if (!generator) {
+        throw new Error(`Encountered an unknown generator '${name}'`)
+      }
+      return generator.generate(...args)
+    }
     if (!isPrismaValuePlaceholder(param)) {
       return param
     }

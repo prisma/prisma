@@ -1,4 +1,5 @@
 import type { PlaceholderFormat, QueryPlanDbQuery } from '../QueryPlan'
+import { GeneratorRegistry } from './generators'
 import { renderQuery } from './renderQuery'
 import { ScopeBindings } from './scope'
 
@@ -11,6 +12,7 @@ test('no template', () => {
         params: [1],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE id = $1',
@@ -37,6 +39,7 @@ test('no template and scalar list parameter', () => {
         params: [1, [1, 2, 3]],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE id = $1 AND numbers = $2',
@@ -63,6 +66,7 @@ test('transforms IN template', () => {
         params: [[1, 2, 3], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) OFFSET $4',
@@ -89,6 +93,7 @@ test('transforms IN template with empty list', () => {
         params: [[], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE "userId" IN (NULL) OFFSET $1',
@@ -115,6 +120,7 @@ test('handles singleton list in IN template', () => {
         params: [[1], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE "userId" IN ($1) OFFSET $2',
@@ -141,6 +147,7 @@ test('treats non-array element as a singleton list in IN template', () => {
         params: [1, 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE "userId" IN ($1) OFFSET $2',
@@ -169,10 +176,33 @@ test("transforms IN template, doesn't touch scalar list", () => {
         params: [[1, 2, 3], [1, 2, 3], 0],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
+      {},
     ),
   ).toEqual({
     sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) AND numbers = $4 OFFSET $5',
     args: [1, 2, 3, [1, 2, 3], 0],
     argTypes: ['Numeric', 'Numeric', 'Numeric', 'Array', 'Numeric'],
+  })
+})
+
+test('executes a generator', () => {
+  const generators = new GeneratorRegistry()
+  expect(
+    renderQuery(
+      {
+        type: 'rawSql',
+        sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
+        params: [
+          { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
+          { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
+        ],
+      } satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      generators.snapshot(),
+    ),
+  ).toMatchObject({
+    sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
+    args: [expect.any(String), expect.any(String)],
+    argTypes: ['Text', 'Text'],
   })
 })

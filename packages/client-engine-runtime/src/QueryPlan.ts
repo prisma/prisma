@@ -4,6 +4,15 @@ export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePl
   return typeof value === 'object' && value !== null && value['prisma__type'] === 'param'
 }
 
+export type PrismaValueGenerator = {
+  prisma__type: 'generatorCall'
+  prisma__value: { name: string; args: PrismaValue[] }
+}
+
+export function isPrismaValueGenerator(value: unknown): value is PrismaValueGenerator {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'generatorCall'
+}
+
 export type PrismaValue =
   | string
   | boolean
@@ -12,6 +21,7 @@ export type PrismaValue =
   | null
   | Record<string, unknown>
   | PrismaValuePlaceholder
+  | PrismaValueGenerator
 
 export type QueryPlanBinding = {
   name: string
