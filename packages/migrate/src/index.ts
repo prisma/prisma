@@ -1,5 +1,4 @@
 export { DbCommand } from './commands/DbCommand'
-export { DbDrop } from './commands/DbDrop'
 export { DbExecute } from './commands/DbExecute'
 export { DbPull } from './commands/DbPull'
 export { DbPush } from './commands/DbPush'

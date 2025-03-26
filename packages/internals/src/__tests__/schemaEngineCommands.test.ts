@@ -2,7 +2,7 @@ import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSeria
 import tempy from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
-import { canConnectToDatabase, createDatabase, dropDatabase, execaCommand } from '../schemaEngineCommands'
+import { canConnectToDatabase, createDatabase, execaCommand } from '../schemaEngineCommands'
 
 if (process.env.CI) {
   // 5s is often not enough for the "postgresql - create database" test on macOS CI.
@@ -85,9 +85,6 @@ describe('createDatabase', () => {
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
-    try {
-      await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
   })
 
@@ -113,9 +110,6 @@ describe('createDatabase', () => {
     const credentials = uriToCredentials(uri)
     credentials.database = 'can-create-a-db'
     const uriFromCredentials = credentialsToUri(credentials)
-    try {
-      await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
   })
 
@@ -124,10 +118,6 @@ describe('createDatabase', () => {
     const credentials = uriToCredentials(uri)
     credentials.database = 'alreadyexists'
     const uriFromCredentials = credentialsToUri(credentials)
-
-    try {
-      await dropDatabase(uriFromCredentials, __dirname)
-    } catch (e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
   })
@@ -137,9 +127,6 @@ describe('createDatabase', () => {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
     }
     const connectionString = process.env.TEST_MSSQL_JDBC_URI.replace(/database=(.*?);/, 'database=can-create-a-db;')
-    try {
-      await dropDatabase(connectionString, __dirname)
-    } catch (e) {}
     await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(true)
   })
 
