@@ -1,5 +1,6 @@
 pnpm-lock.yaml
 dist/
+generated/
 /.prisma
 /packages/cli/build
 /packages/cli/config.d.ts

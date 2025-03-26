@@ -28,9 +28,24 @@ export type QueryPlanBinding = {
   expr: QueryPlanNode
 }
 
-export type QueryPlanDbQuery = {
-  query: string
-  params: PrismaValue[]
+export type QueryPlanDbQuery =
+  | {
+      type: 'rawSql'
+      sql: string
+      params: PrismaValue[]
+    }
+  | {
+      type: 'templateSql'
+      fragments: Fragment[]
+      placeholderFormat: PlaceholderFormat
+      params: PrismaValue[]
+    }
+
+export type Fragment = { type: 'stringChunk'; value: string } | { type: 'parameter' } | { type: 'parameterTuple' }
+
+export interface PlaceholderFormat {
+  prefix: string
+  hasNumbering: boolean
 }
 
 export type JoinExpression = {

@@ -74,6 +74,18 @@ expect.addSnapshotSerializer({
   },
 })
 
+// Non-standard `AggregateError` from `p-map` (different from standard JS AggregateError).
+// We flatten it into a new error with a single message containing all the error messages
+// to avoid problems with stack traces in snapshots.
+expect.addSnapshotSerializer({
+  test: (val) => val instanceof Error && val.name === 'AggregateError' && typeof val[Symbol.iterator] === 'function',
+  serialize(val, config, indentation, depth, refs, printer) {
+    const error = val as Error & Iterable<Error>
+    const newError = new Error([...error].map((e) => e.message).join('\n'))
+    return printer(newError, config, indentation, depth, refs)
+  },
+})
+
 const registry = {
   'prisma-client-ts': {
     type: 'in-process',
@@ -109,7 +121,7 @@ describe('generator', () => {
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
         {
-          "defaultOutput": "/project/node_modules/@prisma/client",
+          "defaultOutput": "./generated",
           "prettyName": "Prisma Client",
           "requiresEngineVersion": "ENGINE_VERSION_TEST",
           "requiresEngines": [
@@ -140,6 +152,7 @@ describe('generator', () => {
           },
         ],
         "config": {},
+        "isCustomOutput": true,
         "name": "client",
         "previewFeatures": [],
         "provider": {
@@ -151,15 +164,15 @@ describe('generator', () => {
     `)
 
     expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
-      `"node_modules/@prisma/client"`,
+      `"generated"`,
     )
 
     await generator.generate()
-    const photonDir = path.join(__dirname, 'node_modules/.prisma/client')
-    expect(fs.existsSync(photonDir)).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index-browser.js'))).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
+    const clientDir = path.join(__dirname, 'generated')
+    expect(fs.existsSync(clientDir)).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index-browser.js'))).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index.d.ts'))).toBe(true)
     generator.stop()
   })
 
@@ -185,20 +198,20 @@ describe('generator', () => {
       [GetDmmfError: Prisma schema validation - (get-dmmf wasm)
       Error code: P1012
       error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:10
+        -->  tests/denylist.prisma:11
          | 
-       9 | 
-      10 | model public {
-      11 |   id Int @id
-      12 | }
+      10 | 
+      11 | model public {
+      12 |   id Int @id
+      13 | }
          | 
       error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-        -->  tests/denylist.prisma:14
+        -->  tests/denylist.prisma:15
          | 
-      13 | 
-      14 | model return {
-      15 |   id Int @id
-      16 | }
+      14 | 
+      15 | model return {
+      16 |   id Int @id
+      17 | }
          | 
 
       Validation Error Count: 2
@@ -230,27 +243,26 @@ describe('generator', () => {
     )
   })
 
-  test('override client package', async () => {
-    const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'main-package-override.prisma'),
-      printDownloadProgress: false,
-      skipDownload: true,
-      registry,
-    })
+  test('missing output path', async () => {
+    await expect(async () => {
+      const generator = await getGenerator({
+        schemaPath: path.join(__dirname, 'missing-output.prisma'),
+        printDownloadProgress: false,
+        skipDownload: true,
+        registry,
+      })
 
-    await expect(generator.generate()).rejects.toThrowErrorMatchingInlineSnapshot(`
-      [Error: Generating client into /project/__fixture__/@prisma/client is not allowed.
-      This package is used by \`prisma generate\` and overwriting its content is dangerous.
+      await generator.generate()
+    }).rejects.toThrowErrorMatchingInlineSnapshot(`
+      [Error: An output path is required for the \`prisma-client-ts\` generator. Please provide an output path in your schema file:
 
-      Suggestion:
-      In /project/main-package-override.prisma replace:
+      generator client {
+        provider = "prisma-client-ts"
+        output   = "../src/generated"
+      }
 
-      8 output   = "./__fixture__/@prisma/client"
-      with
-      8 output   = "./__fixture__/.prisma/client"
-
-      You won't need to change your imports.
-      Imports from \`@prisma/client\` will be automatically forwarded to \`.prisma/client\`]
+      Note: the output path is relative to the schema directory.
+      ]
     `)
   })
 
@@ -281,7 +293,7 @@ describe('generator', () => {
     if (getClientEngineType(generator.config) === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
         {
-          "defaultOutput": "/project/node_modules/@prisma/client",
+          "defaultOutput": "./generated",
           "prettyName": "Prisma Client",
           "requiresEngineVersion": "ENGINE_VERSION_TEST",
           "requiresEngines": [
@@ -292,7 +304,7 @@ describe('generator', () => {
     } else {
       expect(manifest).toMatchInlineSnapshot(`
         {
-          "defaultOutput": ".prisma/client",
+          "defaultOutput": "./generated",
           "prettyName": "Prisma Client",
           "requiresEngineVersion": "ENGINE_VERSION_TEST",
           "requiresEngines": [
@@ -312,6 +324,7 @@ describe('generator', () => {
           },
         ],
         "config": {},
+        "isCustomOutput": true,
         "name": "client",
         "previewFeatures": [],
         "provider": {
@@ -323,15 +336,15 @@ describe('generator', () => {
     `)
 
     expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
-      `"node_modules/@prisma/client"`,
+      `"generated"`,
     )
 
     await generator.generate()
-    const photonDir = path.join(__dirname, 'node_modules/.prisma/client')
-    expect(fs.existsSync(photonDir)).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index-browser.js'))).toBe(true)
-    expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
+    const clientDir = path.join(__dirname, 'generated')
+    expect(fs.existsSync(clientDir)).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index-browser.js'))).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'index.d.ts'))).toBe(true)
     generator.stop()
   })
 })

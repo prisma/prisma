@@ -1,14 +1,7 @@
 import Debug from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
-import type {
-  ActiveConnectorType,
-  BinaryPaths,
-  ConnectorType,
-  DataSource,
-  GeneratorConfig,
-  SqlQueryOutput,
-} from '@prisma/generator'
+import type { ActiveConnectorType, BinaryPaths, DataSource, GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
 import {
   assertNever,
   ClientEngineType,
@@ -19,10 +12,9 @@ import {
 } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
-import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import { ensureDir } from 'fs-extra'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -34,11 +26,6 @@ import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 
 const debug = Debug('prisma:client:generateClient')
-
-type OutputDeclaration = {
-  content: string
-  lineNumber: number
-}
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -53,23 +40,19 @@ export interface GenerateClientOptions {
   datamodel: string
   schemaPath: string
   /** Runtime path used in runtime/type imports */
-  runtimeBase?: string
+  runtimeBase: string
   outputDir: string
   generator: GeneratorConfig
   dmmf: DMMF.Document
   datasources: DataSource[]
   binaryPaths: BinaryPaths
-  testMode?: boolean
-  copyRuntime?: boolean
-  copyRuntimeSourceMaps?: boolean
-  runtimeSourcePath: string
   engineVersion: string
   clientVersion: string
   activeProvider: ActiveConnectorType
   envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
-  /** When --no-engine is passed via CLI */
+  /** False when --no-engine is passed via CLI */
   copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
 }
@@ -86,7 +69,6 @@ export interface BuildClientResult {
 export function buildClient({
   schemaPath,
   runtimeBase,
-  runtimeSourcePath,
   datamodel,
   binaryPaths,
   outputDir,
@@ -112,7 +94,6 @@ export function buildClient({
     schemaPath,
     outputDir,
     runtimeBase,
-    runtimeSourcePath,
     clientVersion,
     engineVersion,
     activeProvider,
@@ -366,31 +347,6 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
   return `../${runtimeBase}`
 }
 
-// TODO: explore why we have a special case for excluding pnpm
-async function getDefaultOutdir(outputDir: string): Promise<string> {
-  if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
-    return path.join(outputDir, '../../.prisma/client')
-  }
-  if (
-    process.env.INIT_CWD &&
-    process.env.npm_lifecycle_event === 'postinstall' &&
-    !process.env.PWD?.includes('.pnpm')
-  ) {
-    // INIT_CWD is the dir, in which "npm install" has been invoked. That can e.g. be in ./src
-    // If we're in ./ - there'll also be a package.json, so we can directly go for it
-    // otherwise, we'll go up in the filesystem and look for the first package.json
-    if (existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
-      return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
-    }
-    const packagePath = await pkgUp({ cwd: process.env.INIT_CWD })
-    if (packagePath) {
-      return path.join(path.dirname(packagePath), 'node_modules/.prisma/client')
-    }
-  }
-
-  return path.join(outputDir, '../../.prisma/client')
-}
-
 export async function generateClient(options: GenerateClientOptions): Promise<void> {
   const {
     datamodel,
@@ -399,10 +355,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     dmmf,
     datasources,
     binaryPaths,
-    testMode,
-    copyRuntime,
-    copyRuntimeSourceMaps = false,
-    runtimeSourcePath,
     clientVersion,
     engineVersion,
     activeProvider,
@@ -419,7 +371,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     datamodel,
     schemaPath,
     runtimeBase,
-    runtimeSourcePath,
     outputDir,
     generator,
     dmmf,
@@ -430,12 +381,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     copyEngine,
-    testMode,
     envPaths,
     typedSql,
   })
-
-  const provider = datasources[0].provider
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
@@ -463,19 +411,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   await writeFileMap(outputDir, fileMap)
-
-  // if users use a custom output dir
-  if (copyRuntime || generator.isCustomOutput === true) {
-    const copiedRuntimeDir = path.join(outputDir, 'runtime')
-    await ensureDir(copiedRuntimeDir)
-
-    await copyRuntimeFiles({
-      from: runtimeSourcePath,
-      to: copiedRuntimeDir,
-      sourceMaps: copyRuntimeSourceMaps,
-      runtimeName: getNodeRuntimeName(clientEngineType),
-    })
-  }
 
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
@@ -514,22 +449,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
-  // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (
-    generator.previewFeatures.includes('driverAdapters') &&
-    isWasmEngineSupported(provider) &&
-    copyEngine &&
-    !testMode
-  ) {
-    const suffix = provider === 'postgres' ? 'postgresql' : provider
-    const filename = clientEngineType === ClientEngineType.Client ? 'query_compiler_bg' : 'query_engine_bg'
-    await fs.copyFile(
-      path.join(runtimeSourcePath, `${filename}.${suffix}.wasm`),
-      path.join(outputDir, `${filename}.wasm`),
-    )
-    await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
-  }
-
   try {
     // we tell our vscode extension to reload the types by modifying this file
     const prismaCache = paths('prisma').cache
@@ -556,10 +475,6 @@ function writeFileMap(outputDir: string, fileMap: FileMap) {
       }
     }),
   )
-}
-
-function isWasmEngineSupported(provider: ConnectorType) {
-  return provider === 'postgresql' || provider === 'postgres' || provider === 'mysql' || provider === 'sqlite'
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: DMMF.Document): Error[] | null {
@@ -646,93 +561,19 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: DMMF.Document): Error[] 
 
 /**
  * Get all the directories involved in the generation process.
- *
- * @returns
  */
-async function getGenerationDirs({
-  runtimeBase,
-  generator,
-  outputDir,
-  datamodel,
-  schemaPath,
-  testMode,
-}: GenerateClientOptions) {
-  const isCustomOutput = generator.isCustomOutput === true
+async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptions) {
   const normalizedOutputDir = path.normalize(outputDir)
-  let userRuntimeImport = isCustomOutput ? './runtime' : '@prisma/client/runtime'
-  let userOutputDir = isCustomOutput ? normalizedOutputDir : await getDefaultOutdir(normalizedOutputDir)
+  const normalizedRuntimeBase = pathToPosix(runtimeBase)
 
-  if (testMode && runtimeBase) {
-    userOutputDir = outputDir
-    userRuntimeImport = pathToPosix(runtimeBase)
-  }
-
-  if (isCustomOutput) {
-    await verifyOutputDirectory(userOutputDir, datamodel, schemaPath)
-  }
-
-  const userPackageRoot = await pkgUp({ cwd: path.dirname(userOutputDir) })
+  const userPackageRoot = await pkgUp({ cwd: path.dirname(normalizedOutputDir) })
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
-    runtimeBase: userRuntimeImport,
-    outputDir: userOutputDir,
+    runtimeBase: normalizedRuntimeBase,
+    outputDir: normalizedOutputDir,
     projectRoot: userProjectRoot,
   }
-}
-
-async function verifyOutputDirectory(directory: string, datamodel: string, schemaPath: string) {
-  let content: string
-  try {
-    content = await fs.readFile(path.join(directory, 'package.json'), 'utf8')
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      // no package.json exists, we are good
-      return
-    }
-    throw e
-  }
-  const { name } = JSON.parse(content)
-  if (name === clientPkg.name) {
-    const message = [`Generating client into ${bold(directory)} is not allowed.`]
-    message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
-    message.push('')
-    message.push('Suggestion:')
-    const outputDeclaration = findOutputPathDeclaration(datamodel)
-
-    if (outputDeclaration && outputDeclaration.content.includes(clientPkg.name)) {
-      const outputLine = outputDeclaration.content
-      message.push(`In ${bold(schemaPath)} replace:`)
-      message.push('')
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPkg.name))}`)
-      message.push('with')
-
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
-    } else {
-      message.push(`Generate client into ${bold(replacePackageName(directory, green('.prisma/client')))} instead`)
-    }
-
-    message.push('')
-    message.push("You won't need to change your imports.")
-    message.push('Imports from `@prisma/client` will be automatically forwarded to `.prisma/client`')
-    const error = new Error(message.join('\n'))
-    throw error
-  }
-}
-
-function replacePackageName(directoryPath: string, replacement: string): string {
-  return directoryPath.replace(clientPkg.name, replacement)
-}
-
-function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null {
-  const lines = datamodel.split(/\r?\n/)
-
-  for (const [i, line] of lines.entries()) {
-    if (/output\s*=/.test(line)) {
-      return { lineNumber: i + 1, content: line.trim() }
-    }
-  }
-  return null
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
@@ -755,39 +596,6 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
   }
 
   assertNever(engineType, 'Unknown engine type')
-}
-
-type CopyRuntimeOptions = {
-  from: string
-  to: string
-  runtimeName: string
-  sourceMaps: boolean
-}
-
-async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = [
-    // library.d.ts is always included, as it contains the actual runtime type
-    // definitions. Rest of the `runtime.d.ts` files just re-export everything
-    // from `library.d.ts`
-    'library.d.ts',
-    'index-browser.js',
-    'index-browser.d.ts',
-    'edge.js',
-    'edge-esm.js',
-    'react-native.js',
-    'wasm.js',
-  ]
-
-  files.push(`${runtimeName}.js`)
-  if (runtimeName !== 'library') {
-    files.push(`${runtimeName}.d.ts`)
-  }
-
-  if (sourceMaps) {
-    files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
-  }
-
-  await Promise.all(files.map((file) => fs.copyFile(path.join(from, file), path.join(to, file))))
 }
 
 /**

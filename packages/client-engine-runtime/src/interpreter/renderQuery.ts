@@ -1,16 +1,39 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import { isPrismaValueGenerator, isPrismaValuePlaceholder, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import type { Fragment, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import { isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
+import { assertNever } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
-import { renderQueryTemplate } from './renderQueryTemplate'
 import { ScopeBindings } from './scope'
 
 export function renderQuery(
-  { query, params }: QueryPlanDbQuery,
+  dbQuery: QueryPlanDbQuery,
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
 ): SqlQuery {
-  const substitutedParams = params.map((param) => {
+  const queryType = dbQuery.type
+  switch (queryType) {
+    case 'rawSql':
+      return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope, generators))
+
+    case 'templateSql':
+      return renderTemplateSql(
+        dbQuery.fragments,
+        dbQuery.placeholderFormat,
+        substituteParams(dbQuery.params, scope, generators),
+      )
+
+    default:
+      assertNever(queryType, `Invalid query type`)
+  }
+}
+
+function substituteParams(
+  params: PrismaValue[],
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): PrismaValue[] {
+  return params.map((param) => {
     if (isPrismaValueGenerator(param)) {
       const { name, args } = param.prisma__value
       const generator = generators[name]
@@ -19,7 +42,6 @@ export function renderQuery(
       }
       return generator.generate(...args)
     }
-
     if (!isPrismaValuePlaceholder(param)) {
       return param
     }
@@ -29,16 +51,69 @@ export function renderQuery(
       throw new Error(`Missing value for query variable ${param.prisma__value.name}`)
     }
 
-    return value
+    return value as PrismaValue
   })
+}
 
-  const { query: renderedQuery, params: expandedParams } = renderQueryTemplate({ query, params: substitutedParams })
+function renderTemplateSql(
+  fragments: Fragment[],
+  placeholderFormat: PlaceholderFormat,
+  params: PrismaValue[],
+): SqlQuery {
+  let paramIndex = 0
+  let placeholderNumber = 1
+  const flattenedParams: PrismaValue[] = []
+  const sql = fragments
+    .map((fragment) => {
+      const fragmentType = fragment.type
+      switch (fragmentType) {
+        case 'parameter':
+          if (paramIndex >= params.length) {
+            throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+          }
+          flattenedParams.push(params[paramIndex++])
+          return formatPlaceholder(placeholderFormat, placeholderNumber++)
 
-  const argTypes = expandedParams.map((param) => toArgType(param as PrismaValue))
+        case 'stringChunk':
+          return fragment.value
+
+        case 'parameterTuple': {
+          if (paramIndex >= params.length) {
+            throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+          }
+          const paramValue = params[paramIndex++]
+          const paramArray = Array.isArray(paramValue) ? paramValue : [paramValue]
+          const placeholders =
+            paramArray.length == 0
+              ? 'NULL'
+              : paramArray
+                  .map((value) => {
+                    flattenedParams.push(value)
+                    return formatPlaceholder(placeholderFormat, placeholderNumber++)
+                  })
+                  .join(',')
+          return `(${placeholders})`
+        }
+
+        default:
+          assertNever(fragmentType, 'Invalid fragment type')
+      }
+    })
+    .join('')
+
+  return renderRawSql(sql, flattenedParams)
+}
+
+function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumber: number): string {
+  return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
+}
+
+function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
+  const argTypes = params.map((param) => toArgType(param))
 
   return {
-    sql: renderedQuery,
-    args: expandedParams,
+    sql,
+    args: params,
     argTypes,
   }
 }
