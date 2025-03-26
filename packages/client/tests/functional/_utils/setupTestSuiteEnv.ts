@@ -67,7 +67,7 @@ async function copyPreprocessed({
   const newContents = contents
     .replace(/'\.\.\//g, "'../../../")
     .replace(/'\.\//g, "'../../")
-    .replace(/'\.\.\/\.\.\/node_modules/g, "'./node_modules")
+    .replace(/'\.\.\/\.\.\/generated\/prisma\/client/g, "'./generated/prisma/client")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment({ conditionFromComment: condition, suiteConfig })) {

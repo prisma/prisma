@@ -95,7 +95,7 @@ export async function setupTestSuiteClient({
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: schemaContext.datasources,
-    outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
+    outputDir: path.join(suiteFolderPath, 'generated/prisma/client'),
     copyRuntime: false,
     dmmf: dmmf,
     generator: generator,
@@ -111,20 +111,20 @@ export async function setupTestSuiteClient({
 
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     node: {
-      client: 'node_modules/@prisma/client',
-      sql: 'node_modules/@prisma/client/sql',
+      client: 'generated/prisma/client',
+      sql: 'generated/prisma/client/sql',
     },
     edge: {
-      client: 'node_modules/@prisma/client/edge',
-      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+      client: 'generated/prisma/client/edge',
+      sql: 'generated/prisma/client/sql/index.edge.js',
     },
     wasm: {
-      client: 'node_modules/@prisma/client/wasm',
-      sql: 'node_modules/@prisma/client/sql/index.wasm.js',
+      client: 'generated/prisma/client/wasm',
+      sql: 'generated/prisma/client/sql/index.wasm.js',
     },
     client: {
-      client: 'node_modules/@prisma/client',
-      sql: 'node_modules/@prisma/client/sql',
+      client: 'generated/prisma/client',
+      sql: 'generated/prisma/client/sql',
     },
   }
 
