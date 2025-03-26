@@ -24,8 +24,13 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@bugsnag/cuid": "3.2.1",
+    "@paralleldrive/cuid2": "2.2.2",
     "@prisma/debug": "workspace:*",
-    "@prisma/driver-adapter-utils": "workspace:*"
+    "@prisma/driver-adapter-utils": "workspace:*",
+    "nanoid": "5.1.5",
+    "ulid": "3.0.0",
+    "uuid": "11.1.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.14",

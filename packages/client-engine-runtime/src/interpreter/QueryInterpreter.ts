@@ -17,7 +17,7 @@ export class QueryInterpreter {
   #queryable: SqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
-  #generators: GeneratorRegistry | undefined
+  #generators: GeneratorRegistry = new GeneratorRegistry()
 
   constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#queryable = queryable
@@ -26,10 +26,6 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
-    if (!this.#generators) {
-      this.#generators = await GeneratorRegistry.createWithDefaults()
-    }
-
     return this.interpretNode(queryPlan, this.#placeholderValues, this.#generators.snapshot())
   }
 

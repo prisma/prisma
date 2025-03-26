@@ -1,18 +1,20 @@
-import { Crypto, getCrypto } from '../crypto'
+import cuid1 from '@bugsnag/cuid'
+import { createId as cuid2 } from '@paralleldrive/cuid2'
+import { nanoid } from 'nanoid'
+import { ulid } from 'ulid'
+import { v4 as uuidv4, v7 as uuidv7 } from 'uuid'
+
 import { PrismaValue } from '../QueryPlan'
 
 export class GeneratorRegistry {
   #generators: GeneratorRegistrySnapshot = {}
 
-  static async createWithDefaults(): Promise<GeneratorRegistry> {
-    const crypto = await getCrypto()
-
-    const registry = new GeneratorRegistry()
-    registry.register('now', new NowGenerator())
-    registry.register('uuid', new UuidGenerator(crypto))
-    // TODO: replace with an actual CUID generator
-    registry.register('cuid', new UuidGenerator(crypto))
-    return registry
+  constructor() {
+    this.register('now', new NowGenerator())
+    this.register('uuid', new UuidGenerator())
+    this.register('cuid', new CuidGenerator())
+    this.register('ulid', new UlidGenerator())
+    this.register('nanoid', new NanoidGenerator())
   }
 
   /**
@@ -39,7 +41,7 @@ export interface GeneratorRegistrySnapshot {
 }
 
 export interface ValueGenerator {
-  generate(args: PrismaValue[]): PrismaValue
+  generate(...args: PrismaValue[]): PrismaValue
 }
 
 class NowGenerator implements ValueGenerator {
@@ -51,13 +53,37 @@ class NowGenerator implements ValueGenerator {
 }
 
 class UuidGenerator implements ValueGenerator {
-  #crypto: Crypto
-
-  constructor(crypto: Crypto) {
-    this.#crypto = crypto
+  generate(arg: PrismaValue | undefined): string {
+    if (arg === 4) {
+      return uuidv4()
+    } else if (arg === 7) {
+      return uuidv7()
+    } else {
+      throw new Error('Invalid UUID generator arguments')
+    }
   }
+}
 
+class CuidGenerator implements ValueGenerator {
+  generate(arg: PrismaValue | undefined): string {
+    if (arg === 1) {
+      return cuid1()
+    } else if (arg === 2) {
+      return cuid2()
+    } else {
+      throw new Error('Invalid CUID generator arguments')
+    }
+  }
+}
+
+class UlidGenerator implements ValueGenerator {
   generate(): string {
-    return this.#crypto.randomUUID()
+    return ulid()
+  }
+}
+
+class NanoidGenerator implements ValueGenerator {
+  generate(): string {
+    return nanoid()
   }
 }

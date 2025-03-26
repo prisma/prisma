@@ -17,7 +17,7 @@ export function renderQuery(
       if (!generator) {
         throw new Error(`Encountered an unknown generator '${name}'`)
       }
-      return generator.generate(args)
+      return generator.generate(...args)
     }
 
     if (!isPrismaValuePlaceholder(param)) {
