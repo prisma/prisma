@@ -47,6 +47,9 @@ function renderTemplateSql(
       const fragmentType = fragment.type
       switch (fragmentType) {
         case 'parameter':
+          if (paramIndex >= params.length) {
+            throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+          }
           flattenedParams.push(params[paramIndex++])
           return formatPlaceholder(placeholderFormat, placeholderNumber++)
 
@@ -54,6 +57,9 @@ function renderTemplateSql(
           return fragment.value
 
         case 'parameterTuple': {
+          if (paramIndex >= params.length) {
+            throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+          }
           const paramValue = params[paramIndex++]
           const paramArray = Array.isArray(paramValue) ? paramValue : [paramValue]
           const placeholders =
