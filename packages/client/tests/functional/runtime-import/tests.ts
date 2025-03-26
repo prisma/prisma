@@ -14,7 +14,7 @@ const wasmFileUsage = '#wasm-engine-loader'
 testMatrix.setupTestSuite(
   ({ engineType, clientRuntime }, suiteMeta, clientMeta) => {
     const clientEntrypoint = `@prisma/client/${clientRuntime === 'node' ? 'index' : clientRuntime}.js`
-    const clientEntrypointPath = path.join(suiteMeta.generatedFolder, 'node_modules', clientEntrypoint)
+    const clientEntrypointPath = path.join(suiteMeta.generatedFolder, clientEntrypoint)
 
     test('imports correct runtime', async () => {
       const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')

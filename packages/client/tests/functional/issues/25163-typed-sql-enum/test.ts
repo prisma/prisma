@@ -2,9 +2,9 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 // @ts-ignore
-import * as Sql from './node_modules/@prisma/client/sql'
+import * as Sql from './generated/prisma/client/sql'
 
 declare let prisma: PrismaClient
 declare let sql: typeof Sql
