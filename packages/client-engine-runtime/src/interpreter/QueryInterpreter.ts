@@ -144,7 +144,7 @@ export class QueryInterpreter {
 
       case 'transaction': {
         const transactionInfo = await this.#transactionManager.startTransaction()
-        const transaction = this.#transactionManager.getTransaction(transactionInfo, 'unused')
+        const transaction = this.#transactionManager.getTransaction(transactionInfo, 'new')
         try {
           const value = await this.interpretNode(node.args, scope, generators, transaction)
           await this.#transactionManager.commitTransaction(transactionInfo.id)
