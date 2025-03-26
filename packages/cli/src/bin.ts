@@ -153,7 +153,7 @@ async function main(): Promise<number> {
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
       // TODO: add rules subcommand to --help after EA
-      rules: new SubCommand('@prisma/cli-rules'),
+      rules: new SubCommand('@prisma/cli-security-rules'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
