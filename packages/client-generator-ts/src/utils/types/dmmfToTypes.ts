@@ -1,5 +1,3 @@
-import path from 'node:path'
-
 import type * as DMMF from '@prisma/dmmf'
 
 import { TSClient } from '../../TSClient/TSClient'
@@ -17,7 +15,6 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     runtimeBase: '@prisma/client',
     runtimeNameJs: 'library',
     runtimeNameTs: 'library',
-    runtimeSourcePath: path.join(__dirname, '../../../runtime'),
     schemaPath: '',
     outputDir: '',
     activeProvider: '' as any,
