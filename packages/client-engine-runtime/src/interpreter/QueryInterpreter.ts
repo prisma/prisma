@@ -2,6 +2,7 @@ import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serialize'
@@ -16,6 +17,7 @@ export class QueryInterpreter {
   #queryable: SqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
+  readonly #generators: GeneratorRegistry = new GeneratorRegistry()
 
   constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#queryable = queryable
@@ -24,13 +26,17 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode): Promise<unknown> {
-    return this.interpretNode(queryPlan, this.#placeholderValues)
+    return this.interpretNode(queryPlan, this.#placeholderValues, this.#generators.snapshot())
   }
 
-  private async interpretNode(node: QueryPlanNode, scope: ScopeBindings): Promise<Value> {
+  private async interpretNode(
+    node: QueryPlanNode,
+    scope: ScopeBindings,
+    generators: GeneratorRegistrySnapshot,
+  ): Promise<Value> {
     switch (node.type) {
       case 'seq': {
-        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
+        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
         return results[results.length - 1]
       }
 
@@ -42,10 +48,10 @@ export class QueryInterpreter {
         const nestedScope: ScopeBindings = Object.create(scope)
         await Promise.all(
           node.args.bindings.map(async (binding) => {
-            nestedScope[binding.name] = await this.interpretNode(binding.expr, scope)
+            nestedScope[binding.name] = await this.interpretNode(binding.expr, scope, generators)
           }),
         )
-        return this.interpretNode(node.args.expr, nestedScope)
+        return this.interpretNode(node.args.expr, nestedScope, generators)
       }
 
       case 'getFirstNonEmpty': {
@@ -59,36 +65,36 @@ export class QueryInterpreter {
       }
 
       case 'concat': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
         return parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), [])
       }
 
       case 'sum': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope)))
+        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, scope, generators)))
         return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
       }
 
       case 'execute': {
-        const query = renderQuery(node.args, scope)
+        const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, async () => {
           return await this.#queryable.executeRaw(query)
         })
       }
 
       case 'query': {
-        const query = renderQuery(node.args, scope)
+        const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, async () => {
           return serialize(await this.#queryable.queryRaw(query))
         })
       }
 
       case 'reverse': {
-        const value = await this.interpretNode(node.args, scope)
+        const value = await this.interpretNode(node.args, scope, generators)
         return Array.isArray(value) ? value.reverse() : value
       }
 
       case 'unique': {
-        const value = await this.interpretNode(node.args, scope)
+        const value = await this.interpretNode(node.args, scope, generators)
         if (!Array.isArray(value)) {
           return value
         }
@@ -99,7 +105,7 @@ export class QueryInterpreter {
       }
 
       case 'required': {
-        const value = await this.interpretNode(node.args, scope)
+        const value = await this.interpretNode(node.args, scope, generators)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
@@ -107,17 +113,17 @@ export class QueryInterpreter {
       }
 
       case 'mapField': {
-        const value = await this.interpretNode(node.args.records, scope)
+        const value = await this.interpretNode(node.args.records, scope, generators)
         return mapField(value, node.args.field)
       }
 
       case 'join': {
-        const parent = await this.interpretNode(node.args.parent, scope)
+        const parent = await this.interpretNode(node.args.parent, scope, generators)
 
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: await this.interpretNode(joinExpr.child, scope),
+            childRecords: await this.interpretNode(joinExpr.child, scope, generators),
           })),
         )) satisfies JoinExpressionWithRecords[]
 
