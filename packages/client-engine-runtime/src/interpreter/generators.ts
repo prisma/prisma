@@ -14,7 +14,7 @@ export class GeneratorRegistry {
     this.register('uuid', new UuidGenerator())
     this.register('cuid', new CuidGenerator())
     this.register('ulid', new UlidGenerator())
-    this.register('nanoid', new NanoidGenerator())
+    this.register('nanoid', new NanoIdGenerator())
   }
 
   /**
@@ -82,8 +82,14 @@ class UlidGenerator implements ValueGenerator {
   }
 }
 
-class NanoidGenerator implements ValueGenerator {
-  generate(): string {
-    return nanoid()
+class NanoIdGenerator implements ValueGenerator {
+  generate(arg: PrismaValue | undefined): string {
+    if (typeof arg === 'number') {
+      return nanoid(arg)
+    } else if (arg === undefined) {
+      return nanoid()
+    } else {
+      throw new Error('Invalid Nanoid generator arguments')
+    }
   }
 }

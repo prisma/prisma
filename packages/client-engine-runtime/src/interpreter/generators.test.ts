@@ -79,7 +79,7 @@ test('should generate different and valid v2 CUIDs', () => {
   expect(cuid1).toMatch(/^[0-9a-z]{24}$/)
 })
 
-test('should generate different and valid nanoids', () => {
+test('should generate different and valid Nano IDs', () => {
   const registry = new GeneratorRegistry()
   const snapshot = registry.snapshot()
 
@@ -89,4 +89,16 @@ test('should generate different and valid nanoids', () => {
 
   // example: OS66Fq-h2DQ0y6frSSiky
   expect(nanoid1).toMatch(/^[A-Za-z0-9_-]{21}$/)
+})
+
+test('should generate different and valid Nano IDs with custom length', () => {
+  const registry = new GeneratorRegistry()
+  const snapshot = registry.snapshot()
+
+  const nanoid1 = snapshot.nanoid.generate(7)
+  const nanoid2 = snapshot.nanoid.generate(7)
+  expect(nanoid1).not.toBe(nanoid2)
+
+  // example: OS66Fq-
+  expect(nanoid1).toMatch(/^[A-Za-z0-9_-]{7}$/)
 })
