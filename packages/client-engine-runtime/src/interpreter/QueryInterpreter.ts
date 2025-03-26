@@ -17,7 +17,7 @@ export class QueryInterpreter {
   #queryable: SqlQueryable
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
-  #generators: GeneratorRegistry = new GeneratorRegistry()
+  readonly #generators: GeneratorRegistry = new GeneratorRegistry()
 
   constructor({ queryable, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#queryable = queryable
