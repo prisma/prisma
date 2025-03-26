@@ -5,7 +5,7 @@ import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
   runtimeBase,
-  runtimeNameJs,
+  runtimeName,
   browser,
   clientVersion,
   engineVersion,
@@ -36,7 +36,7 @@ import {
   Public,
   getRuntime,
   skip
-} from '${runtimeBase}/${runtimeNameJs}.js'`
+} from '${runtimeBase}/${runtimeName}'`
     : browser
     ? `
 const {
@@ -46,7 +46,7 @@ const {
   Public,
   getRuntime,
   skip
-} = require('${runtimeBase}/${runtimeNameJs}.js')
+} = require('${runtimeBase}/${runtimeName}')
 `
     : `
 const {
@@ -71,7 +71,7 @@ const {
   Public,
   getRuntime,
   createParam,
-} = require('${runtimeBase}/${runtimeNameJs}.js')
+} = require('${runtimeBase}/${runtimeName}')
 `
 }
 
@@ -140,12 +140,12 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
 
 export const commonCodeTS = ({
   runtimeBase,
-  runtimeNameTs,
+  runtimeName,
   clientVersion,
   engineVersion,
   generator,
 }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeName}';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils

@@ -7,15 +7,15 @@ import { TSClientOptions } from '../TSClient/TSClient'
 export function buildQueryCompilerWasmModule(
   wasm: boolean,
   copyCompiler: boolean,
-  runtimeNameJs: TSClientOptions['runtimeNameJs'],
+  runtimeName: TSClientOptions['runtimeName'],
 ) {
-  if (copyCompiler && runtimeNameJs === 'client') {
+  if (copyCompiler && runtimeName === 'client') {
     return `config.compilerWasm = {
       getRuntime: () => require('./query_compiler_bg.js'),
       getQueryCompilerWasmModule: async () => {
         const queryCompilerWasmFilePath = require('path').join(config.dirname, 'query_compiler_bg.wasm')
         const queryCompilerWasmFileBytes = require('fs').readFileSync(queryCompilerWasmFilePath)
-      
+
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
       }
     }`
@@ -29,13 +29,13 @@ export function buildQueryCompilerWasmModule(
   // isn't able to handle dynamic imports with `import(#MODULE_NAME)`, which used
   // to lead to a runtime "No such module .prisma/client/#wasm-compiler-loader" error.
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
-  if (copyCompiler && runtimeNameJs === 'client' && wasm === true) {
+  if (copyCompiler && runtimeName === 'client' && wasm === true) {
     return `config.compilerWasm = {
   getRuntime: () => require('./query_compiler_bg.js'),
   getQueryCompilerWasmModule: async () => {
     const loader = (await import('#wasm-compiler-loader')).default
     const compiler = (await loader).default
-    return compiler 
+    return compiler
   }
 }`
   }
