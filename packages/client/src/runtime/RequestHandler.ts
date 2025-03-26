@@ -1,5 +1,5 @@
 import { Context } from '@opentelemetry/api'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 

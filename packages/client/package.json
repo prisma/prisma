@@ -87,26 +87,44 @@
     "./wasm": {
       "types": "./wasm.d.ts",
       "require": "./wasm.js",
-      "import": "./wasm.js",
-      "default": "./wasm.js"
+      "import": "./wasm.mjs",
+      "default": "./wasm.mjs"
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
       "require": "./runtime/client.js",
-      "import": "./runtime/client.js",
-      "default": "./runtime/client.js"
+      "import": "./runtime/client.mjs",
+      "default": "./runtime/client.mjs"
     },
     "./runtime/library": {
       "types": "./runtime/library.d.ts",
       "require": "./runtime/library.js",
-      "import": "./runtime/library.js",
-      "default": "./runtime/library.js"
+      "import": "./runtime/library.mjs",
+      "default": "./runtime/library.mjs"
     },
     "./runtime/binary": {
       "types": "./runtime/binary.d.ts",
       "require": "./runtime/binary.js",
-      "import": "./runtime/binary.js",
-      "default": "./runtime/binary.js"
+      "import": "./runtime/binary.mjs",
+      "default": "./runtime/binary.mjs"
+    },
+    "./runtime/wasm": {
+      "types": "./runtime/wasm.d.ts",
+      "require": "./runtime/wasm.js",
+      "import": "./runtime/wasm.mjs",
+      "default": "./runtime/wasm.mjs"
+    },
+    "./runtime/edge": {
+      "types": "./runtime/edge.d.ts",
+      "require": "./runtime/edge.js",
+      "import": "./runtime/edge-esm.js",
+      "default": "./runtime/edge-esm.js"
+    },
+    "./runtime/react-native": {
+      "types": "./runtime/react-native.d.ts",
+      "require": "./runtime/react-native.js",
+      "import": "./runtime/react-native.js",
+      "default": "./runtime/react-native.js"
     },
     "./generator-build": {
       "require": "./generator-build/index.js",

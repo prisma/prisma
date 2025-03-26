@@ -59,7 +59,7 @@ jobs:
   #
   lint:
     name: Lint
-    timeout-minutes: 7
+    timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
     steps:
