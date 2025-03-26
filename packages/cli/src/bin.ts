@@ -88,8 +88,6 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       platform: Platform.$.new({
-        policy: new SubCommand('@prisma/cli-policy'),
-
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
@@ -154,6 +152,8 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
+      // TODO: add rules subcommand to --help after EA
+      rules: new SubCommand('@prisma/cli-security-rules'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )

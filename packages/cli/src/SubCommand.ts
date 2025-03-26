@@ -23,7 +23,7 @@ export class SubCommand implements Command {
   }
 
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
-    // we accept forcing a version with @, eg. prisma policy @1.0.0 --help
+    // we accept forcing a version with @, eg. prisma rules @1.0.0 --help
     const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
     const pkg = `${this.pkg}${version}`
 
