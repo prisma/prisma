@@ -44,7 +44,7 @@ export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highl
 export * as logger from './logger'
 export type { MigrateTypes } from './migrateTypes'
 export type * as MigrateWasmTypes from  './migrateWasmTypes'
-export { ErrorArea, isRustPanic, RustPanic } from './panic'
+export { ErrorArea, getWasmError, isRustPanic, isWasmPanic, RustPanic } from './panic'
 export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { resolvePkg } from './resolvePkg'
