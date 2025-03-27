@@ -151,19 +151,19 @@ export type validator = typeof $Runtime.Public.validator
 /**
  * Prisma Errors
  */
-export type PrismaClientKnownRequestError = $Runtime.PrismaClientKnownRequestError
-export type PrismaClientUnknownRequestError = $Runtime.PrismaClientUnknownRequestError
-export type PrismaClientRustPanicError = $Runtime.PrismaClientRustPanicError
-export type PrismaClientInitializationError = $Runtime.PrismaClientInitializationError
-export type PrismaClientValidationError = $Runtime.PrismaClientValidationError
+export const PrismaClientKnownRequestError: $Runtime.PrismaClientKnownRequestError
+export const PrismaClientUnknownRequestError: $Runtime.PrismaClientUnknownRequestError
+export const PrismaClientRustPanicError: $Runtime.PrismaClientRustPanicError
+export const PrismaClientInitializationError: $Runtime.PrismaClientInitializationError
+export const PrismaClientValidationError: $Runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
  */
-export type sql = typeof $Runtime.sqltag
-export type empty = typeof $Runtime.empty
-export type join = typeof $Runtime.join
-export type raw = typeof $Runtime.raw
+export const sql: typeof $Runtime.sqltag
+export const empty: typeof $Runtime.empty
+export const join: typeof $Runtime.join
+export const raw: typeof $Runtime.raw
 export type Sql = $Runtime.Sql
 
 ${buildPrismaSkipTs(generator.previewFeatures)}
@@ -569,7 +569,7 @@ function buildPrismaSkipTs(previewFeatures: string[]) {
 /**
  * Prisma.skip
  */
-export import skip = $Runtime.skip
+export const skip: $Runtime.Types.Skip
 `
   }
 
