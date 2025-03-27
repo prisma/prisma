@@ -2,6 +2,7 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   QueryEvent,
   QueryInterpreter,
+  QueryInterpreterTransactionManager,
   QueryPlanNode,
   TransactionInfo,
   TransactionManager,
@@ -268,11 +269,14 @@ export class ClientEngine implements Engine<undefined> {
         ? transactionManager.getTransaction(interactiveTransaction, query.action)
         : adapter
 
+      const qiTransactionManager = (
+        interactiveTransaction ? { enabled: false } : { enabled: true, manager: transactionManager }
+      ) satisfies QueryInterpreterTransactionManager
+
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
-        transactionManager,
-        allowTransaction: !interactiveTransaction,
+        transactionManager: qiTransactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
@@ -319,8 +323,7 @@ export class ClientEngine implements Engine<undefined> {
       for (const { query, plan } of queriesWithPlans) {
         const transaction = transactionManager.getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
-          transactionManager,
-          allowTransaction: false,
+          transactionManager: { enabled: false } satisfies QueryInterpreterTransactionManager,
           placeholderValues: {},
           onQuery: this.#emitQueryEvent,
         })

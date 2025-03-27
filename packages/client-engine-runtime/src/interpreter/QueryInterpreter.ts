@@ -8,22 +8,23 @@ import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serialize'
 
+export type QueryInterpreterTransactionManager
+  = { enabled: true,  manager: TransactionManager }
+  | { enabled: false }
+
 export type QueryInterpreterOptions = {
-  transactionManager: TransactionManager
-  allowTransaction: boolean
+  transactionManager: QueryInterpreterTransactionManager
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
 }
 
 export class QueryInterpreter {
-  #transactionManager: TransactionManager
-  #allowTransaction: boolean
+  #transactionManager: QueryInterpreterTransactionManager
   #placeholderValues: Record<string, unknown>
   #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
 
-  constructor({ transactionManager, allowTransaction, placeholderValues, onQuery }: QueryInterpreterOptions) {
-    this.#allowTransaction = allowTransaction
+  constructor({ transactionManager, placeholderValues, onQuery }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
@@ -143,18 +144,19 @@ export class QueryInterpreter {
       }
 
       case 'transaction': {
-        if (!this.#allowTransaction) {
+        if (!this.#transactionManager.enabled) {
           return this.interpretNode(node.args, queryable, scope, generators)
         }
 
-        const transactionInfo = await this.#transactionManager.startTransaction()
-        const transaction = this.#transactionManager.getTransaction(transactionInfo, 'new')
+        const transactionManager = this.#transactionManager.manager
+        const transactionInfo = await transactionManager.startTransaction()
+        const transaction = transactionManager.getTransaction(transactionInfo, 'new')
         try {
           const value = await this.interpretNode(node.args, transaction, scope, generators)
-          await this.#transactionManager.commitTransaction(transactionInfo.id)
+          await transactionManager.commitTransaction(transactionInfo.id)
           return value
         } catch (e) {
-          await this.#transactionManager.rollbackTransaction(transactionInfo.id)
+          await transactionManager.rollbackTransaction(transactionInfo.id)
           throw e
         }
       }
