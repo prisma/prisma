@@ -72,6 +72,12 @@
       "import": "./extension.js",
       "default": "./extension.js"
     },
+    "./browser": {
+      "types": "./index.d.ts",
+      "require": "./index-browser.js",
+      "import": "./index-browser.js",
+      "default": "./index-browser.js"
+    },
     "./index-browser": {
       "types": "./index.d.ts",
       "require": "./index-browser.js",
@@ -124,7 +130,7 @@
         "node": "./sql.mjs",
         "default": "./sql.mjs"
       },
-      "default": "./sql.js"
+      "default": "./default.js"
     },
     "./*": "./*"
   },
