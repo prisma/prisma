@@ -22,6 +22,8 @@ import type { EngineResults } from '../types'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
+import { SchemaEngineWasm } from '../SchemaEngineWasm'
+import { bindSqlAdapterFactory } from '@prisma/driver-adapter-utils'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -56,7 +58,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -82,11 +84,26 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
+    const adapter = await config.migrate?.adapter(process.env)
+
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+
+    if (adapter) {
+      const boundAdapter = bindSqlAdapterFactory(adapter)
+
+      const schemaEngineWasm = await SchemaEngineWasm.setup({ adapter: boundAdapter, schemaContext })
+      console.log('[schemaEngineWasm]')
+      console.log(schemaEngineWasm)
+
+      const version = await schemaEngineWasm.getDatabaseVersion()
+
+      console.log('[version]')
+      console.log(version)
+    }
 
     checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
 
