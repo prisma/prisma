@@ -23,7 +23,7 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        run: npm install @octokit/rest @octokit/graphql
+        run: pnpm install
 
       - name: Run inline Discussion Cleanup Script
         env:
