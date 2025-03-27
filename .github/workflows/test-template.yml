@@ -46,6 +46,7 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
+  FUNCTIONAL_TEST_OPTIONS: --detectOpenHandles
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -140,13 +141,13 @@ jobs:
           skip-tsc: false
 
       # Run the functional test suite
-      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
         if: |
           contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
+      - run: pnpm run test-notypes ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         if: |
           contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
@@ -198,14 +199,14 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - run: pnpm run test:functional --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -260,7 +261,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -316,7 +317,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -527,21 +528,21 @@ jobs:
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: 1 to n
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
@@ -985,7 +986,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
