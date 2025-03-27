@@ -22,13 +22,11 @@ jest.retryTimes(3)
 testMatrix.setupTestSuite(
   ({ provider }) => {
     test('concurrent deleteMany/createMany', async () => {
-      let hasRetried = false
       const MAX_RETRIES = 5
+      let hasRetried = false
       const fn = async () => {
-        let retries = 0
-
-        let result
-        while (retries < MAX_RETRIES) {
+        for (let retries = 0; retries < MAX_RETRIES; retries++) {
+          let result
           try {
             result = await prisma.$transaction(
               [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
@@ -36,19 +34,19 @@ testMatrix.setupTestSuite(
                 isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
               },
             )
-            return result
           } catch (e) {
             // P2034 = Transaction failed due to a write conflict or a deadlock. Please retry your transaction
             if (e.code === 'P2034') {
               hasRetried = true
-              retries++
               continue
             }
             throw e
           }
+          return result
         }
       }
 
+      // FIXME: Potentially flaky test case
       await Promise.all([fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn()])
       // Before https://github.com/prisma/prisma-engines/pull/4249
       // The expectation for all providers that `hasRetried` would be set as `true`
