@@ -1,4 +1,4 @@
-import { Debug, SqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { Debug, SqlDriverAdapter, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -20,6 +20,18 @@ const adapterShape = <Env extends EnvVars = never>() =>
     },
   )
 
+const migrationAwareAdapterShape = <Env extends EnvVars = never>() =>
+  Shape.declare(
+    (input: any): input is (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory> => {
+      return input instanceof Function
+    },
+    {
+      identifier: 'MigrationAwareAdapter<Env>',
+      encode: identity,
+      decode: identity,
+    },
+  )
+
 export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
   adapter: (env: Env) => Promise<SqlDriverAdapter>
 }
@@ -33,7 +45,7 @@ const createPrismaStudioConfigInternalShape = <Env extends EnvVars = never>() =>
   })
 
 export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlDriverAdapter>
+  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
 const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
@@ -41,7 +53,7 @@ const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
      */
-    adapter: adapterShape<Env>(),
+    adapter: migrationAwareAdapterShape<Env>(),
   })
 
 // The exported types are re-declared manually instead of using the Shape.Type
