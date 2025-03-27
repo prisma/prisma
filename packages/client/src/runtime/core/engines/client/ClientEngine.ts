@@ -302,7 +302,7 @@ export class ClientEngine implements Engine<undefined> {
     this.lastStartedQuery = request
 
     try {
-      const [adapter, transactionManager] = await this.ensureStarted()
+      const [, transactionManager] = await this.ensureStarted()
 
       const response = await this.queryCompiler!.compileBatch(request)
 
@@ -317,7 +317,7 @@ export class ClientEngine implements Engine<undefined> {
         txInfo = await this.transaction('start', {}, txOptions)
       }
 
-      const queryable = txInfo ? transactionManager.getTransaction(txInfo, firstAction) : adapter
+      const queryable = transactionManager.getTransaction(txInfo, firstAction)
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
