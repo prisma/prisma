@@ -645,6 +645,9 @@ importers:
       '@prisma/client-generator-js':
         specifier: workspace:*
         version: link:../client-generator-js
+      '@prisma/client-generator-ts':
+        specifier: workspace:*
+        version: link:../client-generator-ts
       '@prisma/config':
         specifier: workspace:*
         version: link:../config

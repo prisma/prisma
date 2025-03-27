@@ -108,6 +108,7 @@ function setupTestSuiteMatrix(
         }
 
         const [clientModule, sqlModule] = await setupTestSuiteClient({
+          generatorType: suiteConfig.matrixOptions.generatorType || 'prisma-client-js',
           cliMeta,
           suiteMeta,
           suiteConfig,

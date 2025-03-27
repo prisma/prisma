@@ -208,6 +208,7 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/client-generator-js": "workspace:*",
+    "@prisma/client-generator-ts": "workspace:*",
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
