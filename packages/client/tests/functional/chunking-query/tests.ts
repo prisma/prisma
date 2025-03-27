@@ -6,7 +6,7 @@ import {
   RELATION_JOINS_NO_CHUNKING_ERROR_MSG,
 } from './_utils'
 // @ts-ignore
-import type { PrismaClient, Tag } from './node_modules/@prisma/client'
+import type { PrismaClient, Tag } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 

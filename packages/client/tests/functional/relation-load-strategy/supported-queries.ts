@@ -7,7 +7,7 @@ import { NewPrismaClient } from '../_utils/types'
 import { providersNotSupportingRelationJoins, providersSupportingRelationJoins, RelationLoadStrategy } from './_common'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>

@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto'
 
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 export async function setup(_prisma: unknown) {
   const userId1 = randomBytes(12).toString('hex')

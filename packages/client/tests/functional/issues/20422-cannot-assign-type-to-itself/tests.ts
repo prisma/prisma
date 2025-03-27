@@ -1,8 +1,7 @@
+import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
-
-import testMatrix from './_matrix'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 testMatrix.setupTestSuite(
   () => {

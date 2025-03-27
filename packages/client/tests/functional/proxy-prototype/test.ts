@@ -1,6 +1,6 @@
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -11,7 +11,7 @@ testMatrix.setupTestSuite(
     test('prototype of proxies is object prototype', () => {
       expect(Object.getPrototypeOf(prisma)).toBe(Object.prototype)
       expect(Object.getPrototypeOf(prisma.user)).toBe(Object.prototype)
-      // eslint-disable-next-line @typescript-eslint/unbound-method
+
       expect(Object.getPrototypeOf(prisma.user.findFirst)).toBe(Function.prototype)
     })
 
