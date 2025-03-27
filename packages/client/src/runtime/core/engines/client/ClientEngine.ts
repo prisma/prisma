@@ -302,9 +302,9 @@ export class ClientEngine implements Engine<undefined> {
     this.lastStartedQuery = request
 
     try {
-      const response = await this.queryCompiler!.compileBatch(request)
-
       const [adapter, transactionManager] = await this.ensureStarted()
+
+      const response = await this.queryCompiler!.compileBatch(request)
 
       let txInfo: InteractiveTransactionInfo<undefined>
       if (transaction?.kind === 'itx') {
@@ -326,15 +326,20 @@ export class ClientEngine implements Engine<undefined> {
         onQuery: this.#emitQueryEvent,
       })
 
-      let results: unknown[]
+      let results: BatchQueryEngineResult<unknown>[] = []
       switch (response.type) {
         case 'multi': {
-          results = await Promise.all(response.plans.map((plan) => interpreter.run(plan as QueryPlanNode)))
+          results = await Promise.all(
+            response.plans.map(async (plan) => {
+              const rows = await interpreter.run(plan as QueryPlanNode)
+              return { data: { [firstAction]: rows } }
+            }),
+          )
           break
         }
         case 'compacted': {
           const rows = await interpreter.run(response.plan as QueryPlanNode)
-          results = this.#convertCompactedRows(rows as {}[], response)
+          results = this.#convertCompactedRows(rows as {}[], response, firstAction)
           break
         }
       }
@@ -343,7 +348,7 @@ export class ClientEngine implements Engine<undefined> {
         await this.transaction('commit', {}, txInfo)
       }
 
-      return results.map((result) => ({ data: { [firstAction]: result } })) as BatchQueryEngineResult<T>[]
+      return results as BatchQueryEngineResult<T>[]
     } catch (e: any) {
       throw this.transformRequestError(e)
     }
@@ -359,7 +364,11 @@ export class ClientEngine implements Engine<undefined> {
    * Converts the result of a compacted query back to result objects analogous to what queries
    * would return when executed individually.
    */
-  #convertCompactedRows(rows: {}[], response: CompactedBatchResponse): unknown[] {
+  #convertCompactedRows(
+    rows: {}[],
+    response: CompactedBatchResponse,
+    action: string,
+  ): BatchQueryEngineResult<unknown>[] {
     // a list of objects that contain the keys of every row
     const keysPerRow = rows.map((item) => response.keys.reduce((acc, key) => ({ [key]: item[key], ...acc }), {}))
     // the selections inferred from the request, used to filter unwanted columns from the results
@@ -372,7 +381,7 @@ export class ClientEngine implements Engine<undefined> {
       const rowIndex = keysPerRow.findIndex((rowKeys) => doKeysMatch(rowKeys, argsAsObject))
       if (rowIndex === -1) {
         if (response.expectNonEmpty) {
-          throw new PrismaClientKnownRequestError(
+          return new PrismaClientKnownRequestError(
             'An operation failed because it depends on one or more records that were required but not found',
             {
               code: 'P2025',
@@ -380,11 +389,11 @@ export class ClientEngine implements Engine<undefined> {
             },
           )
         } else {
-          return null
+          return { data: { [action]: null } }
         }
       } else {
         const selected = Object.entries(rows[rowIndex]).filter(([k]) => selection.has(k))
-        return Object.fromEntries(selected)
+        return { data: { [action]: Object.fromEntries(selected) } }
       }
     })
   }
