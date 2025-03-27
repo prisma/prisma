@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
 
 import { Providers } from '../../../_utils/providers'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 

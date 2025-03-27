@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {

@@ -9,7 +9,7 @@ import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>

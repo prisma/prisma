@@ -3,14 +3,13 @@ import { expectTypeOf } from 'expect-type'
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
     test('should work as createMany is supported', () => {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       prisma.user.createMany()
 
       expectTypeOf(prisma.user).toHaveProperty('createMany')

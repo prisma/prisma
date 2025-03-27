@@ -7,6 +7,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
+      output   = "../generated/prisma/client"
       ${previewFeaturesStr}
     }
     
