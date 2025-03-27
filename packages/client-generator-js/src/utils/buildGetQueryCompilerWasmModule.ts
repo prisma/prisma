@@ -11,11 +11,11 @@ export function buildQueryCompilerWasmModule(
 ) {
   if (copyCompiler && runtimeNameJs === 'client') {
     return `config.compilerWasm = {
-      getRuntime: () => require('./query_compiler_bg.js'),
+      getRuntime: async () => require('./query_compiler_bg.js'),
       getQueryCompilerWasmModule: async () => {
         const queryCompilerWasmFilePath = require('path').join(config.dirname, 'query_compiler_bg.wasm')
         const queryCompilerWasmFileBytes = require('fs').readFileSync(queryCompilerWasmFilePath)
-      
+
         return new WebAssembly.Module(queryCompilerWasmFileBytes)
       }
     }`
@@ -31,11 +31,11 @@ export function buildQueryCompilerWasmModule(
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
   if (copyCompiler && runtimeNameJs === 'client' && wasm === true) {
     return `config.compilerWasm = {
-  getRuntime: () => require('./query_compiler_bg.js'),
+  getRuntime: async () => require('./query_compiler_bg.js'),
   getQueryCompilerWasmModule: async () => {
     const loader = (await import('#wasm-compiler-loader')).default
     const compiler = (await loader).default
-    return compiler 
+    return compiler
   }
 }`
   }
