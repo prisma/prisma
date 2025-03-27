@@ -1,14 +1,7 @@
 import prismaSchemaWasm from '@prisma/prisma-schema-wasm'
+import { SchemaEngine as SchemaEngineWasm, version as getSchemaEngineWasmVersion } from '@prisma/schema-engine-wasm'
 
 import { WasmPanicRegistry } from './WasmPanicRegistry'
-
-// Note: using `import { dependencies } from '../package.json'` here would break esbuild with seemingly unrelated errors.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { dependencies } = require('../package.json')
-
-export { prismaSchemaWasm }
-// e.g. 4.3.0-18.a39215673171b87177b86233206a5d65f2558857
-export const prismaSchemaWasmVersion: string = dependencies['@prisma/prisma-schema-wasm']
 
 /**
  * Set up a global registry for Wasm panics.
@@ -16,3 +9,13 @@ export const prismaSchemaWasmVersion: string = dependencies['@prisma/prisma-sche
  * which is not possible otherwise.
  */
 globalThis.PRISMA_WASM_PANIC_REGISTRY = new WasmPanicRegistry()
+
+// Note: using `import { dependencies } from '../package.json'` here would break esbuild with seemingly unrelated errors.
+
+const { dependencies } = require('../package.json')
+
+export { prismaSchemaWasm, SchemaEngineWasm }
+
+// e.g. 6.6.0-34.cd2dc4cb0f2f888a21fd4de05f7d1175433e901d
+export const prismaSchemaWasmVersion: string = dependencies['@prisma/prisma-schema-wasm']
+export const schemaEngineWasmVersion: string = getSchemaEngineWasmVersion()
