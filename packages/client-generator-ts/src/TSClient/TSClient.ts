@@ -296,7 +296,7 @@ Object.assign(exports, Prisma)
       'common.d.ts': createCommonFile(context, this.options),
       'commonInputTypes.ts': createCommonInputTypeFiles(context),
       'class.d.ts': createClassFile(context, this.options),
-      'enums.ts': createEnumsFile(context),
+      'enums.d.ts': createEnumsFile(context),
       models: modelsFileMap,
     }
   }

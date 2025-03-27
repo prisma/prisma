@@ -47,7 +47,7 @@ export function buildOmitType({ modelName, fields, context }: BuildOmitTypeParam
     .addGenericArgument(modelResultExtensionsType(modelName))
 
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    omitType.addGenericArgument(ts.namedType('$Types.Skip'))
+    omitType.addGenericArgument(ts.namedType('$Runtime.Types.Skip'))
   }
 
   return buildExport(getOmitName(modelName), omitType)

@@ -17,5 +17,5 @@ export function runtimeImport(name: RuntimeExport): string {
 }
 
 export function runtimeImportedType(name: RuntimeExport): ts.NamedType {
-  return ts.namedType(`$Runtime${name}`)
+  return ts.namedType(`$Runtime.${name}`)
 }

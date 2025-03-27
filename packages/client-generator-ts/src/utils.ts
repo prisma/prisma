@@ -193,7 +193,7 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    return ts.unionType([type, ts.namedType('$Types.Skip')])
+    return ts.unionType([type, ts.namedType('$Runtime.Types.Skip')])
   }
   return type
 }

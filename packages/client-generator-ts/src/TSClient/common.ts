@@ -169,6 +169,16 @@ export type Sql = $Runtime.Sql
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
+ * JSON Types
+ */
+export type JsonObject = $Runtime.JsonObject
+export type JsonArray = $Runtime.JsonArray
+export type JsonValue = $Runtime.JsonValue
+export type InputJsonObject = $Runtime.InputJsonObject
+export type InputJsonArray = $Runtime.InputJsonArray
+export type InputJsonValue = $Runtime.InputJsonValue
+
+/**
  * Decimal.js
  */
 export type Decimal = $Runtime.Decimal

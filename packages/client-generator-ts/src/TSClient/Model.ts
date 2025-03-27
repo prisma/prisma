@@ -762,7 +762,7 @@ export function getReturnType({
   }
 
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return prismaPromise(ts.namedType('Prisma.JsonObject'))
+    return prismaPromise(ts.namedType('$Runtime.JsonObject'))
   }
 
   if (

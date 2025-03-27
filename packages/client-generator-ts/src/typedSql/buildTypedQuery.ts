@@ -12,10 +12,10 @@ type BuildTypedQueryOptions = {
   enums: DbEnumsList
 }
 
-export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: BuildTypedQueryOptions) {
+export function buildTypedQueryTs({ query, enums }: BuildTypedQueryOptions) {
   const file = ts.file()
 
-  file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
+  file.addImport(ts.moduleImport(`@prisma/client/runtime/library`).asNamespace('$Runtime'))
   if (queryUsesEnums(query, enums)) {
     file.addImport(ts.moduleImport('./$DbEnums').named('$DbEnums'))
   }

@@ -22,7 +22,6 @@ export function createCommonFile(context: GenerateContext, options: TSClientOpti
 
   return `
 import type * as $Runtime from '@prisma/client/runtime/library';
-${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from '../enums';` : ''}
 import type * as Prisma from './models';
 import type { PrismaClient } from './client';
 

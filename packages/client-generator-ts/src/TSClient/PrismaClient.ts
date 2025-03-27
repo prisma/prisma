@@ -82,8 +82,8 @@ function clientTypeMapModelsResultDefinition(
     return ts.unionType([optional(ts.namedType(`Prisma.${getCountAggregateOutputName(modelName)}`)), ts.numberType])
   if (action === 'groupBy') return ts.array(optional(ts.namedType(`Prisma.${getGroupByName(modelName)}`)))
   if (action === 'aggregate') return optional(ts.namedType(`Prisma.${getAggregateName(modelName)}`))
-  if (action === 'findRaw') return ts.namedType('Prisma.JsonObject')
-  if (action === 'aggregateRaw') return ts.namedType('Prisma.JsonObject')
+  if (action === 'findRaw') return ts.namedType('$Runtime.JsonObject')
+  if (action === 'aggregateRaw') return ts.namedType('$Runtime.JsonObject')
   if (action === 'deleteMany') return ts.namedType('BatchPayload')
   if (action === 'createMany') return ts.namedType('BatchPayload')
   if (action === 'createManyAndReturn') return ts.array(payloadToResult(modelName))
@@ -127,8 +127,8 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $queryRaw: { args: '[query: TemplateStringsArray | Sql, ...values: any[]]', result: 'any' },
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
-    $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-    $queryRawTyped: { args: '$Runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
+    $runCommandRaw: { args: '$Runtime.InputJsonObject', result: '$Runtime.JsonObject' },
+    $queryRawTyped: { args: '$Runtime.UnknownTypedSql', result: '$Runtime.JsonObject' },
   } satisfies Record<NonModelOperation, { args: string; result: string }>
 
   return `{
@@ -382,8 +382,8 @@ function runCommandRawDefinition(context: GenerateContext) {
 
   const method = ts
     .method('$runCommandRaw')
-    .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
-    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+    .addParameter(ts.parameter('command', ts.namedType('$Runtime.InputJsonObject')))
+    .setReturnType(ts.prismaPromise(ts.namedType('$Runtime.JsonObject'))).setDocComment(ts.docComment`
       Executes a raw MongoDB command and returns the result of it.
       @example
       \`\`\`
