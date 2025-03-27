@@ -211,6 +211,7 @@ export type InputType = ReadonlyDeep<{
   }
   meta?: {
     source?: string
+    grouping?: string
   }
   fields: SchemaArg[]
 }>
