@@ -10,6 +10,7 @@ import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
+import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -25,6 +26,11 @@ import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
+import { createClassFile } from './file-generators/ClassFile'
+import { createCommonFile } from './file-generators/CommonFile'
+import { createEnumsFile } from './file-generators/EnumsFile'
+import { createModelFiles } from './file-generators/ModelFiles'
+import { createModelsFile } from './file-generators/ModelsFile'
 import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
@@ -187,6 +193,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
+      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeNameTs}`,
     })
 
     const prismaClientClass = new PrismaClientClass(
@@ -395,5 +402,24 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 `
     return code
+  }
+
+  generateModelAndHelperFiles(): FileMap {
+    const context = new GenerateContext({
+      dmmf: this.dmmf,
+      genericArgsInfo: this.genericsInfo,
+      generator: this.options.generator,
+      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeNameTs}`,
+    })
+
+    const modelsFileMap: FileMap = createModelFiles(context)
+
+    return {
+      'models.d.ts': createModelsFile(context, modelsFileMap),
+      'common.d.ts': createCommonFile(context, this.options),
+      'class.d.ts': createClassFile(context, this.options),
+      'enums.d.ts': createEnumsFile(context),
+      models: modelsFileMap,
+    }
   }
 }

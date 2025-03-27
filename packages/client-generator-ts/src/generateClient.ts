@@ -181,7 +181,7 @@ export function buildClient({
   }
 
   // we store the generated contents here
-  const fileMap: FileMap = {}
+  const fileMap: FileMap = nodeClient.generateModelAndHelperFiles()
   fileMap['index.js'] = JS(nodeClient)
   fileMap['index.d.ts'] = TS(nodeClient)
   fileMap['default.js'] = JS(defaultClient)
