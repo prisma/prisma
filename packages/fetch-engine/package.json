@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.6.0-39.5af5ca0dba17452286ad86711f40541fab949257",
+    "@prisma/engines-version": "6.6.0-40.integration-compiler-batching-cc7b9e04d5ea938b67379c9f05e7d4d56e4943b3",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {
