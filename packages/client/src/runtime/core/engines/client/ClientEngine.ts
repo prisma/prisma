@@ -271,12 +271,12 @@ export class ClientEngine implements Engine<undefined> {
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
-        queryable,
         transactionManager,
+        allowTransaction: !interactiveTransaction,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
-      const result = await interpreter.run(queryPlan)
+      const result = await interpreter.run(queryPlan, queryable)
 
       debug(`query plan executed`)
 
@@ -317,14 +317,14 @@ export class ClientEngine implements Engine<undefined> {
       // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
       const results: BatchQueryEngineResult<T>[] = []
       for (const { query, plan } of queriesWithPlans) {
-        const queryable = transactionManager.getTransaction(txInfo, query.action)
+        const transaction = transactionManager.getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
-          queryable,
           transactionManager,
+          allowTransaction: false,
           placeholderValues: {},
           onQuery: this.#emitQueryEvent,
         })
-        results.push((await interpreter.run(plan)) as QueryEngineResultData<T>)
+        results.push((await interpreter.run(plan, transaction)) as QueryEngineResultData<T>)
       }
 
       if (transaction?.kind !== 'itx') {
