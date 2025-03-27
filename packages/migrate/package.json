@@ -57,7 +57,7 @@
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.6.0-34.cd2dc4cb0f2f888a21fd4de05f7d1175433e901d",
+    "@prisma/engines-version": "6.6.0-36.feat-orm-596-expose-model-grouping-on-dmmf-150f6b53bc38c4d142f8727ec9ace11dabe04c5c",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
