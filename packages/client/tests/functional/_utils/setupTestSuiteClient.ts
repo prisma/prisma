@@ -1,6 +1,12 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import { generateClient as generateClientLegacy } from '@prisma/client-generator-js'
-import { generateClient as generateClientESM } from '@prisma/client-generator-ts'
+import {
+  generateClient as generateClientLegacy,
+  type GenerateClientOptions as GenerateClientLegacyOptions,
+} from '@prisma/client-generator-js'
+import {
+  generateClient as generateClientESM,
+  type GenerateClientOptions as GenerateClientESMOptions,
+} from '@prisma/client-generator-ts'
 import { SqlQueryOutput } from '@prisma/generator'
 import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
@@ -95,7 +101,7 @@ export async function setupTestSuiteClient({
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
 
-  const clientGenOptions = {
+  const clientGenOptions: GenerateClientLegacyOptions & GenerateClientESMOptions = {
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
@@ -112,6 +118,7 @@ export async function setupTestSuiteClient({
     runtimeSourcePath: path.join(__dirname, '../../../runtime'),
     copyEngine: !clientMeta.dataProxy,
     typedSql,
+    target: 'nodejs',
   }
 
   if (generatorType === 'prisma-client-ts') {
@@ -175,7 +182,7 @@ export function setupTestSuiteClientDriverAdapter({
   if (clientMeta.runtime === 'wasm') {
     __internal.configOverride = (config) => {
       config.engineWasm = {
-        getRuntime: () => require(path.join(runtimeBase, `query_engine_bg.${provider}.js`)),
+        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
         getQueryEngineWasmModule: async () => {
           const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
           const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
@@ -188,7 +195,7 @@ export function setupTestSuiteClientDriverAdapter({
   } else if (clientMeta.runtime === 'client') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
-        getRuntime: () => require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`)),
+        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
         getQueryCompilerWasmModule: async () => {
           const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm`)
           const queryCompilerWasmFileBytes = await readFile(queryCompilerWasmFilePath)
