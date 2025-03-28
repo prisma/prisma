@@ -19,7 +19,8 @@ const time = new Date('1970-01-01T14:37:36.570Z')
 const uuid = faker.string.uuid()
 const bytes = Uint8Array.of(1, 2, 3)
 testMatrix.setupTestSuite(
-  () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ({ generatorType }) => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -91,8 +92,12 @@ testMatrix.setupTestSuite(
       expect(result[0].enum).toEqual('ONE')
       expectTypeOf(result[0].enum).toEqualTypeOf<'ONE' | 'TWO' | null>()
       // rule does not function correctly until test is run
+      // @ts-test-if: generatorType !== 'prisma-client-ts'
       // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
       expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums.Enum | null>()
+      // @ts-test-if: generatorType === 'prisma-client-ts'
+      // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+      expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums['Enum'] | null>()
     })
 
     test('enum - input', async () => {

@@ -34,7 +34,13 @@ export { makeStrictEnum } from './strictEnum'
 export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
 export { warnEnvConflicts } from './warnEnvConflicts'
-export { type BaseDMMF, dmmfToRuntimeDataModel, type RuntimeDataModel } from '@prisma/client-common'
+export {
+  type BaseDMMF,
+  dmmfToRuntimeDataModel,
+  type GetPrismaClientConfig,
+  type Operation,
+  type RuntimeDataModel,
+} from '@prisma/client-common'
 export { Debug } from '@prisma/debug'
 export type * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'

@@ -43,6 +43,7 @@ import { buildOutputType } from './Output'
 import { buildModelPayload } from './Payload'
 import { buildIncludeType, buildOmitType, buildScalarSelectType, buildSelectType } from './SelectIncludeOmit'
 import { getModelActions } from './utils/getModelActions'
+import * as tsx from './utils/type-builders'
 
 export class Model implements Generable {
   protected type: DMMF.OutputType
@@ -696,14 +697,14 @@ export function getReturnType({
   isNullable = false,
 }: GetReturnTypeOptions): ts.TypeBuilder {
   if (actionName === DMMF.ModelAction.count) {
-    return ts.promise(ts.numberType)
+    return tsx.promise(ts.numberType)
   }
   if (actionName === DMMF.ModelAction.aggregate) {
-    return ts.promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
+    return tsx.promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
   }
 
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return ts.prismaPromise(ts.namedType('JsonObject'))
+    return tsx.prismaPromise(ts.namedType('JsonObject'))
   }
 
   if (
@@ -711,7 +712,7 @@ export function getReturnType({
     actionName === DMMF.ModelAction.updateMany ||
     actionName === DMMF.ModelAction.createMany
   ) {
-    return ts.prismaPromise(ts.namedType('BatchPayload'))
+    return tsx.prismaPromise(ts.namedType('BatchPayload'))
   }
 
   const isList =
@@ -728,7 +729,7 @@ export function getReturnType({
       result = ts.unionType(result).addVariant(ts.namedType('Null'))
     }
 
-    return ts.prismaPromise(result)
+    return tsx.prismaPromise(result)
   }
 
   if (isChaining && actionName === DMMF.ModelAction.findUniqueOrThrow) {
@@ -770,7 +771,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
     .addGenericParameter(ts.genericParameter('Null').default(ts.neverType))
     .addGenericParameter(extArgsParam)
     .addGenericParameter(ts.genericParameter('GlobalOmitOptions').default(ts.objectType()))
-    .extends(ts.prismaPromise(ts.namedType('T')))
+    .extends(tsx.prismaPromise(ts.namedType('T')))
 
   definition.add(ts.property(ts.toStringTag, ts.stringLiteral('PrismaPromise')).readonly())
   definition.addMultiple(
@@ -817,7 +818,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       .addGenericParameter(ts.genericParameter('TResult2').default(ts.neverType))
       .addParameter(promiseCallback('onfulfilled', ts.parameter('value', ts.namedType('T')), ts.namedType('TResult1')))
       .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult2')))
-      .setReturnType(ts.promise(ts.unionType([ts.namedType('TResult1'), ts.namedType('TResult2')]))),
+      .setReturnType(tsx.promise(ts.unionType([ts.namedType('TResult1'), ts.namedType('TResult2')]))),
   )
 
   definition.add(
@@ -832,7 +833,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       )
       .addGenericParameter(ts.genericParameter('TResult').default(ts.neverType))
       .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult')))
-      .setReturnType(ts.promise(ts.unionType([ts.namedType('T'), ts.namedType('TResult')]))),
+      .setReturnType(tsx.promise(ts.unionType([ts.namedType('T'), ts.namedType('TResult')]))),
   )
 
   definition.add(
@@ -849,7 +850,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       .addParameter(
         ts.parameter('onfinally', ts.unionType([ts.functionType(), ts.undefinedType, ts.nullType])).optional(),
       )
-      .setReturnType(ts.promise(ts.namedType('T'))),
+      .setReturnType(tsx.promise(ts.namedType('T'))),
   )
 
   return ts.moduleExport(definition).setDocComment(ts.docComment`

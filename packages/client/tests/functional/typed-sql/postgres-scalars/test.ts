@@ -18,7 +18,8 @@ const date = new Date('2024-07-31T00:00:00.000Z')
 const time = new Date('1970-01-01T14:37:36.570Z')
 const uuid = faker.string.uuid()
 testMatrix.setupTestSuite(
-  () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ({ generatorType }) => {
     beforeAll(async () => {
       await prisma.testModel.create({
         data: {
@@ -89,7 +90,10 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.getEnum(id))
       expect(result[0].enum).toEqual('ONE')
       expectTypeOf(result[0].enum).toEqualTypeOf<'ONE' | 'TWO'>()
+      // @ts-test-if: generatorType !== 'prisma-client-ts'
       expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums.Enum>()
+      // @ts-test-if: generatorType === 'prisma-client-ts'
+      expectTypeOf(result[0].enum).toEqualTypeOf<Sql.$DbEnums['Enum']>()
     })
 
     test('enum - input', async () => {

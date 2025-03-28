@@ -17,10 +17,10 @@ describe('library', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-debian-openssl-1.1.x.so.node");
+      path.join(__dirname, "libquery_engine-debian-openssl-1.1.x.so.node")
       path.join(process.cwd(), "out/libquery_engine-debian-openssl-1.1.x.so.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
@@ -36,18 +36,18 @@ describe('library', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-debian-openssl-1.1.x.so.node");
+      path.join(__dirname, "libquery_engine-debian-openssl-1.1.x.so.node")
       path.join(process.cwd(), "out/libquery_engine-debian-openssl-1.1.x.so.node")
 
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-darwin.dylib.node");
+      path.join(__dirname, "libquery_engine-darwin.dylib.node")
       path.join(process.cwd(), "out/libquery_engine-darwin.dylib.node")
 
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "query_engine-windows.dll.node");
+      path.join(__dirname, "query_engine-windows.dll.node")
       path.join(process.cwd(), "out/query_engine-windows.dll.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
@@ -60,10 +60,10 @@ describe('binary', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-debian-openssl-1.1.x");
+      path.join(__dirname, "query-engine-debian-openssl-1.1.x")
       path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
@@ -79,18 +79,18 @@ describe('binary', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-debian-openssl-1.1.x");
+      path.join(__dirname, "query-engine-debian-openssl-1.1.x")
       path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")
 
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-darwin");
+      path.join(__dirname, "query-engine-darwin")
       path.join(process.cwd(), "out/query-engine-darwin")
 
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-windows");
+      path.join(__dirname, "query-engine-windows")
       path.join(process.cwd(), "out/query-engine-windows")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
   })
@@ -139,10 +139,10 @@ describe('special cases for Netlify', () => {
     expect(normalizePaths(annotations.replaceAll(binaryTarget, 'BINARY_TARGET'))).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-BINARY_TARGET.so.node");
+      path.join(__dirname, "libquery_engine-BINARY_TARGET.so.node")
       path.join(process.cwd(), "out/libquery_engine-BINARY_TARGET.so.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
 
@@ -163,10 +163,10 @@ describe('special cases for Netlify', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-rhel-openssl-1.0.x.so.node");
+      path.join(__dirname, "libquery_engine-rhel-openssl-1.0.x.so.node")
       path.join(process.cwd(), "out/libquery_engine-rhel-openssl-1.0.x.so.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
 
@@ -187,10 +187,10 @@ describe('special cases for Netlify', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
+      path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node")
       path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
 
@@ -210,10 +210,10 @@ describe('special cases for Netlify', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
       "
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node");
+      path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node")
       path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")
       // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
+      path.join(__dirname, "schema.prisma")
       path.join(process.cwd(), "out/schema.prisma")"
     `)
 

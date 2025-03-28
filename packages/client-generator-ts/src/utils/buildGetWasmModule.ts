@@ -2,6 +2,7 @@ import { capitalize } from '@prisma/client-common'
 import { ActiveConnectorType } from '@prisma/generator'
 import { match } from 'ts-pattern'
 
+import { ModuleFormat } from '../module-format'
 import { RuntimeTarget } from '../runtime-targets'
 import { RuntimeName } from '../TSClient/TSClient'
 
@@ -11,6 +12,7 @@ export type BuildWasmModuleOptions = {
   runtimeBase: string
   target: RuntimeTarget
   activeProvider: ActiveConnectorType
+  moduleFormat: ModuleFormat
 }
 
 export function buildGetWasmModule({
@@ -19,6 +21,7 @@ export function buildGetWasmModule({
   runtimeBase,
   target,
   activeProvider,
+  moduleFormat,
 }: BuildWasmModuleOptions) {
   const capitalizedComponent = capitalize(component)
 
@@ -39,10 +42,8 @@ export function buildGetWasmModule({
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
 
   getQuery${capitalizedComponent}WasmModule: async () => {
-    const { createRequire } = await import('node:module')
     const { readFile } = await import('node:fs/promises')
-
-    const require = createRequire(import.meta.url)
+    ${buildRequire(moduleFormat)}
     const wasmModulePath = require.resolve(${JSON.stringify(wasmModulePath)})
     const wasmModuleBytes = await readFile(wasmModulePath)
 
@@ -65,4 +66,13 @@ export function buildGetWasmModule({
   }
 
   return `config.${component}Wasm = undefined`
+}
+
+function buildRequire(moduleFormat: ModuleFormat): string {
+  if (moduleFormat === 'cjs') {
+    return ''
+  }
+
+  return `const { createRequire } = await import('node:module')
+    const require = createRequire(import.meta.url)\n`
 }

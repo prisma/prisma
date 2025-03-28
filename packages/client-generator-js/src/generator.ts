@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'

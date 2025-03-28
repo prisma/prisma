@@ -16,7 +16,7 @@ export type GetPrismaClientConfig = {
   // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
-  relativeEnvPaths: {
+  relativeEnvPaths?: {
     rootEnvPath?: string | null
     schemaEnvPath?: string | null
   }

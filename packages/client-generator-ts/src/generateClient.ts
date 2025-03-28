@@ -12,14 +12,20 @@ import {
   pathToPosix,
   setClassName,
 } from '@prisma/internals'
-import paths from 'env-paths'
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
+import {
+  GeneratedFileExtension,
+  generatedFileNameMapper,
+  ImportFileExtension,
+  importFileNameMapper,
+} from './file-extensions'
 import { getPrismaClientDMMF } from './getDMMF'
+import { ModuleFormat } from './module-format'
 import { RuntimeTarget } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
@@ -54,6 +60,9 @@ export interface GenerateClientOptions {
   copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
   target: RuntimeTarget
+  generatedFileExtension: GeneratedFileExtension
+  importFileExtension: ImportFileExtension
+  moduleFormat: ModuleFormat
 }
 
 export interface FileMap {
@@ -82,11 +91,17 @@ export function buildClient({
   envPaths,
   typedSql,
   target,
+  generatedFileExtension,
+  importFileExtension,
+  moduleFormat,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
 
   const runtimeName = getRuntimeNameForTarget(target, clientEngineType, generator.previewFeatures)
+
+  const outputName = generatedFileNameMapper(generatedFileExtension)
+  const importName = importFileNameMapper(importFileExtension)
 
   const clientOptions: TSClientOptions = {
     dmmf: getPrismaClientDMMF(dmmf),
@@ -103,11 +118,12 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    browser: false,
-    deno: false,
     edge: (['edge', 'wasm', 'react-native'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
+    generatedFileExtension,
+    importFileExtension,
+    moduleFormat,
   }
 
   if (runtimeName === 'react-native' && !generator.previewFeatures.includes('reactNative')) {
@@ -117,20 +133,22 @@ export function buildClient({
   const client = new TSClient(clientOptions)
 
   // we store the generated contents here
-  const fileMap: FileMap = {}
-  fileMap['index.js'] = client.toJS()
-  fileMap['index.d.ts'] = client.toTS()
-
-  const usesWasmRuntimeOnEdge = generator.previewFeatures.includes('driverAdapters')
+  let fileMap: FileMap = {}
+  fileMap[outputName('client')] = client.toTS()
+  fileMap[outputName('index')] = `export * from '${importName('./client')}'`
 
   if (typedSql && typedSql.length > 0) {
-    fileMap['sql'] = buildTypedSql({
-      dmmf,
-      runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
-      mainRuntimeName: getNodeRuntimeName(clientEngineType),
-      queries: typedSql,
-      edgeRuntimeName: usesWasmRuntimeOnEdge ? 'wasm' : 'edge',
-    })
+    fileMap = {
+      ...fileMap,
+      ...buildTypedSql({
+        dmmf,
+        runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
+        runtimeName,
+        queries: typedSql,
+        outputName,
+        importName,
+      }),
+    }
   }
 
   return {
@@ -171,6 +189,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     copyEngine = true,
     typedSql,
     target,
+    generatedFileExtension,
+    importFileExtension,
+    moduleFormat,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -193,6 +214,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     envPaths,
     typedSql,
     target,
+    generatedFileExtension,
+    importFileExtension,
+    moduleFormat,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -219,15 +243,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
-  if (!enginePath) {
-    throw new Error(
-      `Prisma Client needs \`${
-        clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
-      }\` in the \`binaryPaths\` object.`,
-    )
-  }
-
-  if (copyEngine) {
+  if (copyEngine && enginePath) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -249,17 +265,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await overwriteFile(filePath, target)
     }
   }
-
-  const schemaTargetPath = path.join(outputDir, 'schema.prisma')
-  await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
-
-  try {
-    // we tell our vscode extension to reload the types by modifying this file
-    const prismaCache = paths('prisma').cache
-    const signalsPath = path.join(prismaCache, 'last-generate')
-    await fs.mkdir(prismaCache, { recursive: true })
-    await fs.writeFile(signalsPath, Date.now().toString())
-  } catch {}
 }
 
 function writeFileMap(outputDir: string, fileMap: FileMap) {
@@ -438,8 +443,7 @@ async function deleteOutputDir(outputDir: string) {
       return
     }
 
-    // TODO: replace with `client.ts`
-    if (!files.includes('index.d.ts')) {
+    if (!files.includes('client.ts') && !files.includes('client.mts') && !files.includes('client.cts')) {
       // Make sure users don't accidentally wipe their source code or home directory.
       throw new Error(
         `${outputDir} exists and is not empty but doesn't look like a generated Prisma Client. ` +
@@ -449,9 +453,7 @@ async function deleteOutputDir(outputDir: string) {
 
     await Promise.allSettled(
       (
-        await glob(`${outputDir}/**/*.ts`, {
-          globstar: true,
-          onlyFiles: true,
+        await glob([`${outputDir}/**/*.{ts,mts,cts}`, `${outputDir}/*.node`, `${outputDir}/{query,schema}-engine-*`], {
           followSymbolicLinks: false,
         })
       ).map(fs.unlink),
