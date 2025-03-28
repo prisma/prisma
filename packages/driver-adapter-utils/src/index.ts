@@ -1,7 +1,8 @@
-export { bindAdapter, bindSqlAdapterFactory } from './binder'
+export { bindAdapter, bindMigrationAwareSqlAdapterFactory, bindSqlAdapterFactory } from './binder'
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
 export { DriverAdapterError } from './error'
+export * from './mock'
 export { err, ok, type Result } from './result'
 export type {
   ArgType,
@@ -11,6 +12,7 @@ export type {
   Error,
   ErrorCapturingSqlDriverAdapter,
   ErrorCapturingSqlDriverAdapterFactory,
+  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
   ErrorRecord,

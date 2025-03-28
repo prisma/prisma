@@ -1,4 +1,6 @@
-import Debug from '@prisma/debug'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { ActiveConnectorType, BinaryPaths, DataSource, GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
@@ -10,22 +12,17 @@ import {
   pathToPosix,
   setClassName,
 } from '@prisma/internals'
-import { createHash } from 'crypto'
 import paths from 'env-paths'
-import fs from 'fs/promises'
+import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
-import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import clientPkg from '../../client/package.json'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
-
-const debug = Debug('prisma:client:generateClient')
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -138,48 +135,6 @@ export function buildClient({
     edge: true,
   })
 
-  const trampolineTsClient = new TSClient({
-    ...nodeClientOptions,
-    reusedTs: 'index',
-    reusedJs: '#main-entry-point',
-  })
-
-  // order of keys is important here. bundler/runtime will
-  // match the first one they recognize, so it is important
-  // to go from more specific to more generic.
-  const exportsMapBase = {
-    node: './index.js',
-    'edge-light': './wasm.js',
-    workerd: './wasm.js',
-    worker: './wasm.js',
-    browser: './index-browser.js',
-    default: './index.js',
-  }
-
-  const exportsMapDefault = {
-    require: exportsMapBase,
-    import: exportsMapBase,
-    default: exportsMapBase.default,
-  }
-
-  const pkgJson = {
-    name: getUniquePackageName(datamodel),
-    main: 'index.js',
-    types: 'index.d.ts',
-    browser: 'index-browser.js',
-    // The order of exports is important:
-    // * `./client` before `...clientPkg.exports` allows it to have a higher priority than the `./*` export in `clientPkg.exports`
-    // * `.` after `...clientPkg.exports` makes it override the `.` export in `clientPkgs.exports`
-    exports: {
-      './client': exportsMapDefault,
-      ...clientPkg.exports,
-      // TODO: remove on DA ga
-      '.': exportsMapDefault,
-    },
-    version: clientVersion,
-    sideEffects: false,
-  }
-
   // we store the generated contents here
   const fileMap: FileMap = {}
   fileMap['index.js'] = JS(nodeClient)
@@ -202,58 +157,12 @@ export function buildClient({
   if (usesWasmRuntime) {
     const usesClientEngine = clientEngineType === ClientEngineType.Client
 
-    // The trampoline client points to #main-entry-point (see below).  We use
-    // imports similar to an exports map to ensure correct imports.❗ Before
-    // going GA, please notify @millsp as some things can be cleaned up:
-    // - defaultClient can be deleted since trampolineTsClient will replace it.
-    //   - Special handling of . paths in TSClient.ts can also be removed.
-    // - The main @prisma/client exports map can be simplified:
-    //   - Everything can point to `default.js`, including browser fields.
-    //   - Exports map's `.` entry can be made like the others (e.g. `./edge`).
-    // - exportsMapDefault can be deleted as it's only needed for defaultClient:
-    //   - #main-entry-point can handle all the heavy lifting on its own.
-    //   - Always using #main-entry-point is kept for GA (small breaking change).
-    //   - exportsMapDefault can be inlined down below and MUST be removed elsewhere.
-    // In short: A lot can be simplified, but can only happen in GA & P6.
-    fileMap['default.js'] = JS(trampolineTsClient)
-    fileMap['default.d.ts'] = TS(trampolineTsClient)
     if (usesClientEngine) {
       fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
       fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
     } else {
       fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
       fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
-    }
-
-    pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
-    pkgJson['imports'] = {
-      // when `import('#wasm-engine-loader')` or `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
-      [usesClientEngine ? '#wasm-compiler-loader' : '#wasm-engine-loader']: {
-        // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
-
-        /**
-         * Vercel Edge Functions / Next.js Middlewares
-         */
-        'edge-light': './wasm-edge-light-loader.mjs',
-
-        /**
-         * Cloudflare Workers, Cloudflare Pages
-         */
-        workerd: './wasm-worker-loader.mjs',
-
-        /**
-         * (Old) Cloudflare Workers
-         * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
-         */
-        worker: './wasm-worker-loader.mjs',
-
-        /**
-         * Fallback for every other JavaScript runtime
-         */
-        default: './wasm-worker-loader.mjs',
-      },
-      // when `require('#main-entry-point')` is called, it will be resolved to the correct file
-      '#main-entry-point': exportsMapDefault,
     }
 
     const wasmClient = new TSClient({
@@ -293,37 +202,14 @@ export * from './edge.js'`
   }
 
   if (typedSql && typedSql.length > 0) {
-    const edgeRuntimeName = usesWasmRuntime ? 'wasm' : 'edge'
-    const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
-    const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
-    pkgJson.exports['./sql'] = {
-      require: {
-        types: './sql/index.d.ts',
-        'edge-light': cjsEdgeIndex,
-        workerd: cjsEdgeIndex,
-        worker: cjsEdgeIndex,
-        node: './sql/index.js',
-        default: './sql/index.js',
-      },
-      import: {
-        types: './sql/index.d.ts',
-        'edge-light': esmEdgeIndex,
-        workerd: esmEdgeIndex,
-        worker: esmEdgeIndex,
-        node: './sql/index.mjs',
-        default: './sql/index.mjs',
-      },
-      default: './sql/index.js',
-    } as any
     fileMap['sql'] = buildTypedSql({
       dmmf,
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
       mainRuntimeName: getNodeRuntimeName(clientEngineType),
       queries: typedSql,
-      edgeRuntimeName,
+      edgeRuntimeName: usesWasmRuntime ? 'wasm' : 'edge',
     })
   }
-  fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
 
   return {
     fileMap, // a map of file names to their contents
@@ -401,11 +287,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  if (!copyEngine) {
-    await deleteOutputDir(outputDir)
-  }
-
+  await deleteOutputDir(outputDir)
   await ensureDir(outputDir)
+
   if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
     await ensureDir(path.join(outputDir, 'deno'))
   }
@@ -598,39 +482,35 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
   assertNever(engineType, 'Unknown engine type')
 }
 
-/**
- * Attempts to delete the output directory.
- * @param outputDir
- */
 async function deleteOutputDir(outputDir: string) {
   try {
-    debug(`attempting to delete ${outputDir} recursively`)
-    // we want to make sure that if we delete, we delete the right directory
-    if (require(`${outputDir}/package.json`).name?.startsWith(GENERATED_PACKAGE_NAME_PREFIX)) {
-      await fs.rmdir(outputDir, { recursive: true }).catch(() => {
-        debug(`failed to delete ${outputDir} recursively`)
-      })
+    const files = await fs.readdir(outputDir)
+
+    if (files.length === 0) {
+      return
     }
-  } catch {
-    debug(`failed to delete ${outputDir} recursively, not found`)
+
+    // TODO: replace with `client.ts`
+    if (!files.includes('client.d.ts')) {
+      // Make sure users don't accidentally wipe their source code or home directory.
+      throw new Error(
+        `${outputDir} exists and is not empty but doesn't look like a generated Prisma Client. ` +
+          'Please check your output path and remove the existing directory if you indeed want to generate the Prisma Client in that location.',
+      )
+    }
+
+    await Promise.allSettled(
+      (
+        await glob(`${outputDir}/**/*.ts`, {
+          globstar: true,
+          onlyFiles: true,
+          followSymbolicLinks: false,
+        })
+      ).map(fs.unlink),
+    )
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      throw error
+    }
   }
 }
-
-/**
- * This function ensures that each generated client has unique package name
- * It appends sha256 of the schema to the fixed prefix. That ensures unique schemas
- * produce unique generated packages while still keeping `generate` results reproducible.
- *
- * Without unique package name, if you have several TS clients in the project, TS Compiler
- * might merge different `Prisma` namespace declarations together and produce unusable results.
- *
- * @param datamodel
- * @returns
- */
-function getUniquePackageName(datamodel: string) {
-  const hash = createHash('sha256')
-  hash.write(datamodel)
-  return `${GENERATED_PACKAGE_NAME_PREFIX}${hash.digest().toString('hex')}`
-}
-
-const GENERATED_PACKAGE_NAME_PREFIX = 'prisma-client-'

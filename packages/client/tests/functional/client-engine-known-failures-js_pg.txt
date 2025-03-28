@@ -15,7 +15,6 @@
 0-legacy-ports.atomic-increment-decrement (provider=postgresql, js_pg) atomic decrement with negative
 0-legacy-ports.atomic-increment-decrement (provider=postgresql, js_pg) atomic increment
 0-legacy-ports.atomic-increment-decrement (provider=postgresql, js_pg) atomic increment with negative value
-0-legacy-ports.batch-find-unique (provider=postgresql, js_pg) findUnique batching
 0-legacy-ports.execute-raw (provider=postgresql, js_pg) update via executeRaw
 0-legacy-ports.execute-raw (provider=postgresql, js_pg) update via executeRaw using Prisma.join
 0-legacy-ports.execute-raw (provider=postgresql, js_pg) update via executeRaw using Prisma.join and Prisma.sql
@@ -44,16 +43,7 @@
 0-legacy-ports.query-raw (provider=postgresql, js_pg) select with alias via queryRaw
 _example (provider=postgresql, previewFeatures=referentialIntegrity, js_pg) conditional @ts-test-if
 _example (provider=postgresql, previewFeatures=relationJoins, js_pg) conditional @ts-test-if
-batch-transaction-isolation-level (provider=postgresql, js_pg) ReadCommitted
-batch-transaction-isolation-level (provider=postgresql, js_pg) ReadUncommitted
-batch-transaction-isolation-level (provider=postgresql, js_pg) RepeatableRead
-batch-transaction-isolation-level (provider=postgresql, js_pg) Serializable
 batch-transaction-isolation-level (provider=postgresql, js_pg) invalid level generates run- and compile- time error
-batching (provider=postgresql, js_pg) batches findUnique
-batching (provider=postgresql, js_pg) batches findUniqueOrThrow
-batching (provider=postgresql, js_pg) does not batch different models
-batching (provider=postgresql, js_pg) does not batch different select
-batching (provider=postgresql, js_pg) does not batch different where
 blog-update (provider=postgresql, js_pg) should create a user and post and connect them together
 blog-update (provider=postgresql, js_pg) should create a user and post and disconnect them
 blog-update (provider=postgresql, js_pg) should create a user and update that field on that user
@@ -203,8 +193,6 @@ filter-count-relations (provider=postgresql, js_pg) one-to-many with > condition
 filter-count-relations (provider=postgresql, js_pg) one-to-many with multiple conditions
 filter-count-relations (provider=postgresql, js_pg) one-to-many with simple equality condition
 filter-count-relations (provider=postgresql, js_pg) without condition
-find-unique-or-throw-batching (provider=postgresql, js_pg) batched errors are when all objects in batch are found
-find-unique-or-throw-batching (provider=postgresql, js_pg) batched errors when some of the objects not found
 fluent-api (provider=postgresql, js_pg) extended client chaining and selecting
 fluent-api (provider=postgresql, js_pg) extended client chaining and selecting twice
 fluent-api (provider=postgresql, js_pg) extended client create
@@ -382,9 +370,6 @@ issues.21454-$type-in-json (provider=postgresql, js_pg) preserves deeply nested 
 issues.21454-$type-in-json (provider=postgresql, js_pg) preserves json with $type key inside
 issues.21592-char-truncation (provider=postgresql, js_pg) does not truncate the input
 issues.21592-char-truncation (provider=postgresql, js_pg) upsert
-issues.21631-batching-in-transaction (provider=postgresql, js_pg) Transactions and batching (query compacting) shouldn't interfere with result sets 2 `findUnique`s in a $transaction
-issues.21631-batching-in-transaction (provider=postgresql, js_pg) Transactions and batching (query compacting) shouldn't interfere with result sets 2 concurrent `findUnique`s
-issues.21631-batching-in-transaction (provider=postgresql, js_pg) Transactions and batching (query compacting) shouldn't interfere with result sets 2 independent `findUnique`s
 issues.21807-citext-neon (provider=postgresql, js_pg) writing and reading a citext field works
 issues.22610-parallel-batch (provider=postgresql, js_pg) batch does not times out
 issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent upserts should succeed

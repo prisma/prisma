@@ -1,4 +1,8 @@
-import { Debug, SqlDriverAdapter, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import {
+  Debug,
+  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
+} from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -8,44 +12,48 @@ const debug = Debug('prisma:config:PrismaConfig')
 
 type EnvVars = Record<string, string | undefined>
 
-const adapterShape = <Env extends EnvVars = never>() =>
-  Shape.declare(
-    (input: any): input is (env: Env) => Promise<SqlDriverAdapter> => {
-      return input instanceof Function
-    },
-    {
-      identifier: 'Adapter<Env>',
-      encode: identity,
-      decode: identity,
-    },
-  )
-
-const migrationAwareAdapterShape = <Env extends EnvVars = never>() =>
+const sqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory> => {
       return input instanceof Function
     },
     {
-      identifier: 'MigrationAwareAdapter<Env>',
+      identifier: 'SqlMigrationAwareDriverAdapterFactory<Env>',
+      encode: identity,
+      decode: identity,
+    },
+  )
+
+const errorCapturingSqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
+  Shape.declare(
+    (input: any): input is (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
+      return input instanceof Function
+    },
+    {
+      identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env>',
       encode: identity,
       decode: identity,
     },
   )
 
 export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlDriverAdapter>
+  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
-const createPrismaStudioConfigInternalShape = <Env extends EnvVars = never>() =>
+const createPrismaStudioConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Studio.
      */
-    adapter: adapterShape<Env>(),
+    adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
   })
 
 export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
   adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
+}
+
+export type PrismaMigrateConfigInternalShape<Env extends EnvVars = never> = {
+  adapter: (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
 }
 
 const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
@@ -53,7 +61,7 @@ const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =
     /**
      * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
      */
-    adapter: migrationAwareAdapterShape<Env>(),
+    adapter: errorCapturingSqlMigrationAwareDriverAdapterFactoryShape<Env>(),
   })
 
 // The exported types are re-declared manually instead of using the Shape.Type
@@ -61,16 +69,16 @@ const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =
 // to bundle them, and `effect` is too large to ship as a full dependency
 // without bundling and tree-shaking. The following tests ensure that the
 // exported types are structurally equal to the ones defined by the schemas.
-declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
+declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigShape>['Type']
 declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVars>
 declare const __testPrismaMigrateConfigShapeValueA: ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
-declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigShape<EnvVars>
+declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigInternalShape<EnvVars>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
   __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<EnvVars>
-  __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigInternalShape>['Type']
-  __testPrismaMigrateConfigShapeValueA satisfies PrismaMigrateConfigShape<EnvVars>
+  __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigShape>['Type']
+  __testPrismaMigrateConfigShapeValueA satisfies PrismaMigrateConfigInternalShape<EnvVars>
   __testPrismaMigrateConfigShapeValueB satisfies ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
 }
 
@@ -130,7 +138,7 @@ const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
-    studio: Shape.optional(createPrismaStudioConfigInternalShape<Env>()),
+    studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
   })
@@ -151,7 +159,7 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
   /**
    * The configuration for Prisma Migrate + Introspect
    */
-  migrate?: PrismaMigrateConfigShape<Env>
+  migrate?: PrismaMigrateConfigInternalShape<Env>
   /**
    * The path from where the config was loaded.
    * It's set to `null` if no config file was found and only default config is applied.
