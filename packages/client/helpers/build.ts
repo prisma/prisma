@@ -33,6 +33,8 @@ function getOutExtension(format: ModuleFormat): Record<string, string> {
   }[format]
 }
 
+const shouldMinify = !process.env.DEV && process.env.MINIFY !== 'false'
+
 const NODE_ESM_BANNER = `\
 import * as __banner_node_module from "node:module";
 import * as __banner_node_path from "node:path";
@@ -51,7 +53,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
     outfile: `runtime/${targetBuildType}`,
     outExtension: getOutExtension(format),
     bundle: true,
-    minify: true,
+    minify: shouldMinify,
     sourcemap: 'linked',
     emitTypes: ['library', 'client'].includes(targetBuildType),
     define: {
@@ -76,7 +78,7 @@ function wasmBindgenRuntimeConfig(
     entryPoints: [`@prisma/query-${type}-wasm/${provider}/query_${type}_bg.js`],
     outfile: `runtime/query_${type}_bg.${provider}`,
     outExtension: getOutExtension(format),
-    minify: true,
+    minify: shouldMinify,
     plugins: [
       fillPlugin({
         defaultFillers: false,
@@ -98,7 +100,7 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
-  minify: true,
+  minify: shouldMinify,
   sourcemap: 'linked',
 }
 
@@ -125,7 +127,7 @@ const runtimesCommonBuildConfig = {
   target: 'ES2022',
   entryPoints: ['src/runtime/index.ts'],
   bundle: true,
-  minify: true,
+  minify: shouldMinify,
   sourcemap: 'linked',
   emitTypes: false,
   define: {
