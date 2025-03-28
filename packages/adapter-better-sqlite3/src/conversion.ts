@@ -186,3 +186,13 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
 
   return result
 }
+
+export function mapQueryArgs(args: unknown[]): unknown[] {
+  return args.map((arg) => {
+    if (typeof arg === 'boolean') {
+      return arg ? 1 : 0 // SQLite does not natively support booleans
+    }
+    // TODO: double-check `Date` serialisation
+    return arg
+  })
+}
