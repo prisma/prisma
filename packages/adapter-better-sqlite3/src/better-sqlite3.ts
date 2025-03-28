@@ -9,7 +9,6 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
-import { Mutex } from 'async-mutex'
 import type { Database as BetterSQLite3, Options as BetterSQLite3Options } from 'better-sqlite3'
 import Database from 'better-sqlite3'
 
@@ -50,13 +49,9 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
-const LOCK_TAG = Symbol()
-
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
-  readonly adapterName = packageName;
-
-  [LOCK_TAG] = new Mutex()
+  readonly adapterName = packageName
 
   constructor(protected readonly client: ClientT) {}
 
@@ -96,8 +91,8 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
-    const release = await this[LOCK_TAG].acquire()
     try {
       const stmt = this.client.prepare(query.sql).bind(query.args)
       const result = stmt.run()
@@ -105,8 +100,6 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
       return result
     } catch (e) {
       this.onError(e)
-    } finally {
-      release()
     }
   }
 
@@ -115,8 +108,8 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
+  // eslint-disable-next-line @typescript-eslint/require-await
   private async performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
-    const release = await this[LOCK_TAG].acquire()
     try {
       const stmt = this.client.prepare(query.sql).bind(query.args) // TODO: double-check `Date` serialisation
 
@@ -131,8 +124,6 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
       return resultSet
     } catch (e) {
       this.onError(e)
-    } finally {
-      release()
     }
   }
 
@@ -180,14 +171,12 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async executeScript(script: string): Promise<void> {
-    const release = await this[LOCK_TAG].acquire()
     try {
       this.client.exec(script)
     } catch (e) {
       this.onError(e)
-    } finally {
-      release()
     }
   }
 
@@ -206,50 +195,38 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const release = await this[LOCK_TAG].acquire()
+    // Create the deferred promise and transaction result promise first
+    const [txDeferred, deferredPromise] = createDeferred<void>()
 
-    try {
-      // Create the deferred promise and transaction result promise first
-      const [txDeferred, deferredPromise] = createDeferred<void>()
+    // Create a promise that will resolve with the transaction
+    const transactionPromise = new Promise<Transaction>((resolve, reject) => {
+      try {
+        // Start the transaction with BetterSQLite3
+        this.client
+          .transaction(() => {
+            // Create transaction wrapper now that txResultPromise exists
+            const txWrapper = new BetterSQLite3Transaction(this.client, options, txDeferred, deferredPromise)
 
-      // Create a promise that will resolve with the transaction
-      const transactionPromise = new Promise<Transaction>((resolve, reject) => {
-        try {
-          // Start the transaction with BetterSQLite3
-          this.client
-            .transaction(() => {
-              // Create transaction wrapper now that txResultPromise exists
-              const txWrapper = new BetterSQLite3Transaction(this.client, options, txDeferred, deferredPromise)
+            // Resolve the outer promise with the transaction wrapper
+            resolve(txWrapper)
 
-              // Resolve the outer promise with the transaction wrapper
-              resolve(txWrapper)
+            // Return the promise that will be resolved/rejected by commit/rollback
+            return deferredPromise
+          })
+          .deferred()
+          .catch((error) => {
+            // Special case for rollback - don't treat it as an error
+            if (error instanceof RollbackError) {
+              return
+            }
+            reject(error)
+          })
+      } catch (error) {
+        reject(error)
+      }
+    })
 
-              // Return the promise that will be resolved/rejected by commit/rollback
-              return deferredPromise
-            })
-            .deferred()
-            .catch((error) => {
-              // Special case for rollback - don't treat it as an error
-              if (error instanceof RollbackError) {
-                return
-              }
-              reject(error)
-            })
-        } catch (error) {
-          reject(error)
-        }
-      })
-
-      // When any error occurs during transaction creation, release the lock
-      transactionPromise.catch(() => {
-        release()
-      })
-
-      return await transactionPromise
-    } catch (error) {
-      release()
-      throw error
-    }
+    return await transactionPromise
   }
 
   dispose(): Promise<void> {
