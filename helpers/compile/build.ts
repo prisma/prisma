@@ -168,8 +168,16 @@ export async function build(options: BuildOptions[]) {
 
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild),
+    pipe.async(computeOptions, logStartBuild, addExtensionFormat, addDefaultOutDir, executeEsBuild),
   )
+}
+
+/**
+ * Prints a message every time a new bundle is built
+ */
+function logStartBuild(options: BuildOptions): BuildOptions {
+  console.log(`Building ${options.name} as ${options.format ?? 'cjs'}...`)
+  return options
 }
 
 /**

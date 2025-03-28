@@ -7,7 +7,7 @@ import {
   TransactionManager,
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
