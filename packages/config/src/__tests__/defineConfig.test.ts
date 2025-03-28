@@ -49,24 +49,26 @@ describe('defineConfig', () => {
     })
 
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
-      const adapter = jest.fn().mockImplementation(() =>
-        Promise.resolve({
-          provider: 'sqlite',
-          adapterName: '@prisma/d1-http',
-        }),
-      )
       const config = await defineConfig({
         earlyAccess: true,
         studio: {
-          adapter: adapter,
+          adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
         },
       })
-      expect(config.studio).toEqual({
-        adapter: {
-          provider: 'sqlite',
-          adapterName: '@prisma/d1-http',
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        studio: {
+          adapter: expect.any(Object),
         },
       })
+
+      if (!config?.studio) {
+        throw new Error('Expected config.studio to be defined')
+      }
+  
+      const { adapter } = config.studio
+      expect(adapter).toBeDefined()
+      expect(JSON.stringify(adapter)).toEqual(JSON.stringify(mockMigrationAwareAdapterFactory('postgres')))
     })
   })
 

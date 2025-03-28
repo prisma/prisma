@@ -6,7 +6,7 @@ import type { ParseError } from 'effect/ParseResult'
 
 import { defaultConfig } from '../defaultConfig'
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
-import { mockAdapter } from './_utils/mock-adapter'
+import { mockMigrationAwareAdapterFactory } from './_utils/mock-adapter'
 
 const ctx = jestContext.new().assemble()
 
@@ -256,7 +256,7 @@ describe('loadConfigFromFile', () => {
 
     const { adapter } = config.studio
     expect(adapter).toBeDefined()
-    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(mockAdapter('postgres')))
+    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(mockMigrationAwareAdapterFactory('postgres')))
     expect(error).toBeUndefined()
   })
 
@@ -279,7 +279,7 @@ describe('loadConfigFromFile', () => {
 
     const { adapter } = config.studio
     expect(adapter).toBeDefined()
-    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(mockAdapter('postgres')))
+    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(mockMigrationAwareAdapterFactory('postgres')))
     expect(error).toBeUndefined()
   })
 

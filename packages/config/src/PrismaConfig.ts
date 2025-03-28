@@ -13,7 +13,7 @@ const debug = Debug('prisma:config:PrismaConfig')
 
 type EnvVars = Record<string, string | undefined>
 
-const errorCapturingSqlQueryableShape = Shape.declare(
+const sqlQueryableShape = Shape.declare(
   (input: any): input is SqlDriverAdapter => {
     // TODO: add `Symbol` checks instead.
     return typeof input['provider'] === 'string' && typeof input['adapterName'] === 'string'
@@ -44,7 +44,7 @@ const errorCapturingSqlDriverAdapterFactoryShape = Shape.declare(
 )
 
 export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlDriverAdapter>
+  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
 export type PrismaStudioConfigInternalShape = {
@@ -55,7 +55,7 @@ const prismaStudioConfigInternalShape = Shape.Struct({
   /**
    * Instantiates the Prisma driver adapter to use for Prisma Studio.
    */
-  adapter: errorCapturingSqlQueryableShape,
+  adapter: sqlQueryableShape,
 })
 
 export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {

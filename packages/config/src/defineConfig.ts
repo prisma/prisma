@@ -52,7 +52,8 @@ async function defineStudioConfig<Env extends Record<string, string | undefined>
   }
 
   debug('[config.studio]: %s', 'loading adapter')
-  const adapter = await configInput.studio.adapter(process.env as Env)
+  const adapterFactory = await configInput.studio.adapter(process.env as Env)
+  const adapter = await adapterFactory.connect()
 
   config.studio = {
     adapter,
