@@ -125,7 +125,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
       const resultSet = {
         declaredTypes: columns.map((column) => column.type),
         columnNames: columns.map((column) => column.name),
-        values: stmt.all() as unknown[][],
+        values: stmt.raw().all() as unknown[][],
       }
 
       return resultSet
