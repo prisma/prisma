@@ -8,9 +8,7 @@ import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serialize } from './serialize'
 
-export type QueryInterpreterTransactionManager
-  = { enabled: true,  manager: TransactionManager }
-  | { enabled: false }
+export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
 export type QueryInterpreterOptions = {
   transactionManager: QueryInterpreterTransactionManager
