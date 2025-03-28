@@ -49,7 +49,7 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -82,9 +82,13 @@ Check the status of your database migrations
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
+    const adapter = await config.migrate?.adapter(process.env) 
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
-    await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+    // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
+    if (!adapter) {
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+    }
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

@@ -99,7 +99,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -152,6 +152,8 @@ Set composite types introspection depth to 2 levels
     if (!url && !schemaContext && !fromD1) {
       throw new NoSchemaFoundError()
     }
+
+    const adapter = await config.migrate?.adapter(process.env)
 
     /**
      * When a schema already exists:
@@ -303,7 +305,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const migrate = await Migrate.setup({ adapter: undefined, schemaContext: schemaContext ?? undefined })
+    const migrate = await Migrate.setup({ adapter, schemaContext: schemaContext ?? undefined })
 
     const engine = migrate.engine
     const basedOn =
