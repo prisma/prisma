@@ -1,6 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
-import Debug, { clearLogs } from '@prisma/debug'
+import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'

@@ -9,7 +9,7 @@ import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
+import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let Prisma: typeof PrismaNamespace

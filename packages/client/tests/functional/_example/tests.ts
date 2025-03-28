@@ -4,7 +4,7 @@ import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -54,6 +54,7 @@ testMatrix.setupTestSuite(
           engineType: 'library',
           runtime: 'node',
           previewFeatures: [],
+          generatorType: 'prisma-client-js',
         },
         suiteMeta,
         matrixOptions: suiteConfig,

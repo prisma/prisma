@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { dependencies } from '@prisma/engines/package.json'
 
 import type { EngineConfig } from '../../common/Engine'

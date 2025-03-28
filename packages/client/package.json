@@ -87,26 +87,44 @@
     "./wasm": {
       "types": "./wasm.d.ts",
       "require": "./wasm.js",
-      "import": "./wasm.js",
-      "default": "./wasm.js"
+      "import": "./wasm.mjs",
+      "default": "./wasm.mjs"
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
       "require": "./runtime/client.js",
-      "import": "./runtime/client.js",
-      "default": "./runtime/client.js"
+      "import": "./runtime/client.mjs",
+      "default": "./runtime/client.mjs"
     },
     "./runtime/library": {
       "types": "./runtime/library.d.ts",
       "require": "./runtime/library.js",
-      "import": "./runtime/library.js",
-      "default": "./runtime/library.js"
+      "import": "./runtime/library.mjs",
+      "default": "./runtime/library.mjs"
     },
     "./runtime/binary": {
       "types": "./runtime/binary.d.ts",
       "require": "./runtime/binary.js",
-      "import": "./runtime/binary.js",
-      "default": "./runtime/binary.js"
+      "import": "./runtime/binary.mjs",
+      "default": "./runtime/binary.mjs"
+    },
+    "./runtime/wasm": {
+      "types": "./runtime/wasm.d.ts",
+      "require": "./runtime/wasm.js",
+      "import": "./runtime/wasm.mjs",
+      "default": "./runtime/wasm.mjs"
+    },
+    "./runtime/edge": {
+      "types": "./runtime/edge.d.ts",
+      "require": "./runtime/edge.js",
+      "import": "./runtime/edge-esm.js",
+      "default": "./runtime/edge-esm.js"
+    },
+    "./runtime/react-native": {
+      "types": "./runtime/react-native.d.ts",
+      "require": "./runtime/react-native.js",
+      "import": "./runtime/react-native.js",
+      "default": "./runtime/react-native.js"
     },
     "./generator-build": {
       "require": "./generator-build/index.js",
@@ -208,12 +226,13 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/client-generator-js": "workspace:*",
+    "@prisma/client-generator-ts": "workspace:*",
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "6.6.0-37.ff21a79611d4f1fbb63c06b7dfbc50577fc8b2d2",
+    "@prisma/engines-version": "6.6.0-41.9061db3b0058e3d3731c6fe68a1b77061bed4861",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -223,8 +242,8 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
     "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-compiler-wasm": "6.6.0-37.ff21a79611d4f1fbb63c06b7dfbc50577fc8b2d2",
-    "@prisma/query-engine-wasm": "6.6.0-37.ff21a79611d4f1fbb63c06b7dfbc50577fc8b2d2",
+    "@prisma/query-compiler-wasm": "6.6.0-41.9061db3b0058e3d3731c6fe68a1b77061bed4861",
+    "@prisma/query-engine-wasm": "6.6.0-41.9061db3b0058e3d3731c6fe68a1b77061bed4861",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",
     "@swc-node/register": "1.10.9",

@@ -41,6 +41,7 @@ export function getTestSuitePlan(
     config.matrixOptions.engineType ??= testCliMeta.engineType
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
     config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
+    config.matrixOptions.generatorType ??= testCliMeta.generatorType
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
