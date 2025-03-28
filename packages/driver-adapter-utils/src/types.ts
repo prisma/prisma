@@ -240,6 +240,11 @@ export interface ErrorCapturingSqlDriverAdapterFactory extends ErrorCapturingInt
   readonly errorRegistry: ErrorRegistry
 }
 
+export interface ErrorCapturingSqlMigrationAwareDriverAdapterFactory
+  extends ErrorCapturingInterface<SqlMigrationAwareDriverAdapterFactory> {
+  readonly errorRegistry: ErrorRegistry
+}
+
 export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
 
 export type ErrorCapturingSqlQueryable = ErrorCapturingInterface<SqlQueryable>

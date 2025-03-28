@@ -1,4 +1,4 @@
-import { Debug } from '@prisma/driver-adapter-utils'
+import { bindMigrationAwareSqlAdapterFactory, Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
@@ -18,7 +18,7 @@ export function defineConfig<Env extends Record<string, string | undefined> = ne
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
   const config = defaultConfig<Env>()
-  debug('Prisma config [default]: %o', config)
+  debug('[default]: %o', config)
 
   defineSchemaConfig<Env>(config, configInput)
   defineStudioConfig<Env>(config, configInput)
@@ -31,6 +31,9 @@ export function defineConfig<Env extends Record<string, string | undefined> = ne
   return config as PrismaConfigInternal<Env>
 }
 
+/**
+ * `configInput.schema` is forwarded to `config.schema` as is.
+ */
 function defineSchemaConfig<Env extends Record<string, string | undefined> = never>(
   config: DeepMutable<PrismaConfigInternal<Env>>,
   configInput: PrismaConfig<Env>,
@@ -40,9 +43,13 @@ function defineSchemaConfig<Env extends Record<string, string | undefined> = nev
   }
 
   config.schema = configInput.schema
-  debug('Prisma config [schema]: %o', config.schema)
+  debug('[config.schema]: %o', config.schema)
 }
 
+/**
+ * For `config.studio`, we internally retrieve the `SqlDriverAdapter` instance from the
+ * `SqlMigrationAwareDriverAdapterFactory` retrieved after invoking `configInput.studio.adapter()`.
+ */
 function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
   config: DeepMutable<PrismaConfigInternal<Env>>,
   configInput: PrismaConfig<Env>,
@@ -51,12 +58,23 @@ function defineStudioConfig<Env extends Record<string, string | undefined> = nev
     return
   }
 
+  const { adapter: getAdapterFactory } = configInput.studio
+
   config.studio = {
-    adapter: configInput.studio.adapter,
+    adapter: async (env) => {
+      const adapterFactory = await getAdapterFactory(env)
+      debug('[config.studio.adapter]: %o', adapterFactory.adapterName)
+      const adapter = await adapterFactory.connect()
+      return adapter
+    },
   }
-  debug('Prisma config [studio]: %o', config.studio)
+  debug('[config.studio]: %o', config.studio)
 }
 
+/**
+ * For `config.migrate`, we internally retrieve the `ErrorCapturingSqlMigrationAwareDriverAdapterFactory`
+ * instance from the `SqlMigrationAwareDriverAdapterFactory` retrieved after invoking `configInput.migrate.adapter()`.
+ */
 function defineMigrateConfig<Env extends Record<string, string | undefined> = never>(
   config: DeepMutable<PrismaConfigInternal<Env>>,
   configInput: PrismaConfig<Env>,
@@ -65,8 +83,14 @@ function defineMigrateConfig<Env extends Record<string, string | undefined> = ne
     return
   }
 
+  const { adapter: getAdapterFactory } = configInput.migrate
+
   config.migrate = {
-    adapter: configInput.migrate.adapter,
+    adapter: async (env) => {
+      const adapterFactory = await getAdapterFactory(env)
+      debug('[config.migrate.adapter]: %o', adapterFactory.adapterName)
+      return bindMigrationAwareSqlAdapterFactory(adapterFactory)
+    },
   }
-  debug('Prisma config [migrate]: %o', config.migrate)
+  debug('[config.schema]: %o', config.migrate)
 }

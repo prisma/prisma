@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
 import { jestContext } from '@prisma/get-platform'
 import type { ParseError } from 'effect/ParseResult'
 
@@ -161,7 +162,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: MigrationAwareAdapter<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlDriverAdapter<Env> } | undefined; readonly migrate?: { readonly adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -174,7 +175,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: Adapter<Env> } | undefined; readonly migrate?: { readonly adapter: MigrationAwareAdapter<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlDriverAdapter<Env> } | undefined; readonly migrate?: { readonly adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
            └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrate" | "loadedFromFile""
       `)
@@ -237,6 +238,7 @@ describe('loadConfigFromFile', () => {
 
   it('typescript-cjs-ext-ts', async () => {
     ctx.fixture('loadConfigFromFile/typescript-cjs-ext-ts')
+    const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
 
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
@@ -253,13 +255,20 @@ describe('loadConfigFromFile', () => {
       throw new Error('Expected config.studio to be defined')
     }
 
-    const adapter = await config.studio.adapter({})
+    const { adapter: adapterFactory } = config.studio
+    expect(adapterFactory).toBeDefined()
+
+    // @ts-ignore
+    const adapter = await adapterFactory(process.env)
+    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
+
     expect(adapter).toBeDefined()
     expect(adapter.provider).toEqual('postgres')
   })
 
   it('typescript-esm-ext-ts', async () => {
     ctx.fixture('loadConfigFromFile/typescript-esm-ext-ts')
+    const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
 
     const { config, error, resolvedPath } = await loadConfigFromFile({})
     expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
@@ -276,7 +285,13 @@ describe('loadConfigFromFile', () => {
       throw new Error('Expected config.studio to be defined')
     }
 
-    const adapter = await config.studio.adapter({})
+    const { adapter: adapterFactory } = config.studio
+    expect(adapterFactory).toBeDefined()
+
+    // @ts-ignore
+    const adapter = await adapterFactory(process.env)
+    expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
+
     expect(adapter).toBeDefined()
     expect(adapter.provider).toEqual('postgres')
   })
