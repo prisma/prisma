@@ -2,18 +2,28 @@
   "name": "@prisma/adapter-libsql",
   "version": "0.0.0",
   "description": "Prisma's driver adapter for libSQL and Turso",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "dist/index-node.js",
+  "module": "dist/index-node.mjs",
+  "types": "dist/index-node.d.ts",
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index-node.d.ts",
+        "default": "./dist/index-node.js"
       },
       "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
+        "types": "./dist/index-node.d.mts",
+        "default": "./dist/index-node.mjs"
+      }
+    },
+    "./web": {
+      "require": {
+        "types": "./dist/index-web.d.ts",
+        "default": "./dist/index-web.js"
+      },
+      "import": {
+        "types": "./dist/index-web.d.mts",
+        "default": "./dist/index-web.mjs"
       }
     }
   },
