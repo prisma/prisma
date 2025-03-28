@@ -211,44 +211,40 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     try {
       // Create the deferred promise and transaction result promise first
       const [txDeferred, deferredPromise] = createDeferred<void>()
-      
+
       // Create a promise that will resolve with the transaction
       const transactionPromise = new Promise<Transaction>((resolve, reject) => {
         try {
           // Start the transaction with BetterSQLite3
-          this.client.transaction(() => {
-            // Create transaction wrapper now that txResultPromise exists
-            const txWrapper = new BetterSQLite3Transaction(
-              this.client, 
-              options,
-              txDeferred,
-              deferredPromise
-            )
-            
-            // Resolve the outer promise with the transaction wrapper
-            resolve(txWrapper)
-            
-            // Return the promise that will be resolved/rejected by commit/rollback
-            return deferredPromise
-          })
-          .deferred()
-          .catch((error) => {
-            // Special case for rollback - don't treat it as an error
-            if (error instanceof RollbackError) {
-              return
-            }
-            reject(error)
-          })
+          this.client
+            .transaction(() => {
+              // Create transaction wrapper now that txResultPromise exists
+              const txWrapper = new BetterSQLite3Transaction(this.client, options, txDeferred, deferredPromise)
+
+              // Resolve the outer promise with the transaction wrapper
+              resolve(txWrapper)
+
+              // Return the promise that will be resolved/rejected by commit/rollback
+              return deferredPromise
+            })
+            .deferred()
+            .catch((error) => {
+              // Special case for rollback - don't treat it as an error
+              if (error instanceof RollbackError) {
+                return
+              }
+              reject(error)
+            })
         } catch (error) {
           reject(error)
         }
       })
-      
+
       // When any error occurs during transaction creation, release the lock
       transactionPromise.catch(() => {
         release()
       })
-      
+
       return await transactionPromise
     } catch (error) {
       release()
