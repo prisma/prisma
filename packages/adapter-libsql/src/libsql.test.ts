@@ -170,15 +170,6 @@ describe.each([
         cause: { kind: 'InvalidIsolationLevel' },
       })
     }
-
-    await expect(conn.startTransaction('READ UNCOMMITTED')).rejects.toMatchObject({
-      name: 'DriverAdapterError',
-      cause: { kind: 'InvalidIsolationLevel' },
-    })
-    await expect(conn.startTransaction('READ COMMITTED')).rejects.toMatchObject({
-      name: 'DriverAdapterError',
-      cause: { kind: 'InvalidIsolationLevel' },
-    })
   })
 })
 
