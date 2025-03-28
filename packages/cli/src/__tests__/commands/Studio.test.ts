@@ -701,7 +701,7 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
 
       const config = (
         await import(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/prisma.config.ts'))
-      ).default as PrismaConfigInternal
+      ).default as PrismaConfigInternal<any>
 
       await studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], config)
 

@@ -47,8 +47,7 @@ function defineSchemaConfig<Env extends Record<string, string | undefined> = nev
 }
 
 /**
- * For `config.studio`, we internally retrieve the `SqlDriverAdapter` instance from the
- * `SqlMigrationAwareDriverAdapterFactory` retrieved after invoking `configInput.studio.adapter()`.
+ * `configInput.studio` is forwarded to `config.studio` as is.
  */
 function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
   config: DeepMutable<PrismaConfigInternal<Env>>,
@@ -64,8 +63,7 @@ function defineStudioConfig<Env extends Record<string, string | undefined> = nev
     adapter: async (env) => {
       const adapterFactory = await getAdapterFactory(env)
       debug('[config.studio.adapter]: %o', adapterFactory.adapterName)
-      const adapter = await adapterFactory.connect()
-      return adapter
+      return adapterFactory
     },
   }
   debug('[config.studio]: %o', config.studio)
