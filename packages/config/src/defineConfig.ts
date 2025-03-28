@@ -1,4 +1,4 @@
-import { Debug } from '@prisma/driver-adapter-utils'
+import { bindMigrationAwareSqlAdapterFactory, Debug } from '@prisma/driver-adapter-utils'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
@@ -11,28 +11,28 @@ const debug = Debug('prisma:config:defineConfig')
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig<Env extends Record<string, string | undefined> = never>(
+export async function defineConfig<Env extends Record<string, string | undefined> = never>(
   configInput: PrismaConfig<Env>,
-): PrismaConfigInternal<Env> {
+): Promise<PrismaConfigInternal> {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
-  const config = defaultConfig<Env>()
-  debug('Prisma config [default]: %o', config)
+  const config = defaultConfig()
+  debug('[default]: %o', config)
 
   defineSchemaConfig<Env>(config, configInput)
-  defineStudioConfig<Env>(config, configInput)
-  defineMigrateConfig<Env>(config, configInput)
+  await defineStudioConfig<Env>(config, configInput)
+  await defineMigrateConfig<Env>(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
    * `Readonly` type
    */
-  return config as PrismaConfigInternal<Env>
+  return config as PrismaConfigInternal
 }
 
 function defineSchemaConfig<Env extends Record<string, string | undefined> = never>(
-  config: DeepMutable<PrismaConfigInternal<Env>>,
+  config: DeepMutable<PrismaConfigInternal>,
   configInput: PrismaConfig<Env>,
 ) {
   if (!configInput.schema) {
@@ -40,33 +40,39 @@ function defineSchemaConfig<Env extends Record<string, string | undefined> = nev
   }
 
   config.schema = configInput.schema
-  debug('Prisma config [schema]: %o', config.schema)
+  debug('[config.schema]: %o', config.schema)
 }
 
-function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
-  config: DeepMutable<PrismaConfigInternal<Env>>,
+async function defineStudioConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal>,
   configInput: PrismaConfig<Env>,
 ) {
   if (!configInput.studio) {
     return
   }
 
+  debug('[config.studio]: %s', 'loading adapter')
+  const adapter = await configInput.studio.adapter(process.env as Env)
+
   config.studio = {
-    adapter: configInput.studio.adapter,
+    adapter,
   }
-  debug('Prisma config [studio]: %o', config.studio)
+  debug('[config.studio]: %o', config.studio)
 }
 
-function defineMigrateConfig<Env extends Record<string, string | undefined> = never>(
-  config: DeepMutable<PrismaConfigInternal<Env>>,
+async function defineMigrateConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal>,
   configInput: PrismaConfig<Env>,
 ) {
   if (!configInput.migrate) {
     return
   }
 
+  debug('[config.migrate]: %s', 'loading adapter')
+  const adapter = await configInput.migrate.adapter(process.env as Env)
+
   config.migrate = {
-    adapter: configInput.migrate.adapter,
+    adapter: bindMigrationAwareSqlAdapterFactory(adapter),
   }
-  debug('Prisma config [migrate]: %o', config.migrate)
+  debug('[config.migrate]: %o', config.migrate)
 }

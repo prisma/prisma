@@ -3,11 +3,13 @@ import { err, ok, Result } from './result'
 import type {
   ErrorCapturingSqlDriverAdapter,
   ErrorCapturingSqlDriverAdapterFactory,
+  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
   ErrorCapturingTransaction,
   ErrorRecord,
   ErrorRegistry,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
   Transaction,
 } from './types'
 
@@ -39,6 +41,28 @@ export const bindSqlAdapterFactory = (
     errorRegistry,
     connect: async (...args) => {
       const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    },
+  }
+
+  return boundFactory
+}
+
+export const bindMigrationAwareSqlAdapterFactory = (
+  adapterFactory: SqlMigrationAwareDriverAdapterFactory,
+): ErrorCapturingSqlMigrationAwareDriverAdapterFactory => {
+  const errorRegistry = new ErrorRegistryInternal()
+
+  const boundFactory: ErrorCapturingSqlMigrationAwareDriverAdapterFactory = {
+    adapterName: adapterFactory.adapterName,
+    provider: adapterFactory.provider,
+    errorRegistry,
+    connect: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    },
+    connectToShadowDb: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connectToShadowDb.bind(adapterFactory))(...args)
       return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
     },
   }

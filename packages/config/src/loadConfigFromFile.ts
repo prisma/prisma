@@ -61,7 +61,6 @@ export type ConfigFromFile =
  * This function may fail, but it will never throw.
  * The possible error is returned in the result object, so the caller can handle it as needed.
  */
-
 export async function loadConfigFromFile({
   configFile,
   configRoot = process.cwd(),
@@ -86,8 +85,7 @@ export async function loadConfigFromFile({
 
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
-
-      return { resolvedPath, config: defaultConfig() }
+      return { resolvedPath, config: defaultConfig() as PrismaConfigInternal }
     }
   }
 
@@ -106,7 +104,7 @@ export async function loadConfigFromFile({
     let defaultExport: PrismaConfigInternal | undefined
 
     try {
-      defaultExport = parseDefaultExport(required['default'])
+      defaultExport = await parseDefaultExport(await required['default'])
     } catch (e) {
       const error = e as Error
       return {

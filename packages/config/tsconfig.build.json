@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.build.regular.json",
   "compilerOptions": {
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "outDir": "dist"
   },
   "include": ["src"]
