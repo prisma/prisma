@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
