@@ -8,8 +8,6 @@ import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { LibraryLoader } from './types/Library'
 
-declare const WebAssembly: any // TODO not defined in Node types?
-
 let loadedWasmInstance: Promise<QueryEngineConstructor>
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
