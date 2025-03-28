@@ -987,6 +987,33 @@ jobs:
         working-directory: packages/generator
 
   #
+  # Driver Adapter Unit Tests
+  #
+  driver-adapter-unit-tests:
+    name: Driver Adapter Unit Tests
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: contains(inputs.jobsToRun, '-all-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [18, 20, 22, 23]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'adapter-libsql'
+        working-directory: packages/adapter-libsql
+
+  #
   # Run all tests on macOS and Windows.
   #
   # Unlike the other jobs, this job doesn't use Docker (and thus skips some
