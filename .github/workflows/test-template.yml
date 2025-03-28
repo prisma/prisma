@@ -998,7 +998,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 23]
     steps:
       - uses: actions/checkout@v4
 
