@@ -2,6 +2,7 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   QueryEvent,
   QueryInterpreter,
+  QueryInterpreterTransactionManager,
   QueryPlanNode,
   TransactionInfo,
   TransactionManager,
@@ -109,9 +110,12 @@ export class ClientEngine implements Engine<undefined> {
       }
     }
 
-    this.transactionManagerPromise = this.adapterPromise.then(
-      (driverAdapter) => new TransactionManager({ driverAdapter }),
-    )
+    this.transactionManagerPromise = this.adapterPromise.then((driverAdapter) => {
+      return new TransactionManager({
+        driverAdapter,
+        transactionOptions: this.config.transactionOptions,
+      })
+    })
 
     this.instantiateQueryCompilerPromise = this.instantiateQueryCompiler()
   }
@@ -265,14 +269,18 @@ export class ClientEngine implements Engine<undefined> {
         ? transactionManager.getTransaction(interactiveTransaction, query.action)
         : adapter
 
+      const qiTransactionManager = (
+        interactiveTransaction ? { enabled: false } : { enabled: true, manager: transactionManager }
+      ) satisfies QueryInterpreterTransactionManager
+
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
-        queryable,
+        transactionManager: qiTransactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
-      const result = await interpreter.run(queryPlan)
+      const result = await interpreter.run(queryPlan, queryable)
 
       debug(`query plan executed`)
 
@@ -313,13 +321,13 @@ export class ClientEngine implements Engine<undefined> {
       // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
       const results: BatchQueryEngineResult<T>[] = []
       for (const { query, plan } of queriesWithPlans) {
-        const queryable = transactionManager.getTransaction(txInfo, query.action)
+        const transaction = transactionManager.getTransaction(txInfo, query.action)
         const interpreter = new QueryInterpreter({
-          queryable,
+          transactionManager: { enabled: false } satisfies QueryInterpreterTransactionManager,
           placeholderValues: {},
           onQuery: this.#emitQueryEvent,
         })
-        results.push((await interpreter.run(plan)) as QueryEngineResultData<T>)
+        results.push((await interpreter.run(plan, transaction)) as QueryEngineResultData<T>)
       }
 
       if (transaction?.kind !== 'itx') {
