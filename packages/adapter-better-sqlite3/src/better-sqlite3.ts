@@ -13,7 +13,7 @@ import type { Database as BetterSQLite3, Options as BetterSQLite3Options } from 
 import Database from 'better-sqlite3'
 
 import { name as packageName } from '../package.json'
-import { getColumnTypes, mapRow, Row } from './conversion'
+import { getColumnTypes, mapQueryArgs, mapRow, Row } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3')
@@ -111,7 +111,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   // eslint-disable-next-line @typescript-eslint/require-await
   private async performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(query.args) // TODO: double-check `Date` serialisation
+      const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args))
 
       const columns = stmt.columns()
 
