@@ -1039,6 +1039,9 @@ importers:
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
+      fast-glob:
+        specifier: 3.3.3
+        version: 3.3.3
       indent-string:
         specifier: 4.0.0
         version: 4.0.0
