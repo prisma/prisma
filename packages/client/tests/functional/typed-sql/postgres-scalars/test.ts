@@ -1,11 +1,11 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import * as Sql from '@prisma/client/sql'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
+// @ts-ignore
+import * as Sql from './generated/prisma/client/sql'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace

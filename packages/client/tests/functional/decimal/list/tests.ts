@@ -1,7 +1,6 @@
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
-
 import { setupTestSuiteMatrix } from '../../_utils/setupTestSuiteMatrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 

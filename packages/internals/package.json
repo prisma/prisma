@@ -69,7 +69,7 @@
     "strip-indent": "4.0.0",
     "temp-dir": "2.0.0",
     "tempy": "1.0.1",
-    "terminal-link": "3.0.0",
+    "terminal-link": "4.0.0",
     "tmp": "0.2.3",
     "ts-node": "10.9.2",
     "ts-pattern": "5.6.2",
@@ -86,7 +86,7 @@
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "6.6.0-34.cd2dc4cb0f2f888a21fd4de05f7d1175433e901d",
+    "@prisma/prisma-schema-wasm": "6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"

@@ -2,7 +2,7 @@ import { Providers } from '../_utils/providers'
 import { Db, NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare const db: Db

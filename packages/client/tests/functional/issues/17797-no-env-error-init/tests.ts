@@ -1,8 +1,7 @@
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
-
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import { PrismaClient } from './generated/prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 

@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 /* eslint-disablejest/no-identical-title */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 // 1:1 relation
 async function createXItems({ count }) {
