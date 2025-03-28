@@ -206,9 +206,6 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
-      async-mutex:
-        specifier: 0.5.0
-        version: 0.5.0
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.12
