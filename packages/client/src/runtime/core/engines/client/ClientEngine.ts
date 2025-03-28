@@ -1,4 +1,9 @@
-import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@prisma/client-common'
+import {
+  CompactedBatchResponse,
+  QueryCompiler,
+  QueryCompilerConstructor,
+  QueryEngineLogLevel,
+} from '@prisma/client-common'
 import {
   QueryEvent,
   QueryInterpreter,
@@ -21,9 +26,10 @@ import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineResultData, RustRequestError, SyncRustError } from '../common/types/QueryEngine'
+import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
+import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
@@ -294,18 +300,22 @@ export class ClientEngine implements Engine<undefined> {
     queries: JsonQuery[],
     { transaction, traceparent: _traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
-    this.lastStartedQuery = JSON.stringify(queries)
+    if (queries.length === 0) {
+      return []
+    }
+    const firstAction = queries[0].action
+    if (!queries.every((q) => q.action === firstAction)) {
+      throw new Error('All queries in a batch must have the same action')
+    }
+
+    const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
+
+    this.lastStartedQuery = request
 
     try {
       const [, transactionManager] = await this.ensureStarted()
 
-      const queriesWithPlans = await Promise.all(
-        queries.map(async (query) => {
-          const queryStr = JSON.stringify(query)
-          const queryPlanString = await this.queryCompiler!.compile(queryStr)
-          return { query, plan: JSON.parse(queryPlanString) as QueryPlanNode }
-        }),
-      )
+      const response = await this.queryCompiler!.compileBatch(request)
 
       let txInfo: InteractiveTransactionInfo<undefined>
       if (transaction?.kind === 'itx') {
@@ -318,23 +328,38 @@ export class ClientEngine implements Engine<undefined> {
         txInfo = await this.transaction('start', {}, txOptions)
       }
 
-      // TODO: potentially could run batch queries in parallel if it's for sure not in a transaction
-      const results: BatchQueryEngineResult<T>[] = []
-      for (const { query, plan } of queriesWithPlans) {
-        const transaction = transactionManager.getTransaction(txInfo, query.action)
-        const interpreter = new QueryInterpreter({
-          transactionManager: { enabled: false } satisfies QueryInterpreterTransactionManager,
-          placeholderValues: {},
-          onQuery: this.#emitQueryEvent,
-        })
-        results.push((await interpreter.run(plan, transaction)) as QueryEngineResultData<T>)
+      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
+      const placeholderValues = {}
+      const interpreter = new QueryInterpreter({
+        transactionManager: { enabled: false },
+        placeholderValues,
+        onQuery: this.#emitQueryEvent,
+      })
+      const queryable = transactionManager.getTransaction(txInfo, firstAction)
+
+      let results: BatchQueryEngineResult<unknown>[] = []
+      switch (response.type) {
+        case 'multi': {
+          results = await Promise.all(
+            response.plans.map(async (plan) => {
+              const rows = await interpreter.run(plan as QueryPlanNode, queryable)
+              return { data: { [firstAction]: rows } }
+            }),
+          )
+          break
+        }
+        case 'compacted': {
+          const rows = await interpreter.run(response.plan as QueryPlanNode, queryable)
+          results = this.#convertCompactedRows(rows as {}[], response, firstAction)
+          break
+        }
       }
 
       if (transaction?.kind !== 'itx') {
         await this.transaction('commit', {}, txInfo)
       }
 
-      return results
+      return results as BatchQueryEngineResult<T>[]
     } catch (e: any) {
       throw this.transformRequestError(e)
     }
@@ -344,6 +369,49 @@ export class ClientEngine implements Engine<undefined> {
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
     throw new Error('Method not implemented.')
+  }
+
+  /**
+   * Converts the result of a compacted query back to result objects analogous to what queries
+   * would return when executed individually.
+   */
+  #convertCompactedRows(
+    rows: {}[],
+    response: CompactedBatchResponse,
+    action: string,
+  ): BatchQueryEngineResult<unknown>[] {
+    // a list of objects that contain the keys of every row
+    const keysPerRow = rows.map((item) =>
+      response.keys.reduce((acc, key) => {
+        acc[key] = item[key]
+        return acc
+      }, {}),
+    )
+    // the selections inferred from the request, used to filter unwanted columns from the results
+    const selection = new Set(response.nestedSelection)
+
+    return response.arguments.map((args) => {
+      // we find the index of the row that matches the input arguments - this is the row we want
+      // to return minus any extra columns not present in the selection
+      const argsAsObject = Object.fromEntries(args)
+      const rowIndex = keysPerRow.findIndex((rowKeys) => doKeysMatch(rowKeys, argsAsObject))
+      if (rowIndex === -1) {
+        if (response.expectNonEmpty) {
+          return new PrismaClientKnownRequestError(
+            'An operation failed because it depends on one or more records that were required but not found',
+            {
+              code: 'P2025',
+              clientVersion: this.config.clientVersion,
+            },
+          )
+        } else {
+          return { data: { [action]: null } }
+        }
+      } else {
+        const selected = Object.entries(rows[rowIndex]).filter(([k]) => selection.has(k))
+        return { data: { [action]: Object.fromEntries(selected) } }
+      }
+    })
   }
 }
 
@@ -356,4 +424,30 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string) {
     database: engine.config.activeProvider as any,
     query: engine.lastStartedQuery!,
   })
+}
+
+/**
+ * Checks if two objects representing the names and values of key columns match. A match is
+ * defined by one of the sets of keys being a subset of the other.
+ */
+function doKeysMatch(lhs: {}, rhs: {}): boolean {
+  const lhsKeys = Object.keys(lhs)
+  const rhsKeys = Object.keys(rhs)
+  const smallerKeyList = lhsKeys.length < rhsKeys.length ? lhsKeys : rhsKeys
+  return smallerKeyList.every((key) => isStrictDeepEqual(lhs[key], rhs[key]))
+}
+
+/**
+ * Checks if two objects are deeply equal, recursively checking all properties for strict equality.
+ */
+function isStrictDeepEqual(a: unknown, b: unknown): boolean {
+  return (
+    a === b ||
+    (a !== null &&
+      b !== null &&
+      typeof a === 'object' &&
+      typeof b === 'object' &&
+      Object.keys(a).length === Object.keys(b).length &&
+      Object.keys(a).every((key) => isStrictDeepEqual(a[key], b[key])))
+  )
 }
