@@ -81,7 +81,7 @@ ${bold('Examples')}
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
 
     try {
       // Automatically create the database if it doesn't exist

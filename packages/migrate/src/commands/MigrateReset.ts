@@ -114,7 +114,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
 
     let migrationIds: string[]
     try {

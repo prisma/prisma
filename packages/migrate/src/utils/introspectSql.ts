@@ -1,6 +1,7 @@
 import { GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
 import { getEffectiveUrl, SchemaContext } from '@prisma/internals'
 
+import { Migrate } from '../Migrate'
 import { SchemaEngine } from '../SchemaEngine'
 import { EngineArgs } from '../types'
 
@@ -57,7 +58,8 @@ export async function introspectSql(
     )
   }
 
-  const schemaEngine = new SchemaEngine({ schemaContext })
+  const migrate = await Migrate.setup({ schemaContext })
+  const schemaEngine = migrate.engine
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []
   try {

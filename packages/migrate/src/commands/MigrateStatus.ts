@@ -82,7 +82,7 @@ Check the status of your database migrations
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
 
     await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 

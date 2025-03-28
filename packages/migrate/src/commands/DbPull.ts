@@ -25,7 +25,7 @@ import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { SchemaEngine } from '../SchemaEngine'
+import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
 import { countModelsAndTypes } from '../utils/countModelsAndTypes'
 import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -303,7 +303,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new SchemaEngine({ schemaContext: schemaContext ?? undefined })
+    const migrate = await Migrate.setup({ adapter: undefined, schemaContext: schemaContext ?? undefined })
+
+    const engine = migrate.engine
     const basedOn =
       !args['--url'] && schemaContext?.primaryDatasource
         ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`

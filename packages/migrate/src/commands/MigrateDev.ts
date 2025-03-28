@@ -116,7 +116,7 @@ ${bold('Examples')}
       process.stdout.write(wasDbCreated + '\n\n')
     }
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
