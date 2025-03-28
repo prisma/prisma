@@ -304,6 +304,9 @@ export class ClientEngine implements Engine<undefined> {
       return []
     }
     const firstAction = queries[0].action
+    if (!queries.every((q) => q.action === firstAction)) {
+      throw new Error('All queries in a batch must have the same action')
+    }
 
     const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
 
@@ -378,7 +381,12 @@ export class ClientEngine implements Engine<undefined> {
     action: string,
   ): BatchQueryEngineResult<unknown>[] {
     // a list of objects that contain the keys of every row
-    const keysPerRow = rows.map((item) => response.keys.reduce((acc, key) => ({ [key]: item[key], ...acc }), {}))
+    const keysPerRow = rows.map((item) =>
+      response.keys.reduce((acc, key) => {
+        acc[key] = item[key]
+        return acc
+      }, {}),
+    )
     // the selections inferred from the request, used to filter unwanted columns from the results
     const selection = new Set(response.nestedSelection)
 
