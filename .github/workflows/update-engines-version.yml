@@ -39,32 +39,32 @@ jobs:
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version of @prisma/engines-version is available on npm
         run: |
-          echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
+          echo 'Checking that @prisma/engines-version has the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
 
       # Note: @prisma/prisma-schema-wasm might take a few minutes before it's available
       # So expect to see a few automated retries happening in logs before it succeeds
       - name: Check if version of @prisma/prisma-schema-wasm is available on npm
         run: |
-          echo 'Checking that @prisma/prisma-schema-wasm have the published version @${{ github.event.inputs.version }}'
+          echo 'Checking that @prisma/prisma-schema-wasm has the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-schema-wasm -u ${{ github.event.inputs.version }}
 
       # Note: @prisma/query-engine-wasm might take a few minutes before it's available too
       - name: Check if version of @prisma/query-engine-wasm is available on npm
         run: |
-          echo 'Checking that @prisma/query-engine-wasm have the published version @${{ github.event.inputs.version }}'
+          echo 'Checking that @prisma/query-engine-wasm has the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/query-engine-wasm -u ${{ github.event.inputs.version }}
 
       # Note: @prisma/query-compiler-wasm might take a few minutes before it's available too
       - name: Check if version of @prisma/query-compiler-wasm is available on npm
         run: |
-          echo 'Checking that @prisma/query-compiler-wasm have the published version @${{ github.event.inputs.version }}'
+          echo 'Checking that @prisma/query-compiler-wasm has the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/query-compiler-wasm -u ${{ github.event.inputs.version }}
 
       # Note: @prisma/schema-engine-wasm might take a few minutes before it's available too
       - name: Check if version of @prisma/schema-engine-wasm is available on npm
         run: |
-          echo 'Checking that @prisma/schema-engine-wasm have the published version @${{ github.event.inputs.version }}'
+          echo 'Checking that @prisma/schema-engine-wasm has the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/schema-engine-wasm -u ${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/engines-version)
