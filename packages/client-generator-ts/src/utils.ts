@@ -189,12 +189,12 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    return ts.unionType([type, ts.namedType('$Types.Skip')])
+    return ts.unionType([type, ts.namedType('runtime.Types.Skip')])
   }
   return type
 }
 
 export const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.InternalArgs'))
-  .default(ts.namedType('$Extensions.DefaultArgs'))
+  .extends(ts.namedType('runtime.Types.Extensions.InternalArgs'))
+  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs'))

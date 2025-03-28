@@ -10,7 +10,8 @@ declare let prisma: PrismaClient
 declare let sql: typeof Sql
 
 testMatrix.setupTestSuite(
-  () => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  ({ generatorType }) => {
     beforeAll(async () => {
       await prisma.user.create({
         data: {
@@ -32,7 +33,10 @@ testMatrix.setupTestSuite(
       `)
 
       expectTypeOf(result[0].favoriteAnimal).toEqualTypeOf<'CAT' | 'DOG' | 'STEVE'>()
+      // @ts-test-if: generatorType !== 'prisma-client-ts'
       expectTypeOf(result[0].favoriteAnimal).toEqualTypeOf<Sql.$DbEnums.Animal>()
+      // @ts-test-if: generatorType === 'prisma-client-ts'
+      expectTypeOf(result[0].favoriteAnimal).toEqualTypeOf<Sql.$DbEnums['Animal']>()
 
       expectTypeOf(result[0].role).toEqualTypeOf<'ADMIN' | 'USER'>()
       expectTypeOf(result[0].role).toEqualTypeOf<Sql.$DbEnums['user-role']>()

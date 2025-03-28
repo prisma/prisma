@@ -42,12 +42,12 @@ export function buildOmitType({ modelName, fields, context }: BuildOmitTypeParam
   )
 
   const omitType = ts
-    .namedType('$Extensions.GetOmit')
+    .namedType('runtime.Types.Extensions.GetOmit')
     .addGenericArgument(keysType)
     .addGenericArgument(modelResultExtensionsType(modelName))
 
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    omitType.addGenericArgument(ts.namedType('$Types.Skip'))
+    omitType.addGenericArgument(ts.namedType('runtime.Types.Skip'))
   }
 
   return buildExport(getOmitName(modelName), omitType)
@@ -68,7 +68,7 @@ export function buildSelectType({
 }: BuildSelectTypeParams) {
   const objectType = buildSelectOrIncludeObject(modelName, fields, context)
   const selectType = ts
-    .namedType('$Extensions.GetSelect')
+    .namedType('runtime.Types.Extensions.GetSelect')
     .addGenericArgument(objectType)
     .addGenericArgument(modelResultExtensionsType(modelName))
 

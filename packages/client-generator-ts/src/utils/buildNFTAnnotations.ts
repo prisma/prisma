@@ -91,6 +91,6 @@ function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
 
   return `
 // file annotations for bundling tools to include these files
-path.join(__dirname, ${JSON.stringify(pathToPosix(fileName))});
+path.join(__dirname, ${JSON.stringify(pathToPosix(fileName))})
 path.join(process.cwd(), ${JSON.stringify(pathToPosix(relativeFilePath))})`
 }
