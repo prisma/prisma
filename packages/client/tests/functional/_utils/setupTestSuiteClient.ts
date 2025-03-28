@@ -1,5 +1,6 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import { generateClient } from '@prisma/client-generator-js'
+import { generateClient as generateClientLegacy } from '@prisma/client-generator-js'
+import { generateClient as generateClientESM } from '@prisma/client-generator-ts'
 import { SqlQueryOutput } from '@prisma/generator'
 import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
 import { readFile } from 'fs/promises'
@@ -16,7 +17,7 @@ import {
   getTestSuiteSchemaPath,
   testSuiteHasTypedSql,
 } from './getTestSuiteInfo'
-import { AdapterProviders } from './providers'
+import { AdapterProviders, GeneratorTypes } from './providers'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta, ClientRuntime, CliMeta } from './types'
@@ -30,6 +31,7 @@ const runtimeBase = path.join(__dirname, '..', '..', '..', 'runtime')
  * @returns tuple of loaded client folder + loaded sql folder
  */
 export async function setupTestSuiteClient({
+  generatorType,
   cliMeta,
   suiteMeta,
   suiteConfig,
@@ -39,6 +41,7 @@ export async function setupTestSuiteClient({
   alterStatementCallback,
   cfWorkerBindings,
 }: {
+  generatorType: GeneratorTypes
   cliMeta: CliMeta
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
@@ -60,7 +63,9 @@ export async function setupTestSuiteClient({
     // => We do not resolve env vars in the schema here and hence ignore potential errors at this point.
     ignoreEnvVarErrors: true,
   })
-  const generator = schemaContext.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+  const generator = schemaContext.generators.find((g) =>
+    ['prisma-client-js', 'prisma-client-ts'].includes(parseEnvValue(g.provider)),
+  )!
   const directoryConfig = inferDirectoryConfig(schemaContext)
   const hasTypedSql = await testSuiteHasTypedSql(suiteMeta)
 
@@ -90,12 +95,12 @@ export async function setupTestSuiteClient({
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
 
-  await generateClient({
+  const clientGenOptions = {
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: schemaContext.datasources,
-    outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
+    outputDir: path.join(suiteFolderPath, 'generated/prisma/client'),
     copyRuntime: false,
     dmmf: dmmf,
     generator: generator,
@@ -107,24 +112,30 @@ export async function setupTestSuiteClient({
     runtimeSourcePath: path.join(__dirname, '../../../runtime'),
     copyEngine: !clientMeta.dataProxy,
     typedSql,
-  })
+  }
+
+  if (generatorType === 'prisma-client-ts') {
+    await generateClientESM(clientGenOptions)
+  } else {
+    await generateClientLegacy(clientGenOptions)
+  }
 
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     node: {
-      client: 'node_modules/@prisma/client',
-      sql: 'node_modules/@prisma/client/sql',
+      client: 'generated/prisma/client',
+      sql: 'generated/prisma/client/sql',
     },
     edge: {
-      client: 'node_modules/@prisma/client/edge',
-      sql: 'node_modules/@prisma/client/sql/index.edge.js',
+      client: 'generated/prisma/client/edge',
+      sql: 'generated/prisma/client/sql/index.edge.js',
     },
     wasm: {
-      client: 'node_modules/@prisma/client/wasm',
-      sql: 'node_modules/@prisma/client/sql/index.wasm.js',
+      client: 'generated/prisma/client/wasm',
+      sql: 'generated/prisma/client/sql/index.wasm.js',
     },
     client: {
-      client: 'node_modules/@prisma/client',
-      sql: 'node_modules/@prisma/client/sql',
+      client: 'generated/prisma/client',
+      sql: 'generated/prisma/client/sql',
     },
   }
 

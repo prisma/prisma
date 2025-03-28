@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
 
 import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>

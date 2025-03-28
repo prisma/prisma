@@ -11,6 +11,7 @@ module.exports = async (globalConfig) => {
   // we clear up all the files before we run the tests that are not type tests
   if (process.argv.join(' ').includes('--testPathIgnorePatterns typescript')) {
     glob
+      // TODO: drop node_modules cleanup?
       .sync(['./tests/functional/**/.generated/', './tests/functional/**/node_modules/'], {
         onlyDirectories: true,
         dot: true,

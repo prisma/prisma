@@ -16,15 +16,40 @@ const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql'] as const
-
 type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS)[number]
 
-// we define the config for runtime
-function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): BuildOptions {
+const MODULE_FORMATS = ['esm', 'cjs'] as const
+type ModuleFormat = (typeof MODULE_FORMATS)[number]
+
+const WASM_COMPONENTS = ['engine', 'compiler'] as const
+type WasmComponent = (typeof WASM_COMPONENTS)[number]
+
+const ENGINE_TYPES = [ClientEngineType.Binary, ClientEngineType.Library, ClientEngineType.Client]
+
+function getOutExtension(format: ModuleFormat): Record<string, string> {
   return {
+    esm: { '.js': '.mjs' },
+    cjs: { '.js': '.js' },
+  }[format]
+}
+
+const NODE_ESM_BANNER = `\
+import * as __banner_node_module from "node:module";
+import * as __banner_node_path from "node:path";
+import * as process from "node:process";
+import * as __banner_node_url from "node:url";
+const __filename = __banner_node_url.fileURLToPath(import.meta.url);
+const __dirname = __banner_node_path.dirname(__filename);
+const require = __banner_node_module.createRequire(import.meta.url);`
+
+// we define the config for runtime
+function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, format: ModuleFormat): BuildOptions {
+  return {
+    format,
     name: targetBuildType,
     entryPoints: ['src/runtime/index.ts'],
     outfile: `runtime/${targetBuildType}`,
+    outExtension: getOutExtension(format),
     bundle: true,
     minify: true,
     sourcemap: 'linked',
@@ -36,14 +61,21 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE): Buil
       'define.amd': 'false',
     },
     plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
+    banner: format === 'esm' ? { js: NODE_ESM_BANNER } : undefined,
   }
 }
 
-function wasmBindgenRuntimeConfig(type: 'engine' | 'compiler', provider: DriverAdapterSupportedProvider): BuildOptions {
+function wasmBindgenRuntimeConfig(
+  type: WasmComponent,
+  provider: DriverAdapterSupportedProvider,
+  format: ModuleFormat,
+): BuildOptions {
   return {
+    format,
     name: `query_${type}_bg.${provider}`,
     entryPoints: [`@prisma/query-${type}-wasm/${provider}/query_${type}_bg.js`],
     outfile: `runtime/query_${type}_bg.${provider}`,
+    outExtension: getOutExtension(format),
     minify: true,
     plugins: [
       fillPlugin({
@@ -112,6 +144,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   ...runtimesCommonBuildConfig,
   name: 'edge',
   outfile: 'runtime/edge',
+  emitTypes: true,
   define: {
     ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
@@ -125,12 +158,14 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 }
 
 // we define the config for wasm
-function wasmRuntimeBuildConfig(type: 'engine' | 'compiler'): BuildOptions {
+function wasmRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat): BuildOptions {
   return {
     ...runtimesCommonBuildConfig,
+    format,
     target: 'ES2022',
     name: 'wasm',
     outfile: 'runtime/wasm',
+    outExtension: getOutExtension(format),
     define: {
       ...runtimesCommonBuildConfig.define,
       TARGET_BUILD_TYPE: '"wasm"',
@@ -178,6 +213,7 @@ const edgeEsmRuntimeBuildConfig: BuildOptions = {
   name: 'edge-esm',
   outfile: 'runtime/edge-esm',
   format: 'esm',
+  emitTypes: false,
 }
 
 // old-style generator compatiblity shim for studio
@@ -211,25 +247,44 @@ function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
 
+function* allNodeRuntimeBuildConfigs(): Generator<BuildOptions> {
+  for (const engineType of ENGINE_TYPES) {
+    for (const format of MODULE_FORMATS) {
+      yield nodeRuntimeBuildConfig(engineType, format)
+    }
+  }
+}
+
+function* allWasmRuntimeConfigs(): Generator<BuildOptions> {
+  for (const component of WASM_COMPONENTS) {
+    for (const format of MODULE_FORMATS) {
+      yield wasmRuntimeBuildConfig(component, format)
+    }
+  }
+}
+
+function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
+  for (const component of WASM_COMPONENTS) {
+    for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
+      for (const format of MODULE_FORMATS) {
+        yield wasmBindgenRuntimeConfig(component, provider, format)
+      }
+    }
+  }
+}
+
 void build([
   generatorBuildConfig,
-  nodeRuntimeBuildConfig(ClientEngineType.Binary),
-  nodeRuntimeBuildConfig(ClientEngineType.Library),
-  nodeRuntimeBuildConfig(ClientEngineType.Client),
+  ...allNodeRuntimeBuildConfigs(),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
-  wasmRuntimeBuildConfig('engine'),
-  wasmRuntimeBuildConfig('compiler'),
-  wasmBindgenRuntimeConfig('engine', 'postgresql'),
-  wasmBindgenRuntimeConfig('engine', 'mysql'),
-  wasmBindgenRuntimeConfig('engine', 'sqlite'),
-  wasmBindgenRuntimeConfig('compiler', 'postgresql'),
-  wasmBindgenRuntimeConfig('compiler', 'mysql'),
-  wasmBindgenRuntimeConfig('compiler', 'sqlite'),
+  ...allWasmRuntimeConfigs(),
+  ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,
   reactNativeBuildConfig,
   accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
+  writeDtsRexport('wasm.d.ts')
 })

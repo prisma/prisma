@@ -95,6 +95,8 @@ const args = arg(
     '--data-proxy': Boolean,
     // Force using a specific client runtime under the hood
     '--client-runtime': String,
+    // Force using a specific generator type (prisma-client-js or prisma-client-ts)
+    '--generator-type': String,
     // Don't start the Mini-Proxy server and don't override NODE_EXTRA_CA_CERTS. You need to start the Mini-Proxy server
     // externally on the default port and run `eval $(mini-proxy env)` in your shell before starting the tests.
     '--no-mini-proxy-server': Boolean,
@@ -198,6 +200,10 @@ async function main(): Promise<number | void> {
 
   if (args['--client-runtime']) {
     jestCli = jestCli.withEnv({ TEST_CLIENT_RUNTIME: args['--client-runtime'] })
+  }
+
+  if (args['--generator-type']) {
+    jestCli = jestCli.withEnv({ TEST_GENERATOR_TYPE: args['--generator-type'] })
   }
 
   if (args['--data-proxy']) {

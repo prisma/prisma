@@ -23,6 +23,8 @@ export enum RelationModes {
   PRISMA = 'prisma',
 }
 
+export type GeneratorTypes = 'prisma-client-js' | 'prisma-client-ts'
+
 export const adaptersForProvider = {
   [Providers.POSTGRESQL]: [AdapterProviders.JS_PG, AdapterProviders.JS_NEON],
   [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE],

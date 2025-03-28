@@ -12,7 +12,7 @@ import { type DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let datasourceInfo: DatasourceInfo
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>

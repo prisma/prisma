@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'

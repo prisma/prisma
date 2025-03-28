@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { chmodPlusX, ClientEngineType } from '@prisma/internals'

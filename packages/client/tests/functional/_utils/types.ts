@@ -2,7 +2,7 @@ import { ClientEngineType } from '@prisma/internals'
 
 import { TestsFactoryFnParams } from './defineMatrix'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { AdapterProviders, Providers } from './providers'
+import { AdapterProviders, GeneratorTypes, Providers } from './providers'
 
 export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   optOut?: {
@@ -47,6 +47,7 @@ export type CliMeta = {
   runtime: ClientRuntime
   previewFeatures: string[]
   engineType: `${ClientEngineType}` | undefined
+  generatorType: `${GeneratorTypes}` | undefined
 }
 
 export type ClientMeta = {

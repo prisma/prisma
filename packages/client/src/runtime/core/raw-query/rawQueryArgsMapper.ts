@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { Sql } from 'sql-template-tag'
 
 import { MiddlewareArgsMapper } from '../../getPrismaClient'

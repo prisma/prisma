@@ -7,12 +7,13 @@ import {
 import {
   QueryEvent,
   QueryInterpreter,
+  QueryInterpreterTransactionManager,
   QueryPlanNode,
   TransactionInfo,
   TransactionManager,
   TransactionManagerError,
 } from '@prisma/client-engine-runtime'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
@@ -115,9 +116,12 @@ export class ClientEngine implements Engine<undefined> {
       }
     }
 
-    this.transactionManagerPromise = this.adapterPromise.then(
-      (driverAdapter) => new TransactionManager({ driverAdapter }),
-    )
+    this.transactionManagerPromise = this.adapterPromise.then((driverAdapter) => {
+      return new TransactionManager({
+        driverAdapter,
+        transactionOptions: this.config.transactionOptions,
+      })
+    })
 
     this.instantiateQueryCompilerPromise = this.instantiateQueryCompiler()
   }
@@ -271,14 +275,18 @@ export class ClientEngine implements Engine<undefined> {
         ? transactionManager.getTransaction(interactiveTransaction, query.action)
         : adapter
 
+      const qiTransactionManager = (
+        interactiveTransaction ? { enabled: false } : { enabled: true, manager: transactionManager }
+      ) satisfies QueryInterpreterTransactionManager
+
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
-        queryable,
+        transactionManager: qiTransactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
-      const result = await interpreter.run(queryPlan)
+      const result = await interpreter.run(queryPlan, queryable)
 
       debug(`query plan executed`)
 
@@ -317,28 +325,28 @@ export class ClientEngine implements Engine<undefined> {
         txInfo = await this.transaction('start', {}, txOptions)
       }
 
-      const queryable = transactionManager.getTransaction(txInfo, firstAction)
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
       const interpreter = new QueryInterpreter({
-        queryable,
+        transactionManager: { enabled: false },
         placeholderValues,
         onQuery: this.#emitQueryEvent,
       })
+      const queryable = transactionManager.getTransaction(txInfo, firstAction)
 
       let results: BatchQueryEngineResult<unknown>[] = []
       switch (response.type) {
         case 'multi': {
           results = await Promise.all(
             response.plans.map(async (plan) => {
-              const rows = await interpreter.run(plan as QueryPlanNode)
+              const rows = await interpreter.run(plan as QueryPlanNode, queryable)
               return { data: { [firstAction]: rows } }
             }),
           )
           break
         }
         case 'compacted': {
-          const rows = await interpreter.run(response.plan as QueryPlanNode)
+          const rows = await interpreter.run(response.plan as QueryPlanNode, queryable)
           results = this.#convertCompactedRows(rows as {}[], response, firstAction)
           break
         }

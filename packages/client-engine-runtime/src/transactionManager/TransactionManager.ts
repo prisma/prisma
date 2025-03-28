@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
@@ -39,26 +39,28 @@ export class TransactionManager {
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
   private readonly driverAdapter: SqlDriverAdapter
+  private readonly transactionOptions: Options
 
-  constructor({ driverAdapter }: { driverAdapter: SqlDriverAdapter }) {
+  constructor({ driverAdapter, transactionOptions }: { driverAdapter: SqlDriverAdapter; transactionOptions: Options }) {
     this.driverAdapter = driverAdapter
+    this.transactionOptions = transactionOptions
   }
 
-  async startTransaction(options: Options): Promise<TransactionInfo> {
-    const validatedOptions = this.validateOptions(options)
+  async startTransaction(options?: Options): Promise<TransactionInfo> {
+    const validatedOptions = options !== undefined ? this.validateOptions(options) : this.transactionOptions
 
     const transaction: TransactionWrapper = {
       id: await randomUUID(),
       status: 'waiting',
       timer: undefined,
-      timeout: validatedOptions.timeout,
+      timeout: validatedOptions.timeout!,
       startedAt: Date.now(),
       transaction: undefined,
     }
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
+    transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait!)
 
     let startedTransaction: Transaction
     try {
@@ -78,7 +80,7 @@ export class TransactionManager {
         transaction.status = 'running'
 
         // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout)
+        transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
 
         return { id: transaction.id }
       case 'timed_out':

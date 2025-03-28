@@ -120,3 +120,7 @@ export type QueryPlanNode =
         records: QueryPlanNode
       }
     }
+  | {
+      type: 'transaction'
+      args: QueryPlanNode
+    }
