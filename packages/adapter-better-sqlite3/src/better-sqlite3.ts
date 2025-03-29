@@ -101,6 +101,16 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
     try {
       const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
 
+      // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
+      if (!stmt.reader) {
+        stmt.run()
+        return {
+          columnNames: [],
+          declaredTypes: [],
+          values: [],
+        }
+      }
+
       const columns = stmt.columns()
 
       const resultSet = {
