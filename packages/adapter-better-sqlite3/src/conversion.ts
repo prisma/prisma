@@ -1,4 +1,4 @@
-import { ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
@@ -154,7 +154,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
     // Base64 would've been more efficient but would collide with the existing
     // logic that treats string values of type Bytes as raw UTF-8 bytes that was
     // implemented for other adapters.
-    if (value instanceof ArrayBuffer) {
+    if (value instanceof ArrayBuffer || value instanceof Buffer) {
       result[i] = Array.from(new Uint8Array(value))
       continue
     }
@@ -187,12 +187,41 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
   return result
 }
 
-export function mapQueryArgs(args: unknown[]): unknown[] {
-  return args.map((arg) => {
+export function mapQueryArgs(args: unknown[], argTypes: ArgType[]): unknown[] {
+  return args.map((arg, i) => {
+    const argType = argTypes[i]
+    if (argType === 'Int64') {
+      const asInt56 = Number.parseInt(arg as string)
+      if (!Number.isSafeInteger(asInt56)) {
+        throw new Error(`Invalid Int64-encoded value received: ${arg}`)
+      }
+
+      return asInt56
+    }
+
+    if (argType === 'Int32') {
+      return Number.parseInt(arg as string)
+    }
+
+    if (argType === 'Float' || argType === 'Double') {
+      return Number.parseFloat(arg as string)
+    }
+
     if (typeof arg === 'boolean') {
       return arg ? 1 : 0 // SQLite does not natively support booleans
     }
-    // TODO: double-check `Date` serialisation
+
+    if (arg instanceof Date) {
+      return arg
+        .toISOString()
+        .replace('T', ' ')
+        .replace(/\.\d{3}Z$/, '')
+    }
+
+    if (arg instanceof Uint8Array) {
+      return Buffer.from(arg)
+    }
+
     return arg
   })
 }
