@@ -5,7 +5,6 @@ import type {
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
-import { createClient } from '@libsql/client'
 import type {
   IsolationLevel,
   SqlDriverAdapter,
@@ -176,22 +175,20 @@ export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements S
   }
 }
 
-export class PrismaLibSQLAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+export abstract class PrismaLibSQLAdapterFactoryBase implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   constructor(private readonly config: LibSqlConfig) {}
 
   connect(): Promise<SqlDriverAdapter> {
-    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient(this.config)))
+    return Promise.resolve(new PrismaLibSQLAdapter(this.createClient(this.config)))
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
     // TODO: the user should be able to provide a custom URL for the shadow database
-    return Promise.resolve(new PrismaLibSQLAdapter(createLibSQLClient({ ...this.config, url: ':memory:' })))
+    return Promise.resolve(new PrismaLibSQLAdapter(this.createClient({ ...this.config, url: ':memory:' })))
   }
-}
 
-function createLibSQLClient(config: LibSqlConfig): StdClient {
-  return createClient(config)
+  abstract createClient(config: LibSqlConfig): StdClient
 }

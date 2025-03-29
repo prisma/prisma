@@ -2,18 +2,28 @@
   "name": "@prisma/adapter-libsql",
   "version": "0.0.0",
   "description": "Prisma's driver adapter for libSQL and Turso",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "main": "dist/index-node.js",
+  "module": "dist/index-node.mjs",
+  "types": "dist/index-node.d.ts",
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index-node.d.ts",
+        "default": "./dist/index-node.js"
       },
       "import": {
-        "types": "./dist/index.d.mts",
-        "default": "./dist/index.mjs"
+        "types": "./dist/index-node.d.mts",
+        "default": "./dist/index-node.mjs"
+      }
+    },
+    "./web": {
+      "require": {
+        "types": "./dist/index-web.d.ts",
+        "default": "./dist/index-web.js"
+      },
+      "import": {
+        "types": "./dist/index-web.d.mts",
+        "default": "./dist/index-web.mjs"
       }
     }
   },
@@ -24,7 +34,8 @@
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
-    "build": "tsx helpers/build.ts"
+    "build": "tsx helpers/build.ts",
+    "test": "jest"
   },
   "files": [
     "dist",
@@ -35,13 +46,12 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
+    "@libsql/client": "^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0",
     "@prisma/driver-adapter-utils": "workspace:*",
     "async-mutex": "0.5.0"
   },
   "devDependencies": {
-    "@libsql/client": "0.8.0"
-  },
-  "peerDependencies": {
-    "@libsql/client": "^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0"
+    "jest": "29.7.0",
+    "jest-junit": "16.0.0"
   }
 }
