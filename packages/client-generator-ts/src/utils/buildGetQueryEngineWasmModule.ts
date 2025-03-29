@@ -7,15 +7,15 @@ import { TSClientOptions } from '../TSClient/TSClient'
 export function buildQueryEngineWasmModule(
   wasm: boolean,
   copyEngine: boolean,
-  runtimeNameJs: TSClientOptions['runtimeNameJs'],
+  runtimeName: TSClientOptions['runtimeName'],
 ) {
-  if (copyEngine && runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
+  if (copyEngine && runtimeName === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
     return `config.engineWasm = {
       getRuntime: () => require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.wasm')
         const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
-      
+
         return new WebAssembly.Module(queryEngineWasmFileBytes)
       }
     }`
@@ -35,7 +35,7 @@ export function buildQueryEngineWasmModule(
   getQueryEngineWasmModule: async () => {
     const loader = (await import('#wasm-engine-loader')).default
     const engine = (await loader).default
-    return engine 
+    return engine
   }
 }`
   }
