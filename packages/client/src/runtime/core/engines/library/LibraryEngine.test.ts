@@ -46,7 +46,6 @@ function setupMockLibraryEngine() {
   const engine = new LibraryEngine(
     {
       dirname: __dirname,
-      datamodelPath: '/mock/schema.prisma',
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
       env: {},
@@ -126,7 +125,6 @@ test('responds to initialization error with PrismaClientInitializationError', as
   const engine = new LibraryEngine(
     {
       dirname: __dirname,
-      datamodelPath: '/mock/schema.prisma',
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
       env: {},

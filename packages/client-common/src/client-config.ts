@@ -22,7 +22,6 @@ export type GetPrismaClientConfig = {
   }
   relativePath: string
   dirname: string
-  filename?: string
   clientVersion: string
   engineVersion: string
   datasourceNames: string[]
