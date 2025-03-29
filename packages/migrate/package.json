@@ -54,6 +54,7 @@
     "@prisma/internals": "*"
   },
   "dependencies": {
+    "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",

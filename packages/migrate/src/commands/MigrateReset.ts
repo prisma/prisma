@@ -54,7 +54,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -87,10 +87,16 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-    if (wasDbCreated) {
-      process.stdout.write('\n' + wasDbCreated + '\n')
+    const adapter = await config.migrate?.adapter(process.env)
+
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+    if (!adapter) {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write('\n' + wasDbCreated + '\n')
+      }
     }
 
     process.stdout.write('\n')
@@ -114,7 +120,7 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
     let migrationIds: string[]
     try {

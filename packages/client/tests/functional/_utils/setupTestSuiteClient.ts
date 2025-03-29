@@ -180,7 +180,7 @@ export function setupTestSuiteClientDriverAdapter({
           const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
           const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
 
-          return new globalThis.WebAssembly.Module(queryEngineWasmFileBytes)
+          return new WebAssembly.Module(queryEngineWasmFileBytes)
         },
       }
       return config
@@ -193,7 +193,7 @@ export function setupTestSuiteClientDriverAdapter({
           const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm`)
           const queryCompilerWasmFileBytes = await readFile(queryCompilerWasmFilePath)
 
-          return new globalThis.WebAssembly.Module(queryCompilerWasmFileBytes)
+          return new WebAssembly.Module(queryCompilerWasmFileBytes)
         },
       }
       return config

@@ -26,7 +26,7 @@ export namespace MigrateTypes {
        * );
        * ```
        */
-      content: Tagged<'ok', { value: string }> | Tagged<'error', { value: Error }>
+      content: Tagged<'ok', { value: string }> | Tagged<'error', { value: string }>
     }
   }
 

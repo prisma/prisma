@@ -120,18 +120,16 @@ describe('listMigrations', () => {
       migrationFile: {
         content: {
           tag: 'error',
-          value: expect.any(Object),
+          value: expect.stringMatching(/EACCES: permission denied/),
         },
         path: 'migration.sql',
       },
       path: '20230101000000_non_readable',
     })
 
-    expect(migration1.migrationFile.content.value).toMatchObject({
-      code: 'EACCES',
-      errno: -13,
-      path: path.join(migrationsDirectoryPath, '20230101000000_non_readable', 'migration.sql'),
-    })
+    expect(migration1.migrationFile.content.value).toContain(
+      path.join(migrationsDirectoryPath, '20230101000000_non_readable', 'migration.sql'),
+    )
 
     expect(migration2).toMatchObject({
       migrationFile: {

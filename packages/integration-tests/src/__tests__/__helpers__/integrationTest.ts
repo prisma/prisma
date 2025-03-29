@@ -1,4 +1,4 @@
-import { SchemaEngine } from '@prisma/migrate'
+import { Migrate } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'
@@ -302,14 +302,14 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  const engine = new SchemaEngine({
-    projectDir: process.cwd(),
-  })
+  const migrate = await Migrate.setup({})
+  const engine = migrate.engine
   const introspectionResult = await engine.introspect({
     schema: {
       files: [{ path: 'schema.prisma', content: schemaBase }],
     },
     baseDirectoryPath: process.cwd(),
+    viewsDirectoryPath: '',
   })
 
   const prismaSchemaPath = ctx.fs.path('schema.prisma')

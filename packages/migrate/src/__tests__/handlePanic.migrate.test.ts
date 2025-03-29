@@ -97,7 +97,7 @@ describe('handlePanic migrate', () => {
 
     let error
     try {
-      const migrate = new Migrate(schemaContext, migrationsDirPath)
+      const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
       await migrate.createMigration({
         migrationName: 'setup',
         draft: false,
@@ -158,7 +158,7 @@ describe('handlePanic migrate', () => {
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
 
     try {
-      const migrate = new Migrate(schemaContext, migrationsDirPath)
+      const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
       await migrate.createMigration({
         migrationName: 'setup',
         draft: false,

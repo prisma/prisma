@@ -4,7 +4,7 @@ import { loadSchemaContext, pathToPosix, toSchemasContainer } from '@prisma/inte
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
-import { SchemaEngine } from '../../SchemaEngine'
+import { Migrate } from '../../Migrate'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 
@@ -86,7 +86,7 @@ describe('postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new SchemaEngine({})
+        const { engine } = await Migrate.setup({})
 
         const schemaContext = await loadSchemaContext()
 
@@ -108,7 +108,7 @@ describe('postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new SchemaEngine({})
+        const { engine } = await Migrate.setup({})
 
         const schemaContext = await loadSchemaContext()
 
@@ -135,7 +135,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const engine = new SchemaEngine({})
+        const { engine } = await Migrate.setup({})
 
         const schemaContext = await loadSchemaContext()
 
@@ -162,7 +162,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const engine = new SchemaEngine({})
+        const { engine } = await Migrate.setup({})
 
         const schemaContext = await loadSchemaContext()
 

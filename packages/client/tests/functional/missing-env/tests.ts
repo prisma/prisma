@@ -63,7 +63,8 @@ testMatrix.setupTestSuite(
       testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
         'PrismaClientInitializationError for missing env on edge on cloudflare',
         async () => {
-          globalThis.navigator = { userAgent: 'Cloudflare-Workers' }
+          const originalNavigator = globalThis.navigator
+          globalThis.navigator = { ...originalNavigator, userAgent: 'Cloudflare-Workers' }
 
           const prisma = newPrismaClient()
 
@@ -81,7 +82,8 @@ testMatrix.setupTestSuite(
           }
 
           expect.hasAssertions()
-          delete globalThis.navigator
+
+          globalThis.navigator = { ...originalNavigator }
         },
       )
 
