@@ -15,8 +15,7 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
-import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
-import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
+import { buildGetWasmModule } from '../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
@@ -31,7 +30,7 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
+export type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** The name of the runtime bundle to use */
@@ -42,8 +41,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
-  /** When we are generating a /wasm client */
-  wasm: boolean
 
   /** result of getEnvPaths call */
   envPaths: EnvPaths
@@ -61,7 +58,6 @@ export class TSClient implements Generable {
   public toJS(): string {
     const {
       edge,
-      wasm,
       binaryPaths,
       generator,
       outputDir,
@@ -72,6 +68,8 @@ export class TSClient implements Generable {
       deno,
       copyEngine = true,
       envPaths,
+      target,
+      activeProvider,
     } = this.options
 
     const relativeEnvPaths = {
@@ -140,8 +138,8 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
-${buildQueryEngineWasmModule(wasm, copyEngine, runtimeName)}
-${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeName)}
+${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider })}
+${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider })}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
 ${buildDebugInitialization(edge)}

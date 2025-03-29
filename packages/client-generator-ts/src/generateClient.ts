@@ -20,8 +20,9 @@ import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
 import { getPrismaClientDMMF } from './getDMMF'
-import { BrowserJS, JS, TS, TSClient } from './TSClient'
-import { TSClientOptions } from './TSClient/TSClient'
+import { RuntimeTarget } from './runtime-targets'
+import { TSClient } from './TSClient'
+import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 
 export class DenylistError extends Error {
@@ -52,6 +53,7 @@ export interface GenerateClientOptions {
   /** False when --no-engine is passed via CLI */
   copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
+  target: RuntimeTarget
 }
 
 export interface FileMap {
@@ -79,10 +81,14 @@ export function buildClient({
   copyEngine,
   envPaths,
   typedSql,
+  target,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
-  const baseClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
+
+  const runtimeName = getRuntimeNameForTarget(target, clientEngineType, generator.previewFeatures)
+
+  const clientOptions: TSClientOptions = {
     dmmf: getPrismaClientDMMF(dmmf),
     envPaths: envPaths ?? { rootEnvPath: null, schemaEnvPath: undefined },
     datasources,
@@ -99,98 +105,23 @@ export function buildClient({
     datamodel,
     browser: false,
     deno: false,
-    edge: false,
-    wasm: false,
+    edge: (['edge', 'wasm', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    runtimeName: runtimeName,
+    target,
   }
 
-  const nodeClientOptions = {
-    ...baseClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType),
+  if (runtimeName === 'react-native' && !generator.previewFeatures.includes('reactNative')) {
+    throw new Error(`Using the "react-native" runtime requires the "reactNative" preview feature to be enabled.`)
   }
 
-  // we create a regular client that is fit for Node.js
-  const nodeClient = new TSClient(nodeClientOptions)
-
-  const defaultClient = new TSClient({
-    ...nodeClientOptions,
-  })
-
-  // we create a client that is fit for edge runtimes
-  const edgeClient = new TSClient({
-    ...baseClientOptions,
-    runtimeName: 'edge',
-    edge: true,
-  })
-
-  // we create a client that is fit for react native runtimes
-  const rnTsClient = new TSClient({
-    ...baseClientOptions,
-    runtimeName: 'react-native',
-    edge: true,
-  })
+  const client = new TSClient(clientOptions)
 
   // we store the generated contents here
   const fileMap: FileMap = {}
-  fileMap['index.js'] = JS(nodeClient)
-  fileMap['index.d.ts'] = TS(nodeClient)
-  fileMap['default.js'] = JS(defaultClient)
-  fileMap['default.d.ts'] = TS(defaultClient)
-  fileMap['index-browser.js'] = BrowserJS(nodeClient)
-  fileMap['edge.js'] = JS(edgeClient)
-  fileMap['edge.d.ts'] = TS(edgeClient)
-  fileMap['client.js'] = JS(defaultClient)
-  fileMap['client.d.ts'] = TS(defaultClient)
+  fileMap['index.js'] = client.toJS()
+  fileMap['index.d.ts'] = client.toTS()
 
-  if (generator.previewFeatures.includes('reactNative')) {
-    fileMap['react-native.js'] = JS(rnTsClient)
-    fileMap['react-native.d.ts'] = TS(rnTsClient)
-  }
-
-  const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
-
-  if (usesWasmRuntime) {
-    const usesClientEngine = clientEngineType === ClientEngineType.Client
-
-    if (usesClientEngine) {
-      fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
-      fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
-    } else {
-      fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
-      fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
-    }
-
-    const wasmClient = new TSClient({
-      ...baseClientOptions,
-      runtimeName: 'wasm',
-      edge: true,
-      wasm: true,
-    })
-
-    fileMap['wasm.js'] = JS(wasmClient)
-    fileMap['wasm.d.ts'] = TS(wasmClient)
-  } else {
-    fileMap['wasm.js'] = fileMap['index-browser.js']
-    fileMap['wasm.d.ts'] = fileMap['default.d.ts']
-  }
-
-  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    // we create a client that is fit for edge runtimes
-    const denoEdgeClient = new TSClient({
-      ...baseClientOptions,
-      runtimeBase: `../${runtimeBase}`,
-      runtimeName: 'edge',
-      deno: true,
-      edge: true,
-    })
-
-    fileMap['deno/edge.js'] = JS(denoEdgeClient)
-    fileMap['deno/index.d.ts'] = TS(denoEdgeClient)
-    fileMap['deno/edge.ts'] = `
-import './polyfill.js'
-// @deno-types="./index.d.ts"
-export * from './edge.js'`
-    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
-  }
+  const usesWasmRuntimeOnEdge = generator.previewFeatures.includes('driverAdapters')
 
   if (typedSql && typedSql.length > 0) {
     fileMap['sql'] = buildTypedSql({
@@ -198,7 +129,7 @@ export * from './edge.js'`
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
       mainRuntimeName: getNodeRuntimeName(clientEngineType),
       queries: typedSql,
-      edgeRuntimeName: usesWasmRuntime ? 'wasm' : 'edge',
+      edgeRuntimeName: usesWasmRuntimeOnEdge ? 'wasm' : 'edge',
     })
   }
 
@@ -239,6 +170,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     envPaths,
     copyEngine = true,
     typedSql,
+    target,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -260,6 +192,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     copyEngine,
     envPaths,
     typedSql,
+    target,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -280,10 +213,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await deleteOutputDir(outputDir)
   await ensureDir(outputDir)
-
-  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    await ensureDir(path.join(outputDir, 'deno'))
-  }
 
   await writeFileMap(outputDir, fileMap)
 
@@ -451,6 +380,34 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
   }
 }
 
+function getRuntimeNameForTarget(
+  target: RuntimeTarget,
+  engineType: ClientEngineType,
+  previewFeatures: string[],
+): RuntimeName {
+  switch (target) {
+    case 'nodejs':
+    case 'deno':
+    case 'bun':
+      return getNodeRuntimeName(engineType)
+
+    case 'workerd':
+    case 'edge-light':
+    case 'deno-deploy':
+      if (previewFeatures.includes('driverAdapters')) {
+        return 'wasm'
+      } else {
+        return 'edge'
+      }
+
+    case 'react-native':
+      return 'react-native'
+
+    default:
+      assertNever(target, 'Unknown runtime target')
+  }
+}
+
 function getNodeRuntimeName(engineType: ClientEngineType) {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
@@ -482,7 +439,7 @@ async function deleteOutputDir(outputDir: string) {
     }
 
     // TODO: replace with `client.ts`
-    if (!files.includes('client.d.ts')) {
+    if (!files.includes('index.d.ts')) {
       // Make sure users don't accidentally wipe their source code or home directory.
       throw new Error(
         `${outputDir} exists and is not empty but doesn't look like a generated Prisma Client. ` +
