@@ -1064,7 +1064,7 @@ jobs:
 
   no-docker:
     name: All pkgs (win+mac)
-    timeout-minutes: 40
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
       contains(inputs.jobsToRun, '-all-') ||

@@ -31,22 +31,11 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm'
-  | 'edge'
-  | 'edge-esm'
-  | 'index-browser'
-  | 'react-native'
-  | 'client'
-  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
-  /** More granular way to define JS runtime name */
-  runtimeNameJs: RuntimeName
-  /** More granular way to define TS runtime name */
-  runtimeNameTs: RuntimeName
+  /** The name of the runtime bundle to use */
+  runtimeName: RuntimeName
   /** When generating the browser client */
   browser: boolean
   /** When generating via the Deno CLI */
@@ -55,10 +44,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   edge: boolean
   /** When we are generating a /wasm client */
   wasm: boolean
-  /** When types don't need to be regenerated */
-  reusedTs?: string // the entrypoint to reuse
-  /** When js doesn't need to be regenerated */
-  reusedJs?: string // the entrypoint to reuse
 
   /** result of getEnvPaths call */
   envPaths: EnvPaths
@@ -82,17 +67,12 @@ export class TSClient implements Generable {
       outputDir,
       datamodel: inlineSchema,
       runtimeBase,
-      runtimeNameJs,
+      runtimeName,
       datasources,
       deno,
       copyEngine = true,
-      reusedJs,
       envPaths,
     } = this.options
-
-    if (reusedJs) {
-      return `module.exports = { ...require('${reusedJs}') }`
-    }
 
     const relativeEnvPaths = {
       rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
@@ -159,11 +139,11 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
-${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
+${buildQueryEngineWasmModule(wasm, copyEngine, runtimeName)}
+${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeName)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
+${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -174,15 +154,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
   }
 
   public toTS(): string {
-    const { reusedTs } = this.options
-
-    // in some cases, we just re-export the existing types
-    if (reusedTs) {
-      const topExports = ts.moduleExportFrom(`./${reusedTs}`)
-
-      return ts.stringify(topExports)
-    }
-
     const context = new GenerateContext({
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
@@ -193,7 +164,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       context,
       this.options.datasources,
       this.options.outputDir,
-      this.options.runtimeNameTs,
+      this.options.runtimeName,
       this.options.browser,
     )
 
@@ -345,7 +316,7 @@ export const dmmf: runtime.BaseDMMF
   public toBrowserJS(): string {
     const code = `${commonCodeJS({
       ...this.options,
-      runtimeNameJs: 'index-browser',
+      runtimeName: 'index-browser',
       browser: true,
     })}
 /**

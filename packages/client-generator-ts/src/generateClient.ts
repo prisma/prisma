@@ -82,7 +82,7 @@ export function buildClient({
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
-  const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
+  const baseClientOptions: Omit<TSClientOptions, 'runtimeName'> = {
     dmmf: getPrismaClientDMMF(dmmf),
     envPaths: envPaths ?? { rootEnvPath: null, schemaEnvPath: undefined },
     datasources,
@@ -105,8 +105,7 @@ export function buildClient({
 
   const nodeClientOptions = {
     ...baseClientOptions,
-    runtimeNameJs: getNodeRuntimeName(clientEngineType),
-    runtimeNameTs: `${getNodeRuntimeName(clientEngineType)}.js`,
+    runtimeName: getNodeRuntimeName(clientEngineType),
   }
 
   // we create a regular client that is fit for Node.js
@@ -114,24 +113,19 @@ export function buildClient({
 
   const defaultClient = new TSClient({
     ...nodeClientOptions,
-    reusedTs: 'index',
-    reusedJs: '.',
   })
 
   // we create a client that is fit for edge runtimes
   const edgeClient = new TSClient({
     ...baseClientOptions,
-    runtimeNameJs: 'edge',
-    runtimeNameTs: 'library.js',
-    reusedTs: 'default',
+    runtimeName: 'edge',
     edge: true,
   })
 
   // we create a client that is fit for react native runtimes
   const rnTsClient = new TSClient({
     ...baseClientOptions,
-    runtimeNameJs: 'react-native',
-    runtimeNameTs: 'react-native',
+    runtimeName: 'react-native',
     edge: true,
   })
 
@@ -167,9 +161,7 @@ export function buildClient({
 
     const wasmClient = new TSClient({
       ...baseClientOptions,
-      runtimeNameJs: 'wasm',
-      runtimeNameTs: 'library.js',
-      reusedTs: 'default',
+      runtimeName: 'wasm',
       edge: true,
       wasm: true,
     })
@@ -186,8 +178,7 @@ export function buildClient({
     const denoEdgeClient = new TSClient({
       ...baseClientOptions,
       runtimeBase: `../${runtimeBase}`,
-      runtimeNameJs: 'edge-esm',
-      runtimeNameTs: 'library.d.ts',
+      runtimeName: 'edge',
       deno: true,
       edge: true,
     })

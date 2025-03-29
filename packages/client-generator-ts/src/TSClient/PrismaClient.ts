@@ -398,7 +398,7 @@ function runCommandRawDefinition(context: GenerateContext) {
 }
 
 function applyPendingMigrationsDefinition(this: PrismaClientClass) {
-  if (this.runtimeNameTs !== 'react-native') {
+  if (this.runtimeName !== 'react-native') {
     return null
   }
 
@@ -412,8 +412,8 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
-  if (runtimeNameTs === 'binary.js') {
+function eventRegistrationMethodDeclaration(runtimeName: TSClientOptions['runtimeName']) {
+  if (runtimeName === 'binary') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
@@ -425,7 +425,7 @@ export class PrismaClientClass implements Generable {
     protected readonly context: GenerateContext,
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
-    protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
+    protected readonly runtimeName: TSClientOptions['runtimeName'],
     protected readonly browser?: boolean,
   ) {}
   private get jsDoc(): string {
@@ -472,7 +472,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.runtimeNameTs)}
+  ${eventRegistrationMethodDeclaration(this.runtimeName)}
 
   /**
    * Connect with the database
@@ -679,7 +679,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
     )
 
-    if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
+    if (['library', 'client'].includes(this.runtimeName) && this.context.isPreviewFeatureOn('driverAdapters')) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
