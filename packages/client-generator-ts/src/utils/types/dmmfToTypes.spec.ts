@@ -22,5 +22,5 @@ it('should get types without errors', async () => {
   const dmmf = await getDMMF({ datamodel: schema })
   const types = dmmfToTypes(dmmf)
 
-  expect(types).toContain('PrismaClient<')
+  expect(types).toContain("export { PrismaClient } from './class'")
 })

@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import { klona } from 'klona'
 
 import type { DMMFHelper } from '../dmmf'
+import { InputField } from '../TSClient'
 import {
   extArgsParam,
   getAggregateArgsName,
@@ -13,6 +14,7 @@ import {
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
+  getCountOutputTypeName,
   getCreateManyAndReturnOutputType,
   getFieldArgName,
   getFieldRefsTypeName,
@@ -31,12 +33,20 @@ import {
   getSumAggregateName,
   getUpdateManyAndReturnOutputType,
 } from '../utils'
-import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
+import { Count } from './Count'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
-import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
+import {
+  getArgFieldJSDoc,
+  getMethodJSDoc,
+  getMethodJSDocBody,
+  omit,
+  prismaPromise,
+  promise,
+  wrapComment,
+} from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
 import { buildOutputType } from './Output'
@@ -50,6 +60,7 @@ export class Model implements Generable {
   protected updateManyAndReturnType: undefined | DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
+
   constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
     this.dmmf = context.dmmf
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
@@ -57,6 +68,10 @@ export class Model implements Generable {
     this.createManyAndReturnType = this.context.dmmf.outputTypeMap.model[getCreateManyAndReturnOutputType(model.name)]
     this.updateManyAndReturnType = this.context.dmmf.outputTypeMap.model[getUpdateManyAndReturnOutputType(model.name)]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
+  }
+
+  public fileName(): string {
+    return `${this.model.name}.ts`
   }
 
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
@@ -174,7 +189,7 @@ export class Model implements Generable {
     return `
 
 
-export type ${groupByArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+export type ${groupByArgsName}<ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs> = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -202,18 +217,19 @@ ${ts.stringify(buildOutputType(groupByType))}
 
 type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma.PrismaPromise<
   Array<
-    PickEnumerable<${groupByType.name}, T['by']> &
+    Prisma.PickEnumerable<${groupByType.name}, T['by']> &
       {
         [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count'
           ? T[P] extends boolean
             ? number
-            : GetScalarType<T[P], ${groupByType.name}[P]>
-          : GetScalarType<T[P], ${groupByType.name}[P]>
+            : Prisma.GetScalarType<T[P], ${groupByType.name}[P]>
+          : Prisma.GetScalarType<T[P], ${groupByType.name}[P]>
       }
     >
-  >
+  > 
 `
   }
+
   private getAggregationTypes() {
     const { model, mapping } = this
     let aggregateType = this.dmmf.outputTypeMap.prisma[getAggregateName(model.name)]
@@ -291,7 +307,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+export type ${aggregateArgsName}<ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs> = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -320,10 +336,45 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       [P in keyof T & keyof ${aggregateName}]: P extends '_count' | 'count'
     ? T[P] extends true
       ? number
-      : GetScalarType<T[P], ${aggregateName}[P]>
-    : GetScalarType<T[P], ${aggregateName}[P]>
+      : Prisma.GetScalarType<T[P], ${aggregateName}[P]>
+    : Prisma.GetScalarType<T[P], ${aggregateName}[P]>
 }`
   }
+
+  private getDeepInputTypes() {
+    return this.dmmf.inputObjectTypes.prisma
+      ?.reduce((acc, inputType) => {
+        if (inputType.meta?.grouping !== this.model.name) return acc
+
+        if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+          const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(inputType)
+          const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
+          const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
+          // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
+          const baseName = `Required<${innerName}>`
+          acc.push(`export type ${typeName} = 
+| Prisma.PatchUndefined<
+    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
+    ${baseName}
+  >
+| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>`)
+          acc.push(new InputType(inputType, this.context).overrideName(`${inputType.name}Base`).toTS())
+        } else {
+          acc.push(new InputType(inputType, this.context).toTS())
+        }
+        return acc
+      }, [] as string[])
+      .join('\n')
+  }
+
+  private getCountTypes() {
+    const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
+      ?.filter((t) => t.name === getCountOutputTypeName(this.model.name))
+      .map((t) => new Count(t, this.context))
+
+    return countTypes.map((t) => t.toTS()).join('\n')
+  }
+
   public toTSWithoutNamespace(): string {
     const { model } = this
 
@@ -335,13 +386,16 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       .moduleExport(
         ts.typeDeclaration(
           model.name,
-          ts.namedType(`$Result.DefaultSelection`).addGenericArgument(ts.namedType(getPayloadName(model.name))),
+          ts
+            .namedType(`$Runtime.Types.Result.DefaultSelection`)
+            .addGenericArgument(ts.namedType(getPayloadName(model.name))),
         ),
       )
       .setDocComment(ts.docComment(docs))
 
     return ts.stringify(modelTypeExport)
   }
+
   public toTS(): string {
     const { model } = this
     const isComposite = this.dmmf.isComposite(model.name)
@@ -402,6 +456,10 @@ ${!isComposite ? this.getAggregationTypes() : ''}
 
 ${!isComposite ? this.getGroupByTypes() : ''}
 
+${this.getDeepInputTypes()}
+
+${this.getCountTypes()}
+
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields, context: this.context }))}
 ${
   this.createManyAndReturnType
@@ -438,7 +496,7 @@ ${ts.stringify(buildModelPayload(this.model, this.context), { newLine: 'none' })
 
 type ${model.name}GetPayload<S extends boolean | null | undefined | ${getModelArgName(
       model.name,
-    )}> = $Result.GetResult<${getPayloadName(model.name)}, S>
+    )}> = $Runtime.Types.Result.GetResult<${getPayloadName(model.name)}, S>
 
 ${isComposite ? '' : new ModelDelegate(this.type, this.context).toTS()}
 
@@ -449,6 +507,7 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 `
   }
 }
+
 export class ModelDelegate implements Generable {
   constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
@@ -491,7 +550,7 @@ export class ModelDelegate implements Generable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    ? `export type ${countArgsName}<ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs> =
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, ${excludedArgsForCountType}> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
@@ -511,12 +570,12 @@ ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, modelOrType), TAB_SIZE)}
   count<T extends ${countArgsName}>(
-    args?: Subset<T, ${countArgsName}>,
+    args?: Prisma.Subset<T, ${countArgsName}>,
   ): Prisma.PrismaPromise<
-    T extends $Utils.Record<'select', any>
+    T extends $Runtime.Types.Utils.Record<'select', any>
       ? T['select'] extends true
         ? number
-        : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
+        : Prisma.GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
       : number
   >
 `
@@ -525,7 +584,7 @@ ${
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
-  aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
+  aggregate<T extends ${getAggregateArgsName(name)}>(args: Prisma.Subset<T, ${getAggregateArgsName(
         name,
       )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
 `
@@ -536,22 +595,22 @@ ${
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, modelOrType), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
-    HasSelectOrTake extends Or<
-      Extends<'skip', Keys<T>>,
-      Extends<'take', Keys<T>>
+    HasSelectOrTake extends Prisma.Or<
+      Prisma.Extends<'skip', Prisma.Keys<T>>,
+      Prisma.Extends<'take', Prisma.Keys<T>>
     >,
-    OrderByArg extends True extends HasSelectOrTake
+    OrderByArg extends Prisma.True extends HasSelectOrTake
       ? { orderBy: ${groupByArgsName}['orderBy'] }
       : { orderBy?: ${groupByArgsName}['orderBy'] },
-    OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-    ByFields extends MaybeTupleToUnion<T['by']>,
-    ByValid extends Has<ByFields, OrderFields>,
-    HavingFields extends GetHavingFields<T['having']>,
-    HavingValid extends Has<ByFields, HavingFields>,
-    ByEmpty extends T['by'] extends never[] ? True : False,
-    InputErrors extends ByEmpty extends True
+    OrderFields extends Prisma.ExcludeUnderscoreKeys<Prisma.Keys<Prisma.MaybeTupleToUnion<T['orderBy']>>>,
+    ByFields extends Prisma.MaybeTupleToUnion<T['by']>,
+    ByValid extends Prisma.Has<ByFields, OrderFields>,
+    HavingFields extends Prisma.GetHavingFields<T['having']>,
+    HavingValid extends Prisma.Has<ByFields, HavingFields>,
+    ByEmpty extends T['by'] extends never[] ? Prisma.True : Prisma.False,
+    InputErrors extends ByEmpty extends Prisma.True
     ? \`Error: "by" must not be empty.\`
-    : HavingValid extends False
+    : HavingValid extends Prisma.False
     ? {
         [P in HavingFields]: P extends ByFields
           ? never
@@ -564,9 +623,9 @@ ${
               \` in "having" needs to be provided in "by"\`,
             ]
       }[HavingFields]
-    : 'take' extends Keys<T>
-    ? 'orderBy' extends Keys<T>
-      ? ByValid extends True
+    : 'take' extends Prisma.Keys<T>
+    ? 'orderBy' extends Prisma.Keys<T>
+      ? ByValid extends Prisma.True
         ? {}
         : {
             [P in OrderFields]: P extends ByFields
@@ -574,9 +633,9 @@ ${
               : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
           }[OrderFields]
       : 'Error: If you provide "take", you also need to provide "orderBy"'
-    : 'skip' extends Keys<T>
-    ? 'orderBy' extends Keys<T>
-      ? ByValid extends True
+    : 'skip' extends Prisma.Keys<T>
+    ? 'orderBy' extends Prisma.Keys<T>
+      ? ByValid extends Prisma.True
         ? {}
         : {
             [P in OrderFields]: P extends ByFields
@@ -584,14 +643,14 @@ ${
               : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
           }[OrderFields]
       : 'Error: If you provide "skip", you also need to provide "orderBy"'
-    : ByValid extends True
+    : ByValid extends Prisma.True
     ? {}
     : {
         [P in OrderFields]: P extends ByFields
           ? never
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
-  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
+  >(args: Prisma.SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
         name,
       )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
@@ -627,7 +686,7 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
 function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
   const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
   if (actionName === DMMF.ModelAction.count) {
-    const type = ts.omit(
+    const type = omit(
       ts.namedType(getModelArgName(modelName, DMMF.ModelAction.findMany)),
       ts
         .unionType(ts.stringLiteral('select'))
@@ -637,11 +696,11 @@ function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelActi
     return makeParameter(type).optional()
   }
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return makeParameter(ts.namedType(getModelArgName(modelName, actionName))).optional()
+    return makeParameter(ts.namedType(`Prisma.${getModelArgName(modelName, actionName)}`)).optional()
   }
 
   const type = ts
-    .namedType('SelectSubset')
+    .namedType('Prisma.SelectSubset')
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(
       ts.namedType(getModelArgName(modelName, actionName)).addGenericArgument(extArgsParam.toArgument()),
@@ -696,14 +755,14 @@ export function getReturnType({
   isNullable = false,
 }: GetReturnTypeOptions): ts.TypeBuilder {
   if (actionName === DMMF.ModelAction.count) {
-    return ts.promise(ts.numberType)
+    return promise(ts.numberType)
   }
   if (actionName === DMMF.ModelAction.aggregate) {
-    return ts.promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
+    return promise(ts.namedType(getAggregateGetName(modelName)).addGenericArgument(ts.namedType('T')))
   }
 
   if (actionName === DMMF.ModelAction.findRaw || actionName === DMMF.ModelAction.aggregateRaw) {
-    return ts.prismaPromise(ts.namedType('JsonObject'))
+    return prismaPromise(ts.namedType('$Runtime.JsonObject'))
   }
 
   if (
@@ -711,7 +770,7 @@ export function getReturnType({
     actionName === DMMF.ModelAction.updateMany ||
     actionName === DMMF.ModelAction.createMany
   ) {
-    return ts.prismaPromise(ts.namedType('BatchPayload'))
+    return ts.prismaPromise(ts.namedType('Prisma.BatchPayload'))
   }
 
   const isList =
@@ -747,7 +806,7 @@ export function getReturnType({
 
 function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullType: ts.TypeBuilder = ts.neverType) {
   return ts
-    .namedType(fluentWrapperName(modelName))
+    .namedType(`Prisma.${fluentWrapperName(modelName)}`)
     .addGenericArgument(resultType)
     .addGenericArgument(nullType)
     .addGenericArgument(extArgsParam.toArgument())
@@ -756,7 +815,7 @@ function getFluentWrapper(modelName: string, resultType: ts.TypeBuilder, nullTyp
 
 function getResultType(modelName: string, actionName: DMMF.ModelAction) {
   return ts
-    .namedType('$Result.GetResult')
+    .namedType('$Runtime.Types.Result.GetResult')
     .addGenericArgument(ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument()))
     .addGenericArgument(ts.namedType('T'))
     .addGenericArgument(ts.stringLiteral(actionName))
@@ -783,7 +842,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       )
       .map((field) => {
         const fieldArgType = ts
-          .namedType(getFieldArgName(field, modelName))
+          .namedType(`Prisma.${getFieldArgName(field, modelName)}`)
           .addGenericArgument(extArgsParam.toArgument())
 
         const argsParam = ts.genericParameter('T').extends(fieldArgType).default(ts.objectType())
@@ -817,7 +876,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       .addGenericParameter(ts.genericParameter('TResult2').default(ts.neverType))
       .addParameter(promiseCallback('onfulfilled', ts.parameter('value', ts.namedType('T')), ts.namedType('TResult1')))
       .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult2')))
-      .setReturnType(ts.promise(ts.unionType([ts.namedType('TResult1'), ts.namedType('TResult2')]))),
+      .setReturnType(promise(ts.unionType([ts.namedType('TResult1'), ts.namedType('TResult2')]))),
   )
 
   definition.add(
@@ -832,7 +891,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       )
       .addGenericParameter(ts.genericParameter('TResult').default(ts.neverType))
       .addParameter(promiseCallback('onrejected', ts.parameter('reason', ts.anyType), ts.namedType('TResult')))
-      .setReturnType(ts.promise(ts.unionType([ts.namedType('T'), ts.namedType('TResult')]))),
+      .setReturnType(promise(ts.unionType([ts.namedType('T'), ts.namedType('TResult')]))),
   )
 
   definition.add(
@@ -849,7 +908,7 @@ function buildFluentWrapperDefinition(modelName: string, outputType: DMMF.Output
       .addParameter(
         ts.parameter('onfinally', ts.unionType([ts.functionType(), ts.undefinedType, ts.nullType])).optional(),
       )
-      .setReturnType(ts.promise(ts.namedType('T'))),
+      .setReturnType(promise(ts.namedType('T'))),
   )
 
   return ts.moduleExport(definition).setDocComment(ts.docComment`
@@ -878,7 +937,7 @@ function typeOrPromiseLike(type: ts.TypeBuilder) {
 }
 
 function subset(arg: ts.TypeBuilder, baseType: ts.TypeBuilder) {
-  return ts.namedType('Subset').addGenericArgument(arg).addGenericArgument(baseType)
+  return ts.namedType('Prisma.Subset').addGenericArgument(arg).addGenericArgument(baseType)
 }
 
 function fluentWrapperName(modelName: string) {

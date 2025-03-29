@@ -42,12 +42,12 @@ export function buildOmitType({ modelName, fields, context }: BuildOmitTypeParam
   )
 
   const omitType = ts
-    .namedType('$Extensions.GetOmit')
+    .namedType('$Runtime.Types.Extensions.GetOmit')
     .addGenericArgument(keysType)
     .addGenericArgument(modelResultExtensionsType(modelName))
 
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    omitType.addGenericArgument(ts.namedType('$Types.Skip'))
+    omitType.addGenericArgument(ts.namedType('$Runtime.Types.Skip'))
   }
 
   return buildExport(getOmitName(modelName), omitType)
@@ -68,7 +68,7 @@ export function buildSelectType({
 }: BuildSelectTypeParams) {
   const objectType = buildSelectOrIncludeObject(modelName, fields, context)
   const selectType = ts
-    .namedType('$Extensions.GetSelect')
+    .namedType('$Runtime.Types.Extensions.GetSelect')
     .addGenericArgument(objectType)
     .addGenericArgument(modelResultExtensionsType(modelName))
 
@@ -95,7 +95,7 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
   for (const field of fields) {
     const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType>(ts.booleanType)
     if (field.outputType.location === 'outputObjectTypes') {
-      const subSelectType = ts.namedType(getFieldArgName(field, modelName))
+      const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
       subSelectType.addGenericArgument(extArgsParam.toArgument())
 
       fieldType.addVariant(subSelectType)

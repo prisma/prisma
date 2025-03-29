@@ -44,6 +44,10 @@ export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
 
+export function getCountOutputTypeName(modelName: string): string {
+  return `${capitalize(modelName)}CountOutputType`
+}
+
 export function getGroupByName(modelName: string): string {
   return `${capitalize(modelName)}GroupByOutputType`
 }
@@ -189,12 +193,12 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    return ts.unionType([type, ts.namedType('$Types.Skip')])
+    return ts.unionType([type, ts.namedType('$Runtime.Types.Skip')])
   }
   return type
 }
 
 export const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.InternalArgs'))
-  .default(ts.namedType('$Extensions.DefaultArgs'))
+  .extends(ts.namedType('$Runtime.Types.Extensions.InternalArgs'))
+  .default(ts.namedType('$Runtime.Types.Extensions.DefaultArgs'))

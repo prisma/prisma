@@ -138,75 +138,69 @@ In case this error is unexpected for you, please report it in https://pris.ly/pr
   return fnc
 }
 
-export const commonCodeTS = ({
-  runtimeBase,
-  runtimeNameTs,
-  clientVersion,
-  engineVersion,
-  generator,
-}: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeNameTs}';
-import $Types = runtime.Types // general types
-import $Public = runtime.Types.Public
-import $Utils = runtime.Types.Utils
-import $Extensions = runtime.Types.Extensions
-import $Result = runtime.Types.Result
+export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions) => ({
+  ts: () => `export type DMMF = typeof $Runtime.DMMF
 
-export type PrismaPromise<T> = $Public.PrismaPromise<T>
-`,
-  ts: () => `export import DMMF = runtime.DMMF
-
-export type PrismaPromise<T> = $Public.PrismaPromise<T>
+export type PrismaPromise<T> = $Runtime.Types.Public.PrismaPromise<T>
 
 /**
  * Validator
  */
-export import validator = runtime.Public.validator
+export type validator = typeof $Runtime.Public.validator
 
 /**
  * Prisma Errors
  */
-export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export import PrismaClientValidationError = runtime.PrismaClientValidationError
+export const PrismaClientKnownRequestError: $Runtime.PrismaClientKnownRequestError
+export const PrismaClientUnknownRequestError: $Runtime.PrismaClientUnknownRequestError
+export const PrismaClientRustPanicError: $Runtime.PrismaClientRustPanicError
+export const PrismaClientInitializationError: $Runtime.PrismaClientInitializationError
+export const PrismaClientValidationError: $Runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
  */
-export import sql = runtime.sqltag
-export import empty = runtime.empty
-export import join = runtime.join
-export import raw = runtime.raw
-export import Sql = runtime.Sql
+export const sql: typeof $Runtime.sqltag
+export const empty: typeof $Runtime.empty
+export const join: typeof $Runtime.join
+export const raw: typeof $Runtime.raw
+export type Sql = $Runtime.Sql
 
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
 /**
+ * JSON Types
+ */
+export type JsonObject = $Runtime.JsonObject
+export type JsonArray = $Runtime.JsonArray
+export type JsonValue = $Runtime.JsonValue
+export type InputJsonObject = $Runtime.InputJsonObject
+export type InputJsonArray = $Runtime.InputJsonArray
+export type InputJsonValue = $Runtime.InputJsonValue
+
+/**
  * Decimal.js
  */
-export import Decimal = runtime.Decimal
-
-export type DecimalJsLike = runtime.DecimalJsLike
+export type Decimal = $Runtime.Decimal
+export type DecimalJsLike = $Runtime.DecimalJsLike
 
 /**
  * Metrics
  */
-export type Metrics = runtime.Metrics
-export type Metric<T> = runtime.Metric<T>
-export type MetricHistogram = runtime.MetricHistogram
-export type MetricHistogramBucket = runtime.MetricHistogramBucket
+export type Metrics = $Runtime.Metrics
+export type Metric<T> = $Runtime.Metric<T>
+export type MetricHistogram = $Runtime.MetricHistogram
+export type MetricHistogramBucket = $Runtime.MetricHistogramBucket
 
 /**
 * Extensions
 */
-export import Extension = $Extensions.UserArgs
-export import getExtensionContext = runtime.Extensions.getExtensionContext
-export import Args = $Public.Args
-export import Payload = $Public.Payload
-export import Result = $Public.Result
-export import Exact = $Public.Exact
+export type Extension = $Runtime.Types.Extensions.UserArgs
+export type getExtensionContext = typeof $Runtime.Extensions.getExtensionContext
+export type Args<T, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Args<T, F>
+export type Payload<T, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Payload<T, F>
+export type Result<T, A, F extends $Runtime.Types.Public.Operation> = $Runtime.Types.Public.Result<T, A, F>
+export type Exact<A, W> = $Runtime.Types.Public.Exact<A, W>
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -222,20 +216,12 @@ export const prismaVersion: PrismaVersion
  * Utility Types
  */
 
-
-export import JsonObject = runtime.JsonObject
-export import JsonArray = runtime.JsonArray
-export import JsonValue = runtime.JsonValue
-export import InputJsonObject = runtime.InputJsonObject
-export import InputJsonArray = runtime.InputJsonArray
-export import InputJsonValue = runtime.InputJsonValue
-
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-namespace NullTypes {
+export namespace NullTypes {
 ${buildNullClass('DbNull')}
 
 ${buildNullClass('JsonNull')}
@@ -282,7 +268,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 /**
  * Get the return type of a function which returns a Promise.
  */
-export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => $Runtime.Types.Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
 /**
  * From T, pick a set of properties whose keys are in the union K
@@ -341,7 +327,7 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
  * XOR is needed to have a real mutually exclusive union type
  * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
  */
-type XOR<T, U> =
+export type XOR<T, U> =
   T extends object ?
   U extends object ?
     (Without<T, U> & U) | (Without<U, T> & T)
@@ -392,7 +378,7 @@ type _Either<
   0: EitherLoose<O, K>
 }[strict]
 
-type Either<
+export type Either<
   O extends object,
   K extends Key,
   strict extends Boolean = 1
@@ -400,7 +386,7 @@ type Either<
 
 export type Union = any
 
-type PatchUndefined<O extends object, O1 extends object> = {
+export type PatchUndefined<O extends object, O1 extends object> = {
   [K in keyof O]: O[K] extends undefined ? At<O1, K> : O[K]
 } & {}
 
@@ -444,7 +430,7 @@ type _Record<K extends keyof any, T> = {
 type NoExpand<T> = T extends unknown ? T : never;
 
 // this type assumes the passed object is entirely optional
-type AtLeast<O extends object, K extends string> = NoExpand<
+export type AtLeast<O extends object, K extends string> = NoExpand<
   O extends unknown
   ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
     | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
@@ -521,7 +507,7 @@ type FieldPaths<
   U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
 > = IsObject<T> extends True ? U : T
 
-type GetHavingFields<T> = {
+export type GetHavingFields<T> = {
   [K in keyof T]: Or<
     Or<Extends<'OR', K>, Extends<'AND', K>>,
     Extends<'NOT', K>
@@ -542,20 +528,20 @@ type GetHavingFields<T> = {
  */
 type _TupleToUnion<T> = T extends (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
-type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
+export type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
  * Like \`Pick\`, but additionally can also accept an array of keys
  */
-type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
+export type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
 /**
  * Exclude all keys with underscores
  */
-type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
+export type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
-export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
+export type FieldRef<Model, FieldType> = $Runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
@@ -583,7 +569,7 @@ function buildPrismaSkipTs(previewFeatures: string[]) {
 /**
  * Prisma.skip
  */
-export import skip = runtime.skip
+export const skip: $Runtime.Types.Skip
 `
   }
 

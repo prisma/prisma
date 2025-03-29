@@ -11,6 +11,7 @@ import { buildOutputType } from './Output'
 
 export class Count implements Generable {
   constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
+
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
 
@@ -31,6 +32,7 @@ export class Count implements Generable {
 
     return argsTypes
   }
+
   public toTS(): string {
     const { type } = this
     const { name } = type
@@ -43,7 +45,9 @@ export class Count implements Generable {
 
 ${ts.stringify(outputType)}
 
-export type ${getSelectName(name)}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+export type ${getSelectName(
+      name,
+    )}<ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs> = {
 ${indent(
   type.fields
     .map((field) => {
@@ -66,7 +70,6 @@ ${indent(
 )}
 }
 
-// Custom InputTypes
 ${this.argsTypes.map((typeExport) => ts.stringify(typeExport)).join('\n\n')}
 `
   }

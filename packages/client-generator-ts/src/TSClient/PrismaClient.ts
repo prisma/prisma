@@ -21,6 +21,7 @@ import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { globalOmitConfig } from './globalOmit'
+import { omit, optional, promise } from './helpers'
 import { TSClientOptions } from './TSClient'
 import { getModelActions } from './utils/getModelActions'
 
@@ -37,7 +38,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
   }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
-    ? ts.namedType('Prisma.TransactionIsolationLevel')
+    ? ts.namedType('TransactionIsolationLevel')
     : ts.neverType
   meta.add(ts.property('txIsolationLevel', isolationLevel))
 
@@ -78,11 +79,11 @@ function clientTypeMapModelsResultDefinition(
   action: Exclude<Operation, `$${string}`>,
 ): ts.TypeBuilder {
   if (action === 'count')
-    return ts.unionType([ts.optional(ts.namedType(getCountAggregateOutputName(modelName))), ts.numberType])
-  if (action === 'groupBy') return ts.array(ts.optional(ts.namedType(getGroupByName(modelName))))
-  if (action === 'aggregate') return ts.optional(ts.namedType(getAggregateName(modelName)))
-  if (action === 'findRaw') return ts.namedType('JsonObject')
-  if (action === 'aggregateRaw') return ts.namedType('JsonObject')
+    return ts.unionType([optional(ts.namedType(`Prisma.${getCountAggregateOutputName(modelName)}`)), ts.numberType])
+  if (action === 'groupBy') return ts.array(optional(ts.namedType(`Prisma.${getGroupByName(modelName)}`)))
+  if (action === 'aggregate') return optional(ts.namedType(`Prisma.${getAggregateName(modelName)}`))
+  if (action === 'findRaw') return ts.namedType('$Runtime.JsonObject')
+  if (action === 'aggregateRaw') return ts.namedType('$Runtime.JsonObject')
   if (action === 'deleteMany') return ts.namedType('BatchPayload')
   if (action === 'createMany') return ts.namedType('BatchPayload')
   if (action === 'createManyAndReturn') return ts.array(payloadToResult(modelName))
@@ -102,7 +103,9 @@ function clientTypeMapModelsResultDefinition(
 }
 
 function payloadToResult(modelName: string) {
-  return ts.namedType('$Utils.PayloadToResult').addGenericArgument(ts.namedType(getPayloadName(modelName)))
+  return ts
+    .namedType('$Runtime.Types.Utils.PayloadToResult')
+    .addGenericArgument(ts.namedType(getPayloadName(modelName)))
 }
 
 function clientTypeMapOthersDefinition(context: GenerateContext) {
@@ -120,12 +123,12 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
   })
 
   const argsResultMap = {
-    $executeRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
-    $queryRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
+    $executeRaw: { args: '[query: TemplateStringsArray | Sql, ...values: any[]]', result: 'any' },
+    $queryRaw: { args: '[query: TemplateStringsArray | Sql, ...values: any[]]', result: 'any' },
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
-    $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
+    $runCommandRaw: { args: '$Runtime.InputJsonObject', result: '$Runtime.JsonObject' },
+    $queryRawTyped: { args: '$Runtime.UnknownTypedSql', result: '$Runtime.JsonObject' },
   } satisfies Record<NonModelOperation, { args: string; result: string }>
 
   return `{
@@ -147,11 +150,11 @@ function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
-  returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
+export interface TypeMapCb<ClientOptions = {}> extends $Runtime.Types.Utils.Fn<{extArgs: $Runtime.Types.Extensions.InternalArgs }, $Runtime.Types.Utils.Record<string, any>> {
+  returns: TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
 }
 
-export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
+export type TypeMap<ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
 }
 
 function clientExtensionsDefinitions(context: GenerateContext) {
@@ -160,10 +163,10 @@ function clientExtensionsDefinitions(context: GenerateContext) {
     ts.constDeclaration(
       'defineExtension',
       ts
-        .namedType('$Extensions.ExtendsHook')
+        .namedType('$Runtime.Types.Extensions.ExtendsHook')
         .addGenericArgument(ts.stringLiteral('define'))
-        .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
-        .addGenericArgument(ts.namedType('$Extensions.DefaultArgs')),
+        .addGenericArgument(ts.namedType('TypeMapCb'))
+        .addGenericArgument(ts.namedType('$Runtime.Types.Extensions.DefaultArgs')),
     ),
   )
 
@@ -172,13 +175,13 @@ function clientExtensionsDefinitions(context: GenerateContext) {
 
 function extendsPropertyDefinition() {
   const extendsDefinition = ts
-    .namedType('$Extensions.ExtendsHook')
+    .namedType('$Runtime.Types.Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
     .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
     .addGenericArgument(ts.namedType('ExtArgs'))
     .addGenericArgument(
       ts
-        .namedType('$Utils.Call')
+        .namedType('$Runtime.Types.Utils.Call')
         .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
@@ -205,7 +208,7 @@ function batchingTransactionDefinition(context: GenerateContext) {
     )
     .addGenericParameter(ts.genericParameter('P').extends(ts.array(ts.prismaPromise(ts.anyType))))
     .addParameter(ts.parameter('arg', ts.arraySpread(ts.namedType('P'))))
-    .setReturnType(ts.promise(ts.namedType('runtime.Types.Utils.UnwrapTuple').addGenericArgument(ts.namedType('P'))))
+    .setReturnType(promise(ts.namedType('$Runtime.Types.Utils.UnwrapTuple').addGenericArgument(ts.namedType('P'))))
 
   if (context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
     const options = ts
@@ -230,12 +233,12 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     options.add(isolationLevel)
   }
 
-  const returnType = ts.promise(ts.namedType('R'))
+  const returnType = promise(ts.namedType('R'))
 
   const callbackType = ts
     .functionType()
     .addParameter(
-      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
+      ts.parameter('prisma', omit(ts.namedType('PrismaClient'), ts.namedType('$Runtime.ITXClientDenyList'))),
     )
     .setReturnType(returnType)
 
@@ -353,7 +356,7 @@ function metricDefinition(context: GenerateContext) {
   }
 
   const property = ts
-    .property('$metrics', ts.namedType(`runtime.${runtimeImport('MetricsClient')}`))
+    .property('$metrics', ts.namedType(`$Runtime.${runtimeImport('MetricsClient')}`))
     .setDocComment(
       ts.docComment`
         Gives access to the client metrics in json or prometheus format.
@@ -379,8 +382,8 @@ function runCommandRawDefinition(context: GenerateContext) {
 
   const method = ts
     .method('$runCommandRaw')
-    .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
-    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+    .addParameter(ts.parameter('command', ts.namedType('$Runtime.InputJsonObject')))
+    .setReturnType(ts.prismaPromise(ts.namedType('$Runtime.JsonObject'))).setDocComment(ts.docComment`
       Executes a raw MongoDB command and returns the result of it.
       @example
       \`\`\`
@@ -404,7 +407,7 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
 
   const method = ts
     .method('$applyPendingMigrations')
-    .setReturnType(ts.promise(ts.voidType))
+    .setReturnType(promise(ts.voidType))
     .setDocComment(
       ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
     )
@@ -414,7 +417,7 @@ function applyPendingMigrationsDefinition(this: PrismaClientClass) {
 
 function eventRegistrationMethodDeclaration(runtimeNameTs: TSClientOptions['runtimeNameTs']) {
   if (runtimeNameTs === 'binary.js') {
-    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
+    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Runtime.Types.Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
   } else {
     return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
   }
@@ -465,7 +468,7 @@ export class PrismaClientClass implements Generable {
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
-  ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
+  ExtArgs extends $Runtime.Types.Extensions.InternalArgs = $Runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -477,12 +480,12 @@ export class PrismaClient<
   /**
    * Connect with the database
    */
-  $connect(): $Utils.JsPromise<void>;
+  $connect(): $Runtime.Types.Utils.JsPromise<void>;
 
   /**
    * Disconnect from the database
    */
-  $disconnect(): $Utils.JsPromise<void>;
+  $disconnect(): $Runtime.Types.Utils.JsPromise<void>;
 
   /**
    * Add a middleware
@@ -608,8 +611,8 @@ export type MiddlewareParams = {
  */
 export type Middleware<T = any> = (
   params: MiddlewareParams,
-  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
-) => $Utils.JsPromise<T>
+  next: (params: MiddlewareParams) => $Runtime.Types.Utils.JsPromise<T>,
+) => $Runtime.Types.Utils.JsPromise<T>
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -617,7 +620,7 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
+export type TransactionClient = Omit<DefaultPrismaClient, $Runtime.ITXClientDenyList>
 `
   }
 
@@ -668,7 +671,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
       .add(ts.property('timeout', ts.numberType).optional())
 
     if (this.context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
-      transactionOptions.add(ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional())
+      transactionOptions.add(ts.property('isolationLevel', ts.namedType('TransactionIsolationLevel')).optional())
     }
 
     clientOptions.add(
@@ -682,7 +685,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
       clientOptions.add(
         ts
-          .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+          .property('adapter', ts.unionType([ts.namedType('$Runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
@@ -691,7 +694,7 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     }
 
     clientOptions.add(
-      ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
+      ts.property('omit', ts.namedType('GlobalOmitConfig')).optional().setDocComment(ts.docComment`
         Global configuration for omitting model fields by default.
 
         @example

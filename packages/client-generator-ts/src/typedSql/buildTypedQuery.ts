@@ -12,10 +12,10 @@ type BuildTypedQueryOptions = {
   enums: DbEnumsList
 }
 
-export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: BuildTypedQueryOptions) {
+export function buildTypedQueryTs({ query, enums }: BuildTypedQueryOptions) {
   const file = ts.file()
 
-  file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
+  file.addImport(ts.moduleImport(`@prisma/client/runtime/library`).asNamespace('$Runtime'))
   if (queryUsesEnums(query, enums)) {
     file.addImport(ts.moduleImport('./$DbEnums').named('$DbEnums'))
   }
@@ -36,7 +36,7 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: Bu
   }
   factoryType.setReturnType(
     ts
-      .namedType('$runtime.TypedSql')
+      .namedType('$Runtime.TypedSql')
       .addGenericArgument(ts.namedType(`${query.name}.Parameters`))
       .addGenericArgument(ts.namedType(`${query.name}.Result`)),
   )

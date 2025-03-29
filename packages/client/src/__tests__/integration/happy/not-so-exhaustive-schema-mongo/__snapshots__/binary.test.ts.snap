@@ -555,7 +555,7 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $runCommandRaw(command: Prisma.InputJsonObject): Prisma.PrismaPromise<Prisma.JsonObject>
+  $runCommandRaw(command: $Runtime.InputJsonObject): Prisma.PrismaPromise<$Runtime.JsonObject>
 
   $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
     extArgs: ExtArgs
@@ -2218,8 +2218,8 @@ export namespace Prisma {
       payload: any
       operations: {
         $runCommandRaw: {
-          args: Prisma.InputJsonObject,
-          result: Prisma.JsonObject
+          args: $Runtime.InputJsonObject,
+          result: $Runtime.JsonObject
         }
       }
     }
