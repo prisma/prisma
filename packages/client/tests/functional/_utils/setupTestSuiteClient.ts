@@ -119,6 +119,9 @@ export async function setupTestSuiteClient({
     copyEngine: !clientMeta.dataProxy,
     typedSql,
     target: 'nodejs',
+    generatedFileExtension: 'ts',
+    importFileExtension: '',
+    moduleFormat: 'cjs',
   }
 
   if (generatorType === 'prisma-client-ts') {

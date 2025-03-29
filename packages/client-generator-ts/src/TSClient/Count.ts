@@ -43,7 +43,9 @@ export class Count implements Generable {
 
 ${ts.stringify(outputType)}
 
-export type ${getSelectName(name)}<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+export type ${getSelectName(
+      name,
+    )}<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
 ${indent(
   type.fields
     .map((field) => {

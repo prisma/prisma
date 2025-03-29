@@ -36,6 +36,8 @@ export class BindingsExport implements BasicBuilder {
 
 export class NamedExport implements BasicBuilder {
   private alias: string | undefined
+  private type = false
+
   constructor(readonly name: string) {}
 
   as(alias: string) {
@@ -43,7 +45,15 @@ export class NamedExport implements BasicBuilder {
     return this
   }
 
+  typeOnly(): this {
+    this.type = true
+    return this
+  }
+
   write(writer: Writer): void {
+    if (this.type) {
+      writer.write('type ')
+    }
     writer.write(this.name)
     if (this.alias) {
       writer.write(' as ').write(this.alias)
