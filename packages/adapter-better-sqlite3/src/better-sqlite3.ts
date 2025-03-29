@@ -37,6 +37,15 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
+const ERROR_CODE_STRING_TO_CODE_NUM = {
+  SQLITE_BUSY: 5,
+  SQLITE_CONSTRAINT_FOREIGNKEY: 787,
+  SQLITE_CONSTRAINT_NOTNULL: 1299,
+  SQLITE_CONSTRAINT_PRIMARYKEY: 1555,
+  SQLITE_CONSTRAINT_TRIGGER: 1811,
+  SQLITE_CONSTRAINT_UNIQUE: 2067,
+}
+
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
@@ -127,11 +136,11 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 
   protected onError(error: any): never {
     debug('Error in performIO: %O', error)
-    const rawCode = error['rawCode'] ?? error.cause?.['rawCode']
-    if (typeof rawCode === 'number') {
+    const errCodeNum = error.code && ERROR_CODE_STRING_TO_CODE_NUM[error.code]
+    if (errCodeNum) {
       throw new DriverAdapterError({
         kind: 'sqlite',
-        extendedCode: rawCode,
+        extendedCode: errCodeNum,
         message: error.message,
       })
     }
