@@ -82,7 +82,7 @@ Check the status of your database migrations
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
-    const adapter = await config.migrate?.adapter(process.env) 
+    const adapter = await config.migrate?.adapter(process.env)
     const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
