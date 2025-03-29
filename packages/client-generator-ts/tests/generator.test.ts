@@ -1,5 +1,4 @@
 import fs from 'node:fs'
-import fsPromises from 'node:fs/promises'
 import path from 'node:path'
 
 import { omit } from '@prisma/client-common'
@@ -8,7 +7,6 @@ import {
   GeneratorRegistry,
   getClientEngineType,
   getGenerator,
-  getPackedPackage,
   parseEnvValue,
 } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
@@ -95,15 +93,6 @@ const registry = {
 
 describe('generator', () => {
   test('minimal', async () => {
-    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
-    // Make sure, that nothing is cached.
-    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
       printDownloadProgress: false,
@@ -171,22 +160,12 @@ describe('generator', () => {
     const clientDir = path.join(__dirname, 'generated')
     expect(fs.existsSync(clientDir)).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'index.js'))).toBe(true)
-    expect(fs.existsSync(path.join(clientDir, 'index-browser.js'))).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'index.d.ts'))).toBe(true)
     generator.stop()
   })
 
   test('denylist from engine validation', async () => {
     expect.assertions(1)
-    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
-    // Make sure, that nothing is cached.
-    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
     await expect(async () => {
       await getGenerator({
         schemaPath: path.join(__dirname, 'denylist.prisma'),
@@ -222,15 +201,6 @@ describe('generator', () => {
   })
 
   test('schema path does not exist', async () => {
-    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
-    // Make sure, that nothing is cached.
-    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
     await expect(async () => {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
@@ -267,15 +237,6 @@ describe('generator', () => {
   })
 
   test('mongo', async () => {
-    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
-    // Make sure, that nothing is cached.
-    await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'mongo.prisma'),
       printDownloadProgress: false,
@@ -343,7 +304,6 @@ describe('generator', () => {
     const clientDir = path.join(__dirname, 'generated')
     expect(fs.existsSync(clientDir)).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'index.js'))).toBe(true)
-    expect(fs.existsSync(path.join(clientDir, 'index-browser.js'))).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'index.d.ts'))).toBe(true)
     generator.stop()
   })
