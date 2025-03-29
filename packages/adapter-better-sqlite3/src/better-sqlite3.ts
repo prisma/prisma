@@ -82,7 +82,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   // eslint-disable-next-line @typescript-eslint/require-await
   private async executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(query.args)
+      const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
       const result = stmt.run()
 
       return result
