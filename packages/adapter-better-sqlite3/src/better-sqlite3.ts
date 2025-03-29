@@ -14,20 +14,8 @@ import Database from 'better-sqlite3'
 
 import { name as packageName } from '../package.json'
 import { getColumnTypes, mapQueryArgs, mapRow, Row } from './conversion'
-import { createDeferred, Deferred } from './deferred'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3')
-
-class RollbackError extends Error {
-  constructor() {
-    super('ROLLBACK')
-    this.name = 'RollbackError'
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, RollbackError)
-    }
-  }
-}
 
 type StdClient = BetterSQLite3
 
@@ -142,27 +130,22 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 }
 
 class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> implements Transaction {
-  constructor(
-    client: StdClient,
-    readonly options: TransactionOptions,
-    private txDeferred: Deferred<void>,
-    private txResultPromise: Promise<void>,
-  ) {
+  constructor(client: StdClient, readonly options: TransactionOptions) {
     super(client)
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    this.txDeferred.resolve()
-    return await this.txResultPromise
+    this.client.prepare('COMMIT').run()
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    this.txDeferred.reject(new RollbackError())
-    return await this.txResultPromise
+    this.client.prepare('ROLLBACK').run()
   }
 }
 
@@ -180,6 +163,7 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
@@ -195,38 +179,9 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    // Create the deferred promise and transaction result promise first
-    const [txDeferred, deferredPromise] = createDeferred<void>()
+    this.client.prepare('BEGIN DEFERRED').run()
 
-    // Create a promise that will resolve with the transaction
-    const transactionPromise = new Promise<Transaction>((resolve, reject) => {
-      try {
-        // Start the transaction with BetterSQLite3
-        this.client
-          .transaction(() => {
-            // Create transaction wrapper now that txResultPromise exists
-            const txWrapper = new BetterSQLite3Transaction(this.client, options, txDeferred, deferredPromise)
-
-            // Resolve the outer promise with the transaction wrapper
-            resolve(txWrapper)
-
-            // Return the promise that will be resolved/rejected by commit/rollback
-            return deferredPromise
-          })
-          .deferred()
-          .catch((error) => {
-            // Special case for rollback - don't treat it as an error
-            if (error instanceof RollbackError) {
-              return
-            }
-            reject(error)
-          })
-      } catch (error) {
-        reject(error)
-      }
-    })
-
-    return await transactionPromise
+    return new BetterSQLite3Transaction(this.client, options)
   }
 
   dispose(): Promise<void> {
