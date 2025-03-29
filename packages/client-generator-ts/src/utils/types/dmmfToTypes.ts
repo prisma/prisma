@@ -32,10 +32,10 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     browser: false,
     deno: false,
     edge: false,
-    wasm: false,
     envPaths: {
       rootEnvPath: null,
       schemaEnvPath: undefined,
     },
+    target: 'nodejs',
   }).toTS()
 }

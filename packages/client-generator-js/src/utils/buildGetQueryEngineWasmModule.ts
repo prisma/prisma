@@ -11,11 +11,11 @@ export function buildQueryEngineWasmModule(
 ) {
   if (copyEngine && runtimeNameJs === 'library' && process.env.PRISMA_CLIENT_FORCE_WASM) {
     return `config.engineWasm = {
-      getRuntime: () => require('./query_engine_bg.js'),
+      getRuntime: async () => require('./query_engine_bg.js'),
       getQueryEngineWasmModule: async () => {
         const queryEngineWasmFilePath = require('path').join(config.dirname, 'query_engine_bg.wasm')
         const queryEngineWasmFileBytes = require('fs').readFileSync(queryEngineWasmFilePath)
-      
+
         return new WebAssembly.Module(queryEngineWasmFileBytes)
       }
     }`
@@ -31,11 +31,11 @@ export function buildQueryEngineWasmModule(
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
   if (copyEngine && wasm === true) {
     return `config.engineWasm = {
-  getRuntime: () => require('./query_engine_bg.js'),
+  getRuntime: async () => require('./query_engine_bg.js'),
   getQueryEngineWasmModule: async () => {
     const loader = (await import('#wasm-engine-loader')).default
     const engine = (await loader).default
-    return engine 
+    return engine
   }
 }`
   }
