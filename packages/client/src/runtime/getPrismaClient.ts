@@ -354,7 +354,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,

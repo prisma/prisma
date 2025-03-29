@@ -10,6 +10,7 @@ import fs from 'fs'
 import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
+import { temporaryFile } from 'tempy'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -75,12 +76,10 @@ export class BinaryEngine implements Engine<undefined> {
   private clientVersion?: string
   private globalKillSignalReceived?: string
   private startCount = 0
-  private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
-  private cwd: string
   private datamodelPath: string
   private stderrLogs = ''
   private currentRequestPromise?: any
@@ -108,19 +107,19 @@ export class BinaryEngine implements Engine<undefined> {
   constructor(config: EngineConfig) {
     this.config = config
     this.env = config.env
-    this.cwd = this.resolveCwd(config.cwd)
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
-    this.datamodelPath = config.datamodelPath
     this.tracingHelper = config.tracingHelper
     this.logEmitter = config.logEmitter
     this.showColors = config.showColors ?? false
     this.logQueries = config.logQueries ?? false
     this.clientVersion = config.clientVersion
     this.flags = config.flags ?? []
-    this.previewFeatures = config.previewFeatures ?? []
     this.activeProvider = config.activeProvider
     this.connection = new Connection()
+
+    this.datamodelPath = temporaryFile({ extension: 'prisma' })
+    fs.writeFileSync(this.datamodelPath, config.inlineSchema)
 
     // compute the datasource override for binary engine
     const dsOverrideName = Object.keys(config.overrideDatasources)[0]
@@ -171,14 +170,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
       }
     }
-  }
-
-  private resolveCwd(cwd: string): string {
-    if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
-      return cwd
-    }
-
-    return process.cwd()
   }
 
   onBeforeExit(listener: () => Promise<void>) {
@@ -325,8 +316,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
-        debug({ cwd: this.cwd })
-
         const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
@@ -348,7 +337,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.child = spawn(prismaPath, flags, {
           env,
-          cwd: this.cwd,
           windowsHide: true,
           stdio: ['ignore', 'pipe', 'pipe'],
         })
