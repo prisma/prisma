@@ -141,7 +141,7 @@ testMatrix.setupTestSuite(
       // https://developers.cloudflare.com/d1/build-databases/query-databases/
       // D1 supports 64-bit signed INTEGER values internally, however BigInts
       // are not currently supported in the API yet. JavaScript integers are safe up to Number.MAX_SAFE_INTEGER
-      const isBigIntNativelySupported = !['js_d1'].includes(driverAdapter as string)
+      const isBigIntNativelySupported = !['js_d1', 'js_better_sqlite3'].includes(driverAdapter as string)
 
       describe('query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER', () => {
         const createBigIntMaxSafeIntPlusMaxSafeInt = (prisma: PrismaClient) => {
