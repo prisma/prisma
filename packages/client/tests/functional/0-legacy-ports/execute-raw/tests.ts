@@ -12,6 +12,7 @@ declare let Prisma: typeof $.Prisma
 testMatrix.setupTestSuite(
   ({ provider }) => {
     const isMySql = provider === Providers.MYSQL
+    const usesAnonymousParams = [Providers.MYSQL, Providers.SQLITE].includes(provider)
 
     beforeEach(async () => {
       await prisma.user.deleteMany()
@@ -83,7 +84,7 @@ testMatrix.setupTestSuite(
     test('update via queryRawUnsafe with values', async () => {
       let affected: number
 
-      if (isMySql) {
+      if (usesAnonymousParams) {
         // eslint-disable-next-line prettier/prettier
         affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
       } else if (provider === Providers.SQLSERVER) {
