@@ -7,6 +7,7 @@ import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
+import { parseRuntimeTargetFromUnknown } from './runtime-targets'
 
 const debug = Debug('prisma:client:generator')
 
@@ -65,6 +66,10 @@ export class PrismaClientTsGenerator implements Generator {
       postinstall: options.postinstall,
       copyEngine: !options.noEngine,
       typedSql: options.typedSql,
+      target:
+        options.generator.config.runtime !== undefined
+          ? parseRuntimeTargetFromUnknown(options.generator.config.runtime)
+          : 'nodejs',
     })
   }
 }

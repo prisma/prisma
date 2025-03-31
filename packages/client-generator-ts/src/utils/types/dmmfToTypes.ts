@@ -13,8 +13,7 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     clientVersion: '',
     engineVersion: '',
     runtimeBase: '@prisma/client',
-    runtimeNameJs: 'library',
-    runtimeNameTs: 'library',
+    runtimeName: 'library',
     schemaPath: '',
     outputDir: '',
     activeProvider: '' as any,
@@ -33,10 +32,10 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     browser: false,
     deno: false,
     edge: false,
-    wasm: false,
     envPaths: {
       rootEnvPath: null,
       schemaEnvPath: undefined,
     },
+    target: 'nodejs',
   }).toTS()
 }

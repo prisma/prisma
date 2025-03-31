@@ -127,7 +127,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 export interface EngineConfig {
   cwd: string
   dirname: string
-  datamodelPath: string
   enableDebugLogs?: boolean
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
@@ -159,7 +158,6 @@ export interface EngineConfig {
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used by DataProxyEngine.ts
    */
   inlineSchema: string
 

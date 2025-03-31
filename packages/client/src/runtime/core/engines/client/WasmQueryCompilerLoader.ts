@@ -29,7 +29,7 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
     // compiler is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
-        const runtime = compilerWasm.getRuntime()
+        const runtime = await compilerWasm.getRuntime()
         const wasmModule = await compilerWasm.getQueryCompilerWasmModule()
 
         if (wasmModule === undefined || wasmModule === null) {

@@ -29,7 +29,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
-        const runtime = engineWasm.getRuntime()
+        const runtime = await engineWasm.getRuntime()
         const wasmModule = await engineWasm.getQueryEngineWasmModule()
 
         if (wasmModule === undefined || wasmModule === null) {
