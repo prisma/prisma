@@ -53,6 +53,7 @@ export class Model implements Generable {
   protected updateManyAndReturnType: undefined | DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
+
   constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
     this.dmmf = context.dmmf
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
@@ -63,7 +64,7 @@ export class Model implements Generable {
   }
 
   public fileName(): string {
-    return `${this.model.name}.d.ts`
+    return `${this.model.name}.ts`
   }
 
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
@@ -221,6 +222,7 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
   > 
 `
   }
+
   private getAggregationTypes() {
     const { model, mapping } = this
     let aggregateType = this.dmmf.outputTypeMap.prisma[getAggregateName(model.name)]
@@ -386,6 +388,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
     return ts.stringify(modelTypeExport)
   }
+
   public toTS(): string {
     const { model } = this
     const isComposite = this.dmmf.isComposite(model.name)
@@ -497,6 +500,7 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 `
   }
 }
+
 export class ModelDelegate implements Generable {
   constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
@@ -675,7 +679,7 @@ function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelActio
 function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
   const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
   if (actionName === DMMF.ModelAction.count) {
-    const type = ts.omit(
+    const type = tsx.omit(
       ts.namedType(getModelArgName(modelName, DMMF.ModelAction.findMany)),
       ts
         .unionType(ts.stringLiteral('select'))

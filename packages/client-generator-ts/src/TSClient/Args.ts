@@ -45,11 +45,14 @@ export class ArgsTypeBuilder {
           'select',
           ts.unionType([
             ts.namedType(`Prisma.${selectTypeName}`).addGenericArgument(extArgsParam.toArgument()),
-            ts.nullType
+            ts.nullType,
           ]),
         )
         .optional()
-        .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
+        .setDocComment(
+          ts.docComment(`Select specific fields to fetch
+                                      from the ${this.type.name}`),
+        ),
     )
 
     return this
@@ -65,7 +68,10 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'include',
-          ts.unionType([ts.namedType(`Prisma.${includeTypeName}`).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
+          ts.unionType([
+            ts.namedType(`Prisma.${includeTypeName}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
         )
         .optional()
         .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),

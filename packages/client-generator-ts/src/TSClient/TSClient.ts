@@ -1,25 +1,14 @@
-import crypto from 'node:crypto'
-import path from 'node:path'
-
-import type { GetPrismaClientConfig } from '@prisma/client-common'
-import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { getClientEngineType } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
 import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
-import { buildDebugInitialization } from '../utils/buildDebugInitialization'
-import { buildDirname } from '../utils/buildDirname'
-import { buildRuntimeDataModel } from '../utils/buildDMMF'
-import { buildGetWasmModule } from '../utils/buildGetWasmModule'
-import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
-import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { createClassFile } from './file-generators/ClassFile'
 import { createCommonFile } from './file-generators/CommonFile'
+import { createCommonInputTypeFiles } from './file-generators/CommonInputTypesFile'
 import { createEnumsFile } from './file-generators/EnumsFile'
 import { createModelFiles } from './file-generators/ModelFiles'
 import { createModelsFile } from './file-generators/ModelsFile'
@@ -46,72 +35,9 @@ export class TSClient implements Generable {
   }
 
   public toTS(): string {
-    const {
-      edge,
-      binaryPaths,
-      generator,
-      outputDir,
-      datamodel: inlineSchema,
-      runtimeBase,
-      runtimeName,
-      datasources,
-      copyEngine = true,
-      target,
-      activeProvider,
-      moduleFormat,
-    } = this.options
-
     // This ensures that any engine override is propagated to the generated clients config
-    const clientEngineType = getClientEngineType(generator)
-    generator.config.engineType = clientEngineType
-
-    const binaryTargets =
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
-
-    const inlineSchemaHash = crypto
-      .createHash('sha256')
-      .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
-      .digest('hex')
-
-    const datasourceFilePath = datasources[0].sourceFilePath
-    const config: GetPrismaClientConfig = {
-      generator,
-      relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
-      clientVersion: this.options.clientVersion,
-      engineVersion: this.options.engineVersion,
-      datasourceNames: datasources.map((d) => d.name),
-      activeProvider: this.options.activeProvider,
-      postinstall: this.options.postinstall,
-      ciName: ciInfo.name ?? undefined,
-      inlineDatasources: datasources.reduce((acc, ds) => {
-        return (acc[ds.name] = { url: ds.url }), acc
-      }, {} as GetPrismaClientConfig['inlineDatasources']),
-      inlineSchema,
-      inlineSchemaHash,
-      copyEngine,
-      runtimeDataModel: { models: {}, enums: {}, types: {} },
-      dirname: '',
-    }
-
-    // get relative output dir for it to be preserved even after bundling, or
-    // being moved around as long as we keep the same project dir structure.
-    const relativeOutdir = path.relative(process.cwd(), outputDir)
-
-    const clientConfig = `
-/**
- * Create the Client
- */
-const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge)}
-${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
-${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
-${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
-${buildInjectableEdgeEnv(edge, datasources)}
-${buildDebugInitialization(edge)}
-${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
-`
+    const clientEngineType = getClientEngineType(this.options.generator)
+    this.options.generator.config.engineType = clientEngineType
 
     const context = new GenerateContext({
       dmmf: this.dmmf,
@@ -146,8 +72,6 @@ export { PrismaClient } from './class'
 ${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
 ${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
 
-${clientConfig}
-
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 `
@@ -164,10 +88,11 @@ ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
     const modelsFileMap: FileMap = createModelFiles(context)
 
     return {
-      'models.d.ts': createModelsFile(context, modelsFileMap),
-      'common.d.ts': createCommonFile(context, this.options),
-      'class.d.ts': createClassFile(context, this.options),
-      'enums.d.ts': createEnumsFile(context),
+      'models.ts': createModelsFile(context, modelsFileMap),
+      'common.ts': createCommonFile(context, this.options),
+      'commonInputTypes.ts': createCommonInputTypeFiles(context),
+      'class.ts': createClassFile(context, this.options),
+      'enums.ts': createEnumsFile(context),
       models: modelsFileMap,
     }
   }
