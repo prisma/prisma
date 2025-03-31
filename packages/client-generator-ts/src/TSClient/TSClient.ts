@@ -2,15 +2,14 @@ import crypto from 'node:crypto'
 import path from 'node:path'
 
 import type { GetPrismaClientConfig } from '@prisma/client-common'
-import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
-import indent from 'indent-string'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
+import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -19,15 +18,14 @@ import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildGetWasmModule } from '../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
-import { commonCodeTS } from './common'
-import { Count } from './Count'
-import { Enum } from './Enum'
-import { FieldRefInput } from './FieldRefInput'
+import { createClassFile } from './file-generators/ClassFile'
+import { createCommonFile } from './file-generators/CommonFile'
+import { createEnumsFile } from './file-generators/EnumsFile'
+import { createModelFiles } from './file-generators/ModelFiles'
+import { createModelsFile } from './file-generators/ModelsFile'
 import { type Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
-import { InputType } from './Input'
 import { Model } from './Model'
-import { PrismaClientClass } from './PrismaClient'
 
 export type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
 
@@ -119,32 +117,15 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
+      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeName}`,
     })
 
-    const prismaClientClass = new PrismaClientClass(
-      context,
-      this.options.datasources,
-      this.options.outputDir,
-      this.options.runtimeName,
-    )
+    const modelAndTypes = Object.values(context.dmmf.typeAndModelMap)
+      .filter((modelOrType) => context.dmmf.outputTypeMap.model[modelOrType.name])
+      .map((modelOrType) => new Model(modelOrType, context))
 
-    const commonCode = commonCodeTS(this.options)
-    const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
-      if (this.dmmf.outputTypeMap.model[modelOrType.name]) {
-        acc.push(new Model(modelOrType, context))
-      }
-      return acc
-    }, [] as Model[])
-
-    // TODO: Make this code more efficient and directly return 2 arrays
-
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
-
-    const modelEnums: string[] = []
-    const modelEnumsAliases: string[] = []
-    for (const datamodelEnum of this.dmmf.datamodel.enums) {
-      modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
-      modelEnumsAliases.push(
+    const modelEnumsAliases = this.dmmf.datamodel.enums.map((datamodelEnum) => {
+      return [
         ts.stringify(
           ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
         ),
@@ -153,123 +134,36 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
             ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
           ),
         ),
-      )
-    }
+      ].join('\n')
+    })
 
-    const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
-
-    const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
-      ?.filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, context))
-
-    const code = `
-/**
- * Client
- */
-
-${commonCode.tsWithoutNamespace()}
-
-${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
-${
-  modelEnums.length > 0
-    ? `
-/**
- * Enums
- */
-export namespace $Enums {
-  ${modelEnums.join('\n\n')}
-}
-
-${modelEnumsAliases.join('\n\n')}
-`
-    : ''
-}
+    return `
+${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
+${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
 
 ${clientConfig}
 
-${prismaClientClass.toTSWithoutNamespace()}
+${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
+${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
+`
+  }
 
-export namespace Prisma {
-${indent(
-  `${commonCode.ts()}
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toTS()}
+  generateModelAndHelperFiles(): FileMap {
+    const context = new GenerateContext({
+      dmmf: this.dmmf,
+      genericArgsInfo: this.genericsInfo,
+      generator: this.options.generator,
+      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeName}`,
+    })
 
-${prismaClientClass.toTS()}
-export type Datasource = {
-  url?: string
-}
+    const modelsFileMap: FileMap = createModelFiles(context)
 
-/**
- * Count Types
- */
-
-${countTypes.map((t) => t.toTS()).join('\n')}
-
-/**
- * Models
- */
-${modelAndTypes.map((model) => model.toTS()).join('\n')}
-
-/**
- * Enums
- */
-
-${prismaEnums?.join('\n\n')}
-${
-  fieldRefs.length > 0
-    ? `
-/**
- * Field references
- */
-
-${fieldRefs.join('\n\n')}`
-    : ''
-}
-/**
- * Deep Input Types
- */
-
-${this.dmmf.inputObjectTypes.prisma
-  ?.reduce((acc, inputType) => {
-    if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
-      const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
-      const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
-      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
-      const baseName = `Required<${innerName}>`
-      acc.push(`export type ${typeName} =
-  | PatchUndefined<
-      Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
-      ${baseName}
-    >
-  | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
-    } else {
-      acc.push(new InputType(inputType, context).toTS())
+    return {
+      'models.d.ts': createModelsFile(context, modelsFileMap),
+      'common.d.ts': createCommonFile(context, this.options),
+      'class.d.ts': createClassFile(context, this.options),
+      'enums.d.ts': createEnumsFile(context),
+      models: modelsFileMap,
     }
-    return acc
-  }, [] as string[])
-  .join('\n')}
-
-${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
-
-/**
- * Batch Payload for updateMany & deleteMany & createMany
- */
-
-export type BatchPayload = {
-  count: number
-}
-`,
-  2,
-)}}`
-
-    return code
   }
 }

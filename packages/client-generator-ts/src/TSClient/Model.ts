@@ -60,6 +60,10 @@ export class Model implements Generable {
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 
+  public fileName(): string {
+    return `${this.model.name}.d.ts`
+  }
+
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
     for (const action of Object.keys(DMMF.ModelAction)) {
