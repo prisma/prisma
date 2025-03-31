@@ -1,6 +1,3 @@
-// this import points directly to ./schema_engine_bg.js it is generated with >>>
-// wasm-bindgen --target bundler, whose target is the leanest and most agnostic option
-// that is also easy to integrate with our bundling.
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -23,6 +20,9 @@ export const wasmSchemaEngineLoader = {
     // compiler is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
+        // this import points directly to ./schema_engine_bg.js it is generated with >>>
+        // wasm-bindgen --target bundler, whose target is the leanest and most agnostic option
+        // that is also easy to integrate with our bundling.
         const runtime = await import('@prisma/schema-engine-wasm/schema_engine_bg')
         const wasmModule = await getSchemaEngineWasModule()
 

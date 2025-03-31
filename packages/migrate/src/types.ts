@@ -124,7 +124,7 @@ export namespace EngineArgs {
     schema: MigrateTypes.SchemasContainer
     baseDirectoryPath: string
     viewsDirectoryPath: string
-    force?: Boolean
+    force?: boolean
 
     // Note: this must be a non-negative integer
     compositeTypeDepth?: number

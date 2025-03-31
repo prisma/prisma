@@ -12,6 +12,7 @@ import {
 import { bold, red } from 'kleur/colors'
 
 import { SchemaEngine } from './SchemaEngine'
+import { EngineArgs } from './types'
 import { handleViewsIO } from './views/handleViewsIO'
 
 type SchemaEngineMethods = Omit<wasm.SchemaEngineWasm, 'free'>
@@ -30,12 +31,22 @@ export interface SchemaEngineWasmOptions extends Omit<SchemaEngineWasmSetupInput
 }
 
 /**
- * Wrapper around `@prisma/schema-engine-wasm`.
+ * Wrapper around `@prisma/schema-engine-wasm`, which will eventually replace `SchemaEngineCLI`.
+ *
+ * TODOs:
+ * - Forward initial schema and preview features to the Wasm engine
+ * - Collect and forward logs to the CLI
+ * - Catch and throw "rich" connector errors
  */
 export class SchemaEngineWasm implements SchemaEngine {
   private engine: wasm.SchemaEngineWasm
+
+  // TODO: forward initial schema to the Wasm engine
   private schemaContext?: SchemaContext
+
+  // TODO: forward enabled preview features to the Wasm engine
   private enabledPreviewFeatures?: string[]
+
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
@@ -168,16 +179,16 @@ export class SchemaEngineWasm implements SchemaEngine {
     force = false,
     baseDirectoryPath,
     viewsDirectoryPath,
-    compositeTypeDepth = -1, // cannot be undefined
+    compositeTypeDepth = -1,
     namespaces,
-  }): SchemaEngineOutput<'introspect'> {
+  }: EngineArgs.IntrospectParams): SchemaEngineOutput<'introspect'> {
     const introspectResult = await this.runCommand('introspect', {
       schema,
       force,
       compositeTypeDepth,
-      namespaces,
+      namespaces: namespaces ?? null,
       baseDirectoryPath,
-    } satisfies SchemaEngineInput<'introspect'>)
+    })
     const { views } = introspectResult
 
     if (views) {
