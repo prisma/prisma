@@ -38,7 +38,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
   }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
-    ? ts.namedType('Prisma.TransactionIsolationLevel')
+    ? ts.namedType('TransactionIsolationLevel')
     : ts.neverType
   meta.add(ts.property('txIsolationLevel', isolationLevel))
 
@@ -149,7 +149,7 @@ function clientTypeMapDefinition(context: GenerateContext) {
 
   return `
 export interface TypeMapCb<ClientOptions = {}> extends runtime.Types.Utils.Fn<{extArgs: runtime.Types.Extensions.InternalArgs }, runtime.Types.Utils.Record<string, any>> {
-  returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
+  returns: TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
 }
 
 export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
@@ -166,7 +166,7 @@ function clientExtensionsDefinitions(context: GenerateContext) {
           ts
             .namedType('runtime.Types.Extensions.ExtendsHook')
             .addGenericArgument(ts.stringLiteral('define'))
-            .addGenericArgument(ts.namedType('Prisma.TypeMapCb'))
+            .addGenericArgument(ts.namedType('TypeMapCb'))
             .addGenericArgument(ts.namedType('runtime.Types.Extensions.DefaultArgs')),
         ),
     ),
@@ -240,7 +240,7 @@ function interactiveTransactionDefinition(context: GenerateContext) {
   const callbackType = ts
     .functionType()
     .addParameter(
-      ts.parameter('prisma', ts.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
+      ts.parameter('prisma', tsx.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
     )
     .setReturnType(returnType)
 
@@ -601,7 +601,7 @@ export type PrismaAction =
   | 'aggregate'
   | 'count'
   | 'runCommandRaw'
-  | 'findRaw'
+  | 'findRaw' 
   | 'groupBy'
 
 /**
