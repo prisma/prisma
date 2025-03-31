@@ -58,6 +58,9 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
       return union.mapVariants((variant) => ts.array(variant))
     }
     return union
+
+  } else if (t.namespace === 'prisma') {
+    type = namedInputType(`Prisma.${t.type}`)
   } else {
     type = namedInputType(scalarType ?? t.type)
   }
@@ -118,7 +121,7 @@ function buildAllFieldTypes(
 }
 
 function xorTypes(types: ts.TypeBuilder[]) {
-  return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
+  return types.reduce((prev, curr) => ts.namedType('Prisma.XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
 export class InputType implements Generable {

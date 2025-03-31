@@ -25,7 +25,7 @@ ${this.stringifyFields()}
       .map((field) => {
         const fieldOutput = field.outputType
         const refTypeName = getRefAllowedTypeName(fieldOutput)
-        return `  readonly ${field.name}: FieldRef<"${name}", ${refTypeName}>`
+        return `  readonly ${field.name}: Prisma.FieldRef<"${name}", ${refTypeName}>`
       })
       .join('\n')
   }
