@@ -138,6 +138,11 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
     })
 
     return `
+import * as runtime from '${context.runtimeJsPath}'
+import type * as Prisma from './common'
+export * as Prisma from './common'
+export { PrismaClient } from './class'
+
 ${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
 ${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
 
