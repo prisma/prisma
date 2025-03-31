@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import { klona } from 'klona'
 
 import type { DMMFHelper } from '../dmmf'
+import { InputField } from '../TSClient'
 import {
   extArgsParam,
   getAggregateArgsName,
@@ -13,6 +14,7 @@ import {
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
+  getCountOutputTypeName,
   getCreateManyAndReturnOutputType,
   getFieldArgName,
   getFieldRefsTypeName,
@@ -31,9 +33,9 @@ import {
   getSumAggregateName,
   getUpdateManyAndReturnOutputType,
 } from '../utils'
-import { InputField } from './../TSClient'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
+import { Count } from './Count'
 import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
@@ -216,7 +218,7 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
           : GetScalarType<T[P], ${groupByType.name}[P]>
       }
     >
-  >
+  > 
 `
   }
   private getAggregationTypes() {
@@ -329,6 +331,41 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     : GetScalarType<T[P], ${aggregateName}[P]>
 }`
   }
+
+  private getDeepInputTypes() {
+    return this.dmmf.inputObjectTypes.prisma
+      ?.reduce((acc, inputType) => {
+        if (inputType.meta?.grouping !== this.model.name) return acc
+
+        if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+          const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(inputType)
+          const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
+          const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
+          // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
+          const baseName = `Required<${innerName}>`
+          acc.push(`export type ${typeName} = 
+| Prisma.PatchUndefined<
+    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
+    ${baseName}
+  >
+| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>`)
+          acc.push(new InputType(inputType, this.context).overrideName(`${inputType.name}Base`).toTS())
+        } else {
+          acc.push(new InputType(inputType, this.context).toTS())
+        }
+        return acc
+      }, [] as string[])
+      .join('\n')
+  }
+
+  private getCountTypes() {
+    const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
+      ?.filter((t) => t.name === getCountOutputTypeName(this.model.name))
+      .map((t) => new Count(t, this.context))
+
+    return countTypes.map((t) => t.toTS()).join('\n')
+  }
+
   public toTSWithoutNamespace(): string {
     const { model } = this
 
@@ -408,6 +445,10 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 ${!isComposite ? this.getAggregationTypes() : ''}
 
 ${!isComposite ? this.getGroupByTypes() : ''}
+
+${this.getDeepInputTypes()}
+
+${this.getCountTypes()}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields, context: this.context }))}
 ${
