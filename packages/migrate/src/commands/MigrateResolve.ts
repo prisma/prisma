@@ -57,7 +57,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -114,9 +114,16 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+      const adapter = await config.migrate?.adapter(process.env)
 
-      const migrate = new Migrate(schemaContext, migrationsDirPath)
+      // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
+      // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+      if (!adapter) {
+        await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+      }
+
+      const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
@@ -138,7 +145,8 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaContext, migrationsDirPath)
+      const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
+
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],

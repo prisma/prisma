@@ -52,7 +52,7 @@ export async function listMigrations(migrationsDirectoryPath: string): Promise<M
     const migrationFileContent = await fs
       .readFile(path.join(migrationPath, migrationFileName), { encoding: 'utf-8' })
       .then((content) => ({ tag: 'ok' as const, value: content }))
-      .catch((error) => ({ tag: 'error' as const, value: error as Error }))
+      .catch((error: Error) => ({ tag: 'error' as const, value: error.message }))
 
     migrationDirectories.push({
       path: entry.name,

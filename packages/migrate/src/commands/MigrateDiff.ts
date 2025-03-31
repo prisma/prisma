@@ -146,7 +146,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -260,7 +260,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        migrationsList: await listMigrations(args['--from-migrations']),
+        ...(await listMigrations(args['--from-migrations'])),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -304,7 +304,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        migrationsList: await listMigrations(args['--to-migrations']),
+        ...(await listMigrations(args['--to-migrations'])),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })
@@ -314,7 +314,8 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate()
+    const adapter = await config.migrate?.adapter(process.env)
+    const migrate = await Migrate.setup({ adapter })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
@@ -330,8 +331,8 @@ ${bold('Examples')}
         from: from!,
         to: to!,
         script: args['--script'] || false, // default is false
-        shadowDatabaseUrl: args['--shadow-database-url'],
-        exitCode: args['--exit-code'],
+        shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
+        exitCode: args['--exit-code'] ?? null,
       })
     } finally {
       // Stop engine

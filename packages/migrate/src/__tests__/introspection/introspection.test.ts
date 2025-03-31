@@ -2,13 +2,13 @@ import { inferDirectoryConfig, loadSchemaContext, toSchemasContainer } from '@pr
 import fs from 'fs'
 import path from 'path'
 
-import { SchemaEngine } from '../../SchemaEngine'
+import { Migrate } from '../../Migrate'
 
 test('introspection basic', async () => {
   const schemaPath = path.join(__dirname, 'schema.prisma')
   const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath })
   const { viewsDirPath } = inferDirectoryConfig(schemaContext)
-  const engine = new SchemaEngine({ schemaContext })
+  const { engine } = await Migrate.setup({ schemaContext })
 
   const schemaContent = await fs.promises.readFile(schemaPath, { encoding: 'utf-8' })
 

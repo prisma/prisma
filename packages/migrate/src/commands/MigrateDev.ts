@@ -68,7 +68,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -110,13 +110,20 @@ ${bold('Examples')}
     // Validate schema (same as prisma validate)
     validate({ schemas: schemaContext.schemaFiles })
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-    if (wasDbCreated) {
-      process.stdout.write(wasDbCreated + '\n\n')
+    const adapter = await config.migrate?.adapter(process.env)
+
+    let wasDbCreated: string | undefined
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+    if (!adapter) {
+      // Automatically create the database if it doesn't exist
+      wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write(wasDbCreated + '\n\n')
+      }
     }
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

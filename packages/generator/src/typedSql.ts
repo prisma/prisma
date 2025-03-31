@@ -8,7 +8,6 @@ export type SqlQueryOutput = {
 
 export type SqlQueryParameterOutput = {
   name: string
-  query: string
   typ: QueryIntrospectionType
   documentation: string | null
   nullable: boolean

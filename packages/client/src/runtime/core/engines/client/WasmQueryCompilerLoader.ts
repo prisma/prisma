@@ -8,8 +8,6 @@ import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 
-declare const WebAssembly: any // TODO not defined in Node types?
-
 let loadedWasmInstance: Promise<QueryCompilerConstructor>
 export const wasmQueryCompilerLoader: QueryCompilerLoader = {
   async loadQueryCompiler(config) {
