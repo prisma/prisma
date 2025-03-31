@@ -56,7 +56,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -93,17 +93,21 @@ ${bold('Examples')}
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
-    const migrate = new Migrate(schemaContext, migrationsDirPath)
+    const adapter = await config.migrate?.adapter(process.env)
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
-    try {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    if (!adapter) {
+      try {
+        // Automatically create the database if it doesn't exist
+        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+        if (wasDbCreated) {
+          process.stdout.write('\n' + wasDbCreated + '\n')
+        }
+      } catch (e) {
+        process.stdout.write('\n') // empty line
+        throw e
       }
-    } catch (e) {
-      process.stdout.write('\n') // empty line
-      throw e
     }
 
     let wasDatabaseReset = false

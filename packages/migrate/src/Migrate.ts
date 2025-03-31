@@ -1,4 +1,5 @@
 import { defaultRegistry } from '@prisma/client-generator-registry'
+import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
@@ -11,27 +12,51 @@ import {
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
 
-import { SchemaEngine } from './SchemaEngine'
+import type { SchemaEngine } from './SchemaEngine'
+import { SchemaEngineCLI } from './SchemaEngineCLI'
+import { SchemaEngineWasm } from './SchemaEngineWasm'
 import type { EngineArgs, EngineResults } from './types'
 import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { DatasourceInfo } from './utils/ensureDatabaseExists'
 import { listMigrations } from './utils/listMigrations'
 
+interface MigrateSetupInput {
+  adapter?: ErrorCapturingSqlDriverAdapterFactory
+  migrationsDirPath?: string
+  enabledPreviewFeatures?: string[]
+  schemaContext?: SchemaContext
+}
+
+interface MigrateOptions {
+  engine: SchemaEngine
+  schemaContext?: SchemaContext
+  migrationsDirPath?: string
+}
+
 export class Migrate {
-  public engine: SchemaEngine
+  public readonly engine: SchemaEngine
   private schemaContext?: SchemaContext
   public migrationsDirectoryPath?: string
 
-  constructor(schemaContext?: SchemaContext, migrationsDirPath?: string, enabledPreviewFeatures?: string[]) {
-    // schemaPath and migrationsDirectoryPath is optional for primitives
+  private constructor({ schemaContext, migrationsDirPath, engine }: MigrateOptions) {
+    this.engine = engine
+
+    // schemaPath and migrationsDirectoryPath are optional for primitives
     // like migrate diff and db execute
-    if (schemaContext) {
-      this.schemaContext = schemaContext
-      this.migrationsDirectoryPath = migrationsDirPath
-      this.engine = new SchemaEngine({ schemaContext, enabledPreviewFeatures })
-    } else {
-      this.engine = new SchemaEngine({ enabledPreviewFeatures })
-    }
+    this.schemaContext = schemaContext
+    this.migrationsDirectoryPath = migrationsDirPath
+  }
+
+  static async setup({ adapter, ...rest }: MigrateSetupInput): Promise<Migrate> {
+    const engine = await (async () => {
+      if (adapter) {
+        return await SchemaEngineWasm.setup({ adapter, ...rest })
+      } else {
+        return await SchemaEngineCLI.setup({ ...rest })
+      }
+    })()
+
+    return new Migrate({ engine, ...rest })
   }
 
   public stop(): void {

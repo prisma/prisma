@@ -1517,6 +1517,9 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -1533,6 +1536,9 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
+        specifier: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
+        version: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
+      '@prisma/schema-engine-wasm':
         specifier: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
         version: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
       '@prisma/schema-files-loader':
@@ -1704,6 +1710,9 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
       '@prisma/engines-version':
         specifier: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
         version: 6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447
@@ -3261,6 +3270,9 @@ packages:
 
   '@prisma/query-engine-wasm@6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447':
     resolution: {integrity: sha512-br3CNnxVF/mtXGp57ow3A2wgAQIX/XVc3YFFAAFyHnk0ozLq8PMnw2R3YUYrZd6NcSnu39BUICWpVu3yunipqA==}
+
+  '@prisma/schema-engine-wasm@6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447':
+    resolution: {integrity: sha512-+FA2uaVRm2bE+Nh1zn8mxK6wKTU0b7RM1NRkRgpKhwVKBjlEjbJy7WAYV5I7ztjMAreD+JeHM5ZnnsS9s1oCQw==}
 
   '@prisma/studio-common@0.511.0':
     resolution: {integrity: sha512-oYpLFPvNVF66F5lgZL7allwCkHe8u0mFSV+yB34uTfJOXZXp+eDFN6Wo8FCX2ztcahCLXNMs0h4IdcMCeXFoxw==}
@@ -9200,6 +9212,8 @@ snapshots:
   '@prisma/query-compiler-wasm@6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447': {}
 
   '@prisma/query-engine-wasm@6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447': {}
+
+  '@prisma/schema-engine-wasm@6.6.0-45.fbda4d61f6cc9c7361b803e72f3a0ffeb87db447': {}
 
   '@prisma/studio-common@0.511.0':
     dependencies:

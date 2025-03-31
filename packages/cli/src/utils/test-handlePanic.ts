@@ -1,5 +1,5 @@
 import { handlePanic, inferDirectoryConfig, loadSchemaContext, toSchemasContainer } from '@prisma/internals'
-import { SchemaEngine } from '@prisma/migrate'
+import { Migrate } from '@prisma/migrate'
 import path from 'path'
 
 async function main() {
@@ -15,7 +15,8 @@ async function main() {
     const schemaContext = await loadSchemaContext({ schemaPathFromArg: path.join(dirPath, 'schema.prisma') })
     const { viewsDirPath } = inferDirectoryConfig(schemaContext)
 
-    const engine = new SchemaEngine({ schemaContext })
+    const migrate = await Migrate.setup({ schemaContext })
+    const engine = migrate.engine
 
     await engine.introspect({
       schema: toSchemasContainer(schemaContext.schemaFiles),

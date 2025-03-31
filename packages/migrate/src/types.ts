@@ -68,7 +68,7 @@ export type HistoryDiagnostic =
     }
   | {
       diagnostic: 'historiesDiverge'
-      lastCommonMigrationName: string
+      lastCommonMigrationName: string | null
       unpersistedMigrationNames: string[]
       unappliedMigrationNames: string[]
     }
@@ -124,7 +124,7 @@ export namespace EngineArgs {
     schema: MigrateTypes.SchemasContainer
     baseDirectoryPath: string
     viewsDirectoryPath: string
-    force?: Boolean
+    force?: boolean
 
     // Note: this must be a non-negative integer
     compositeTypeDepth?: number
@@ -186,11 +186,10 @@ export namespace EngineArgs {
   }
   type MigrateDiffTargetSchemaDatamodel = MigrateTypes.Tagged<'schemaDatamodel', MigrateTypes.SchemasContainer>
   type MigrateDiffTargetSchemaDatasource = MigrateTypes.Tagged<'schemaDatasource', MigrateTypes.SchemasWithConfigDir>
-  type MigrateDiffTargetMigrations = {
-    // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
-    tag: 'migrations'
-    migrationsList: MigrateTypes.MigrationList
-  }
+
+  // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
+  type MigrateDiffTargetMigrations = MigrateTypes.Tagged<'migrations', MigrateTypes.MigrationList>
+
   export type MigrateDiffTarget =
     | MigrateDiffTargetUrl
     | MigrateDiffTargetEmpty
@@ -207,10 +206,10 @@ export namespace EngineArgs {
     script: boolean
     // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
     // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
-    shadowDatabaseUrl?: string
+    shadowDatabaseUrl: string | null
     // Change the exit code behavior when diff is not empty
     // Empty: 0, Error: 1, Non empty: 2
-    exitCode?: boolean
+    exitCode: boolean | null
   }
 
   export interface SchemaPushInput {
@@ -257,7 +256,7 @@ export namespace EngineResults {
     extension: string
   }
 
-  export interface DbExecuteOutput {}
+  export type DbExecuteOutput = null
 
   export interface DevDiagnosticOutput {
     action: DevAction
