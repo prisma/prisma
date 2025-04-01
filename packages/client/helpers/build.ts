@@ -6,6 +6,7 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { nodeProtocolPlugin } from '../../../helpers/compile/plugins/nodeProtocolPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmQueryEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
@@ -62,7 +63,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
-    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/), nodeProtocolPlugin],
     banner: format === 'esm' ? { js: NODE_ESM_BANNER } : undefined,
   }
 }

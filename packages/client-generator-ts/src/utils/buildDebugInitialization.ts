@@ -20,7 +20,7 @@ export function buildDebugInitialization(edge: boolean) {
 
   return `\
 if (${debugVar}) {
-  Debug.enable(${debugVar})
+  runtime.Debug.enable(${debugVar})
 }
 `
 }

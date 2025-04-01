@@ -1,7 +1,7 @@
 import { SqlQueryOutput } from '@prisma/generator'
 import * as ts from '@prisma/ts-builders'
-import { Writer } from '@prisma/ts-builders'
 
+import { FileNameMapper } from '../file-extensions'
 import { DbEnumsList, queryUsesEnums } from './buildDbEnums'
 import { getInputType, getOutputType } from './mapTypes'
 
@@ -10,14 +10,15 @@ type BuildTypedQueryOptions = {
   runtimeName: string
   query: SqlQueryOutput
   enums: DbEnumsList
+  importName: FileNameMapper
 }
 
-export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: BuildTypedQueryOptions) {
+export function buildTypedQuery({ query, runtimeBase, runtimeName, enums, importName }: BuildTypedQueryOptions) {
   const file = ts.file()
 
   file.addImport(ts.moduleImport(`${runtimeBase}/${runtimeName}`).asNamespace('$runtime'))
   if (queryUsesEnums(query, enums)) {
-    file.addImport(ts.moduleImport('./$DbEnums').named('$DbEnums'))
+    file.addImport(ts.moduleImport(importName('./$DbEnums')).named(ts.namedImport('$DbEnums').typeOnly()))
   }
 
   const doc = ts.docComment(query.documentation ?? undefined)
@@ -34,13 +35,28 @@ export function buildTypedQueryTs({ query, runtimeBase, runtimeName, enums }: Bu
       doc.addText(`@param ${param.name}`)
     }
   }
+
   factoryType.setReturnType(
     ts
       .namedType('$runtime.TypedSql')
       .addGenericArgument(ts.namedType(`${query.name}.Parameters`))
       .addGenericArgument(ts.namedType(`${query.name}.Result`)),
   )
-  file.add(ts.moduleExport(ts.constDeclaration(query.name, factoryType)).setDocComment(doc))
+
+  file.add(
+    ts
+      .moduleExport(
+        ts
+          .constDeclaration(query.name)
+          .setValue(
+            ts
+              .functionCall('$runtime.makeTypedQueryFactory')
+              .addArgument(ts.stringLiteral(query.source).asValue())
+              .as(factoryType),
+          ),
+      )
+      .setDocComment(doc),
+  )
 
   const namespace = ts.namespace(query.name)
   namespace.add(ts.moduleExport(ts.typeDeclaration('Parameters', parametersType)))
@@ -56,21 +72,4 @@ function buildResultType(query: SqlQueryOutput, enums: DbEnumsList) {
       query.resultColumns.map((column) => ts.property(column.name, getOutputType(column.typ, column.nullable, enums))),
     )
   return ts.moduleExport(ts.typeDeclaration('Result', type))
-}
-
-export function buildTypedQueryCjs({ query, runtimeBase, runtimeName }: BuildTypedQueryOptions) {
-  const writer = new Writer(0, undefined)
-  writer.writeLine('"use strict"')
-  writer.writeLine(`const { makeTypedQueryFactory: $mkFactory } = require("${runtimeBase}/${runtimeName}")`)
-  // https://github.com/javascript-compiler-hints/compiler-notations-spec/blob/main/pure-notation-spec.md
-  writer.writeLine(`exports.${query.name} = /*#__PURE__*/ $mkFactory(${JSON.stringify(query.source)})`)
-  return writer.toString()
-}
-
-export function buildTypedQueryEsm({ query, runtimeBase, runtimeName }: BuildTypedQueryOptions) {
-  const writer = new Writer(0, undefined)
-  writer.writeLine(`import { makeTypedQueryFactory as $mkFactory } from "${runtimeBase}/${runtimeName}"`)
-  // https://github.com/javascript-compiler-hints/compiler-notations-spec/blob/main/pure-notation-spec.md
-  writer.writeLine(`export const ${query.name} = /*#__PURE__*/ $mkFactory(${JSON.stringify(query.source)})`)
-  return writer.toString()
 }

@@ -1,45 +1,45 @@
 import type * as DMMF from '@prisma/dmmf'
 import { SqlQueryOutput } from '@prisma/generator'
 
+import { FileNameMapper } from '../file-extensions'
 import { FileMap } from '../generateClient'
+import type { RuntimeName } from '../TSClient/TSClient'
 import { buildDbEnums, DbEnumsList } from './buildDbEnums'
-import { buildIndexCjs, buildIndexEsm, buildIndexTs } from './buildIndex'
-import { buildTypedQueryCjs, buildTypedQueryEsm, buildTypedQueryTs } from './buildTypedQuery'
+import { buildIndex } from './buildIndex'
+import { buildTypedQuery } from './buildTypedQuery'
 
 type TypeSqlBuildOptions = {
   runtimeBase: string
-  mainRuntimeName: string
-  edgeRuntimeName: 'wasm' | 'edge'
+  runtimeName: RuntimeName
   dmmf: DMMF.Document
   queries: SqlQueryOutput[]
+  outputName: FileNameMapper
+  importName: FileNameMapper
 }
 
 export function buildTypedSql({
   queries,
   runtimeBase,
-  edgeRuntimeName,
-  mainRuntimeName,
+  runtimeName,
   dmmf,
+  outputName,
+  importName,
 }: TypeSqlBuildOptions): FileMap {
-  const fileMap = {}
+  const fileMap: FileMap = {
+    sql: {},
+  }
 
   const enums = new DbEnumsList(dmmf.datamodel.enums)
   if (!enums.isEmpty()) {
-    fileMap['$DbEnums.d.ts'] = buildDbEnums(enums)
+    fileMap.sql[outputName('$DbEnums')] = buildDbEnums(enums)
   }
+
   for (const query of queries) {
-    const options = { query, runtimeBase, runtimeName: mainRuntimeName, enums }
-    const edgeOptions = { ...options, runtimeName: `${edgeRuntimeName}.js` }
-    fileMap[`${query.name}.d.ts`] = buildTypedQueryTs(options)
-    fileMap[`${query.name}.js`] = buildTypedQueryCjs(options)
-    fileMap[`${query.name}.${edgeRuntimeName}.js`] = buildTypedQueryCjs(edgeOptions)
-    fileMap[`${query.name}.mjs`] = buildTypedQueryEsm(options)
-    fileMap[`${query.name}.edge.mjs`] = buildTypedQueryEsm(edgeOptions)
+    const options = { query, runtimeBase, runtimeName, enums, importName }
+    fileMap.sql[outputName(query.name)] = buildTypedQuery(options)
   }
-  fileMap['index.d.ts'] = buildIndexTs(queries, enums)
-  fileMap['index.js'] = buildIndexCjs(queries)
-  fileMap['index.mjs'] = buildIndexEsm(queries)
-  fileMap[`index.${edgeRuntimeName}.mjs`] = buildIndexEsm(queries, edgeRuntimeName)
-  fileMap[`index.${edgeRuntimeName}.js`] = buildIndexCjs(queries, edgeRuntimeName)
+
+  fileMap[outputName('sql')] = buildIndex({ queries, enums, importName })
+
   return fileMap
 }

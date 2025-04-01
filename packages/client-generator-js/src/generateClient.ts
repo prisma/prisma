@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type {

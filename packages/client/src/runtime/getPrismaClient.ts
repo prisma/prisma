@@ -273,7 +273,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
-      const envPaths = {
+      const envPaths = config.relativeEnvPaths && {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
@@ -313,7 +313,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && !adapter && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
+        config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}

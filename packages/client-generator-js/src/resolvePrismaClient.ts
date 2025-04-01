@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import { Command, detect, getCommand } from '@antfu/ni'
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { resolvePkg } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 

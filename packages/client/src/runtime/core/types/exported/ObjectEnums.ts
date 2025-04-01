@@ -43,13 +43,19 @@ class NullTypesEnumValue extends ObjectEnumValue {
   }
 }
 
-class DbNull extends NullTypesEnumValue {}
+class DbNull extends NullTypesEnumValue {
+  private readonly _brand_DbNull!: void
+}
 setClassName(DbNull, 'DbNull')
 
-class JsonNull extends NullTypesEnumValue {}
+class JsonNull extends NullTypesEnumValue {
+  private readonly _brand_JsonNull!: void
+}
 setClassName(JsonNull, 'JsonNull')
 
-class AnyNull extends NullTypesEnumValue {}
+class AnyNull extends NullTypesEnumValue {
+  private readonly _brand_AnyNull!: void
+}
 setClassName(AnyNull, 'AnyNull')
 
 export const objectEnumValues = {
