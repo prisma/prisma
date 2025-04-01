@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { fetch } from 'undici'
 
 import type { Client } from '../../../src/runtime/getPrismaClient'

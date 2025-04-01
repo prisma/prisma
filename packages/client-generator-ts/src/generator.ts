@@ -1,12 +1,15 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
+import { getTsconfig } from 'get-tsconfig'
 import { bold, dim, green } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
+import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
+import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
 import { parseRuntimeTargetFromUnknown } from './runtime-targets'
 
 const debug = Debug('prisma:client:generator')
@@ -50,13 +53,39 @@ export class PrismaClientTsGenerator implements Generator {
   }
 
   async generate(options: GeneratorOptions): Promise<void> {
+    const { config } = options.generator
+    const outputDir = getOutputPath(options.generator)
+    const tsconfig = getTsconfig(outputDir)?.config
+
+    const target = config.runtime !== undefined ? parseRuntimeTargetFromUnknown(config.runtime) : 'nodejs'
+
+    const generatedFileExtension =
+      config.generatedFileExtension !== undefined ? parseGeneratedFileExtension(config.generatedFileExtension) : 'ts'
+
+    const importFileExtension =
+      config.importFileExtension !== undefined
+        ? parseImportFileExtension(config.importFileExtension)
+        : inferImportFileExtension({
+            tsconfig,
+            generatedFileExtension,
+          })
+
+    const moduleFormat =
+      config.moduleFormat !== undefined
+        ? parseModuleFormatFromUnknown(config.moduleFormat)
+        : inferModuleFormat({
+            tsconfig,
+            generatedFileExtension,
+            importFileExtension,
+          })
+
     await generateClient({
       datamodel: options.datamodel,
       schemaPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
       datasources: options.datasources,
       envPaths: options.envPaths,
-      outputDir: getOutputPath(options.generator),
+      outputDir,
       runtimeBase: '@prisma/client/runtime',
       dmmf: options.dmmf,
       generator: options.generator,
@@ -66,10 +95,10 @@ export class PrismaClientTsGenerator implements Generator {
       postinstall: options.postinstall,
       copyEngine: !options.noEngine,
       typedSql: options.typedSql,
-      target:
-        options.generator.config.runtime !== undefined
-          ? parseRuntimeTargetFromUnknown(options.generator.config.runtime)
-          : 'nodejs',
+      target,
+      generatedFileExtension,
+      importFileExtension,
+      moduleFormat,
     })
   }
 }

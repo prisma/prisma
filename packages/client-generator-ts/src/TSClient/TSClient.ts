@@ -1,12 +1,13 @@
+import crypto from 'node:crypto'
+import path from 'node:path'
+
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
 import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
-import crypto from 'crypto'
 import indent from 'indent-string'
-import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
@@ -18,9 +19,7 @@ import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildGetWasmModule } from '../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
-import { buildRequirePath } from '../utils/buildRequirePath'
-import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import { commonCodeJS, commonCodeTS } from './common'
+import { commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
@@ -35,15 +34,8 @@ export type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** The name of the runtime bundle to use */
   runtimeName: RuntimeName
-  /** When generating the browser client */
-  browser: boolean
-  /** When generating via the Deno CLI */
-  deno: boolean
-  /** When we are generating an /edge client */
+  /** When we are generating an edge-compatible client */
   edge: boolean
-
-  /** result of getEnvPaths call */
-  envPaths: EnvPaths
 }
 
 export class TSClient implements Generable {
@@ -55,7 +47,7 @@ export class TSClient implements Generable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
-  public toJS(): string {
+  public toTS(): string {
     const {
       edge,
       binaryPaths,
@@ -65,17 +57,11 @@ export class TSClient implements Generable {
       runtimeBase,
       runtimeName,
       datasources,
-      deno,
       copyEngine = true,
-      envPaths,
       target,
       activeProvider,
+      moduleFormat,
     } = this.options
-
-    const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
-      schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
-    }
 
     // This ensures that any engine override is propagated to the generated clients config
     const clientEngineType = getClientEngineType(generator)
@@ -92,9 +78,8 @@ export class TSClient implements Generable {
       .digest('hex')
 
     const datasourceFilePath = datasources[0].sourceFilePath
-    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
+    const config: GetPrismaClientConfig = {
       generator,
-      relativeEnvPaths,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
@@ -108,50 +93,28 @@ export class TSClient implements Generable {
       inlineSchema,
       inlineSchemaHash,
       copyEngine,
+      runtimeDataModel: { models: {}, enums: {}, types: {} },
+      dirname: '',
     }
 
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
-    const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(edge)}
-
-/**
- * Enums
- */
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.datamodel.enums
-  .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
-  .join('\n\n')}
-
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toJS()}
+    const clientConfig = `
 /**
  * Create the Client
  */
-const config = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, relativeOutdir)}
+const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
+${buildDirname(edge)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeName)}
-${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider })}
-${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider })}
+${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
+${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeBase, runtimeName)}
 ${buildDebugInitialization(edge)}
-const PrismaClient = getPrismaClient(config)
-exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 `
-    return code
-  }
 
-  public toTS(): string {
     const context = new GenerateContext({
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
@@ -163,7 +126,6 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       this.options.datasources,
       this.options.outputDir,
       this.options.runtimeName,
-      this.options.browser,
     )
 
     const commonCode = commonCodeTS(this.options)
@@ -187,7 +149,9 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
           ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
         ),
         ts.stringify(
-          ts.moduleExport(ts.constDeclaration(datamodelEnum.name, ts.namedType(`typeof $Enums.${datamodelEnum.name}`))),
+          ts.moduleExport(
+            ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
+          ),
         ),
       )
     }
@@ -201,7 +165,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
     const code = `
 /**
  * Client
-**/
+ */
 
 ${commonCode.tsWithoutNamespace()}
 
@@ -220,6 +184,9 @@ ${modelEnumsAliases.join('\n\n')}
 `
     : ''
 }
+
+${clientConfig}
+
 ${prismaClientClass.toTSWithoutNamespace()}
 
 export namespace Prisma {
@@ -299,70 +266,10 @@ ${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, 
 export type BatchPayload = {
   count: number
 }
-
-/**
- * DMMF
- */
-export const dmmf: runtime.BaseDMMF
 `,
   2,
 )}}`
 
-    return code
-  }
-
-  public toBrowserJS(): string {
-    const code = `${commonCodeJS({
-      ...this.options,
-      runtimeName: 'index-browser',
-      browser: true,
-    })}
-/**
- * Enums
- */
-
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
-
-${new Enum(
-  {
-    name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
-  },
-  true,
-).toJS()}
-
-/**
- * This is a stub Prisma Client that will error at runtime if called.
- */
-class PrismaClient {
-  constructor() {
-    return new Proxy(this, {
-      get(target, prop) {
-        let message
-        const runtime = getRuntime()
-        if (runtime.isEdge) {
-          message = \`PrismaClient is not configured to run in \${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
-- Use Prisma Accelerate: https://pris.ly/d/accelerate
-- Use Driver Adapters: https://pris.ly/d/driver-adapters
-\`;
-        } else {
-          message = 'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' + runtime.prettyName + '\`).'
-        }
-
-        message += \`
-If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report\`
-
-        throw new Error(message)
-      }
-    })
-  }
-}
-
-exports.PrismaClient = PrismaClient
-
-Object.assign(exports, Prisma)
-`
     return code
   }
 }

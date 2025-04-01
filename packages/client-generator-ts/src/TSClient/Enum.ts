@@ -16,33 +16,20 @@ export class Enum implements Generable {
     return this.useNamespace && strictEnumNames.includes(this.type.name)
   }
 
-  public toJS(): string {
-    const { type } = this
-    const enumVariants = `{
-${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
-}`
-    const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
-
-    return this.useNamespace
-      ? `exports.Prisma.${type.name} = ${enumBody};`
-      : `exports.${type.name} = exports.$Enums.${type.name} = ${enumBody};`
-  }
-
-  private getValueJS(value: string): string {
-    return this.isObjectEnum() ? `Prisma.${value}` : `'${value}'`
-  }
-
   public toTS(): string {
     const { type } = this
 
-    return `export const ${type.name}: {
-${indent(type.values.map((v) => `${v}: ${this.getValueTS(v)}`).join(',\n'), TAB_SIZE)}
-};
+    const enumVariants = `{
+${indent(type.values.map((v) => `${v}: ${this.getValue(v)}`).join(',\n'), TAB_SIZE)}
+} as const`
+    const enumBody = this.isStrictEnum() ? `runtime.makeStrictEnum(${enumVariants})` : enumVariants
+
+    return `export const ${type.name} = ${enumBody}
 
 export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
   }
 
-  private getValueTS(value: string): string {
-    return this.isObjectEnum() ? `typeof ${value}` : `'${value}'`
+  private getValue(value: string): string {
+    return this.isObjectEnum() ? value : `'${value}'`
   }
 }

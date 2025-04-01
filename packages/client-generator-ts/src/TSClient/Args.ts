@@ -9,8 +9,6 @@ import { buildInputField } from './Input'
 export class ArgsTypeBuilder {
   private moduleExport: ts.Export<ts.TypeDeclaration<ts.ObjectType>>
 
-  private hasDefaultName = true
-
   constructor(
     private readonly type: DMMF.OutputType,
     private readonly context: GenerateContext,
@@ -90,7 +88,6 @@ export class ArgsTypeBuilder {
   }
 
   setGeneratedName(name: string): this {
-    this.hasDefaultName = false
     this.moduleExport.declaration.setName(name)
     return this
   }

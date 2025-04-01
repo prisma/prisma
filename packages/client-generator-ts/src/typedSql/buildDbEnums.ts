@@ -7,8 +7,10 @@ type DbEnum = {
   name: string
   values: string[]
 }
+
 export class DbEnumsList {
-  private enums: DbEnum[]
+  readonly enums: DbEnum[]
+
   constructor(enums: readonly DMMF.DatamodelEnum[]) {
     this.enums = enums.map((dmmfEnum) => ({
       name: dmmfEnum.dbName ?? dmmfEnum.name,
@@ -43,26 +45,15 @@ export class DbEnumsList {
 
 export function buildDbEnums(list: DbEnumsList) {
   const file = ts.file()
-  file.add(buildInvalidIdentifierEnums(list))
-  file.add(buildValidIdentifierEnums(list))
-
-  return ts.stringify(file)
-}
-
-function buildValidIdentifierEnums(list: DbEnumsList) {
-  const namespace = ts.namespace('$DbEnums')
-  for (const dbEnum of list.validJsIdentifiers()) {
-    namespace.add(ts.typeDeclaration(dbEnum.name, enumToUnion(dbEnum)))
-  }
-  return ts.moduleExport(namespace)
-}
-
-function buildInvalidIdentifierEnums(list: DbEnumsList) {
   const iface = ts.interfaceDeclaration('$DbEnums')
-  for (const dbEnum of list.invalidJsIdentifiers()) {
+
+  for (const dbEnum of list.enums) {
     iface.add(ts.property(dbEnum.name, enumToUnion(dbEnum)))
   }
-  return ts.moduleExport(iface)
+
+  file.add(ts.moduleExport(iface))
+
+  return ts.stringify(file)
 }
 
 function enumToUnion(dbEnum: DbEnum) {
