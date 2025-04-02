@@ -124,7 +124,7 @@ if (false) {
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
+function parsePrismaConfigShape<Env extends EnvVars = never>(input: unknown): Either.Either<PrismaConfig<Env>, Error> {
   return Shape.decodeUnknownEither(createPrismaConfigShape(), {})(input, {
     onExcessProperty: 'error',
   })
@@ -234,13 +234,13 @@ export function makePrismaConfigInternal<Env extends EnvVars = never>(
 export function parseDefaultExport(defaultExport: unknown) {
   const parseResultEither = pipe(
     // If the given config conforms to the `PrismaConfig` shape, feed it to `defineConfig`.
-    parsePrismaConfigShape(defaultExport),
+    parsePrismaConfigShape<any>(defaultExport),
     Either.map((config) => {
       debug('Parsed `PrismaConfig` shape: %o', config)
-      return defineConfig(config)
+      return defineConfig<any>(config)
     }),
     // Otherwise, try to parse it as a `PrismaConfigInternal` shape.
-    Either.orElse(() => parsePrismaConfigInternalShape(defaultExport)),
+    Either.orElse(() => parsePrismaConfigInternalShape<any>(defaultExport)),
   )
 
   // Failure case

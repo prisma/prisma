@@ -1,4 +1,4 @@
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
@@ -70,6 +70,52 @@ describe('D1', () => {
 })
 
 describe('common/sqlite', () => {
+  describe('using Prisma Config', () => {
+    it('--url is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await DbPull.new().parse(['--url', 'file:./dev.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --url flag to the prisma db pull command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--local-d1 is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await DbPull.new().parse(['--local-d1'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --local-d1 flag to the prisma db pull command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+  })
+
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
