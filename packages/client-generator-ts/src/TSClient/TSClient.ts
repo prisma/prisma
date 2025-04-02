@@ -43,7 +43,6 @@ export class TSClient implements Generable {
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeName}`,
     })
 
     const modelAndTypes = Object.values(context.dmmf.typeAndModelMap)
@@ -64,7 +63,7 @@ export class TSClient implements Generable {
     })
 
     return `
-import * as runtime from '${context.runtimeJsPath}'
+import * as runtime from '${this.options.runtimeBase}/${this.options.runtimeName}'
 import type * as Prisma from './common'
 export * as Prisma from './common'
 export { PrismaClient } from './class'
@@ -82,7 +81,6 @@ ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
       generator: this.options.generator,
-      runtimeJsPath: `${this.options.runtimeBase}/${this.options.runtimeName}`,
     })
 
     const modelsFileMap: FileMap = createModelFiles(context)
