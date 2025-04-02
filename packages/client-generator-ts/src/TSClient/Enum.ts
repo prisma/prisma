@@ -3,9 +3,8 @@ import type * as DMMF from '@prisma/dmmf'
 import indent from 'indent-string'
 
 import { TAB_SIZE } from './constants'
-import type { Generable } from './Generable'
 
-export class Enum implements Generable {
+export class Enum {
   constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
 
   private isObjectEnum(): boolean {

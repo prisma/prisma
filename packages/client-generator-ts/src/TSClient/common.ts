@@ -1,21 +1,7 @@
-import { ModuleFormat } from '../module-format'
 import type { TSClientOptions } from './TSClient'
 
-export const commonCodeTS = ({
-  runtimeBase,
-  runtimeName,
-  clientVersion,
-  engineVersion,
-  generator,
-  moduleFormat,
-  edge,
-}: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeBase}/${runtimeName}'
-${buildPreamble(edge, moduleFormat)}
-
-export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
-`,
-  ts: () => `export type DMMF = typeof runtime.DMMF
+export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions) => {
+  return `export type DMMF = typeof runtime.DMMF
 
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
@@ -387,8 +373,8 @@ export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
-`,
-})
+`
+}
 
 function buildPrismaSkipTs(previewFeatures: string[]) {
   if (previewFeatures.includes('strictUndefinedChecks')) {
@@ -401,25 +387,4 @@ export const skip = runtime.skip
   }
 
   return ''
-}
-
-function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
-  if (edge) {
-    return ''
-  }
-
-  let preamble = `\
-import * as process from 'node:process'
-import * as path from 'node:path'
-`
-
-  if (moduleFormat === 'esm') {
-    preamble += `\
-    import { fileURLToPath } from 'node:url'
-
-    const __dirname = path.dirname(fileURLToPath(import.meta.url))
-`
-  }
-
-  return preamble
 }
