@@ -1,9 +1,8 @@
 import * as DMMF from '@prisma/dmmf'
 
 import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
-import { Generable } from './Generable'
 
-export class ModelFieldRefs implements Generable {
+export class ModelFieldRefs {
   constructor(protected outputType: DMMF.OutputType) {}
   toTS() {
     const { name } = this.outputType

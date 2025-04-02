@@ -1,37 +1,49 @@
+import * as ts from '@prisma/ts-builders'
+
 import { GenerateContext } from '../GenerateContext'
 import { InputType } from '../Input'
 
+const jsDocHeader = `/**
+ * This file exports various common sort, input & filter types that are not directly linked to a particular model.
+ *
+ * 🟢 You can import this file directly.
+ */
+`
+
 export function createCommonInputTypeFiles(context: GenerateContext) {
-  return `
-import type * as runtime from '@prisma/client/runtime/library';
-${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums';` : ''}
-import type * as Prisma from './common';
+  const imports = [
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums'),
+    ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma').typeOnly(),
+  ].map((i) => ts.stringify(i))
 
-  ${context.dmmf.inputObjectTypes.prisma
-    ?.reduce((acc, inputType) => {
-      // Only contains generic input types that are not directly linked to a particular model
-      if (inputType.meta?.grouping) return acc
-
+  const genericInputTypes = context.dmmf.inputObjectTypes.prisma
+    // Only contains generic input types that are not directly linked to a particular model
+    .filter((i) => !i.meta?.grouping)
+    .map((inputType) => {
       if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
         const needsGeneric = context.genericArgsInfo.typeNeedsGenericModelArg(inputType)
         const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
         const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
         // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
         const baseName = `Required<${innerName}>`
-        acc.push(`export type ${typeName} = 
+        return `export type ${typeName} = 
 | Prisma.PatchUndefined<
     Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
     ${baseName}
   >
-| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>`)
-        acc.push(new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS())
+| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>
+${new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS()}`
       } else {
-        acc.push(new InputType(inputType, context).toTS())
+        return new InputType(inputType, context).toTS()
       }
-      return acc
-    }, [] as string[])
-    .join('\n')}
+    })
 
-  ${context.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
-  `
+  return `${jsDocHeader}
+${imports.join('\n')}
+
+${genericInputTypes.join('\n')}
+
+${context.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, context).toTS()).join('\n') ?? ''}
+`
 }

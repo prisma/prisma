@@ -132,10 +132,7 @@ export function buildClient({
 
   const client = new TSClient(clientOptions)
 
-  // we store the generated contents here
-  let fileMap: FileMap = client.generateModelAndHelperFiles()
-  fileMap[outputName('client')] = client.toTS()
-  fileMap[outputName('index')] = `export * from '${importName('./client')}'`
+  let fileMap: FileMap = client.generateClientFiles()
 
   if (typedSql && typedSql.length > 0) {
     fileMap = {

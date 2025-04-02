@@ -36,7 +36,6 @@ import {
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import { Count } from './Count'
-import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getMethodJSDoc, getMethodJSDocBody, wrapComment } from './helpers'
 import { InputType } from './Input'
@@ -47,14 +46,14 @@ import { buildIncludeType, buildOmitType, buildScalarSelectType, buildSelectType
 import { getModelActions } from './utils/getModelActions'
 import * as tsx from './utils/type-builders'
 
-export class Model implements Generable {
-  protected type: DMMF.OutputType
-  protected createManyAndReturnType: undefined | DMMF.OutputType
-  protected updateManyAndReturnType: undefined | DMMF.OutputType
-  protected mapping?: DMMF.ModelMapping
+export class Model {
+  private type: DMMF.OutputType
+  private createManyAndReturnType: undefined | DMMF.OutputType
+  private updateManyAndReturnType: undefined | DMMF.OutputType
+  private mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
 
-  constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
+  constructor(private readonly model: DMMF.Model, private readonly context: GenerateContext) {
     this.dmmf = context.dmmf
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
@@ -63,11 +62,7 @@ export class Model implements Generable {
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
 
-  public fileName(): string {
-    return `${this.model.name}.ts`
-  }
-
-  protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
+  private get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
     for (const action of Object.keys(DMMF.ModelAction)) {
       const fieldName = this.rootFieldNameForAction(action as DMMF.ModelAction)
@@ -368,20 +363,18 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     return countTypes.map((t) => t.toTS()).join('\n')
   }
 
-  public toTSWithoutNamespace(): string {
-    const { model } = this
-
-    const docLines = model.documentation ?? ''
-    const modelLine = `Model ${model.name}\n`
+  private getModelExport(): string {
+    const docLines = this.model.documentation ?? ''
+    const modelLine = `Model ${this.model.name}\n`
     const docs = `${modelLine}${docLines}`
 
     const modelTypeExport = ts
       .moduleExport(
         ts.typeDeclaration(
-          model.name,
+          `${this.model.name}Model`,
           ts
             .namedType(`runtime.Types.Result.DefaultSelection`)
-            .addGenericArgument(ts.namedType(getPayloadName(model.name))),
+            .addGenericArgument(ts.namedType(getPayloadName(this.model.name))),
         ),
       )
       .setDocComment(ts.docComment(docs))
@@ -441,9 +434,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
         : ''
 
     return `
-/**
- * Model ${model.name}
- */
+${this.getModelExport()}
 
 ${!isComposite ? this.getAggregationTypes() : ''}
 
@@ -501,7 +492,7 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
   }
 }
 
-export class ModelDelegate implements Generable {
+class ModelDelegate {
   constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
   /**
@@ -741,7 +732,7 @@ type GetReturnTypeOptions = {
  * @param name Model name
  * @param actionName action name
  */
-export function getReturnType({
+function getReturnType({
   modelName,
   actionName,
   isChaining = false,

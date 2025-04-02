@@ -1,20 +1,18 @@
-import { getClientEngineType } from '@prisma/internals'
-import * as ts from '@prisma/ts-builders'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
+import { generatedFileNameMapper, importFileNameMapper } from '../file-extensions'
 import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { createClassFile } from './file-generators/ClassFile'
-import { createCommonFile } from './file-generators/CommonFile'
+import { createClientFile } from './file-generators/ClientFile'
 import { createCommonInputTypeFiles } from './file-generators/CommonInputTypesFile'
 import { createEnumsFile } from './file-generators/EnumsFile'
-import { createModelFiles } from './file-generators/ModelFiles'
+import { createModelFile } from './file-generators/ModelFile'
 import { createModelsFile } from './file-generators/ModelsFile'
-import { type Generable } from './Generable'
+import { createPrismaNamespaceFile } from './file-generators/PrismaNamespaceFile'
 import { GenerateContext } from './GenerateContext'
-import { Model } from './Model'
 
 export type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
 
@@ -25,7 +23,7 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   edge: boolean
 }
 
-export class TSClient implements Generable {
+export class TSClient {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo
 
@@ -34,64 +32,36 @@ export class TSClient implements Generable {
     this.genericsInfo = new GenericArgsInfo(this.dmmf)
   }
 
-  public toTS(): string {
-    // This ensures that any engine override is propagated to the generated clients config
-    const clientEngineType = getClientEngineType(this.options.generator)
-    this.options.generator.config.engineType = clientEngineType
-
+  generateClientFiles(): FileMap {
     const context = new GenerateContext({
       dmmf: this.dmmf,
       genericArgsInfo: this.genericsInfo,
+      runtimeImport: `${this.options.runtimeBase}/${this.options.runtimeName}`,
+      outputFileName: generatedFileNameMapper(this.options.generatedFileExtension),
+      importFileName: importFileNameMapper(this.options.generatedFileExtension),
       generator: this.options.generator,
     })
 
-    const modelAndTypes = Object.values(context.dmmf.typeAndModelMap)
-      .filter((modelOrType) => context.dmmf.outputTypeMap.model[modelOrType.name])
-      .map((modelOrType) => new Model(modelOrType, context))
+    const modelNames = Object.values(context.dmmf.typeAndModelMap)
+      .filter((model) => context.dmmf.outputTypeMap.model[model.name])
+      .map((model) => model.name)
 
-    const modelEnumsAliases = this.dmmf.datamodel.enums.map((datamodelEnum) => {
-      return [
-        ts.stringify(
-          ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
-        ),
-        ts.stringify(
-          ts.moduleExport(
-            ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
-          ),
-        ),
-      ].join('\n')
-    })
-
-    return `
-import * as runtime from '${this.options.runtimeBase}/${this.options.runtimeName}'
-import type * as Prisma from './common'
-export * as Prisma from './common'
-export { PrismaClient } from './class'
-
-${context.dmmf.datamodel.enums.length > 0 ? `import * as $Enums from './enums'` : ''}
-${context.dmmf.datamodel.enums.length > 0 ? `export * as $Enums from './enums'` : ''}
-
-${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
-${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
-`
-  }
-
-  generateModelAndHelperFiles(): FileMap {
-    const context = new GenerateContext({
-      dmmf: this.dmmf,
-      genericArgsInfo: this.genericsInfo,
-      generator: this.options.generator,
-    })
-
-    const modelsFileMap: FileMap = createModelFiles(context)
+    const modelsFileMap: FileMap = modelNames.reduce((acc, modelName) => {
+      acc[context.outputFileName(modelName)] = createModelFile(context, modelName)
+      return acc
+    }, {})
 
     return {
-      'models.ts': createModelsFile(context, modelsFileMap),
-      'common.ts': createCommonFile(context, this.options),
-      'commonInputTypes.ts': createCommonInputTypeFiles(context),
-      'class.ts': createClassFile(context, this.options),
-      'enums.ts': createEnumsFile(context),
+      [context.outputFileName('index')]: `export * from '${context.importFileName('./client')}'`,
+      [context.outputFileName('client')]: createClientFile(context, this.options),
+      [context.outputFileName('enums')]: createEnumsFile(context),
+      [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),
+      [context.outputFileName('models')]: createModelsFile(context, modelNames),
       models: modelsFileMap,
+      internal: {
+        [context.outputFileName('prismaNamespace')]: createPrismaNamespaceFile(context, this.options),
+        [context.outputFileName('class')]: createClassFile(context, this.options),
+      },
     }
   }
 }

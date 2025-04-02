@@ -2,7 +2,8 @@ import crypto from 'node:crypto'
 import path from 'node:path'
 
 import { GetPrismaClientConfig } from '@prisma/client-common'
-import { BinaryTarget, ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { getClientEngineType, pathToPosix } from '@prisma/internals'
+import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
@@ -10,17 +11,39 @@ import { buildDirname } from '../../utils/buildDirname'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
 import { buildGetWasmModule } from '../../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../../utils/buildInjectableEdgeEnv'
-import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
 import { PrismaClientClass } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
-export function createClassFile(context: GenerateContext, options: TSClientOptions): string {
-  const prismaClientClass = new PrismaClientClass(context, options.datasources, options.outputDir, options.runtimeName)
+const jsDocHeader = `/**
+ * WARNING: This is an internal file that is subject to change!
+ * 
+ * 🛑 Under no circumstances should you import this file directly! 🛑
+ * 
+ * Please import the \`PrismaClient\` class from the \`client.ts\` file instead.
+ */
+`
 
+export function createClassFile(context: GenerateContext, options: TSClientOptions): string {
+  const imports = [
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(context.importFileName(`./prismaNamespace`)).asNamespace('Prisma').typeOnly(),
+  ].map((i) => ts.stringify(i))
+
+  const prismaClientClass = new PrismaClientClass(context, options.runtimeName)
+
+  return `${jsDocHeader}
+${imports.join('\n')}
+  
+${clientConfig(context, options)}
+
+${prismaClientClass.toTS()}
+`
+}
+
+function clientConfig(context: GenerateContext, options: TSClientOptions) {
   const {
     edge,
-    binaryPaths,
     generator,
     outputDir,
     datamodel: inlineSchema,
@@ -36,11 +59,6 @@ export function createClassFile(context: GenerateContext, options: TSClientOptio
   // This ensures that any engine override is propagated to the generated clients config
   const clientEngineType = getClientEngineType(generator)
   generator.config.engineType = clientEngineType
-
-  const binaryTargets =
-    clientEngineType === ClientEngineType.Library
-      ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-      : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
   const inlineSchemaHash = crypto
     .createHash('sha256')
@@ -67,11 +85,7 @@ export function createClassFile(context: GenerateContext, options: TSClientOptio
     dirname: '',
   }
 
-  // get relative output dir for it to be preserved even after bundling, or
-  // being moved around as long as we keep the same project dir structure.
-  const relativeOutdir = path.relative(process.cwd(), outputDir)
-
-  const clientConfig = `
+  return `
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
@@ -79,17 +93,5 @@ ${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, ac
 ${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildDebugInitialization(edge)}
-${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
-`
-
-  return `
-import path from 'node:path'
-
-import * as runtime from '@prisma/client/runtime/library';
-import type * as Prisma from './common';
-  
-${clientConfig}
-
-${prismaClientClass.toTSWithoutNamespace()}
 `
 }
