@@ -42,7 +42,7 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfigInternal
+      config: PrismaConfigInternal<any>
       error?: never
     }
   | {
@@ -52,7 +52,7 @@ export type ConfigFromFile =
     }
   | {
       resolvedPath: null
-      config: PrismaConfigInternal
+      config: PrismaConfigInternal<any>
       error?: never
     }
 
@@ -103,7 +103,7 @@ export async function loadConfigFromFile({
 
     debug(`Config file loaded in %s`, getTime())
 
-    let defaultExport: PrismaConfigInternal | undefined
+    let defaultExport: PrismaConfigInternal<any> | undefined
 
     try {
       defaultExport = parseDefaultExport(required['default'])
@@ -175,9 +175,9 @@ async function requireTypeScriptFile(resolvedPath: string) {
 }
 
 function transformPathsInConfigToAbsolute(
-  prismaConfig: PrismaConfigInternal,
+  prismaConfig: PrismaConfigInternal<any>,
   resolvedPath: string,
-): PrismaConfigInternal {
+): PrismaConfigInternal<any> {
   if (prismaConfig.schema) {
     return {
       ...prismaConfig,
