@@ -8,7 +8,7 @@ import { link } from '..'
  * @param command the cli command (eg. db push)
  * @returns
  */
-export const forbiddenCmdFlagWithSchemaEngineWasm = ({ cmd, flag }: { cmd: string, flag: string }) => `
+export const forbiddenCmdFlagWithSchemaEngineWasm = ({ cmd, flag }: { cmd: string; flag: string }) => `
 Passing the ${green(`${flag}`)} flag to the ${green(`prisma ${cmd}`)} command is not supported when
 defining a ${green(`migrate.adapter`)} in ${green(`prisma.config.ts`)}.
 
@@ -30,7 +30,7 @@ export function checkUnsupportedSchemaEngineWasm({
   cmd: string
   config: PrismaConfigInternal<any>
   args: Record<string, unknown>
-  flags: Array<string>,
+  flags: Array<string>
 }) {
   if (!config.migrate?.adapter) {
     return
@@ -38,7 +38,7 @@ export function checkUnsupportedSchemaEngineWasm({
 
   for (const flag of flags) {
     if (args[flag] !== undefined) {
-      throw new Error(forbiddenCmdFlagWithSchemaEngineWasm({ cmd, flag}))
+      throw new Error(forbiddenCmdFlagWithSchemaEngineWasm({ cmd, flag }))
     }
   }
 }

@@ -25,5 +25,5 @@ export default defineConfig<Env>({
         CLOUDFLARE_DATABASE_ID: env.CLOUDFLARE_DATABASE_ID,
       })
     },
-  }
+  },
 })
