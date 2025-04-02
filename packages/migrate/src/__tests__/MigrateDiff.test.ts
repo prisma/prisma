@@ -4,7 +4,7 @@
 import os from 'node:os'
 import path from 'node:path'
 
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
@@ -30,6 +30,162 @@ describe('migrate diff', () => {
   afterEach(() => {
     captureStdout.clearCaptureText()
     captureStdout.stopCapture()
+  })
+
+  describe('using Prisma Config', () => {
+    it('--from-url is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --from-url flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--to-url is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --from-url flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--from-schema-datasource is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--from-schema-datasource', 'schema.prisma'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --from-schema-datasource flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--to-schema-datasource is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--to-schema-datasource', 'schema.prisma'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --to-schema-datasource flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--shadow-database-url is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--shadow-database-url', 'file:./dev.shadow.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --shadow-database-url flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--from-local-d1 is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--from-local-d1', 'file:./dev.shadow.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --from-local-d1 flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+
+    it('--to-local-d1 is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await MigrateDiff.new().parse(['--to-local-d1', 'file:./dev.shadow.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --to-local-d1 flag to the prisma migrate diff command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
   })
 
   describe('D1', () => {
