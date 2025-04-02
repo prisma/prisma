@@ -37,7 +37,11 @@ testMatrix.setupTestSuite(
 
     const testIsolationLevel = (
       name: string,
-      { level, onlyIf, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; onlyIf?: () => boolean; expectSql: string },
+      {
+        level,
+        onlyIf,
+        expectSql,
+      }: { level: () => PrismaNamespace.TransactionIsolationLevel; onlyIf?: () => boolean; expectSql: string },
     ) => {
       // Driver adapters do not issue SET TRANSACTION ISOLATION LEVEL through the query engine.
       testIf(driverAdapter === undefined && (onlyIf ? onlyIf() : true))(name, async () => {

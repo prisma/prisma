@@ -789,22 +789,18 @@ testMatrix.setupTestSuite(
         })
       }
 
-      testIsolationLevel(
-        'read committed',
-        provider !== Providers.SQLITE,
-        async () => {
-          await prisma.$transaction(
-            async (tx) => {
-              await tx.user.create({ data: { email: 'user@example.com' } })
-            },
-            {
-              // @ts-test-if: !['sqlite'].includes(provider)
-              isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-            },
-          )
-          await expect(prisma.user.findMany()).resolves.toHaveLength(1)
-        },
-      )
+      testIsolationLevel('read committed', provider !== Providers.SQLITE, async () => {
+        await prisma.$transaction(
+          async (tx) => {
+            await tx.user.create({ data: { email: 'user@example.com' } })
+          },
+          {
+            // @ts-test-if: !['sqlite'].includes(provider)
+            isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+          },
+        )
+        await expect(prisma.user.findMany()).resolves.toHaveLength(1)
+      })
 
       testIsolationLevel(
         'read uncommitted',
