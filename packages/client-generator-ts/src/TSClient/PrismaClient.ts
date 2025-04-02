@@ -125,8 +125,8 @@ function clientTypeMapOthersDefinition(context: GenerateContext) {
     $queryRaw: { args: '[query: TemplateStringsArray | Sql, ...values: any[]]', result: 'any' },
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
-    $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
-    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'Prisma.JsonObject' },
+    $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'JsonObject' },
+    $queryRawTyped: { args: 'runtime.UnknownTypedSql', result: 'JsonObject' },
   } satisfies Record<NonModelOperation, { args: string; result: string }>
 
   return `{
