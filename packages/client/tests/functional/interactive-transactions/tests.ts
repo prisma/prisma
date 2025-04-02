@@ -791,14 +791,14 @@ testMatrix.setupTestSuite(
 
       testIsolationLevel(
         'read committed',
-        provider !== Providers.SQLITE && provider !== Providers.COCKROACHDB,
+        provider !== Providers.SQLITE,
         async () => {
           await prisma.$transaction(
             async (tx) => {
               await tx.user.create({ data: { email: 'user@example.com' } })
             },
             {
-              // @ts-test-if: !['mongodb', 'sqlite', 'cockroachdb'].includes(provider)
+              // @ts-test-if: !['sqlite'].includes(provider)
               isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
             },
           )
