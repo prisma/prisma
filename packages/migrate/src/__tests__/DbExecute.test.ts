@@ -34,8 +34,12 @@ describe('db execute', () => {
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
-          "Either --stdin or --file must be provided.
-          See \`prisma db execute -h\`"
+          "
+          Passing the --url flag to the prisma db execute command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
         `)
       }
     })
