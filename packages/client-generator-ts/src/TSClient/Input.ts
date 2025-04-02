@@ -58,7 +58,6 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
       return union.mapVariants((variant) => ts.array(variant))
     }
     return union
-
   } else if (t.namespace === 'prisma') {
     type = namedInputType(`Prisma.${t.type}`)
   } else {
