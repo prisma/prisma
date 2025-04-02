@@ -3,6 +3,7 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
+  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   formatms,
@@ -134,10 +135,19 @@ Set composite types introspection depth to 2 levels
       allowNull: true,
     })
 
+    const cmd = 'db pull'
+
     checkUnsupportedDataProxy({
-      cmd: 'db pull',
+      cmd,
       schemaContext: schemaContext && !url ? schemaContext : undefined,
       urls: [url],
+    })
+
+    checkUnsupportedSchemaEngineWasm({
+      cmd,
+      config,
+      args,
+      flags: ['--url', '--local-d1'],
     })
 
     // Print to console if --print is not passed to only have the schema in stdout

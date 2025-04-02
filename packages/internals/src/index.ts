@@ -1,4 +1,5 @@
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
+export { checkUnsupportedSchemaEngineWasm } from './cli/checkUnsupportedSchemaEngineWasm'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {

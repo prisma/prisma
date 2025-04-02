@@ -1,7 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
@@ -21,6 +21,30 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
+  describe('using Prisma Config', () => {
+    it('--url is not supported', async () => {
+      ctx.fixture('prisma-config-validation/sqlite-d1')
+      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+
+      try {
+        await DbExecute.new().parse(['--url', 'file:./dev.db'], config)
+      } catch (error) {
+        const e = error as Error & { code?: number }
+
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          "
+          Passing the --url flag to the prisma db execute command is not supported when
+          defining a migrate.adapter in prisma.config.ts.
+
+          More information about this limitation: https://pris.ly/d/schema-engine-limitations
+          "
+        `)
+      }
+    })
+  })
+
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')

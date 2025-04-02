@@ -2,6 +2,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
+  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   getCommandWithExecutor,
@@ -111,6 +112,15 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
 
+    const cmd = 'db execute'
+
+    checkUnsupportedSchemaEngineWasm({
+      cmd,
+      config,
+      args,
+      flags: ['--url'],
+    })
+
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
       throw new Error(
@@ -160,7 +170,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
 
     // Execute command(s) to url passed
     if (args['--url']) {
-      checkUnsupportedDataProxy({ cmd: 'db execute', urls: [args['--url']] })
+      checkUnsupportedDataProxy({ cmd, urls: [args['--url']] })
 
       datasourceType = {
         tag: 'url',
@@ -177,7 +187,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         printLoadMessage: false,
       })
 
-      checkUnsupportedDataProxy({ cmd: 'db execute', schemaContext })
+      checkUnsupportedDataProxy({ cmd, schemaContext })
 
       // Execute command(s) to url from schema
       datasourceType = {
