@@ -218,6 +218,9 @@ importers:
 
   packages/adapter-libsql:
     dependencies:
+      '@libsql/client':
+        specifier: ^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0
+        version: 0.8.1
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -225,9 +228,12 @@ importers:
         specifier: 0.5.0
         version: 0.5.0
     devDependencies:
-      '@libsql/client':
-        specifier: 0.8.0
-        version: 0.8.0
+      jest:
+        specifier: 29.7.0
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
+      jest-junit:
+        specifier: 16.0.0
+        version: 16.0.0
 
   packages/adapter-neon:
     dependencies:
