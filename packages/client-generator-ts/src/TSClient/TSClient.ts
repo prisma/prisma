@@ -68,8 +68,8 @@ import type * as Prisma from './common'
 export * as Prisma from './common'
 export { PrismaClient } from './class'
 
-${context.dmmf.datamodel.enums.length > 0 ? `import type * as $Enums from './enums'` : ''}
-${context.dmmf.datamodel.enums.length > 0 ? `export type * as $Enums from './enums'` : ''}
+${context.dmmf.datamodel.enums.length > 0 ? `import * as $Enums from './enums'` : ''}
+${context.dmmf.datamodel.enums.length > 0 ? `export * as $Enums from './enums'` : ''}
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
