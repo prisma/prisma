@@ -39,7 +39,8 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.12",
-    "better-sqlite3": "11.9.1"
+    "better-sqlite3": "11.9.1",
+    "async-mutex": "0.5.0"
   },
   "peerDependencies": {
     "better-sqlite3": ">= ^11.9.0 < 12"

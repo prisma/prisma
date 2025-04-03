@@ -9,6 +9,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { Mutex } from 'async-mutex'
 import type { Database as BetterSQLite3, Options as BetterSQLite3Options } from 'better-sqlite3'
 import Database from 'better-sqlite3'
 
@@ -45,6 +46,8 @@ const ERROR_CODE_STRING_TO_CODE_NUM = {
   SQLITE_CONSTRAINT_TRIGGER: 1811,
   SQLITE_CONSTRAINT_UNIQUE: 2067,
 }
+
+const LOCK_TAG = Symbol()
 
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
@@ -88,13 +91,12 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  private async executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
+  private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
       const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
       const result = stmt.run()
 
-      return result
+      return Promise.resolve(result)
     } catch (e) {
       this.onError(e)
     }
@@ -105,19 +107,18 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  private async performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
+  private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
       const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
       if (!stmt.reader) {
         stmt.run()
-        return {
+        return Promise.resolve({
           columnNames: [],
           declaredTypes: [],
           values: [],
-        }
+        })
       }
 
       const columns = stmt.columns()
@@ -128,7 +129,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
         values: stmt.raw().all() as unknown[][],
       }
 
-      return resultSet
+      return Promise.resolve(resultSet)
     } catch (e) {
       this.onError(e)
     }
@@ -149,36 +150,39 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 }
 
 class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> implements Transaction {
-  constructor(client: StdClient, readonly options: TransactionOptions) {
+  constructor(client: StdClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async commit(): Promise<void> {
+  commit(): Promise<void> {
     debug(`[js::commit]`)
+    this.unlockParent()
+    return Promise.resolve()
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async rollback(): Promise<void> {
+  rollback(): Promise<void> {
     debug(`[js::rollback]`)
+    this.unlockParent()
+    return Promise.resolve()
   }
 }
 
 export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
+  [LOCK_TAG] = new Mutex()
+
   constructor(client: StdClient) {
     super(client)
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async executeScript(script: string): Promise<void> {
+  executeScript(script: string): Promise<void> {
     try {
       this.client.exec(script)
     } catch (e) {
       this.onError(e)
     }
+    return Promise.resolve()
   }
 
-  // eslint-disable-next-line @typescript-eslint/require-await
   async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     if (isolationLevel && isolationLevel !== 'SERIALIZABLE') {
       throw new DriverAdapterError({
@@ -194,9 +198,11 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
+    const release = await this[LOCK_TAG].acquire()
+
     this.client.prepare('BEGIN').run()
 
-    return new BetterSQLite3Transaction(this.client, options)
+    return new BetterSQLite3Transaction(this.client, options, release)
   }
 
   dispose(): Promise<void> {
