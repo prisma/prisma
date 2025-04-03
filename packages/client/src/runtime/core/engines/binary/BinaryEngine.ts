@@ -80,6 +80,7 @@ export class BinaryEngine implements Engine<undefined> {
   private lastError?: PrismaClientRustError
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
+  private cwd: string
   private datamodelPath: string
   private stderrLogs = ''
   private currentRequestPromise?: any
@@ -107,6 +108,7 @@ export class BinaryEngine implements Engine<undefined> {
   constructor(config: EngineConfig) {
     this.config = config
     this.env = config.env
+    this.cwd = this.resolveCwd(config.cwd)
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
     this.tracingHelper = config.tracingHelper
@@ -170,6 +172,14 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         }
       }
     }
+  }
+
+  private resolveCwd(cwd: string): string {
+    if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
+      return cwd
+    }
+
+    return process.cwd()
   }
 
   onBeforeExit(listener: () => Promise<void>) {
@@ -316,6 +326,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
+        debug('cwd:', this.cwd)
+
         const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
@@ -337,6 +349,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.child = spawn(prismaPath, flags, {
           env,
+          cwd: this.cwd,
           windowsHide: true,
           stdio: ['ignore', 'pipe', 'pipe'],
         })
