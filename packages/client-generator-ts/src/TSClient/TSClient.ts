@@ -38,7 +38,7 @@ export class TSClient {
       genericArgsInfo: this.genericsInfo,
       runtimeImport: `${this.options.runtimeBase}/${this.options.runtimeName}`,
       outputFileName: generatedFileNameMapper(this.options.generatedFileExtension),
-      importFileName: importFileNameMapper(this.options.generatedFileExtension),
+      importFileName: importFileNameMapper(this.options.importFileExtension),
       generator: this.options.generator,
     })
 

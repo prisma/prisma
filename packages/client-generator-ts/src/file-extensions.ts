@@ -53,9 +53,8 @@ export function generatedFileNameMapper(generatedFileExtension: GeneratedFileExt
   return (baseName: string) => baseName + extensionToSuffix(generatedFileExtension)
 }
 
-// TODO: Reenable creating the suffix when we figured out how to workaround "An import path can only end with a '.ts' extension when 'allowImportingTsExtensions' is enabled." errors.
-export function importFileNameMapper(_importFileExtension: ImportFileExtension): FileNameMapper {
-  return (baseName: string) => baseName // + extensionToSuffix(importFileExtension)
+export function importFileNameMapper(importFileExtension: ImportFileExtension): FileNameMapper {
+  return (baseName: string) => baseName + extensionToSuffix(importFileExtension)
 }
 
 type InferImportFileExtensionOptions = {
