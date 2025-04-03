@@ -38,6 +38,10 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
+/**
+ * BetterSQLite3 translates error codes from numbers into string constants.
+ * In the query engine we however expect the numeric error code in the error to perform proper mapping.
+ */
 const ERROR_CODE_STRING_TO_CODE_NUM = {
   SQLITE_BUSY: 5,
   SQLITE_CONSTRAINT_FOREIGNKEY: 787,
