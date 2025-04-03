@@ -210,6 +210,9 @@ importers:
       '@types/better-sqlite3':
         specifier: 7.6.12
         version: 7.6.12
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
       better-sqlite3:
         specifier: 11.9.1
         version: 11.9.1
