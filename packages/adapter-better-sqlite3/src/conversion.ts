@@ -190,15 +190,6 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
 export function mapQueryArgs(args: unknown[], argTypes: ArgType[]): unknown[] {
   return args.map((arg, i) => {
     const argType = argTypes[i]
-    if (argType === 'Int64') {
-      const asInt56 = Number.parseInt(arg as string)
-      if (!Number.isSafeInteger(asInt56)) {
-        throw new Error(`Invalid Int64-encoded value received: ${arg}`)
-      }
-
-      return asInt56
-    }
-
     if (argType === 'Int32') {
       return Number.parseInt(arg as string)
     }
