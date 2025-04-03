@@ -327,7 +327,7 @@ generator gen {
         const engineVersion = getEngineVersionForGenerator(generator.manifest, version)
         const binaryPaths = binaryPathsByVersion[engineVersion]
         // pick only the engines that we need for this generator
-        const generatorBinaryPaths = pick(binaryPaths, generator.manifest.requiresEngines)
+        const generatorBinaryPaths = pick(binaryPaths ?? {}, generator.manifest.requiresEngines)
         debug({ generatorBinaryPaths })
         generator.setBinaryPaths(generatorBinaryPaths)
 
