@@ -156,15 +156,11 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
   // eslint-disable-next-line @typescript-eslint/require-await
   async commit(): Promise<void> {
     debug(`[js::commit]`)
-
-    this.client.prepare('COMMIT').run()
   }
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
-
-    this.client.prepare('ROLLBACK').run()
   }
 }
 
@@ -192,13 +188,13 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     }
 
     const options: TransactionOptions = {
-      usePhantomQuery: true,
+      usePhantomQuery: false,
     }
 
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    this.client.prepare('BEGIN DEFERRED').run()
+    this.client.prepare('BEGIN').run()
 
     return new BetterSQLite3Transaction(this.client, options)
   }
