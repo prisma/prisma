@@ -42,7 +42,7 @@ export {
   type RuntimeDataModel,
 } from '@prisma/client-common'
 export { Debug } from '@prisma/debug'
-export type * as DMMF from '@prisma/dmmf'
+export * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 export { warnOnce } from '@prisma/internals'
 export { default as Decimal } from 'decimal.js'
