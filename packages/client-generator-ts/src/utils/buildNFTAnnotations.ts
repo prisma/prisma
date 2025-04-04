@@ -55,9 +55,7 @@ export function buildNFTAnnotations(
     })
     .join('\n')
 
-  const schemaAnnotations = buildNFTAnnotation('schema.prisma', relativeOutdir)
-
-  return `${engineAnnotations}${schemaAnnotations}`
+  return `${engineAnnotations}`
 }
 
 /**
