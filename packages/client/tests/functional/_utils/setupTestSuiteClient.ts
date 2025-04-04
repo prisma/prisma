@@ -273,7 +273,8 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
-    const { PrismaBetterSQLite3 } = require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
+    const { PrismaBetterSQLite3 } =
+      require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
 
     return {
       adapter: new PrismaBetterSQLite3({
