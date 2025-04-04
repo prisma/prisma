@@ -272,5 +272,21 @@ export function setupTestSuiteClientDriverAdapter({
     return { adapter: new PrismaD1(d1Client), __internal }
   }
 
+  if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
+    const { PrismaBetterSQLite3 } =
+      require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
+
+    return {
+      adapter: new PrismaBetterSQLite3({
+        // Workaround to avoid the Prisma validation error:
+        // ```
+        // Error validating datasource `db`: the URL must start with the protocol `file:`
+        // ```
+        url: datasourceInfo.databaseUrl.replace('file:', ''),
+      }),
+      __internal,
+    }
+  }
+
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }
