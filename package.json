@@ -185,11 +185,6 @@
       "brotli": false
     },
     {
-      "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
       "path": "packages/bundle-size/da-workers-planetscale/output.tgz",
       "gzip": false,
       "brotli": false

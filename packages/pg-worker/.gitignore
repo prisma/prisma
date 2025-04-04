@@ -1,7 +1,0 @@
-.DS_Store
-node_modules
-pnpm-debug.log
-*.tsbuildinfo
-
-dist/
-
