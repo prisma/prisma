@@ -481,15 +481,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
-  if (!enginePath) {
-    throw new Error(
-      `Prisma Client needs \`${
-        clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
-      }\` in the \`binaryPaths\` object.`,
-    )
-  }
-
-  if (copyEngine) {
+  if (copyEngine && enginePath) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
