@@ -3,6 +3,7 @@ import path from 'node:path'
 import { BinaryTarget, ClientEngineType, getClientEngineType } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
+import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
 import { TSClientOptions } from '../TSClient'
@@ -19,7 +20,6 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   options.generator.config.engineType = clientEngineType
 
   const imports = [
-    ts.moduleImport('node:path').default('path'),
     ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums'),
     ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma').typeOnly(),
   ].map((i) => ts.stringify(i))
@@ -67,6 +67,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   const relativeOutdir = path.relative(process.cwd(), options.outputDir)
 
   return `${jsDocHeader}
+${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
 ${exports.join('\n')}
@@ -77,4 +78,24 @@ ${modelExports.join('\n')}
 
 ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 `
+}
+
+function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
+  if (edge) {
+    return ''
+  }
+
+  let preamble = `\
+import * as process from 'node:process'
+import * as path from 'node:path'
+`
+
+  if (moduleFormat === 'esm') {
+    preamble += `\
+    import { fileURLToPath } from 'node:url'
+    const __dirname = path.dirname(fileURLToPath(import.meta.url))
+`
+  }
+
+  return preamble
 }
