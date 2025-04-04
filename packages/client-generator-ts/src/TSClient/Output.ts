@@ -4,7 +4,7 @@ import * as ts from '@prisma/ts-builders'
 
 import type { DMMFHelper } from '../dmmf'
 import { getPayloadName } from '../utils'
-import { GraphQLScalarToJSTypeTable, needsNamespace } from '../utils/common'
+import { GraphQLScalarToJSTypeTable } from '../utils/common'
 
 export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
   let fieldTypeName = hasOwnProperty(GraphQLScalarToJSTypeTable, field.type)
@@ -14,9 +14,6 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
     fieldTypeName = fieldTypeName[0]
   }
 
-  if (needsNamespace(field)) {
-    fieldTypeName = `Prisma.${fieldTypeName}`
-  }
   let fieldType: ts.TypeBuilder
   if (field.kind === 'object') {
     const payloadType = ts.namedType(getPayloadName(field.type))

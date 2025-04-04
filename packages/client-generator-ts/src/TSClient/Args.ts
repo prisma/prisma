@@ -43,10 +43,16 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'select',
-          ts.unionType([ts.namedType(selectTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
+          ts.unionType([
+            ts.namedType(`Prisma.${selectTypeName}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
         )
         .optional()
-        .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
+        .setDocComment(
+          ts.docComment(`Select specific fields to fetch
+                                      from the ${this.type.name}`),
+        ),
     )
 
     return this
@@ -62,7 +68,10 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'include',
-          ts.unionType([ts.namedType(includeTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
+          ts.unionType([
+            ts.namedType(`Prisma.${includeTypeName}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.nullType,
+          ]),
         )
         .optional()
         .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),
@@ -77,7 +86,7 @@ export class ArgsTypeBuilder {
         .property(
           'omit',
           ts.unionType([
-            ts.namedType(getOmitName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+            ts.namedType(`Prisma.${getOmitName(this.type.name)}`).addGenericArgument(extArgsParam.toArgument()),
             ts.nullType,
           ]),
         )

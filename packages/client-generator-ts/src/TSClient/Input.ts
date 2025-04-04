@@ -7,10 +7,9 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { appendSkipType } from '../utils'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
-import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 
-export class InputField implements Generable {
+export class InputField {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly context: GenerateContext,
@@ -58,6 +57,8 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
       return union.mapVariants((variant) => ts.array(variant))
     }
     return union
+  } else if (t.namespace === 'prisma') {
+    type = namedInputType(`Prisma.${t.type}`)
   } else {
     type = namedInputType(scalarType ?? t.type)
   }
@@ -118,10 +119,10 @@ function buildAllFieldTypes(
 }
 
 function xorTypes(types: ts.TypeBuilder[]) {
-  return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
+  return types.reduce((prev, curr) => ts.namedType('Prisma.XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
-export class InputType implements Generable {
+export class InputType {
   private generatedName: string
   constructor(protected readonly type: DMMF.InputType, protected readonly context: GenerateContext) {
     this.generatedName = type.name
