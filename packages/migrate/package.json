@@ -30,7 +30,6 @@
     "execa": "5.1.1",
     "fp-ts": "2.16.9",
     "fs-jetpack": "5.1.0",
-    "get-stdin": "9.0.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",

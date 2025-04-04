@@ -1,3 +1,5 @@
+import streamConsumer from 'node:stream/consumers'
+
 import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
@@ -13,7 +15,6 @@ import {
   toSchemasContainer,
 } from '@prisma/internals'
 import fs from 'fs'
-import getStdin from 'get-stdin'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
@@ -163,7 +164,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     }
     // Read stdin
     if (args['--stdin']) {
-      script = await getStdin()
+      script = await streamConsumer.text(process.stdin)
     }
 
     let datasourceType: EngineArgs.DbExecuteDatasourceType
