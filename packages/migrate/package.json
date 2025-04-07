@@ -58,7 +58,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/engines-version": "6.6.0-47.4a9d50e6898ac0428d7dfd6aad4bd98fddb12229",
+    "@prisma/engines-version": "6.6.0-49.6d9919036f1a9c347de172190cd6165a54bc3f53",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
