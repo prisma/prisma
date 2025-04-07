@@ -26,9 +26,6 @@ export const wasmSchemaEngineLoader = {
         const runtime = await import('@prisma/schema-engine-wasm/schema_engine_bg')
         const wasmModule = await getSchemaEngineWasModule()
 
-        console.log('[runtime]', runtime)
-        console.log('[runtime]', runtime.default)
-
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
         const instance = new WebAssembly.Instance(wasmModule, {
           // @ts-ignore
