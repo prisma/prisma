@@ -11,6 +11,7 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
+    const isCockroachDb = provider === Providers.COCKROACHDB
 
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
@@ -36,10 +37,14 @@ testMatrix.setupTestSuite(
 
     const testIsolationLevel = (
       name: string,
-      { level, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; expectSql: string },
+      {
+        level,
+        onlyIf,
+        expectSql,
+      }: { level: () => PrismaNamespace.TransactionIsolationLevel; onlyIf?: () => boolean; expectSql: string },
     ) => {
       // Driver adapters do not issue SET TRANSACTION ISOLATION LEVEL through the query engine.
-      testIf(driverAdapter === undefined)(name, async () => {
+      testIf(driverAdapter === undefined && (onlyIf ? onlyIf() : true))(name, async () => {
         await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
           isolationLevel: level(),
         })
@@ -51,7 +56,9 @@ testMatrix.setupTestSuite(
     }
 
     testIsolationLevel('ReadUncommitted', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.ReadUncommitted,
+      onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
     })
 
@@ -61,7 +68,9 @@ testMatrix.setupTestSuite(
     })
 
     testIsolationLevel('RepeatableRead', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.RepeatableRead,
+      onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
     })
 
@@ -102,7 +111,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'sqlite', 'cockroachdb'],
+      from: ['mongodb', 'sqlite'],
       reason: `
         mongo - Not supported
         sqlite, cockroach - Support only serializable level, never generate sql for setting isolation level
