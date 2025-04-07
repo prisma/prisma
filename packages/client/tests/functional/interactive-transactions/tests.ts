@@ -795,7 +795,7 @@ testMatrix.setupTestSuite(
             await tx.user.create({ data: { email: 'user@example.com' } })
           },
           {
-            // @ts-test-if: !['sqlite'].includes(provider)
+            // @ts-test-if: !['mongodb', 'sqlite'].includes(provider)
             isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
           },
         )
