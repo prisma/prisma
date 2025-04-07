@@ -39,9 +39,7 @@ export class Mcp implements Command {
   private constructor() {}
 
   public help = createHelp({
-    options: [
-      ['--early-access', '', 'Enable early access features'],
-    ],
+    options: [['--early-access', '', 'Enable early access features']],
     examples: ['prisma mcp --early-access'],
     additionalContent: [
       'Starts an MCP server to use with AI development tools such as Cursor, Windsurf and Claude Desktop',
@@ -157,11 +155,15 @@ export class Mcp implements Command {
       return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
     })
 
-    server.tool('Prisma-Studio', `Open Prisma Studio to view data in your database in a pleasing visual ui.`, async () => {
+    server.tool(
+      'Prisma-Studio',
+      `Open Prisma Studio to view data in your database in a pleasing visual ui.`,
+      async () => {
         const res = await spawnAsPromise('npx', ['prisma', 'studio'])
-  
+
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
-      })
+      },
+    )
 
     const transport = new StdioServerTransport()
     await server.connect(transport)
