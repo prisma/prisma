@@ -55,10 +55,11 @@ export const defaultSchema = (props?: {
 ${isProviderCompatibleWithAccelerate ? aboutAccelerate : ''}
 generator client {
   provider = "${generatorProvider}"
-${previewFeatures.length > 0
-      ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
-      : ''
-    }  output   = "${output}"
+${
+  previewFeatures.length > 0
+    ? `  previewFeatures = [${previewFeatures.map((feature) => `"${feature}"`).join(', ')}]\n`
+    : ''
+}  output   = "${output}"
 }
 
 datasource db {
@@ -329,7 +330,8 @@ export class Init implements Command {
     const outputDir = process.cwd()
     const prismaFolder = path.join(outputDir, 'prisma')
 
-    let generatedSchema, generatedName = ""
+    let generatedSchema,
+      generatedName = ''
 
     if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
@@ -353,16 +355,19 @@ export class Init implements Command {
       }
 
       if (args['--generate']) {
-        const spinner = ora(`Generating a Prisma Schema based on your description ${bold(args['--generate'])} ...`).start()
+        const spinner = ora(
+          `Generating a Prisma Schema based on your description ${bold(args['--generate'])} ...`,
+        ).start()
 
         try {
-          ({ generatedSchema, generatedName } = await (await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
-            method: 'POST',
-            body: JSON.stringify({
-              description: args['--generate'],
-            }),
-          })).json() as { generatedSchema: string, generatedName: string })
-
+          ;({ generatedSchema, generatedName } = (await (
+            await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
+              method: 'POST',
+              body: JSON.stringify({
+                description: args['--generate'],
+              }),
+            })
+          ).json()) as { generatedSchema: string; generatedName: string })
         } catch (e) {
           spinner.fail()
           throw e
@@ -499,13 +504,14 @@ export class Init implements Command {
 
     fs.writeFileSync(
       path.join(prismaFolder, 'schema.prisma'),
-      generatedSchema || defaultSchema({
-        datasourceProvider,
-        generatorProvider,
-        previewFeatures,
-        output: clientOutput,
-        withModel: args['--with-model'],
-      }),
+      generatedSchema ||
+        defaultSchema({
+          datasourceProvider,
+          generatorProvider,
+          previewFeatures,
+          output: clientOutput,
+          withModel: args['--with-model'],
+        }),
     )
 
     const databaseUrl = prismaPostgresDatabaseUrl || url
