@@ -8,6 +8,10 @@ export class GeneratorRegistry {
     this.#generators.set(generator.name, generator)
   }
 
+  addAliased(name: string, generator: Generator) {
+    this.#generators.set(name, generator)
+  }
+
   toInternal(): IGeneratorRegistry {
     // TODO: use iterator `map` method once we drop Node.js 18 and 20
     return Object.fromEntries(
