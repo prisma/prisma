@@ -68,6 +68,7 @@ export class PrismaClientTsGenerator implements Generator {
         : inferImportFileExtension({
             tsconfig,
             generatedFileExtension,
+            target,
           })
 
     const moduleFormat =
