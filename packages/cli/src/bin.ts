@@ -27,6 +27,7 @@ import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+import { Mcp } from './MCP'
 import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
@@ -125,8 +126,8 @@ async function main(): Promise<number> {
           delete: Platform.ServiceToken.Delete.new(true),
           show: Platform.ServiceToken.Show.new(true),
         }),
-        mcp: Platform.Mcp.Mcp.new(),
       }),
+      mcp: Mcp.new(),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),

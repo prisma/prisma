@@ -235,7 +235,8 @@ export class Init implements Command {
       '--region': String,
       '--name': String,
       '--non-interactive': Boolean,
-      '--generate': String,
+      '--prompt': String,
+      '--vibe': String,
     })
 
     if (isError(args) || args['--help']) {
@@ -320,7 +321,8 @@ export class Init implements Command {
     const generatorProvider = args['--generator-provider']
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
-    const isPpgCommand = args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER || args['--generate']
+    const isPpgCommand =
+      args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER || args['--prompt'] || args['--vibe']
 
     let prismaPostgresDatabaseUrl: string | undefined
     let workspaceId = ``
@@ -354,17 +356,16 @@ export class Init implements Command {
         console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
       }
 
-      if (args['--generate']) {
-        const spinner = ora(
-          `Generating a Prisma Schema based on your description ${bold(args['--generate'])} ...`,
-        ).start()
+      if (args['--prompt'] || args['--vibe']) {
+        const prompt = args['--prompt'] || args['--vibe'] || ''
+        const spinner = ora(`Generating a Prisma Schema based on your description ${bold(prompt)} ...`).start()
 
         try {
           ;({ generatedSchema, generatedName } = (await (
             await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
               method: 'POST',
               body: JSON.stringify({
-                description: args['--generate'],
+                description: prompt,
               }),
             })
           ).json()) as { generatedSchema: string; generatedName: string })

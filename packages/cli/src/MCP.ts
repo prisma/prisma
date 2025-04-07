@@ -5,7 +5,7 @@ import { Command, link } from '@prisma/internals'
 import { spawn } from 'child_process'
 import { z } from 'zod'
 
-import { createHelp } from '../_lib/help'
+import { createHelp } from './platform/_lib/help'
 
 function spawnAsPromise(command: string, args: string[] = []): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve) => {
@@ -41,9 +41,8 @@ export class Mcp implements Command {
   public help = createHelp({
     options: [
       ['--early-access', '', 'Enable early access features'],
-      ['--token', '', 'Specify a token to use for authentication'],
     ],
-    examples: ['prisma platform mcp --early-access'],
+    examples: ['prisma mcp --early-access'],
     additionalContent: [
       'Starts an MCP server to use with AI development tools such as Cursor, Windsurf and Claude Desktop',
       `For additional help visit ${link('https://pris.ly/cli/mcp')}`,
@@ -157,6 +156,12 @@ export class Mcp implements Command {
 
       return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
     })
+
+    server.tool('Prisma-Studio', `Open Prisma Studio to view data in your database in a pleasing visual ui.`, async () => {
+        const res = await spawnAsPromise('npx', ['prisma', 'studio'])
+  
+        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+      })
 
     const transport = new StdioServerTransport()
     await server.connect(transport)
