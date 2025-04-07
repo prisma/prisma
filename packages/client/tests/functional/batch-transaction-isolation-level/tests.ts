@@ -56,6 +56,7 @@ testMatrix.setupTestSuite(
     }
 
     testIsolationLevel('ReadUncommitted', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.ReadUncommitted,
       onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
@@ -67,6 +68,7 @@ testMatrix.setupTestSuite(
     })
 
     testIsolationLevel('RepeatableRead', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.RepeatableRead,
       onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
