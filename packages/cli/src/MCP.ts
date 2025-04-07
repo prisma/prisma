@@ -7,9 +7,13 @@ import { z } from 'zod'
 
 import { createHelp } from './platform/_lib/help'
 
-function spawnAsPromise(command: string, args: string[] = []): Promise<{ stdout: string; stderr: string }> {
+function spawnAsPromise(
+  command: string,
+  args: string[] = [],
+  cwd: string,
+): Promise<{ stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    const child = spawn(command, args)
+    const child = spawn(command, args, { cwd: cwd || process.cwd() })
 
     let stdout = ''
     let stderr = ''
@@ -70,8 +74,9 @@ export class Mcp implements Command {
 
             The migrations from the database are not found locally in prisma/migrations:
             20201208100950_new_migration`,
-      async () => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'status'])
+      { projectCWD: z.string() },
+      async ({ projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'status'], projectCWD)
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
@@ -88,9 +93,9 @@ export class Mcp implements Command {
             3. Generates a new migration from any changes you made to the Prisma schema before running migrate dev
             4. Applies all unapplied migrations to the development database and updates the _prisma_migrations table
             5. Triggers the generation of artifacts (for example, Prisma Client)`,
-      { name: z.string() },
-      async ({ name }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'dev', '--name', name])
+      { name: z.string(), projectCWD: z.string() },
+      async ({ name, projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'dev', '--name', name], projectCWD)
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
@@ -106,8 +111,9 @@ export class Mcp implements Command {
                 2. Creates a new database/schema with the same name if the database/schema was dropped
                 3. Applies all migrations
                 4. Runs seed scripts`,
-      async () => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'reset', '--force'])
+      { projectCWD: z.string() },
+      async ({ projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'reset', '--force'], projectCWD)
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
@@ -116,8 +122,9 @@ export class Mcp implements Command {
     server.tool(
       'Prisma-Postgres-account-status',
       `Prisma Platform Auth Show provides information about the currently logged in user. If the user is not logged in, you should instruct them to do so by running \`npx prisma platform auth login --early-access\` and then re-running this command to verify.`,
-      async () => {
-        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'show', '--early-access'])
+      { projectCWD: z.string() },
+      async ({ projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'show', '--early-access'], projectCWD)
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
@@ -126,40 +133,43 @@ export class Mcp implements Command {
     server.tool(
       'Create-Prisma-Postgres-Database',
       `Create a new online Prisma Postgres database.
-      Specify a name that makes sense to the user - maybe the name of the project they are working on
-      Specify a region that makes sense for the user. Pick between these three options: us-east-1, eu-west-3, ap-northeast-1. If you are unsure, pick us-east-1
+      Specify a name that makes sense to the user - maybe the name of the project they are working on.
+      Specify a region that makes sense for the user. Pick between these three options: us-east-1, eu-west-3, ap-northeast-1. If you are unsure, pick us-east-1.
+      Provide the current working directory of the users project. This should be the top level directory of the project.
       If the response idicates that you have reached the workspace plan limit, you should instruct the user to do one of these things:
       - If they want to connect to an existing database, they should go to console.prisma.io and copy the connection string
       - If they want to upgrade their plan, they should go to console.prisma.io and upgrade their plan in order to be able to create more databases
       - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
-      { name: z.string(), region: z.string() },
-      async ({ name, region }) => {
-        const res = await spawnAsPromise('npx', [
-          'prisma@6.6.0-integration-mcp.2',
-          'init',
-          '--db',
-          '--name',
-          name,
-          '--region',
-          region,
-          '--non-interactive',
-        ])
+      { name: z.string(), region: z.string(), projectCWD: z.string() },
+      async ({ name, region, projectCWD }) => {
+        const res = await spawnAsPromise(
+          'npx',
+          ['prisma@6.6.0-integration-mcp.2', 'init', '--db', '--name', name, '--region', region, '--non-interactive'],
+          projectCWD,
+        )
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
     )
 
-    server.tool('Prisma-Login', `Login or create an account in order to be able to use Prisma Postgres.`, async () => {
-      const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'])
+    server.tool(
+      'Prisma-Login',
+      `Login or create an account in order to be able to use Prisma Postgres.`,
+      { projectCWD: z.string() },
+      async ({ projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'], projectCWD)
 
-      return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
-    })
+        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+      },
+    )
 
     server.tool(
       'Prisma-Studio',
-      `Open Prisma Studio to view data in your database in a pleasing visual ui.`,
-      async () => {
-        const res = await spawnAsPromise('npx', ['prisma', 'studio'])
+      `Open Prisma Studio to view data in your database in a pleasing visual ui.
+      Provide the current working directory of the users project. This should be the top level directory of the project.`,
+      { projectCWD: z.string() },
+      async ({ projectCWD }) => {
+        const res = await spawnAsPromise('npx', ['prisma', 'studio'], projectCWD)
 
         return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
       },
