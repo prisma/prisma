@@ -193,6 +193,13 @@ export class RequestHandler {
   }: HandleErrorParams): never {
     debug(error)
 
+    if (isDriverAdapterError(error)) {
+      const converted = this.convertAdapterToUserFacingError(error)
+      if (converted) {
+        error = converted
+      }
+    }
+
     if (isMismatchingBatchIndex(error, transaction)) {
       // if this is batch error and current request was not it's cause, we don't add
       // context information to the error: this wasn't a request that caused batch to fail
