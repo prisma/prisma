@@ -55,7 +55,7 @@ export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
 const createPrismaMigrateConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     /**
-     * Instantiates the Prisma driver adapter to use for Prisma Studio.
+     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
      */
     adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
   })
