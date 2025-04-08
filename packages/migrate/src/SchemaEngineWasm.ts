@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
-import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlDriverAdapterFactory, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import {
+  assertAlways,
   ErrorArea,
   getWasmError,
   isWasmPanic,
@@ -15,6 +16,9 @@ import { SchemaEngine } from './SchemaEngine'
 import { EngineArgs } from './types'
 import { handleViewsIO } from './views/handleViewsIO'
 
+const debugStderr = Debug('prisma:schemaEngine:wasm:stderr')
+const debugStdout = Debug('prisma:schemaEngine:wasm:stdout')
+
 type SchemaEngineMethods = Omit<wasm.SchemaEngineWasm, 'free'>
 export type SchemaEngineInput<M extends keyof SchemaEngineMethods> = Parameters<wasm.SchemaEngineWasm[M]>[0]
 export type SchemaEngineOutput<M extends keyof SchemaEngineMethods> = ReturnType<wasm.SchemaEngineWasm[M]>
@@ -28,21 +32,18 @@ interface SchemaEngineWasmSetupInput {
 export interface SchemaEngineWasmOptions extends Omit<SchemaEngineWasmSetupInput, 'adapter'> {
   debug?: boolean
   engine: wasm.SchemaEngineWasm
+  errorRegistry: ErrorRegistry
 }
 
 /**
  * Wrapper around `@prisma/schema-engine-wasm`, which will eventually replace `SchemaEngineCLI`.
  *
  * TODOs:
- * - Forward initial schema and preview features to the Wasm engine
- * - Collect and forward logs to the CLI
  * - Catch and throw "rich" connector errors
  */
 export class SchemaEngineWasm implements SchemaEngine {
   private engine: wasm.SchemaEngineWasm
-
-  // TODO: forward initial schema to the Wasm engine
-  private schemaContext?: SchemaContext
+  private errorRegistry: ErrorRegistry
 
   // TODO: forward enabled preview features to the Wasm engine
   private enabledPreviewFeatures?: string[]
@@ -50,43 +51,69 @@ export class SchemaEngineWasm implements SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  private constructor({ debug = false, enabledPreviewFeatures, schemaContext, engine }: SchemaEngineWasmOptions) {
-    this.schemaContext = schemaContext
+  private constructor({ debug, enabledPreviewFeatures, engine, errorRegistry }: SchemaEngineWasmOptions) {
     this.enabledPreviewFeatures = enabledPreviewFeatures
     if (debug) {
-      Debug.enable('SchemaEngine*')
+      Debug.enable('prisma:schemaEngine*')
     }
     this.engine = engine
+    this.errorRegistry = errorRegistry
   }
 
-  static async setup({ adapter, ...rest }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
-    const engine = await wasmSchemaEngineLoader.loadSchemaEngine(adapter)
-    return new SchemaEngineWasm({ ...rest, engine })
+  static async setup({ adapter, schemaContext, ...rest }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
+    const debug = (arg: string) => {
+      debugStderr(arg)
+    }
+
+    // Note: `datamodels` must be either `undefined` or a *non-empty* `LoadedFile[]`.
+    const datamodels = schemaContext?.schemaFiles
+    const engine = await wasmSchemaEngineLoader.loadSchemaEngine(
+      {
+        datamodels,
+      },
+      debug,
+      adapter,
+    )
+    return new SchemaEngineWasm({ ...rest, engine, errorRegistry: adapter.errorRegistry })
   }
 
-  private runCommand<M extends keyof SchemaEngineMethods>(
+  private async runCommand<M extends keyof SchemaEngineMethods>(
     command: M,
     input: SchemaEngineInput<M>,
-  ): SchemaEngineOutput<M> {
+  ): Promise<Awaited<SchemaEngineOutput<M>>> {
     this.isRunning = true
+
+    debugStdout('[%s] input: %o', command, input)
 
     try {
       // Don't modify this by extracting the method call into a variable,
       // as it breaks the binding to the WebAssembly instance, and triggers the
       // `TypeError: Cannot read properties of undefined (reading '__wbg_ptr')`
       // error.
-      return (this.engine[command] as (_: SchemaEngineInput<M>) => SchemaEngineOutput<M>)(input)
+      const result = await (this.engine[command] as (_: SchemaEngineInput<M>) => SchemaEngineOutput<M>)(input)
+      debugStdout('[%s] result: %o', command, result)
+      return result
     } catch (error) {
       const e = error as Error
-      console.error('[schema-engine] error on command %s:\n%s', command, e)
+      debugStdout('[%s] error: %o', command, e)
 
       if (isWasmPanic(e)) {
+        debugStdout('[schema-engine] it is a Wasm panic')
         const { message, stack } = getWasmError(e)
         // Handle error and displays the interactive dialog to send panic error
         throw new RustPanic(serializePanic(message), stack, command, ErrorArea.LIFT_CLI)
-      }
+      } else {
+        assertAlways(
+          e.name === 'SchemaConnectorError',
+          'Malformed error received from the engine, expected SchemaConnectorError',
+        )
 
-      throw e
+        debugStderr('e.message', e.message)
+        debugStderr('e.cause', e.cause)
+        debugStderr('e.stack', e.stack)
+
+        throw e
+      }
     }
   }
 
@@ -120,8 +147,8 @@ export class SchemaEngineWasm implements SchemaEngine {
    * Make the Schema engine panic. Only useful to test client error handling.
    */
   public async debugPanic() {
-    this.runCommand('debugPanic', undefined)
-    return Promise.resolve(null as never)
+    await this.runCommand('debugPanic', undefined)
+    return null as never
   }
 
   /**
