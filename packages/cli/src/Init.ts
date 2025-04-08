@@ -364,6 +364,9 @@ export class Init implements Command {
           ;({ generatedSchema, generatedName } = (await (
             await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
               body: JSON.stringify({
                 description: prompt,
               }),
