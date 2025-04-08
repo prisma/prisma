@@ -83,10 +83,12 @@ if (false) {
 }
 
 // Define the shape for the `PrismaConfig` type.
-const createPrismaConfigShape = () =>
+const createPrismaConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
+    studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
+    migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
   })
 
 /**
