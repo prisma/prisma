@@ -17,6 +17,7 @@ import {
   protocolToConnectorType,
 } from '@prisma/internals'
 import dotenv from 'dotenv'
+import { Schema as Shape } from 'effect'
 import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import ora from 'ora'
@@ -361,17 +362,24 @@ export class Init implements Command {
         const spinner = ora(`Generating a Prisma Schema based on your description ${bold(prompt)} ...`).start()
 
         try {
-          ;({ generatedSchema, generatedName } = (await (
-            await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                description: prompt,
-              }),
-            })
-          ).json()) as { generatedSchema: string; generatedName: string })
+          const serverResponseShape = Shape.Struct({
+            generatedSchema: Shape.String,
+            generatedName: Shape.String,
+          })
+
+          ;({ generatedSchema, generatedName } = Shape.decodeUnknownSync(serverResponseShape)(
+            await (
+              await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  description: prompt,
+                }),
+              })
+            ).json(),
+          ))
         } catch (e) {
           spinner.fail()
           throw e
