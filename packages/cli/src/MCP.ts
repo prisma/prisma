@@ -5,6 +5,7 @@ import { Command, link } from '@prisma/internals'
 import execa from 'execa'
 import { z } from 'zod'
 
+import { version } from '../package.json'
 import { createHelp } from './platform/_lib/help'
 
 async function runCommand({ args, cwd }: { args: string[]; cwd: string }) {
@@ -31,7 +32,7 @@ export class Mcp implements Command {
   public async parse(_argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const server = new McpServer({
       name: 'Prisma',
-      version: '1.0.0',
+      version,
     })
 
     server.tool(
