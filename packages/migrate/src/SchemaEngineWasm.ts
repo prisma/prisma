@@ -52,7 +52,6 @@ export class SchemaEngineWasm implements SchemaEngine {
   public isRunning = false
 
   private constructor({ debug, enabledPreviewFeatures, engine, errorRegistry }: SchemaEngineWasmOptions) {
-
     this.enabledPreviewFeatures = enabledPreviewFeatures
     if (debug) {
       Debug.enable('prisma:schemaEngine*')
@@ -65,12 +64,16 @@ export class SchemaEngineWasm implements SchemaEngine {
     const debug = (arg: string) => {
       debugStderr(arg)
     }
-    
+
     // Note: `datamodels` must be either `undefined` or a *non-empty* `LoadedFile[]`.
     const datamodels = schemaContext?.schemaFiles
-    const engine = await wasmSchemaEngineLoader.loadSchemaEngine({
-      datamodels,
-    }, debug, adapter)
+    const engine = await wasmSchemaEngineLoader.loadSchemaEngine(
+      {
+        datamodels,
+      },
+      debug,
+      adapter,
+    )
     return new SchemaEngineWasm({ ...rest, engine, errorRegistry: adapter.errorRegistry })
   }
 
@@ -100,8 +103,11 @@ export class SchemaEngineWasm implements SchemaEngine {
         // Handle error and displays the interactive dialog to send panic error
         throw new RustPanic(serializePanic(message), stack, command, ErrorArea.LIFT_CLI)
       } else {
-        assertAlways(e.name === 'SchemaConnectorError', 'Malformed error received from the engine, expected SchemaConnectorError')
-        
+        assertAlways(
+          e.name === 'SchemaConnectorError',
+          'Malformed error received from the engine, expected SchemaConnectorError',
+        )
+
         debugStderr('e.message', e.message)
         debugStderr('e.cause', e.cause)
         debugStderr('e.stack', e.stack)
