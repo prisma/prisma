@@ -52,6 +52,14 @@ export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
   adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
+const createPrismaMigrateConfigShape = <Env extends EnvVars = never>() =>
+  Shape.Struct({
+    /**
+     * Instantiates the Prisma driver adapter to use for Prisma Studio.
+     */
+    adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
+  })
+
 export type PrismaMigrateConfigInternalShape<Env extends EnvVars = never> = {
   adapter: (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
 }
@@ -88,7 +96,7 @@ const createPrismaConfigShape = <Env extends EnvVars = never>() =>
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
-    migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
+    migrate: Shape.optional(createPrismaMigrateConfigShape<Env>()),
   })
 
 /**
@@ -115,10 +123,10 @@ export type PrismaConfig<Env extends EnvVars = never> = {
 }
 
 declare const __testPrismaConfigValueA: ReturnType<typeof createPrismaConfigShape>['Type']
-declare const __testPrismaConfigValueB: PrismaConfig
+declare const __testPrismaConfigValueB: PrismaConfig<EnvVars>
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaConfigValueA satisfies PrismaConfig
+  __testPrismaConfigValueA satisfies PrismaConfig<EnvVars>
   __testPrismaConfigValueB satisfies ReturnType<typeof createPrismaConfigShape>['Type']
 }
 
@@ -127,7 +135,7 @@ if (false) {
  * This function may fail, but it will never throw.
  */
 function parsePrismaConfigShape<Env extends EnvVars = never>(input: unknown): Either.Either<PrismaConfig<Env>, Error> {
-  return Shape.decodeUnknownEither(createPrismaConfigShape(), {})(input, {
+  return Shape.decodeUnknownEither(createPrismaConfigShape<Env>(), {})(input, {
     onExcessProperty: 'error',
   })
 }
