@@ -1,6 +1,8 @@
 import { capitalize } from '@prisma/client-common'
 import { TsConfigJson, TsConfigJsonResolved } from 'get-tsconfig'
 
+import { RuntimeTarget } from './runtime-targets'
+
 const expectedGeneratedFileExtensions = ['ts', 'mts', 'cts'] as const
 export type GeneratedFileExtension = (typeof expectedGeneratedFileExtensions)[number] | (string & {})
 
@@ -58,12 +60,18 @@ export function importFileNameMapper(importFileExtension: ImportFileExtension): 
 type InferImportFileExtensionOptions = {
   tsconfig: TsConfigJsonResolved | undefined
   generatedFileExtension: GeneratedFileExtension
+  target: RuntimeTarget
 }
 
 export function inferImportFileExtension({
   tsconfig,
   generatedFileExtension,
+  target,
 }: InferImportFileExtensionOptions): ImportFileExtension {
+  if (target === 'deno' || target === 'deno-deploy') {
+    return generatedFileExtension
+  }
+
   // If `tsconfig.json` is present, we can infer the expected import file extension from it.
   if (tsconfig) {
     return inferImportFileExtensionFromTsConfig(tsconfig, generatedFileExtension)

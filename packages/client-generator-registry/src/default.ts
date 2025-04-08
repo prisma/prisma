@@ -6,4 +6,7 @@ import { GeneratorRegistry } from './registry'
 export const defaultRegistry = new GeneratorRegistry()
 
 defaultRegistry.add(new PrismaClientJsGenerator())
-defaultRegistry.add(new PrismaClientTsGenerator())
+
+const tsGenerator = new PrismaClientTsGenerator()
+defaultRegistry.add(tsGenerator)
+defaultRegistry.addAliased('prisma-client', tsGenerator)
