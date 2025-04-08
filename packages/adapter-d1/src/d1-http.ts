@@ -19,7 +19,8 @@ import ky, { KyInstance, Options as KyOptions } from 'ky'
 import { name as packageName } from '../package.json'
 import { GENERIC_SQLITE_ERROR, MAX_BIND_VALUES } from './constants'
 import { getColumnTypes, mapRow } from './conversion'
-import { cleanArg, matchSQLiteErrorCode } from './utils'
+import { convertDriverError } from './errors'
+import { cleanArg } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1-http')
 
@@ -63,13 +64,7 @@ function onGenericD1HTTPError(error: Error): never {
 
 function onError(error: Error): never {
   console.error('Error in performIO: %O', error)
-  const { message } = error
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: matchSQLiteErrorCode(message),
-    message,
-  })
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 async function performRawQuery(client: KyInstance, options: KyOptions) {
