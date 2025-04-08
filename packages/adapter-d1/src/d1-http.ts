@@ -42,24 +42,13 @@ type D1HTTPRawResult = {
 
 function onUnsuccessfulD1HTTPResponse({ errors }: { errors: D1HTTPResponseInfo[] }): never {
   debug('D1 HTTP Errors: %O', errors)
-  const { message = 'Unknown error', code = GENERIC_SQLITE_ERROR } = errors.at(0) ?? {}
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: code,
-    message,
-  })
+  const error = errors.at(0) ?? { message: 'Unknown error', code: GENERIC_SQLITE_ERROR }
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 function onGenericD1HTTPError(error: Error): never {
   debug('HTTP Error: %O', error)
-  const { message } = error
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: GENERIC_SQLITE_ERROR,
-    message,
-  })
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 function onError(error: Error): never {

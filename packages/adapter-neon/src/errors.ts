@@ -33,12 +33,8 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     case '23503': {
       let constraint: { fields: string[] } | { index: string } | undefined
 
-      const fields = error.detail
-        ?.match(/Key \(([^)]+)\)/)
-        ?.at(1)
-        ?.split(', ')
-      if (fields && fields.length > 0) {
-        constraint = { fields }
+      if (error.column) {
+        constraint = { fields: [error.column] }
       } else if (error.constraint) {
         constraint = { index: error.constraint }
       }

@@ -1,5 +1,5 @@
 import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
-import type { DatabaseError } from 'pg'
+import type { DatabaseError } from '@prisma/pg-worker'
 
 export function convertDriverError(error: any): DriverAdapterErrorObject {
   if (!isDbError(error)) {
@@ -33,8 +33,12 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     case '23503': {
       let constraint: { fields: string[] } | { index: string } | undefined
 
-      if (error.column) {
-        constraint = { fields: [error.column] }
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
+      if (fields && fields.length > 0) {
+        constraint = { fields }
       } else if (error.constraint) {
         constraint = { index: error.constraint }
       }
