@@ -332,8 +332,8 @@ export class Init implements Command {
     const outputDir = process.cwd()
     const prismaFolder = path.join(outputDir, 'prisma')
 
-    let generatedSchema,
-      generatedName = ''
+    let generatedSchema: string | undefined
+    let generatedName: string | undefined
 
     if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
