@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import type { SchemaEngine } from '@prisma/schema-engine-wasm'
+import type { ConstructorOptions, SchemaEngine } from '@prisma/schema-engine-wasm'
 
 async function getSchemaEngineWasModule() {
   const runtimeBase = path.join(__dirname, '..', 'build')
@@ -14,7 +14,11 @@ async function getSchemaEngineWasModule() {
 
 let loadedWasmInstance: Promise<SchemaEngine>
 export const wasmSchemaEngineLoader = {
-  async loadSchemaEngine(adapter: ErrorCapturingSqlDriverAdapterFactory) {
+  async loadSchemaEngine(
+    input: ConstructorOptions,
+    debug: (arg: string) => void,
+    adapter: ErrorCapturingSqlDriverAdapterFactory,
+  ) {
     // we only create the instance once for efficiency and also because wasm
     // bindgen keeps an internal cache of its instance already, when the wasm
     // compiler is loaded more than once it crashes with `unwrap_throw failed`.
@@ -35,7 +39,7 @@ export const wasmSchemaEngineLoader = {
         runtime.__wbg_set_wasm(instance.exports)
         wbindgen_start()
 
-        const engine = await runtime.SchemaEngine.new(adapter)
+        const engine = await runtime.SchemaEngine.new(input, debug, adapter)
         return engine
       })()
     }
