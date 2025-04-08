@@ -90,6 +90,21 @@ if (false) {
   __testPrismaMigrateConfigShapeValueB satisfies ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
 }
 
+// Ensure that the keys of the `PrismaConfig` type are the same as the keys of the `PrismaConfigInternal` type.
+// (Except for the internal only `loadedFromFile` property)
+// This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
+declare const __testPrismaConfig: keyof ReturnType<typeof createPrismaConfigShape>['Type']
+declare const __testPrismaConfigInternal: keyof Omit<
+  ReturnType<typeof createPrismaConfigInternalShape>['Type'],
+  'loadedFromFile'
+>
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testPrismaConfig satisfies typeof __testPrismaConfigInternal
+  __testPrismaConfigInternal satisfies typeof __testPrismaConfig
+}
+
 // Define the shape for the `PrismaConfig` type.
 const createPrismaConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
