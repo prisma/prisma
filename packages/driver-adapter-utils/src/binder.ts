@@ -1,3 +1,4 @@
+import { Debug } from './debug'
 import { isDriverAdapterError } from './error'
 import { err, ok, Result } from './result'
 import type {
@@ -12,6 +13,8 @@ import type {
   SqlMigrationAwareDriverAdapterFactory,
   Transaction,
 } from './types'
+
+const debug = Debug('driver-adapter-utils')
 
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []
@@ -119,6 +122,8 @@ function wrapAsync<A extends unknown[], R>(
     try {
       return ok(await fn(...args))
     } catch (error) {
+      debug('[error@wrapAsync]', error)
+
       // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (isDriverAdapterError(error)) {
         return err(error.cause)
@@ -137,6 +142,8 @@ function wrapSync<A extends unknown[], R>(
     try {
       return ok(fn(...args))
     } catch (error) {
+      debug('[error@wrapSync]', error)
+
       // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (isDriverAdapterError(error)) {
         return err(error.cause)

@@ -107,6 +107,8 @@
   "devDependencies": {
     "@antfu/ni": "0.21.12",
     "@inquirer/prompts": "7.3.3",
+    "@libsql/client": "0.8.1",
+    "@modelcontextprotocol/sdk": "1.7.0",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/client": "workspace:*",
     "@prisma/client-generator-registry": "workspace:*",
@@ -132,6 +134,7 @@
     "chokidar": "3.6.0",
     "debug": "4.4.0",
     "dotenv": "16.4.7",
+    "effect": "3.12.10",
     "env-paths": "2.2.1",
     "esbuild": "0.25.1",
     "execa": "5.1.1",
@@ -144,7 +147,6 @@
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
-    "@libsql/client": "0.8.1",
     "line-replace": "2.0.1",
     "log-update": "6.1.0",
     "node-fetch": "3.3.2",
@@ -158,6 +160,7 @@
     "ts-pattern": "5.6.2",
     "typescript": "5.4.5",
     "xdg-app-paths": "8.3.0",
+    "zod": "3.24.2",
     "zx": "8.4.1"
   },
   "scripts": {

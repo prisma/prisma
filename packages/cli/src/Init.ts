@@ -17,6 +17,7 @@ import {
   protocolToConnectorType,
 } from '@prisma/internals'
 import dotenv from 'dotenv'
+import { Schema as Shape } from 'effect'
 import fs from 'fs'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import ora from 'ora'
@@ -232,6 +233,11 @@ export class Init implements Command {
       '--output': String,
       '--with-model': Boolean,
       '--db': Boolean,
+      '--region': String,
+      '--name': String,
+      '--non-interactive': Boolean,
+      '--prompt': String,
+      '--vibe': String,
     })
 
     if (isError(args) || args['--help']) {
@@ -316,7 +322,8 @@ export class Init implements Command {
     const generatorProvider = args['--generator-provider']
     const previewFeatures = args['--preview-feature']
     const output = args['--output']
-    const isPpgCommand = args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER
+    const isPpgCommand =
+      args['--db'] || datasourceProvider === PRISMA_POSTGRES_PROVIDER || args['--prompt'] || args['--vibe']
 
     let prismaPostgresDatabaseUrl: string | undefined
     let workspaceId = ``
@@ -326,6 +333,9 @@ export class Init implements Command {
     const outputDir = process.cwd()
     const prismaFolder = path.join(outputDir, 'prisma')
 
+    let generatedSchema: string | undefined
+    let generatedName: string | undefined
+
     if (isPpgCommand) {
       const PlatformCommands = await import(`./platform/_`)
 
@@ -333,6 +343,9 @@ export class Init implements Command {
       if (isError(credentials)) throw credentials
 
       if (!credentials) {
+        if (args['--non-interactive']) {
+          return 'Please authenticate before creating a Prisma Postgres project.'
+        }
         console.log('This will create a project for you on console.prisma.io and requires you to be authenticated.')
         const authAnswer = await confirm({
           message: 'Would you like to authenticate?',
@@ -344,26 +357,61 @@ export class Init implements Command {
         console.log(`Successfully authenticated as ${bold(authenticationResult.email)}.`)
       }
 
+      if (args['--prompt'] || args['--vibe']) {
+        const prompt = args['--prompt'] || args['--vibe'] || ''
+        const spinner = ora(`Generating a Prisma Schema based on your description ${bold(prompt)} ...`).start()
+
+        try {
+          const serverResponseShape = Shape.Struct({
+            generatedSchema: Shape.String,
+            generatedName: Shape.String,
+          })
+
+          ;({ generatedSchema, generatedName } = Shape.decodeUnknownSync(serverResponseShape)(
+            await (
+              await fetch(`https://prisma-generate-server.prisma.workers.dev/`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  description: prompt,
+                }),
+              })
+            ).json(),
+          ))
+        } catch (e) {
+          spinner.fail()
+          throw e
+        }
+
+        spinner.succeed('Schema is ready')
+      }
+
       console.log("Let's set up your Prisma Postgres database!")
       const platformToken = await PlatformCommands.getTokenOrThrow(args)
       const defaultWorkspace = await PlatformCommands.Workspace.getDefaultWorkspaceOrThrow({ token: platformToken })
       const regions = await getPrismaPostgresRegionsOrThrow({ token: platformToken })
 
-      const ppgRegionSelection = await select({
-        message: 'Select your region:',
-        default: 'us-east-1',
-        choices: regions.map((region) => ({
-          name: `${region.id} - ${region.displayName}`,
-          value: region.id,
-          disabled: region.ppgStatus === 'unavailable',
-        })),
-        loop: true,
-      })
+      const ppgRegionSelection =
+        args['--region'] ||
+        (await select({
+          message: 'Select your region:',
+          default: 'us-east-1',
+          choices: regions.map((region) => ({
+            name: `${region.id} - ${region.displayName}`,
+            value: region.id,
+            disabled: region.ppgStatus === 'unavailable',
+          })),
+          loop: true,
+        }))
 
-      const projectDisplayNameAnswer = await input({
-        message: 'Enter a project name:',
-        default: 'My Prisma Project',
-      })
+      const projectDisplayNameAnswer =
+        args['--name'] ||
+        (await input({
+          message: 'Enter a project name:',
+          default: generatedName || 'My Prisma Project',
+        }))
 
       const spinner = ora(`Creating project ${bold(projectDisplayNameAnswer)} (this may take a few seconds)...`).start()
 
@@ -468,13 +516,14 @@ export class Init implements Command {
 
     fs.writeFileSync(
       path.join(prismaFolder, 'schema.prisma'),
-      defaultSchema({
-        datasourceProvider,
-        generatorProvider,
-        previewFeatures,
-        output: clientOutput,
-        withModel: args['--with-model'],
-      }),
+      generatedSchema ||
+        defaultSchema({
+          datasourceProvider,
+          generatorProvider,
+          previewFeatures,
+          output: clientOutput,
+          withModel: args['--with-model'],
+        }),
     )
 
     const databaseUrl = prismaPostgresDatabaseUrl || url
