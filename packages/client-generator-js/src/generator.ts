@@ -9,12 +9,13 @@ import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
-import { resolvePrismaClient } from './resolvePrismaClient'
+import { resolveOrInstallPrismaClient, resolvePrismaClient } from './resolvePrismaClient'
 
 const debug = Debug('prisma:client:generator')
 
 type PrismaClientJsGeneratorOptions = {
   shouldResolvePrismaClient?: boolean
+  shouldInstallMissingPackages?: boolean
   runtimePath?: string
 }
 
@@ -26,12 +27,18 @@ visit https://pris.ly/cli/output-path`
 export class PrismaClientJsGenerator implements Generator {
   readonly name = 'prisma-client-js'
 
-  #shouldResolvePrismaClient = true
+  #shouldResolvePrismaClient: boolean
+  #shouldInstallMissingPackages: boolean
   #runtimePath?: string
   #cachedPrismaClientPath: string | undefined
 
-  constructor({ shouldResolvePrismaClient = true, runtimePath }: PrismaClientJsGeneratorOptions = {}) {
+  constructor({
+    shouldResolvePrismaClient = true,
+    shouldInstallMissingPackages = true,
+    runtimePath,
+  }: PrismaClientJsGeneratorOptions = {}) {
     this.#shouldResolvePrismaClient = shouldResolvePrismaClient
+    this.#shouldInstallMissingPackages = shouldInstallMissingPackages
     this.#runtimePath = runtimePath
   }
 
@@ -107,7 +114,7 @@ export class PrismaClientJsGenerator implements Generator {
       return this.#cachedPrismaClientPath
     }
 
-    this.#cachedPrismaClientPath = await resolvePrismaClient(path.dirname(config.sourceFilePath))
+    this.#cachedPrismaClientPath = await this.#resolveOrInstallPrismaClient(path.dirname(config.sourceFilePath))
     return this.#cachedPrismaClientPath
   }
 
@@ -118,5 +125,13 @@ export class PrismaClientJsGenerator implements Generator {
 
     this.#runtimePath = path.join(await this.#getPrismaClientPath(config), 'runtime')
     return this.#runtimePath
+  }
+
+  async #resolveOrInstallPrismaClient(baseDir: string): Promise<string> {
+    if (this.#shouldInstallMissingPackages && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
+      return await resolveOrInstallPrismaClient(baseDir, clientVersion)
+    } else {
+      return await resolvePrismaClient(baseDir)
+    }
   }
 }
