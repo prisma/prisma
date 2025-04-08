@@ -2,37 +2,14 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, link } from '@prisma/internals'
-import { spawn } from 'child_process'
+import execa from 'execa'
 import { z } from 'zod'
 
 import { createHelp } from './platform/_lib/help'
 
-function spawnAsPromise(
-  command: string,
-  args: string[] = [],
-  cwd: string,
-): Promise<{ stdout: string; stderr: string }> {
-  return new Promise((resolve) => {
-    const child = spawn(command, args, { cwd: cwd || process.cwd() })
-
-    let stdout = ''
-    let stderr = ''
-
-    child.stdout.on('data', (data) => {
-      stdout += data
-    })
-
-    child.stderr.on('data', (data) => {
-      stderr += data
-    })
-    child.on('close', () => {
-      resolve({ stdout, stderr })
-    })
-
-    child.on('error', (err) => {
-      resolve({ stdout: '', stderr: err.message })
-    })
-  })
+async function runCommand({ args, cwd }: { args: string[]; cwd: string }) {
+  const result = await execa.node(process.argv[1], args, { cwd })
+  return `${result.stdout}\n${result.stderr}`
 }
 
 export class Mcp implements Command {
@@ -76,9 +53,8 @@ export class Mcp implements Command {
             20201208100950_new_migration`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'status'], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'status'] })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -95,27 +71,25 @@ export class Mcp implements Command {
             5. Triggers the generation of artifacts (for example, Prisma Client)`,
       { name: z.string(), projectCWD: z.string() },
       async ({ name, projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'dev', '--name', name], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'dev', '--name', name] })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
     server.tool(
       'migrate-reset',
       `Prisma Migrate Reset --force is used to reset the database and migration history if drift is detected. Only run this command on a development database - never on production databases! If in doubt, ask the user to confirm.
-    
+
                 The migrate reset command performs these steps:
-    
+
                 1. Drops the database/schema if possible, or performs a soft reset if the environment does not allow deleting databases/schemas
                 2. Creates a new database/schema with the same name if the database/schema was dropped
                 3. Applies all migrations
                 4. Runs seed scripts`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'migrate', 'reset', '--force'], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -124,9 +98,11 @@ export class Mcp implements Command {
       `Prisma Platform Auth Show provides information about the currently logged in user. If the user is not logged in, you should instruct them to do so by running \`npx prisma platform auth login --early-access\` and then re-running this command to verify.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'show', '--early-access'], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({
+          cwd: projectCWD,
+          args: ['platform', 'auth', 'show', '--early-access'],
+        })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -142,13 +118,11 @@ export class Mcp implements Command {
       - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
       { name: z.string(), region: z.string(), projectCWD: z.string() },
       async ({ name, region, projectCWD }) => {
-        const res = await spawnAsPromise(
-          'npx',
-          ['prisma@6.6.0-integration-mcp.2', 'init', '--db', '--name', name, '--region', region, '--non-interactive'],
-          projectCWD,
-        )
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({
+          cwd: projectCWD,
+          args: ['init', '--db', '--name', name, '--region', region, '--non-interactive'],
+        })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -157,9 +131,8 @@ export class Mcp implements Command {
       `Login or create an account in order to be able to use Prisma Postgres.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'platform', 'auth', 'login', '--early-access'], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'login', '--early-access'] })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -169,9 +142,8 @@ export class Mcp implements Command {
       Provide the current working directory of the users project. This should be the top level directory of the project.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const res = await spawnAsPromise('npx', ['prisma', 'studio'], projectCWD)
-
-        return { content: [{ type: 'text', text: res.stdout + '\n' + res.stderr }] }
+        const text = await runCommand({ cwd: projectCWD, args: ['studio'] })
+        return { content: [{ type: 'text', text }] }
       },
     )
 
