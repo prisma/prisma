@@ -45,7 +45,6 @@ async function run() {
     const collabResponse = await octokit.repos.listCollaborators({
       owner: OWNER,
       repo: REPO,
-      affiliation: 'direct',
     })
 
     const collaborators = collabResponse.data
@@ -126,7 +125,7 @@ async function run() {
     console.log(`Fetched ${discussions.length} discussions`)
 
     // 3. Filter open discussions that have at least one of the target labels
-    const targetLabels = ['needs-information', 'needs-confirmation']
+    const targetLabels = ['discussion/needs-information', 'discussion/needs-confirmation']
     const filteredDiscussions = discussions.filter((discussion) => {
       if (!discussion.labels.nodes || discussion.labels.nodes.length === 0) return false
       const labels = discussion.labels.nodes.map((label) => label.name)
