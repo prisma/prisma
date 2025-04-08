@@ -56,7 +56,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
 
   return {
     kind: 'sqlite',
-    extendedCode: error['code'] ?? error['cause']['code'] ?? 1,
+    extendedCode: error['code'] ?? error['cause']?.['code'] ?? 1,
     message: error.message,
   }
 }
