@@ -3,6 +3,7 @@ import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
+import { rethrowAsUserFacing } from '../UserFacingError'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
@@ -29,7 +30,9 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
-    return this.interpretNode(queryPlan, queryable, this.#placeholderValues, this.#generators.snapshot())
+    return this.interpretNode(queryPlan, queryable, this.#placeholderValues, this.#generators.snapshot()).catch((e) =>
+      rethrowAsUserFacing(e),
+    )
   }
 
   private async interpretNode(

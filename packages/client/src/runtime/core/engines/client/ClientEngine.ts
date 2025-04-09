@@ -304,9 +304,6 @@ export class ClientEngine implements Engine<undefined> {
       return []
     }
     const firstAction = queries[0].action
-    if (!queries.every((q) => q.action === firstAction)) {
-      throw new Error('All queries in a batch must have the same action')
-    }
 
     const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
 
@@ -341,14 +338,18 @@ export class ClientEngine implements Engine<undefined> {
       switch (response.type) {
         case 'multi': {
           results = await Promise.all(
-            response.plans.map(async (plan) => {
+            response.plans.map(async (plan, i) => {
               const rows = await interpreter.run(plan as QueryPlanNode, queryable)
-              return { data: { [firstAction]: rows } }
+              return { data: { [queries[i].action]: rows } }
             }),
           )
           break
         }
         case 'compacted': {
+          if (!queries.every((q) => q.action === firstAction)) {
+            throw new Error('All queries in a batch must have the same action')
+          }
+
           const rows = await interpreter.run(response.plan as QueryPlanNode, queryable)
           results = this.#convertCompactedRows(rows as {}[], response, firstAction)
           break
