@@ -1,6 +1,7 @@
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
 
+import { noopTracingHelper } from '../tracing'
 import { Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
@@ -92,7 +93,11 @@ async function startTransaction(transactionManager: TransactionManager, options:
 
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id = await startTransaction(transactionManager)
 
@@ -108,7 +113,11 @@ test('transaction executes normally', async () => {
 
 test('transaction is rolled back', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id = await startTransaction(transactionManager)
 
@@ -124,7 +133,11 @@ test('transaction is rolled back', async () => {
 
 test('transactions are rolled back when shutting down', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id1 = await startTransaction(transactionManager)
   const id2 = await startTransaction(transactionManager)
@@ -144,7 +157,11 @@ test('transactions are rolled back when shutting down', async () => {
 
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id = await startTransaction(transactionManager)
 
@@ -160,7 +177,11 @@ test('when driver adapter requires phantom queries does not execute transaction 
 
 test('with explicit isolation level', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
 
@@ -176,7 +197,11 @@ test('with explicit isolation level', async () => {
 
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   await expect(startTransaction(transactionManager, { isolationLevel: 'SNAPSHOT' })).rejects.toBeInstanceOf(
     InvalidTransactionIsolationLevelError,
@@ -185,7 +210,11 @@ test('with isolation level only supported in MS SQL Server, "snapshot"', async (
 
 test('transaction times out during starting', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
     TransactionStartTimeoutError,
@@ -194,7 +223,11 @@ test('transaction times out during starting', async () => {
 
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   const id = await startTransaction(transactionManager)
 
@@ -206,7 +239,11 @@ test('transaction times out during execution', async () => {
 
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
-  const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
 
   await expect(transactionManager.commitTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)
   await expect(transactionManager.rollbackTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)

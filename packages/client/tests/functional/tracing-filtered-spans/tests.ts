@@ -36,7 +36,7 @@ beforeAll(() => {
     instrumentations: [
       new PrismaInstrumentation({
         middleware: true,
-        ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/],
+        ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/, 'prisma:client:db_query'],
       }),
     ],
   })
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
       if (clientRuntime === 'wasm') {
         expectedSpans.shift() // With wasm we do not perform platform detection
       } else if (engineType === 'client') {
-        expectedSpans.splice(0, 4) // Client engine performs no binary engine related spans
+        expectedSpans.splice(0, 3) // Client engine performs no binary engine related spans
       }
 
       expect(spans.map((span) => span.name)).toEqual(expectedSpans)

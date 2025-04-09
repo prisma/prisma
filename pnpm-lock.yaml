@@ -929,6 +929,9 @@ importers:
       '@bugsnag/cuid':
         specifier: 3.2.1
         version: 3.2.1
+      '@opentelemetry/api':
+        specifier: 1.9.0
+        version: 1.9.0
       '@paralleldrive/cuid2':
         specifier: 2.2.2
         version: 2.2.2
