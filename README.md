@@ -253,7 +253,7 @@ The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgre
 }
 ```
 
-Prisma's MCP server gives aI agents the ability to manage [Prisma Postgres](https://www.prisma.io/postgres) databases (e.g. spin up new database instances or run schema migrations).
+Prisma's MCP server gives AI agents the ability to manage [Prisma Postgres](https://www.prisma.io/postgres) databases (e.g. spin up new database instances or run schema migrations).
 
 ## Security
 
