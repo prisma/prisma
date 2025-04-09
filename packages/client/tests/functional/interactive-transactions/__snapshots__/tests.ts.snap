@@ -217,7 +217,7 @@ exports[`interactive-transactions (provider=postgresql, js_neon) batching raw ro
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`"
+Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_neon) batching rollback 1`] = `
@@ -261,7 +261,7 @@ exports[`interactive-transactions (provider=postgresql, js_pg) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`"
+Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_pg) batching rollback 1`] = `
@@ -349,7 +349,7 @@ exports[`interactive-transactions (provider=sqlite, js_libsql) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`2067\`. Message: \`SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: User.email\`"
+Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (email)\`"
 `;
 
 exports[`interactive-transactions (provider=sqlite, js_libsql) batching rollback 1`] = `

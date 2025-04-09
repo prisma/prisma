@@ -1,5 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import { Debug } from '@prisma/debug'
+import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter-utils'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
@@ -30,6 +31,7 @@ import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from '.
 import { Action, JsArgs } from './core/types/exported/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
+import { getErrorCode, renderError as renderUserFacingError } from './userFacingError'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
@@ -197,6 +199,13 @@ export class RequestHandler {
       throw error
     }
 
+    if (isDriverAdapterError(error)) {
+      const converted = this.convertAdapterToUserFacingError(error)
+      if (converted) {
+        throw converted
+      }
+    }
+
     if (error instanceof PrismaClientKnownRequestError && isValidationError(error)) {
       const validationError = convertValidationError(error.meta as EngineValidationError)
       throwValidationException({
@@ -277,6 +286,20 @@ export class RequestHandler {
         : (deserializeJsonResponse(extractedResponse) as unknown)
 
     return unpacker ? unpacker(deserializedResponse) : deserializedResponse
+  }
+
+  convertAdapterToUserFacingError(err: DriverAdapterError): PrismaClientKnownRequestError | undefined {
+    const message = renderUserFacingError(err)
+    const code = getErrorCode(err)
+
+    if (code !== undefined && message !== undefined) {
+      return new PrismaClientKnownRequestError(message, {
+        clientVersion: this.client._clientVersion,
+        code: code,
+        meta: err.cause,
+      })
+    }
+    return
   }
 
   get [Symbol.toStringTag]() {

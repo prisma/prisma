@@ -17,6 +17,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
@@ -132,18 +133,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 
   protected onError(e: any): never {
     debug('Error in onError: %O', e)
-    if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-      throw new DriverAdapterError({
-        kind: 'postgres',
-        code: e.code,
-        severity: e.severity,
-        message: e.message,
-        detail: e.detail,
-        column: e.column,
-        hint: e.hint,
-      })
-    }
-    throw e
+    throw new DriverAdapterError(convertDriverError(e))
   }
 }
 
@@ -188,10 +178,10 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const conn = await this.client.connect()
-    const tx = new NeonTransaction(conn, options)
+    const conn = await this.client.connect().catch((error) => this.onError(error))
 
     try {
+      const tx = new NeonTransaction(conn, options)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
@@ -203,7 +193,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
       return tx
     } catch (error) {
       conn.release(error)
-      throw error
+      this.onError(error)
     }
   }
 

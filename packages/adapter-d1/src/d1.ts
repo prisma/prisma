@@ -19,7 +19,8 @@ import { blue, cyan, red, yellow } from 'kleur/colors'
 import { name as packageName } from '../package.json'
 import { MAX_BIND_VALUES } from './constants'
 import { getColumnTypes, mapRow } from './conversion'
-import { cleanArg, matchSQLiteErrorCode } from './utils'
+import { convertDriverError } from './errors'
+import { cleanArg } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
@@ -223,11 +224,5 @@ export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
 function onError(error: Error): never {
   console.error('Error in performIO: %O', error)
-  const { message } = error
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: matchSQLiteErrorCode(message),
-    message,
-  })
+  throw new DriverAdapterError(convertDriverError(error))
 }

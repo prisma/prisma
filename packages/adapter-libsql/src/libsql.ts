@@ -20,6 +20,7 @@ import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
 import { getColumnTypes, mapRow } from './conversion'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:libsql')
 
@@ -85,15 +86,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 
   protected onError(error: any): never {
     debug('Error in performIO: %O', error)
-    const rawCode = error['rawCode'] ?? error.cause?.['rawCode']
-    if (typeof rawCode === 'number') {
-      throw new DriverAdapterError({
-        kind: 'sqlite',
-        extendedCode: rawCode,
-        message: error.message,
-      })
-    }
-    throw error
+    throw new DriverAdapterError(convertDriverError(error))
   }
 }
 
@@ -165,7 +158,7 @@ export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements S
       // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
       // hence `catch` and rethrowing the error and not `finally`.
       release()
-      throw e
+      this.onError(e)
     }
   }
 

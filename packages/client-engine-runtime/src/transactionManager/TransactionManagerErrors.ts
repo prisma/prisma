@@ -1,17 +1,8 @@
-import { Error as DriverAdapterError } from '@prisma/driver-adapter-utils'
-
 export class TransactionManagerError extends Error {
   code = 'P2028'
 
   constructor(message: string, public meta?: Record<string, unknown>) {
     super('Transaction API error: ' + message)
-  }
-}
-
-export class TransactionDriverAdapterError extends TransactionManagerError {
-  constructor(message: string, errorParams: { driverAdapterError: DriverAdapterError }) {
-    // TODO: map all known non-transaction manager specific database based error codes properly - currently full mapping only exists in rust engine
-    super(`Error from Driver Adapter: ${message}`, { ...errorParams.driverAdapterError })
   }
 }
 
@@ -35,7 +26,7 @@ export class TransactionRolledBackError extends TransactionManagerError {
   }
 }
 
-export class TransactionStartTimoutError extends TransactionManagerError {
+export class TransactionStartTimeoutError extends TransactionManagerError {
   constructor() {
     super('Unable to start a transaction in the given time.')
   }
