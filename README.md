@@ -240,7 +240,13 @@ Built something awesome with Prisma? 🌟 Show it off with these [badges](https:
 
 ## MCP server
 
-The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgres/mcp-server) that can be integrated in your favorite AI tool using this snippet:
+The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgres/mcp-server). It's started via this CLI command:
+
+```
+npx prisma mcp
+```
+ 
+Most AI tools support a JSON-based configuration for MCP servers looking like this:
 
 ```json
 {
