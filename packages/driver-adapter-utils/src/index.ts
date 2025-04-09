@@ -1,7 +1,7 @@
 export { bindAdapter, bindMigrationAwareSqlAdapterFactory, bindSqlAdapterFactory } from './binder'
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
-export { DriverAdapterError } from './error'
+export { DriverAdapterError, isDriverAdapterError } from './error'
 export * from './mock'
 export { err, ok, type Result } from './result'
 export type {

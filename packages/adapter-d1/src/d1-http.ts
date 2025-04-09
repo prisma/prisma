@@ -19,7 +19,8 @@ import ky, { KyInstance, Options as KyOptions } from 'ky'
 import { name as packageName } from '../package.json'
 import { GENERIC_SQLITE_ERROR, MAX_BIND_VALUES } from './constants'
 import { getColumnTypes, mapRow } from './conversion'
-import { cleanArg, matchSQLiteErrorCode } from './utils'
+import { convertDriverError } from './errors'
+import { cleanArg } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1-http')
 
@@ -41,35 +42,18 @@ type D1HTTPRawResult = {
 
 function onUnsuccessfulD1HTTPResponse({ errors }: { errors: D1HTTPResponseInfo[] }): never {
   debug('D1 HTTP Errors: %O', errors)
-  const { message = 'Unknown error', code = GENERIC_SQLITE_ERROR } = errors.at(0) ?? {}
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: code,
-    message,
-  })
+  const error = errors.at(0) ?? { message: 'Unknown error', code: GENERIC_SQLITE_ERROR }
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 function onGenericD1HTTPError(error: Error): never {
   debug('HTTP Error: %O', error)
-  const { message } = error
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: GENERIC_SQLITE_ERROR,
-    message,
-  })
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 function onError(error: Error): never {
   console.error('Error in performIO: %O', error)
-  const { message } = error
-
-  throw new DriverAdapterError({
-    kind: 'sqlite',
-    extendedCode: matchSQLiteErrorCode(message),
-    message,
-  })
+  throw new DriverAdapterError(convertDriverError(error))
 }
 
 async function performRawQuery(client: KyInstance, options: KyOptions) {

@@ -93,6 +93,56 @@ export type Error =
       level: string
     }
   | {
+      kind: 'LengthMismatch'
+      column?: string
+    }
+  | {
+      kind: 'UniqueConstraintViolation'
+      fields: string[]
+    }
+  | {
+      kind: 'NullConstraintViolation'
+      fields: string[]
+    }
+  | {
+      kind: 'ForeignKeyConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'DatabaseDoesNotExist'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAlreadyExists'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAccessDenied'
+      db?: string
+    }
+  | {
+      kind: 'AuthenticationFailed'
+      user?: string
+    }
+  | {
+      kind: 'TransactionWriteConflict'
+    }
+  | {
+      kind: 'TableDoesNotExist'
+      table?: string
+    }
+  | {
+      kind: 'ColumnNotFound'
+      column?: string
+    }
+  | {
+      kind: 'TooManyConnections'
+      cause: string
+    }
+  | {
+      kind: 'SocketTimeout'
+    }
+  | {
       kind: 'postgres'
       code: string
       severity: string
