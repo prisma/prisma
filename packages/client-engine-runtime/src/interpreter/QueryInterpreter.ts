@@ -4,6 +4,7 @@ import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
+import { assertNever } from '../utils'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
@@ -162,10 +163,8 @@ export class QueryInterpreter {
         }
       }
 
-      default: {
-        node satisfies never
-        throw new Error(`Unexpected node type: ${(node as { type: unknown }).type}`)
-      }
+      default:
+        assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
     }
   }
 
