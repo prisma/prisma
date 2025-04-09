@@ -197,13 +197,6 @@ export class RequestHandler {
       throw error
     }
 
-    if (isDriverAdapterError(error)) {
-      const converted = this.convertAdapterToUserFacingError(error)
-      if (converted) {
-        throw converted
-      }
-    }
-
     if (error instanceof PrismaClientKnownRequestError && isValidationError(error)) {
       const validationError = convertValidationError(error.meta as EngineValidationError)
       throwValidationException({
