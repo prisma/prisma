@@ -1,7 +1,43 @@
-import { DriverAdapterError } from '@prisma/driver-adapter-utils'
-import { assertNever } from '@prisma/internals'
+import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter-utils'
 
-export function getErrorCode(err: DriverAdapterError): string | undefined {
+export class UserFacingError extends Error {
+  name = 'UserFacingError'
+  code: string
+  meta: unknown
+
+  constructor(message: string, code: string, meta?: unknown) {
+    super(message)
+    this.code = code
+    this.meta = meta
+  }
+
+  toQueryResponseErrorObject() {
+    return {
+      error: this.message,
+      user_facing_error: {
+        is_panic: false,
+        message: this.message,
+        meta: this.meta,
+        error_code: this.code,
+      },
+    }
+  }
+}
+
+export function rethrowAsUserFacing(error: any): never {
+  if (!isDriverAdapterError(error)) {
+    throw error
+  }
+
+  const code = getErrorCode(error)
+  const message = renderErrorMessage(error)
+  if (!code || !message) {
+    throw error
+  }
+  throw new UserFacingError(message, code, error)
+}
+
+function getErrorCode(err: DriverAdapterError): string | undefined {
   switch (err.cause.kind) {
     case 'AuthenticationFailed':
       return 'P1000'
@@ -19,13 +55,14 @@ export function getErrorCode(err: DriverAdapterError): string | undefined {
       return 'P2002'
     case 'ForeignKeyConstraintViolation':
       return 'P2003'
+    case 'UnsupportedNativeDataType':
+      return 'P2010'
     case 'NullConstraintViolation':
       return 'P2011'
     case 'TableDoesNotExist':
       return 'P2021'
     case 'ColumnNotFound':
       return 'P2022'
-    case 'UnsupportedNativeDataType':
     case 'InvalidIsolationLevel':
       return 'P2023'
     case 'TransactionWriteConflict':
@@ -38,12 +75,14 @@ export function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'sqlite':
     case 'mysql':
       return
-    default:
-      assertNever(err.cause, 'Unexpected error')
+    default: {
+      const cause: never = err.cause
+      throw new Error(`Unknown error: ${cause}`)
+    }
   }
 }
 
-export function renderError(err: DriverAdapterError): string | undefined {
+function renderErrorMessage(err: DriverAdapterError): string | undefined {
   switch (err.cause.kind) {
     case 'AuthenticationFailed': {
       const user = err.cause.user ?? '(not available)'
@@ -71,6 +110,8 @@ export function renderError(err: DriverAdapterError): string | undefined {
       return `Unique constraint failed on the ${renderConstraint({ fields: err.cause.fields })}`
     case 'ForeignKeyConstraintViolation':
       return `Foreign key constraint violated on the ${renderConstraint(err.cause.constraint)}`
+    case 'UnsupportedNativeDataType':
+      return `Failed to deserialize column of type '${err.cause.type}'. If you're using $queryRaw and this column is explicitly marked as \`Unsupported\` in your Prisma schema, try casting this column to any supported Prisma type such as \`String\`.`
     case 'NullConstraintViolation':
       return `Null constraint violation on the ${renderConstraint({ fields: err.cause.fields })}`
     case 'TableDoesNotExist': {
@@ -81,8 +122,6 @@ export function renderError(err: DriverAdapterError): string | undefined {
       const column = err.cause.column ?? '(not available)'
       return `The column \`${column}\` does not exist in the current database.`
     }
-    case 'UnsupportedNativeDataType':
-      return `Column type '${err.cause.type}' could not be deserialized from the database.`
     case 'InvalidIsolationLevel':
       return `Invalid isolation level \`${err.cause.level}\``
     case 'TransactionWriteConflict':
@@ -95,8 +134,10 @@ export function renderError(err: DriverAdapterError): string | undefined {
     case 'postgres':
     case 'mysql':
       return
-    default:
-      assertNever(err.cause, 'Unexpected error')
+    default: {
+      const cause: never = err.cause
+      throw new Error(`Unknown error: ${cause}`)
+    }
   }
 }
 
