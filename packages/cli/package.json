@@ -131,7 +131,7 @@
     "@types/rimraf": "4.0.5",
     "async-listen": "3.1.0",
     "checkpoint-client": "1.1.33",
-    "chokidar": "3.6.0",
+    "chokidar": "4.0.3",
     "debug": "4.4.0",
     "dotenv": "16.4.7",
     "effect": "3.12.10",
