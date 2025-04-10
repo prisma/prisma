@@ -86,7 +86,7 @@ async function main() {
 
   console.log('🐳 Starting tests in docker')
   // tarball was created, ready to send it to docker and begin e2e tests
-  const testStepFiles = await glob('../**/_steps.ts', { cwd: __dirname })
+  const testStepFiles = await glob(['../**/_steps.ts', '../**/_steps.cts'], { cwd: __dirname })
   let e2eTestNames = testStepFiles.map((p) => path.relative('..', path.dirname(p)))
 
   if (args._.length > 0) {
