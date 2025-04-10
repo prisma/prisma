@@ -911,7 +911,7 @@ testMatrix.setupTestSuite(
     skipDriverAdapter: {
       from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
-        'js_d1: iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733\n' +
+        'js_d1: iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733; ' +
         'js_libsql: SIGABRT crash occurs on having the first transaction with at least two create statements, panic inside `statement.rs` inside libsql',
     },
   },
