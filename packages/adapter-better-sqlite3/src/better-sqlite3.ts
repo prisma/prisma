@@ -15,6 +15,7 @@ import Database from 'better-sqlite3'
 
 import { name as packageName } from '../package.json'
 import { getColumnTypes, mapQueryArgs, mapRow, Row } from './conversion'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3')
 
@@ -36,19 +37,6 @@ type BetterSQLite3Meta = {
    * The rowid of the last row inserted into the database.
    */
   lastInsertRowid: number | bigint
-}
-
-/**
- * BetterSQLite3 translates error codes from numbers into string constants.
- * In the query engine we however expect the numeric error code in the error to perform proper mapping.
- */
-const ERROR_CODE_STRING_TO_CODE_NUM = {
-  SQLITE_BUSY: 5,
-  SQLITE_CONSTRAINT_FOREIGNKEY: 787,
-  SQLITE_CONSTRAINT_NOTNULL: 1299,
-  SQLITE_CONSTRAINT_PRIMARYKEY: 1555,
-  SQLITE_CONSTRAINT_TRIGGER: 1811,
-  SQLITE_CONSTRAINT_UNIQUE: 2067,
 }
 
 const LOCK_TAG = Symbol()
@@ -141,15 +129,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 
   protected onError(error: any): never {
     debug('Error in performIO: %O', error)
-    const errCodeNum = error.code && ERROR_CODE_STRING_TO_CODE_NUM[error.code]
-    if (errCodeNum) {
-      throw new DriverAdapterError({
-        kind: 'sqlite',
-        extendedCode: errCodeNum,
-        message: error.message,
-      })
-    }
-    throw error
+    throw new DriverAdapterError(convertDriverError(error))
   }
 }
 
@@ -202,11 +182,15 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const release = await this[LOCK_TAG].acquire()
+    try {
+      const release = await this[LOCK_TAG].acquire()
 
-    this.client.prepare('BEGIN').run()
+      this.client.prepare('BEGIN').run()
 
-    return new BetterSQLite3Transaction(this.client, options, release)
+      return new BetterSQLite3Transaction(this.client, options, release)
+    } catch (e) {
+      this.onError(e)
+    }
   }
 
   dispose(): Promise<void> {
