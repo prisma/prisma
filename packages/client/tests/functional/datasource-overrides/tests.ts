@@ -94,7 +94,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDriverAdapter: {
-      from: ['js_planetscale', 'js_neon', 'js_d1', 'js_libsql'],
+      from: ['js_planetscale', 'js_neon', 'js_d1', 'js_libsql', 'js_better_sqlite3'],
       reason: 'We only need to check a single driver adapter. We can skip the rest.',
     },
     skipDataProxy: {

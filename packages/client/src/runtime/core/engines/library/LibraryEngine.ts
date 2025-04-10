@@ -441,6 +441,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async stop(): Promise<void> {
+    await this.libraryInstantiationPromise
     await this.libraryStartingPromise
     await this.executingQueryPromise
 
