@@ -1,5 +1,7 @@
 import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter-utils'
 
+import { assertNever } from './utils'
+
 export class UserFacingError extends Error {
   name = 'UserFacingError'
   code: string
@@ -75,10 +77,8 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'sqlite':
     case 'mysql':
       return
-    default: {
-      const cause: never = err.cause
-      throw new Error(`Unknown error: ${cause}`)
-    }
+    default:
+      assertNever(err.cause, `Unknown error: ${err.cause}`)
   }
 }
 
@@ -134,10 +134,8 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'postgres':
     case 'mysql':
       return
-    default: {
-      const cause: never = err.cause
-      throw new Error(`Unknown error: ${cause}`)
-    }
+    default:
+      assertNever(err.cause, `Unknown error: ${err.cause}`)
   }
 }
 

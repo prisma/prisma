@@ -245,7 +245,7 @@ The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgre
 ```
 npx prisma mcp
 ```
- 
+
 Most AI tools support a JSON-based configuration for MCP servers looking like this:
 
 ```json
