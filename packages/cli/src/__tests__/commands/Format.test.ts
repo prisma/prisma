@@ -20,7 +20,7 @@ describe('format', () => {
     process.env = { ...originalEnv }
   })
 
-  describe('multi-schema-files with `prismaSchemaFolder`', () => {
+  describe('multi-schema-files', () => {
     describe('valid schemas', () => {
       it('should prefer single file to the multi-schema alternatives', async () => {
         ctx.fixture('multi-schema-files/valid')
@@ -61,7 +61,7 @@ describe('format', () => {
           Format.new().parse(['--schema=prisma/custom.prisma'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"Formatted prisma/custom.prisma in XXXms 🚀"`)
 
-        // explicit: multi schema files with `prismaSchemaFolder` enabled
+        // explicit: multi schema files
         await expect(
           Format.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
@@ -208,7 +208,6 @@ describe('format', () => {
           [
             "generator client {
             provider        = "prisma-client-js"
-            previewFeatures = ["prismaSchemaFolder"]
           }
 
           datasource db {

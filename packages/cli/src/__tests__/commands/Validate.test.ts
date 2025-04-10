@@ -18,7 +18,7 @@ describe('validate', () => {
     process.env = { ...originalEnv }
   })
 
-  describe('multi-schema-files with `prismaSchemaFolder`', () => {
+  describe('multi-schema-files', () => {
     describe('valid schemas', () => {
       it('should prefer single file to the multi-schema alternatives', async () => {
         ctx.fixture('multi-schema-files/valid')
@@ -55,7 +55,7 @@ describe('validate', () => {
           Validate.new().parse(['--schema=prisma/custom.prisma'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"The schema at prisma/custom.prisma is valid 🚀"`)
 
-        // explicit: multi schema files with `prismaSchemaFolder` enabled
+        // explicit: multi schema files
         await expect(
           Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)

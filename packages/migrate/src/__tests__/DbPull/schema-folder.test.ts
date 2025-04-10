@@ -48,7 +48,6 @@ test('reintrospection - no changes', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
@@ -88,7 +87,6 @@ test('reintrospection - new model', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
@@ -129,7 +127,6 @@ test('reintrospection - new model - existing introspected.prisma', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
@@ -177,7 +174,6 @@ test('reintrospection - new field', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
@@ -213,7 +209,6 @@ test('reintrospection - remove model', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
@@ -243,7 +238,6 @@ test('reintrospection - invalid schema with --force', async () => {
     generator client {
       provider        = "prisma-client-js"
       output          = "@prisma/client"
-      previewFeatures = ["prismaSchemaFolder"]
     }
 
     datasource my_db {
