@@ -10,7 +10,7 @@ import {
   TransactionManagerError,
   TransactionNotFoundError,
   TransactionRolledBackError,
-  TransactionStartTimoutError,
+  TransactionStartTimeoutError,
 } from './TransactionManagerErrors'
 
 jest.useFakeTimers()
@@ -188,7 +188,7 @@ test('transaction times out during starting', async () => {
   const transactionManager = new TransactionManager({ driverAdapter, transactionOptions: TRANSACTION_OPTIONS })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
-    TransactionStartTimoutError,
+    TransactionStartTimeoutError,
   )
 })
 

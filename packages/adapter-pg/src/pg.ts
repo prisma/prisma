@@ -18,6 +18,7 @@ import pg from 'pg'
 
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { convertDriverError } from './errors'
 
 const types = pg.types
 
@@ -123,23 +124,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 
   protected onError(error: any): never {
     debug('Error in performIO: %O', error)
-    if (
-      error &&
-      typeof error.code === 'string' &&
-      typeof error.severity === 'string' &&
-      typeof error.message === 'string'
-    ) {
-      throw new DriverAdapterError({
-        kind: 'postgres',
-        code: error.code,
-        severity: error.severity,
-        message: error.message,
-        detail: error.detail,
-        column: error.column,
-        hint: error.hint,
-      })
-    }
-    throw error
+    throw new DriverAdapterError(convertDriverError(error))
   }
 }
 
@@ -178,10 +163,10 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const conn = await this.client.connect()
-    const tx = new PgTransaction(conn, options)
+    const conn = await this.client.connect().catch((error) => this.onError(error))
 
     try {
+      const tx = new PgTransaction(conn, options)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
@@ -193,7 +178,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
       return tx
     } catch (error) {
       conn.release(error)
-      throw error
+      this.onError(error)
     }
   }
 

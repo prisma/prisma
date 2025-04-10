@@ -17,6 +17,7 @@ import * as pg from '@prisma/pg-worker'
 
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { convertDriverError } from './errors'
 
 const types = pg.types
 const debug = Debug('prisma:driver-adapter:pg')
@@ -115,21 +116,13 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 
       return result
     } catch (e) {
-      const error = e as Error
-      debug('Error in performIO: %O', error)
-      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-        throw new DriverAdapterError({
-          kind: 'postgres',
-          code: e.code,
-          severity: e.severity,
-          message: e.message,
-          detail: e.detail,
-          column: e.column,
-          hint: e.hint,
-        })
-      }
-      throw error
+      this.onError(e)
     }
+  }
+
+  protected onError(error: any): never {
+    debug('Error in performIO: %O', error)
+    throw new DriverAdapterError(convertDriverError(error))
   }
 }
 
@@ -178,10 +171,10 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const conn = await this.client.connect()
-    const tx = new PgTransaction(conn, options)
+    const conn = await this.client.connect().catch((error) => this.onError(error))
 
     try {
+      const tx = new PgTransaction(conn, options)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
@@ -190,12 +183,11 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
           argTypes: [],
         })
       }
+      return tx
     } catch (error) {
       conn.release(error)
-      throw error
+      this.onError(error)
     }
-
-    return tx
   }
 
   dispose(): Promise<void> {
