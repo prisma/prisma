@@ -177,10 +177,10 @@ describe('validate', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:12
+            -->  prisma/schema/schema_with_config.prisma:11
              | 
-          11 | model User {
-          12 |   id    Int     @id @default(now())
+          10 | model User {
+          11 |   id    Int     @id @default(now())
              | 
 
           Validation Error Count: 1
@@ -206,17 +206,17 @@ describe('validate', () => {
 
         await expect(Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig())).rejects
           .toMatchInlineSnapshot(`
-          "Prisma schema validation - (get-config wasm)
+          "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Property not known: "custom".
-            -->  prisma/schema/config.prisma:8
+            -->  prisma/schema/config.prisma:7
              | 
-           7 |   provider = "sqlite"
-           8 |   custom   = "attr"
+           6 |   provider = "sqlite"
+           7 |   custom   = "attr"
              | 
 
           Validation Error Count: 1
-          [Context: getConfig]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)

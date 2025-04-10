@@ -46,8 +46,8 @@ test('reintrospection - no changes', async () => {
     config.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {
@@ -85,8 +85,8 @@ test('reintrospection - new model', async () => {
     "config.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {
@@ -125,8 +125,8 @@ test('reintrospection - new model - existing introspected.prisma', async () => {
     "config.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {
@@ -172,8 +172,8 @@ test('reintrospection - new field', async () => {
     config.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {
@@ -207,8 +207,8 @@ test('reintrospection - remove model', async () => {
     config.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {
@@ -236,8 +236,8 @@ test('reintrospection - invalid schema with --force', async () => {
     "introspected.prisma:
 
     generator client {
-      provider        = "prisma-client-js"
-      output          = "@prisma/client"
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
     }
 
     datasource my_db {

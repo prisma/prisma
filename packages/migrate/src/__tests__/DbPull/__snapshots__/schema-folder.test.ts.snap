@@ -27,8 +27,8 @@ model Blog {
 
 // prisma/schema/config.prisma
 generator client {
-  provider        = "prisma-client-js"
-  output          = "@prisma/client"
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
 }
 
 datasource my_db {
