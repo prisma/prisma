@@ -222,7 +222,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
     return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
-      await conn.dispose()
+      // Note: no need to call dispose here. This callback is run as part of dispose.
     })
   }
 }
