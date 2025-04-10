@@ -45,7 +45,7 @@ testMatrix.setupTestSuite(
 
       async function getTagsParams(ids: number[]): Promise<Tag[]> {
         const idsParams = ids.map((paramIdx) => {
-          const param = ['mysql'].includes(provider) ? '?' : `\$${paramIdx}`
+          const param = ['mysql', 'sqlite'].includes(provider) ? '?' : `\$${paramIdx}`
           return param
         })
 

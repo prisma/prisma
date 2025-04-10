@@ -192,6 +192,30 @@ Invalid \`prisma.resource.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
+exports[`issues.11740-transaction-stored-query (provider=sqlite, js_better_sqlite3) stored query trigger .requestTransaction twice should fail 1`] = `
+"
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
+
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`issues.11740-transaction-stored-query (provider=sqlite, js_better_sqlite3) stored query triggered twice should fail but not exit process 1`] = `
+"
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
+
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
 exports[`issues.11740-transaction-stored-query (provider=sqlite, js_d1) stored query trigger .requestTransaction twice should fail 1`] = `
 "
 Invalid \`prisma.resource.create()\` invocation in

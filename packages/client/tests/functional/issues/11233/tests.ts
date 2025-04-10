@@ -27,6 +27,8 @@ testMatrix.setupTestSuite(
             expect((result as Error).message).toContain(': not an error')
           } else if (driverAdapter === AdapterProviders.JS_D1) {
             expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
+            expect((result as Error).message).toContain('The supplied SQL string contains no statements')
           } else {
             expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           }
@@ -64,6 +66,8 @@ testMatrix.setupTestSuite(
             expect((result as Error).message).toContain(': not an error')
           } else if (driverAdapter === AdapterProviders.JS_D1) {
             expect((result as Error).message).toContain('D1_ERROR: No SQL statements detected.')
+          } else if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
+            expect((result as Error).message).toContain('The supplied SQL string contains no statements')
           } else {
             expect((result as Error).message).toContain('Raw query failed. Code: `21`. Message: `not an error`')
           }
