@@ -14,7 +14,7 @@ export const GraphQLScalarToJSTypeTable = {
 }
 
 export const JSOutputTypeToInputType = {
-  JsonValue: 'runtime.InputJsonValue',
+  JsonValue: 'InputJsonValue',
 }
 
 export const JSTypeToGraphQLType = {
