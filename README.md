@@ -37,13 +37,7 @@ Prisma ORM is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=org-readme).
-
-**Prisma ORM can further be extended with these Prisma products:**
-
-- [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate?utm_source=github&utm_medium=prisma-readme): Global database cache with scalable connection pooling
-- [Prisma Optimize](https://www.prisma.io/docs/optimize?utm_source=github&utm_medium=prisma-readme): AI-powered query optimization and performance insights
-- [Prisma Studio](https://www.prisma.io/docs/orm/tools/prisma-studio?utm_source=github&utm_medium=org-readme): A visual editor for the data in your database
+**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme).**
 
 ## Getting started
 
@@ -243,6 +237,29 @@ Built something awesome with Prisma? 🌟 Show it off with these [badges](https:
 ```
 [![Made with Prisma](http://made-with.prisma.io/indigo.svg)](https://prisma.io)
 ```
+
+## MCP server
+
+The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgres/mcp-server). It's started via this CLI command:
+
+```
+npx prisma mcp
+```
+ 
+Most AI tools support a JSON-based configuration for MCP servers looking like this:
+
+```json
+{
+  "mcpServers": {
+    "Prisma": {
+      "command": "npx",
+      "args": ["-y", "prisma", "mcp"]
+    }
+  }
+}
+```
+
+Prisma's MCP server gives AI agents the ability to manage [Prisma Postgres](https://www.prisma.io/postgres) databases (e.g. spin up new database instances or run schema migrations).
 
 ## Security
 
