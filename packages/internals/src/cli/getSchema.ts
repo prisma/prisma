@@ -5,14 +5,13 @@ import type {
   NonFatalLookupError,
   SuccessfulLookupResult,
 } from '@prisma/schema-files-loader'
-import { ensureType, loadSchemaFiles, usesPrismaSchemaFolder } from '@prisma/schema-files-loader'
+import { ensureType, loadSchemaFiles } from '@prisma/schema-files-loader'
 import fs from 'fs'
 import { dim, green } from 'kleur/colors'
 import path from 'path'
 import { readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
-import { getConfig } from '../engine-commands'
 import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
 
 const readFile = promisify(fs.readFile)
@@ -119,21 +118,6 @@ async function readSchemaFromDirectory(schemaPath: string): Promise<LookupResult
     return { ok: false, error: typeError }
   }
   const files = await loadSchemaFiles(schemaPath)
-
-  // TODO: problem: if the Prisma config isn't valid, we currently get a
-  // `Error: Could not find a schema.prisma file that is required for this command.` error
-  // in the multi-file case.
-  debug('Loading config')
-  const config = await getConfig({
-    datamodel: files,
-    ignoreEnvVarErrors: true,
-  })
-  debug('Ok')
-
-  if (!usesPrismaSchemaFolder(config)) {
-    return { ok: false, error: { kind: 'FolderPreviewNotEnabled', path: schemaPath } }
-  }
-
   return { ok: true, schema: { schemaPath, schemaRootDir: schemaPath, schemas: files } }
 }
 
@@ -219,8 +203,6 @@ function renderLookupError(error: NonFatalLookupError) {
       const expected = error.expectedType ?? 'file or directory'
       return `${expected} not found`
     }
-    case 'FolderPreviewNotEnabled':
-      return `"prismaSchemaFolder" preview feature must be enabled`
     case 'WrongType':
       return `expected ${error.expectedTypes.join(' or ')}`
   }
