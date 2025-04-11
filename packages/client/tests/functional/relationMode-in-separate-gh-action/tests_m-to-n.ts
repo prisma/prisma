@@ -201,7 +201,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -363,7 +363,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -456,7 +456,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
