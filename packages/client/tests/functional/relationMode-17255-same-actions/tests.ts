@@ -288,5 +288,9 @@ testMatrix.setupTestSuite(
       ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
     },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
+    },
   },
 )
