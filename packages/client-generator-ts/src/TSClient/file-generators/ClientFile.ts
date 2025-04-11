@@ -21,12 +21,11 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
 
   const imports = [
     ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums'),
-    ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma').typeOnly(),
+    ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma'),
   ].map((i) => ts.stringify(i))
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
-    ts.moduleExportFrom(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
     ts.moduleExportFrom(context.importFileName('./internal/class')).named('PrismaClient'),
   ].map((e) => ts.stringify(e))
 
@@ -71,6 +70,7 @@ ${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
 ${exports.join('\n')}
+export { Prisma }
 
 ${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
