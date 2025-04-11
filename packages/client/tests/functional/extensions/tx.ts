@@ -221,7 +221,7 @@ testMatrix.setupTestSuite(
       from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
         'js_d1: batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done; ' +
-        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)',
+        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

@@ -868,7 +868,7 @@ testMatrix.setupTestSuite(
       from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
         'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659 ; ' +
-        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)',
+        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
     },
   },
 )

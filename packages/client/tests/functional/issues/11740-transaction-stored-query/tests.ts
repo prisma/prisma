@@ -59,7 +59,7 @@ testMatrix.setupTestSuite(
     },
     skipDriverAdapter: {
       from: [AdapterProviders.JS_LIBSQL],
-      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)',
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
     },
   },
 )
