@@ -92,8 +92,8 @@ import * as path from 'node:path'
 
   if (moduleFormat === 'esm') {
     preamble += `\
-    import { fileURLToPath } from 'node:url'
-    const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { fileURLToPath } from 'node:url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 `
   }
 

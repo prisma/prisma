@@ -13,7 +13,7 @@ export const GraphQLScalarToJSTypeTable = {
   BigInt: ['bigint', 'number'],
 }
 
-export const JSOutputTypeToInputType = {
+export const JSOutputTypeToInputType: Record<string, string | undefined> = {
   JsonValue: 'InputJsonValue',
 }
 

@@ -49,10 +49,7 @@ export class ArgsTypeBuilder {
           ]),
         )
         .optional()
-        .setDocComment(
-          ts.docComment(`Select specific fields to fetch
-                                      from the ${this.type.name}`),
-        ),
+        .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
     )
 
     return this

@@ -81,7 +81,7 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
 function namedInputType(typeName: string) {
   const typeNameParts = typeName.split('.')
   const typeNameWithoutNamespace = typeNameParts[typeNameParts.length - 1]
-  const mappedInputTypeName: string = JSOutputTypeToInputType[typeNameWithoutNamespace] ?? typeNameWithoutNamespace
+  const mappedInputTypeName = JSOutputTypeToInputType[typeNameWithoutNamespace] ?? typeNameWithoutNamespace
   return ts.namedType(typeNameParts.slice(0, -1).concat(mappedInputTypeName).join('.'))
 }
 

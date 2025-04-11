@@ -132,7 +132,7 @@ export function buildClient({
 
   const client = new TSClient(clientOptions)
 
-  let fileMap: FileMap = client.generateClientFiles()
+  let fileMap = client.generateClientFiles()
 
   if (typedSql && typedSql.length > 0) {
     fileMap = {
