@@ -1,4 +1,8 @@
-import { NamedType, TypeBuilder } from '@prisma/ts-builders'
+import { NamedType, namedType, TypeBuilder } from '@prisma/ts-builders'
+
+export function omit(type: TypeBuilder, keyType: TypeBuilder): NamedType {
+  return namedType('Omit').addGenericArgument(type).addGenericArgument(keyType)
+}
 
 export function promise(resultType: TypeBuilder): NamedType {
   return new NamedType('runtime.Types.Utils.JsPromise').addGenericArgument(resultType)

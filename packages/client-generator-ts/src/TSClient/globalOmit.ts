@@ -7,7 +7,7 @@ import { getOmitName } from '../utils'
 export function globalOmitConfig(dmmf: DMMFHelper) {
   const objectType = ts.objectType().addMultiple(
     dmmf.datamodel.models.map((model) => {
-      const type = ts.namedType(getOmitName(model.name))
+      const type = ts.namedType(`Prisma.${getOmitName(model.name)}`)
       return ts.property(lowerCase(model.name), type).optional()
     }),
   )
