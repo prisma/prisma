@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
                 },
               }),
             )
@@ -150,14 +150,18 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.COCKROACHDB]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                 [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
-                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [AdapterProviders.JS_NEON]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_PG]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
               },
             }),
           )
@@ -176,7 +180,7 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
                 },
               }),
             )
@@ -226,14 +230,18 @@ testMatrix.setupTestSuite(
           ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
-                [Providers.POSTGRESQL]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                [Providers.SQLSERVER]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.COCKROACHDB]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                [Providers.SQLSERVER]: 'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                 [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
-                [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
-                [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `PostOneToMany_userId_fkey (index)`',
+                [AdapterProviders.JS_NEON]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_PG]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
               },
             }),
           )
