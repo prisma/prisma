@@ -147,20 +147,27 @@ ${indent(
   TAB_SIZE,
 )}
 }`
-    return `
-export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
-  }
 
-  public overrideName(name: string): this {
-    this.generatedName = name
-    return this
-  }
+    const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(this.type)
+    const typeName = needsGeneric ? `${this.type.name}<$PrismaModel = never>` : this.type.name
 
-  private getTypeName() {
-    if (this.context.genericArgsInfo.typeNeedsGenericModelArg(this.type)) {
-      return `${this.generatedName}<$PrismaModel = never>`
+    if (type.name.includes('Json') && type.name.includes('Filter')) {
+      const innerName = needsGeneric ? `${this.type.name}Base<$PrismaModel>` : `${this.type.name}Base`
+      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
+      const baseName = `Required<${innerName}>`
+      return `
+export type ${typeName} =
+| Prisma.PatchUndefined<
+    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
+    ${baseName}
+  >
+| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>
+
+export type ${this.type.name}Base${needsGeneric ? '<$PrismaModel = never>' : ''} = ${wrapWithAtLeast(body, type)}`
+    } else {
+      return `
+export type ${typeName} = ${wrapWithAtLeast(body, type)}`
     }
-    return this.generatedName
   }
 }
 

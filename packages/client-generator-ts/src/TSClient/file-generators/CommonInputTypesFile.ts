@@ -20,24 +20,7 @@ export function createCommonInputTypeFiles(context: GenerateContext) {
   const genericInputTypes = context.dmmf.inputObjectTypes.prisma
     // Only contains generic input types that are not directly linked to a particular model
     .filter((i) => !i.meta?.grouping)
-    .map((inputType) => {
-      if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-        const needsGeneric = context.genericArgsInfo.typeNeedsGenericModelArg(inputType)
-        const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
-        const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
-        // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
-        const baseName = `Required<${innerName}>`
-        return `export type ${typeName} = 
-| Prisma.PatchUndefined<
-    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
-    ${baseName}
-  >
-| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>
-${new InputType(inputType, context).overrideName(`${inputType.name}Base`).toTS()}`
-      } else {
-        return new InputType(inputType, context).toTS()
-      }
-    })
+    .map((inputType) => new InputType(inputType, context).toTS())
 
   return `${jsDocHeader}
 ${imports.join('\n')}

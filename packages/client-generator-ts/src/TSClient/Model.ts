@@ -331,27 +331,8 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
   private getDeepInputTypes() {
     return this.dmmf.inputObjectTypes.prisma
-      ?.reduce((acc, inputType) => {
-        if (inputType.meta?.grouping !== this.model.name) return acc
-
-        if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-          const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(inputType)
-          const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
-          const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
-          // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
-          const baseName = `Required<${innerName}>`
-          acc.push(`export type ${typeName} = 
-| Prisma.PatchUndefined<
-    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
-    ${baseName}
-  >
-| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>`)
-          acc.push(new InputType(inputType, this.context).overrideName(`${inputType.name}Base`).toTS())
-        } else {
-          acc.push(new InputType(inputType, this.context).toTS())
-        }
-        return acc
-      }, [] as string[])
+      ?.filter((i) => i.meta?.grouping === this.model.name)
+      .map((inputType) => new InputType(inputType, this.context).toTS())
       .join('\n')
   }
 
