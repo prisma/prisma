@@ -1,8 +1,8 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().assemble()
 

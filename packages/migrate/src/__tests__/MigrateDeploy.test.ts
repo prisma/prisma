@@ -1,4 +1,3 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 
@@ -6,6 +5,7 @@ import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { CaptureStdout } from '../utils/captureStdout'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

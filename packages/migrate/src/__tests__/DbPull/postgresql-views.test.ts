@@ -1,4 +1,3 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { loadSchemaContext, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
@@ -7,6 +6,7 @@ import { DbPull } from '../../commands/DbPull'
 import { Migrate } from '../../Migrate'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 if (process.env.CI) {
   if (['darwin', 'win32'].includes(process.platform)) {

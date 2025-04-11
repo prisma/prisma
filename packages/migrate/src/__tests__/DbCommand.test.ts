@@ -1,6 +1,5 @@
-import { defaultTestConfig } from '@prisma/config'
-
 import { DbCommand } from '../commands/DbCommand'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})

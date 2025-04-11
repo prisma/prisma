@@ -1,9 +1,9 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
 import { CaptureStdout } from '../utils/captureStdout'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const captureStdout = new CaptureStdout()

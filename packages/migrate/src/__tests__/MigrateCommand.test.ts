@@ -1,6 +1,5 @@
-import { defaultTestConfig } from '@prisma/config'
-
 import { MigrateCommand } from '../commands/MigrateCommand'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 it('no params should return help', async () => {
   const commandInstance = MigrateCommand.new({})
