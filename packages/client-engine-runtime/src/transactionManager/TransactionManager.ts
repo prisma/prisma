@@ -2,6 +2,7 @@ import { Debug } from '@prisma/debug'
 import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
+import { TracingHelper } from '../tracing'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
@@ -39,13 +40,27 @@ export class TransactionManager {
   private closedTransactions: TransactionWrapper[] = []
   private readonly driverAdapter: SqlDriverAdapter
   private readonly transactionOptions: Options
+  private readonly tracingHelper: TracingHelper
 
-  constructor({ driverAdapter, transactionOptions }: { driverAdapter: SqlDriverAdapter; transactionOptions: Options }) {
+  constructor({
+    driverAdapter,
+    transactionOptions,
+    tracingHelper,
+  }: {
+    driverAdapter: SqlDriverAdapter
+    transactionOptions: Options
+    tracingHelper: TracingHelper
+  }) {
     this.driverAdapter = driverAdapter
     this.transactionOptions = transactionOptions
+    this.tracingHelper = tracingHelper
   }
 
   async startTransaction(options?: Options): Promise<TransactionInfo> {
+    return await this.tracingHelper.runInChildSpan('start_transaction', () => this.#startTransactionImpl(options))
+  }
+
+  async #startTransactionImpl(options?: Options): Promise<TransactionInfo> {
     const validatedOptions = options !== undefined ? this.validateOptions(options) : this.transactionOptions
 
     const transaction: TransactionWrapper = {
@@ -89,13 +104,17 @@ export class TransactionManager {
   }
 
   async commitTransaction(transactionId: string): Promise<void> {
-    const txw = this.getActiveTransaction(transactionId, 'commit')
-    await this.closeTransaction(txw, 'committed')
+    return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
+      const txw = this.getActiveTransaction(transactionId, 'commit')
+      await this.closeTransaction(txw, 'committed')
+    })
   }
 
   async rollbackTransaction(transactionId: string): Promise<void> {
-    const txw = this.getActiveTransaction(transactionId, 'rollback')
-    await this.closeTransaction(txw, 'rolled_back')
+    return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
+      const txw = this.getActiveTransaction(transactionId, 'rollback')
+      await this.closeTransaction(txw, 'rolled_back')
+    })
   }
 
   getTransaction(txInfo: TransactionInfo, operation: string): Transaction {

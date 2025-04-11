@@ -1,7 +1,9 @@
+import { SpanKind } from '@opentelemetry/api'
 import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
 import { assertNever } from '../utils'
@@ -16,18 +18,21 @@ export type QueryInterpreterOptions = {
   transactionManager: QueryInterpreterTransactionManager
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
+  tracingHelper: TracingHelper
 }
 
 export class QueryInterpreter {
-  #transactionManager: QueryInterpreterTransactionManager
-  #placeholderValues: Record<string, unknown>
-  #onQuery?: (event: QueryEvent) => void
+  readonly #transactionManager: QueryInterpreterTransactionManager
+  readonly #placeholderValues: Record<string, unknown>
+  readonly #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
+  readonly #tracingHelper: TracingHelper
 
-  constructor({ transactionManager, placeholderValues, onQuery }: QueryInterpreterOptions) {
+  constructor({ transactionManager, placeholderValues, onQuery, tracingHelper }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
+    this.#tracingHelper = tracingHelper
   }
 
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
@@ -84,14 +89,14 @@ export class QueryInterpreter {
 
       case 'execute': {
         const query = renderQuery(node.args, scope, generators)
-        return this.#withQueryEvent(query, async () => {
+        return this.#withQueryEvent(query, queryable, async () => {
           return await queryable.executeRaw(query)
         })
       }
 
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
-        return this.#withQueryEvent(query, async () => {
+        return this.#withQueryEvent(query, queryable, async () => {
           return serialize(await queryable.queryRaw(query))
         })
       }
@@ -168,20 +173,32 @@ export class QueryInterpreter {
     }
   }
 
-  async #withQueryEvent<T>(query: SqlQuery, execute: () => Promise<T>): Promise<T> {
-    const timestamp = new Date()
-    const startInstant = performance.now()
-    const result = await execute()
-    const endInstant = performance.now()
+  #withQueryEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+    return this.#tracingHelper.runInChildSpan(
+      {
+        name: 'db_query',
+        kind: SpanKind.CLIENT,
+        attributes: {
+          'db.query.text': query.sql,
+          'db.system.name': providerToOtelSystem(queryable.provider),
+        },
+      },
+      async () => {
+        const timestamp = new Date()
+        const startInstant = performance.now()
+        const result = await execute()
+        const endInstant = performance.now()
 
-    this.#onQuery?.({
-      timestamp,
-      duration: endInstant - startInstant,
-      query: query.sql,
-      params: query.args,
-    })
+        this.#onQuery?.({
+          timestamp,
+          duration: endInstant - startInstant,
+          query: query.sql,
+          params: query.args,
+        })
 
-    return result
+        return result
+      },
+    )
   }
 }
 
