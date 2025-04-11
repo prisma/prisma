@@ -157,7 +157,7 @@ jobs:
           exit 1
 
   run_tests:
-    name: Tests
+    name: 🧪
     needs:
       - detect_jobs_to_run
       - build_custom_engine
