@@ -37,7 +37,7 @@ describe('canConnectToDatabase', () => {
     await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
       {
         "code": "P1003",
-        "message": "Database \`doesnotexist.db\` does not exist at \`./doesnotexist.db\`.",
+        "message": "Database \`doesnotexist.db\` does not exist",
       }
     `)
   })

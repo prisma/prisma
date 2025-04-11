@@ -86,7 +86,7 @@ describe('createDatabase', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1009
 
-      Database \`tests\` already exists on the database server at \`localhost:5432\`
+      Database \`tests\` already exists on the database server
       "
     `)
     migrate.stop()
@@ -298,7 +298,7 @@ describe('ensureConnectionValidity', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1003
 
-      Database \`dev.db\` does not exist at \`dev.db\`.
+      Database \`dev.db\` does not exist
       "
     `)
     migrate.stop()

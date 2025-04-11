@@ -407,7 +407,7 @@ describe('migrate diff', () => {
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1003
 
-        Database \`doesnotexists.db\` does not exist at \`doesnotexists.db\`.
+        Database \`doesnotexists.db\` does not exist
         "
       `)
     })
@@ -418,7 +418,7 @@ describe('migrate diff', () => {
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1003
 
-        Database \`doesnotexists.db\` does not exist at \`doesnotexists.db\`.
+        Database \`doesnotexists.db\` does not exist
         "
       `)
     })
@@ -432,7 +432,7 @@ describe('migrate diff', () => {
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1003
 
-        Database \`doesnotexists.db\` does not exist at \`./something/doesnotexists.db\`.
+        Database \`doesnotexists.db\` does not exist
         "
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

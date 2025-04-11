@@ -493,7 +493,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1003
 
-          Database \`test-doesnotexists\` does not exist on the database server at \`localhost:5432\`.
+          Database \`test-doesnotexists\` does not exist
           "
         `)
       }
