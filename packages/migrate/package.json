@@ -17,6 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
+    "@prisma/adapter-libsql": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
