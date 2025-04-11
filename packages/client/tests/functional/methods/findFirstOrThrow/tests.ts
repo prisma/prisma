@@ -47,10 +47,10 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          37 const newEmail = faker.internet.email()
-          38 const result = prisma.$transaction([
-          39   prisma.user.create({ data: { email: newEmail } }),
-        → 40   prisma.user.findFirstOrThrow(
+          39 const newEmail = faker.internet.email()
+          40 const result = prisma.$transaction([
+          41   prisma.user.create({ data: { email: newEmail } }),
+        → 42   prisma.user.findFirstOrThrow(
         An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
@@ -73,10 +73,10 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          63 const newEmail = faker.internet.email()
-          64 const result = prisma.$transaction(async (prisma) => {
-          65   await prisma.user.create({ data: { email: newEmail } })
-        → 66   await prisma.user.findFirstOrThrow(
+          65 const newEmail = faker.internet.email()
+          66 const result = prisma.$transaction(async (prisma) => {
+          67   await prisma.user.create({ data: { email: newEmail } })
+        → 68   await prisma.user.findFirstOrThrow(
         An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 

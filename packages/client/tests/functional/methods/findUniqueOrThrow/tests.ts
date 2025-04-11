@@ -46,10 +46,10 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          36 const newEmail = faker.internet.email()
-          37 const result = prisma.$transaction([
-          38   prisma.user.create({ data: { email: newEmail } }),
-        → 39   prisma.user.findUniqueOrThrow(
+          38 const newEmail = faker.internet.email()
+          39 const result = prisma.$transaction([
+          40   prisma.user.create({ data: { email: newEmail } }),
+        → 41   prisma.user.findUniqueOrThrow(
         An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
@@ -72,10 +72,10 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          62 const newEmail = faker.internet.email()
-          63 const result = prisma.$transaction(async (prisma) => {
-          64   await prisma.user.create({ data: { email: newEmail } })
-        → 65   await prisma.user.findUniqueOrThrow(
+          64 const newEmail = faker.internet.email()
+          65 const result = prisma.$transaction(async (prisma) => {
+          66   await prisma.user.create({ data: { email: newEmail } })
+        → 67   await prisma.user.findUniqueOrThrow(
         An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
       `)
 
