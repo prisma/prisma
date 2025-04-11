@@ -120,6 +120,7 @@ export class ClientEngine implements Engine<undefined> {
       return new TransactionManager({
         driverAdapter,
         transactionOptions: this.config.transactionOptions,
+        tracingHelper: this.tracingHelper,
       })
     })
 
@@ -190,13 +191,15 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   async start(): Promise<void> {
-    await this.ensureStarted()
+    await this.tracingHelper.runInChildSpan('connect', () => this.ensureStarted())
   }
 
   async stop(): Promise<void> {
-    await this.instantiateQueryCompilerPromise
-    await (await this.transactionManagerPromise)?.cancelAllTransactions()
-    await (await this.adapterPromise).dispose()
+    await this.tracingHelper.runInChildSpan('disconnect', async () => {
+      await this.instantiateQueryCompilerPromise
+      await (await this.transactionManagerPromise)?.cancelAllTransactions()
+      await (await this.adapterPromise).dispose()
+    })
   }
 
   async ensureStarted(): Promise<[SqlDriverAdapter, TransactionManager]> {
@@ -285,6 +288,7 @@ export class ClientEngine implements Engine<undefined> {
         transactionManager: qiTransactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
+        tracingHelper: this.tracingHelper,
       })
       const result = await interpreter.run(queryPlan, queryable)
 
@@ -331,6 +335,7 @@ export class ClientEngine implements Engine<undefined> {
         transactionManager: { enabled: false },
         placeholderValues,
         onQuery: this.#emitQueryEvent,
+        tracingHelper: this.tracingHelper,
       })
       const queryable = transactionManager.getTransaction(txInfo, firstAction)
 
