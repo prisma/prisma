@@ -88,6 +88,7 @@ testMatrix.setupTestSuite(
     test('reports correct method name in case of validation error', async () => {
       const record = prisma.user.findFirstOrThrow({
         where: {
+          // @ts-expect-error triggering validation error on purpose
           notAUserField: true,
         },
       })
