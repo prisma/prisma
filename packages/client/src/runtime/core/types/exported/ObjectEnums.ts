@@ -44,17 +44,20 @@ class NullTypesEnumValue extends ObjectEnumValue {
 }
 
 class DbNull extends NullTypesEnumValue {
-  private readonly _brand_DbNull!: void
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_DbNull!: void
 }
 setClassName(DbNull, 'DbNull')
 
 class JsonNull extends NullTypesEnumValue {
-  private readonly _brand_JsonNull!: void
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_JsonNull!: void
 }
 setClassName(JsonNull, 'JsonNull')
 
 class AnyNull extends NullTypesEnumValue {
-  private readonly _brand_AnyNull!: void
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_AnyNull!: void
 }
 setClassName(AnyNull, 'AnyNull')
 
