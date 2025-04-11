@@ -1,0 +1,29 @@
+{
+  "name": "service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz",
+    "@types/node": "18.19.76",
+    "@types/react": "19.1.0",
+    "webpack": "5.99.5",
+    "typescript": "5.8.3",
+    "vercel": "41.5.0"
+  },
+  "dependencies": {
+    "db": "workspace:*",
+    "next": "15.3.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  }
+}

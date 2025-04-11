@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.json",
+  // Needs to be at least an empty object, otherwise Next.js CLI crashes
+  "compilerOptions": {},
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "exclude": [".next"]
+}

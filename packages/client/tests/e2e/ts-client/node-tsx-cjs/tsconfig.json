@@ -1,0 +1,10 @@
+{
+  "exclude": ["_steps.ts"],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": false
+  }
+}

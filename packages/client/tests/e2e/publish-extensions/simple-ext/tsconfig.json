@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "lib": ["ES2015"],
+    "lib": ["ES2022"],
+    "target": "ES2022",
     "module": "CommonJS",
     "moduleResolution": "node",
     "esModuleInterop": true,
