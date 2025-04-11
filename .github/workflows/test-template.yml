@@ -808,7 +808,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    name: Migrate [v${{ matrix.node }}]
+    name: Migrate ${{ matrix.driverAdapter }} [v${{ matrix.node }}]
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -820,6 +820,7 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [18, 20, 22, 23]
+        driverAdapter: ['', 'libsql']
     steps:
       - uses: actions/checkout@v4
 
@@ -848,6 +849,8 @@ jobs:
 
       - run: pnpm run test
         working-directory: packages/migrate
+        env:
+          PRISMA_MIGRATE_TEST_ADAPTER: ${{ matrix.driverAdapter }}
 
   #
   # CLI-COMMANDS
