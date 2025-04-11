@@ -190,43 +190,6 @@ it('finds the conventional prisma/schema path without configuration', async () =
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma"`)
 })
 
-it('throws error if both schema file and folder exist at default locations', async () => {
-  const res = await testSchemaPath({ fixtureName: 'conventional-path-file-dir-conflict' })
-
-  expect(res).toMatchInlineSnapshot(
-    `"src/__tests__/__fixtures__/getSchema/conventional-path-file-dir-conflict/prisma/schema.prisma"`,
-  )
-})
-
-it('throws error if folder schema exists, but preview feature is not on', async () => {
-  const res = await testSchemaPath({ fixtureName: 'no-schema-no-folder-preview' })
-
-  expect(res).toMatchInlineSnapshot(`
-    [Error: Could not find Prisma Schema that is required for this command.
-    You can either provide it with \`--schema\` argument,
-    set it in your \`prisma.config.ts\`,
-    set it as \`prisma.schema\` in your package.json,
-    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
-    Checked following paths:
-
-    schema.prisma: file not found
-    prisma/schema.prisma: file not found
-
-    See also https://pris.ly/d/prisma-schema-location]
-  `)
-})
-
-it('throws error if explicit --schema arg is used and preview feature is not on', async () => {
-  const res = await testSchemaPath({
-    fixtureName: 'no-schema-no-folder-preview',
-    schemaPathFromArgs: './prisma/schema',
-  })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load \`--schema\` from provided path \`prisma/schema\`: "prismaSchemaFolder" preview feature must be enabled]`,
-  )
-})
-
 it('fails with no schema in workspaces', async () => {
   const res = await testSchemaPath({ fixtureName: 'no-schema-workspaces' })
 
