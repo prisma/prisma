@@ -1,6 +1,5 @@
 // describeIf is making eslint unhappy about the test names
 
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import prompt from 'prompts'
@@ -9,6 +8,7 @@ import { DbPush } from '../commands/DbPush'
 import { CaptureStdout } from '../utils/captureStdout'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()

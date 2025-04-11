@@ -1,9 +1,9 @@
-import { defaultTestConfig } from '@prisma/config'
 import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

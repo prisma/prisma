@@ -1,7 +1,6 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 import path from 'path'
@@ -16,6 +15,7 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)

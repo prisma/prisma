@@ -1,12 +1,12 @@
 // describeIf is making eslint unhappy about the test names
 
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
