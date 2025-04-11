@@ -72,6 +72,15 @@ function run() {
       console.error(failedTestNames.join('\n'))
       console.log('☑️ All failures are expected.')
     }
+
+    const failedTestNamesSet = new Set(failedTestNames)
+    const unexpectedPasses = [...knownFailures].filter((testName) => !failedTestNamesSet.has(testName))
+    if (unexpectedPasses.length > 0) {
+      console.error('⚠️ Unexpected passes found: ⚠️')
+      console.error(unexpectedPasses.join('\n'))
+      console.error('💥 These tests seem to be fixed now and must be removed from the known failures list.')
+      process.exit(1)
+    }
   }
 }
 
