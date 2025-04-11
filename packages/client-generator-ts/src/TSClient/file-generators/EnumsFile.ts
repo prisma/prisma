@@ -16,8 +16,14 @@ export function createEnumsFile(context: GenerateContext): string {
     modelEnums.push(new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toTS())
   }
 
-  // Cannot have a fully empty file, so we export a constant to indicate that there are no enums
-  if (modelEnums.length === 0) return 'export const __NO_ENUMS__ = true'
+  // Cannot have a fully empty file with no exports => export empty object
+  if (modelEnums.length === 0) {
+    return `${jsDocHeader}
+
+// This file is empty because there are no enums in the schema.
+export {}
+`
+  }
 
   return jsDocHeader + modelEnums.join('\n\n')
 }
