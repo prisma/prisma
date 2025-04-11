@@ -95,7 +95,7 @@ function buildSelectOrIncludeObject(modelName: string, fields: readonly DMMF.Sch
   for (const field of fields) {
     const fieldType = ts.unionType<ts.PrimitiveType | ts.NamedType>(ts.booleanType)
     if (field.outputType.location === 'outputObjectTypes') {
-      const subSelectType = ts.namedType(getFieldArgName(field, modelName))
+      const subSelectType = ts.namedType(`Prisma.${getFieldArgName(field, modelName)}`)
       subSelectType.addGenericArgument(extArgsParam.toArgument())
 
       fieldType.addVariant(subSelectType)
