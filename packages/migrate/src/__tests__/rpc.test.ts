@@ -86,7 +86,7 @@ describe('createDatabase', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1009
 
-      Database \`tests\` already exists on the database server at \`localhost:5432\`
+      Database \`tests\` already exists on the database server
       "
     `)
     migrate.stop()

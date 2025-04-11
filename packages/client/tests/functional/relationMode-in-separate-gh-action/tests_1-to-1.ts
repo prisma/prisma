@@ -115,7 +115,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -502,7 +502,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @map/@@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
@@ -592,7 +592,7 @@ testMatrix.setupTestSuite(
                         : // DEFAULT / SetNull
                           /*
                       Error occurred during query execution:
-                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { 
+                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError {
                         code: 1761,
                         message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                         key 'ProfileOneToOne_userId_key'\",
@@ -875,7 +875,7 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.MONGODB]:
@@ -944,7 +944,7 @@ testMatrix.setupTestSuite(
             isSchemaUsingMap && isRelationMode_foreignKeys
               ? // The snaphsot changes when using @map/@@map, though only the name of the table/field is different
                 // So we can be less specific here
-                `Foreign key constraint violated:`
+                `Foreign key constraint violated`
               : conditionalError.snapshot({
                   foreignKeys: {
                     [Providers.POSTGRESQL]:
