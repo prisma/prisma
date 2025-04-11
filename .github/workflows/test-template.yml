@@ -33,7 +33,7 @@ on:
         description: Customly-built engine hash to use
         type: string
         required: false
-      driverAdapterTestTimeout:
+      driverAdapterTestJobTimeout:
         description: Timeout for driver adapter tests. Default is 60 minutes
         type: number
         default: 60
@@ -235,7 +235,7 @@ jobs:
   #
   client-driveradapters:
     name: Client (func/adapters)
-    timeout-minutes: ${{ inputs.driverAdapterTestTimeout }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
@@ -347,7 +347,7 @@ jobs:
   #
   client-query-compiler:
     name: Client (func/query-compiler)
-    timeout-minutes: ${{ inputs.driverAdapterTestTimeout }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
