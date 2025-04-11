@@ -61,12 +61,12 @@ testMatrix.setupTestSuite(
           test('relationMode=foreignKeys [update] main with nested delete alice should fail', async () => {
             const errors = {
               DEFAULT:
-                'The change you are trying to make would violate the required relation \'BobToMain\' between the `Main` and `Bob` models.',
+                "The change you are trying to make would violate the required relation 'BobToMain' between the `Main` and `Bob` models.",
               // It's inverted for Restrict only?
               Restrict:
-                'The change you are trying to make would violate the required relation \'AliceToMain\' between the `Main` and `Alice` models.',
+                "The change you are trying to make would violate the required relation 'AliceToMain' between the `Main` and `Alice` models.",
               NoAction:
-                'The change you are trying to make would violate the required relation \'AliceToMain\' between the `Main` and `Alice` models.',
+                "The change you are trying to make would violate the required relation 'AliceToMain' between the `Main` and `Alice` models.",
             }
 
             const bobCountBefore = await prisma.bob.count()
@@ -292,5 +292,5 @@ testMatrix.setupTestSuite(
       from: [AdapterProviders.JS_LIBSQL],
       reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)',
     },
-  }
+  },
 )
