@@ -1,0 +1,12 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "workspace:*"
+  },
+  "scripts": {
+    "generate": "tsx ../../bin.ts generate",
+    "all": "pnpm generate && pnpm basic; pnpm xops",
+    "basic": "node ./basic.bench.ts",
+    "xops": "node ./xops.bench.ts"
+  }
+}

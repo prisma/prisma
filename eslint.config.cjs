@@ -50,6 +50,7 @@ module.exports = [
       '**/packages/cli/prisma-client/**',
       '**/packages/cli/install/**',
       '**/packages/cli/preinstall/**',
+      'packages/cli/src/__tests__/bench',
       'packages/cli/**/tmp-*',
       '**/sandbox/**',
     ],
