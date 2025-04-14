@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
@@ -8,6 +8,7 @@ import { DbPush } from '../commands/DbPush'
 import { CaptureStdout } from '../utils/captureStdout'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -82,14 +83,15 @@ describe('push', () => {
     `)
   })
 
-  it('missing SQLite db should be created next to the schema.prisma file', async () => {
-    ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
-    const schemaPath = 'prisma/schema.prisma'
+  describeOnly({ sqlite: true }, 'SQLite', () => {
+    it('missing SQLite db should be created next to the schema.prisma file', async () => {
+      ctx.fixture('reset')
+      ctx.fs.remove('prisma/dev.db')
+      const schemaPath = 'prisma/schema.prisma'
 
-    const result = DbPush.new().parse([], defaultTestConfig())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+      const result = DbPush.new().parse([], defaultTestConfig())
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -98,19 +100,19 @@ describe('push', () => {
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
     `)
-    expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
-    expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-  })
+      expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    })
 
-  it('missing SQLite db should be created relative to the schema file with the datasource', async () => {
-    ctx.fixture('schema-folder-sqlite')
-    ctx.fs.remove('prisma/schema/dev.db')
-    const schemaPath = 'prisma/schema'
+    it('missing SQLite db should be created relative to the schema file with the datasource', async () => {
+      ctx.fixture('schema-folder-sqlite')
+      ctx.fs.remove('prisma/schema/dev.db')
+      const schemaPath = 'prisma/schema'
 
-    const result = DbPush.new().parse([`--schema=${schemaPath}`], defaultTestConfig())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+      const result = DbPush.new().parse([`--schema=${schemaPath}`], defaultTestConfig())
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
       Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
 
@@ -119,21 +121,21 @@ describe('push', () => {
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
     `)
-    expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-  })
+      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    })
 
-  it('missing SQLite db should be created next to the --schema path', async () => {
-    ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
+    it('missing SQLite db should be created next to the --schema path', async () => {
+      ctx.fixture('reset')
+      ctx.fs.remove('prisma/dev.db')
 
-    const oldSchemaPath = 'prisma/schema.prisma'
-    const newSchemaPath = 'something/schema.prisma'
-    ctx.fs.move(oldSchemaPath, newSchemaPath)
+      const oldSchemaPath = 'prisma/schema.prisma'
+      const newSchemaPath = 'something/schema.prisma'
+      ctx.fs.move(oldSchemaPath, newSchemaPath)
 
-    const result = DbPush.new().parse(['--schema', newSchemaPath], defaultTestConfig())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+      const result = DbPush.new().parse(['--schema', newSchemaPath], defaultTestConfig())
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      expect(removeRocketEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
       "Prisma schema loaded from something/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -142,11 +144,12 @@ describe('push', () => {
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
     `)
-    expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
-    expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
-    expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
-    expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+      expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
+      expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
+      expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    })
   })
 
   it('should ask for --accept-data-loss if not provided in CI', async () => {
@@ -299,7 +302,7 @@ describe('push', () => {
   })
 })
 
-describe('postgresql', () => {
+describeOnly({ postgres: true }, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-push')
 
   const setupParams: SetupParams = {
@@ -374,7 +377,7 @@ describe('postgresql', () => {
   })
 })
 
-describe('postgresql-multischema', () => {
+describeOnly({ postgres: true }, 'postgres-multischema', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-push-multischema',

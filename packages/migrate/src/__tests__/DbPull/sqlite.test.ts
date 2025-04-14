@@ -3,6 +3,7 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { describeOnly } from '../__helpers__/conditionalTests'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -24,7 +25,7 @@ afterAll(() => {
   captureStdout.stopCapture()
 })
 
-describe('D1', () => {
+describeOnly({ d1: true }, 'D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 
   test('should succeed when --local-d1 and a single local Cloudflare D1 database exists', async () => {
@@ -69,7 +70,7 @@ describe('D1', () => {
   })
 })
 
-describe('common/sqlite', () => {
+describeOnly({ sqlite: true }, 'common/sqlite', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')

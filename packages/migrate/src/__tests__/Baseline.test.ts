@@ -7,6 +7,7 @@ import { MigrateDev } from '../commands/MigrateDev'
 import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -35,18 +36,19 @@ describe('Baselining', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('SQLite: should succeed', async () => {
-    ctx.fixture('baseline-sqlite')
-    fs.remove('prisma/migrations')
-    fs.copy('prisma/dev.db', 'prisma/prod.db')
+  describeOnly({ sqlite: true }, 'SQLite', () => {
+    it('should succeed', async () => {
+      ctx.fixture('baseline-sqlite')
+      fs.remove('prisma/migrations')
+      fs.copy('prisma/dev.db', 'prisma/prod.db')
 
-    // Start with the dev database
-    process.env.DATABASE_URL = 'file:./dev.db'
+      // Start with the dev database
+      process.env.DATABASE_URL = 'file:./dev.db'
 
-    // db pull
-    const dbPull = DbPull.new().parse([], defaultTestConfig())
-    await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      // db pull
+      const dbPull = DbPull.new().parse([], defaultTestConfig())
+      await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -56,12 +58,12 @@ describe('Baselining', () => {
       Run prisma generate to generate Prisma Client.
       "
     `)
-    captureStdout.clearCaptureText()
+      captureStdout.clearCaptureText()
 
-    // migrate reset --force
-    const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
-    await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      // migrate reset --force
+      const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+      await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -69,28 +71,28 @@ describe('Baselining', () => {
 
       "
     `)
-    captureStdout.clearCaptureText()
+      captureStdout.clearCaptureText()
 
-    // migrate dev --create-only
-    const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
-    await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
+      // migrate dev --create-only
+      const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
+      await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
 "Prisma schema loaded from prisma/schema.prisma
 Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
 "
 `)
-    captureStdout.clearCaptureText()
+      captureStdout.clearCaptureText()
 
-    // migrate dev
-    captureStdout.startCapture()
-    const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
-    await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      // migrate dev
+      captureStdout.startCapture()
+      const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
+      await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -105,29 +107,29 @@ Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
       Your database is now in sync with your schema.
       "
     `)
-    captureStdout.clearCaptureText()
+      captureStdout.clearCaptureText()
 
-    // Switch to PROD database
-    process.env.DATABASE_URL = 'file:./prod.db'
+      // Switch to PROD database
+      process.env.DATABASE_URL = 'file:./prod.db'
 
-    // migrate resolve --applied migration_name
-    const migrationName = fs.list('prisma/migrations')![0]
-    const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
-    await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
+      // migrate resolve --applied migration_name
+      const migrationName = fs.list('prisma/migrations')![0]
+      const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
+      await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
 
       Migration 20201231000000_ marked as applied.
       "
     `)
-    captureStdout.clearCaptureText()
+      captureStdout.clearCaptureText()
 
-    // migrate deploy
-    const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
-    await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+      // migrate deploy
+      const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
+      await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
+      expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "prod.db" at "file:./prod.db"
 
@@ -137,7 +139,8 @@ Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
       "
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+      expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+      expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+    })
   })
 })

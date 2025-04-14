@@ -6,6 +6,7 @@ import { DbPull } from '../../commands/DbPull'
 import { Migrate } from '../../Migrate'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { describeOnly } from '../__helpers__/conditionalTests'
 import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 if (process.env.CI) {
@@ -18,7 +19,7 @@ if (process.env.CI) {
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('postgresql-views', () => {
+describeOnly({ postgres: true }, 'postgresql-views', () => {
   const captureStdout = new CaptureStdout()
 
   beforeEach(() => {

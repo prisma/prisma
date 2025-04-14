@@ -5,6 +5,7 @@ import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { CaptureStdout } from '../utils/captureStdout'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -43,7 +44,7 @@ describe('common', () => {
   })
 })
 
-describe('sqlite', () => {
+describeOnly({ sqlite: true }, 'SQLite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
@@ -170,7 +171,7 @@ describe('sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describeOnly({ postgres: true }, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-deploy')
 
   const setupParams: SetupParams = {

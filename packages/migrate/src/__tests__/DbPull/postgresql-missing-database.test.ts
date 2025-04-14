@@ -1,9 +1,10 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { describeOnly } from '../__helpers__/conditionalTests'
 import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -13,7 +14,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('postgresql - missing database', () => {
+describeOnly({ postgres: true }, 'postgresql - missing database', () => {
   const captureStdout = new CaptureStdout()
 
   beforeEach(() => {

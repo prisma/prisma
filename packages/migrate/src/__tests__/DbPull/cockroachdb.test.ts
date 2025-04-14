@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
@@ -6,6 +6,7 @@ import path from 'path'
 import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { describeOnly } from '../__helpers__/conditionalTests'
 import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -13,11 +14,9 @@ if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   const captureStdout = new CaptureStdout()
 
   beforeEach(() => {

@@ -3,13 +3,14 @@ import path from 'node:path'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { listMigrations } from '../utils/listMigrations'
+import { describeOnly } from './__helpers__/conditionalTests'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const itIf = (condition: boolean) => (condition ? it : it.skip)
 
 describe('listMigrations', () => {
-  describe('sqlite', () => {
+  describeOnly({ sqlite: true }, 'SQLite', () => {
     it('lists migrations without error if the directory does not exist', async () => {
       ctx.fixture('schema-only-sqlite')
 

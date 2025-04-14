@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
@@ -15,9 +15,9 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -176,7 +176,7 @@ describe('common', () => {
   })
 })
 
-describe('sqlite', () => {
+describeOnly({ sqlite: true }, 'SQLite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
@@ -924,7 +924,7 @@ describe('sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describeOnly({ postgres: true }, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
@@ -1262,7 +1262,7 @@ describe('postgresql', () => {
   })
 })
 
-describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
@@ -1452,7 +1452,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   })
 })
 
-describe('mysql', () => {
+describeOnly({ mysql: true }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
@@ -1653,7 +1653,7 @@ describe('mysql', () => {
   })
 })
 
-describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
+describeOnly({ sqlserver: true }, 'SQL Server', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)

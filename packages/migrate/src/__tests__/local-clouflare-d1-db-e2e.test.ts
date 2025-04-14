@@ -3,11 +3,12 @@ import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('d1 local', () => {
+describeOnly({ d1: true }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {
     return await execa('pnpm', ['wrangler', '--config', path.join(ctx.tmpDir, 'wrangler.toml'), ...args], {
       cwd: __dirname,

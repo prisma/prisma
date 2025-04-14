@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
@@ -7,14 +7,13 @@ import { DbPull } from '../../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../../utils/setupMSSQL'
 import { SetupParams } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
+import { describeOnly } from '../__helpers__/conditionalTests'
 import { defaultTestConfig } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
-
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const captureStdout = new CaptureStdout()
@@ -47,7 +46,7 @@ function sanitizeSQLServerIdName(schema: string) {
   return schemaRowsSanitized.join('\n')
 }
 
-describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
+describeOnly({ sqlserver: true }, 'SQL Server', () => {
   if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
@@ -110,7 +109,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
+describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)
