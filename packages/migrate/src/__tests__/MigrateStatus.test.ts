@@ -2,6 +2,7 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateStatus } from '../commands/MigrateStatus'
 import { CaptureStdout } from '../utils/captureStdout'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -39,7 +40,7 @@ describe('common', () => {
   })
 })
 
-describe('sqlite', () => {
+describeOnly({ sqlite: true }, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
@@ -274,7 +275,7 @@ describe('sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describeOnly({ postgres: true }, 'postgres', () => {
   it('should fail if cannot connect', async () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], defaultTestConfig())

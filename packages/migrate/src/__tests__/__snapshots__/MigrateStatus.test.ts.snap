@@ -8,4 +8,4 @@ exports[`sqlite reset 3`] = `""`;
 
 exports[`sqlite schema-folder-db-exists 3`] = `""`;
 
-exports[`sqlite should fail if no sqlite db - empty schema 3`] = `""`;
+exports[`SQLite should fail if no sqlite db - empty schema 3`] = `""`;

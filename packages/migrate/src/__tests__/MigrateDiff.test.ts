@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import os from 'node:os'
@@ -14,6 +14,7 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { describeOnly } from './__helpers__/conditionalTests'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -852,7 +853,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describe('postgresql', () => {
+  describeOnly({ postgres: true }, 'postgres', () => {
     const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams: SetupParams = {
@@ -941,7 +942,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describe('mysql', () => {
+  describeOnly({ mysql: true }, 'mysql', () => {
     const databaseName = 'tests-migrate-diff'
     const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', databaseName)
 

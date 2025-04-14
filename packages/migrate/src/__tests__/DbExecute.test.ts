@@ -1,4 +1,4 @@
-// describeIf is making eslint unhappy about the test names
+// describeOnly making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
@@ -12,6 +12,7 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { describeOnly } from './__helpers__/conditionalTests'
 
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
@@ -114,7 +115,7 @@ describe('db execute', () => {
     })
   })
 
-  describe('mongodb', () => {
+  describeOnly({ mongodb: true }, 'mongodb', () => {
     it('should fail with not supported error with --file --schema', async () => {
       ctx.fixture('schema-only-mongodb')
 
@@ -131,7 +132,7 @@ describe('db execute', () => {
     })
   })
 
-  describe('sqlite', () => {
+  describeOnly({ sqlite: true }, 'SQLite', () => {
     const pathToBin = path.resolve('src/bin.ts')
     const sqlScript = `-- Drop & Create & Drop
 DROP TABLE IF EXISTS 'test-dbexecute';
@@ -285,7 +286,7 @@ COMMIT;`,
     })
   })
 
-  describe('postgresql', () => {
+  describeOnly({ postgres: true }, 'postgres', () => {
     const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     const setupParams: SetupParams = {

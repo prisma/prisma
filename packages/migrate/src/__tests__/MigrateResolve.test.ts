@@ -1,7 +1,11 @@
+// describeOnly is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
+import { describeOnly } from './__helpers__/conditionalTests'
 import { defaultTestConfig } from './__helpers__/prismaConfig'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -59,7 +63,7 @@ describe('common', () => {
   })
 })
 
-describe('sqlite', () => {
+describeOnly({ sqlite: true }, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
@@ -203,7 +207,7 @@ describe('sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describeOnly({ postgres: true }, 'postgres', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(10_000)
