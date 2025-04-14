@@ -1,12 +1,12 @@
 import { defineConfig, PrismaConfigInternal } from '@prisma/config'
 import { PrismaMigrateConfigShape } from '@prisma/config/src/PrismaConfig'
 
-import driverAdapters from './driverAdapters'
+import driverAdapters, { currentDriverAdapterName } from './driverAdapters'
 
 export function defaultTestConfig<Env extends Record<string, string | undefined> = never>(): PrismaConfigInternal<Env> {
   let migrate: PrismaMigrateConfigShape<Env> | undefined
 
-  const adapterName = process.env.PRISMA_MIGRATE_TEST_ADAPTER
+  const adapterName = currentDriverAdapterName()
   if (adapterName) {
     const { adapter } = driverAdapters[adapterName]
     if (!adapter) {
