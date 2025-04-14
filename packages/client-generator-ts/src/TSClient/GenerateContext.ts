@@ -3,6 +3,7 @@ import { GeneratorConfig } from '@prisma/generator'
 import { DMMFHelper } from '../dmmf'
 import { FileNameMapper } from '../file-extensions'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
+import { ModuleFormat } from '../module-format'
 
 export interface GenerateContextOptions {
   dmmf: DMMFHelper
@@ -10,6 +11,7 @@ export interface GenerateContextOptions {
   runtimeImport: string
   outputFileName: FileNameMapper
   importFileName: FileNameMapper
+  moduleFormat: ModuleFormat
   generator?: GeneratorConfig
 }
 
@@ -19,6 +21,7 @@ export class GenerateContext implements GenerateContextOptions {
   runtimeImport: string
   outputFileName: FileNameMapper
   importFileName: FileNameMapper
+  moduleFormat: ModuleFormat
   generator?: GeneratorConfig
 
   constructor({
@@ -27,6 +30,7 @@ export class GenerateContext implements GenerateContextOptions {
     runtimeImport,
     outputFileName,
     importFileName,
+    moduleFormat,
     generator,
   }: GenerateContextOptions) {
     this.dmmf = dmmf
@@ -34,6 +38,7 @@ export class GenerateContext implements GenerateContextOptions {
     this.runtimeImport = runtimeImport
     this.outputFileName = outputFileName
     this.importFileName = importFileName
+    this.moduleFormat = moduleFormat
     this.generator = generator
   }
 
