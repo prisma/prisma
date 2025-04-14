@@ -101,7 +101,7 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client func&legacy-notypes
+    name: Client Legacy ${{ matrix.queryEngine }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -174,7 +174,7 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-miniproxy:
-    name: Client (func/mini-proxy)
+    name: Client Mini-Proxy [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -234,7 +234,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
-    name: Client (func/adapters)
+    name: DA ${{ matrix.flavor }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -247,7 +247,7 @@ jobs:
         flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1', 'js_better_sqlite3']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
-        previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
+        previewFeatures: ['', ',relationJoins']
     steps:
       - uses: actions/checkout@v4
 
@@ -266,7 +266,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features driverAdapters${{ matrix.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -291,7 +291,7 @@ jobs:
   # CLIENT (functional tests with TS aka ESM client)
   #
   client-ts-client:
-    name: Client (func/ts-client)
+    name: TS-Client ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -346,7 +346,7 @@ jobs:
   # CLIENT (functional tests with client engine, query compiler and driver adapters)
   #
   client-query-compiler:
-    name: Client (func/query-compiler)
+    name: QC ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -408,7 +408,7 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
-    name: Client (memory tests)
+    name: Client (memory tests) [v${{ matrix.node }}]
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -502,7 +502,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
-    name: Client (test:e2e)
+    name: Client E2E ${{ matrix.os }} [v${{ matrix.node }}]
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
     if: |
@@ -545,7 +545,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
-    name: Client (func/relationMode)
+    name: Client relationMode:${{ matrix.relationMode }}
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
@@ -649,7 +649,7 @@ jobs:
   # Client internals and generator packages
   #
   client-packages:
-    name: Client internals and generators
+    name: Client internals and generators [v${{ matrix.node }}]
     timeout-minutes: 30
     runs-on: ubuntu-latest
     if: |
@@ -764,7 +764,7 @@ jobs:
   # `@prisma/internals`
   #
   internals:
-    name: '@prisma/internals'
+    name: '@prisma/internals [v${{ matrix.node }}]'
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -809,7 +809,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    name: Migrate
+    name: Migrate [v${{ matrix.node }}]
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -854,7 +854,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
-    name: CLI commands
+    name: CLI commands [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
@@ -899,7 +899,7 @@ jobs:
   # CLI-PLATFORM-COMMANDS (only)
   #
   cli-platform-commands:
-    name: CLI platform
+    name: CLI platform [${{ matrix.os }}][v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
@@ -932,7 +932,7 @@ jobs:
   # All the other packages!
   #
   others:
-    name: Others
+    name: Others [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: contains(inputs.jobsToRun, '-all-')
@@ -995,7 +995,7 @@ jobs:
   # Driver Adapter Unit Tests
   #
   driver-adapter-unit-tests:
-    name: Driver Adapter Unit Tests
+    name: DA Unit Tests [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: contains(inputs.jobsToRun, '-all-')
