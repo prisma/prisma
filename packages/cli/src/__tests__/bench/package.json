@@ -7,6 +7,7 @@
     "generate": "tsx ../../bin.ts generate",
     "all": "pnpm generate && pnpm basic; pnpm xops",
     "basic": "node ./basic.bench.ts",
-    "xops": "node ./xops.bench.ts"
+    "xops": "node ./xops.bench.ts",
+    "logs": "node ./logs.bench.ts"
   }
 }
