@@ -171,7 +171,6 @@
     "test:knownQueryCompilerFailures:check": "tsx helpers/functional-test/check-known-failures.ts",
     "test:knownQueryCompilerFailures:record": "tsx helpers/functional-test/check-known-failures.ts --record",
     "test-notypes": "dotenv -e ../../.db.env -- jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
-    "bench-types": "node scripts/postinstall.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
