@@ -17,24 +17,31 @@ import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/**
  * WARNING: This is an internal file that is subject to change!
- * 
+ *
  * 🛑 Under no circumstances should you import this file directly! 🛑
- * 
+ *
  * Please import the \`PrismaClient\` class from the \`client.ts\` file instead.
  */
 `
 
 export function createClassFile(context: GenerateContext, options: TSClientOptions): string {
-  const imports = [
+  const imports: ts.BasicBuilder[] = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`./prismaNamespace`)).asNamespace('Prisma').typeOnly(),
-  ].map((i) => ts.stringify(i))
+  ]
+
+  if (context.moduleFormat === 'esm') {
+    imports.unshift(ts.moduleImport('node:url').named('fileURLToPath'))
+    imports.unshift(ts.moduleImport('node:path').asNamespace('path'))
+  }
+
+  const stringifiedImports = imports.map((i) => ts.stringify(i))
 
   const prismaClientClass = new PrismaClientClass(context, options.runtimeName)
 
   return `${jsDocHeader}
-${imports.join('\n')}
-  
+${stringifiedImports.join('\n')}
+
 ${clientConfig(context, options)}
 
 ${prismaClientClass.toTS()}
@@ -87,7 +94,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
 
   return `
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge)}
+${buildDirname(edge, context.moduleFormat)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
 ${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
 ${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
