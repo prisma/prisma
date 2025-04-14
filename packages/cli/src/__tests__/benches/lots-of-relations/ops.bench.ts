@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 // (more convenient benches since we only care about types)
-
 import { bench } from '@ark/attest'
-import { PrismaClient } from '@prisma/client'
 
-const client = new PrismaClient()
+import type { PrismaClient } from './generated/index.js'
+
+declare const client: PrismaClient
 
 bench('1 op', () => {
   client.model0.findMany({ select: { id: true, model1Id: true } })
-}).types([143, 'instantiations'])
+}).types([531, 'instantiations'])
 
 bench('5 ops', () => {
   client.model0.findMany({ take: 10, select: { id: true } })
@@ -22,7 +22,7 @@ bench('5 ops', () => {
     where: { model1Id: 2 },
     select: { id: true, model1Id: true },
   })
-}).types([857, 'instantiations'])
+}).types([1814, 'instantiations'])
 
 bench('10 ops', () => {
   client.model0.findMany({ take: 5, select: { id: true } })
@@ -50,4 +50,4 @@ bench('10 ops', () => {
     },
     select: { id: true, model1Id: true, model2Id: true },
   })
-}).types([1864, 'instantiations'])
+}).types([3851, 'instantiations'])

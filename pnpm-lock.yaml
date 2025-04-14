@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@ark/attest':
-        specifier: 0.45.10
-        version: 0.45.10(typescript@5.4.5)
+        specifier: 0.45.11
+        version: 0.45.11(typescript@5.4.5)
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: 4.4.1
         version: 4.4.1(eslint@9.22.0(jiti@2.4.2))
@@ -1933,8 +1933,8 @@ packages:
     resolution: {integrity: sha512-2aDL3WUv8hMJb2L3r/PIQWsTLyq7RQr3v9xD16fiz6O8ys1xEyLhhTOv8gxtZvJiTzjTF5pHoArvRdesGL1DMQ==}
     hasBin: true
 
-  '@ark/attest@0.45.10':
-    resolution: {integrity: sha512-d2QxCZVETrMDpdmBaBCyRvdoXeVEpyZLDJUdxHR0A1+keggeTl2sHcqMG+bykh/60s+v1SyE/rq2c8gdCinn3Q==}
+  '@ark/attest@0.45.11':
+    resolution: {integrity: sha512-1qGdE/ZlY8sf1IfQTSo8zlRi0sNH9mqqGsAYA4scKJugJ2JQ4Yl/B3bztnRW0Z6XdDrhCvPmtH4mcqVnnd84jQ==}
     hasBin: true
     peerDependencies:
       typescript: '*'
@@ -8075,7 +8075,7 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.45.10(typescript@5.4.5)':
+  '@ark/attest@0.45.11(typescript@5.4.5)':
     dependencies:
       '@ark/fs': 0.45.10
       '@ark/util': 0.45.10

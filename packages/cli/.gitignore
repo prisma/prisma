@@ -24,4 +24,4 @@ version-test-engines
 config.js
 config.d.ts
 
-src/__tests__/bench/generated
+src/__tests__/benches/**/generated
