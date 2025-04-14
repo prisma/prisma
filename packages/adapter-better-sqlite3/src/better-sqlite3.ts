@@ -222,7 +222,8 @@ export class PrismaBetterSQLite3AdapterFactory implements SqlMigrationAwareDrive
 
 function createBetterSQLite3Client(input: BetterSQLite3InputParams): StdClient {
   const { url, ...config } = input
-  const db = new Database(url, config)
+  const dbPath = url.replace(/^file:/, '')
+  const db = new Database(dbPath, config)
   db.defaultSafeIntegers(true)
   return db
 }
