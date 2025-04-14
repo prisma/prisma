@@ -80,15 +80,15 @@ testMatrix.setupTestSuite(
             ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
-                  [Providers.POSTGRESQL]: 'Foreign key constraint violated: `Main_aliceId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint violated: `Main_aliceId_fkey (index)`',
-                  [Providers.MYSQL]: 'Foreign key constraint violated: `aliceId`',
-                  [Providers.SQLSERVER]: 'Foreign key constraint violated: `Main_aliceId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                  [Providers.POSTGRESQL]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`aliceId`)',
+                  [Providers.SQLSERVER]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                   [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
-                  [AdapterProviders.JS_NEON]: 'Foreign key constraint violated: `Main_aliceId_fkey (index)`',
-                  [AdapterProviders.JS_PG]: 'Foreign key constraint violated: `Main_aliceId_fkey (index)`',
-                  [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint violated: `aliceId',
+                  [AdapterProviders.JS_NEON]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [AdapterProviders.JS_PG]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint violated on the fields: (`aliceId`)',
                 },
                 prisma: errors[onDelete],
               }),
@@ -287,6 +287,10 @@ testMatrix.setupTestSuite(
         Providers.SQLITE,
       ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

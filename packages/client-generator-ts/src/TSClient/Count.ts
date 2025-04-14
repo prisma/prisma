@@ -5,11 +5,10 @@ import indent from 'indent-string'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
-import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 import { buildOutputType } from './Output'
 
-export class Count implements Generable {
+export class Count {
   constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
   protected get argsTypes(): ts.Export<ts.TypeDeclaration>[] {
     const argsTypes: ts.Export<ts.TypeDeclaration>[] = []
@@ -68,7 +67,6 @@ ${indent(
 )}
 }
 
-// Custom InputTypes
 ${this.argsTypes.map((typeExport) => ts.stringify(typeExport)).join('\n\n')}
 `
   }

@@ -66,7 +66,7 @@ describe('sqlite', () => {
       ['--schema=./prisma/empty.prisma', '--applied=something_applied'],
       defaultTestConfig(),
     )
-    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist at \`dev.db\`."`)
+    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma

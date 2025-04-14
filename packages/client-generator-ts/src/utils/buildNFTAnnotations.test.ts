@@ -18,10 +18,7 @@ describe('library', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-debian-openssl-1.1.x.so.node")
-      path.join(process.cwd(), "out/libquery_engine-debian-openssl-1.1.x.so.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/libquery_engine-debian-openssl-1.1.x.so.node")"
     `)
   })
 
@@ -45,10 +42,7 @@ describe('library', () => {
 
       // file annotations for bundling tools to include these files
       path.join(__dirname, "query_engine-windows.dll.node")
-      path.join(process.cwd(), "out/query_engine-windows.dll.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/query_engine-windows.dll.node")"
     `)
   })
 })
@@ -61,10 +55,7 @@ describe('binary', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "query-engine-debian-openssl-1.1.x")
-      path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")"
     `)
   })
 
@@ -88,10 +79,7 @@ describe('binary', () => {
 
       // file annotations for bundling tools to include these files
       path.join(__dirname, "query-engine-windows")
-      path.join(process.cwd(), "out/query-engine-windows")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/query-engine-windows")"
     `)
   })
 })
@@ -140,10 +128,7 @@ describe('special cases for Netlify', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-BINARY_TARGET.so.node")
-      path.join(process.cwd(), "out/libquery_engine-BINARY_TARGET.so.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/libquery_engine-BINARY_TARGET.so.node")"
     `)
 
     expect(annotations).toContain(binaryTarget)
@@ -164,10 +149,7 @@ describe('special cases for Netlify', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-rhel-openssl-1.0.x.so.node")
-      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-1.0.x.so.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-1.0.x.so.node")"
     `)
 
     expect(annotations).toContain('rhel-openssl-1.0.x')
@@ -188,10 +170,7 @@ describe('special cases for Netlify', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node")
-      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")"
     `)
 
     expect(annotations).toContain('rhel-openssl-3.0.x')
@@ -211,10 +190,7 @@ describe('special cases for Netlify', () => {
       "
       // file annotations for bundling tools to include these files
       path.join(__dirname, "libquery_engine-rhel-openssl-3.0.x.so.node")
-      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma")
-      path.join(process.cwd(), "out/schema.prisma")"
+      path.join(process.cwd(), "out/libquery_engine-rhel-openssl-3.0.x.so.node")"
     `)
 
     expect(annotations).toContain('rhel-openssl-3.0.x')

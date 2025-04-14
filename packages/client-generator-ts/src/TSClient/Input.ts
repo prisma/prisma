@@ -7,10 +7,9 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { appendSkipType } from '../utils'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
-import type { Generable } from './Generable'
 import { GenerateContext } from './GenerateContext'
 
-export class InputField implements Generable {
+export class InputField {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly context: GenerateContext,
@@ -58,6 +57,8 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
       return union.mapVariants((variant) => ts.array(variant))
     }
     return union
+  } else if (t.namespace === 'prisma') {
+    type = namedInputType(`Prisma.${t.type}`)
   } else {
     type = namedInputType(scalarType ?? t.type)
   }
@@ -78,7 +79,10 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
 }
 
 function namedInputType(typeName: string) {
-  return ts.namedType(JSOutputTypeToInputType[typeName] ?? typeName)
+  const typeNameParts = typeName.split('.')
+  const typeNameWithoutNamespace = typeNameParts[typeNameParts.length - 1]
+  const mappedInputTypeName = JSOutputTypeToInputType[typeNameWithoutNamespace] ?? typeNameWithoutNamespace
+  return ts.namedType(typeNameParts.slice(0, -1).concat(mappedInputTypeName).join('.'))
 }
 
 /**
@@ -118,10 +122,10 @@ function buildAllFieldTypes(
 }
 
 function xorTypes(types: ts.TypeBuilder[]) {
-  return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
+  return types.reduce((prev, curr) => ts.namedType('Prisma.XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
-export class InputType implements Generable {
+export class InputType {
   private generatedName: string
   constructor(protected readonly type: DMMF.InputType, protected readonly context: GenerateContext) {
     this.generatedName = type.name
@@ -143,20 +147,27 @@ ${indent(
   TAB_SIZE,
 )}
 }`
-    return `
-export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
-  }
 
-  public overrideName(name: string): this {
-    this.generatedName = name
-    return this
-  }
+    const needsGeneric = this.context.genericArgsInfo.typeNeedsGenericModelArg(this.type)
+    const typeName = needsGeneric ? `${this.type.name}<$PrismaModel = never>` : this.type.name
 
-  private getTypeName() {
-    if (this.context.genericArgsInfo.typeNeedsGenericModelArg(this.type)) {
-      return `${this.generatedName}<$PrismaModel = never>`
+    if (type.name.includes('Json') && type.name.includes('Filter')) {
+      const innerName = needsGeneric ? `${this.type.name}Base<$PrismaModel>` : `${this.type.name}Base`
+      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
+      const baseName = `Required<${innerName}>`
+      return `
+export type ${typeName} =
+| Prisma.PatchUndefined<
+    Prisma.Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
+    ${baseName}
+  >
+| Prisma.OptionalFlat<Omit<${baseName}, 'path'>>
+
+export type ${this.type.name}Base${needsGeneric ? '<$PrismaModel = never>' : ''} = ${wrapWithAtLeast(body, type)}`
+    } else {
+      return `
+export type ${typeName} = ${wrapWithAtLeast(body, type)}`
     }
-    return this.generatedName
   }
 }
 
