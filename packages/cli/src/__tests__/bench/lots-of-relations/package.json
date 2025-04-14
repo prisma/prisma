@@ -1,0 +1,10 @@
+{
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "workspace:*"
+  },
+  "scripts": {
+    "generate": "tsx ../../../bin.ts generate",
+    "bench": "node ./ops.bench.ts"
+  }
+}

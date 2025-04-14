@@ -1,0 +1,1908 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Model0 {
+    id       Int       @id
+    model1Id Int
+    model1   Model1    @relation(fields: [model1Id], references: [id])
+    model2Id Int
+    model2   Model2    @relation(fields: [model2Id], references: [id])
+    model3Id Int
+    model3   Model3    @relation(fields: [model3Id], references: [id])
+    model4Id Int
+    model4   Model4    @relation(fields: [model4Id], references: [id])
+    model5Id Int
+    model5   Model5    @relation(fields: [model5Id], references: [id])
+    Model95  Model95[]
+    Model96  Model96[]
+    Model97  Model97[]
+    Model98  Model98[]
+    Model99  Model99[]
+}
+
+model Model1 {
+    id       Int       @id
+    model2Id Int
+    model2   Model2    @relation(fields: [model2Id], references: [id])
+    model3Id Int
+    model3   Model3    @relation(fields: [model3Id], references: [id])
+    model4Id Int
+    model4   Model4    @relation(fields: [model4Id], references: [id])
+    model5Id Int
+    model5   Model5    @relation(fields: [model5Id], references: [id])
+    model6Id Int
+    model6   Model6    @relation(fields: [model6Id], references: [id])
+    Model0   Model0[]
+    Model96  Model96[]
+    Model97  Model97[]
+    Model98  Model98[]
+    Model99  Model99[]
+}
+
+model Model2 {
+    id       Int       @id
+    model3Id Int
+    model3   Model3    @relation(fields: [model3Id], references: [id])
+    model4Id Int
+    model4   Model4    @relation(fields: [model4Id], references: [id])
+    model5Id Int
+    model5   Model5    @relation(fields: [model5Id], references: [id])
+    model6Id Int
+    model6   Model6    @relation(fields: [model6Id], references: [id])
+    model7Id Int
+    model7   Model7    @relation(fields: [model7Id], references: [id])
+    Model0   Model0[]
+    Model1   Model1[]
+    Model97  Model97[]
+    Model98  Model98[]
+    Model99  Model99[]
+}
+
+model Model3 {
+    id       Int       @id
+    model4Id Int
+    model4   Model4    @relation(fields: [model4Id], references: [id])
+    model5Id Int
+    model5   Model5    @relation(fields: [model5Id], references: [id])
+    model6Id Int
+    model6   Model6    @relation(fields: [model6Id], references: [id])
+    model7Id Int
+    model7   Model7    @relation(fields: [model7Id], references: [id])
+    model8Id Int
+    model8   Model8    @relation(fields: [model8Id], references: [id])
+    Model0   Model0[]
+    Model1   Model1[]
+    Model2   Model2[]
+    Model98  Model98[]
+    Model99  Model99[]
+}
+
+model Model4 {
+    id       Int       @id
+    model5Id Int
+    model5   Model5    @relation(fields: [model5Id], references: [id])
+    model6Id Int
+    model6   Model6    @relation(fields: [model6Id], references: [id])
+    model7Id Int
+    model7   Model7    @relation(fields: [model7Id], references: [id])
+    model8Id Int
+    model8   Model8    @relation(fields: [model8Id], references: [id])
+    model9Id Int
+    model9   Model9    @relation(fields: [model9Id], references: [id])
+    Model0   Model0[]
+    Model1   Model1[]
+    Model2   Model2[]
+    Model3   Model3[]
+    Model99  Model99[]
+}
+
+model Model5 {
+    id        Int      @id
+    model6Id  Int
+    model6    Model6   @relation(fields: [model6Id], references: [id])
+    model7Id  Int
+    model7    Model7   @relation(fields: [model7Id], references: [id])
+    model8Id  Int
+    model8    Model8   @relation(fields: [model8Id], references: [id])
+    model9Id  Int
+    model9    Model9   @relation(fields: [model9Id], references: [id])
+    model10Id Int
+    model10   Model10  @relation(fields: [model10Id], references: [id])
+    Model0    Model0[]
+    Model1    Model1[]
+    Model2    Model2[]
+    Model3    Model3[]
+    Model4    Model4[]
+}
+
+model Model6 {
+    id        Int      @id
+    model7Id  Int
+    model7    Model7   @relation(fields: [model7Id], references: [id])
+    model8Id  Int
+    model8    Model8   @relation(fields: [model8Id], references: [id])
+    model9Id  Int
+    model9    Model9   @relation(fields: [model9Id], references: [id])
+    model10Id Int
+    model10   Model10  @relation(fields: [model10Id], references: [id])
+    model11Id Int
+    model11   Model11  @relation(fields: [model11Id], references: [id])
+    Model1    Model1[]
+    Model2    Model2[]
+    Model3    Model3[]
+    Model4    Model4[]
+    Model5    Model5[]
+}
+
+model Model7 {
+    id        Int      @id
+    model8Id  Int
+    model8    Model8   @relation(fields: [model8Id], references: [id])
+    model9Id  Int
+    model9    Model9   @relation(fields: [model9Id], references: [id])
+    model10Id Int
+    model10   Model10  @relation(fields: [model10Id], references: [id])
+    model11Id Int
+    model11   Model11  @relation(fields: [model11Id], references: [id])
+    model12Id Int
+    model12   Model12  @relation(fields: [model12Id], references: [id])
+    Model2    Model2[]
+    Model3    Model3[]
+    Model4    Model4[]
+    Model5    Model5[]
+    Model6    Model6[]
+}
+
+model Model8 {
+    id        Int      @id
+    model9Id  Int
+    model9    Model9   @relation(fields: [model9Id], references: [id])
+    model10Id Int
+    model10   Model10  @relation(fields: [model10Id], references: [id])
+    model11Id Int
+    model11   Model11  @relation(fields: [model11Id], references: [id])
+    model12Id Int
+    model12   Model12  @relation(fields: [model12Id], references: [id])
+    model13Id Int
+    model13   Model13  @relation(fields: [model13Id], references: [id])
+    Model3    Model3[]
+    Model4    Model4[]
+    Model5    Model5[]
+    Model6    Model6[]
+    Model7    Model7[]
+}
+
+model Model9 {
+    id        Int      @id
+    model10Id Int
+    model10   Model10  @relation(fields: [model10Id], references: [id])
+    model11Id Int
+    model11   Model11  @relation(fields: [model11Id], references: [id])
+    model12Id Int
+    model12   Model12  @relation(fields: [model12Id], references: [id])
+    model13Id Int
+    model13   Model13  @relation(fields: [model13Id], references: [id])
+    model14Id Int
+    model14   Model14  @relation(fields: [model14Id], references: [id])
+    Model4    Model4[]
+    Model5    Model5[]
+    Model6    Model6[]
+    Model7    Model7[]
+    Model8    Model8[]
+}
+
+model Model10 {
+    id        Int      @id
+    model11Id Int
+    model11   Model11  @relation(fields: [model11Id], references: [id])
+    model12Id Int
+    model12   Model12  @relation(fields: [model12Id], references: [id])
+    model13Id Int
+    model13   Model13  @relation(fields: [model13Id], references: [id])
+    model14Id Int
+    model14   Model14  @relation(fields: [model14Id], references: [id])
+    model15Id Int
+    model15   Model15  @relation(fields: [model15Id], references: [id])
+    Model5    Model5[]
+    Model6    Model6[]
+    Model7    Model7[]
+    Model8    Model8[]
+    Model9    Model9[]
+}
+
+model Model11 {
+    id        Int       @id
+    model12Id Int
+    model12   Model12   @relation(fields: [model12Id], references: [id])
+    model13Id Int
+    model13   Model13   @relation(fields: [model13Id], references: [id])
+    model14Id Int
+    model14   Model14   @relation(fields: [model14Id], references: [id])
+    model15Id Int
+    model15   Model15   @relation(fields: [model15Id], references: [id])
+    model16Id Int
+    model16   Model16   @relation(fields: [model16Id], references: [id])
+    Model6    Model6[]
+    Model7    Model7[]
+    Model8    Model8[]
+    Model9    Model9[]
+    Model10   Model10[]
+}
+
+model Model12 {
+    id        Int       @id
+    model13Id Int
+    model13   Model13   @relation(fields: [model13Id], references: [id])
+    model14Id Int
+    model14   Model14   @relation(fields: [model14Id], references: [id])
+    model15Id Int
+    model15   Model15   @relation(fields: [model15Id], references: [id])
+    model16Id Int
+    model16   Model16   @relation(fields: [model16Id], references: [id])
+    model17Id Int
+    model17   Model17   @relation(fields: [model17Id], references: [id])
+    Model7    Model7[]
+    Model8    Model8[]
+    Model9    Model9[]
+    Model10   Model10[]
+    Model11   Model11[]
+}
+
+model Model13 {
+    id        Int       @id
+    model14Id Int
+    model14   Model14   @relation(fields: [model14Id], references: [id])
+    model15Id Int
+    model15   Model15   @relation(fields: [model15Id], references: [id])
+    model16Id Int
+    model16   Model16   @relation(fields: [model16Id], references: [id])
+    model17Id Int
+    model17   Model17   @relation(fields: [model17Id], references: [id])
+    model18Id Int
+    model18   Model18   @relation(fields: [model18Id], references: [id])
+    Model8    Model8[]
+    Model9    Model9[]
+    Model10   Model10[]
+    Model11   Model11[]
+    Model12   Model12[]
+}
+
+model Model14 {
+    id        Int       @id
+    model15Id Int
+    model15   Model15   @relation(fields: [model15Id], references: [id])
+    model16Id Int
+    model16   Model16   @relation(fields: [model16Id], references: [id])
+    model17Id Int
+    model17   Model17   @relation(fields: [model17Id], references: [id])
+    model18Id Int
+    model18   Model18   @relation(fields: [model18Id], references: [id])
+    model19Id Int
+    model19   Model19   @relation(fields: [model19Id], references: [id])
+    Model9    Model9[]
+    Model10   Model10[]
+    Model11   Model11[]
+    Model12   Model12[]
+    Model13   Model13[]
+}
+
+model Model15 {
+    id        Int       @id
+    model16Id Int
+    model16   Model16   @relation(fields: [model16Id], references: [id])
+    model17Id Int
+    model17   Model17   @relation(fields: [model17Id], references: [id])
+    model18Id Int
+    model18   Model18   @relation(fields: [model18Id], references: [id])
+    model19Id Int
+    model19   Model19   @relation(fields: [model19Id], references: [id])
+    model20Id Int
+    model20   Model20   @relation(fields: [model20Id], references: [id])
+    Model10   Model10[]
+    Model11   Model11[]
+    Model12   Model12[]
+    Model13   Model13[]
+    Model14   Model14[]
+}
+
+model Model16 {
+    id        Int       @id
+    model17Id Int
+    model17   Model17   @relation(fields: [model17Id], references: [id])
+    model18Id Int
+    model18   Model18   @relation(fields: [model18Id], references: [id])
+    model19Id Int
+    model19   Model19   @relation(fields: [model19Id], references: [id])
+    model20Id Int
+    model20   Model20   @relation(fields: [model20Id], references: [id])
+    model21Id Int
+    model21   Model21   @relation(fields: [model21Id], references: [id])
+    Model11   Model11[]
+    Model12   Model12[]
+    Model13   Model13[]
+    Model14   Model14[]
+    Model15   Model15[]
+}
+
+model Model17 {
+    id        Int       @id
+    model18Id Int
+    model18   Model18   @relation(fields: [model18Id], references: [id])
+    model19Id Int
+    model19   Model19   @relation(fields: [model19Id], references: [id])
+    model20Id Int
+    model20   Model20   @relation(fields: [model20Id], references: [id])
+    model21Id Int
+    model21   Model21   @relation(fields: [model21Id], references: [id])
+    model22Id Int
+    model22   Model22   @relation(fields: [model22Id], references: [id])
+    Model12   Model12[]
+    Model13   Model13[]
+    Model14   Model14[]
+    Model15   Model15[]
+    Model16   Model16[]
+}
+
+model Model18 {
+    id        Int       @id
+    model19Id Int
+    model19   Model19   @relation(fields: [model19Id], references: [id])
+    model20Id Int
+    model20   Model20   @relation(fields: [model20Id], references: [id])
+    model21Id Int
+    model21   Model21   @relation(fields: [model21Id], references: [id])
+    model22Id Int
+    model22   Model22   @relation(fields: [model22Id], references: [id])
+    model23Id Int
+    model23   Model23   @relation(fields: [model23Id], references: [id])
+    Model13   Model13[]
+    Model14   Model14[]
+    Model15   Model15[]
+    Model16   Model16[]
+    Model17   Model17[]
+}
+
+model Model19 {
+    id        Int       @id
+    model20Id Int
+    model20   Model20   @relation(fields: [model20Id], references: [id])
+    model21Id Int
+    model21   Model21   @relation(fields: [model21Id], references: [id])
+    model22Id Int
+    model22   Model22   @relation(fields: [model22Id], references: [id])
+    model23Id Int
+    model23   Model23   @relation(fields: [model23Id], references: [id])
+    model24Id Int
+    model24   Model24   @relation(fields: [model24Id], references: [id])
+    Model14   Model14[]
+    Model15   Model15[]
+    Model16   Model16[]
+    Model17   Model17[]
+    Model18   Model18[]
+}
+
+model Model20 {
+    id        Int       @id
+    model21Id Int
+    model21   Model21   @relation(fields: [model21Id], references: [id])
+    model22Id Int
+    model22   Model22   @relation(fields: [model22Id], references: [id])
+    model23Id Int
+    model23   Model23   @relation(fields: [model23Id], references: [id])
+    model24Id Int
+    model24   Model24   @relation(fields: [model24Id], references: [id])
+    model25Id Int
+    model25   Model25   @relation(fields: [model25Id], references: [id])
+    Model15   Model15[]
+    Model16   Model16[]
+    Model17   Model17[]
+    Model18   Model18[]
+    Model19   Model19[]
+}
+
+model Model21 {
+    id        Int       @id
+    model22Id Int
+    model22   Model22   @relation(fields: [model22Id], references: [id])
+    model23Id Int
+    model23   Model23   @relation(fields: [model23Id], references: [id])
+    model24Id Int
+    model24   Model24   @relation(fields: [model24Id], references: [id])
+    model25Id Int
+    model25   Model25   @relation(fields: [model25Id], references: [id])
+    model26Id Int
+    model26   Model26   @relation(fields: [model26Id], references: [id])
+    Model16   Model16[]
+    Model17   Model17[]
+    Model18   Model18[]
+    Model19   Model19[]
+    Model20   Model20[]
+}
+
+model Model22 {
+    id        Int       @id
+    model23Id Int
+    model23   Model23   @relation(fields: [model23Id], references: [id])
+    model24Id Int
+    model24   Model24   @relation(fields: [model24Id], references: [id])
+    model25Id Int
+    model25   Model25   @relation(fields: [model25Id], references: [id])
+    model26Id Int
+    model26   Model26   @relation(fields: [model26Id], references: [id])
+    model27Id Int
+    model27   Model27   @relation(fields: [model27Id], references: [id])
+    Model17   Model17[]
+    Model18   Model18[]
+    Model19   Model19[]
+    Model20   Model20[]
+    Model21   Model21[]
+}
+
+model Model23 {
+    id        Int       @id
+    model24Id Int
+    model24   Model24   @relation(fields: [model24Id], references: [id])
+    model25Id Int
+    model25   Model25   @relation(fields: [model25Id], references: [id])
+    model26Id Int
+    model26   Model26   @relation(fields: [model26Id], references: [id])
+    model27Id Int
+    model27   Model27   @relation(fields: [model27Id], references: [id])
+    model28Id Int
+    model28   Model28   @relation(fields: [model28Id], references: [id])
+    Model18   Model18[]
+    Model19   Model19[]
+    Model20   Model20[]
+    Model21   Model21[]
+    Model22   Model22[]
+}
+
+model Model24 {
+    id        Int       @id
+    model25Id Int
+    model25   Model25   @relation(fields: [model25Id], references: [id])
+    model26Id Int
+    model26   Model26   @relation(fields: [model26Id], references: [id])
+    model27Id Int
+    model27   Model27   @relation(fields: [model27Id], references: [id])
+    model28Id Int
+    model28   Model28   @relation(fields: [model28Id], references: [id])
+    model29Id Int
+    model29   Model29   @relation(fields: [model29Id], references: [id])
+    Model19   Model19[]
+    Model20   Model20[]
+    Model21   Model21[]
+    Model22   Model22[]
+    Model23   Model23[]
+}
+
+model Model25 {
+    id        Int       @id
+    model26Id Int
+    model26   Model26   @relation(fields: [model26Id], references: [id])
+    model27Id Int
+    model27   Model27   @relation(fields: [model27Id], references: [id])
+    model28Id Int
+    model28   Model28   @relation(fields: [model28Id], references: [id])
+    model29Id Int
+    model29   Model29   @relation(fields: [model29Id], references: [id])
+    model30Id Int
+    model30   Model30   @relation(fields: [model30Id], references: [id])
+    Model20   Model20[]
+    Model21   Model21[]
+    Model22   Model22[]
+    Model23   Model23[]
+    Model24   Model24[]
+}
+
+model Model26 {
+    id        Int       @id
+    model27Id Int
+    model27   Model27   @relation(fields: [model27Id], references: [id])
+    model28Id Int
+    model28   Model28   @relation(fields: [model28Id], references: [id])
+    model29Id Int
+    model29   Model29   @relation(fields: [model29Id], references: [id])
+    model30Id Int
+    model30   Model30   @relation(fields: [model30Id], references: [id])
+    model31Id Int
+    model31   Model31   @relation(fields: [model31Id], references: [id])
+    Model21   Model21[]
+    Model22   Model22[]
+    Model23   Model23[]
+    Model24   Model24[]
+    Model25   Model25[]
+}
+
+model Model27 {
+    id        Int       @id
+    model28Id Int
+    model28   Model28   @relation(fields: [model28Id], references: [id])
+    model29Id Int
+    model29   Model29   @relation(fields: [model29Id], references: [id])
+    model30Id Int
+    model30   Model30   @relation(fields: [model30Id], references: [id])
+    model31Id Int
+    model31   Model31   @relation(fields: [model31Id], references: [id])
+    model32Id Int
+    model32   Model32   @relation(fields: [model32Id], references: [id])
+    Model22   Model22[]
+    Model23   Model23[]
+    Model24   Model24[]
+    Model25   Model25[]
+    Model26   Model26[]
+}
+
+model Model28 {
+    id        Int       @id
+    model29Id Int
+    model29   Model29   @relation(fields: [model29Id], references: [id])
+    model30Id Int
+    model30   Model30   @relation(fields: [model30Id], references: [id])
+    model31Id Int
+    model31   Model31   @relation(fields: [model31Id], references: [id])
+    model32Id Int
+    model32   Model32   @relation(fields: [model32Id], references: [id])
+    model33Id Int
+    model33   Model33   @relation(fields: [model33Id], references: [id])
+    Model23   Model23[]
+    Model24   Model24[]
+    Model25   Model25[]
+    Model26   Model26[]
+    Model27   Model27[]
+}
+
+model Model29 {
+    id        Int       @id
+    model30Id Int
+    model30   Model30   @relation(fields: [model30Id], references: [id])
+    model31Id Int
+    model31   Model31   @relation(fields: [model31Id], references: [id])
+    model32Id Int
+    model32   Model32   @relation(fields: [model32Id], references: [id])
+    model33Id Int
+    model33   Model33   @relation(fields: [model33Id], references: [id])
+    model34Id Int
+    model34   Model34   @relation(fields: [model34Id], references: [id])
+    Model24   Model24[]
+    Model25   Model25[]
+    Model26   Model26[]
+    Model27   Model27[]
+    Model28   Model28[]
+}
+
+model Model30 {
+    id        Int       @id
+    model31Id Int
+    model31   Model31   @relation(fields: [model31Id], references: [id])
+    model32Id Int
+    model32   Model32   @relation(fields: [model32Id], references: [id])
+    model33Id Int
+    model33   Model33   @relation(fields: [model33Id], references: [id])
+    model34Id Int
+    model34   Model34   @relation(fields: [model34Id], references: [id])
+    model35Id Int
+    model35   Model35   @relation(fields: [model35Id], references: [id])
+    Model25   Model25[]
+    Model26   Model26[]
+    Model27   Model27[]
+    Model28   Model28[]
+    Model29   Model29[]
+}
+
+model Model31 {
+    id        Int       @id
+    model32Id Int
+    model32   Model32   @relation(fields: [model32Id], references: [id])
+    model33Id Int
+    model33   Model33   @relation(fields: [model33Id], references: [id])
+    model34Id Int
+    model34   Model34   @relation(fields: [model34Id], references: [id])
+    model35Id Int
+    model35   Model35   @relation(fields: [model35Id], references: [id])
+    model36Id Int
+    model36   Model36   @relation(fields: [model36Id], references: [id])
+    Model26   Model26[]
+    Model27   Model27[]
+    Model28   Model28[]
+    Model29   Model29[]
+    Model30   Model30[]
+}
+
+model Model32 {
+    id        Int       @id
+    model33Id Int
+    model33   Model33   @relation(fields: [model33Id], references: [id])
+    model34Id Int
+    model34   Model34   @relation(fields: [model34Id], references: [id])
+    model35Id Int
+    model35   Model35   @relation(fields: [model35Id], references: [id])
+    model36Id Int
+    model36   Model36   @relation(fields: [model36Id], references: [id])
+    model37Id Int
+    model37   Model37   @relation(fields: [model37Id], references: [id])
+    Model27   Model27[]
+    Model28   Model28[]
+    Model29   Model29[]
+    Model30   Model30[]
+    Model31   Model31[]
+}
+
+model Model33 {
+    id        Int       @id
+    model34Id Int
+    model34   Model34   @relation(fields: [model34Id], references: [id])
+    model35Id Int
+    model35   Model35   @relation(fields: [model35Id], references: [id])
+    model36Id Int
+    model36   Model36   @relation(fields: [model36Id], references: [id])
+    model37Id Int
+    model37   Model37   @relation(fields: [model37Id], references: [id])
+    model38Id Int
+    model38   Model38   @relation(fields: [model38Id], references: [id])
+    Model28   Model28[]
+    Model29   Model29[]
+    Model30   Model30[]
+    Model31   Model31[]
+    Model32   Model32[]
+}
+
+model Model34 {
+    id        Int       @id
+    model35Id Int
+    model35   Model35   @relation(fields: [model35Id], references: [id])
+    model36Id Int
+    model36   Model36   @relation(fields: [model36Id], references: [id])
+    model37Id Int
+    model37   Model37   @relation(fields: [model37Id], references: [id])
+    model38Id Int
+    model38   Model38   @relation(fields: [model38Id], references: [id])
+    model39Id Int
+    model39   Model39   @relation(fields: [model39Id], references: [id])
+    Model29   Model29[]
+    Model30   Model30[]
+    Model31   Model31[]
+    Model32   Model32[]
+    Model33   Model33[]
+}
+
+model Model35 {
+    id        Int       @id
+    model36Id Int
+    model36   Model36   @relation(fields: [model36Id], references: [id])
+    model37Id Int
+    model37   Model37   @relation(fields: [model37Id], references: [id])
+    model38Id Int
+    model38   Model38   @relation(fields: [model38Id], references: [id])
+    model39Id Int
+    model39   Model39   @relation(fields: [model39Id], references: [id])
+    model40Id Int
+    model40   Model40   @relation(fields: [model40Id], references: [id])
+    Model30   Model30[]
+    Model31   Model31[]
+    Model32   Model32[]
+    Model33   Model33[]
+    Model34   Model34[]
+}
+
+model Model36 {
+    id        Int       @id
+    model37Id Int
+    model37   Model37   @relation(fields: [model37Id], references: [id])
+    model38Id Int
+    model38   Model38   @relation(fields: [model38Id], references: [id])
+    model39Id Int
+    model39   Model39   @relation(fields: [model39Id], references: [id])
+    model40Id Int
+    model40   Model40   @relation(fields: [model40Id], references: [id])
+    model41Id Int
+    model41   Model41   @relation(fields: [model41Id], references: [id])
+    Model31   Model31[]
+    Model32   Model32[]
+    Model33   Model33[]
+    Model34   Model34[]
+    Model35   Model35[]
+}
+
+model Model37 {
+    id        Int       @id
+    model38Id Int
+    model38   Model38   @relation(fields: [model38Id], references: [id])
+    model39Id Int
+    model39   Model39   @relation(fields: [model39Id], references: [id])
+    model40Id Int
+    model40   Model40   @relation(fields: [model40Id], references: [id])
+    model41Id Int
+    model41   Model41   @relation(fields: [model41Id], references: [id])
+    model42Id Int
+    model42   Model42   @relation(fields: [model42Id], references: [id])
+    Model32   Model32[]
+    Model33   Model33[]
+    Model34   Model34[]
+    Model35   Model35[]
+    Model36   Model36[]
+}
+
+model Model38 {
+    id        Int       @id
+    model39Id Int
+    model39   Model39   @relation(fields: [model39Id], references: [id])
+    model40Id Int
+    model40   Model40   @relation(fields: [model40Id], references: [id])
+    model41Id Int
+    model41   Model41   @relation(fields: [model41Id], references: [id])
+    model42Id Int
+    model42   Model42   @relation(fields: [model42Id], references: [id])
+    model43Id Int
+    model43   Model43   @relation(fields: [model43Id], references: [id])
+    Model33   Model33[]
+    Model34   Model34[]
+    Model35   Model35[]
+    Model36   Model36[]
+    Model37   Model37[]
+}
+
+model Model39 {
+    id        Int       @id
+    model40Id Int
+    model40   Model40   @relation(fields: [model40Id], references: [id])
+    model41Id Int
+    model41   Model41   @relation(fields: [model41Id], references: [id])
+    model42Id Int
+    model42   Model42   @relation(fields: [model42Id], references: [id])
+    model43Id Int
+    model43   Model43   @relation(fields: [model43Id], references: [id])
+    model44Id Int
+    model44   Model44   @relation(fields: [model44Id], references: [id])
+    Model34   Model34[]
+    Model35   Model35[]
+    Model36   Model36[]
+    Model37   Model37[]
+    Model38   Model38[]
+}
+
+model Model40 {
+    id        Int       @id
+    model41Id Int
+    model41   Model41   @relation(fields: [model41Id], references: [id])
+    model42Id Int
+    model42   Model42   @relation(fields: [model42Id], references: [id])
+    model43Id Int
+    model43   Model43   @relation(fields: [model43Id], references: [id])
+    model44Id Int
+    model44   Model44   @relation(fields: [model44Id], references: [id])
+    model45Id Int
+    model45   Model45   @relation(fields: [model45Id], references: [id])
+    Model35   Model35[]
+    Model36   Model36[]
+    Model37   Model37[]
+    Model38   Model38[]
+    Model39   Model39[]
+}
+
+model Model41 {
+    id        Int       @id
+    model42Id Int
+    model42   Model42   @relation(fields: [model42Id], references: [id])
+    model43Id Int
+    model43   Model43   @relation(fields: [model43Id], references: [id])
+    model44Id Int
+    model44   Model44   @relation(fields: [model44Id], references: [id])
+    model45Id Int
+    model45   Model45   @relation(fields: [model45Id], references: [id])
+    model46Id Int
+    model46   Model46   @relation(fields: [model46Id], references: [id])
+    Model36   Model36[]
+    Model37   Model37[]
+    Model38   Model38[]
+    Model39   Model39[]
+    Model40   Model40[]
+}
+
+model Model42 {
+    id        Int       @id
+    model43Id Int
+    model43   Model43   @relation(fields: [model43Id], references: [id])
+    model44Id Int
+    model44   Model44   @relation(fields: [model44Id], references: [id])
+    model45Id Int
+    model45   Model45   @relation(fields: [model45Id], references: [id])
+    model46Id Int
+    model46   Model46   @relation(fields: [model46Id], references: [id])
+    model47Id Int
+    model47   Model47   @relation(fields: [model47Id], references: [id])
+    Model37   Model37[]
+    Model38   Model38[]
+    Model39   Model39[]
+    Model40   Model40[]
+    Model41   Model41[]
+}
+
+model Model43 {
+    id        Int       @id
+    model44Id Int
+    model44   Model44   @relation(fields: [model44Id], references: [id])
+    model45Id Int
+    model45   Model45   @relation(fields: [model45Id], references: [id])
+    model46Id Int
+    model46   Model46   @relation(fields: [model46Id], references: [id])
+    model47Id Int
+    model47   Model47   @relation(fields: [model47Id], references: [id])
+    model48Id Int
+    model48   Model48   @relation(fields: [model48Id], references: [id])
+    Model38   Model38[]
+    Model39   Model39[]
+    Model40   Model40[]
+    Model41   Model41[]
+    Model42   Model42[]
+}
+
+model Model44 {
+    id        Int       @id
+    model45Id Int
+    model45   Model45   @relation(fields: [model45Id], references: [id])
+    model46Id Int
+    model46   Model46   @relation(fields: [model46Id], references: [id])
+    model47Id Int
+    model47   Model47   @relation(fields: [model47Id], references: [id])
+    model48Id Int
+    model48   Model48   @relation(fields: [model48Id], references: [id])
+    model49Id Int
+    model49   Model49   @relation(fields: [model49Id], references: [id])
+    Model39   Model39[]
+    Model40   Model40[]
+    Model41   Model41[]
+    Model42   Model42[]
+    Model43   Model43[]
+}
+
+model Model45 {
+    id        Int       @id
+    model46Id Int
+    model46   Model46   @relation(fields: [model46Id], references: [id])
+    model47Id Int
+    model47   Model47   @relation(fields: [model47Id], references: [id])
+    model48Id Int
+    model48   Model48   @relation(fields: [model48Id], references: [id])
+    model49Id Int
+    model49   Model49   @relation(fields: [model49Id], references: [id])
+    model50Id Int
+    model50   Model50   @relation(fields: [model50Id], references: [id])
+    Model40   Model40[]
+    Model41   Model41[]
+    Model42   Model42[]
+    Model43   Model43[]
+    Model44   Model44[]
+}
+
+model Model46 {
+    id        Int       @id
+    model47Id Int
+    model47   Model47   @relation(fields: [model47Id], references: [id])
+    model48Id Int
+    model48   Model48   @relation(fields: [model48Id], references: [id])
+    model49Id Int
+    model49   Model49   @relation(fields: [model49Id], references: [id])
+    model50Id Int
+    model50   Model50   @relation(fields: [model50Id], references: [id])
+    model51Id Int
+    model51   Model51   @relation(fields: [model51Id], references: [id])
+    Model41   Model41[]
+    Model42   Model42[]
+    Model43   Model43[]
+    Model44   Model44[]
+    Model45   Model45[]
+}
+
+model Model47 {
+    id        Int       @id
+    model48Id Int
+    model48   Model48   @relation(fields: [model48Id], references: [id])
+    model49Id Int
+    model49   Model49   @relation(fields: [model49Id], references: [id])
+    model50Id Int
+    model50   Model50   @relation(fields: [model50Id], references: [id])
+    model51Id Int
+    model51   Model51   @relation(fields: [model51Id], references: [id])
+    model52Id Int
+    model52   Model52   @relation(fields: [model52Id], references: [id])
+    Model42   Model42[]
+    Model43   Model43[]
+    Model44   Model44[]
+    Model45   Model45[]
+    Model46   Model46[]
+}
+
+model Model48 {
+    id        Int       @id
+    model49Id Int
+    model49   Model49   @relation(fields: [model49Id], references: [id])
+    model50Id Int
+    model50   Model50   @relation(fields: [model50Id], references: [id])
+    model51Id Int
+    model51   Model51   @relation(fields: [model51Id], references: [id])
+    model52Id Int
+    model52   Model52   @relation(fields: [model52Id], references: [id])
+    model53Id Int
+    model53   Model53   @relation(fields: [model53Id], references: [id])
+    Model43   Model43[]
+    Model44   Model44[]
+    Model45   Model45[]
+    Model46   Model46[]
+    Model47   Model47[]
+}
+
+model Model49 {
+    id        Int       @id
+    model50Id Int
+    model50   Model50   @relation(fields: [model50Id], references: [id])
+    model51Id Int
+    model51   Model51   @relation(fields: [model51Id], references: [id])
+    model52Id Int
+    model52   Model52   @relation(fields: [model52Id], references: [id])
+    model53Id Int
+    model53   Model53   @relation(fields: [model53Id], references: [id])
+    model54Id Int
+    model54   Model54   @relation(fields: [model54Id], references: [id])
+    Model44   Model44[]
+    Model45   Model45[]
+    Model46   Model46[]
+    Model47   Model47[]
+    Model48   Model48[]
+}
+
+model Model50 {
+    id        Int       @id
+    model51Id Int
+    model51   Model51   @relation(fields: [model51Id], references: [id])
+    model52Id Int
+    model52   Model52   @relation(fields: [model52Id], references: [id])
+    model53Id Int
+    model53   Model53   @relation(fields: [model53Id], references: [id])
+    model54Id Int
+    model54   Model54   @relation(fields: [model54Id], references: [id])
+    model55Id Int
+    model55   Model55   @relation(fields: [model55Id], references: [id])
+    Model45   Model45[]
+    Model46   Model46[]
+    Model47   Model47[]
+    Model48   Model48[]
+    Model49   Model49[]
+}
+
+model Model51 {
+    id        Int       @id
+    model52Id Int
+    model52   Model52   @relation(fields: [model52Id], references: [id])
+    model53Id Int
+    model53   Model53   @relation(fields: [model53Id], references: [id])
+    model54Id Int
+    model54   Model54   @relation(fields: [model54Id], references: [id])
+    model55Id Int
+    model55   Model55   @relation(fields: [model55Id], references: [id])
+    model56Id Int
+    model56   Model56   @relation(fields: [model56Id], references: [id])
+    Model46   Model46[]
+    Model47   Model47[]
+    Model48   Model48[]
+    Model49   Model49[]
+    Model50   Model50[]
+}
+
+model Model52 {
+    id        Int       @id
+    model53Id Int
+    model53   Model53   @relation(fields: [model53Id], references: [id])
+    model54Id Int
+    model54   Model54   @relation(fields: [model54Id], references: [id])
+    model55Id Int
+    model55   Model55   @relation(fields: [model55Id], references: [id])
+    model56Id Int
+    model56   Model56   @relation(fields: [model56Id], references: [id])
+    model57Id Int
+    model57   Model57   @relation(fields: [model57Id], references: [id])
+    Model47   Model47[]
+    Model48   Model48[]
+    Model49   Model49[]
+    Model50   Model50[]
+    Model51   Model51[]
+}
+
+model Model53 {
+    id        Int       @id
+    model54Id Int
+    model54   Model54   @relation(fields: [model54Id], references: [id])
+    model55Id Int
+    model55   Model55   @relation(fields: [model55Id], references: [id])
+    model56Id Int
+    model56   Model56   @relation(fields: [model56Id], references: [id])
+    model57Id Int
+    model57   Model57   @relation(fields: [model57Id], references: [id])
+    model58Id Int
+    model58   Model58   @relation(fields: [model58Id], references: [id])
+    Model48   Model48[]
+    Model49   Model49[]
+    Model50   Model50[]
+    Model51   Model51[]
+    Model52   Model52[]
+}
+
+model Model54 {
+    id        Int       @id
+    model55Id Int
+    model55   Model55   @relation(fields: [model55Id], references: [id])
+    model56Id Int
+    model56   Model56   @relation(fields: [model56Id], references: [id])
+    model57Id Int
+    model57   Model57   @relation(fields: [model57Id], references: [id])
+    model58Id Int
+    model58   Model58   @relation(fields: [model58Id], references: [id])
+    model59Id Int
+    model59   Model59   @relation(fields: [model59Id], references: [id])
+    Model49   Model49[]
+    Model50   Model50[]
+    Model51   Model51[]
+    Model52   Model52[]
+    Model53   Model53[]
+}
+
+model Model55 {
+    id        Int       @id
+    model56Id Int
+    model56   Model56   @relation(fields: [model56Id], references: [id])
+    model57Id Int
+    model57   Model57   @relation(fields: [model57Id], references: [id])
+    model58Id Int
+    model58   Model58   @relation(fields: [model58Id], references: [id])
+    model59Id Int
+    model59   Model59   @relation(fields: [model59Id], references: [id])
+    model60Id Int
+    model60   Model60   @relation(fields: [model60Id], references: [id])
+    Model50   Model50[]
+    Model51   Model51[]
+    Model52   Model52[]
+    Model53   Model53[]
+    Model54   Model54[]
+}
+
+model Model56 {
+    id        Int       @id
+    model57Id Int
+    model57   Model57   @relation(fields: [model57Id], references: [id])
+    model58Id Int
+    model58   Model58   @relation(fields: [model58Id], references: [id])
+    model59Id Int
+    model59   Model59   @relation(fields: [model59Id], references: [id])
+    model60Id Int
+    model60   Model60   @relation(fields: [model60Id], references: [id])
+    model61Id Int
+    model61   Model61   @relation(fields: [model61Id], references: [id])
+    Model51   Model51[]
+    Model52   Model52[]
+    Model53   Model53[]
+    Model54   Model54[]
+    Model55   Model55[]
+}
+
+model Model57 {
+    id        Int       @id
+    model58Id Int
+    model58   Model58   @relation(fields: [model58Id], references: [id])
+    model59Id Int
+    model59   Model59   @relation(fields: [model59Id], references: [id])
+    model60Id Int
+    model60   Model60   @relation(fields: [model60Id], references: [id])
+    model61Id Int
+    model61   Model61   @relation(fields: [model61Id], references: [id])
+    model62Id Int
+    model62   Model62   @relation(fields: [model62Id], references: [id])
+    Model52   Model52[]
+    Model53   Model53[]
+    Model54   Model54[]
+    Model55   Model55[]
+    Model56   Model56[]
+}
+
+model Model58 {
+    id        Int       @id
+    model59Id Int
+    model59   Model59   @relation(fields: [model59Id], references: [id])
+    model60Id Int
+    model60   Model60   @relation(fields: [model60Id], references: [id])
+    model61Id Int
+    model61   Model61   @relation(fields: [model61Id], references: [id])
+    model62Id Int
+    model62   Model62   @relation(fields: [model62Id], references: [id])
+    model63Id Int
+    model63   Model63   @relation(fields: [model63Id], references: [id])
+    Model53   Model53[]
+    Model54   Model54[]
+    Model55   Model55[]
+    Model56   Model56[]
+    Model57   Model57[]
+}
+
+model Model59 {
+    id        Int       @id
+    model60Id Int
+    model60   Model60   @relation(fields: [model60Id], references: [id])
+    model61Id Int
+    model61   Model61   @relation(fields: [model61Id], references: [id])
+    model62Id Int
+    model62   Model62   @relation(fields: [model62Id], references: [id])
+    model63Id Int
+    model63   Model63   @relation(fields: [model63Id], references: [id])
+    model64Id Int
+    model64   Model64   @relation(fields: [model64Id], references: [id])
+    Model54   Model54[]
+    Model55   Model55[]
+    Model56   Model56[]
+    Model57   Model57[]
+    Model58   Model58[]
+}
+
+model Model60 {
+    id        Int       @id
+    model61Id Int
+    model61   Model61   @relation(fields: [model61Id], references: [id])
+    model62Id Int
+    model62   Model62   @relation(fields: [model62Id], references: [id])
+    model63Id Int
+    model63   Model63   @relation(fields: [model63Id], references: [id])
+    model64Id Int
+    model64   Model64   @relation(fields: [model64Id], references: [id])
+    model65Id Int
+    model65   Model65   @relation(fields: [model65Id], references: [id])
+    Model55   Model55[]
+    Model56   Model56[]
+    Model57   Model57[]
+    Model58   Model58[]
+    Model59   Model59[]
+}
+
+model Model61 {
+    id        Int       @id
+    model62Id Int
+    model62   Model62   @relation(fields: [model62Id], references: [id])
+    model63Id Int
+    model63   Model63   @relation(fields: [model63Id], references: [id])
+    model64Id Int
+    model64   Model64   @relation(fields: [model64Id], references: [id])
+    model65Id Int
+    model65   Model65   @relation(fields: [model65Id], references: [id])
+    model66Id Int
+    model66   Model66   @relation(fields: [model66Id], references: [id])
+    Model56   Model56[]
+    Model57   Model57[]
+    Model58   Model58[]
+    Model59   Model59[]
+    Model60   Model60[]
+}
+
+model Model62 {
+    id        Int       @id
+    model63Id Int
+    model63   Model63   @relation(fields: [model63Id], references: [id])
+    model64Id Int
+    model64   Model64   @relation(fields: [model64Id], references: [id])
+    model65Id Int
+    model65   Model65   @relation(fields: [model65Id], references: [id])
+    model66Id Int
+    model66   Model66   @relation(fields: [model66Id], references: [id])
+    model67Id Int
+    model67   Model67   @relation(fields: [model67Id], references: [id])
+    Model57   Model57[]
+    Model58   Model58[]
+    Model59   Model59[]
+    Model60   Model60[]
+    Model61   Model61[]
+}
+
+model Model63 {
+    id        Int       @id
+    model64Id Int
+    model64   Model64   @relation(fields: [model64Id], references: [id])
+    model65Id Int
+    model65   Model65   @relation(fields: [model65Id], references: [id])
+    model66Id Int
+    model66   Model66   @relation(fields: [model66Id], references: [id])
+    model67Id Int
+    model67   Model67   @relation(fields: [model67Id], references: [id])
+    model68Id Int
+    model68   Model68   @relation(fields: [model68Id], references: [id])
+    Model58   Model58[]
+    Model59   Model59[]
+    Model60   Model60[]
+    Model61   Model61[]
+    Model62   Model62[]
+}
+
+model Model64 {
+    id        Int       @id
+    model65Id Int
+    model65   Model65   @relation(fields: [model65Id], references: [id])
+    model66Id Int
+    model66   Model66   @relation(fields: [model66Id], references: [id])
+    model67Id Int
+    model67   Model67   @relation(fields: [model67Id], references: [id])
+    model68Id Int
+    model68   Model68   @relation(fields: [model68Id], references: [id])
+    model69Id Int
+    model69   Model69   @relation(fields: [model69Id], references: [id])
+    Model59   Model59[]
+    Model60   Model60[]
+    Model61   Model61[]
+    Model62   Model62[]
+    Model63   Model63[]
+}
+
+model Model65 {
+    id        Int       @id
+    model66Id Int
+    model66   Model66   @relation(fields: [model66Id], references: [id])
+    model67Id Int
+    model67   Model67   @relation(fields: [model67Id], references: [id])
+    model68Id Int
+    model68   Model68   @relation(fields: [model68Id], references: [id])
+    model69Id Int
+    model69   Model69   @relation(fields: [model69Id], references: [id])
+    model70Id Int
+    model70   Model70   @relation(fields: [model70Id], references: [id])
+    Model60   Model60[]
+    Model61   Model61[]
+    Model62   Model62[]
+    Model63   Model63[]
+    Model64   Model64[]
+}
+
+model Model66 {
+    id        Int       @id
+    model67Id Int
+    model67   Model67   @relation(fields: [model67Id], references: [id])
+    model68Id Int
+    model68   Model68   @relation(fields: [model68Id], references: [id])
+    model69Id Int
+    model69   Model69   @relation(fields: [model69Id], references: [id])
+    model70Id Int
+    model70   Model70   @relation(fields: [model70Id], references: [id])
+    model71Id Int
+    model71   Model71   @relation(fields: [model71Id], references: [id])
+    Model61   Model61[]
+    Model62   Model62[]
+    Model63   Model63[]
+    Model64   Model64[]
+    Model65   Model65[]
+}
+
+model Model67 {
+    id        Int       @id
+    model68Id Int
+    model68   Model68   @relation(fields: [model68Id], references: [id])
+    model69Id Int
+    model69   Model69   @relation(fields: [model69Id], references: [id])
+    model70Id Int
+    model70   Model70   @relation(fields: [model70Id], references: [id])
+    model71Id Int
+    model71   Model71   @relation(fields: [model71Id], references: [id])
+    model72Id Int
+    model72   Model72   @relation(fields: [model72Id], references: [id])
+    Model62   Model62[]
+    Model63   Model63[]
+    Model64   Model64[]
+    Model65   Model65[]
+    Model66   Model66[]
+}
+
+model Model68 {
+    id        Int       @id
+    model69Id Int
+    model69   Model69   @relation(fields: [model69Id], references: [id])
+    model70Id Int
+    model70   Model70   @relation(fields: [model70Id], references: [id])
+    model71Id Int
+    model71   Model71   @relation(fields: [model71Id], references: [id])
+    model72Id Int
+    model72   Model72   @relation(fields: [model72Id], references: [id])
+    model73Id Int
+    model73   Model73   @relation(fields: [model73Id], references: [id])
+    Model63   Model63[]
+    Model64   Model64[]
+    Model65   Model65[]
+    Model66   Model66[]
+    Model67   Model67[]
+}
+
+model Model69 {
+    id        Int       @id
+    model70Id Int
+    model70   Model70   @relation(fields: [model70Id], references: [id])
+    model71Id Int
+    model71   Model71   @relation(fields: [model71Id], references: [id])
+    model72Id Int
+    model72   Model72   @relation(fields: [model72Id], references: [id])
+    model73Id Int
+    model73   Model73   @relation(fields: [model73Id], references: [id])
+    model74Id Int
+    model74   Model74   @relation(fields: [model74Id], references: [id])
+    Model64   Model64[]
+    Model65   Model65[]
+    Model66   Model66[]
+    Model67   Model67[]
+    Model68   Model68[]
+}
+
+model Model70 {
+    id        Int       @id
+    model71Id Int
+    model71   Model71   @relation(fields: [model71Id], references: [id])
+    model72Id Int
+    model72   Model72   @relation(fields: [model72Id], references: [id])
+    model73Id Int
+    model73   Model73   @relation(fields: [model73Id], references: [id])
+    model74Id Int
+    model74   Model74   @relation(fields: [model74Id], references: [id])
+    model75Id Int
+    model75   Model75   @relation(fields: [model75Id], references: [id])
+    Model65   Model65[]
+    Model66   Model66[]
+    Model67   Model67[]
+    Model68   Model68[]
+    Model69   Model69[]
+}
+
+model Model71 {
+    id        Int       @id
+    model72Id Int
+    model72   Model72   @relation(fields: [model72Id], references: [id])
+    model73Id Int
+    model73   Model73   @relation(fields: [model73Id], references: [id])
+    model74Id Int
+    model74   Model74   @relation(fields: [model74Id], references: [id])
+    model75Id Int
+    model75   Model75   @relation(fields: [model75Id], references: [id])
+    model76Id Int
+    model76   Model76   @relation(fields: [model76Id], references: [id])
+    Model66   Model66[]
+    Model67   Model67[]
+    Model68   Model68[]
+    Model69   Model69[]
+    Model70   Model70[]
+}
+
+model Model72 {
+    id        Int       @id
+    model73Id Int
+    model73   Model73   @relation(fields: [model73Id], references: [id])
+    model74Id Int
+    model74   Model74   @relation(fields: [model74Id], references: [id])
+    model75Id Int
+    model75   Model75   @relation(fields: [model75Id], references: [id])
+    model76Id Int
+    model76   Model76   @relation(fields: [model76Id], references: [id])
+    model77Id Int
+    model77   Model77   @relation(fields: [model77Id], references: [id])
+    Model67   Model67[]
+    Model68   Model68[]
+    Model69   Model69[]
+    Model70   Model70[]
+    Model71   Model71[]
+}
+
+model Model73 {
+    id        Int       @id
+    model74Id Int
+    model74   Model74   @relation(fields: [model74Id], references: [id])
+    model75Id Int
+    model75   Model75   @relation(fields: [model75Id], references: [id])
+    model76Id Int
+    model76   Model76   @relation(fields: [model76Id], references: [id])
+    model77Id Int
+    model77   Model77   @relation(fields: [model77Id], references: [id])
+    model78Id Int
+    model78   Model78   @relation(fields: [model78Id], references: [id])
+    Model68   Model68[]
+    Model69   Model69[]
+    Model70   Model70[]
+    Model71   Model71[]
+    Model72   Model72[]
+}
+
+model Model74 {
+    id        Int       @id
+    model75Id Int
+    model75   Model75   @relation(fields: [model75Id], references: [id])
+    model76Id Int
+    model76   Model76   @relation(fields: [model76Id], references: [id])
+    model77Id Int
+    model77   Model77   @relation(fields: [model77Id], references: [id])
+    model78Id Int
+    model78   Model78   @relation(fields: [model78Id], references: [id])
+    model79Id Int
+    model79   Model79   @relation(fields: [model79Id], references: [id])
+    Model69   Model69[]
+    Model70   Model70[]
+    Model71   Model71[]
+    Model72   Model72[]
+    Model73   Model73[]
+}
+
+model Model75 {
+    id        Int       @id
+    model76Id Int
+    model76   Model76   @relation(fields: [model76Id], references: [id])
+    model77Id Int
+    model77   Model77   @relation(fields: [model77Id], references: [id])
+    model78Id Int
+    model78   Model78   @relation(fields: [model78Id], references: [id])
+    model79Id Int
+    model79   Model79   @relation(fields: [model79Id], references: [id])
+    model80Id Int
+    model80   Model80   @relation(fields: [model80Id], references: [id])
+    Model70   Model70[]
+    Model71   Model71[]
+    Model72   Model72[]
+    Model73   Model73[]
+    Model74   Model74[]
+}
+
+model Model76 {
+    id        Int       @id
+    model77Id Int
+    model77   Model77   @relation(fields: [model77Id], references: [id])
+    model78Id Int
+    model78   Model78   @relation(fields: [model78Id], references: [id])
+    model79Id Int
+    model79   Model79   @relation(fields: [model79Id], references: [id])
+    model80Id Int
+    model80   Model80   @relation(fields: [model80Id], references: [id])
+    model81Id Int
+    model81   Model81   @relation(fields: [model81Id], references: [id])
+    Model71   Model71[]
+    Model72   Model72[]
+    Model73   Model73[]
+    Model74   Model74[]
+    Model75   Model75[]
+}
+
+model Model77 {
+    id        Int       @id
+    model78Id Int
+    model78   Model78   @relation(fields: [model78Id], references: [id])
+    model79Id Int
+    model79   Model79   @relation(fields: [model79Id], references: [id])
+    model80Id Int
+    model80   Model80   @relation(fields: [model80Id], references: [id])
+    model81Id Int
+    model81   Model81   @relation(fields: [model81Id], references: [id])
+    model82Id Int
+    model82   Model82   @relation(fields: [model82Id], references: [id])
+    Model72   Model72[]
+    Model73   Model73[]
+    Model74   Model74[]
+    Model75   Model75[]
+    Model76   Model76[]
+}
+
+model Model78 {
+    id        Int       @id
+    model79Id Int
+    model79   Model79   @relation(fields: [model79Id], references: [id])
+    model80Id Int
+    model80   Model80   @relation(fields: [model80Id], references: [id])
+    model81Id Int
+    model81   Model81   @relation(fields: [model81Id], references: [id])
+    model82Id Int
+    model82   Model82   @relation(fields: [model82Id], references: [id])
+    model83Id Int
+    model83   Model83   @relation(fields: [model83Id], references: [id])
+    Model73   Model73[]
+    Model74   Model74[]
+    Model75   Model75[]
+    Model76   Model76[]
+    Model77   Model77[]
+}
+
+model Model79 {
+    id        Int       @id
+    model80Id Int
+    model80   Model80   @relation(fields: [model80Id], references: [id])
+    model81Id Int
+    model81   Model81   @relation(fields: [model81Id], references: [id])
+    model82Id Int
+    model82   Model82   @relation(fields: [model82Id], references: [id])
+    model83Id Int
+    model83   Model83   @relation(fields: [model83Id], references: [id])
+    model84Id Int
+    model84   Model84   @relation(fields: [model84Id], references: [id])
+    Model74   Model74[]
+    Model75   Model75[]
+    Model76   Model76[]
+    Model77   Model77[]
+    Model78   Model78[]
+}
+
+model Model80 {
+    id        Int       @id
+    model81Id Int
+    model81   Model81   @relation(fields: [model81Id], references: [id])
+    model82Id Int
+    model82   Model82   @relation(fields: [model82Id], references: [id])
+    model83Id Int
+    model83   Model83   @relation(fields: [model83Id], references: [id])
+    model84Id Int
+    model84   Model84   @relation(fields: [model84Id], references: [id])
+    model85Id Int
+    model85   Model85   @relation(fields: [model85Id], references: [id])
+    Model75   Model75[]
+    Model76   Model76[]
+    Model77   Model77[]
+    Model78   Model78[]
+    Model79   Model79[]
+}
+
+model Model81 {
+    id        Int       @id
+    model82Id Int
+    model82   Model82   @relation(fields: [model82Id], references: [id])
+    model83Id Int
+    model83   Model83   @relation(fields: [model83Id], references: [id])
+    model84Id Int
+    model84   Model84   @relation(fields: [model84Id], references: [id])
+    model85Id Int
+    model85   Model85   @relation(fields: [model85Id], references: [id])
+    model86Id Int
+    model86   Model86   @relation(fields: [model86Id], references: [id])
+    Model76   Model76[]
+    Model77   Model77[]
+    Model78   Model78[]
+    Model79   Model79[]
+    Model80   Model80[]
+}
+
+model Model82 {
+    id        Int       @id
+    model83Id Int
+    model83   Model83   @relation(fields: [model83Id], references: [id])
+    model84Id Int
+    model84   Model84   @relation(fields: [model84Id], references: [id])
+    model85Id Int
+    model85   Model85   @relation(fields: [model85Id], references: [id])
+    model86Id Int
+    model86   Model86   @relation(fields: [model86Id], references: [id])
+    model87Id Int
+    model87   Model87   @relation(fields: [model87Id], references: [id])
+    Model77   Model77[]
+    Model78   Model78[]
+    Model79   Model79[]
+    Model80   Model80[]
+    Model81   Model81[]
+}
+
+model Model83 {
+    id        Int       @id
+    model84Id Int
+    model84   Model84   @relation(fields: [model84Id], references: [id])
+    model85Id Int
+    model85   Model85   @relation(fields: [model85Id], references: [id])
+    model86Id Int
+    model86   Model86   @relation(fields: [model86Id], references: [id])
+    model87Id Int
+    model87   Model87   @relation(fields: [model87Id], references: [id])
+    model88Id Int
+    model88   Model88   @relation(fields: [model88Id], references: [id])
+    Model78   Model78[]
+    Model79   Model79[]
+    Model80   Model80[]
+    Model81   Model81[]
+    Model82   Model82[]
+}
+
+model Model84 {
+    id        Int       @id
+    model85Id Int
+    model85   Model85   @relation(fields: [model85Id], references: [id])
+    model86Id Int
+    model86   Model86   @relation(fields: [model86Id], references: [id])
+    model87Id Int
+    model87   Model87   @relation(fields: [model87Id], references: [id])
+    model88Id Int
+    model88   Model88   @relation(fields: [model88Id], references: [id])
+    model89Id Int
+    model89   Model89   @relation(fields: [model89Id], references: [id])
+    Model79   Model79[]
+    Model80   Model80[]
+    Model81   Model81[]
+    Model82   Model82[]
+    Model83   Model83[]
+}
+
+model Model85 {
+    id        Int       @id
+    model86Id Int
+    model86   Model86   @relation(fields: [model86Id], references: [id])
+    model87Id Int
+    model87   Model87   @relation(fields: [model87Id], references: [id])
+    model88Id Int
+    model88   Model88   @relation(fields: [model88Id], references: [id])
+    model89Id Int
+    model89   Model89   @relation(fields: [model89Id], references: [id])
+    model90Id Int
+    model90   Model90   @relation(fields: [model90Id], references: [id])
+    Model80   Model80[]
+    Model81   Model81[]
+    Model82   Model82[]
+    Model83   Model83[]
+    Model84   Model84[]
+}
+
+model Model86 {
+    id        Int       @id
+    model87Id Int
+    model87   Model87   @relation(fields: [model87Id], references: [id])
+    model88Id Int
+    model88   Model88   @relation(fields: [model88Id], references: [id])
+    model89Id Int
+    model89   Model89   @relation(fields: [model89Id], references: [id])
+    model90Id Int
+    model90   Model90   @relation(fields: [model90Id], references: [id])
+    model91Id Int
+    model91   Model91   @relation(fields: [model91Id], references: [id])
+    Model81   Model81[]
+    Model82   Model82[]
+    Model83   Model83[]
+    Model84   Model84[]
+    Model85   Model85[]
+}
+
+model Model87 {
+    id        Int       @id
+    model88Id Int
+    model88   Model88   @relation(fields: [model88Id], references: [id])
+    model89Id Int
+    model89   Model89   @relation(fields: [model89Id], references: [id])
+    model90Id Int
+    model90   Model90   @relation(fields: [model90Id], references: [id])
+    model91Id Int
+    model91   Model91   @relation(fields: [model91Id], references: [id])
+    model92Id Int
+    model92   Model92   @relation(fields: [model92Id], references: [id])
+    Model82   Model82[]
+    Model83   Model83[]
+    Model84   Model84[]
+    Model85   Model85[]
+    Model86   Model86[]
+}
+
+model Model88 {
+    id        Int       @id
+    model89Id Int
+    model89   Model89   @relation(fields: [model89Id], references: [id])
+    model90Id Int
+    model90   Model90   @relation(fields: [model90Id], references: [id])
+    model91Id Int
+    model91   Model91   @relation(fields: [model91Id], references: [id])
+    model92Id Int
+    model92   Model92   @relation(fields: [model92Id], references: [id])
+    model93Id Int
+    model93   Model93   @relation(fields: [model93Id], references: [id])
+    Model83   Model83[]
+    Model84   Model84[]
+    Model85   Model85[]
+    Model86   Model86[]
+    Model87   Model87[]
+}
+
+model Model89 {
+    id        Int       @id
+    model90Id Int
+    model90   Model90   @relation(fields: [model90Id], references: [id])
+    model91Id Int
+    model91   Model91   @relation(fields: [model91Id], references: [id])
+    model92Id Int
+    model92   Model92   @relation(fields: [model92Id], references: [id])
+    model93Id Int
+    model93   Model93   @relation(fields: [model93Id], references: [id])
+    model94Id Int
+    model94   Model94   @relation(fields: [model94Id], references: [id])
+    Model84   Model84[]
+    Model85   Model85[]
+    Model86   Model86[]
+    Model87   Model87[]
+    Model88   Model88[]
+}
+
+model Model90 {
+    id        Int       @id
+    model91Id Int
+    model91   Model91   @relation(fields: [model91Id], references: [id])
+    model92Id Int
+    model92   Model92   @relation(fields: [model92Id], references: [id])
+    model93Id Int
+    model93   Model93   @relation(fields: [model93Id], references: [id])
+    model94Id Int
+    model94   Model94   @relation(fields: [model94Id], references: [id])
+    model95Id Int
+    model95   Model95   @relation(fields: [model95Id], references: [id])
+    Model85   Model85[]
+    Model86   Model86[]
+    Model87   Model87[]
+    Model88   Model88[]
+    Model89   Model89[]
+}
+
+model Model91 {
+    id        Int       @id
+    model92Id Int
+    model92   Model92   @relation(fields: [model92Id], references: [id])
+    model93Id Int
+    model93   Model93   @relation(fields: [model93Id], references: [id])
+    model94Id Int
+    model94   Model94   @relation(fields: [model94Id], references: [id])
+    model95Id Int
+    model95   Model95   @relation(fields: [model95Id], references: [id])
+    model96Id Int
+    model96   Model96   @relation(fields: [model96Id], references: [id])
+    Model86   Model86[]
+    Model87   Model87[]
+    Model88   Model88[]
+    Model89   Model89[]
+    Model90   Model90[]
+}
+
+model Model92 {
+    id        Int       @id
+    model93Id Int
+    model93   Model93   @relation(fields: [model93Id], references: [id])
+    model94Id Int
+    model94   Model94   @relation(fields: [model94Id], references: [id])
+    model95Id Int
+    model95   Model95   @relation(fields: [model95Id], references: [id])
+    model96Id Int
+    model96   Model96   @relation(fields: [model96Id], references: [id])
+    model97Id Int
+    model97   Model97   @relation(fields: [model97Id], references: [id])
+    Model87   Model87[]
+    Model88   Model88[]
+    Model89   Model89[]
+    Model90   Model90[]
+    Model91   Model91[]
+}
+
+model Model93 {
+    id        Int       @id
+    model94Id Int
+    model94   Model94   @relation(fields: [model94Id], references: [id])
+    model95Id Int
+    model95   Model95   @relation(fields: [model95Id], references: [id])
+    model96Id Int
+    model96   Model96   @relation(fields: [model96Id], references: [id])
+    model97Id Int
+    model97   Model97   @relation(fields: [model97Id], references: [id])
+    model98Id Int
+    model98   Model98   @relation(fields: [model98Id], references: [id])
+    Model88   Model88[]
+    Model89   Model89[]
+    Model90   Model90[]
+    Model91   Model91[]
+    Model92   Model92[]
+}
+
+model Model94 {
+    id        Int       @id
+    model95Id Int
+    model95   Model95   @relation(fields: [model95Id], references: [id])
+    model96Id Int
+    model96   Model96   @relation(fields: [model96Id], references: [id])
+    model97Id Int
+    model97   Model97   @relation(fields: [model97Id], references: [id])
+    model98Id Int
+    model98   Model98   @relation(fields: [model98Id], references: [id])
+    model99Id Int
+    model99   Model99   @relation(fields: [model99Id], references: [id])
+    Model89   Model89[]
+    Model90   Model90[]
+    Model91   Model91[]
+    Model92   Model92[]
+    Model93   Model93[]
+}
+
+model Model95 {
+    id        Int       @id
+    model96Id Int
+    model96   Model96   @relation(fields: [model96Id], references: [id])
+    model97Id Int
+    model97   Model97   @relation(fields: [model97Id], references: [id])
+    model98Id Int
+    model98   Model98   @relation(fields: [model98Id], references: [id])
+    model99Id Int
+    model99   Model99   @relation(fields: [model99Id], references: [id])
+    model0Id  Int
+    model0    Model0    @relation(fields: [model0Id], references: [id])
+    Model90   Model90[]
+    Model91   Model91[]
+    Model92   Model92[]
+    Model93   Model93[]
+    Model94   Model94[]
+}
+
+model Model96 {
+    id        Int       @id
+    model97Id Int
+    model97   Model97   @relation(fields: [model97Id], references: [id])
+    model98Id Int
+    model98   Model98   @relation(fields: [model98Id], references: [id])
+    model99Id Int
+    model99   Model99   @relation(fields: [model99Id], references: [id])
+    model0Id  Int
+    model0    Model0    @relation(fields: [model0Id], references: [id])
+    model1Id  Int
+    model1    Model1    @relation(fields: [model1Id], references: [id])
+    Model91   Model91[]
+    Model92   Model92[]
+    Model93   Model93[]
+    Model94   Model94[]
+    Model95   Model95[]
+}
+
+model Model97 {
+    id        Int       @id
+    model98Id Int
+    model98   Model98   @relation(fields: [model98Id], references: [id])
+    model99Id Int
+    model99   Model99   @relation(fields: [model99Id], references: [id])
+    model0Id  Int
+    model0    Model0    @relation(fields: [model0Id], references: [id])
+    model1Id  Int
+    model1    Model1    @relation(fields: [model1Id], references: [id])
+    model2Id  Int
+    model2    Model2    @relation(fields: [model2Id], references: [id])
+    Model92   Model92[]
+    Model93   Model93[]
+    Model94   Model94[]
+    Model95   Model95[]
+    Model96   Model96[]
+}
+
+model Model98 {
+    id        Int       @id
+    model99Id Int
+    model99   Model99   @relation(fields: [model99Id], references: [id])
+    model0Id  Int
+    model0    Model0    @relation(fields: [model0Id], references: [id])
+    model1Id  Int
+    model1    Model1    @relation(fields: [model1Id], references: [id])
+    model2Id  Int
+    model2    Model2    @relation(fields: [model2Id], references: [id])
+    model3Id  Int
+    model3    Model3    @relation(fields: [model3Id], references: [id])
+    Model93   Model93[]
+    Model94   Model94[]
+    Model95   Model95[]
+    Model96   Model96[]
+    Model97   Model97[]
+}
+
+model Model99 {
+    id       Int       @id
+    model0Id Int
+    model0   Model0    @relation(fields: [model0Id], references: [id])
+    model1Id Int
+    model1   Model1    @relation(fields: [model1Id], references: [id])
+    model2Id Int
+    model2   Model2    @relation(fields: [model2Id], references: [id])
+    model3Id Int
+    model3   Model3    @relation(fields: [model3Id], references: [id])
+    model4Id Int
+    model4   Model4    @relation(fields: [model4Id], references: [id])
+    Model94  Model94[]
+    Model95  Model95[]
+    Model96  Model96[]
+    Model97  Model97[]
+    Model98  Model98[]
+}
