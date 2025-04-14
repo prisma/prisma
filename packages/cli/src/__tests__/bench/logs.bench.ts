@@ -41,6 +41,7 @@ bench('annotated', () => {
 }).types([255, 'instantiations'])
 
 // You likely want to add variance annotations to reflect the desired behavior like:
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export interface UpdatedPrismaClient<in out ClientOption, in out U, in out ExtArgs> {
   // ...
 }

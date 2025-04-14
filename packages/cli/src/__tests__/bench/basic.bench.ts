@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
+// (more convenient benches since we only care about types)
+
 import { bench } from '@ark/attest'
 
 import type { PrismaClient } from './generated/index.js'
