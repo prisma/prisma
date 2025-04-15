@@ -296,9 +296,9 @@ interface PrismaClientConstructor {
 
 ${this.jsDoc}
 export interface PrismaClient<
-  ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+  in out ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  in out U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -360,6 +360,8 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
       2,
     )}
 }
+
+export type AnyPrismaClient = PrismaClient<any, any, any>
 
 export const PrismaClient = runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
 `
