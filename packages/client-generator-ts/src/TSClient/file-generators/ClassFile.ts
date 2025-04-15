@@ -7,7 +7,6 @@ import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
-import { buildDirname } from '../../utils/buildDirname'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
 import { buildGetWasmModule } from '../../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../../utils/buildInjectableEdgeEnv'
@@ -30,11 +29,6 @@ export function createClassFile(context: GenerateContext, options: TSClientOptio
     ts.moduleImport(context.importFileName(`./prismaNamespace`)).asNamespace('Prisma').typeOnly(),
   ]
 
-  if (context.moduleFormat === 'esm') {
-    imports.unshift(ts.moduleImport('node:url').named('fileURLToPath'))
-    imports.unshift(ts.moduleImport('node:path').asNamespace('path'))
-  }
-
   const stringifiedImports = imports.map((i) => ts.stringify(i))
 
   const prismaClientClass = new PrismaClientClass(context, options.runtimeName)
@@ -45,6 +39,11 @@ ${stringifiedImports.join('\n')}
 ${clientConfig(context, options)}
 
 ${prismaClientClass.toTS()}
+
+export function getPrismaClientClass(dirname: string): PrismaClientConstructor {
+  config.dirname = dirname
+  return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
+}
 `
 }
 
@@ -94,7 +93,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
 
   return `
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, context.moduleFormat)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
 ${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
 ${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
