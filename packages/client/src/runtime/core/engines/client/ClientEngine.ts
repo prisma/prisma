@@ -267,12 +267,12 @@ export class ClientEngine implements Engine<undefined> {
     const queryStr = JSON.stringify(query)
     this.lastStartedQuery = queryStr
 
-    const queryPlanString = await this.queryCompiler!.compile(queryStr).catch((err) =>
-      rethrowCompileErrorAsUserFacing(err),
-    )
-
     try {
       const [adapter, transactionManager] = await this.ensureStarted()
+
+      const queryPlanString = await this.queryCompiler!.compile(queryStr).catch((err) =>
+        rethrowCompileErrorAsUserFacing(err),
+      )
 
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
@@ -317,12 +317,12 @@ export class ClientEngine implements Engine<undefined> {
 
     this.lastStartedQuery = request
 
-    const response = await this.queryCompiler!.compileBatch(request).catch((err) =>
-      rethrowCompileErrorAsUserFacing(err),
-    )
-
     try {
       const [, transactionManager] = await this.ensureStarted()
+
+      const response = await this.queryCompiler!.compileBatch(request).catch((err) =>
+        rethrowCompileErrorAsUserFacing(err),
+      )
 
       let txInfo: InteractiveTransactionInfo<undefined>
       if (transaction?.kind === 'itx') {
