@@ -185,6 +185,36 @@ test("transforms IN template, doesn't touch scalar list", () => {
   })
 })
 
+test('transforms INSERT VALUES template', () => {
+  expect(
+    renderQuery(
+      {
+        type: 'templateSql',
+        fragments: [
+          { type: 'stringChunk', value: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ' },
+          { type: 'parameterTupleList' },
+        ],
+        placeholderFormat: {
+          prefix: '$',
+          hasNumbering: true,
+        } satisfies PlaceholderFormat,
+        params: [
+          [
+            [1, 2],
+            [3, 4],
+          ],
+        ],
+      } satisfies QueryPlanDbQuery,
+      {} as ScopeBindings,
+      {},
+    ),
+  ).toEqual({
+    sql: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ($1,$2),($3,$4)',
+    args: [1, 2, 3, 4],
+    argTypes: ['Numeric', 'Numeric', 'Numeric', 'Numeric'],
+  })
+})
+
 test('executes a generator', () => {
   const generators = new GeneratorRegistry()
   expect(
