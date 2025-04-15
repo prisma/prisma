@@ -42,7 +42,7 @@ rm -f /e2e/$NAME/LOGS.txt
   cp jest.config.js /test/$NAME/jest.config.js;
   # execute the test by running the _steps.ts file with tsx
   cd /test/$NAME;
-  tsx _steps.ts;
+  [ -f _steps.cts ] && tsx _steps.cts || tsx _steps.ts;
   # when inline snapshots are created the first time, copy for convencience
   cp -r /test/$NAME/tests/* /e2e/$NAME/tests/ 2> /dev/null || true;
   cp -r /test/$NAME/pnpm-lock.yaml /e2e/$NAME/ 2> /dev/null || true;
