@@ -15,6 +15,7 @@ export class GeneratorRegistry {
     this.register('cuid', new CuidGenerator())
     this.register('ulid', new UlidGenerator())
     this.register('nanoid', new NanoIdGenerator())
+    this.register('product', new ProductGenerator())
   }
 
   /**
@@ -90,6 +91,24 @@ class NanoIdGenerator implements ValueGenerator {
       return nanoid()
     } else {
       throw new Error('Invalid Nanoid generator arguments')
+    }
+  }
+}
+
+class ProductGenerator implements ValueGenerator {
+  generate(lhs: PrismaValue | undefined, rhs: PrismaValue | undefined): PrismaValue[] {
+    if (lhs === undefined || rhs === undefined) {
+      throw new Error('Invalid Product generator arguments')
+    }
+
+    if (Array.isArray(lhs) && Array.isArray(rhs)) {
+      return lhs.flatMap((l) => rhs.map((r) => [l, r]))
+    } else if (Array.isArray(lhs)) {
+      return lhs.map((l) => [l, rhs])
+    } else if (Array.isArray(rhs)) {
+      return rhs.map((r) => [lhs, r])
+    } else {
+      return [[lhs, rhs]]
     }
   }
 }

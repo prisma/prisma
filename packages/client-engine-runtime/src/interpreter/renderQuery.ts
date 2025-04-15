@@ -1,6 +1,13 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import type { Fragment, PlaceholderFormat, PrismaValue, QueryPlanDbQuery } from '../QueryPlan'
+import type {
+  Fragment,
+  PlaceholderFormat,
+  PrismaValue,
+  PrismaValueGenerator,
+  PrismaValuePlaceholder,
+  QueryPlanDbQuery,
+} from '../QueryPlan'
 import { isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
@@ -14,13 +21,13 @@ export function renderQuery(
   const queryType = dbQuery.type
   switch (queryType) {
     case 'rawSql':
-      return renderRawSql(dbQuery.sql, substituteParams(dbQuery.params, scope, generators))
+      return renderRawSql(dbQuery.sql, evaluateParams(dbQuery.params, scope, generators))
 
     case 'templateSql':
       return renderTemplateSql(
         dbQuery.fragments,
         dbQuery.placeholderFormat,
-        substituteParams(dbQuery.params, scope, generators),
+        evaluateParams(dbQuery.params, scope, generators),
       )
 
     default:
@@ -28,31 +35,41 @@ export function renderQuery(
   }
 }
 
-function substituteParams(
+function evaluateParams(
   params: PrismaValue[],
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
 ): PrismaValue[] {
-  return params.map((param) => {
-    if (isPrismaValueGenerator(param)) {
-      const { name, args } = param.prisma__value
+  return params.map((param) => evaluateParam(param, scope, generators))
+}
+
+function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): PrismaValue {
+  let value = param
+
+  while (doesRequireEvaluation(value)) {
+    if (isPrismaValuePlaceholder(value)) {
+      const found = scope[value.prisma__value.name]
+      if (found === undefined) {
+        throw new Error(`Missing value for query variable ${value.prisma__value.name}`)
+      }
+      value = found as PrismaValue
+    } else if (isPrismaValueGenerator(value)) {
+      const { name, args } = value.prisma__value
       const generator = generators[name]
       if (!generator) {
         throw new Error(`Encountered an unknown generator '${name}'`)
       }
-      return generator.generate(...args)
+      value = generator.generate(...args.map((arg) => evaluateParam(arg, scope, generators)))
+    } else {
+      assertNever(value, `Unexpected unevaluated value type: ${value}`)
     }
-    if (!isPrismaValuePlaceholder(param)) {
-      return param
-    }
+  }
 
-    const value = scope[param.prisma__value.name]
-    if (value === undefined) {
-      throw new Error(`Missing value for query variable ${param.prisma__value.name}`)
-    }
+  if (Array.isArray(value)) {
+    value = value.map((el) => evaluateParam(el, scope, generators))
+  }
 
-    return value as PrismaValue
-  })
+  return value
 }
 
 function renderTemplateSql(
@@ -93,6 +110,37 @@ function renderTemplateSql(
                   })
                   .join(',')
           return `(${placeholders})`
+        }
+
+        case 'parameterTupleList': {
+          if (paramIndex >= params.length) {
+            throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
+          }
+          const paramValue = params[paramIndex++]
+
+          if (!Array.isArray(paramValue)) {
+            throw new Error(`Malformed query template. Tuple list expected.`)
+          }
+
+          if (paramValue.length === 0) {
+            throw new Error(`Malformed query template. Tuple list cannot be empty.`)
+          }
+
+          const tupleList = paramValue
+            .map((tuple) => {
+              if (!Array.isArray(tuple)) {
+                throw new Error(`Malformed query template. Tuple expected.`)
+              }
+              const elements = tuple
+                .map((value) => {
+                  flattenedParams.push(value)
+                  return formatPlaceholder(placeholderFormat, placeholderNumber++)
+                })
+                .join(',')
+              return `(${elements})`
+            })
+            .join(',')
+          return tupleList
         }
 
         default:
@@ -170,4 +218,8 @@ function placeholderTypeToArgType(type: string): ArgType {
   }
 
   return mappedType
+}
+
+function doesRequireEvaluation(param: PrismaValue): param is PrismaValuePlaceholder | PrismaValueGenerator {
+  return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }

@@ -102,3 +102,18 @@ test('should generate different and valid Nano IDs with custom length', () => {
   // example: OS66Fq-
   expect(nanoid1).toMatch(/^[A-Za-z0-9_-]{7}$/)
 })
+
+test('should calculate correct products', () => {
+  const registry = new GeneratorRegistry()
+  const snapshot = registry.snapshot()
+
+  expect(snapshot.product.generate(1, [1, 2])).toEqual([
+    [1, 1],
+    [1, 2],
+  ])
+  expect(snapshot.product.generate([1, 2], 1)).toEqual([
+    [1, 1],
+    [2, 1],
+  ])
+  expect(snapshot.product.generate(1, 2)).toEqual([[1, 2]])
+})
