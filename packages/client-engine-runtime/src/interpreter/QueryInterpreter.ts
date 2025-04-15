@@ -10,7 +10,7 @@ import { assertNever } from '../utils'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
-import { serialize } from './serialize'
+import { serialize, serializeRaw } from './serialize'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -97,7 +97,13 @@ export class QueryInterpreter {
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, queryable, async () => {
-          return serialize(await queryable.queryRaw(query))
+          const result = await queryable.queryRaw(query)
+          switch (node.args.type) {
+            case 'rawSql':
+              return serializeRaw(result)
+            default:
+              return serialize(result)
+          }
         })
       }
 
