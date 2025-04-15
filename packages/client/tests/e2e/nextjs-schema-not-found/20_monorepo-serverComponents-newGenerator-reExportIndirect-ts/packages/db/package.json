@@ -1,0 +1,26 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "prisma generate && tsc && sh -c 'cp generated/*.node dist/generated/'"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "18.19.76",
+    "prisma": "/tmp/prisma-0.0.0.tgz",
+    "typescript": "5.8.3"
+  },
+  "dependencies": {
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
+  }
+}
