@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sqlite existingdb: 1 unexecutable schema change with --create-only should succeed 3`] = `
+exports[`SQLite existingdb: 1 unexecutable schema change with --create-only should succeed 3`] = `
 "
 ⚠️ We found changes that cannot be executed:
 
