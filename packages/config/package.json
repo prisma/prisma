@@ -20,7 +20,7 @@
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
-    "effect": "3.12.10",
+    "effect": "3.14.6",
     "esbuild-register": "3.6.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0"
