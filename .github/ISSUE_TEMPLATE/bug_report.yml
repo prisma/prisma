@@ -126,6 +126,21 @@ body:
       required: true
 
   - type: textarea
+    id: prisma-config
+    attributes:
+      label: Prisma Config
+      description: |
+        Provide relevant parts of your **Prisma Config**
+
+        ⚠️ **Do NOT include database credentials!**
+      value: |
+        ```ts
+        // Add your `prisma.config.ts`
+        ```
+    validations:
+      required: false
+
+  - type: textarea
     id: logs
     attributes:
       label: Logs & Debug Info
