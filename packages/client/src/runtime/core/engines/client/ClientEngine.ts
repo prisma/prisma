@@ -12,6 +12,7 @@ import {
   TransactionInfo,
   TransactionManager,
   TransactionManagerError,
+  UserFacingError,
 } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
@@ -269,7 +270,10 @@ export class ClientEngine implements Engine<undefined> {
     try {
       const [adapter, transactionManager] = await this.ensureStarted()
 
-      const queryPlanString = await this.queryCompiler!.compile(queryStr)
+      const queryPlanString = await this.queryCompiler!.compile(queryStr).catch((err) =>
+        rethrowCompileErrorAsUserFacing(err),
+      )
+
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
       debug(`query plan created`, queryPlanString)
@@ -316,7 +320,9 @@ export class ClientEngine implements Engine<undefined> {
     try {
       const [, transactionManager] = await this.ensureStarted()
 
-      const response = await this.queryCompiler!.compileBatch(request)
+      const response = await this.queryCompiler!.compileBatch(request).catch((err) =>
+        rethrowCompileErrorAsUserFacing(err),
+      )
 
       let txInfo: InteractiveTransactionInfo<undefined>
       if (transaction?.kind === 'itx') {
@@ -418,6 +424,14 @@ export class ClientEngine implements Engine<undefined> {
         return { data: { [action]: Object.fromEntries(selected) } }
       }
     })
+  }
+}
+
+function rethrowCompileErrorAsUserFacing(error: any): never {
+  if (typeof error['message'] === 'string' && typeof error['code'] === 'string') {
+    throw new UserFacingError(error['message'], error['code'], error.meta)
+  } else {
+    throw error
   }
 }
 
