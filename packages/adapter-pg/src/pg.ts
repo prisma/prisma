@@ -212,7 +212,16 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
+    const pool = new pg.Pool(this.config);
+
+    // Ensure raw queries utilize schema
+    if (this.options?.schema) {
+      pool.on('connect', (client) => {
+        client.query(`SET search_path TO ${schema};`);
+      });
+    }
+
+    return new PrismaPgAdapter(pool, this.options, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
