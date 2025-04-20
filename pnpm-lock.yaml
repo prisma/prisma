@@ -223,11 +223,12 @@ importers:
         specifier: 4.20250214.0
         version: 4.20250214.0
       '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
+        specifier: 6.6.0
+        version: 6.6.0
       ky:
         specifier: 1.7.5
         version: 1.7.5
+    devDependencies:
       miniflare:
         specifier: ^3.20250214.0
         version: 3.20250214.0
@@ -3288,6 +3289,12 @@ packages:
   '@planetscale/database@1.19.0':
     resolution: {integrity: sha512-Tv4jcFUFAFjOWrGSio49H6R2ijALv0ZzVBfJKIdm+kl9X046Fh4LLawrF9OMsglVbK6ukqMJsUCeucGAFTBcMA==}
     engines: {node: '>=16'}
+
+  '@prisma/debug@6.6.0':
+    resolution: {integrity: sha512-DL6n4IKlW5k2LEXzpN60SQ1kP/F6fqaCgU/McgaYsxSf43GZ8lwtmXLke9efS+L1uGmrhtBUP4npV/QKF8s2ZQ==}
+
+  '@prisma/driver-adapter-utils@6.6.0':
+    resolution: {integrity: sha512-hbYdZQsJS1ix924mg3eVpGKQ01ZzDPhI/VnA3Opgz1sNB7QMLNw1kl6sEmwSDbtJlVvZOvRxRZmG2BfkW9eaqA==}
 
   '@prisma/engines-version@6.7.0-20.afce488d74ae76fa9e42ceecdd764b2c7258b07e':
     resolution: {integrity: sha512-1Vb2OGSSV9O8gvd4f9B/wWeLbbNcBfpPWQYhVGZFSEggUhEFJX82ep/ngIU8Y2I5j8j0XP5PBdymCq86dwfJcw==}
@@ -9488,6 +9495,12 @@ snapshots:
       '@noble/hashes': 1.7.1
 
   '@planetscale/database@1.19.0': {}
+
+  '@prisma/debug@6.6.0': {}
+
+  '@prisma/driver-adapter-utils@6.6.0':
+    dependencies:
+      '@prisma/debug': 6.6.0
 
   '@prisma/engines-version@6.7.0-20.afce488d74ae76fa9e42ceecdd764b2c7258b07e': {}
 
