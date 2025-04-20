@@ -204,21 +204,34 @@ export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFac
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
-    const { Miniflare } = await import('miniflare')
+    try {
+      // Use dynamic import with a try/catch to handle environments where miniflare isn't available
+      const { Miniflare } = await import('miniflare')
 
-    const mf = new Miniflare({
-      modules: true,
-      d1Databases: {
-        db: globalThis.crypto.randomUUID(),
-      },
-      script: `
-      export default {
-        async fetch(request, env, ctx) {}
-      }
-      `,
-    })
-    const db = await mf.getD1Database('db')
-    return new PrismaD1Adapter(db, () => mf.dispose())
+      const mf = new Miniflare({
+        modules: true,
+        d1Databases: {
+          db: globalThis.crypto.randomUUID(),
+        },
+        script: `
+        export default {
+          async fetch(request, env, ctx) {}
+        }
+        `,
+      })
+      const db = await mf.getD1Database('db')
+      return new PrismaD1Adapter(db, () => mf.dispose())
+    } catch (e) {
+      // Handle case when miniflare is not available (e.g., in production environments)
+      console.error(`${this.adapterName}: Could not connect to shadow database: miniflare is not available.`)
+      console.error('This is expected in production environments but may cause issues with migrations.')
+      console.error('For development with migrations, please ensure miniflare is installed as a dev dependency.')
+
+      throw new DriverAdapterError({
+        kind: 'GenericJs',
+        id: 1,
+      })
+    }
   }
 }
 

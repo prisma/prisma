@@ -40,8 +40,10 @@
   "sideEffects": false,
   "dependencies": {
     "@cloudflare/workers-types": "4.20250214.0",
-    "@prisma/driver-adapter-utils": "workspace:*",
-    "ky": "1.7.5",
+    "@prisma/driver-adapter-utils": "6.6.0",
+    "ky": "1.7.5"
+  },
+  "devDependencies": {
     "miniflare": "^3.20250214.0"
   }
 }
