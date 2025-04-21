@@ -7,7 +7,6 @@ import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
-import { buildDirname } from '../../utils/buildDirname'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
 import { buildGetWasmModule } from '../../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../../utils/buildInjectableEdgeEnv'
@@ -17,27 +16,34 @@ import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/**
  * WARNING: This is an internal file that is subject to change!
- * 
+ *
  * 🛑 Under no circumstances should you import this file directly! 🛑
- * 
+ *
  * Please import the \`PrismaClient\` class from the \`client.ts\` file instead.
  */
 `
 
 export function createClassFile(context: GenerateContext, options: TSClientOptions): string {
-  const imports = [
+  const imports: ts.BasicBuilder[] = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`./prismaNamespace`)).asNamespace('Prisma').typeOnly(),
-  ].map((i) => ts.stringify(i))
+  ]
+
+  const stringifiedImports = imports.map((i) => ts.stringify(i))
 
   const prismaClientClass = new PrismaClientClass(context, options.runtimeName)
 
   return `${jsDocHeader}
-${imports.join('\n')}
-  
+${stringifiedImports.join('\n')}
+
 ${clientConfig(context, options)}
 
 ${prismaClientClass.toTS()}
+
+export function getPrismaClientClass(dirname: string): PrismaClientConstructor {
+  config.dirname = dirname
+  return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
+}
 `
 }
 
@@ -87,7 +93,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
 
   return `
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
 ${buildGetWasmModule({ component: 'engine', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
 ${buildGetWasmModule({ component: 'compiler', runtimeBase, runtimeName, target, activeProvider, moduleFormat })}

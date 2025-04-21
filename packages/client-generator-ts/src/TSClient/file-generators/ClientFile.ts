@@ -6,6 +6,7 @@ import * as ts from '@prisma/ts-builders'
 import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
+import { getPrismaClientClassDocComment } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/**
@@ -20,13 +21,49 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   options.generator.config.engineType = clientEngineType
 
   const imports = [
-    ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums'),
-    ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma'),
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
+    ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
+    ts.moduleImport(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
   ].map((i) => ts.stringify(i))
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
-    ts.moduleExportFrom(context.importFileName('./internal/class')).named('PrismaClient'),
+    ts
+      .moduleExport(
+        ts
+          .constDeclaration('PrismaClient')
+          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
+      )
+      .setDocComment(getPrismaClientClassDocComment(context)),
+    ts.moduleExport(
+      ts
+        .typeDeclaration(
+          'PrismaClient',
+          ts
+            .namedType('$Class.PrismaClient')
+            .addGenericArgument(ts.namedType('ClientOptions'))
+            .addGenericArgument(ts.namedType('Log'))
+            .addGenericArgument(ts.namedType('ExtArgs')),
+        )
+        .addGenericParameter(
+          ts
+            .genericParameter('ClientOptions')
+            .extends(ts.namedType('Prisma.PrismaClientOptions'))
+            .default(ts.namedType('Prisma.PrismaClientOptions')),
+        )
+        .addGenericParameter(
+          ts
+            .genericParameter('Log')
+            .default(ts.namedType('$Class.LogOptions').addGenericArgument(ts.namedType('ClientOptions'))),
+        )
+        .addGenericParameter(
+          ts
+            .genericParameter('ExtArgs')
+            .extends(ts.namedType('runtime.Types.Extensions.InternalArgs'))
+            .default(ts.namedType('runtime.Types.Extensions.DefaultArgs')),
+        ),
+    ),
   ].map((e) => ts.stringify(e))
 
   const modelExports = Object.values(context.dmmf.typeAndModelMap)
@@ -82,7 +119,9 @@ ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 
 function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
   if (edge) {
-    return ''
+    return `\
+const __dirname = '/'
+`
   }
 
   let preamble = `\

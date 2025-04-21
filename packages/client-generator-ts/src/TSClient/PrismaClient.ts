@@ -245,6 +245,34 @@ function eventRegistrationMethodDeclaration(runtimeName: TSClientOptions['runtim
   }
 }
 
+export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.DocComment {
+  let example: DMMF.ModelMapping
+
+  if (dmmf.mappings.modelOperations.length) {
+    example = dmmf.mappings.modelOperations[0]
+  } else {
+    // because generator models is empty we need to create a fake example
+    example = {
+      model: 'User',
+      plural: 'users',
+    }
+  }
+
+  return ts.docComment`
+    ## Prisma Client
+
+    Type-safe database client for TypeScript
+    @example
+    \`\`\`
+    const prisma = new PrismaClient()
+    // Fetch zero or more ${capitalize(example.plural)}
+    const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+    \`\`\`
+
+    Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
+  `
+}
+
 export class PrismaClientClass {
   constructor(
     private readonly context: GenerateContext,
@@ -252,44 +280,21 @@ export class PrismaClientClass {
   ) {}
 
   private get jsDoc(): string {
-    const { dmmf } = this.context
-
-    let example: DMMF.ModelMapping
-
-    if (dmmf.mappings.modelOperations.length) {
-      example = dmmf.mappings.modelOperations[0]
-    } else {
-      // because generator models is empty we need to create a fake example
-      example = {
-        model: 'User',
-        plural: 'users',
-      }
-    }
-
-    return `/**
- * ## Prisma Client
- *
- * Type-safe database client for TypeScript
- * @example
- * \`\`\`
- * const prisma = new PrismaClient()
- * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
- * \`\`\`
- *
- * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
- */`
+    return ts.stringify(getPrismaClientClassDocComment(this.context))
   }
 
   public toTS(): string {
     const { dmmf } = this.context
 
     return `\
-interface PrismaClientConstructor {
+export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
+  'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never
+
+export interface PrismaClientConstructor {
   ${indent(this.jsDoc, TAB_SIZE)}
   new <
     ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-    U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+    U = LogOptions<ClientOptions>,
     ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
   >(options?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>): PrismaClient<ClientOptions, U, ExtArgs>
 }
@@ -297,7 +302,7 @@ interface PrismaClientConstructor {
 ${this.jsDoc}
 export interface PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  U = LogOptions<ClientOptions>,
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -359,10 +364,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
         .join('\n\n'),
       2,
     )}
-}
-
-export const PrismaClient = runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
-`
+}`
   }
 
   private applyPendingMigrationsDefinition(this: PrismaClientClass) {

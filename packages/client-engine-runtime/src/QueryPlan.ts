@@ -41,7 +41,11 @@ export type QueryPlanDbQuery =
       params: PrismaValue[]
     }
 
-export type Fragment = { type: 'stringChunk'; value: string } | { type: 'parameter' } | { type: 'parameterTuple' }
+export type Fragment =
+  | { type: 'stringChunk'; value: string }
+  | { type: 'parameter' }
+  | { type: 'parameterTuple' }
+  | { type: 'parameterTupleList' }
 
 export interface PlaceholderFormat {
   prefix: string
