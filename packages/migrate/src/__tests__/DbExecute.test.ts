@@ -18,7 +18,6 @@ const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
@@ -516,7 +515,7 @@ COMMIT;`,
     })
   })
 
-  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
     }
@@ -921,7 +920,7 @@ COMMIT;`,
     })
   })
 
-  describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
+  describeOnly({ sqlserver: true }, 'sqlserver', () => {
     if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }

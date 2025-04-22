@@ -17,7 +17,6 @@ import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeOnly } from './__helpers__/conditionalTests'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 const captureStdout = new CaptureStdout()
 
@@ -770,7 +769,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
     }
@@ -1007,7 +1006,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
+  describeOnly({ sqlserver: true }, 'sqlserver', () => {
     if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }

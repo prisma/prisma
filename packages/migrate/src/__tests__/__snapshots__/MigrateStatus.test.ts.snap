@@ -1,7 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`postgres should fail if cannot connect 3`] = `""`;
-
 exports[`SQLite existing-db-1-migration 3`] = `""`;
 
 exports[`SQLite reset 3`] = `""`;
@@ -9,3 +7,5 @@ exports[`SQLite reset 3`] = `""`;
 exports[`SQLite schema-folder-db-exists 3`] = `""`;
 
 exports[`SQLite should fail if no sqlite db - empty schema 3`] = `""`;
+
+exports[`postgres should fail if cannot connect 3`] = `""`;

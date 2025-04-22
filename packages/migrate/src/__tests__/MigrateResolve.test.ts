@@ -231,9 +231,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   })
 })
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
-describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
