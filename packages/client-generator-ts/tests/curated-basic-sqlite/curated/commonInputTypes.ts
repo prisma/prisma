@@ -7,19 +7,21 @@
 import * as runtime from '@prisma/client/runtime/library'
 import type * as Prisma from './internal/prismaNamespace.js'
 
-export interface StringFilter<$PrismaModel = never, AdditionalValue = never> {
-  lt?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  lte?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  gt?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  gte?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  contains?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  startsWith?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  endsWith?: string | Prisma.StringFieldRefInput<$PrismaModel>
-  equals?: Prisma.StringFieldRefInput<$PrismaModel> | string | AdditionalValue
-  in?: string[] | AdditionalValue
-  notIn?: string[] | AdditionalValue
-  not?: Prisma.NestedStringFilter<$PrismaModel, AdditionalValue> | string | AdditionalValue
+type DistributedArray<T> = T extends unknown ? T[] : never
+
+interface BaseFilter<T, Ref, AdditionalValue> {
+  lt?: T | Ref
+  lte?: T | Ref
+  gt?: T | Ref
+  gte?: T | Ref
+  equals?: T | Ref | AdditionalValue
+  in?: DistributedArray<T> | AdditionalValue
+  notIn?: DistributedArray<T> | AdditionalValue
+  not?: this | T | AdditionalValue
 }
+
+export interface StringFilter<$PrismaModel = never, AdditionalValue = never>
+  extends BaseFilter<string, Prisma.StringFieldRefInput<$PrismaModel>, AdditionalValue> {}
 
 export interface StringNullableFilter<$PrismaModel = never> extends StringFilter<$PrismaModel, null> {}
 
@@ -100,19 +102,6 @@ export interface NestedIntFilter<$PrismaModel = never, AdditionalValue = never>
 export interface IntNullableFilter<$PrismaModel = never> extends IntFilter<$PrismaModel, null> {}
 
 export interface NestedIntNullableFilter<$PrismaModel = never> extends IntNullableFilter<$PrismaModel> {}
-
-type DistributedArray<T> = T extends unknown ? T[] : never
-
-interface BaseFilter<T, Ref, AdditionalValue> {
-  lt?: T | Ref
-  lte?: T | Ref
-  gt?: T | Ref
-  gte?: T | Ref
-  equals?: T | Ref | AdditionalValue
-  in?: DistributedArray<T> | AdditionalValue
-  notIn?: DistributedArray<T> | AdditionalValue
-  not?: this | T | AdditionalValue
-}
 
 export interface DecimalFilter<$PrismaModel = never, AdditionalValue = never>
   extends BaseFilter<
