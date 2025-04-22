@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "name": "curated-basic-sqlite",
+  "description": "Type output from sandbox/basic-sqlite with suggested improvements",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "setup": "pnpm i --ignore-workspace",
+    "generate": "pnpm prisma generate",
+    "test": "tsx ./index.ts",
+    "format": "pnpm prettier --write ."
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "../../../packages/client",
+    "@prisma/config": "../../../packages/config"
+  },
+  "devDependencies": {
+    "@types/node": "18.19.76",
+    "prisma": "../../../packages/cli",
+    "typescript": "5.2.2"
+  }
+}

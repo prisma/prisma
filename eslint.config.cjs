@@ -51,6 +51,7 @@ module.exports = [
       '**/packages/cli/install/**',
       '**/packages/cli/preinstall/**',
       'packages/cli/**/tmp-*',
+      'packages/client-generator-ts/tests/curated-basic-sqlite',
       '**/sandbox/**',
     ],
   },

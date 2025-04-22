@@ -1,0 +1,49 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+  .:
+    dependencies:
+      '@prisma/client':
+        specifier: ../../../packages/client
+        version: link:../../../packages/client
+      '@prisma/config':
+        specifier: ../../../packages/config
+        version: link:../../../packages/config
+    devDependencies:
+      '@types/node':
+        specifier: 18.19.76
+        version: 18.19.76
+      prisma:
+        specifier: ../../../packages/cli
+        version: link:../../../packages/cli
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
+
+packages:
+  '@types/node@18.19.76':
+    resolution:
+      { integrity: sha512-yvR7Q9LdPz2vGpmpJX5LolrgRdWvB67MJKDPSgIIzpFbaf9a1j/f5DnLp5VDyHGMR0QZHlTr1afsD87QCXFHKw== }
+
+  typescript@5.2.2:
+    resolution:
+      { integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w== }
+    engines: { node: '>=14.17' }
+    hasBin: true
+
+  undici-types@5.26.5:
+    resolution:
+      { integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA== }
+
+snapshots:
+  '@types/node@18.19.76':
+    dependencies:
+      undici-types: 5.26.5
+
+  typescript@5.2.2: {}
+
+  undici-types@5.26.5: {}
