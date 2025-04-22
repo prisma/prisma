@@ -20,7 +20,7 @@ const driverAdapters: Record<string, DriverAdapterTestConfig> = {
     adapter: () => {
       return Promise.resolve(
         new PrismaLibSQL({
-          url: process.env.DATABASE_URL!,
+          url: 'file:./dev.db',
         }),
       )
     },
