@@ -9,7 +9,7 @@ declare const client: PrismaClient
 
 bench('1 ops', () => {
   client.model1.findMany({ where: { int: { gt: 5 } } })
-}).types([1066, 'instantiations'])
+}).types([1126, 'instantiations'])
 
 bench('5 ops', () => {
   client.model1.findMany({ where: { int: { gt: 5 } } })
@@ -28,7 +28,7 @@ bench('5 ops', () => {
     data: { optionalString: 'updated' },
   })
   client.model2.count()
-}).types([2923, 'instantiations'])
+}).types([3038, 'instantiations'])
 
 bench('10 op', () => {
   client.model1.findMany({ where: { int: { gt: 5 } }, take: 10 })
@@ -63,4 +63,4 @@ bench('10 op', () => {
     },
   })
   client.model1.deleteMany({ where: { optionalFloat: { lt: 0 } } })
-}).types([4530, 'instantiations'])
+}).types([4859, 'instantiations'])

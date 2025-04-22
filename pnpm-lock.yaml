@@ -8,9 +8,6 @@ importers:
 
   .:
     devDependencies:
-      '@ark/attest':
-        specifier: 0.45.11
-        version: 0.45.11(typescript@5.4.5)
       '@eslint-community/eslint-plugin-eslint-comments':
         specifier: 4.4.1
         version: 4.4.1(eslint@9.22.0(jiti@2.4.2))
@@ -1922,6 +1919,16 @@ importers:
       vitest:
         specifier: 3.0.9
         version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
+  packages/type-benchmark-tests:
+    dependencies:
+      '@ark/attest':
+        specifier: 0.45.11
+        version: 0.45.11(typescript@5.8.2)
+    devDependencies:
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
 
 packages:
 
@@ -8075,16 +8082,16 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.45.11(typescript@5.4.5)':
+  '@ark/attest@0.45.11(typescript@5.8.2)':
     dependencies:
       '@ark/fs': 0.45.10
       '@ark/util': 0.45.10
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
-      '@typescript/vfs': 1.6.1(typescript@5.4.5)
+      '@typescript/vfs': 1.6.1(typescript@5.8.2)
       arktype: 2.1.19
       prettier: 3.5.3
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
@@ -10189,10 +10196,10 @@ snapshots:
       treeify: 1.1.0
       yargs: 16.2.0
 
-  '@typescript/vfs@1.6.1(typescript@5.4.5)':
+  '@typescript/vfs@1.6.1(typescript@5.8.2)':
     dependencies:
       debug: 4.4.0
-      typescript: 5.4.5
+      typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 

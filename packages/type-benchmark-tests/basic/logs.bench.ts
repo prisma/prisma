@@ -20,7 +20,7 @@ bench('inferred', () => {
   // the reason for the increased instantiation count is this triggers
   // a check to determine if the log config affects the structural assignability
   // of PrismaClientConstructor
-}).types([48891, 'instantiations'])
+}).types([46873, 'instantiations'])
 
 bench('annotated', () => {
   const client = new PrismaClientConstructor({
@@ -38,7 +38,7 @@ bench('annotated', () => {
   }
 
   addPrismaClientExtensions(client)
-}).types([255, 'instantiations'])
+}).types([280, 'instantiations'])
 
 // You likely want to add variance annotations to reflect the desired behavior like:
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,4 +64,4 @@ bench('Any PrismaClient', () => {
 
   addPrismaClientExtensions(client)
   // with the suggested variance annotations, this value goes down to 247 instantiations
-}).types([35003, 'instantiations'])
+}).types([34056, 'instantiations'])

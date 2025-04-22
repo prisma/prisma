@@ -17,19 +17,19 @@ bench('findUnique - Link', () => {
   prisma.link.findUnique({
     where: { id: 'some_link_id' },
   })
-}).types([723, 'instantiations'])
+}).types([744, 'instantiations'])
 
 bench('findFirst - Link', () => {
   prisma.link.findFirst({
     where: { url: { contains: 'example.com' } },
   })
-}).types([660, 'instantiations'])
+}).types([707, 'instantiations'])
 
 bench('findMany - Link', () => {
   prisma.link.findMany({
     take: 10,
   })
-}).types([644, 'instantiations'])
+}).types([673, 'instantiations'])
 
 bench('findUnique - User select scalar', () => {
   prisma.user.findUnique({
@@ -40,7 +40,7 @@ bench('findUnique - User select scalar', () => {
       name: true,
     },
   })
-}).types([210, 'instantiations'])
+}).types([231, 'instantiations'])
 
 bench('findMany - Link select scalar', () => {
   prisma.link.findMany({
@@ -50,7 +50,7 @@ bench('findMany - Link select scalar', () => {
       shortUrl: true,
     },
   })
-}).types([451, 'instantiations'])
+}).types([532, 'instantiations'])
 
 bench('findUnique - User include Links (1-M)', () => {
   prisma.user.findUnique({
@@ -59,7 +59,7 @@ bench('findUnique - User include Links (1-M)', () => {
       links: true,
     },
   })
-}).types([582, 'instantiations'])
+}).types([603, 'instantiations'])
 
 bench('findUnique - Link include User (M-1)', () => {
   prisma.link.findUnique({
@@ -68,7 +68,7 @@ bench('findUnique - Link include User (M-1)', () => {
       user: true,
     },
   })
-}).types([1024, 'instantiations'])
+}).types([1049, 'instantiations'])
 
 bench('findUnique - User include Links with select', () => {
   prisma.user.findUnique({
@@ -83,7 +83,7 @@ bench('findUnique - User include Links with select', () => {
       },
     },
   })
-}).types([669, 'instantiations'])
+}).types([690, 'instantiations'])
 
 bench('findUnique - User select scalar and include Links', () => {
   prisma.user.findUnique({
@@ -97,7 +97,7 @@ bench('findUnique - User select scalar and include Links', () => {
       },
     },
   })
-}).types([264, 'instantiations'])
+}).types([285, 'instantiations'])
 
 bench('create - User simple', () => {
   prisma.user.create({
@@ -106,7 +106,7 @@ bench('create - User simple', () => {
       name: 'New User',
     },
   })
-}).types([424, 'instantiations'])
+}).types([441, 'instantiations'])
 
 bench('create - Link simple', () => {
   prisma.link.create({
@@ -115,7 +115,7 @@ bench('create - Link simple', () => {
       shortUrl: 'new-lnk',
     },
   })
-}).types([741, 'instantiations'])
+}).types([758, 'instantiations'])
 
 bench('create - User with nested Links (1-M)', () => {
   prisma.user.create({
@@ -129,7 +129,7 @@ bench('create - User with nested Links (1-M)', () => {
       },
     },
   })
-}).types([504, 'instantiations'])
+}).types([521, 'instantiations'])
 
 bench('create - Link connecting to existing User', () => {
   prisma.link.create({
@@ -141,7 +141,7 @@ bench('create - Link connecting to existing User', () => {
       },
     },
   })
-}).types([743, 'instantiations'])
+}).types([764, 'instantiations'])
 
 bench('update - User simple', () => {
   prisma.user.update({
@@ -150,7 +150,7 @@ bench('update - User simple', () => {
       name: 'Updated Name',
     },
   })
-}).types([458, 'instantiations'])
+}).types([483, 'instantiations'])
 
 bench('update - User nested connect/disconnect Links', () => {
   prisma.user.update({
@@ -162,7 +162,7 @@ bench('update - User nested connect/disconnect Links', () => {
       },
     },
   })
-}).types([594, 'instantiations'])
+}).types([643, 'instantiations'])
 
 bench('update - User nested updateMany Links (1-M)', () => {
   prisma.user.update({
@@ -176,7 +176,7 @@ bench('update - User nested updateMany Links (1-M)', () => {
       },
     },
   })
-}).types([552, 'instantiations'])
+}).types([577, 'instantiations'])
 
 bench('update - User nested upsert Link', () => {
   prisma.user.update({
@@ -193,7 +193,7 @@ bench('update - User nested upsert Link', () => {
       },
     },
   })
-}).types([717, 'instantiations'])
+}).types([746, 'instantiations'])
 
 bench('upsert - User simple', () => {
   prisma.user.upsert({
@@ -201,19 +201,19 @@ bench('upsert - User simple', () => {
     create: { email: 'maybe_exists@example.com', name: 'Created User' },
     update: { name: 'Updated Existing User' },
   })
-}).types([570, 'instantiations'])
+}).types([599, 'instantiations'])
 
 bench('delete - Link simple', () => {
   prisma.link.delete({
     where: { id: 'link_to_delete' },
   })
-}).types([720, 'instantiations'])
+}).types([741, 'instantiations'])
 
 bench('deleteMany - Link simple', () => {
   prisma.link.deleteMany({
     where: { url: { endsWith: '.org' } },
   })
-}).types([145, 'instantiations'])
+}).types([156, 'instantiations'])
 
 bench('aggregate - Link count', () => {
   prisma.link.aggregate({
@@ -222,14 +222,14 @@ bench('aggregate - Link count', () => {
     },
     where: { userId: 'some_user_id' },
   })
-}).types([122, 'instantiations'])
+}).types([138, 'instantiations'])
 
 bench('aggregate - User count', () => {
   prisma.user.aggregate({
     _count: { _all: true },
     where: { email: { contains: '@example.' } },
   })
-}).types([139, 'instantiations'])
+}).types([155, 'instantiations'])
 
 bench('groupBy - Link by userId', () => {
   prisma.link.groupBy({
@@ -238,7 +238,7 @@ bench('groupBy - Link by userId', () => {
       id: true,
     },
   })
-}).types([1173, 'instantiations'])
+}).types([1226, 'instantiations'])
 
 bench('groupBy - User by date (truncation needed)', () => {
   prisma.user.groupBy({
@@ -254,14 +254,14 @@ bench('groupBy - User by date (truncation needed)', () => {
       },
     },
   })
-}).types([1318, 'instantiations'])
+}).types([1403, 'instantiations'])
 
 bench('transaction scaling (0- user update only)', () => {
   prisma.user.update({
     where: { id: 'user_for_tx' },
     data: { name: 'Tx Updated Name' },
   })
-}).types([458, 'instantiations'])
+}).types([483, 'instantiations'])
 
 bench('transaction scaling(1)', () => {
   prisma.$transaction([
@@ -270,7 +270,7 @@ bench('transaction scaling(1)', () => {
       data: { name: 'Tx Updated Name' },
     }),
   ])
-}).types([2091, 'instantiations'])
+}).types([2094, 'instantiations'])
 
 bench('transaction scaling(2)', () => {
   prisma.$transaction([
@@ -286,7 +286,7 @@ bench('transaction scaling(2)', () => {
       },
     }),
   ])
-}).types([3769, 'instantiations'])
+}).types([3798, 'instantiations'])
 
 bench('transaction scaling(10)', () => {
   prisma.$transaction([
@@ -335,7 +335,7 @@ bench('transaction scaling(10)', () => {
       where: { url: { contains: 'temp-link' } },
     }),
   ])
-}).types([8084, 'instantiations'])
+}).types([8365, 'instantiations'])
 
 bench('transaction - interactive User/Link', () => {
   prisma.$transaction(async (tx) => {
@@ -351,4 +351,4 @@ bench('transaction - interactive User/Link', () => {
     })
     return link
   })
-}).types([1190, 'instantiations'])
+}).types([1228, 'instantiations'])

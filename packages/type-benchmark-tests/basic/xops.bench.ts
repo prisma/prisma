@@ -318,7 +318,7 @@ bench('client extensions(0)- 1 op', () => {
     where: { id: 'op1_findFirst_user' },
     select: { name: true },
   })
-}).types([154, 'instantiations'])
+}).types([235, 'instantiations'])
 
 bench('client extensions(1)- 1 op', () => {
   const xprisma1 = getXprisma1()
@@ -326,7 +326,7 @@ bench('client extensions(1)- 1 op', () => {
     where: { id: 'op1_findFirst_user' },
     select: { xone: true },
   })
-}).types([267, 'instantiations'])
+}).types([270, 'instantiations'])
 
 bench('client extensions(5)- 1 op', () => {
   const xprisma5 = getXprisma5()
@@ -334,7 +334,7 @@ bench('client extensions(5)- 1 op', () => {
     where: { id: 'op1_findFirst_user' },
     select: { xone: true, xtwo: true, xthree: true, xfour: true, xfive: true },
   })
-}).types([635, 'instantiations'])
+}).types([638, 'instantiations'])
 
 bench('client extensions(10)- 1 op', () => {
   const xprisma10 = getXprisma10()
@@ -353,7 +353,7 @@ bench('client extensions(10)- 1 op', () => {
       xten: true,
     },
   })
-}).types([1095, 'instantiations'])
+}).types([1098, 'instantiations'])
 
 bench('client extensions(0)- 5 ops', () => {
   prisma.user.findFirst({
@@ -375,7 +375,7 @@ bench('client extensions(0)- 5 ops', () => {
     where: { email: 'op5_findUnique_user@example.com' },
     select: { name: true },
   })
-}).types([928, 'instantiations'])
+}).types([1145, 'instantiations'])
 
 bench('client extensions(1)- 5 ops', () => {
   const xprisma1 = getXprisma1()
@@ -398,7 +398,7 @@ bench('client extensions(1)- 5 ops', () => {
     where: { email: 'op5_findUnique_user@example.com' },
     select: { xone: true },
   })
-}).types([1172, 'instantiations'])
+}).types([1203, 'instantiations'])
 
 bench('client extensions(5)- 5 ops', () => {
   const xprisma5 = getXprisma5()
@@ -421,7 +421,7 @@ bench('client extensions(5)- 5 ops', () => {
     where: { email: 'op5_findUnique_user@example.com' },
     select: { xone: true, xtwo: true, xthree: true, xfour: true, xfive: true },
   })
-}).types([2548, 'instantiations'])
+}).types([2579, 'instantiations'])
 
 bench('client extensions(10)- 5 ops', () => {
   const xprisma10 = getXprisma10()
@@ -477,4 +477,4 @@ bench('client extensions(10)- 5 ops', () => {
       xten: true,
     },
   })
-}).types([4268, 'instantiations'])
+}).types([4299, 'instantiations'])
