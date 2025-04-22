@@ -7,6 +7,7 @@ import {
   DriverAdapterError,
   IsolationLevel,
   SqlDriverAdapter,
+  SqlDriverAdapterFactory,
   SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
@@ -193,7 +194,18 @@ export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriver
   }
 }
 
-export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaD1AdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'sqlite'
+  readonly adapterName = packageName
+
+  constructor(private client: StdClient) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaD1Adapter(this.client, async () => {})
+  }
+}
+
+export class PrismaD1MigrationAwareAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 

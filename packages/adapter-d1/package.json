@@ -13,6 +13,7 @@
       },
       "import": {
         "types": "./dist/index.d.mts",
+        "browser": "./dist/index-edge.mjs",
         "default": "./dist/index.mjs"
       }
     }
