@@ -28,13 +28,13 @@ function mapArrayOrObject(data: Value, fields: Record<string, ResultNode>): Pris
     return mapObject(row, fields)
   }
 
-  throw new Error(`DataMapper[1]: Expected an array or an object, got: ${typeof data}`)
+  throw new Error(`DataMapper: Expected an array or an object, got: ${typeof data}`)
 }
 
 // Recursive
 function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): PrismaObject {
   if (typeof data !== 'object') {
-    throw new Error(`DataMapper[2]: Expected an object, but got '${typeof data}'`)
+    throw new Error(`DataMapper: Expected an object, but got '${typeof data}'`)
   }
 
   const result = {}
@@ -45,7 +45,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
           result[name] = mapArrayOrObject(data[name], node.fields)
         } else {
           throw new Error(
-            `DataMapper[3]: Missing data field: '${name}'; ` +
+            `DataMapper: Missing data field (Object): '${name}'; ` +
               `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
@@ -58,7 +58,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
             result[name] = mapValue(data[dbName], node.resultType)
           } else {
             throw new Error(
-              `DataMapper[4]: Missing data field: '${dbName}'; ` +
+              `DataMapper: Missing data field (Value): '${dbName}'; ` +
                 `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
             )
           }
@@ -66,7 +66,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         break
 
       default:
-        assertNever(node, `Invalid data mapping node type: '${(node as ResultNode).type}'`)
+        assertNever(node, `DataMapper: Invalid data mapping node type: '${(node as ResultNode).type}'`)
     }
   }
   return result
