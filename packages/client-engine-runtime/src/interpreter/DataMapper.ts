@@ -4,10 +4,10 @@ import { PrismaObject, Value } from './scope'
 
 export function applyDataMap(data: Value, structure: ResultNode): Value {
   switch (structure.type) {
-    case 'object':
+    case 'Object':
       return mapArrayOrObject(data, structure.fields)
 
-    case 'value':
+    case 'Value':
       return mapValue(data, structure.resultType)
 
     default:
@@ -40,7 +40,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   const result = {}
   for (const [name, node] of Object.entries(fields)) {
     switch (node.type) {
-      case 'object':
+      case 'Object':
         if (Object.hasOwn(data, name)) {
           result[name] = mapArrayOrObject(data[name], node.fields)
         } else {
@@ -51,14 +51,17 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         }
         break
 
-      case 'value':
-        if (node.dbName in data) {
-          result[name] = mapValue(data[node.dbName], node.resultType)
-        } else {
-          throw new Error(
-            `DataMapper[4]: Missing data field: '${node.dbName}'; ` +
-              `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
-          )
+      case 'Value':
+        {
+          const dbName = node.dbName
+          if (Object.hasOwn(data, dbName)) {
+            result[name] = mapValue(data[dbName], node.resultType)
+          } else {
+            throw new Error(
+              `DataMapper[4]: Missing data field: '${dbName}'; ` +
+                `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
+            )
+          }
         }
         break
 
@@ -72,41 +75,39 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
 function mapValue(value: unknown, resultType: PrismaValueType): unknown {
   if (value === null) return null
 
-  if (typeof resultType === 'string') {
-    switch (resultType) {
-      case 'any':
-        return value
-      case 'string':
-        return typeof value === 'string' ? value : `${value}`
-      case 'int':
-        return typeof value === 'number' ? value : parseInt(`${value}`, 10)
-      case 'bigInt':
-        return typeof value === 'bigint' ? value : BigInt(`${value}`)
-      case 'float':
-        return typeof value === 'number' ? value : parseFloat(`${value}`)
-      case 'boolean':
-        return typeof value === 'boolean' ? value : value !== '0'
-      case 'decimal':
-        return typeof value === 'number' ? value : parseFloat(`${value}`)
-      case 'date':
-        return value instanceof Date ? value : new Date(`${value}`)
-      case 'object':
-        return typeof value === 'object' ? value : { value: value }
-      case 'bytes':
-        if (typeof value !== 'string') {
-          throw new Error(`DataMapper[5]: Bytes data is not a string, got: ${typeof value}`)
-        }
-        return value
-      default:
-        assertNever(resultType, `Invalid resultType: ${resultType}`)
+  switch (resultType.type) {
+    case 'Any':
+      return value
+    case 'String':
+      return typeof value === 'string' ? value : `${value}`
+    case 'Int':
+      return typeof value === 'number' ? value : parseInt(`${value}`, 10)
+    case 'BigInt':
+      return typeof value === 'bigint' ? value : BigInt(`${value}`)
+    case 'Float':
+      return typeof value === 'number' ? value : parseFloat(`${value}`)
+    case 'Boolean':
+      return typeof value === 'boolean' ? value : value !== '0'
+    case 'Decimal':
+      return typeof value === 'number' ? value : parseFloat(`${value}`)
+    case 'Date':
+      return value instanceof Date ? value : new Date(`${value}`)
+    case 'Array': {
+      const values = value as unknown[]
+      return values.map((v) => {
+        mapValue(v, resultType.inner)
+      })
     }
-  } else if (typeof resultType === 'object') {
-    const values = value as unknown[]
-    return values.map((v) => {
-      mapValue(v, resultType.inner)
-    })
+    case 'Object':
+      return typeof value === 'object' ? value : { value: value }
+    case 'Bytes':
+      if (typeof value !== 'string') {
+        throw new Error(`DataMapper: Bytes data is not a string, got: ${typeof value}`)
+      }
+      return value
+    default:
+      assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
   }
-  throw new Error(`DataMapper[6]: Invalid resultType: ${JSON.stringify(resultType)}`)
 }
 
 /* Example data recorded by running the `queries::simple::one2m::simple::simple` QE test case:

@@ -24,25 +24,25 @@ export type PrismaValue =
   | PrismaValueGenerator
 
 export type PrismaValueType =
-  | 'any'
-  | 'string'
-  | 'int'
-  | 'bigInt'
-  | 'float'
-  | 'boolean'
-  | 'decimal'
-  | 'date'
-  | 'object'
-  | 'bytes'
-  | { type: 'array'; inner: PrismaValueType }
+  | { type: 'Any' }
+  | { type: 'String' }
+  | { type: 'Int' }
+  | { type: 'BigInt' }
+  | { type: 'Float' }
+  | { type: 'Boolean' }
+  | { type: 'Decimal' }
+  | { type: 'Date' }
+  | { type: 'Array'; inner: PrismaValueType }
+  | { type: 'Object' }
+  | { type: 'Bytes' }
 
 export type ResultNode =
   | {
-      type: 'object'
+      type: 'Object'
       fields: Record<string, ResultNode>
     }
   | {
-      type: 'value'
+      type: 'Value'
       dbName: string
       resultType: PrismaValueType
     }
