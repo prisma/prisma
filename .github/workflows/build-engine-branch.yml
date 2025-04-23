@@ -108,12 +108,23 @@ jobs:
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          WASM_BINDGEN_VERSION=$(grep -A 2 '^\[\[package\]\]$' Cargo.lock | grep 'name = "wasm-bindgen"' -A 1 | grep 'version' | sed 's/.*"\(.*\)".*/\1/')
-          if [ -n "$WASM_BINDGEN_VERSION" ]; then
-            echo "Found wasm-bindgen version: $WASM_BINDGEN_VERSION"
-            cargo binstall wasm-bindgen-cli --version "$WASM_BINDGEN_VERSION"
+          REQUESTED_WASM_BINDGEN_VERSION=$(grep -A 2 '^\[\[package\]\]$' Cargo.lock | grep 'name = "wasm-bindgen"' -A 1 | grep 'version' | sed 's/.*"\(.*\)".*/\1/')
+          if [ -n "$REQUESTED_WASM_BINDGEN_VERSION" ]; then
+            echo "Found wasm-bindgen version in Cargo.lock: $REQUESTED_WASM_BINDGEN_VERSION"
+            if which wasm-bindgen; then
+              INSTALLED_WASM_BINDGEN_VERSION=$(wasm-bindgen --version | cut -d' ' -f2)
+              if [ "$INSTALLED_WASM_BINDGEN_VERSION" == "$REQUESTED_WASM_BINDGEN_VERSION" ]; then
+                echo "Skipping wasm-bindgen CLI installation, version $INSTALLED_WASM_BINDGEN_VERSION has already been installed"
+              else
+                echo "ERROR: wasm-bindgen CLI $INSTALLED_WASM_BINDGEN_VERSION has already been installed, but the required version is $REQUESTED_WASM_BINDGEN_VERSION"
+                exit 1
+              fi
+            else
+              echo "Installing wasm-bindgen CLI $REQUESTED_WASM_BINDGEN_VERSION"
+              cargo binstall wasm-bindgen-cli --version "$REQUESTED_WASM_BINDGEN_VERSION"
+            fi
           else
-            echo "Could not find wasm-bindgen version in Cargo.lock"
+            echo "ERROR: Could not find wasm-bindgen version in Cargo.lock"
             exit 1
           fi
 
