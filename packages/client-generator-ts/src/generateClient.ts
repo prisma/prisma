@@ -192,6 +192,11 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   } = options
 
   const clientEngineType = getClientEngineType(generator)
+
+  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
+    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
+  }
+
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = buildClient({
@@ -420,12 +425,6 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
   }
 
   if (engineType === ClientEngineType.Client) {
-    if (!process.env.PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE) {
-      throw new Error(
-        'Unstable Feature: engineType="client" is in a proof of concept phase and not ready to be used publicly yet!',
-      )
-    }
-
     return 'client'
   }
 
