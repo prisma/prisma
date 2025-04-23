@@ -11,8 +11,7 @@ export function applyDataMap(data: Value, structure: ResultNode): Value {
       return mapValue(data, structure.resultType)
 
     default:
-      // @ts-ignore
-      assertNever(structure, `Invalid data mapping type: '${structure.type}'`)
+      assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
   }
 }
 
@@ -42,7 +41,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   for (const [name, node] of Object.entries(fields)) {
     switch (node.type) {
       case 'object':
-        if (name in data) {
+        if (Object.hasOwn(data, name)) {
           result[name] = mapArrayOrObject(data[name], node.fields)
         } else {
           throw new Error(
@@ -64,8 +63,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         break
 
       default:
-        // @ts-ignore
-        assertNever(node, `Invalid data mapping node type: '${node.type}'`)
+        assertNever(node, `Invalid data mapping node type: '${(node as ResultNode).type}'`)
     }
   }
   return result
