@@ -3,6 +3,7 @@ import { readdirSync, statSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
+// @ts-ignore
 const parentDir = dirname(fileURLToPath(import.meta.url))
 
 const directoryBlockList = ['node_modules']
