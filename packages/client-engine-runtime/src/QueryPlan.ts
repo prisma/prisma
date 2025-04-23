@@ -23,6 +23,30 @@ export type PrismaValue =
   | PrismaValuePlaceholder
   | PrismaValueGenerator
 
+export type PrismaValueType =
+  | { type: 'Any' }
+  | { type: 'String' }
+  | { type: 'Int' }
+  | { type: 'BigInt' }
+  | { type: 'Float' }
+  | { type: 'Boolean' }
+  | { type: 'Decimal' }
+  | { type: 'Date' }
+  | { type: 'Array'; inner: PrismaValueType }
+  | { type: 'Object' }
+  | { type: 'Bytes' }
+
+export type ResultNode =
+  | {
+      type: 'Object'
+      fields: Record<string, ResultNode>
+    }
+  | {
+      type: 'Value'
+      dbName: string
+      resultType: PrismaValueType
+    }
+
 export type QueryPlanBinding = {
   name: string
   expr: QueryPlanNode
@@ -127,4 +151,11 @@ export type QueryPlanNode =
   | {
       type: 'transaction'
       args: QueryPlanNode
+    }
+  | {
+      type: 'dataMap'
+      args: {
+        expr: QueryPlanNode
+        structure: ResultNode
+      }
     }
