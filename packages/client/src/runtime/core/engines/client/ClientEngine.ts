@@ -284,7 +284,7 @@ export class ClientEngine implements Engine<undefined> {
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = new QueryInterpreter({
+      const interpreter = QueryInterpreter.forSql({
         transactionManager: qiTransactionManager,
         placeholderValues,
         onQuery: this.#emitQueryEvent,
@@ -331,7 +331,7 @@ export class ClientEngine implements Engine<undefined> {
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = new QueryInterpreter({
+      const interpreter = QueryInterpreter.forSql({
         transactionManager: { enabled: false },
         placeholderValues,
         onQuery: this.#emitQueryEvent,
