@@ -10,15 +10,15 @@ export type MultiBatchResponse = {
 export type CompactedBatchResponse = {
   type: 'compacted'
   plan: object
-  arguments: Map<string, {}>[]
+  arguments: Record<string, {}>[]
   nestedSelection: string[]
   keys: string[]
   expectNonEmpty: boolean
 }
 
 export type QueryCompiler = {
-  compile(request: string): Promise<string>
-  compileBatch(batchRequest: string): Promise<BatchResponse>
+  compile(request: string): string
+  compileBatch(batchRequest: string): BatchResponse
 }
 
 export type QueryCompilerOptions = {
