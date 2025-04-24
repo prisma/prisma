@@ -9,10 +9,17 @@
     ".": {
       "require": {
         "types": "./dist/index.d.ts",
+        "edge-light": "./dist/index-edge.js",
+        "workerd": "./dist/index-edge.js",
+        "worker": "./dist/index-edge.js",
+        "browser": "./dist/index-edge.js",
         "default": "./dist/index.js"
       },
       "import": {
         "types": "./dist/index.d.mts",
+        "edge-light": "./dist/index-edge.mjs",
+        "workerd": "./dist/index-edge.mjs",
+        "worker": "./dist/index-edge.mjs",
         "browser": "./dist/index-edge.mjs",
         "default": "./dist/index.mjs"
       }
