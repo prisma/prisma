@@ -30,6 +30,7 @@ import { RuntimeTarget } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
+import { addPreambleToTSFiles } from './utils/addPreamble'
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -147,6 +148,8 @@ export function buildClient({
       }),
     }
   }
+
+  addPreambleToTSFiles(fileMap)
 
   return {
     fileMap, // a map of file names to their contents
