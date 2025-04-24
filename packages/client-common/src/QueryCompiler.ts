@@ -10,7 +10,7 @@ export type MultiBatchResponse = {
 export type CompactedBatchResponse = {
   type: 'compacted'
   plan: object
-  arguments: Map<string, {}>[]
+  arguments: Record<string, {}>[]
   nestedSelection: string[]
   keys: string[]
   expectNonEmpty: boolean
