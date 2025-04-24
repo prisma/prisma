@@ -427,8 +427,7 @@ export class ClientEngine implements Engine<undefined> {
     return response.arguments.map((args) => {
       // we find the index of the row that matches the input arguments - this is the row we want
       // to return minus any extra columns not present in the selection
-      const argsAsObject = Object.fromEntries(args)
-      const rowIndex = keysPerRow.findIndex((rowKeys) => doKeysMatch(rowKeys, argsAsObject))
+      const rowIndex = keysPerRow.findIndex((rowKeys) => doKeysMatch(rowKeys, args))
       if (rowIndex === -1) {
         if (response.expectNonEmpty) {
           return new PrismaClientKnownRequestError(
