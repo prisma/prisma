@@ -64,6 +64,8 @@ export interface GenerateClientOptions {
   generatedFileExtension: GeneratedFileExtension
   importFileExtension: ImportFileExtension
   moduleFormat: ModuleFormat
+  /** Include a "@ts-nocheck" comment at the top of all generated TS files */
+  tsNoCheckPreamble: Boolean
 }
 
 export interface FileMap {
@@ -95,6 +97,7 @@ export function buildClient({
   generatedFileExtension,
   importFileExtension,
   moduleFormat,
+  tsNoCheckPreamble,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -125,6 +128,7 @@ export function buildClient({
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   }
 
   if (runtimeName === 'react-native' && !generator.previewFeatures.includes('reactNative')) {
@@ -149,7 +153,7 @@ export function buildClient({
     }
   }
 
-  addPreambleToTSFiles(fileMap)
+  addPreambleToTSFiles(fileMap, tsNoCheckPreamble)
 
   return {
     fileMap, // a map of file names to their contents
@@ -192,6 +196,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
@@ -222,6 +227,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
