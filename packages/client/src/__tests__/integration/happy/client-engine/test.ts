@@ -1,4 +1,4 @@
-import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -52,7 +52,7 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
     return engineType
   }
 
-  return DEFAULT_CLIENT_ENGINE_TYPE
+  return ClientEngineType.Library
 }
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
