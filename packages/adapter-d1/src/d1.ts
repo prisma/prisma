@@ -7,7 +7,7 @@ import {
   DriverAdapterError,
   IsolationLevel,
   SqlDriverAdapter,
-  SqlMigrationAwareDriverAdapterFactory,
+  SqlDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
@@ -193,7 +193,7 @@ export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriver
   }
 }
 
-export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaD1AdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
@@ -201,24 +201,6 @@ export class PrismaD1AdapterFactory implements SqlMigrationAwareDriverAdapterFac
 
   async connect(): Promise<SqlDriverAdapter> {
     return new PrismaD1Adapter(this.client, async () => {})
-  }
-
-  async connectToShadowDb(): Promise<SqlDriverAdapter> {
-    const { Miniflare } = await import('miniflare')
-
-    const mf = new Miniflare({
-      modules: true,
-      d1Databases: {
-        db: globalThis.crypto.randomUUID(),
-      },
-      script: `
-      export default {
-        async fetch(request, env, ctx) {}
-      }
-      `,
-    })
-    const db = await mf.getD1Database('db')
-    return new PrismaD1Adapter(db, () => mf.dispose())
   }
 }
 
