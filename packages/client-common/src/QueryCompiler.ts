@@ -17,8 +17,8 @@ export type CompactedBatchResponse = {
 }
 
 export type QueryCompiler = {
-  compile(request: string): Promise<string>
-  compileBatch(batchRequest: string): Promise<BatchResponse>
+  compile(request: string): string
+  compileBatch(batchRequest: string): BatchResponse
 }
 
 export type QueryCompilerOptions = {
