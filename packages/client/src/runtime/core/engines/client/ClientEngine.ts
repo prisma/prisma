@@ -1,4 +1,5 @@
 import {
+  BatchResponse,
   CompactedBatchResponse,
   QueryCompiler,
   QueryCompilerConstructor,
@@ -12,7 +13,6 @@ import {
   TransactionInfo,
   TransactionManager,
   TransactionManagerError,
-  UserFacingError,
 } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
@@ -148,11 +148,11 @@ export class ClientEngine implements Engine<undefined> {
         connectionInfo: {},
       })
     } catch (e) {
-      throw this.transformInitError(e)
+      throw this.#transformInitError(e)
     }
   }
 
-  private transformInitError(err: Error): Error {
+  #transformInitError(err: Error): Error {
     try {
       const error: SyncRustError = JSON.parse(err.message)
       return new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
@@ -161,7 +161,7 @@ export class ClientEngine implements Engine<undefined> {
     }
   }
 
-  private transformRequestError(err: any): Error {
+  #transformRequestError(err: any): Error {
     if (err instanceof PrismaClientInitializationError) return err
 
     if (err.code === 'GenericFailure' && err.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm')
@@ -182,6 +182,18 @@ export class ClientEngine implements Engine<undefined> {
       })
     } catch (e) {
       return err
+    }
+  }
+
+  #transformCompileError(error: any): any {
+    if (typeof error['message'] === 'string' && typeof error['code'] === 'string') {
+      return new PrismaClientKnownRequestError(error['message'], {
+        code: error['code'],
+        meta: error.meta,
+        clientVersion: this.config.clientVersion,
+      })
+    } else {
+      return error
     }
   }
 
@@ -252,7 +264,7 @@ export class ClientEngine implements Engine<undefined> {
         assertNever(action, 'Invalid transaction action.')
       }
     } catch (error) {
-      throw this.transformRequestError(error)
+      throw this.#transformRequestError(error)
     }
 
     return result ? { id: result.id, payload: undefined } : undefined
@@ -267,13 +279,18 @@ export class ClientEngine implements Engine<undefined> {
     const queryStr = JSON.stringify(query)
     this.lastStartedQuery = queryStr
 
+    const [adapter, transactionManager] = await this.ensureStarted().catch((err) => {
+      throw this.#transformRequestError(err)
+    })
+
+    let queryPlanString: string
     try {
-      const [adapter, transactionManager] = await this.ensureStarted()
+      queryPlanString = this.queryCompiler!.compile(queryStr)
+    } catch (error) {
+      throw this.#transformCompileError(error)
+    }
 
-      const queryPlanString = await this.queryCompiler!.compile(queryStr).catch((err) =>
-        rethrowCompileErrorAsUserFacing(err),
-      )
-
+    try {
       const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
 
       debug(`query plan created`, queryPlanString)
@@ -300,7 +317,7 @@ export class ClientEngine implements Engine<undefined> {
 
       return { data: { [query.action]: result } as T }
     } catch (e: any) {
-      throw this.transformRequestError(e)
+      throw this.#transformRequestError(e)
     }
   }
 
@@ -317,13 +334,18 @@ export class ClientEngine implements Engine<undefined> {
 
     this.lastStartedQuery = request
 
+    const [, transactionManager] = await this.ensureStarted().catch((err) => {
+      throw this.#transformRequestError(err)
+    })
+
+    let batchResponse: BatchResponse
     try {
-      const [, transactionManager] = await this.ensureStarted()
+      batchResponse = this.queryCompiler!.compileBatch(request)
+    } catch (err) {
+      throw this.#transformCompileError(err)
+    }
 
-      const response = await this.queryCompiler!.compileBatch(request).catch((err) =>
-        rethrowCompileErrorAsUserFacing(err),
-      )
-
+    try {
       let txInfo: InteractiveTransactionInfo<undefined>
       if (transaction?.kind === 'itx') {
         // If we are already in an interactive transaction we do not nest transactions
@@ -346,10 +368,10 @@ export class ClientEngine implements Engine<undefined> {
       const queryable = transactionManager.getTransaction(txInfo, firstAction)
 
       let results: BatchQueryEngineResult<unknown>[] = []
-      switch (response.type) {
+      switch (batchResponse.type) {
         case 'multi': {
           results = await Promise.all(
-            response.plans.map(async (plan, i) => {
+            batchResponse.plans.map(async (plan, i) => {
               const rows = await interpreter.run(plan as QueryPlanNode, queryable)
               return { data: { [queries[i].action]: rows } }
             }),
@@ -361,8 +383,8 @@ export class ClientEngine implements Engine<undefined> {
             throw new Error('All queries in a batch must have the same action')
           }
 
-          const rows = await interpreter.run(response.plan as QueryPlanNode, queryable)
-          results = this.#convertCompactedRows(rows as {}[], response, firstAction)
+          const rows = await interpreter.run(batchResponse.plan as QueryPlanNode, queryable)
+          results = this.#convertCompactedRows(rows as {}[], batchResponse, firstAction)
           break
         }
       }
@@ -373,7 +395,7 @@ export class ClientEngine implements Engine<undefined> {
 
       return results as BatchQueryEngineResult<T>[]
     } catch (e: any) {
-      throw this.transformRequestError(e)
+      throw this.#transformRequestError(e)
     }
   }
 
@@ -424,14 +446,6 @@ export class ClientEngine implements Engine<undefined> {
         return { data: { [action]: Object.fromEntries(selected) } }
       }
     })
-  }
-}
-
-function rethrowCompileErrorAsUserFacing(error: any): never {
-  if (typeof error['message'] === 'string' && typeof error['code'] === 'string') {
-    throw new UserFacingError(error['message'], error['code'], error.meta)
-  } else {
-    throw error
   }
 }
 
