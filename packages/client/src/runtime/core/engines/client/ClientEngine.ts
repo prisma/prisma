@@ -296,7 +296,7 @@ export class ClientEngine implements Engine<undefined> {
       debug(`query plan created`, queryPlanString)
 
       const queryable = interactiveTransaction
-        ? transactionManager.getTransaction(interactiveTransaction, query.action)
+        ? transactionManager.getTransaction(interactiveTransaction, 'query')
         : adapter
 
       const qiTransactionManager = (
@@ -365,7 +365,7 @@ export class ClientEngine implements Engine<undefined> {
         onQuery: this.#emitQueryEvent,
         tracingHelper: this.tracingHelper,
       })
-      const queryable = transactionManager.getTransaction(txInfo, firstAction)
+      const queryable = transactionManager.getTransaction(txInfo, 'batch query')
 
       let results: BatchQueryEngineResult<unknown>[] = []
       switch (batchResponse.type) {
