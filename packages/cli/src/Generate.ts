@@ -64,12 +64,13 @@ ${bold('Options')}
           -h, --help   Display this help message
             --config   Custom path to your Prisma config file
             --schema   Custom path to your Prisma schema
+               --sql   Generate typed sql module
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
-         --no-hints    Hides the hint messages but still outputs errors and warnings
-   --allow-no-models   Allow generating a client without models
-   --sql               Generate typed sql module
+          --no-hints   Hides the hint messages but still outputs errors and warnings
+   --allow-no-models   Allow generating a client without models (default)
+    --require-models   Do not allow generating a client without models
 
 ${bold('Examples')}
 
@@ -126,8 +127,18 @@ ${bold('Examples')}
       '--postinstall': String,
       '--telemetry-information': String,
       '--allow-no-models': Boolean,
+      '--require-models': Boolean,
       '--sql': Boolean,
     })
+
+    let allowNoModels = true
+
+    if (args['--require-models']) {
+      if (args['--allow-no-models']) {
+        return Error('Cannot use --allow-no-models and --require-models together')
+      }
+      allowNoModels = false
+    }
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
@@ -178,7 +189,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
-        allowNoModels: Boolean(args['--allow-no-models']),
+        allowNoModels,
         registry: defaultRegistry.toInternal(),
       })
 
