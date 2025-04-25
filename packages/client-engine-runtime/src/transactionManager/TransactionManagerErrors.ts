@@ -22,7 +22,7 @@ export class TransactionClosedError extends TransactionManagerError {
 
 export class TransactionRolledBackError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back`)
   }
 }
 
