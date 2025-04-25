@@ -30,6 +30,7 @@ import { RuntimeTarget } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
+import { addPreambleToTSFiles } from './utils/addPreamble'
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -63,6 +64,8 @@ export interface GenerateClientOptions {
   generatedFileExtension: GeneratedFileExtension
   importFileExtension: ImportFileExtension
   moduleFormat: ModuleFormat
+  /** Include a "@ts-nocheck" comment at the top of all generated TS files */
+  tsNoCheckPreamble: Boolean
 }
 
 export interface FileMap {
@@ -94,6 +97,7 @@ export function buildClient({
   generatedFileExtension,
   importFileExtension,
   moduleFormat,
+  tsNoCheckPreamble,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
@@ -124,6 +128,7 @@ export function buildClient({
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   }
 
   if (runtimeName === 'react-native' && !generator.previewFeatures.includes('reactNative')) {
@@ -147,6 +152,8 @@ export function buildClient({
       }),
     }
   }
+
+  addPreambleToTSFiles(fileMap, tsNoCheckPreamble)
 
   return {
     fileMap, // a map of file names to their contents
@@ -189,9 +196,15 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   } = options
 
   const clientEngineType = getClientEngineType(generator)
+
+  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
+    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
+  }
+
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = buildClient({
@@ -214,6 +227,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
+    tsNoCheckPreamble,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -420,12 +434,6 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
   }
 
   if (engineType === ClientEngineType.Client) {
-    if (!process.env.PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE) {
-      throw new Error(
-        'Unstable Feature: engineType="client" is in a proof of concept phase and not ready to be used publicly yet!',
-      )
-    }
-
     return 'client'
   }
 

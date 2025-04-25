@@ -1,9 +1,9 @@
 import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
-import { serialize } from './serialize'
+import { serializeSql } from './serializeSql'
 
 test('should serialize empty rows', () => {
-  const result = serialize({
+  const result = serializeSql({
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
     columnNames: ['id', 'name'],
     rows: [],
@@ -12,7 +12,7 @@ test('should serialize empty rows', () => {
 })
 
 test('should serialize a flat list of rows', () => {
-  const result = serialize({
+  const result = serializeSql({
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Text],
     columnNames: ['id', 'name'],
     rows: [
@@ -27,7 +27,7 @@ test('should serialize a flat list of rows', () => {
 })
 
 test('should serialize a list of rows with nested rows', () => {
-  const result = serialize({
+  const result = serializeSql({
     columnTypes: [ColumnTypeEnum.Int32, ColumnTypeEnum.Float, ColumnTypeEnum.Float, ColumnTypeEnum.Text],
     columnNames: ['id', '_avg.age', '_avg.height', 'deeply.nested.value'],
     rows: [

@@ -25,7 +25,7 @@ export function buildGetWasmModule({
 }: BuildWasmModuleOptions) {
   const capitalizedComponent = capitalize(component)
 
-  const wasmPathBase = `${runtimeBase}/query_compiler_bg.${activeProvider}`
+  const wasmPathBase = `${runtimeBase}/query_${component}_bg.${activeProvider}`
   const wasmBindingsPath = `${wasmPathBase}.mjs`
   const wasmModulePath = `${wasmPathBase}.wasm`
 

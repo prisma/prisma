@@ -32,6 +32,7 @@ import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
+import { addPreamble, addPreambleToJSFiles } from './utils/addPreamble'
 
 const debug = Debug('prisma:client:generateClient')
 
@@ -345,6 +346,8 @@ export * from './edge.js'`
   }
   fileMap['package.json'] = JSON.stringify(pkgJson, null, 2)
 
+  addPreambleToJSFiles(fileMap)
+
   return {
     fileMap, // a map of file names to their contents
     prismaClientDmmf: dmmf, // the DMMF document
@@ -414,6 +417,11 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   } = options
 
   const clientEngineType = getClientEngineType(generator)
+
+  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
+    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
+  }
+
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -738,12 +746,6 @@ function getNodeRuntimeName(engineType: ClientEngineType) {
   }
 
   if (engineType === ClientEngineType.Client) {
-    if (!process.env.PRISMA_UNSTABLE_CLIENT_ENGINE_TYPE) {
-      throw new Error(
-        'Unstable Feature: engineType="client" is in a proof of concept phase and not ready to be used publicly yet!',
-      )
-    }
-
     return 'client'
   }
 
@@ -780,7 +782,19 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
-  await Promise.all(files.map((file) => fs.copyFile(path.join(from, file), path.join(to, file))))
+  await Promise.all(
+    files.map(async (file) => {
+      const sourcePath = path.join(from, file)
+      const targetPath = path.join(to, file)
+
+      if (file.endsWith('.js')) {
+        const content = await fs.readFile(sourcePath, 'utf-8')
+        await fs.writeFile(targetPath, addPreamble(content))
+      } else {
+        await fs.copyFile(sourcePath, targetPath)
+      }
+    }),
+  )
 }
 
 /**

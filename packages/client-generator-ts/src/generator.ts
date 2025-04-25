@@ -100,6 +100,7 @@ export class PrismaClientTsGenerator implements Generator {
       generatedFileExtension,
       importFileExtension,
       moduleFormat,
+      tsNoCheckPreamble: true, // Set to false only during internal tests
     })
   }
 }
