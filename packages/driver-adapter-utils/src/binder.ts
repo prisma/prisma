@@ -16,11 +16,34 @@ import type {
 
 const debug = Debug('driver-adapter-utils')
 
+const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
+
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []
 
-  consumeError(id: number): ErrorRecord | undefined {
-    return this.registeredErrors[id]
+  lookupError(
+    error: number | { error_code: string; meta?: { id: number } } | { message: string },
+  ): ErrorRecord | undefined {
+    if (typeof error === 'number') {
+      const errorRecord = this.registeredErrors[error]
+      if (!errorRecord) throw `External error with reported id was not registered`
+      return errorRecord
+    } else if ('error_code' in error && error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR) {
+      // Query Engine Runtime Errors will look like this
+      const id = error.meta?.id
+      if (typeof id !== 'number') throw 'Malformed external JS error received from the engine'
+      const errorRecord = this.registeredErrors[id]
+      if (!errorRecord) throw `External error with reported id was not registered`
+      return errorRecord
+    } else if ('message' in error && error.message.startsWith('External error id#')) {
+      // Schema Engine CLI Runtime Errors will look like this
+      const id = parseInt(error.message.split('id#')[1])
+      const errorRecord = this.registeredErrors[id]
+      if (!errorRecord) throw `External error with reported id was not registered`
+      return errorRecord
+    } else {
+      return undefined
+    }
   }
 
   registerNewError(error: unknown) {

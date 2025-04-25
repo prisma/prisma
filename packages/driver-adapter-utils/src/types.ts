@@ -300,7 +300,9 @@ export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
 export type ErrorCapturingSqlQueryable = ErrorCapturingInterface<SqlQueryable>
 
 export interface ErrorRegistry {
-  consumeError(id: number): ErrorRecord | undefined
+  lookupError(
+    error: number | { error_code: string; meta?: { id: number } } | { message: string },
+  ): ErrorRecord | undefined
 }
 
 export type ErrorRecord = { error: unknown }
