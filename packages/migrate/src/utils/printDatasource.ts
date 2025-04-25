@@ -1,3 +1,4 @@
+import { ErrorCapturingSqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { dim } from 'kleur/colors'
 
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -7,7 +8,13 @@ import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 // Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 // Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
 // Datasource "my_db": SQL Server database
-export function printDatasource({ datasourceInfo }: { datasourceInfo: DatasourceInfo }): void {
+export function printDatasource({
+  datasourceInfo,
+  adapter,
+}: {
+  datasourceInfo: DatasourceInfo
+  adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory
+}): void {
   if (!datasourceInfo.name || !datasourceInfo.prettyProvider) return
 
   let message = `Datasource "${datasourceInfo.name}": ${datasourceInfo.prettyProvider} database`
@@ -24,7 +31,9 @@ export function printDatasource({ datasourceInfo }: { datasourceInfo: Datasource
     message += `, schema "${datasourceInfo.schema}"`
   }
 
-  if (datasourceInfo.dbLocation) {
+  if (adapter) {
+    message += ` using driver adapter "${adapter.adapterName}"`
+  } else if (datasourceInfo.dbLocation) {
     message += ` at "${datasourceInfo.dbLocation}"`
   }
 

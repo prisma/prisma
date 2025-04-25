@@ -77,12 +77,12 @@ Check the status of your database migrations
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const adapter = await config.migrate?.adapter(process.env)
 
     checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    const adapter = await config.migrate?.adapter(process.env)
     const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
