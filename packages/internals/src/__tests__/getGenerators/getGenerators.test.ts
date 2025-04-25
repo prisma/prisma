@@ -720,7 +720,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if no model(s) found - sqlite', async () => {
+  test('fail if no model(s) found and allow-no-models flag is false - sqlite', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
@@ -730,6 +730,7 @@ describe('getGenerators', () => {
       await getGenerators({
         schemaContext,
         registry,
+        allowNoModels: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -755,7 +756,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if no model(s) found - mongodb', async () => {
+  test('fail if no model(s) found and allow-no-models flag is false - mongodb', async () => {
     expect.assertions(5)
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
@@ -766,6 +767,7 @@ describe('getGenerators', () => {
       await getGenerators({
         schemaContext,
         registry,
+        allowNoModels: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -826,7 +828,7 @@ describe('getGenerators', () => {
     }
   })
 
-  test('pass if no model(s) found but allow-no-models flag is passed - sqlite', async () => {
+  test('pass if no model(s) found but allow-no-models flag is true - sqlite', async () => {
     expect.assertions(1)
 
     const schemaContext = await loadSchemaContext({
@@ -842,7 +844,7 @@ describe('getGenerators', () => {
     return expect(generators.length).toBeGreaterThanOrEqual(1)
   })
 
-  test('pass if no model(s) found but allow-no-models flag is passed - mongodb', async () => {
+  test('pass if no model(s) found but allow-no-models flag is true - mongodb', async () => {
     expect.assertions(1)
 
     const registry = {
