@@ -1018,6 +1018,30 @@ jobs:
         working-directory: packages/adapter-libsql
 
   #
+  # Run type performance benchmark tests
+  #
+  type-benchmark-tests:
+    name: Type performance benchmarks
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    if: contains(inputs.jobsToRun, '-all-')
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: 22
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'type-benchmark-tests'
+        working-directory: packages/type-benchmark-tests
+
+  #
   # Run all tests on macOS and Windows.
   #
   # Unlike the other jobs, this job doesn't use Docker (and thus skips some
