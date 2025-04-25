@@ -87,10 +87,11 @@ ${bold('Examples')}
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const adapter = await config.migrate?.adapter(process.env)
 
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -113,8 +114,6 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
           )}`,
         )
       }
-
-      const adapter = await config.migrate?.adapter(process.env)
 
       // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
       // TODO: check why the output and error handling here is different than in `MigrateDeploy`.

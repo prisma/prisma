@@ -79,9 +79,9 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
-
     const adapter = await config.migrate?.adapter(process.env)
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+
     const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.

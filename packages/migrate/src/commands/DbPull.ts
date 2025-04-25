@@ -150,11 +150,13 @@ Set composite types introspection depth to 2 levels
       flags: ['--url', '--local-d1'],
     })
 
+    const adapter = await config.migrate?.adapter(process.env)
+
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       process.stdout.write(dim(`Prisma schema loaded from ${schemaContext.loadedFromPathForLogMessages}`) + '\n')
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource) })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
     }
 
     const fromD1 = Boolean(args['--local-d1'])
@@ -162,8 +164,6 @@ Set composite types introspection depth to 2 levels
     if (!url && !schemaContext && !fromD1) {
       throw new NoSchemaFoundError()
     }
-
-    const adapter = await config.migrate?.adapter(process.env)
 
     /**
      * When a schema already exists:
