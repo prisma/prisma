@@ -103,14 +103,14 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    printDatasource({ datasourceInfo })
+    const adapter = await config.migrate?.adapter(process.env)
+
+    printDatasource({ datasourceInfo, adapter })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
     validate({ schemas: schemaContext.schemaFiles })
-
-    const adapter = await config.migrate?.adapter(process.env)
 
     let wasDbCreated: string | undefined
     // `ensureDatabaseExists` is not compatible with WebAssembly.
