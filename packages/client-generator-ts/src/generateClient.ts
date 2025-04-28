@@ -448,7 +448,12 @@ async function deleteOutputDir(outputDir: string) {
       return
     }
 
-    if (!files.includes('client.ts') && !files.includes('client.mts') && !files.includes('client.cts')) {
+    if (
+      !files.includes('client.ts') &&
+      !files.includes('client.mts') &&
+      !files.includes('client.cts') &&
+      !files.includes('client.d.ts') // for legacy js client
+    ) {
       // Make sure users don't accidentally wipe their source code or home directory.
       throw new Error(
         `${outputDir} exists and is not empty but doesn't look like a generated Prisma Client. ` +
@@ -458,9 +463,18 @@ async function deleteOutputDir(outputDir: string) {
 
     await Promise.allSettled(
       (
-        await glob([`${outputDir}/**/*.{ts,mts,cts}`, `${outputDir}/*.node`, `${outputDir}/{query,schema}-engine-*`], {
-          followSymbolicLinks: false,
-        })
+        await glob(
+          [
+            `${outputDir}/**/*.{js,ts,mts,cts,d.ts}`,
+            `${outputDir}/*.node`,
+            `${outputDir}/{query,schema}-engine-*`,
+            `${outputDir}/package.json`,
+            `${outputDir}/**/*.prisma`,
+          ],
+          {
+            followSymbolicLinks: false,
+          },
+        )
       ).map(fs.unlink),
     )
   } catch (error) {
