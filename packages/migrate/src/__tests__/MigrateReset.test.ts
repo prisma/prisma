@@ -1,16 +1,9 @@
-import { jestConsoleContext, jestContext, jestStdoutContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
-import { configContextContributor } from './__helpers__/prismaConfig'
-import { stdoutNormalizationRules } from './__helpers__/stdoutNormalizationRules'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext
-  .new()
-  .add(jestConsoleContext())
-  .add(jestStdoutContext(stdoutNormalizationRules))
-  .add(configContextContributor())
-  .assemble()
+const ctx = createDefaultTestContext()
 
 beforeEach(() => {
   process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
