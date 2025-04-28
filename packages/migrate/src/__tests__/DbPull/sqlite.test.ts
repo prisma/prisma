@@ -1,16 +1,17 @@
-import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
+import { loadConfigFromFile } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 const captureStdout = new CaptureStdout()
 
 beforeEach(() => {
@@ -32,7 +33,7 @@ describeOnly({ d1: true }, 'D1', () => {
     ctx.fixture('cloudflare-d1-one-db')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--local-d1', '--print'], defaultTestConfig())
+    const result = introspect.parse(['--local-d1', '--print'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     // Example values:
@@ -49,7 +50,7 @@ describeOnly({ d1: true }, 'D1', () => {
     ctx.fixture('re-introspection/sqlite/cloudflare-d1-one-db')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--local-d1'], defaultTestConfig())
+    const result = introspect.parse(['--local-d1'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -120,7 +121,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
@@ -129,7 +130,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   test('introspection --force', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--force'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
@@ -138,7 +139,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   test('basic introspection with --url', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'file:dev.db'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', 'file:dev.db'], ctx.config)
     await expect(result).resolves.toBe('')
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot(``)
@@ -147,7 +148,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   test('basic introspection with schema and --url missing file: prefix should fail', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
@@ -155,7 +156,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   test('basic introspection without schema and with --url missing "file:" prefix should fail', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
@@ -163,7 +164,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   test('basic introspection with invalid --url if schema is unspecified', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'invalidstring'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', 'invalidstring'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol invalidstring:"`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
@@ -171,7 +172,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should succeed when schema and db do match', async () => {
     ctx.fixture('introspect/prisma')
-    const result = DbPull.new().parse([], defaultTestConfig())
+    const result = DbPull.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
@@ -193,7 +194,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   test('should succeed when schema and db do match using --url', async () => {
     ctx.fixture('introspect/prisma')
-    const result = DbPull.new().parse(['--url=file:./dev.db'], defaultTestConfig())
+    const result = DbPull.new().parse(['--url=file:./dev.db'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
@@ -217,7 +218,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
     ctx.fixture('empty-schema-db-subfolder')
     const result = DbPull.new().parse(
       ['--url=file:../db/dev.db', '--schema=schema/schema.prisma', '--print'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
@@ -259,7 +260,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   test('basic introspection with invalid --url - empty host', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P1013
 
@@ -270,7 +271,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should succeed and keep changes to valid schema and output warnings', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/reintrospection.prisma'], defaultTestConfig())
+    const result = DbPull.new().parse(['--schema=./prisma/reintrospection.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -343,7 +344,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {
     ctx.fixture('introspect')
     const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
-    const result = DbPull.new().parse(['--print', '--schema=./prisma/reintrospection.prisma'], defaultTestConfig())
+    const result = DbPull.new().parse(['--print', '--schema=./prisma/reintrospection.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -363,7 +364,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should succeed when schema and db do not match', async () => {
     ctx.fixture('existing-db-histories-diverge')
-    const result = DbPull.new().parse([], defaultTestConfig())
+    const result = DbPull.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -384,7 +385,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should fail when db is missing', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = DbPull.new().parse([], defaultTestConfig())
+    const result = DbPull.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:
@@ -417,7 +418,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('prisma/dev.db', '')
-    const result = DbPull.new().parse([], defaultTestConfig())
+    const result = DbPull.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P4001 The introspected database was empty:
@@ -448,7 +449,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   })
 
   it('should fail when Prisma schema is missing', async () => {
-    const result = DbPull.new().parse([], defaultTestConfig())
+    const result = DbPull.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find a schema.prisma file that is required for this command.
       You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location"
@@ -459,7 +460,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should fail when schema is invalid', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'], defaultTestConfig())
+    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P1012
 
@@ -499,7 +500,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
 
-    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'], defaultTestConfig())
+    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`

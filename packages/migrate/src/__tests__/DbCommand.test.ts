@@ -1,11 +1,15 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+
 import { DbCommand } from '../commands/DbCommand'
-import { defaultTestConfig } from './__helpers__/prismaConfig'
+import { configContextContributor } from './__helpers__/prismaConfig'
+
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})
   const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await commandInstance.parse([], defaultTestConfig())
+  await commandInstance.parse([], ctx.config)
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -14,7 +18,7 @@ it('wrong flag', async () => {
   const commandInstance = DbCommand.new({})
   const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await commandInstance.parse(['--something'], defaultTestConfig())
+  await commandInstance.parse(['--something'], ctx.config)
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
@@ -23,11 +27,11 @@ it('help flag', async () => {
   const commandInstance = DbCommand.new({})
   const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-  await commandInstance.parse(['--help'], defaultTestConfig())
+  await commandInstance.parse(['--help'], ctx.config)
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
 
 it('unknown command', async () => {
-  await expect(DbCommand.new({}).parse(['doesnotexist'], defaultTestConfig())).resolves.toThrow()
+  await expect(DbCommand.new({}).parse(['doesnotexist'], ctx.config)).resolves.toThrow()
 })

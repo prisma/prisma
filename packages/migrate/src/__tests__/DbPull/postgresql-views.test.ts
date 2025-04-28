@@ -7,7 +7,7 @@ import { Migrate } from '../../Migrate'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 if (process.env.CI) {
   if (['darwin', 'win32'].includes(process.platform)) {
@@ -17,7 +17,7 @@ if (process.env.CI) {
   }
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ postgres: true }, 'postgresql-views', () => {
   const captureStdout = new CaptureStdout()
@@ -192,7 +192,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspectWithViews = new DbPull()
-      const resultWithViews = introspectWithViews.parse([], defaultTestConfig())
+      const resultWithViews = introspectWithViews.parse([], ctx.config)
       await expect(resultWithViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithViews = await ctx.fs.listAsync('views')
@@ -222,7 +222,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       await runQueryPostgres(setupParams, dropViewsSQL!)
 
       const introspectWithoutViews = new DbPull()
-      const resultWithoutViews = introspectWithoutViews.parse([], defaultTestConfig())
+      const resultWithoutViews = introspectWithoutViews.parse([], ctx.config)
       await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(`""`)
 
       const listWithoutViews = await ctx.fs.listAsync('views')
@@ -272,7 +272,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       ctx.fixture(fixturePath)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], defaultTestConfig())
+      const result = introspect.parse([], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -356,7 +356,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
 
         const introspect = new DbPull()
         const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
-        const result = introspect.parse(args, defaultTestConfig())
+        const result = introspect.parse(args, ctx.config)
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
         // the folders in `views` match the database schema names (public, work) of the views
@@ -430,7 +430,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], defaultTestConfig())
+      const result = introspect.parse([], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       // the folders in `views` match the database schema names (public, work) of the views
@@ -466,7 +466,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       ctx.fixture(path.join(fixturePath))
 
       const introspect = new DbPull()
-      const result = introspect.parse([], defaultTestConfig())
+      const result = introspect.parse([], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')
@@ -506,7 +506,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       `)
 
       const introspect = new DbPull()
-      const result = introspect.parse([], defaultTestConfig())
+      const result = introspect.parse([], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
       const list = await ctx.fs.listAsync('views')

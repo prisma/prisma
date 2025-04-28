@@ -7,14 +7,14 @@ import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   const captureStdout = new CaptureStdout()
@@ -70,7 +70,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with cockroachdb provider)', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -80,7 +80,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with postgresql provider) should fail', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
@@ -93,7 +93,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (no schema) --url', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -103,7 +103,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with cockroach provider) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -115,7 +115,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schema', 'with-postgresql-provider.prisma'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.

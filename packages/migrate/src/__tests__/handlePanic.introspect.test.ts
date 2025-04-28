@@ -2,9 +2,9 @@ import { jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
-import { defaultTestConfig } from './__helpers__/prismaConfig'
+import { configContextContributor } from './__helpers__/prismaConfig'
 
-const ctx = jestContext.new().assemble()
+const ctx = jestContext.new().add(configContextContributor()).assemble()
 
 describe('introspection panic', () => {
   test('force panic', async () => {
@@ -14,7 +14,7 @@ describe('introspection panic', () => {
 
     const introspect = new DbPull()
     try {
-      await introspect.parse(['--print'], defaultTestConfig())
+      await introspect.parse(['--print'], ctx.config)
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
         "Error in Schema engine.

@@ -6,9 +6,9 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { defaultTestConfig } from './__helpers__/prismaConfig'
+import { configContextContributor } from './__helpers__/prismaConfig'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 const captureStdout = new CaptureStdout()
 
@@ -27,7 +27,7 @@ afterAll(() => {
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateResolve.new().parse([], defaultTestConfig())
+    const result = MigrateResolve.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -44,7 +44,7 @@ describe('common', () => {
   })
   it('should fail if no --applied or --rolled-back', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse([], defaultTestConfig())
+    const result = MigrateResolve.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "--applied or --rolled-back must be part of the command like:
       prisma migrate resolve --applied 20201231000000_example
@@ -55,7 +55,7 @@ describe('common', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
       ['--applied=something_applied', '--rolled-back=something_rolledback'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Pass either --applied or --rolled-back, not both."`,
@@ -68,7 +68,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/empty.prisma', '--applied=something_applied'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
@@ -85,7 +85,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it("--applied should fail if migration doesn't exist", async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--applied=does_not_exist'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--applied=does_not_exist'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3017
 
@@ -96,7 +96,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should fail if migration is already applied', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--applied=20201014154943_init'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--applied=20201014154943_init'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3008
 
@@ -107,7 +107,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--applied', '20201014154943_init'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--applied', '20201014154943_init'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3008
 
@@ -118,7 +118,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -131,10 +131,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma', '--applied', '20240527130802_init'],
-      defaultTestConfig(),
-    )
+    const result = MigrateResolve.new().parse(['--schema=./prisma', '--applied', '20240527130802_init'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
@@ -151,7 +148,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it("--rolled-back should fail if migration doesn't exist", async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back=does_not_exist'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--rolled-back=does_not_exist'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3011
 
@@ -162,7 +159,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201014154943_init'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201014154943_init'], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3012
 
@@ -173,7 +170,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -186,11 +183,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back works if migration is already rolled back', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], defaultTestConfig())
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     // Try again
-    const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], defaultTestConfig())
+    const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -214,7 +211,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
@@ -237,7 +234,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
 
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`something.cockroachlabs.cloud:26257\`

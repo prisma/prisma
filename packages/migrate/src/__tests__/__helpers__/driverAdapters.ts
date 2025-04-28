@@ -4,6 +4,8 @@ import {
   Provider,
   SqlMigrationAwareDriverAdapterFactory,
 } from '@prisma/driver-adapter-utils'
+import { BaseContext } from '@prisma/get-platform'
+import path from 'path'
 
 export type DriverAdapterName = {
   [K in OfficialDriverAdapterName]: K extends `@prisma/adapter-${infer Name}` ? Name : never
@@ -11,16 +13,17 @@ export type DriverAdapterName = {
 
 type DriverAdapterTestConfig = {
   provider: Provider
-  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+  adapter: (ctx: BaseContext) => () => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
 const driverAdapters: Record<string, DriverAdapterTestConfig> = {
   libsql: {
     provider: 'sqlite',
-    adapter: () => {
+    adapter: (ctx: BaseContext) => () => {
+      const url = 'file:' + path.join(ctx.tmpDir, 'dev.db')
       return Promise.resolve(
         new PrismaLibSQL({
-          url: 'file:./dev.db',
+          url,
         }),
       )
     },
