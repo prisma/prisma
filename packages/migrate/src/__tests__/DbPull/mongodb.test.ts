@@ -5,14 +5,14 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ mongodb: true }, 'MongoDB', () => {
   const captureStdout = new CaptureStdout()
@@ -38,7 +38,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -70,7 +70,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], defaultTestConfig())
+    const result = introspect.parse(['--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -102,7 +102,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], defaultTestConfig())
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "generator client {
@@ -161,7 +161,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -202,7 +202,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -252,7 +252,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force', '--composite-type-depth=-1'], defaultTestConfig())
+    const result = introspect.parse(['--force', '--composite-type-depth=-1'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -286,7 +286,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'],
-      defaultTestConfig(),
+      ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -343,7 +343,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', MONGO_URI], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', MONGO_URI], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -365,7 +365,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --url - only generator defined', async () => {
     ctx.fixture('schema-only-mongodb/only-generator')
     const introspect = new DbPull()
-    const result = introspect.parse(['--url', MONGO_URI], defaultTestConfig())
+    const result = introspect.parse(['--url', MONGO_URI], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).not.toContain(`Datasource `)
@@ -396,7 +396,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], defaultTestConfig())
+    const result = introspect.parse(['--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
@@ -428,7 +428,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('re-introspection should error (not supported) (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse([], defaultTestConfig())
+    const result = introspect.parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
       You can explicitly ignore and override your current local schema file with prisma db pull --force

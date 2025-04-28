@@ -6,9 +6,9 @@ import { CaptureStdout } from '../utils/captureStdout'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { defaultTestConfig } from './__helpers__/prismaConfig'
+import { configContextContributor } from './__helpers__/prismaConfig'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 const captureStdout = new CaptureStdout()
 
@@ -27,7 +27,7 @@ afterAll(() => {
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse([], defaultTestConfig())
+    const result = MigrateDeploy.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -47,7 +47,7 @@ describe('common', () => {
 describeOnly({ sqlite: true }, 'SQLite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
+    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -69,7 +69,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('existing-db-1-migration')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse([], defaultTestConfig())
+    const result = MigrateDeploy.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -81,7 +81,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse([], defaultTestConfig())
+    const resultBis = MigrateDeploy.new().parse([], ctx.config)
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -110,7 +110,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse(['--schema=./prisma'], defaultTestConfig())
+    const result = MigrateDeploy.new().parse(['--schema=./prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -122,7 +122,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma'], defaultTestConfig())
+    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma'], ctx.config)
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -150,7 +150,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('should throw if database is not empty', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateDeploy.new().parse([], defaultTestConfig())
+    const result = MigrateDeploy.new().parse([], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P3005
 
@@ -196,7 +196,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
   it('should fail if url is prisma://', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse([], defaultTestConfig())
+    const result = MigrateDeploy.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
@@ -209,7 +209,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
   it('should work if directUrl is set as an env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], defaultTestConfig())
+    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
     expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Environment variables loaded from .env

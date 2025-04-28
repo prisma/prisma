@@ -5,14 +5,14 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ postgres: true }, 'postgresql - missing database', () => {
   const captureStdout = new CaptureStdout()
@@ -36,7 +36,7 @@ describeOnly({ postgres: true }, 'postgresql - missing database', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:

@@ -8,9 +8,9 @@ import { MigrateReset } from '../commands/MigrateReset'
 import { MigrateResolve } from '../commands/MigrateResolve'
 import { CaptureStdout } from '../utils/captureStdout'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { defaultTestConfig } from './__helpers__/prismaConfig'
+import { configContextContributor } from './__helpers__/prismaConfig'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 const captureStdout = new CaptureStdout()
 
 // Covered in docs: https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/add-prisma-migrate-to-a-project
@@ -46,7 +46,7 @@ describe('Baselining', () => {
       process.env.DATABASE_URL = 'file:./dev.db'
 
       // db pull
-      const dbPull = DbPull.new().parse([], defaultTestConfig())
+      const dbPull = DbPull.new().parse([], ctx.config)
       await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
       expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -61,7 +61,7 @@ describe('Baselining', () => {
       captureStdout.clearCaptureText()
 
       // migrate reset --force
-      const migrateReset = MigrateReset.new().parse(['--force'], defaultTestConfig())
+      const migrateReset = MigrateReset.new().parse(['--force'], ctx.config)
       await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
       expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -74,7 +74,7 @@ describe('Baselining', () => {
       captureStdout.clearCaptureText()
 
       // migrate dev --create-only
-      const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], defaultTestConfig())
+      const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], ctx.config)
       await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_
 
@@ -90,7 +90,7 @@ Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       // migrate dev
       captureStdout.startCapture()
-      const migrateDev = MigrateDev.new().parse([], defaultTestConfig())
+      const migrateDev = MigrateDev.new().parse([], ctx.config)
       await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
       expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -114,7 +114,7 @@ Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
       // migrate resolve --applied migration_name
       const migrationName = fs.list('prisma/migrations')![0]
-      const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], defaultTestConfig())
+      const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], ctx.config)
       await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
       expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
@@ -127,7 +127,7 @@ Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
       captureStdout.clearCaptureText()
 
       // migrate deploy
-      const migrateDeployProd = MigrateDeploy.new().parse([], defaultTestConfig())
+      const migrateDeployProd = MigrateDeploy.new().parse([], ctx.config)
       await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
       expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

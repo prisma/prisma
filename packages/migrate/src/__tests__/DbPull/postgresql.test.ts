@@ -7,14 +7,14 @@ import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ postgres: true }, 'postgresql', () => {
   const captureStdout = new CaptureStdout()
@@ -66,7 +66,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -75,7 +75,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -85,7 +85,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection --url + empty schema', async () => {
     ctx.fixture('empty-schema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -95,7 +95,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection --url + schema with no linebreak after generator block', async () => {
     ctx.fixture('generator-only')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -107,7 +107,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(3)
 
     try {
-      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], defaultTestConfig())
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], ctx.config)
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
@@ -121,7 +121,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(4)
 
     try {
-      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], defaultTestConfig())
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], ctx.config)
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
@@ -151,7 +151,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(4)
 
     try {
-      await DbPull.new().parse(['--url', setupParams.connectionString], defaultTestConfig())
+      await DbPull.new().parse(['--url', setupParams.connectionString], ctx.config)
     } catch (e) {
       expect(e.code).toEqual(undefined)
       expect(e.message).toMatchInlineSnapshot(
@@ -170,7 +170,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
 
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], defaultTestConfig())
+    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`

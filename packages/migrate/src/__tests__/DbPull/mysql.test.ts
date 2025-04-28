@@ -8,7 +8,7 @@ import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -17,7 +17,7 @@ if (isMacOrWindowsCI) {
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ mysql: true }, 'mysql', () => {
   const captureStdout = new CaptureStdout()
@@ -67,7 +67,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/mysql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
@@ -79,7 +79,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   // user and set password for MySQL, or sanitize the snapshot.
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 

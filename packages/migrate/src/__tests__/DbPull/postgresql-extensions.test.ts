@@ -7,14 +7,14 @@ import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 describeOnly({ postgres: true }, 'postgresql-extensions', () => {
   const captureStdout = new CaptureStdout()
@@ -66,7 +66,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`
@@ -116,7 +116,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = captureStdout.getCapturedText().join('\n')
     expect(introspectedSchema).toMatchInlineSnapshot(`

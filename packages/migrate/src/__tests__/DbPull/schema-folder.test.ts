@@ -2,14 +2,14 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
 import CaptureStdout from '../__helpers__/captureStdout'
-import { defaultTestConfig } from '../__helpers__/prismaConfig'
+import { configContextContributor } from '../__helpers__/prismaConfig'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 const captureStdout = new CaptureStdout()
 
 beforeEach(() => {
@@ -27,7 +27,7 @@ afterAll(() => {
 test('reintrospection - no changes', async () => {
   ctx.fixture('introspection-folder')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -69,7 +69,7 @@ test('reintrospection - no changes', async () => {
 test('reintrospection - with --print', async () => {
   ctx.fixture('introspection-folder')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema', '--print'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema', '--print'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
@@ -78,7 +78,7 @@ test('reintrospection - with --print', async () => {
 test('reintrospection - new model', async () => {
   ctx.fixture('introspection-folder-new-model')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
@@ -118,7 +118,7 @@ test('reintrospection - new model', async () => {
 test('reintrospection - new model - existing introspected.prisma', async () => {
   ctx.fixture('introspection-folder-new-model-with-introspected')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
@@ -155,7 +155,7 @@ test('reintrospection - new model - existing introspected.prisma', async () => {
 test('reintrospection - new field', async () => {
   ctx.fixture('introspection-folder-new-field')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
@@ -195,7 +195,7 @@ test('reintrospection - new field', async () => {
 test('reintrospection - remove model', async () => {
   ctx.fixture('introspection-folder-remove-model')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
@@ -229,7 +229,7 @@ test('reintrospection - remove model', async () => {
 test('reintrospection - invalid schema with --force', async () => {
   ctx.fixture('introspection-folder-invalid')
   const introspect = new DbPull()
-  const result = introspect.parse(['--schema=./prisma/schema', '--force'], defaultTestConfig())
+  const result = introspect.parse(['--schema=./prisma/schema', '--force'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`

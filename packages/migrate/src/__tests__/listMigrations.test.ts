@@ -4,8 +4,9 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { listMigrations } from '../utils/listMigrations'
 import { describeOnly } from './__helpers__/conditionalTests'
+import { configContextContributor } from './__helpers__/prismaConfig'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
 
 const itIf = (condition: boolean) => (condition ? it : it.skip)
 
