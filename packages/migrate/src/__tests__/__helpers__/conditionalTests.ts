@@ -14,5 +14,13 @@ export function describeOnly(matrix: Matrix, name: string, fn: jest.EmptyFunctio
   if (adapterName === undefined || matrix[adapterName] || (provider && matrix[provider])) {
     // eslint-disable-next-line jest/valid-describe-callback
     describe(name, fn)
+  } else {
+    // Jest does not allow test files without a single describe+it statement.
+    // => We work around this by adding a dummy describe+it statement.
+    describe(' SKIPPED - ' + name, () => {
+      it('is skipped due to test matrix setup', () => {
+        expect(true).toBe(true)
+      })
+    })
   }
 }
