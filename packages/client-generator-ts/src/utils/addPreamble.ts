@@ -13,7 +13,7 @@ const tsNoCheckPreamble = `/* @ts-nocheck */\n`
  */
 export function addPreambleToTSFiles(fileMap: FileMap, includeTSNoCheckPreamble: Boolean) {
   for (const [key, value] of Object.entries(fileMap)) {
-    if (typeof value === 'string' && key.endsWith('.ts')) {
+    if (typeof value === 'string' && (key.endsWith('.ts') || key.endsWith('.cts') || key.endsWith('.mts'))) {
       fileMap[key] = generatedCodePreamble + (includeTSNoCheckPreamble ? tsNoCheckPreamble : '') + value
     } else if (typeof value === 'object' && value !== null) {
       addPreambleToTSFiles(value, includeTSNoCheckPreamble)
