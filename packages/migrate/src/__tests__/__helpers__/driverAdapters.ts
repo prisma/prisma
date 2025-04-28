@@ -9,7 +9,7 @@ import path from 'path'
 
 export type DriverAdapterName = {
   [K in OfficialDriverAdapterName]: K extends `@prisma/adapter-${infer Name}` ? Name : never
-}[OfficialDriverAdapterName]
+}[OfficialDriverAdapterName] & {}
 
 type DriverAdapterTestConfig = {
   provider: Provider
