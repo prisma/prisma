@@ -74,7 +74,7 @@ exports[`common/sqlite basic introspection with --url 1`] = `
 
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.db"
+  url      = "file:../dev.db"
 }
 
 model Post {
@@ -151,7 +151,7 @@ exports[`common/sqlite should succeed and keep changes to valid schema and outpu
 
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.db"
+  url      = "file:../dev.db"
 }
 
 model AwesomeUser {
@@ -196,7 +196,7 @@ exports[`common/sqlite should succeed when schema is invalid and using --force 3
 
 datasource db {
   provider = "sqlite"
-  url      = "file:dev.db"
+  url      = "file:../dev.db"
 }
 
 model Post {
