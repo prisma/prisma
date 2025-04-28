@@ -1,1 +1,7 @@
-export { type BaseContext, jestConsoleContext, jestContext, jestProcessContext } from './jestContext'
+export {
+  type BaseContext,
+  jestConsoleContext,
+  jestContext,
+  jestStdoutContext as jestStdoutContext,
+  type ProcessContextSettings,
+} from './jestContext'
