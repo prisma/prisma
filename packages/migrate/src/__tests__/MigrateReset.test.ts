@@ -1,30 +1,20 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext, jestStdoutContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
-import { CaptureStdout } from '../utils/captureStdout'
 import { configContextContributor } from './__helpers__/prismaConfig'
+import { stdoutNormalizationRules } from './__helpers__/stdoutNormalizationRules'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-
-const captureStdout = new CaptureStdout()
+const ctx = jestContext
+  .new()
+  .add(jestConsoleContext())
+  .add(jestStdoutContext(stdoutNormalizationRules))
+  .add(configContextContributor())
+  .assemble()
 
 beforeEach(() => {
-  captureStdout.startCapture()
   process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 })
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
-
-function removeSeedlingEmoji(str: string) {
-  return str.replace('🌱  ', '')
-}
 
 describe('common', () => {
   it('wrong flag', async () => {
@@ -70,12 +60,11 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -93,11 +82,10 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -115,13 +103,10 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:dev.db
-
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -140,13 +125,10 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--force'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:dev.db
-
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -167,9 +149,9 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -188,9 +170,9 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Reset cancelled.
@@ -218,11 +200,9 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -246,11 +226,9 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -275,11 +253,9 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -304,11 +280,9 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -332,11 +306,9 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -353,12 +325,11 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
