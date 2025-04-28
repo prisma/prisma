@@ -5,6 +5,7 @@ import {
   ErrorArea,
   getWasmError,
   isWasmPanic,
+  relativizePathInPSLError,
   RustPanic,
   SchemaContext,
   wasm,
@@ -13,6 +14,7 @@ import {
 import { bold, red } from 'kleur/colors'
 
 import { SchemaEngine } from './SchemaEngine'
+import { EngineError } from './SchemaEngineCLI'
 import { EngineArgs } from './types'
 import { handleViewsIO } from './views/handleViewsIO'
 
@@ -102,6 +104,8 @@ export class SchemaEngineWasm implements SchemaEngine {
         const { message, stack } = getWasmError(e)
         // Handle error and displays the interactive dialog to send panic error
         throw new RustPanic(serializePanic(message), stack, command, ErrorArea.LIFT_CLI)
+      } else if ('code' in error) {
+        throw new EngineError(red(`${error.code}\n\n${relativizePathInPSLError(error.message)}\n`), error.code)
       } else {
         assertAlways(
           e.name === 'SchemaConnectorError',
