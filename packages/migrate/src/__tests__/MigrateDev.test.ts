@@ -1,7 +1,6 @@
 // describeOnly making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
@@ -9,27 +8,17 @@ import prompt from 'prompts'
 import { DbExecute } from '../commands/DbExecute'
 import { MigrateDev } from '../commands/MigrateDev'
 import { MigrateReset } from '../commands/MigrateReset'
-import { CaptureStdout } from '../utils/captureStdout'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-const captureStdout = new CaptureStdout()
-
-function removeSeedlingEmoji(str: string) {
-  return str.replace('🌱  ', '')
-}
-
-beforeAll(() => {
-  captureStdout.startCapture()
-})
+const ctx = createDefaultTestContext()
 
 beforeEach(() => {
   clearPromptInjection('before')
@@ -41,11 +30,6 @@ beforeEach(() => {
 
 afterEach(() => {
   clearPromptInjection('after')
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
 })
 
 // Sanity check to ensure no prompt injections remain enqueued between
@@ -93,7 +77,7 @@ describe('common', () => {
       `)
     }
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid.prisma
       "
     `)
@@ -123,7 +107,7 @@ describe('common', () => {
         Prisma CLI Version : 0.0.0"
       `)
     }
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/provider-array.prisma
       "
     `)
@@ -182,11 +166,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
       "
@@ -200,13 +182,10 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:dev.db
-
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -226,13 +205,10 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/schema/migrations/migration_lock.toml')).toEqual('file')
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:../dev.db
-
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -266,14 +242,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
-      Applying migration \`20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -297,7 +270,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
 
@@ -352,17 +325,14 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_some_draft\`
 
       The following migration(s) have been applied:
 
@@ -390,11 +360,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
       "
@@ -416,16 +384,13 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(fs.exists('prisma/dev.db')).toEqual('file')
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been applied:
 
@@ -447,9 +412,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Drift detected: Your database schema is not in sync with your migration history.
 
@@ -465,7 +430,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
         - _Migration
 
       We need to reset the SQLite database "dev.db" at "file:dev.db"
-      
+
       You may use prisma migrate reset to drop the development database.
       All data will be lost.
       "
@@ -479,12 +444,10 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     // migrate reset --force
     const migrateReset = MigrateReset.new().parse(['--force'], ctx.config)
     await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_test\`
-      Applying migration \`20201231000000_draft\`
 
       Database reset successful
 
@@ -497,14 +460,14 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
           └─ migration.sql
       "
     `)
-    captureStdout.clearCaptureText()
+    ctx.mocked['process.stdout.write'].mockClear()
 
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
       "
@@ -518,41 +481,39 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     // migrate reset --force
     const migrateReset = MigrateReset.new().parse(['--force'], ctx.config)
     await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-      
-      Applying migration \`20201231000000_draft\`
-      
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+
       Database reset successful
-      
+
       The following migration(s) have been applied:
-      
+
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
       "
     `)
-    captureStdout.clearCaptureText()
+    ctx.mocked['process.stdout.write'].mockClear()
 
     prompt.inject(['new-change'])
 
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-      
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
       Enter a name for the new migration:
-      Applying migration \`20201231000000_new_change\`
-      
+
       The following migration(s) have been created and applied from new schema changes:
-      
+
       migrations/
         └─ 20201231000000_new_change/
           └─ migration.sql
-      
+
       Your database is now in sync with your schema.
       "
     `)
@@ -568,11 +529,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       expect(e.message).toContain('near "BROKEN": syntax error')
     }
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      SQLite database dev.db created at file:dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -589,9 +548,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       expect(e.message).toContain('failed to apply cleanly to the shadow database.')
     }
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -614,13 +573,13 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       expect(e.message).toContain('failed to apply cleanly to the shadow database.')
     }
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -631,11 +590,10 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_draft\`
 
       The following migration(s) have been applied:
 
@@ -653,18 +611,16 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_draft\`
 
       The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
-      Applying migration \`20201231000000_\`
 
 
       The following migration(s) have been created and applied from new schema changes:
@@ -692,9 +648,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       Then run prisma migrate dev to apply it and verify it works.
       "
     `)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       "
@@ -710,9 +666,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       "
@@ -727,16 +683,15 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       ⚠️  Warnings for the current datasource:
 
         • You are about to drop the \`Blog\` table, which is not empty (2 rows).
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -759,9 +714,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       ⚠️  Warnings for the current datasource:
@@ -782,14 +737,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
-      Applying migration \`20201231000000_y\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -814,14 +766,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse(['--skip-seed'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
-      Applying migration \`20201231000000_y\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -846,14 +795,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
-      Applying migration \`20201231000000_y\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -882,14 +828,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
       Enter a name for the new migration:
-      Applying migration \`20201231000000_y\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -913,11 +856,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       expect(e.message).toContain('The datasource provider')
     }
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -962,12 +903,11 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -985,12 +925,11 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1008,12 +947,11 @@ describeOnly({ postgres: true }, 'postgres', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1032,11 +970,10 @@ describeOnly({ postgres: true }, 'postgres', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1059,7 +996,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1087,16 +1024,15 @@ describeOnly({ postgres: true }, 'postgres', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been applied:
 
@@ -1114,12 +1050,11 @@ describeOnly({ postgres: true }, 'postgres', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1137,7 +1072,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   //   const result = MigrateDev.new().parse([])
 
   //   await expect(result).resolves.toMatchInlineSnapshot()
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma Schema loaded from prisma/schema.prisma
 
@@ -1193,7 +1128,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/multiSchema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schemas "schema1, schema2" at "localhost:5432"
@@ -1208,10 +1143,10 @@ describeOnly({ postgres: true }, 'postgres', () => {
     const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
       "
@@ -1226,14 +1161,13 @@ describeOnly({ postgres: true }, 'postgres', () => {
     await expect(reset).resolves.toMatchInlineSnapshot('""')
 
     // The first (initial) migration should create the database objects
-    captureStdout.clearCaptureText()
+    ctx.mocked['process.stdout.write'].mockClear()
     const firstResult = MigrateDev.new().parse([], ctx.config)
     await expect(firstResult).resolves.toMatchInlineSnapshot('""')
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1246,12 +1180,12 @@ describeOnly({ postgres: true }, 'postgres', () => {
     `)
 
     // No migration should be created on the second run, since there have been no changes to the schema
-    captureStdout.clearCaptureText()
+    ctx.mocked['process.stdout.write'].mockClear()
     const secondResult = MigrateDev.new().parse([], ctx.config)
     await expect(secondResult).resolves.toMatchInlineSnapshot('""')
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
       "
@@ -1300,12 +1234,11 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1323,12 +1256,11 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1346,12 +1278,11 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1370,11 +1301,10 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1403,16 +1333,15 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been applied:
 
@@ -1430,12 +1359,11 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1487,11 +1415,10 @@ describeOnly({ mysql: true }, 'mysql', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1509,11 +1436,10 @@ describeOnly({ mysql: true }, 'mysql', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1531,11 +1457,10 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1554,7 +1479,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   //   const result = MigrateDev.new().parse(['--name=first'])
   //   await expect(result).resolves.toMatchInlineSnapshot(``)
 
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
@@ -1579,7 +1504,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1607,14 +1532,13 @@ describeOnly({ mysql: true }, 'mysql', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been applied:
 
@@ -1632,11 +1556,10 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      Datasource "my_db": MySQL database "tests-migrate-dev" <location placeholder>
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1697,11 +1620,10 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
 
     const result = MigrateDev.new().parse([], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1719,11 +1641,10 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": SQL Server database
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1741,11 +1662,10 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = MigrateDev.new().parse([], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
-      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1764,7 +1684,7 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
   //   const result = MigrateDev.new().parse(['--name=first'])
   //   await expect(result).resolves.toMatchInlineSnapshot(``)
 
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
@@ -1789,7 +1709,7 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
   //   await expect(result).resolves.toMatchInlineSnapshot(
   //     `Everything is now in sync.`,
   //   )
-  //   expect(captureStdout.getCapturedText().join(''))
+  //   expect(ctx.normalizedCapturedStdout())
   //     .toMatchInlineSnapshot(`
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
@@ -1816,14 +1736,13 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been applied:
 
@@ -1841,11 +1760,10 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = MigrateDev.new().parse(['--name=first'], ctx.config)
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
 
-      Applying migration \`20201231000000_first\`
 
       The following migration(s) have been created and applied from new schema changes:
 
