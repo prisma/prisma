@@ -244,7 +244,7 @@ export class SchemaEngineWasm implements SchemaEngine {
     if (stdout) {
       // Here we print the content from the Schema Engine to stdout directly
       // (it is not returned to the caller)
-      process.stdout.write(stdout + '\n')
+      process.stdout.write(stdout)
     }
 
     return rest
