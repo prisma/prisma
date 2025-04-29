@@ -185,6 +185,8 @@ type ProcessContext = {
   }
   normalizedCapturedStdout: () => string
   normalizedCapturedStderr: () => string
+  clearCapturedStdout: () => void
+  clearCapturedStderr: () => void
 }
 
 type NormalizationRule = [RegExp | string, string]
@@ -212,6 +214,8 @@ export const jestStdoutContext =
         normalize(ctx.mocked['process.stdout.write'].mock.calls.join(''), normalizationRules)
       ctx.normalizedCapturedStderr = () =>
         normalize(ctx.mocked['process.stderr.write'].mock.calls.join(''), normalizationRules)
+      ctx.clearCapturedStdout = () => ctx.mocked['process.stdout.write'].mockClear()
+      ctx.clearCapturedStderr = () => ctx.mocked['process.stderr.write'].mockClear()
     })
 
     afterEach(() => {
