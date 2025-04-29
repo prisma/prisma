@@ -5,34 +5,21 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { loadConfigFromFile } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
-import { CaptureStdout } from '../utils/captureStdout'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-
-const captureStdout = new CaptureStdout()
+const ctx = createDefaultTestContext()
 
 const isWindows = os.platform() === 'win32'
 
 describe('migrate diff', () => {
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-    captureStdout.stopCapture()
-  })
-
   describe('using Prisma Config', () => {
     it('--from-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
@@ -189,13 +176,13 @@ describe('migrate diff', () => {
     })
   })
 
-  describe('D1', () => {
+  describeOnly({ driverAdapter: false }, 'D1', () => {
     it('should succeed when --from-local-d1 and a single local Cloudflare D1 database exists', async () => {
       ctx.fixture('cloudflare-d1-one-db')
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], ctx.config)
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -222,7 +209,7 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'], ctx.config)
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -241,7 +228,7 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'], ctx.config)
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -360,20 +347,6 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrow()
     })
 
-    it('should fail if schema does no exists, --from-schema-datasource', async () => {
-      ctx.fixture('empty')
-      expect.assertions(2)
-
-      try {
-        await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'], ctx.config)
-      } catch (e) {
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(
-          `"Could not load \`--from-schema-datasource\` from provided path \`doesnoexists.prisma\`: file or directory not found"`,
-        )
-      }
-    })
-
     it('should fail for empty/empty', async () => {
       ctx.fixture('empty')
       expect.assertions(2)
@@ -389,73 +362,25 @@ describe('migrate diff', () => {
         `)
       }
     })
+
+    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+      it('should fail if schema does no exists, --from-schema-datasource', async () => {
+        ctx.fixture('empty')
+        expect.assertions(2)
+
+        try {
+          await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'], ctx.config)
+        } catch (e) {
+          expect(e.code).toEqual(undefined)
+          expect(e.message).toMatchInlineSnapshot(
+            `"Could not load \`--from-schema-datasource\` from provided path \`doesnoexists.prisma\`: file or directory not found"`,
+          )
+        }
+      })
+    })
   })
 
   describe('sqlite', () => {
-    it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
-      ctx.fixture('schema-only-sqlite')
-
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'], ctx.config)
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
-
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
-    })
-    it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
-      ctx.fixture('schema-only-sqlite')
-
-      const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'], ctx.config)
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
-
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
-    })
-    it('should fail if directory in path & sqlite file does not exist', async () => {
-      ctx.fixture('schema-only-sqlite')
-
-      const result = MigrateDiff.new().parse(['--from-url=file:./something/doesnotexists.db', '--to-empty'], ctx.config)
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
-
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    })
-
-    it('should diff --from-empty --to-url=file:dev.db', async () => {
-      ctx.fixture('introspection/sqlite')
-
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-        "
-        [+] Added tables
-          - Post
-          - Profile
-          - User
-          - _Migration
-
-        [*] Changed the \`Profile\` table
-          [+] Added unique index on columns (userId)
-
-        [*] Changed the \`User\` table
-          [+] Added unique index on columns (email)
-        "
-      `)
-    })
-    it('should diff --from-empty --to-url=file:dev.db --script', async () => {
-      ctx.fixture('introspection/sqlite')
-
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
-    })
-
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-sqlite')
 
@@ -464,7 +389,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
         [+] Added tables
           - Blog
@@ -477,7 +402,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-empty', '--to-schema-datamodel=./prisma/schema'], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
         [+] Added tables
           - Blog
@@ -494,7 +419,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE "Blog" (
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -512,7 +437,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
         [-] Removed tables
           - Blog
@@ -525,7 +450,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-schema-datamodel=./prisma/schema', '--to-empty'], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
         [-] Removed tables
           - Blog
@@ -542,7 +467,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- DropTable
         PRAGMA foreign_keys=off;
         DROP TABLE "Blog";
@@ -559,7 +484,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
       expect(ctx.fs.read('./output.sql')).toMatchInlineSnapshot(`
         "-- DropTable
         PRAGMA foreign_keys=off;
@@ -577,7 +502,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
       expect(ctx.fs.read('./subdir/output.sql')).toMatchInlineSnapshot(`
         "-- DropTable
         PRAGMA foreign_keys=off;
@@ -606,17 +531,106 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrow(isWindows ? 'EPERM' : 'EACCES')
     })
 
-    it('should pass if no schema file around', async () => {
-      ctx.fixture('empty')
-      // Create empty file, as the file needs to exists
-      ctx.fs.write('dev.db', '')
+    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+      it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
+        ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'], ctx.config)
+        await expect(result).rejects.toMatchInlineSnapshot(`
+        "P1003
+
+        Database \`doesnotexists.db\` does not exist
+        "
+      `)
+      })
+
+      it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
+        ctx.fixture('schema-only-sqlite')
+
+        const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'], ctx.config)
+        await expect(result).rejects.toMatchInlineSnapshot(`
+        "P1003
+
+        Database \`doesnotexists.db\` does not exist
+        "
+      `)
+      })
+
+      it('should fail if directory in path & sqlite file does not exist', async () => {
+        ctx.fixture('schema-only-sqlite')
+
+        const result = MigrateDiff.new().parse(
+          ['--from-url=file:./something/doesnotexists.db', '--to-empty'],
+          ctx.config,
+        )
+        await expect(result).rejects.toMatchInlineSnapshot(`
+        "P1003
+
+        Database \`doesnotexists.db\` does not exist
+        "
+      `)
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      })
+
+      it('should diff --from-empty --to-url=file:dev.db', async () => {
+        ctx.fixture('introspection/sqlite')
+
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        [+] Added tables
+          - Post
+          - Profile
+          - User
+          - _Migration
+
+        [*] Changed the \`Profile\` table
+          [+] Added unique index on columns (userId)
+
+        [*] Changed the \`User\` table
+          [+] Added unique index on columns (email)
+        "
+      `)
+      })
+
+      it('should diff --from-empty --to-url=file:dev.db --script', async () => {
+        ctx.fixture('introspection/sqlite')
+
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+      })
+
+      it('should pass if no schema file around', async () => {
+        ctx.fixture('empty')
+        // Create empty file, as the file needs to exists
+        ctx.fs.write('dev.db', '')
+
+        const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "No difference detected.
         "
       `)
+      })
+
+      it('should exit with code 0 when diff is empty with --script', async () => {
+        ctx.fixture('empty')
+        // Create empty file, as the file needs to exists
+        ctx.fs.write('dev.db', '')
+
+        const result = MigrateDiff.new().parse(
+          ['--from-empty', '--to-url=file:dev.db', '--script', '--exit-code'],
+          ctx.config,
+        )
+
+        await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+          "-- This is an empty migration.
+          "
+        `)
+      })
     })
 
     describe('--exit-code', () => {
@@ -634,7 +648,7 @@ describe('migrate diff', () => {
 
         await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 2"`)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-        expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
           "
           [-] Removed tables
             - Blog
@@ -660,7 +674,7 @@ describe('migrate diff', () => {
 
         await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 2"`)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-        expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
           "-- DropTable
           PRAGMA foreign_keys=off;
           DROP TABLE "Blog";
@@ -672,27 +686,10 @@ describe('migrate diff', () => {
         expect(mockExit).toHaveBeenCalledWith(2)
         mockExit.mockRestore()
       })
-
-      it('should exit with code 0 when diff is empty with --script', async () => {
-        ctx.fixture('empty')
-        // Create empty file, as the file needs to exists
-        ctx.fs.write('dev.db', '')
-
-        const result = MigrateDiff.new().parse(
-          ['--from-empty', '--to-url=file:dev.db', '--script', '--exit-code'],
-          ctx.config,
-        )
-
-        await expect(result).resolves.toMatchInlineSnapshot(`""`)
-        expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
-          "-- This is an empty migration.
-          "
-        `)
-      })
     })
   })
 
-  describe('mongodb', () => {
+  describeOnly({ mongodb: true }, 'mongodb', () => {
     // it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
     //   ctx.fixture('schema-only-mongodb')
 
@@ -703,7 +700,7 @@ describe('migrate diff', () => {
     //     '--to-schema-datamodel=./prisma/schema.prisma',
     //   ])
     //   await expect(result).resolves.toMatchInlineSnapshot(``)
-    //   expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    //   expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
     //     [+] Collection \`User\`
 
     //   `)
@@ -717,7 +714,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "[+] Collection \`User\`
         "
       `)
@@ -731,7 +728,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "No difference detected.
         "
       `)
@@ -791,7 +788,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE "Blog" (
             "id" INT4 NOT NULL,
@@ -866,7 +863,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE "Blog" (
             "id" INTEGER NOT NULL,
@@ -916,7 +913,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "No difference detected.
         "
       `)
@@ -962,7 +959,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
         CREATE TABLE \`Blog\` (
             \`id\` INTEGER NOT NULL,
@@ -1037,7 +1034,7 @@ describe('migrate diff', () => {
         ctx.config,
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "BEGIN TRY
 
         BEGIN TRAN;

@@ -48,7 +48,7 @@ CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
 "
 `;
 
-exports[`migrate diff sqlite should diff --from-empty --to-url=file:dev.db --script 2`] = `
+exports[`migrate diff sqlite non driver adapter should diff --from-empty --to-url=file:dev.db --script 2`] = `
 "-- CreateTable
 CREATE TABLE "Post" (
     "authorId" INTEGER NOT NULL,
