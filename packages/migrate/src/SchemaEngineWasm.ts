@@ -83,6 +83,8 @@ export class SchemaEngineWasm implements SchemaEngine {
     command: M,
     input: SchemaEngineInput<M>,
   ): Promise<Awaited<SchemaEngineOutput<M>>> {
+    if (process.env.FORCE_PANIC_SCHEMA_ENGINE && command !== 'debugPanic') return this.debugPanic()
+
     this.isRunning = true
 
     debugStdout('[%s] input: %o', command, input)

@@ -16,11 +16,7 @@ describe('introspection panic', () => {
     try {
       await introspect.parse(['--print'], ctx.config)
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`
-        "Error in Schema engine.
-        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-        "
-      `)
+      expect(e.message).toContain('This is the debugPanic artificial panic')
     }
   })
 })
