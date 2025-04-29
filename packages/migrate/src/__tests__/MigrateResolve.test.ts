@@ -1,28 +1,11 @@
 // describeOnly is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { CaptureStdout } from '../utils/captureStdout'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -72,9 +55,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     )
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
       "
     `)
   })
@@ -120,9 +103,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as applied.
       "
@@ -133,9 +116,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
     const result = MigrateResolve.new().parse(['--schema=./prisma', '--applied', '20240527130802_init'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_init marked as applied.
       "
@@ -172,9 +155,9 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
       "
@@ -190,13 +173,13 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       Migration 20201231000000_failed marked as rolled back.
       "
@@ -219,10 +202,10 @@ describeOnly({ postgres: true }, 'postgres', () => {
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
       "
     `)
   })
@@ -242,10 +225,10 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
       Please make sure your database server is running at \`something.cockroachlabs.cloud:26257\`."
     `)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" at "something.cockroachlabs.cloud:26257"
+      Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" <location placeholder>
       "
     `)
   }, 10_000)
