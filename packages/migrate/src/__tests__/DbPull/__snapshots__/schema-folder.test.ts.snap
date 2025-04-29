@@ -2,13 +2,9 @@
 
 exports[`reintrospection - no changes 2`] = `
 "Prisma schema loaded from prisma/schema
-
-Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
-
-
+Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 - Introspecting based on datasource defined in prisma/schema
-
 ✔ Introspected 2 models and wrote them into prisma/schema in XXXms
       
 Run prisma generate to generate Prisma Client.
@@ -24,7 +20,6 @@ model Blog {
   owner       User @relation(fields: [ownerId], references: [id])
 }
 
-
 // prisma/schema/config.prisma
 generator client {
   provider = "prisma-client-js"
@@ -33,9 +28,8 @@ generator client {
 
 datasource my_db {
   provider = "sqlite"
-  url      = "file:../dev.db"
+  url      = "file:../../dev.db"
 }
-
 
 // prisma/schema/User.prisma
 model User {
