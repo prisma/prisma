@@ -1,28 +1,12 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { DbPull } from '../../commands/DbPull'
-import CaptureStdout from '../__helpers__/captureStdout'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 test('reintrospection - no changes', async () => {
   ctx.fixture('introspection-folder')
@@ -30,7 +14,7 @@ test('reintrospection - no changes', async () => {
   const result = introspect.parse(['--schema=./prisma/schema'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-  expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+  expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
     "Blog.prisma:
@@ -52,7 +36,7 @@ test('reintrospection - no changes', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
 
@@ -72,7 +56,7 @@ test('reintrospection - with --print', async () => {
   const result = introspect.parse(['--schema=./prisma/schema', '--print'], ctx.config)
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-  expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+  expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 })
 
 test('reintrospection - new model', async () => {
@@ -91,7 +75,7 @@ test('reintrospection - new model', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
 
@@ -131,7 +115,7 @@ test('reintrospection - new model - existing introspected.prisma', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
 
@@ -178,7 +162,7 @@ test('reintrospection - new field', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
 
@@ -213,7 +197,7 @@ test('reintrospection - remove model', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
 
@@ -242,7 +226,7 @@ test('reintrospection - invalid schema with --force', async () => {
 
     datasource my_db {
       provider = "sqlite"
-      url      = "file:../dev.db"
+      url      = "file:../../dev.db"
     }
 
     model Blog {
