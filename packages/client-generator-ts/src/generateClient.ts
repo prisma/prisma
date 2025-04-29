@@ -475,7 +475,7 @@ async function deleteOutputDir(outputDir: string) {
             followSymbolicLinks: false,
           },
         )
-      ).map(fs.unlink),
+      ).map((file) => fs.unlink(file)),
     )
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
