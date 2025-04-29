@@ -225,3 +225,33 @@ export const jestStdoutContext =
 
     return ctx
   }
+
+/**
+ * Test context contributor. Mocks process.exit with a spay and records the exit code.
+ */
+
+type ProcessExitContext = {
+  mocked: {
+    'process.exit': jest.SpyInstance
+  }
+  recordedExitCode: () => number
+}
+
+export const processExitContext =
+  <C extends BaseContext>() =>
+  (c: C) => {
+    const ctx = c as C & ProcessExitContext
+
+    beforeEach(() => {
+      ctx.mocked['process.exit'] = jest.spyOn(process, 'exit').mockImplementation((number) => {
+        throw new Error('process.exit: ' + number)
+      })
+      ctx.recordedExitCode = () => ctx.mocked['process.exit'].mock.calls[0]?.[0]
+    })
+
+    afterEach(() => {
+      ctx.mocked['process.exit'].mockRestore()
+    })
+
+    return ctx
+  }

@@ -2,6 +2,7 @@ export {
   type BaseContext,
   jestConsoleContext,
   jestContext,
-  jestStdoutContext as jestStdoutContext,
+  jestStdoutContext,
   type ProcessContextSettings,
+  processExitContext,
 } from './jestContext'

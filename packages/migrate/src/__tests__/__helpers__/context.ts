@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, jestStdoutContext } from '@prisma/get-platform'
+import { jestConsoleContext, jestContext, jestStdoutContext, processExitContext } from '@prisma/get-platform'
 
 import { configContextContributor } from './prismaConfig'
 import { stdoutNormalizationRules } from './stdoutNormalizationRules'
@@ -9,4 +9,5 @@ export const createDefaultTestContext = () =>
     .add(jestConsoleContext())
     .add(jestStdoutContext(stdoutNormalizationRules))
     .add(configContextContributor())
+    .add(processExitContext())
     .assemble()
