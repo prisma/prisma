@@ -2,7 +2,6 @@
 /* eslint-disable jest/no-identical-title */
 
 import { loadConfigFromFile } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 
@@ -13,12 +12,12 @@ import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
@@ -77,14 +76,32 @@ describe('db execute', () => {
       `)
     })
 
-    it('should fail if both --schema and --url are provided', async () => {
-      ctx.fixture('empty')
+    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+      it('should fail if both --schema and --url are provided', async () => {
+        ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--stdin', '--schema=1', '--url=1'], ctx.config)
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+        const result = DbExecute.new().parse(['--stdin', '--schema=1', '--url=1'], ctx.config)
+        await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "--url and --schema cannot be used at the same time. Only 1 must be provided.
         See \`prisma db execute -h\`"
       `)
+      })
+    })
+
+    describeOnly({ driverAdapter: true }, 'with driver adapter', () => {
+      it('should fail if --url is provided', async () => {
+        ctx.fixture('empty')
+
+        const result = DbExecute.new().parse(['--stdin', '--url=1'], ctx.config)
+        await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+        "
+        Passing the --url flag to the prisma db execute command is not supported when
+        defining a migrate.adapter in prisma.config.ts.
+
+        More information about this limitation: https://pris.ly/d/schema-engine-limitations
+        "
+      `)
+      })
     })
 
     it('should fail if --file does no exists', async () => {
@@ -135,14 +152,6 @@ describe('db execute', () => {
 DROP TABLE IF EXISTS 'test-dbexecute';
 CREATE TABLE 'test-dbexecute' ("id" INTEGER PRIMARY KEY);
 DROP TABLE 'test-dbexecute';`
-
-    it('should pass if no schema file in directory with --file --url', async () => {
-      ctx.fixture('empty')
-
-      fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url=file:./dev.db', '--file=./script.sql'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-    })
 
     // On Windows: snapshot output = "-- Drop & Create & Drop".
     // TODO: check why it fails locally with `env: tsx: No such file or directory`.
@@ -197,47 +206,57 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    it('should pass with --file --url=file:dev.db', async () => {
-      ctx.fixture('introspection/sqlite')
+    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+      it('should pass if no schema file in directory with --file --url', async () => {
+        ctx.fixture('empty')
 
-      fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-    })
+        fs.writeFileSync('script.sql', sqlScript)
+        const result = DbExecute.new().parse(['--url=file:./dev.db', '--file=./script.sql'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+      })
 
-    it('should pass with empty --file --url=file:dev.db', async () => {
-      ctx.fixture('introspection/sqlite')
+      it('should pass with --file --url=file:dev.db', async () => {
+        ctx.fixture('introspection/sqlite')
 
-      fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-    })
+        fs.writeFileSync('script.sql', sqlScript)
+        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+      })
 
-    it('should fail with P1013 error with invalid url with --file --url', async () => {
-      ctx.fixture('schema-only-sqlite')
-      expect.assertions(2)
+      it('should pass with empty --file --url=file:dev.db', async () => {
+        ctx.fixture('introspection/sqlite')
 
-      fs.writeFileSync('script.sql', '-- empty')
-      try {
-        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
-      } catch (e) {
-        expect(e.code).toEqual('P1013')
-        expect(e.message).toMatchInlineSnapshot(`
+        fs.writeFileSync('script.sql', '')
+        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+      })
+
+      it('should fail with P1013 error with invalid url with --file --url', async () => {
+        ctx.fixture('schema-only-sqlite')
+        expect.assertions(2)
+
+        fs.writeFileSync('script.sql', '-- empty')
+        try {
+          await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+        } catch (e) {
+          expect(e.code).toEqual('P1013')
+          expect(e.message).toMatchInlineSnapshot(`
           "P1013
 
           The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
           "
         `)
-      }
-    })
+        }
+      })
 
-    // the default behavior with sqlite is to create the db if it doesn't exists, no failure expected
-    it('should pass with --file --url=file:doesnotexists.db', async () => {
-      ctx.fixture('introspection/sqlite')
+      // the default behavior with sqlite is to create the db if it doesn't exists, no failure expected
+      it('should pass with --file --url=file:doesnotexists.db', async () => {
+        ctx.fixture('introspection/sqlite')
 
-      fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url=file:doesnotexists.db', '--file=./script.sql'], ctx.config)
-      await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+        fs.writeFileSync('script.sql', sqlScript)
+        const result = DbExecute.new().parse(['--url=file:doesnotexists.db', '--file=./script.sql'], ctx.config)
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
+      })
     })
 
     // TODO we could have a generic error code in prisma-engines for a "SQL error"
@@ -249,12 +268,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
       } catch (e) {
-        expect(e.message).toMatchInlineSnapshot(`
-          "SQLite database error
-          no such table: test-doesnotexists
-
-          "
-        `)
+        expect(e.message).toContain('no such table: test-doesnotexists')
       }
     })
 
@@ -267,12 +281,7 @@ COMMIT;`,
         await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
       } catch (e) {
         expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`
-          "SQLite database error
-          near "ThisisnotSQL": syntax error in ThisisnotSQL,itshouldfail at offset 0
-
-          "
-        `)
+        expect(e.message).toContain('near "ThisisnotSQL": syntax error')
       }
     })
   })
