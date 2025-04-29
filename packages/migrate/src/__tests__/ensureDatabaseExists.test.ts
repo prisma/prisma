@@ -12,7 +12,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     const schema = (await getSchemaWithPath())!
     const { datasources } = await getConfig({ datamodel: schema.schemas })
     const result = ensureDatabaseExists(datasources[0])
-    await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:dev.db"`)
+    await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:../dev.db"`)
   })
 
   it('can create database - sqlite - folder', async () => {
