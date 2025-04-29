@@ -460,7 +460,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
           └─ migration.sql
       "
     `)
-    ctx.mocked['process.stdout.write'].mockClear()
+    ctx.clearCapturedStdout()
 
     const result = MigrateDev.new().parse([], ctx.config)
 
@@ -495,7 +495,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
           └─ migration.sql
       "
     `)
-    ctx.mocked['process.stdout.write'].mockClear()
+    ctx.clearCapturedStdout()
 
     prompt.inject(['new-change'])
 
@@ -1161,7 +1161,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
     await expect(reset).resolves.toMatchInlineSnapshot('""')
 
     // The first (initial) migration should create the database objects
-    ctx.mocked['process.stdout.write'].mockClear()
+    ctx.clearCapturedStdout()
     const firstResult = MigrateDev.new().parse([], ctx.config)
     await expect(firstResult).resolves.toMatchInlineSnapshot('""')
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -1180,7 +1180,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
     `)
 
     // No migration should be created on the second run, since there have been no changes to the schema
-    ctx.mocked['process.stdout.write'].mockClear()
+    ctx.clearCapturedStdout()
     const secondResult = MigrateDev.new().parse([], ctx.config)
     await expect(secondResult).resolves.toMatchInlineSnapshot('""')
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
