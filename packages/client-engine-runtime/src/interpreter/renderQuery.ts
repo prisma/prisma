@@ -167,12 +167,6 @@ function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
 }
 
 function toArgType(value: PrismaValue): ArgType {
-  if (value === null) {
-    // TODO: either introduce Unknown or Null type in driver adapters,
-    // or change PrismaValue to be able to represent typed nulls.
-    return 'Int32'
-  }
-
   if (typeof value === 'string') {
     return 'Text'
   }
@@ -193,7 +187,7 @@ function toArgType(value: PrismaValue): ArgType {
     return placeholderTypeToArgType(value.prisma__value.type)
   }
 
-  return 'Json'
+  return 'Unknown'
 }
 
 function placeholderTypeToArgType(type: string): ArgType {
