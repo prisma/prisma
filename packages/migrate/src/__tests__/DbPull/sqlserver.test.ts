@@ -1,34 +1,17 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../../utils/setupMSSQL'
 import { SetupParams } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 // We want to remove unique IDs to have stable snapshots
 // Example:
@@ -95,7 +78,7 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -104,7 +87,7 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })
@@ -197,7 +180,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
@@ -218,7 +201,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -243,7 +226,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
       ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -262,7 +245,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
     const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(captureStdout.getCapturedText().join('\n'))).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

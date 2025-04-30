@@ -1,12 +1,10 @@
 import path from 'node:path'
 
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { listMigrations } from '../utils/listMigrations'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 const itIf = (condition: boolean) => (condition ? it : it.skip)
 

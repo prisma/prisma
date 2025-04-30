@@ -1,27 +1,11 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
-import { CaptureStdout } from '../utils/captureStdout'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describe('drop', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
@@ -84,12 +68,9 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature'], ctx.config)
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       "
@@ -102,11 +83,9 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'], ctx.config)
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -117,11 +96,9 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--preview-feature', '-f'], ctx.config)
     await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -138,13 +115,9 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature'], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Drop cancelled.

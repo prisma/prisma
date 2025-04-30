@@ -1,13 +1,11 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { loadSchemaContext, pathToPosix, toSchemasContainer } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { Migrate } from '../../Migrate'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 if (process.env.CI) {
   if (['darwin', 'win32'].includes(process.platform)) {
@@ -17,23 +15,9 @@ if (process.env.CI) {
   }
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ postgres: true }, 'postgresql-views', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-postgresql-views',
@@ -229,15 +213,11 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       expect(listWithoutViews).toEqual(undefined)
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from schema.prisma
-
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
-
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         *** WARNING ***
@@ -247,15 +227,10 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
           - "workers"
 
         Run prisma generate to generate Prisma Client.
-
         Prisma schema loaded from schema.prisma
-
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
-
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         Run prisma generate to generate Prisma Client.
@@ -292,15 +267,11 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       `)
 
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from schema.prisma
-
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
-
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         *** WARNING ***
@@ -400,7 +371,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
             );"
         `)
 
-        expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+        expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       })
     }
@@ -475,15 +446,11 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
       expect(tree).toMatchInlineSnapshot(`[]`)
 
-      expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from schema.prisma
-
-        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
         - Introspecting based on datasource defined in schema.prisma
-
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
         Run prisma generate to generate Prisma Client.

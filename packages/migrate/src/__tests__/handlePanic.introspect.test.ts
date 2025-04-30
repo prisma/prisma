@@ -1,10 +1,9 @@
-import { jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describe('introspection panic', () => {
   test('force panic', async () => {

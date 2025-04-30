@@ -1,24 +1,9 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
-import { CaptureStdout } from '../utils/captureStdout'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 describe('seed', () => {
   it('seed.js', async () => {
@@ -26,7 +11,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([], ctx.config)
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
       "
     `)
@@ -42,7 +27,7 @@ describe('seed', () => {
       ctx.config,
     )
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...
       "
     `)
@@ -73,7 +58,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([], ctx.config)
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
       "
     `)
@@ -86,7 +71,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([], ctx.config)
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`ts-node prisma/seed.ts\` ...
       "
     `)
@@ -101,7 +86,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([], ctx.config)
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...
       "
     `)
@@ -115,7 +100,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse([], ctx.config)
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`./prisma/seed.sh\` ...
       "
     `)

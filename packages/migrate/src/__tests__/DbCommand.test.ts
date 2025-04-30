@@ -1,10 +1,7 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { DbCommand } from '../commands/DbCommand'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
-
+const ctx = createDefaultTestContext()
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})
   const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
