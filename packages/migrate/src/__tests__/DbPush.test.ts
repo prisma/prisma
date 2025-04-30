@@ -426,8 +426,6 @@ describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
   it('--force-reset should succeed and print a log', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
 
-    prompt.inject(['y'])
-
     const result = DbPush.new().parse(['--force-reset'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -445,51 +443,9 @@ describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
     `)
   })
 
-  it('dataloss warnings accepted (prompt)', async () => {
+  it('does not create data loss warnings', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
-
-    prompt.inject(['y'])
-
     const result = DbPush.new().parse([], ctx.config)
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
-      Applying the following changes:
-
-      [+] Collection \`Post\`
-
-
-      Your database indexes are now in sync with your Prisma schema. Done in XXXms
-      "
-    `)
-  })
-
-  it('dataloss warnings cancelled (prompt)', async () => {
-    ctx.fixture('existing-db-warnings-mongodb')
-
-    prompt.inject([new Error()]) // simulate user cancellation
-
-    const result = DbPush.new().parse([], ctx.config)
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database "tests-migrate-existing-db" <location placeholder>
-      Applying the following changes:
-
-      [+] Collection \`Post\`
-
-
-      Your database indexes are now in sync with your Prisma schema. Done in XXXms
-      "
-    `)
-
-    expect(ctx.recordedExitCode()).toEqual(130)
-  })
-
-  it('--accept-data-loss flag', async () => {
-    ctx.fixture('existing-db-warnings-mongodb')
-    const result = DbPush.new().parse(['--accept-data-loss'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
