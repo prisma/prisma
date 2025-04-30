@@ -1,6 +1,6 @@
 import { bench } from '@ark/attest'
 
-// @ts-ignore
+// @ts-ignore for typecheck bootrstrapping
 import type { PrismaClient } from './generated/index.js'
 
 declare const prisma: PrismaClient
