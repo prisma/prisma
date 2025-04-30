@@ -356,9 +356,15 @@ export type GetHavingFields<T> = {
 /**
  * Convert tuple to union
  */
-type _TupleToUnion<T> = T extends (infer E)[] ? E : never
+type _TupleToUnion<T> = T extends readonly (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
-export type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
+
+// ssalbdivad-example-3:
+// - readonly arrays
+export type MaybeTupleToUnion<T> = T extends readonly any[] ? T[number] : T
+
+// ssalbdivad-example-4:
+// - when to abstract
 
 /**
  * Like `Pick`, but additionally can also accept an array of keys

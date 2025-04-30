@@ -6,6 +6,8 @@ export type NeverToUnknown<T> = [T] extends [never] ? unknown : T
 
 export type PatchFlat<O1, O2> = O1 & Omit<O2, keyof O1>
 
+// ssalbdivad-example-5:
+// when
 export type Omit<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? never : P]: T[P]
 }
@@ -98,10 +100,10 @@ export type RenameAndNestPayloadKeys<P> = {
 // prettier-ignore
 export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayloadKeys<P>> = {
   [K in keyof O]?: O[K][K] extends any[]
-                   ? PayloadToResult<O[K][K][number]>[]
-                   : O[K][K] extends object
-                     ? PayloadToResult<O[K][K]>
-                    : O[K][K]
+    ? PayloadToResult<O[K][K][number]>[]
+    : O[K][K] extends object
+    ? PayloadToResult<O[K][K]>
+    : O[K][K]
 }
 
 export type Select<T, U> = T extends U ? T : never
@@ -109,6 +111,8 @@ export type Select<T, U> = T extends U ? T : never
 // prettier-ignore
 export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
 
+// ssalbdivad-example-6:
+// - thinking in sets + inverting conditionals
 export type Or<A extends 1 | 0, B extends 1 | 0> = {
   0: {
     0: 0

@@ -162,13 +162,30 @@ export type UserAggregateArgs<
   _max?: UserMaxAggregateInputType
 }
 
+type show<t> = { [k in keyof t]: t[k] } & unknown
+
+type Z = { foo: true } & { boo: true }
+
+// ssalbdivad-example-2:
+// - homomorphic mappings
+// - inline show
 export type GetUserAggregateType<T extends UserAggregateArgs> = {
-  [P in keyof T & keyof AggregateUser]: P extends '_count' | 'count'
+  [P in keyof T]: P extends '_count' | 'count'
     ? T[P] extends true
       ? number
       : Prisma.GetScalarType<T[P], AggregateUser[P]>
     : Prisma.GetScalarType<T[P], AggregateUser[P]>
-}
+} & unknown
+
+type Homomapped = GetUserAggregateType<UserAggregateArgs>
+
+declare const mapped: Homomapped
+
+mapped._count
+
+declare const sourceObj: UserAggregateArgs
+
+sourceObj._count
 
 export type UserGroupByArgs<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
@@ -620,6 +637,8 @@ export type UserSelectScalar = {
   decimal?: boolean
 }
 
+// ssalbdivad-example-7:
+// -typegen criteria
 export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> =
   runtime.Types.Extensions.GetOmit<
     'id' | 'createdAt' | 'updatedAt' | 'name' | 'email' | 'date' | 'decimal',
@@ -673,7 +692,9 @@ export interface UserDelegate<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
   GlobalOmitOptions = {},
 > {
-  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['User']; meta: { name: 'User' } }
+  // ssalbdivad-example-8:
+  // - working around noUncheckedIndexAccess
+  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['User']; meta: { name: 'User' } } | undefined
   /**
    * Find zero or one User that matches the filter.
    * @param {UserFindUniqueArgs} args - Arguments to find a User
@@ -1058,6 +1079,8 @@ export interface UserDelegate<
    * })
    *
    **/
+  // ssalbdivad-example-10:
+  // validating function inputs
   groupBy<
     T extends UserGroupByArgs,
     HasSelectOrTake extends Prisma.Or<Prisma.Extends<'skip', Prisma.Keys<T>>, Prisma.Extends<'take', Prisma.Keys<T>>>,
@@ -1082,7 +1105,9 @@ export interface UserDelegate<
         }[HavingFields]
       : 'take' extends Prisma.Keys<T>
       ? 'orderBy' extends Prisma.Keys<T>
-        ? ByValid extends Prisma.True
+        ? // ssalbdivad-example-9:
+          // - when to abstract II
+          ByValid extends Prisma.True
           ? {}
           : {
               [P in OrderFields]: P extends ByFields

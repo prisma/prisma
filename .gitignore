@@ -27,6 +27,7 @@ dist/
 !.vscode/launch.json.default
 !.vscode/extensions.json
 coverage
+.attest
 
 .eslintcache
 

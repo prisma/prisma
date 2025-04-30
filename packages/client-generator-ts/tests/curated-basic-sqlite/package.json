@@ -5,7 +5,7 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "setup": "pnpm i --ignore-workspace",
+    "in": "pnpm i --ignore-workspace",
     "generate": "pnpm prisma generate",
     "test": "tsx ./index.ts",
     "format": "pnpm prettier --write ."
@@ -16,6 +16,7 @@
     "@prisma/config": "../../../packages/config"
   },
   "devDependencies": {
+    "@ark/attest": "0.46.0",
     "@types/node": "18.19.76",
     "prisma": "../../../packages/cli",
     "typescript": "5.2.2"
