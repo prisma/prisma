@@ -10,7 +10,7 @@ const ctx = createDefaultTestContext()
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateResolve.new().parse([], ctx.config)
+    const result = MigrateResolve.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -27,7 +27,7 @@ describe('common', () => {
   })
   it('should fail if no --applied or --rolled-back', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse([], ctx.config)
+    const result = MigrateResolve.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "--applied or --rolled-back must be part of the command like:
       prisma migrate resolve --applied 20201231000000_example
@@ -68,7 +68,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it("--applied should fail if migration doesn't exist", async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--applied=does_not_exist'], ctx.config)
+    const result = MigrateResolve.new().parse(['--applied=does_not_exist'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3017
 
@@ -79,7 +79,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should fail if migration is already applied', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--applied=20201014154943_init'], ctx.config)
+    const result = MigrateResolve.new().parse(['--applied=20201014154943_init'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3008
 
@@ -90,7 +90,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--applied', '20201014154943_init'], ctx.config)
+    const result = MigrateResolve.new().parse(['--applied', '20201014154943_init'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3008
 
@@ -101,7 +101,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'], ctx.config)
+    const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -114,7 +114,10 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
-    const result = MigrateResolve.new().parse(['--schema=./prisma', '--applied', '20240527130802_init'], ctx.config)
+    const result = MigrateResolve.new().parse(
+      ['--schema=./prisma', '--applied', '20240527130802_init'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
@@ -131,7 +134,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it("--rolled-back should fail if migration doesn't exist", async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back=does_not_exist'], ctx.config)
+    const result = MigrateResolve.new().parse(['--rolled-back=does_not_exist'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3011
 
@@ -142,7 +145,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201014154943_init'], ctx.config)
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201014154943_init'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "P3012
 
@@ -153,7 +156,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -166,11 +169,11 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('--rolled-back works if migration is already rolled back', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     // Try again
-    const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], ctx.config)
+    const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'], await ctx.config())
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

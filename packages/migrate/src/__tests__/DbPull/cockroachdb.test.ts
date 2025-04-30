@@ -52,7 +52,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with cockroachdb provider)', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], ctx.config)
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -62,7 +62,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with postgresql provider) should fail', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], ctx.config)
+    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
@@ -75,7 +75,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (no schema) --url', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -85,7 +85,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   test('basic introspection (with cockroach provider) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 

@@ -49,7 +49,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/mysql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], ctx.config)
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -61,7 +61,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   // user and set password for MySQL, or sanitize the snapshot.
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 

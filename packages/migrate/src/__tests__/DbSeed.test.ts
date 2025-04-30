@@ -9,7 +9,7 @@ describe('seed', () => {
   it('seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
 
-    const result = DbSeed.new().parse([], ctx.config)
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
@@ -38,7 +38,7 @@ describe('seed', () => {
   it('seed.js with extra args but missing -- should throw with specific message', async () => {
     ctx.fixture('seed-sqlite-js-extra-args')
 
-    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'], ctx.config)
+    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "unknown or unexpected option: --my-custom-arg-from-cli
       Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
@@ -56,7 +56,7 @@ describe('seed', () => {
     ctx.fixture('seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
-    const result = DbSeed.new().parse([], ctx.config)
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
@@ -69,7 +69,7 @@ describe('seed', () => {
   it('seed.ts', async () => {
     ctx.fixture('seed-sqlite-ts')
 
-    const result = DbSeed.new().parse([], ctx.config)
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`ts-node prisma/seed.ts\` ...
@@ -84,7 +84,7 @@ describe('seed', () => {
     // Needs ts-node to be installed
     await execa.command('npm i')
 
-    const result = DbSeed.new().parse([], ctx.config)
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...
@@ -98,7 +98,7 @@ describe('seed', () => {
   it('seed.sh', async () => {
     ctx.fixture('seed-sqlite-sh')
 
-    const result = DbSeed.new().parse([], ctx.config)
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`./prisma/seed.sh\` ...

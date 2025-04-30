@@ -48,7 +48,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], ctx.config)
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
@@ -57,7 +57,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
@@ -67,7 +67,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection --url + empty schema', async () => {
     ctx.fixture('empty-schema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
@@ -77,7 +77,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
   test('basic introspection --url + schema with no linebreak after generator block', async () => {
     ctx.fixture('generator-only')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
@@ -89,7 +89,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(3)
 
     try {
-      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], ctx.config)
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
@@ -103,7 +103,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(4)
 
     try {
-      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], ctx.config)
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
@@ -127,7 +127,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect.assertions(4)
 
     try {
-      await DbPull.new().parse(['--url', setupParams.connectionString], ctx.config)
+      await DbPull.new().parse(['--url', setupParams.connectionString], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual(undefined)
       expect(e.message).toMatchInlineSnapshot(
@@ -145,7 +145,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
 
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], ctx.config)
+    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

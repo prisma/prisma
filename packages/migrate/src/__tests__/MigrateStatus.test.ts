@@ -7,7 +7,7 @@ const ctx = createDefaultTestContext()
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -28,7 +28,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
 
-    const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], ctx.config)
+    const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -41,7 +41,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('existing-db-1-failed-migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -74,7 +74,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
 
-    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], ctx.config)
+    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -95,7 +95,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -111,7 +111,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('schema-folder-db-exists', async () => {
     ctx.fixture('schema-folder-sqlite-db-exists')
-    const result = MigrateStatus.new().parse(['--schema=./prisma'], ctx.config)
+    const result = MigrateStatus.new().parse(['--schema=./prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -128,7 +128,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('existing-db-1-migration-conflict', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -150,7 +150,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
 
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -172,7 +172,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
 
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -193,7 +193,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('reset', async () => {
     ctx.fixture('reset')
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -210,7 +210,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('existing-db-histories-diverge', async () => {
     ctx.fixture('existing-db-histories-diverge')
 
-    const result = MigrateStatus.new().parse([], ctx.config)
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -238,7 +238,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 describeOnly({ postgres: true }, 'postgres', () => {
   it('should fail if cannot connect', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], ctx.config)
+    const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
 

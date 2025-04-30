@@ -40,7 +40,7 @@ describe('Baselining', () => {
       process.env.DATABASE_URL = 'file:../dev.db'
 
       // db pull
-      const dbPull = DbPull.new().parse([], ctx.config)
+      const dbPull = DbPull.new().parse([], await ctx.config())
       await expect(dbPull).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
@@ -55,7 +55,7 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // migrate reset --force
-      const migrateReset = MigrateReset.new().parse(['--force'], ctx.config)
+      const migrateReset = MigrateReset.new().parse(['--force'], await ctx.config())
       await expect(migrateReset).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
@@ -68,7 +68,7 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // migrate dev --create-only
-      const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], ctx.config)
+      const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], await ctx.config())
       await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
         "Prisma Migrate created the following migration without applying it 20201231000000_
 
@@ -83,7 +83,7 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // migrate dev
-      const migrateDev = MigrateDev.new().parse([], ctx.config)
+      const migrateDev = MigrateDev.new().parse([], await ctx.config())
       await expect(migrateDev).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma
@@ -106,7 +106,7 @@ describe('Baselining', () => {
 
       // migrate resolve --applied migration_name
       const migrationName = fs.list('prisma/migrations')![0]
-      const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], ctx.config)
+      const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName], await ctx.config())
       await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`""`)
 
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -119,7 +119,7 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // migrate deploy
-      const migrateDeployProd = MigrateDeploy.new().parse([], ctx.config)
+      const migrateDeployProd = MigrateDeploy.new().parse([], await ctx.config())
       await expect(migrateDeployProd).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "Prisma schema loaded from prisma/schema.prisma

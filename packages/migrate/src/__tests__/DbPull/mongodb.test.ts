@@ -19,7 +19,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], ctx.config)
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -47,7 +47,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], ctx.config)
+    const result = introspect.parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -75,7 +75,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], ctx.config)
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
@@ -225,7 +225,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force', '--composite-type-depth=-1'], ctx.config)
+    const result = introspect.parse(['--force', '--composite-type-depth=-1'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -312,7 +312,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', MONGO_URI], ctx.config)
+    const result = introspect.parse(['--print', '--url', MONGO_URI], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
@@ -334,7 +334,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection --url - only generator defined', async () => {
     ctx.fixture('schema-only-mongodb/only-generator')
     const introspect = new DbPull()
-    const result = introspect.parse(['--url', MONGO_URI], ctx.config)
+    const result = introspect.parse(['--url', MONGO_URI], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).not.toContain(`Datasource `)
@@ -362,7 +362,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], ctx.config)
+    const result = introspect.parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -390,7 +390,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
   test('re-introspection should error (not supported) (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse([], ctx.config)
+    const result = introspect.parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
       You can explicitly ignore and override your current local schema file with prisma db pull --force

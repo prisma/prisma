@@ -49,7 +49,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], ctx.config)
+    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -58,7 +58,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
@@ -81,7 +84,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -101,7 +107,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -139,7 +148,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     ctx.fs.remove(`./schema.prisma`)
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      await ctx.config(),
+    )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
 
@@ -181,7 +193,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -230,7 +245,10 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'], ctx.config)
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -240,7 +258,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
@@ -250,7 +268,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 

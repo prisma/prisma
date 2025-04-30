@@ -4,8 +4,6 @@
 import os from 'node:os'
 import path from 'node:path'
 
-import { loadConfigFromFile } from '@prisma/config'
-
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -23,10 +21,9 @@ describe('migrate diff', () => {
   describe('using Prisma Config', () => {
     it('--from-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
+        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -45,10 +42,9 @@ describe('migrate diff', () => {
 
     it('--to-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
+        await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -67,10 +63,9 @@ describe('migrate diff', () => {
 
     it('--from-schema-datasource is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--from-schema-datasource', 'schema.prisma'], config)
+        await MigrateDiff.new().parse(['--from-schema-datasource', 'schema.prisma'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -89,10 +84,9 @@ describe('migrate diff', () => {
 
     it('--to-schema-datasource is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--to-schema-datasource', 'schema.prisma'], config)
+        await MigrateDiff.new().parse(['--to-schema-datasource', 'schema.prisma'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -111,10 +105,9 @@ describe('migrate diff', () => {
 
     it('--shadow-database-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--shadow-database-url', 'file:./dev.shadow.db'], config)
+        await MigrateDiff.new().parse(['--shadow-database-url', 'file:./dev.shadow.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -133,10 +126,9 @@ describe('migrate diff', () => {
 
     it('--from-local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--from-local-d1', 'file:./dev.shadow.db'], config)
+        await MigrateDiff.new().parse(['--from-local-d1', 'file:./dev.shadow.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -155,10 +147,9 @@ describe('migrate diff', () => {
 
     it('--to-local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
+      expect.assertions(3)
       try {
-        await MigrateDiff.new().parse(['--to-local-d1', 'file:./dev.shadow.db'], config)
+        await MigrateDiff.new().parse(['--to-local-d1', 'file:./dev.shadow.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -180,7 +171,7 @@ describe('migrate diff', () => {
     it('should succeed when --from-local-d1 and a single local Cloudflare D1 database exists', async () => {
       ctx.fixture('cloudflare-d1-one-db')
 
-      const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], ctx.config)
+      const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], await ctx.config())
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -189,7 +180,7 @@ describe('migrate diff', () => {
     it('should succeed when --to-local-d1 and a single local Cloudflare D1 database exists', async () => {
       ctx.fixture('cloudflare-d1-one-db')
 
-      const result = await MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], ctx.config)
+      const result = await MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], await ctx.config())
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
@@ -207,7 +198,10 @@ describe('migrate diff', () => {
         '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
       )
 
-      const result = await MigrateDiff.new().parse(['--to-empty', '--from-url', `file:${url}`, '--script'], ctx.config)
+      const result = await MigrateDiff.new().parse(
+        ['--to-empty', '--from-url', `file:${url}`, '--script'],
+        await ctx.config(),
+      )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -226,7 +220,10 @@ describe('migrate diff', () => {
         '5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite',
       )
 
-      const result = await MigrateDiff.new().parse(['--from-empty', '--to-url', `file:${url}`, '--script'], ctx.config)
+      const result = await MigrateDiff.new().parse(
+        ['--from-empty', '--to-url', `file:${url}`, '--script'],
+        await ctx.config(),
+      )
       expect(result).toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -235,7 +232,7 @@ describe('migrate diff', () => {
     it('should fail when --from-local-d1 and several local Cloudflare D1 databases exist', async () => {
       ctx.fixture('cloudflare-d1-many-dbs')
 
-      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], ctx.config)
+      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], await ctx.config())
       await expect(result).rejects.toMatchInlineSnapshot(
         `"Multiple Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Please manually specify the local D1 database with \`--from-url file:\`, without using the \`--from-local-d1\` flag."`,
       )
@@ -244,7 +241,7 @@ describe('migrate diff', () => {
     it('should fail when --to-local-d1 and several local Cloudflare D1 databases exist', async () => {
       ctx.fixture('cloudflare-d1-many-dbs')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], ctx.config)
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], await ctx.config())
       await expect(result).rejects.toMatchInlineSnapshot(
         `"Multiple Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Please manually specify the local D1 database with \`--to-url file:\`, without using the \`--to-local-d1\` flag."`,
       )
@@ -253,7 +250,7 @@ describe('migrate diff', () => {
     it('should fail when --from-local-d1 and no local Cloudflare D1 databases exists', async () => {
       ctx.fixture('cloudflare-d1-no-db')
 
-      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], ctx.config)
+      const result = MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], await ctx.config())
       await expect(result).rejects.toMatchInlineSnapshot(
         `"No Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Did you run \`wrangler d1 create <DATABASE_NAME>\` and \`wrangler dev\`?"`,
       )
@@ -262,7 +259,7 @@ describe('migrate diff', () => {
     it('should fail when --to-local-d1 and no local Cloudflare D1 databases exists', async () => {
       ctx.fixture('cloudflare-d1-no-db')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], ctx.config)
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-local-d1', '--script'], await ctx.config())
       await expect(result).rejects.toMatchInlineSnapshot(
         `"No Cloudflare D1 databases found in .wrangler/state/v3/d1/miniflare-D1DatabaseObject. Did you run \`wrangler d1 create <DATABASE_NAME>\` and \`wrangler dev\`?"`,
       )
@@ -298,7 +295,7 @@ describe('migrate diff', () => {
       const commandInstance = MigrateDiff.new()
       const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-      await commandInstance.parse(['--something'], ctx.config)
+      await commandInstance.parse(['--something'], await ctx.config())
       expect(spy).toHaveBeenCalledTimes(1)
       spy.mockRestore()
     })
@@ -307,7 +304,7 @@ describe('migrate diff', () => {
       const commandInstance = MigrateDiff.new()
       const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-      await commandInstance.parse(['--help'], ctx.config)
+      await commandInstance.parse(['--help'], await ctx.config())
       expect(spy).toHaveBeenCalledTimes(1)
       spy.mockRestore()
     })
@@ -315,35 +312,35 @@ describe('migrate diff', () => {
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse([], ctx.config)
+      const result = MigrateDiff.new().parse([], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--from-empty'], ctx.config)
+      const result = MigrateDiff.new().parse(['--from-empty'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--to-empty'], ctx.config)
+      const result = MigrateDiff.new().parse(['--to-empty'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'], ctx.config)
+      const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'], ctx.config)
+      const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'], await ctx.config())
       await expect(result).rejects.toThrow()
     })
 
@@ -352,7 +349,7 @@ describe('migrate diff', () => {
       expect.assertions(2)
 
       try {
-        await MigrateDiff.new().parse(['--from-empty', '--to-empty'], ctx.config)
+        await MigrateDiff.new().parse(['--from-empty', '--to-empty'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
@@ -369,7 +366,10 @@ describe('migrate diff', () => {
         expect.assertions(2)
 
         try {
-          await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'], ctx.config)
+          await MigrateDiff.new().parse(
+            ['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'],
+            await ctx.config(),
+          )
         } catch (e) {
           expect(e.code).toEqual(undefined)
           expect(e.message).toMatchInlineSnapshot(
@@ -400,7 +400,10 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema (folder)', async () => {
       ctx.fixture('schema-folder-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema-datamodel=./prisma/schema'], ctx.config)
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema-datamodel=./prisma/schema'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -448,7 +451,10 @@ describe('migrate diff', () => {
     it('should diff --from-schema-datamodel=./prisma/schema (folder) --to-empty', async () => {
       ctx.fixture('schema-folder-sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-schema-datamodel=./prisma/schema', '--to-empty'], ctx.config)
+      const result = MigrateDiff.new().parse(
+        ['--from-schema-datamodel=./prisma/schema', '--to-empty'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -535,7 +541,7 @@ describe('migrate diff', () => {
       it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
         ctx.fixture('schema-only-sqlite')
 
-        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'], ctx.config)
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'], await ctx.config())
         await expect(result).rejects.toMatchInlineSnapshot(`
         "P1003
 
@@ -547,7 +553,7 @@ describe('migrate diff', () => {
       it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
         ctx.fixture('schema-only-sqlite')
 
-        const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'], ctx.config)
+        const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'], await ctx.config())
         await expect(result).rejects.toMatchInlineSnapshot(`
         "P1003
 
@@ -575,7 +581,7 @@ describe('migrate diff', () => {
       it('should diff --from-empty --to-url=file:dev.db', async () => {
         ctx.fixture('introspection/sqlite')
 
-        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'], ctx.config)
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "
@@ -597,7 +603,7 @@ describe('migrate diff', () => {
       it('should diff --from-empty --to-url=file:dev.db --script', async () => {
         ctx.fixture('introspection/sqlite')
 
-        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'], ctx.config)
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
       })
@@ -607,7 +613,7 @@ describe('migrate diff', () => {
         // Create empty file, as the file needs to exists
         ctx.fs.write('dev.db', '')
 
-        const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'], ctx.config)
+        const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "No difference detected.

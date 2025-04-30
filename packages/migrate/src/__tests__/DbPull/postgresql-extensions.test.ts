@@ -48,7 +48,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], ctx.config)
+    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
@@ -98,7 +98,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], ctx.config)
+    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
