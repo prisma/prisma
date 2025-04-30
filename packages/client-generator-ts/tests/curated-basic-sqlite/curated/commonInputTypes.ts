@@ -9,10 +9,6 @@ import type * as Prisma from './internal/prismaNamespace.js'
 
 type DistributedArray<T> = T extends unknown ? T[] : never
 
-// ssalbdivad-example-1:
-// - interface extension
-// - DRY structures
-
 interface BaseFilter<T, Ref, Null> {
   lt?: T | Ref
   lte?: T | Ref
