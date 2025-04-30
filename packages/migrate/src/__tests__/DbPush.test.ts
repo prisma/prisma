@@ -162,9 +162,6 @@ describe('push', () => {
 
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
@@ -184,7 +181,7 @@ describe('push', () => {
       "
     `)
 
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('--accept-data-loss flag', async () => {
@@ -233,9 +230,6 @@ describe('push', () => {
 
   it('unexecutable - drop refused', async () => {
     ctx.fixture('existing-db-warnings')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
@@ -255,7 +249,7 @@ describe('push', () => {
       "
     `)
 
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('unexecutable - should ask for --force-reset in CI', async () => {
@@ -420,9 +414,7 @@ describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
   })
 
   beforeEach(async () => {
-    await setupMongo(setupParams).catch((e) => {
-      console.error(e)
-    })
+    await setupMongo(setupParams)
   })
 
   afterEach(async () => {
@@ -475,9 +467,6 @@ describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
 
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
@@ -495,7 +484,7 @@ describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
       "
     `)
 
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('--accept-data-loss flag', async () => {

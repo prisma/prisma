@@ -637,10 +637,6 @@ describe('migrate diff', () => {
       it('should exit with code 2 when diff is not empty without --script', async () => {
         ctx.fixture('schema-only-sqlite')
 
-        const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-          throw new Error('process.exit: ' + number)
-        })
-
         const result = MigrateDiff.new().parse(
           ['--from-schema-datamodel=./prisma/schema.prisma', '--to-empty', '--exit-code'],
           ctx.config,
@@ -655,17 +651,11 @@ describe('migrate diff', () => {
           "
         `)
 
-        expect(mockExit).toHaveBeenCalledTimes(1)
-        expect(mockExit).toHaveBeenCalledWith(2)
-        mockExit.mockRestore()
+        expect(ctx.recordedExitCode()).toEqual(2)
       })
 
       it('should exit with code 2 when diff is not empty with --script', async () => {
         ctx.fixture('schema-only-sqlite')
-
-        const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-          throw new Error('process.exit: ' + number)
-        })
 
         const result = MigrateDiff.new().parse(
           ['--from-schema-datamodel=./prisma/schema.prisma', '--to-empty', '--script', '--exit-code'],
@@ -682,9 +672,7 @@ describe('migrate diff', () => {
           "
         `)
 
-        expect(mockExit).toHaveBeenCalledTimes(1)
-        expect(mockExit).toHaveBeenCalledWith(2)
-        mockExit.mockRestore()
+        expect(ctx.recordedExitCode()).toEqual(2)
       })
     })
   })
