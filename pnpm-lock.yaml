@@ -1920,8 +1920,11 @@ importers:
   packages/type-benchmark-tests:
     dependencies:
       '@ark/attest':
-        specifier: 0.45.11
-        version: 0.45.11(typescript@5.8.2)
+        specifier: 0.46.0
+        version: 0.46.0(typescript@5.8.2)
+      drizzle-orm:
+        specifier: 0.43.1
+        version: 0.43.1(@cloudflare/workers-types@4.20250214.0)(@neondatabase/serverless@0.10.2)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/better-sqlite3@7.6.12)(@types/pg@8.11.11)(better-sqlite3@11.9.1)(pg@8.14.1)(sqlite3@5.1.2(encoding@0.1.13))
 
 packages:
 
@@ -1933,23 +1936,20 @@ packages:
     resolution: {integrity: sha512-2aDL3WUv8hMJb2L3r/PIQWsTLyq7RQr3v9xD16fiz6O8ys1xEyLhhTOv8gxtZvJiTzjTF5pHoArvRdesGL1DMQ==}
     hasBin: true
 
-  '@ark/attest@0.45.11':
-    resolution: {integrity: sha512-1qGdE/ZlY8sf1IfQTSo8zlRi0sNH9mqqGsAYA4scKJugJ2JQ4Yl/B3bztnRW0Z6XdDrhCvPmtH4mcqVnnd84jQ==}
+  '@ark/attest@0.46.0':
+    resolution: {integrity: sha512-bDo8Mtx94oFkhozao9rjoWf1/MOV4lakpoKtPvIFfHceE3M3jVqIOVY46Xh1TibMhjQ1vMtd55PcfllHYjbm8w==}
     hasBin: true
     peerDependencies:
       typescript: '*'
 
-  '@ark/fs@0.45.10':
-    resolution: {integrity: sha512-xHHaLk77d3V7K1ZcJKgOJanmSfinezG/J8zVZ2/sx/mIOgjzMY3wPD6BQsQerlGtP4W34GrcCczhjfr8QfGyyg==}
+  '@ark/fs@0.46.0':
+    resolution: {integrity: sha512-lBW6Vv6dZ74Gcc+zvJP8gjZACMo5o6hEuOvAtX6EJ5xNYBmX7nrXQaDdRfQNGDzgaX5UHGqi/vxk5moK94K7Yw==}
 
-  '@ark/schema@0.45.9':
-    resolution: {integrity: sha512-rG0v/JI0sibn/0wERAHTYVLCtEqoMP2IIlxnb+S5DrEjCI5wpubbZSWMDW50tZ8tV6FANu6zzHDeeKbp6lsZdg==}
+  '@ark/schema@0.46.0':
+    resolution: {integrity: sha512-c2UQdKgP2eqqDArfBqQIJppxJHvNNXuQPeuSPlDML4rjw+f1cu0qAlzOG4b8ujgm9ctIDWwhpyw6gjG5ledIVQ==}
 
-  '@ark/util@0.45.10':
-    resolution: {integrity: sha512-O0tI/nCCOsTqnT0Vcunz97o66EROOXc0BOAVzBxurYkgU+Pp5I2nCaj0sRPQ1y9UCwaCwkW8qS7VTJYUTicGzg==}
-
-  '@ark/util@0.45.9':
-    resolution: {integrity: sha512-0WYNAb8aRGp7dNt6xIvIrRzL7V1XL3u3PK2vcklhtTrdaP235DjC9qJhzidrxtWr68mA5ySSjUrgrXk622bKkw==}
+  '@ark/util@0.46.0':
+    resolution: {integrity: sha512-JPy/NGWn/lvf1WmGCPw2VGpBg5utZraE84I7wli18EDF3p3zc/e9WolT35tINeZO3l7C77SjqRJeAUoT0CvMRg==}
 
   '@azure/abort-controller@1.1.0':
     resolution: {integrity: sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==}
@@ -4133,8 +4133,8 @@ packages:
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
-  arktype@2.1.19:
-    resolution: {integrity: sha512-notORSuTSpfLV7rq0kYC4mTgIVlVR0xQuvtFxOaE9aKiXyON/kgoIBwZZcKeSSb4BebNcfJoGlxJicAUl/HMdw==}
+  arktype@2.1.20:
+    resolution: {integrity: sha512-IZCEEXaJ8g+Ijd59WtSYwtjnqXiwM8sWQ5EjGamcto7+HVN9eK0C4p0zDlCuAwWhpqr6fIBkxPuYDl4/Mcj/+Q==}
 
   array-flatten@1.1.1:
     resolution: {integrity: sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==}
@@ -4726,6 +4726,95 @@ packages:
   dotenv@16.4.7:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
+
+  drizzle-orm@0.43.1:
+    resolution: {integrity: sha512-dUcDaZtE/zN4RV/xqGrVSMpnEczxd5cIaoDeor7Zst9wOe/HzC/7eAaulywWGYXdDEc9oBPMjayVEDg0ziTLJA==}
+    peerDependencies:
+      '@aws-sdk/client-rds-data': '>=3'
+      '@cloudflare/workers-types': '>=4'
+      '@electric-sql/pglite': '>=0.2.0'
+      '@libsql/client': '>=0.10.0'
+      '@libsql/client-wasm': '>=0.10.0'
+      '@neondatabase/serverless': '>=0.10.0'
+      '@op-engineering/op-sqlite': '>=2'
+      '@opentelemetry/api': ^1.4.1
+      '@planetscale/database': '>=1.13'
+      '@prisma/client': '*'
+      '@tidbcloud/serverless': '*'
+      '@types/better-sqlite3': '*'
+      '@types/pg': '*'
+      '@types/sql.js': '*'
+      '@vercel/postgres': '>=0.8.0'
+      '@xata.io/client': '*'
+      better-sqlite3: '>=7'
+      bun-types: '*'
+      expo-sqlite: '>=14.0.0'
+      gel: '>=2'
+      knex: '*'
+      kysely: '*'
+      mysql2: '>=2'
+      pg: '>=8'
+      postgres: '>=3'
+      prisma: '*'
+      sql.js: '>=1'
+      sqlite3: '>=5'
+    peerDependenciesMeta:
+      '@aws-sdk/client-rds-data':
+        optional: true
+      '@cloudflare/workers-types':
+        optional: true
+      '@electric-sql/pglite':
+        optional: true
+      '@libsql/client':
+        optional: true
+      '@libsql/client-wasm':
+        optional: true
+      '@neondatabase/serverless':
+        optional: true
+      '@op-engineering/op-sqlite':
+        optional: true
+      '@opentelemetry/api':
+        optional: true
+      '@planetscale/database':
+        optional: true
+      '@prisma/client':
+        optional: true
+      '@tidbcloud/serverless':
+        optional: true
+      '@types/better-sqlite3':
+        optional: true
+      '@types/pg':
+        optional: true
+      '@types/sql.js':
+        optional: true
+      '@vercel/postgres':
+        optional: true
+      '@xata.io/client':
+        optional: true
+      better-sqlite3:
+        optional: true
+      bun-types:
+        optional: true
+      expo-sqlite:
+        optional: true
+      gel:
+        optional: true
+      knex:
+        optional: true
+      kysely:
+        optional: true
+      mysql2:
+        optional: true
+      pg:
+        optional: true
+      postgres:
+        optional: true
+      prisma:
+        optional: true
+      sql.js:
+        optional: true
+      sqlite3:
+        optional: true
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -8070,28 +8159,26 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.45.11(typescript@5.8.2)':
+  '@ark/attest@0.46.0(typescript@5.8.2)':
     dependencies:
-      '@ark/fs': 0.45.10
-      '@ark/util': 0.45.10
+      '@ark/fs': 0.46.0
+      '@ark/util': 0.46.0
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
       '@typescript/vfs': 1.6.1(typescript@5.8.2)
-      arktype: 2.1.19
+      arktype: 2.1.20
       prettier: 3.5.3
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
-  '@ark/fs@0.45.10': {}
+  '@ark/fs@0.46.0': {}
 
-  '@ark/schema@0.45.9':
+  '@ark/schema@0.46.0':
     dependencies:
-      '@ark/util': 0.45.9
+      '@ark/util': 0.46.0
 
-  '@ark/util@0.45.10': {}
-
-  '@ark/util@0.45.9': {}
+  '@ark/util@0.46.0': {}
 
   '@azure/abort-controller@1.1.0':
     dependencies:
@@ -10483,10 +10570,10 @@ snapshots:
 
   argparse@2.0.1: {}
 
-  arktype@2.1.19:
+  arktype@2.1.20:
     dependencies:
-      '@ark/schema': 0.45.9
-      '@ark/util': 0.45.9
+      '@ark/schema': 0.46.0
+      '@ark/util': 0.46.0
 
   array-flatten@1.1.1: {}
 
@@ -11109,6 +11196,18 @@ snapshots:
   dotenv-expand@10.0.0: {}
 
   dotenv@16.4.7: {}
+
+  drizzle-orm@0.43.1(@cloudflare/workers-types@4.20250214.0)(@neondatabase/serverless@0.10.2)(@opentelemetry/api@1.9.0)(@planetscale/database@1.19.0)(@types/better-sqlite3@7.6.12)(@types/pg@8.11.11)(better-sqlite3@11.9.1)(pg@8.14.1)(sqlite3@5.1.2(encoding@0.1.13)):
+    optionalDependencies:
+      '@cloudflare/workers-types': 4.20250214.0
+      '@neondatabase/serverless': 0.10.2
+      '@opentelemetry/api': 1.9.0
+      '@planetscale/database': 1.19.0
+      '@types/better-sqlite3': 7.6.12
+      '@types/pg': 8.11.11
+      better-sqlite3: 11.9.1
+      pg: 8.14.1
+      sqlite3: 5.1.2(encoding@0.1.13)
 
   dunder-proto@1.0.1:
     dependencies:

@@ -14,7 +14,8 @@
     "test:update": "tsx test.ts -- --updateSnapshots"
   },
   "dependencies": {
-    "@ark/attest": "0.45.11"
+    "@ark/attest": "0.46.0",
+    "drizzle-orm": "0.43.1"
   },
   "sideEffects": false
 }

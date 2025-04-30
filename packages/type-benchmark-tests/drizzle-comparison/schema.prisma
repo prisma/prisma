@@ -1,0 +1,116 @@
+generator client {
+    provider = "prisma-client-ts"
+    output   = "./generated"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id           String  @id() @db.VarChar(5)
+  companyName  String  @map("company_name") @db.VarChar()
+  contactName  String  @map("contact_name") @db.VarChar()
+  contactTitle String  @map("contact_title") @db.VarChar()
+  address      String  @db.VarChar()
+  city         String  @db.VarChar()
+  postalCode   String? @map("postal_code") @db.VarChar()
+  region       String? @db.VarChar()
+  country      String  @db.VarChar()
+  phone        String  @db.VarChar()
+  fax          String? @db.VarChar()
+  orders       Order[]
+
+  @@map("customers")
+}
+
+model Employee {
+  id              String     @id() @db.VarChar()
+  lastName        String     @map("last_name") @db.VarChar()
+  firstName       String?    @map("first_name") @db.VarChar()
+  title           String     @db.VarChar()
+  titleOfCourtesy String     @map("title_of_courtesy") @db.VarChar()
+  birthDate       DateTime   @map("birth_date")
+  hireDate        DateTime   @map("hire_date")
+  address         String     @db.VarChar()
+  city            String     @db.VarChar()
+  postalCode      String     @map("postal_code") @db.VarChar()
+  country         String     @db.VarChar()
+  homePhone       String     @map("home_phone") @db.VarChar()
+  extension       Int
+  notes           String     @db.VarChar()
+  recipientId     String?    @map("recipient_id") @db.VarChar()
+  recipient       Employee?  @relation("reports", fields: [recipientId], references: [id], onDelete: Cascade)
+  reporters       Employee[] @relation("reports")
+  orders          Order[]
+
+  @@map("employees")
+}
+
+model Order {
+  id             String    @id() @db.VarChar()
+  orderDate      DateTime  @map("order_date")
+  requiredDate   DateTime  @map("required_date")
+  shippedDate    DateTime? @map("shipped_date")
+  shipVia        Int       @map("ship_via")
+  freight        Decimal   @db.Decimal(10, 2)
+  shipName       String    @map("ship_name") @db.VarChar()
+  shipCity       String    @map("ship_city") @db.VarChar()
+  shipRegion     String?   @map("ship_region") @db.VarChar()
+  shipPostalCode String?   @map("ship_postal_code") @db.VarChar()
+  shipCountry    String    @map("ship_country") @db.VarChar()
+  customerId     String    @map("customer_id") @db.VarChar()
+  employeeId     String    @map("employee_id") @db.VarChar()
+  customer       Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  details        Detail[]
+
+  @@map("orders")
+}
+
+model Detail {
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  quantity  Int
+  discount  Decimal @db.Decimal(10, 2)
+  orderId   String  @map("order_id") @db.VarChar()
+  productId String  @map("product_id") @db.VarChar()
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+
+  @@id([orderId, productId])
+  @@map("order_details")
+}
+
+model Product {
+  id              String   @id() @db.VarChar()
+  name            String   @db.VarChar()
+  quantityPerUnit String   @map("qt_per_unit") @db.VarChar()
+  unitPrice       Decimal  @map("unit_price") @db.Decimal(10, 2)
+  unitsInStock    Int      @map("units_in_stock")
+  unitsOnOrder    Int      @map("units_on_order")
+  reorderLevel    Int      @map("reorder_level")
+  discontinued    Int
+  supplierId      String   @map("supplier_id") @db.VarChar()
+  details         Detail[]
+  supplier        Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  @@map("products")
+}
+
+model Supplier {
+  id           String    @id() @db.VarChar()
+  companyName  String    @map("company_name") @db.VarChar()
+  contactName  String    @map("contact_name") @db.VarChar()
+  contactTitle String    @map("contact_title") @db.VarChar()
+  address      String    @db.VarChar()
+  city         String    @db.VarChar()
+  region       String?   @db.VarChar()
+  postalCode   String    @map("postal_code") @db.VarChar()
+  country      String    @db.VarChar()
+  phone        String    @db.VarChar()
+  products     Product[]
+
+  @@map("suppliers")
+}
