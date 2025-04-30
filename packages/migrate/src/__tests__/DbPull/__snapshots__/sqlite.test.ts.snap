@@ -67,14 +67,14 @@ model User {
 "
 `;
 
-exports[`common/sqlite basic introspection with --url 1`] = `
+exports[`common/sqlite using --url basic introspection with --url 1`] = `
 "generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
-  url      = "file:../dev.db"
+  url      = "file:./dev.db"
 }
 
 model Post {

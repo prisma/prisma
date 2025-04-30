@@ -40,7 +40,6 @@ describeOnly({ d1: true }, 'D1', () => {
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" <location placeholder>
 
-
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
             
@@ -152,18 +151,17 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
     })
 
     test('should succeed when schema and db do match using --url', async () => {
-      ctx.fixture('introspect/prisma')
-      const result = DbPull.new().parse(['--url=file:./dev.db'], ctx.config)
+      ctx.fixture('introspect')
+      const result = DbPull.new().parse(['--url=file:../dev.db'], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
 
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" <location placeholder>
 
-
       - Introspecting
-      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
       "
