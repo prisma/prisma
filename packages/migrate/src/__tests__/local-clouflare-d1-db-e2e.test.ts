@@ -1,12 +1,12 @@
-import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { type BaseContext } from '@prisma/get-platform'
 import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
 import { describeOnly } from './__helpers__/conditionalTests'
-import { configContextContributor } from './__helpers__/prismaConfig'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ d1: true }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {

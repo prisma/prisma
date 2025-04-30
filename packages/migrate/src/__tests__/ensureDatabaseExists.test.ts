@@ -1,10 +1,10 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getConfig, getSchemaWithPath } from '@prisma/internals'
 
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { describeOnly } from './__helpers__/conditionalTests'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ sqlite: true }, 'SQLite', () => {
   it('can create database - sqlite', async () => {

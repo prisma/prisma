@@ -1,36 +1,18 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ postgres: true }, 'postgresql-extensions', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-extensions-postgresql',
@@ -68,7 +50,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    const introspectedSchema = captureStdout.getCapturedText().join('\n')
+    const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
@@ -118,7 +100,7 @@ describeOnly({ postgres: true }, 'postgresql-extensions', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    const introspectedSchema = captureStdout.getCapturedText().join('\n')
+    const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"

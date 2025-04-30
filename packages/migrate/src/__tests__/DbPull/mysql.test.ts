@@ -1,14 +1,10 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -17,23 +13,9 @@ if (isMacOrWindowsCI) {
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ mysql: true }, 'mysql', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   const connectionString = process.env.TEST_MYSQL_URI!.replace('tests-migrate', 'tests-migrate-db-pull-mysql')
 
   const setupParams: SetupParams = {
@@ -69,7 +51,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -81,7 +63,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

@@ -67,44 +67,6 @@ model User {
 "
 `;
 
-exports[`common/sqlite using --url basic introspection with --url 1`] = `
-"generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-
-model Post {
-  authorId  Int
-  content   String?
-  createdAt DateTime @default(now())
-  id        Int      @id @default(autoincrement())
-  published Boolean  @default(false)
-  title     String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-}
-
-model Profile {
-  bio    String?
-  id     Int     @id @default(autoincrement())
-  userId Int     @unique(map: "Profile.userId")
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model User {
-  email   String   @unique(map: "User.email")
-  id      Int      @id @default(autoincrement())
-  name    String?
-  posts   Post[]
-  profile Profile?
-}
-
-"
-`;
-
 exports[`common/sqlite introspection --force 2`] = `
 "generator client {
   provider = "prisma-client-js"
@@ -223,5 +185,43 @@ model User {
   Post    Post[]
   Profile Profile?
 }
+"
+`;
+
+exports[`common/sqlite using --url basic introspection with --url 1`] = `
+"generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
 "
 `;

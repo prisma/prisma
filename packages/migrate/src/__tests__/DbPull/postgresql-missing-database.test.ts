@@ -1,34 +1,15 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { DbPull } from '../../commands/DbPull'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ postgres: true }, 'postgresql - missing database', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   const defaultConnectionString = process.env.TEST_POSTGRES_URI_MIGRATE
 
   // replace database name, e.g., 'tests-migrate', with 'unknown-database'

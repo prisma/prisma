@@ -1,36 +1,18 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ postgres: true }, 'postgresql-multischema', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-multischema-postgresql',
@@ -101,7 +83,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
@@ -121,7 +103,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -134,7 +116,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
       ctx.config,
     )
     await expect(result).rejects.toThrow(`P4001`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -147,7 +129,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
       ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -163,7 +145,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -190,7 +172,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
       Then you can run prisma db pull again. 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -201,7 +183,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -215,7 +197,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
       ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
@@ -239,7 +221,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
       ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -250,7 +232,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -260,7 +242,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
     await expect(result).rejects.toThrow(`P4001`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -270,7 +252,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const connectionString = `${setupParams.connectionString}?schema=base`
     const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

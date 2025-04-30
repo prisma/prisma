@@ -9,13 +9,9 @@ exports[`postgresql-views with preview feature and views defined introspection f
 
 exports[`postgresql-views with preview feature and views defined introspection from custom/schema/dir/schema.prisma creates view definition files 6`] = `
 "Prisma schema loaded from custom/schema/dir/schema.prisma
-
-Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
 - Introspecting based on datasource defined in custom/schema/dir/schema.prisma
-
 ✔ Introspected 2 models and wrote them into custom/schema/dir/schema.prisma in XXXms
       
 *** WARNING ***
@@ -37,13 +33,9 @@ exports[`postgresql-views with preview feature and views defined introspection f
 
 exports[`postgresql-views with preview feature and views defined introspection from non-standard-schema.prisma creates view definition files 6`] = `
 "Prisma schema loaded from non-standard-schema.prisma
-
-Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
 - Introspecting based on datasource defined in non-standard-schema.prisma
-
 ✔ Introspected 2 models and wrote them into non-standard-schema.prisma in XXXms
       
 *** WARNING ***
@@ -65,13 +57,9 @@ exports[`postgresql-views with preview feature and views defined introspection f
 
 exports[`postgresql-views with preview feature and views defined introspection from prisma/schema.prisma creates view definition files 6`] = `
 "Prisma schema loaded from prisma/schema.prisma
-
-Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
 - Introspecting based on datasource defined in prisma/schema.prisma
-
 ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
       
 *** WARNING ***
@@ -93,13 +81,9 @@ exports[`postgresql-views with preview feature and views defined introspection f
 
 exports[`postgresql-views with preview feature and views defined introspection from schema.prisma creates view definition files 6`] = `
 "Prisma schema loaded from schema.prisma
-
-Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
-
-
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
 
 - Introspecting based on datasource defined in schema.prisma
-
 ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
       
 *** WARNING ***

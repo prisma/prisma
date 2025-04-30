@@ -1,36 +1,18 @@
-// describeOnly making eslint unhappy about the test names
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
-import CaptureStdout from '../__helpers__/captureStdout'
 import { describeOnly } from '../__helpers__/conditionalTests'
-import { configContextContributor } from '../__helpers__/prismaConfig'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).add(configContextContributor()).assemble()
+const ctx = createDefaultTestContext()
 
 describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
@@ -72,7 +54,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print'], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -95,7 +77,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -105,7 +87,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], ctx.config)
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -122,7 +104,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
