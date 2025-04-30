@@ -122,6 +122,7 @@ export async function setupTestSuiteClient({
     generatedFileExtension: 'ts',
     importFileExtension: '',
     moduleFormat: 'cjs',
+    tsNoCheckPreamble: false,
   }
 
   if (generatorType === 'prisma-client-ts') {

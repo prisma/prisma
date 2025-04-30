@@ -19,6 +19,7 @@ import type { EngineArgs, EngineResults } from './types'
 import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { DatasourceInfo } from './utils/ensureDatabaseExists'
 import { listMigrations } from './utils/listMigrations'
+import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
 interface MigrateSetupInput {
   adapter?: ErrorCapturingSqlDriverAdapterFactory
@@ -47,16 +48,18 @@ export class Migrate {
     this.migrationsDirectoryPath = migrationsDirPath
   }
 
-  static async setup({ adapter, ...rest }: MigrateSetupInput): Promise<Migrate> {
+  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const engine = await (async () => {
       if (adapter) {
-        return await SchemaEngineWasm.setup({ adapter, ...rest })
+        return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
       } else {
-        return await SchemaEngineCLI.setup({ ...rest })
+        return await SchemaEngineCLI.setup({ schemaContext, ...rest })
       }
     })()
 
-    return new Migrate({ engine, ...rest })
+    warnDatasourceDriverAdapter(schemaContext, adapter)
+
+    return new Migrate({ engine, schemaContext, ...rest })
   }
 
   public stop(): void {

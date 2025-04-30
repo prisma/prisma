@@ -1,5 +1,5 @@
 import { SpanKind } from '@opentelemetry/api'
-import { SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
+import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { JoinExpression, QueryPlanNode } from '../QueryPlan'
@@ -7,10 +7,11 @@ import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
 import { assertNever } from '../utils'
+import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
-import { serialize } from './serialize'
+import { serializeSql } from './serializeSql'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -19,6 +20,7 @@ export type QueryInterpreterOptions = {
   placeholderValues: Record<string, unknown>
   onQuery?: (event: QueryEvent) => void
   tracingHelper: TracingHelper
+  serializer: (results: SqlResultSet) => Value
 }
 
 export class QueryInterpreter {
@@ -27,12 +29,29 @@ export class QueryInterpreter {
   readonly #onQuery?: (event: QueryEvent) => void
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
   readonly #tracingHelper: TracingHelper
+  readonly #serializer: (results: SqlResultSet) => Value
 
-  constructor({ transactionManager, placeholderValues, onQuery, tracingHelper }: QueryInterpreterOptions) {
+  constructor({ transactionManager, placeholderValues, onQuery, tracingHelper, serializer }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
     this.#tracingHelper = tracingHelper
+    this.#serializer = serializer
+  }
+
+  static forSql(options: {
+    transactionManager: QueryInterpreterTransactionManager
+    placeholderValues: Record<string, unknown>
+    onQuery?: (event: QueryEvent) => void
+    tracingHelper: TracingHelper
+  }): QueryInterpreter {
+    return new QueryInterpreter({
+      transactionManager: options.transactionManager,
+      placeholderValues: options.placeholderValues,
+      onQuery: options.onQuery,
+      tracingHelper: options.tracingHelper,
+      serializer: serializeSql,
+    })
   }
 
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
@@ -97,7 +116,7 @@ export class QueryInterpreter {
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, queryable, async () => {
-          return serialize(await queryable.queryRaw(query))
+          return this.#serializer(await queryable.queryRaw(query))
         })
       }
 
@@ -157,7 +176,7 @@ export class QueryInterpreter {
 
         const transactionManager = this.#transactionManager.manager
         const transactionInfo = await transactionManager.startTransaction()
-        const transaction = transactionManager.getTransaction(transactionInfo, 'new')
+        const transaction = transactionManager.getTransaction(transactionInfo, 'query')
         try {
           const value = await this.interpretNode(node.args, transaction, scope, generators)
           await transactionManager.commitTransaction(transactionInfo.id)
@@ -166,6 +185,11 @@ export class QueryInterpreter {
           await transactionManager.rollbackTransaction(transactionInfo.id)
           throw e
         }
+      }
+
+      case 'dataMap': {
+        const data = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        return applyDataMap(data, node.args.structure)
       }
 
       default:

@@ -111,7 +111,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     generatorNames = [],
     postinstall,
     noEngine,
-    allowNoModels,
+    allowNoModels = true,
     typedSql,
   } = options
   // Fallback logic for prisma studio which still only passes a schema path
