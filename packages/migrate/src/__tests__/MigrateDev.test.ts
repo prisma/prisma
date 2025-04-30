@@ -426,7 +426,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
         - Blog
         - _Migration
 
-      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      We need to reset the SQLite database "dev.db" at "file:../dev.db"
 
       You may use prisma migrate reset to drop the development database.
       All data will be lost.
