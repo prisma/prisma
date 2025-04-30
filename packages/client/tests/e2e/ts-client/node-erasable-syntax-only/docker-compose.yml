@@ -1,0 +1,7 @@
+services:
+  test-e2e:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    extra_hosts:
+      - 'host.docker.internal=host-gateway'
