@@ -67,7 +67,7 @@ describe('push', () => {
   describeOnly({ driverAdapter: false }, 'SQLite file placements', () => {
     it('missing SQLite db should be created relative to the schema.prisma file', async () => {
       ctx.fixture('reset')
-      ctx.fs.remove('prisma/dev.db')
+      ctx.fs.remove('dev.db')
       const schemaPath = 'prisma/schema.prisma'
 
       const result = DbPush.new().parse([], ctx.config)
@@ -80,8 +80,7 @@ describe('push', () => {
         "
       `)
       expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), '../dev.db'))?.size).toBeGreaterThan(0)
     })
 
     it('missing SQLite db should be created relative to the schema file with the datasource', async () => {
@@ -102,18 +101,18 @@ describe('push', () => {
       expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
     })
 
-    it('missing SQLite db should be created next to the --schema path', async () => {
+    it('missing SQLite db should be created relative to the --schema path', async () => {
       ctx.fixture('reset')
-      ctx.fs.remove('prisma/dev.db')
+      ctx.fs.remove('dev.db')
 
       const oldSchemaPath = 'prisma/schema.prisma'
-      const newSchemaPath = 'something/schema.prisma'
+      const newSchemaPath = 'some/thing/schema.prisma'
       ctx.fs.move(oldSchemaPath, newSchemaPath)
 
       const result = DbPush.new().parse(['--schema', newSchemaPath], ctx.config)
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from something/schema.prisma
+        "Prisma schema loaded from some/thing/schema.prisma
         Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
         Your database is now in sync with your Prisma schema. Done in XXXms
@@ -121,8 +120,8 @@ describe('push', () => {
       `)
       expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
       expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
-      expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+      expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), '../dev.db'))?.size).toBeUndefined()
+      expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), '../dev.db'))?.size).toBeGreaterThan(0)
       expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
     })
   })
