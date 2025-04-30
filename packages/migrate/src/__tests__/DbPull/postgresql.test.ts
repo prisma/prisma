@@ -162,7 +162,7 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
 
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

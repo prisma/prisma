@@ -38,7 +38,7 @@ describeOnly({ d1: true }, 'D1', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       - Introspecting based on datasource defined in prisma/schema.prisma
@@ -120,7 +120,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
     test('basic introspection with --url', async () => {
       ctx.fixture('introspection/sqlite')
       const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'file:../dev.db'], ctx.config)
+      const result = introspect.parse(['--print', '--url', 'file:./dev.db'], ctx.config)
       await expect(result).resolves.toBe('')
 
       expect(ctx.normalizedCapturedStdout()).toMatchSnapshot(``)
@@ -380,7 +380,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
 
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
-    ctx.fs.write('prisma/dev.db', '')
+    ctx.fs.write('dev.db', '')
     const result = DbPull.new().parse([], ctx.config)
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "

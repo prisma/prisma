@@ -324,7 +324,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(fs.exists('prisma/dev.db')).toEqual('file')
+    expect(fs.exists('dev.db')).toEqual('file')
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
@@ -359,7 +359,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     `)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(fs.exists('prisma/dev.db')).toEqual('file')
+    expect(fs.exists('dev.db')).toEqual('file')
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
@@ -383,7 +383,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(fs.exists('prisma/dev.db')).toEqual('file')
+    expect(fs.exists('dev.db')).toEqual('file')
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
