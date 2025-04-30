@@ -6,7 +6,9 @@ import type {
   PrismaValue,
   PrismaValueGenerator,
   PrismaValuePlaceholder,
+  PrismaValueType,
   QueryPlanDbQuery,
+  TypedPrismaValue,
 } from '../QueryPlan'
 import { isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
@@ -36,14 +38,18 @@ export function renderQuery(
 }
 
 function evaluateParams(
-  params: PrismaValue[],
+  params: TypedPrismaValue[],
   scope: ScopeBindings,
   generators: GeneratorRegistrySnapshot,
-): PrismaValue[] {
+): TypedPrismaValue[] {
   return params.map((param) => evaluateParam(param, scope, generators))
 }
 
-function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): PrismaValue {
+function evaluateParam(
+  param: TypedPrismaValue,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): TypedPrismaValue {
   let value = param
 
   while (doesRequireEvaluation(value)) {
@@ -75,11 +81,11 @@ function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: Gen
 function renderTemplateSql(
   fragments: Fragment[],
   placeholderFormat: PlaceholderFormat,
-  params: PrismaValue[],
+  params: TypedPrismaValue[],
 ): SqlQuery {
   let paramIndex = 0
   let placeholderNumber = 1
-  const flattenedParams: PrismaValue[] = []
+  const flattenedParams: TypedPrismaValue[] = []
   const sql = fragments
     .map((fragment) => {
       const fragmentType = fragment.type
@@ -99,13 +105,22 @@ function renderTemplateSql(
             throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
           }
           const paramValue = params[paramIndex++]
-          const paramArray = Array.isArray(paramValue) ? paramValue : [paramValue]
+          const paramArray =
+            paramValue.type.type === 'Array'
+              ? paramValue
+              : ({
+                  type: { type: 'Array', inner: paramValue.type },
+                  value: paramValue,
+                } satisfies TypedPrismaValue)
           const placeholders =
-            paramArray.length == 0
+            (paramArray.value as PrismaValue[]).length == 0
               ? 'NULL'
-              : paramArray
+              : (paramArray.value as PrismaValue[])
                   .map((value) => {
-                    flattenedParams.push(value)
+                    flattenedParams.push({
+                      type: (paramArray.type as PrismaValueType & { type: 'Array' }).inner,
+                      value,
+                    })
                     return formatPlaceholder(placeholderFormat, placeholderNumber++)
                   })
                   .join(',')
@@ -156,7 +171,7 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
+function renderRawSql(sql: string, params: TypedPrismaValue[]): SqlQuery {
   const argTypes = params.map((param) => toArgType(param))
 
   return {
@@ -166,7 +181,7 @@ function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
   }
 }
 
-function toArgType(value: PrismaValue): ArgType {
+function toArgType(value: TypedPrismaValue): ArgType {
   if (typeof value === 'string') {
     return 'Text'
   }
@@ -191,7 +206,7 @@ function toArgType(value: PrismaValue): ArgType {
 }
 
 function placeholderTypeToArgType(type: string): ArgType {
-  const typeMap = {
+  const typeMap: Record<PrismaValueType['type'], ArgType> = {
     Any: 'Json',
     String: 'Text',
     Int: 'Int32',
@@ -203,7 +218,7 @@ function placeholderTypeToArgType(type: string): ArgType {
     Object: 'Json',
     Bytes: 'Bytes',
     Array: 'Array',
-  } satisfies Record<string, ArgType>
+  }
 
   const mappedType = typeMap[type] as ArgType | undefined
 
