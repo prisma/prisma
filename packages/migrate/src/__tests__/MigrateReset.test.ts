@@ -14,7 +14,7 @@ describe('common', () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--something'], ctx.config)
+    await commandInstance.parse(['--something'], await ctx.config())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
@@ -22,13 +22,13 @@ describe('common', () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--help'], ctx.config)
+    await commandInstance.parse(['--help'], await ctx.config())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
@@ -51,7 +51,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -73,7 +73,7 @@ describe('reset', () => {
   it('should work (--force)', async () => {
     ctx.fixture('reset')
 
-    const result = MigrateReset.new().parse(['--force'], ctx.config)
+    const result = MigrateReset.new().parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -94,7 +94,7 @@ describe('reset', () => {
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
-    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], ctx.config)
+    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
@@ -116,7 +116,7 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--force'], ctx.config)
+    const result = MigrateReset.new().parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -140,7 +140,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -158,7 +158,7 @@ describe('reset', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -174,7 +174,7 @@ describe('reset', () => {
 
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
@@ -188,7 +188,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
@@ -205,7 +205,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--skip-seed'], ctx.config)
+    const result = MigrateReset.new().parse(['--skip-seed'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
   })
 
@@ -213,7 +213,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -237,7 +237,7 @@ describe('reset', () => {
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -264,7 +264,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -290,7 +290,7 @@ describe('reset', () => {
     // ctx.fs.remove('prisma/seed.sh')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -310,7 +310,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], ctx.config)
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma

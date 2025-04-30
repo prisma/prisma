@@ -1,7 +1,6 @@
 // describeOnly making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { loadConfigFromFile } from '@prisma/config'
 import fs from 'fs'
 import path from 'path'
 
@@ -24,10 +23,8 @@ describe('db execute', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
-
       try {
-        await DbExecute.new().parse(['--url', 'file:./dev.db'], config)
+        await DbExecute.new().parse(['--url', 'file:./dev.db'], await ctx.config())
       } catch (error) {
         const e = error as Error & { code?: number }
 
@@ -49,7 +46,7 @@ describe('db execute', () => {
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse([], ctx.config)
+      const result = DbExecute.new().parse([], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Either --stdin or --file must be provided.
         See \`prisma db execute -h\`"
@@ -59,7 +56,7 @@ describe('db execute', () => {
     it('should fail if both --file and --stdin are provided', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--file=1', '--stdin'], ctx.config)
+      const result = DbExecute.new().parse(['--file=1', '--stdin'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "--stdin and --file cannot be used at the same time. Only 1 must be provided. 
         See \`prisma db execute -h\`"
@@ -69,7 +66,7 @@ describe('db execute', () => {
     it('should fail if missing --schema and --url', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--file=1'], ctx.config)
+      const result = DbExecute.new().parse(['--file=1'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Either --url or --schema must be provided.
         See \`prisma db execute -h\`"
@@ -80,7 +77,7 @@ describe('db execute', () => {
       it('should fail if both --schema and --url are provided', async () => {
         ctx.fixture('empty')
 
-        const result = DbExecute.new().parse(['--stdin', '--schema=1', '--url=1'], ctx.config)
+        const result = DbExecute.new().parse(['--stdin', '--schema=1', '--url=1'], await ctx.config())
         await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "--url and --schema cannot be used at the same time. Only 1 must be provided.
         See \`prisma db execute -h\`"
@@ -92,7 +89,7 @@ describe('db execute', () => {
       it('should fail if --url is provided', async () => {
         ctx.fixture('empty')
 
-        const result = DbExecute.new().parse(['--stdin', '--url=1'], ctx.config)
+        const result = DbExecute.new().parse(['--stdin', '--url=1'], await ctx.config())
         await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "
         Passing the --url flag to the prisma db execute command is not supported when
@@ -109,7 +106,7 @@ describe('db execute', () => {
       expect.assertions(2)
 
       try {
-        await DbExecute.new().parse(['--file=./doesnotexists.sql', '--schema=1'], ctx.config)
+        await DbExecute.new().parse(['--file=./doesnotexists.sql', '--schema=1'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`"Provided --file at ./doesnotexists.sql doesn't exist."`)
@@ -122,7 +119,7 @@ describe('db execute', () => {
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--file=./script.sql', '--schema=./doesnoexists.schema'], ctx.config)
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./doesnoexists.schema'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(
@@ -137,7 +134,10 @@ describe('db execute', () => {
       ctx.fixture('schema-only-mongodb')
 
       fs.writeFileSync('script.js', 'Something for MongoDB')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.js'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.js'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "dbExecute is not supported on MongoDB
 
@@ -177,7 +177,10 @@ DROP TABLE 'test-dbexecute';`
       ctx.fixture('schema-only-sqlite')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -185,7 +188,7 @@ DROP TABLE 'test-dbexecute';`
       ctx.fixture('schema-folder-sqlite')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -202,7 +205,10 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -211,7 +217,7 @@ COMMIT;`,
         ctx.fixture('empty')
 
         fs.writeFileSync('script.sql', sqlScript)
-        const result = DbExecute.new().parse(['--url=file:./dev.db', '--file=./script.sql'], ctx.config)
+        const result = DbExecute.new().parse(['--url=file:./dev.db', '--file=./script.sql'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
@@ -219,7 +225,7 @@ COMMIT;`,
         ctx.fixture('introspection/sqlite')
 
         fs.writeFileSync('script.sql', sqlScript)
-        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
+        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
@@ -227,7 +233,7 @@ COMMIT;`,
         ctx.fixture('introspection/sqlite')
 
         fs.writeFileSync('script.sql', '')
-        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], ctx.config)
+        const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
@@ -237,7 +243,7 @@ COMMIT;`,
 
         fs.writeFileSync('script.sql', '-- empty')
         try {
-          await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+          await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], await ctx.config())
         } catch (e) {
           expect(e.code).toEqual('P1013')
           expect(e.message).toMatchInlineSnapshot(`
@@ -254,7 +260,7 @@ COMMIT;`,
         ctx.fixture('introspection/sqlite')
 
         fs.writeFileSync('script.sql', sqlScript)
-        const result = DbExecute.new().parse(['--url=file:doesnotexists.db', '--file=./script.sql'], ctx.config)
+        const result = DbExecute.new().parse(['--url=file:doesnotexists.db', '--file=./script.sql'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
     })
@@ -266,7 +272,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', 'DROP TABLE "test-doesnotexists";')
       try {
-        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.message).toContain('no such table: test-doesnotexists')
       }
@@ -278,7 +284,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', 'ThisisnotSQL,itshouldfail')
       try {
-        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toContain('near "ThisisnotSQL": syntax error')
@@ -324,7 +330,10 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -332,7 +341,7 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-folder-postgres')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -340,7 +349,10 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
@@ -364,7 +376,10 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -372,7 +387,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -380,7 +395,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -400,7 +415,7 @@ COMMIT;`,
       DROP DATABASE "test-dbexecute";`,
       )
       try {
-        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toContain('ERROR: DROP DATABASE cannot')
@@ -433,7 +448,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -479,7 +494,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
       try {
-        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual('P1003')
         expect(e.message).toMatchInlineSnapshot(`
@@ -495,7 +510,10 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
 
@@ -550,7 +568,10 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-cockroachdb')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     }, 10_000)
 
@@ -558,7 +579,7 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-folder-cockroachdb')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     }, 10_000)
 
@@ -566,7 +587,10 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-cockroachdb')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toMatchInlineSnapshot(`
         "P1001
 
@@ -590,7 +614,10 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     }, 10_000)
 
@@ -598,7 +625,7 @@ COMMIT;`,
       ctx.fixture('schema-only-cockroachdb')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -606,7 +633,7 @@ COMMIT;`,
       ctx.fixture('schema-only-cockroachdb')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -624,7 +651,7 @@ COMMIT;`,
       DROP DATABASE "test-dbexecute";`,
       )
       try {
-        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual(undefined)
       }
@@ -657,7 +684,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -696,7 +723,10 @@ COMMIT;`,
       ctx.fixture('schema-only-cockroachdb')
 
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "ERROR: at or near "thisisnotsqlitshouldfail": syntax error
         DETAIL: source SQL:
@@ -746,7 +776,10 @@ DROP DATABASE \`test-dbexecute\`;`
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -754,7 +787,7 @@ DROP DATABASE \`test-dbexecute\`;`
       ctx.fixture('schema-folder-mysql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -763,7 +796,10 @@ DROP DATABASE \`test-dbexecute\`;`
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Query was empty
 
@@ -784,7 +820,10 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -792,7 +831,7 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -822,7 +861,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -861,7 +900,10 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', 'DROP DATABASE `test-doesnotexists`;')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Can't drop database 'test-doesnotexists'; database doesn't exist
 
@@ -873,7 +915,10 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', 'This is not SQL, it should fail')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'This is not SQL, it should fail' at line 1
 
@@ -935,7 +980,10 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -943,7 +991,7 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-folder-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema', '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -951,7 +999,10 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -959,7 +1010,7 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url', jdbcConnectionString, '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(['--url', jdbcConnectionString, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -976,7 +1027,10 @@ SELECT 1
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -995,7 +1049,10 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "DROP DATABASE statement cannot be used inside a user transaction.
 
@@ -1033,7 +1090,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], ctx.config)
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'], await ctx.config())
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -1075,7 +1132,10 @@ COMMIT;`,
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Cannot drop the database 'test-doesnotexists', because it does not exist or you do not have permission.
 
@@ -1087,7 +1147,10 @@ COMMIT;`,
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
-      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'], ctx.config)
+      const result = DbExecute.new().parse(
+        ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
+        await ctx.config(),
+      )
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "Could not find stored procedure 'ThisisnotSQLitshouldfail'.
 

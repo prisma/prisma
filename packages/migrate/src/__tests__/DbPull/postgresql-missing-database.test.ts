@@ -17,7 +17,7 @@ describeOnly({ postgres: true }, 'postgresql - missing database', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', connectionString], ctx.config)
+    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:

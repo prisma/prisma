@@ -1,29 +1,41 @@
-import { defineConfig, PrismaConfigInternal } from '@prisma/config'
+import { defineConfig, loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
 import { PrismaMigrateConfigShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
 import driverAdapters, { currentDriverAdapterName } from './driverAdapters'
 
+type ConfigContext = {
+  config: () => Promise<PrismaConfigInternal<any>>
+}
+
 /**
- * Extends a jestContext with a `config` property that is initialized with the default PrismaConfig and possibly a driver adapter.
+ * Extends a jestContext with a function to get a PrismaConfig.
+ * The config includes a configured migrate driver adapter based on the current test matrix.
+ * Any prisma.config.ts file in the root of the test context fixture will be merged with the default config.
  * Use with jestContext e.g. via `const ctx = jestContext.new().add(configContextContributor()).assemble()`
  */
 export const configContextContributor =
   <C extends BaseContext>() =>
   (c: C) => {
-    const ctx = c as C & { config: PrismaConfigInternal<any> }
+    const ctx = c as C & ConfigContext
 
     beforeEach(() => {
-      ctx.config = defaultTestConfig<any>(ctx)
+      ctx.config = async () => {
+        return {
+          ...defaultTestConfig(ctx),
+          ...(await loadFixtureConfig(ctx)), // custom fixture config overwrites any defaults
+        }
+      }
     })
 
     return ctx
   }
 
 /**
- * Creates a default PrismaConfig with a driver adapter if the test are run with a driver adapter.
+ * Creates a PrismaConfig with a driver adapter if the test are run with a driver adapter.
+ * If a prisma.config.ts file exists, it will be merged with the default config.
  */
-export function defaultTestConfig<Env extends Record<string, string | undefined> = never>(
+function defaultTestConfig<Env extends Record<string, string | undefined>>(
   ctx: BaseContext,
 ): PrismaConfigInternal<Env> {
   let migrate: PrismaMigrateConfigShape<Env> | undefined
@@ -41,4 +53,8 @@ export function defaultTestConfig<Env extends Record<string, string | undefined>
     earlyAccess: true,
     migrate,
   })
+}
+
+async function loadFixtureConfig(ctx: BaseContext) {
+  return (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config
 }
