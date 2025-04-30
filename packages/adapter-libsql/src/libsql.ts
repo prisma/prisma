@@ -74,6 +74,9 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
    */
   private async performIO(query: SqlQuery): Promise<LibSqlResultSet> {
     const release = await this[LOCK_TAG].acquire()
+    if (query.args.some((arg) => Array.isArray(arg))) {
+      throw new Error('Attempted to pass an array argument to the LibSQL client, which is not supported')
+    }
     try {
       const result = await this.client.execute(query as InStatement)
       return result
