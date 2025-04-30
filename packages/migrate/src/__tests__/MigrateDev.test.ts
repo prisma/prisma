@@ -405,9 +405,6 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('transition-db-push-migrate (refuses to reset)', async () => {
     ctx.fixture('transition-db-push-migrate')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     const result = MigrateDev.new().parse([], ctx.config)
 
@@ -435,7 +432,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       All data will be lost.
       "
     `)
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('edited migration and unapplied empty draft', async () => {
@@ -706,9 +703,6 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
   it('existingdb: 1 warning from schema change (prompt no)', async () => {
     ctx.fixture('existing-db-1-warning')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()])
 
@@ -726,7 +720,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
       Migration cancelled.
       "
     `)
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   test('one seed.ts file', async () => {
@@ -786,9 +780,6 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   it('one broken seed.js file', async () => {
     ctx.fixture('seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject(['y'])
 
@@ -815,7 +806,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('')).toContain(
       `An error occurred while running the seed command:`,
     )
-    expect(mockExit).toHaveBeenCalledWith(1)
+    expect(ctx.recordedExitCode()).toEqual(1)
   })
 
   it('legacy seed (no config in package.json)', async () => {
@@ -1096,9 +1087,6 @@ describeOnly({ postgres: true }, 'postgres', () => {
   // Probably needs to run on an isolated db (currently in a git stash)
   it.skip('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     await fs.writeAsync(
       'script.sql',
@@ -1127,7 +1115,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
                    at schema-engine/core/src/state.rs:199
 
     `)
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/multiSchema.prisma

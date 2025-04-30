@@ -155,9 +155,6 @@ describe('reset', () => {
 
   it('should be cancelled if user send n (prompt)', async () => {
     ctx.fixture('reset')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
@@ -172,7 +169,7 @@ describe('reset', () => {
       "
     `)
 
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('reset should error in unattended environment', async () => {
@@ -236,9 +233,6 @@ describe('reset', () => {
   })
 
   test('reset - seed.js - error should exit 1', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
     ctx.fixture('seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
@@ -263,7 +257,7 @@ describe('reset', () => {
       An error occurred while running the seed command:
       Error: Command failed with exit code 1: node prisma/seed.js"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
+    expect(ctx.recordedExitCode()).toEqual(1)
   })
 
   test('reset - seed.ts', async () => {
