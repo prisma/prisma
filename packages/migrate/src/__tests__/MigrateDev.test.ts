@@ -670,7 +670,13 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      "
+      ⚠️ We found changes that cannot be executed:
+
+        • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+      "
+    `)
   })
 
   it('existingdb: 1 warning from schema change (prompt yes)', async () => {
