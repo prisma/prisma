@@ -14,7 +14,16 @@ test('reintrospection - no changes', async () => {
   const result = introspect.parse(['--schema=./prisma/schema'], await ctx.config())
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-  expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+  expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    "Prisma schema loaded from prisma/schema
+    Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+    - Introspecting based on datasource defined in prisma/schema
+    ✔ Introspected 2 models and wrote them into prisma/schema in XXXms
+          
+    Run prisma generate to generate Prisma Client.
+    "
+  `)
 
   expect(ctx.printDir('prisma/schema', ['.prisma'])).toMatchInlineSnapshot(`
     "Blog.prisma:
@@ -56,7 +65,34 @@ test('reintrospection - with --print', async () => {
   const result = introspect.parse(['--schema=./prisma/schema', '--print'], await ctx.config())
   await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-  expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+  expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    "// prisma/schema/Blog.prisma
+    model Blog {
+      id          Int  @id @default(autoincrement())
+      viewCount20 Int
+      ownerId     Int
+      owner       User @relation(fields: [ownerId], references: [id])
+    }
+
+    // prisma/schema/config.prisma
+    generator client {
+      provider = "prisma-client-js"
+      output   = "@prisma/client"
+    }
+
+    datasource my_db {
+      provider = "sqlite"
+      url      = "file:../../dev.db"
+    }
+
+    // prisma/schema/User.prisma
+    model User {
+      id    Int    @id @default(autoincrement())
+      blogs Blog[]
+    }
+
+    "
+  `)
 })
 
 test('reintrospection - new model', async () => {

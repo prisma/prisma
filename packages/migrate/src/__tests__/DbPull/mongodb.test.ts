@@ -315,7 +315,39 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const result = introspect.parse(['--print', '--url', MONGO_URI], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mongodb"
+        url      = "mongodb://localhost:27017/tests-migrate"
+      }
+
+      type UsersHobbies {
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString2 Json?
+        objects         UsersHobbiesObjects[]
+        tags            String[]
+      }
+
+      type UsersHobbiesObjects {
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString3 Json
+        tags            String[]
+      }
+
+      model users {
+        id              String         @id @default(auto()) @map("_id") @db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         UsersHobbies[]
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString1 Json
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
       // *** WARNING ***
