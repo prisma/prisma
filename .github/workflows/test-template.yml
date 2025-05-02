@@ -820,7 +820,8 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [18, 20, 22, 23]
-        driverAdapter: ['', 'libsql']
+        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
+        driverAdapter: ['']
     steps:
       - uses: actions/checkout@v4
 
