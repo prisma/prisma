@@ -22,7 +22,7 @@ export type Matrix = Partial<
  */
 export function describeOnly(matrix: Matrix, name: string, fn: jest.EmptyFunction) {
   // Skip tests for certain providers based on test skip env vars (e.g. used during win & mac CI tests)
-  if (matrix.cockroachdb && process.env.TEST_SKIP_COCKROACH) return skip(name)
+  if (matrix.cockroachdb && process.env.TEST_SKIP_COCKROACHDB) return skip(name)
   if (matrix.sqlserver && process.env.TEST_SKIP_MSSQL) return skip(name)
   if (matrix.mongodb && process.env.TEST_SKIP_MONGODB) return skip(name)
 
