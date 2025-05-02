@@ -15,19 +15,11 @@ const ctx = createDefaultTestContext()
 // And we want to baseline the production database with a baseline migration
 // For that, we use `db pull`, `migrate dev`, `migrate resolve` and `migrate deploy` commands
 describe('Baselining', () => {
-  // Backup env vars
-  const OLD_ENV = { ...process.env }
-
   beforeEach(() => {
     // Disable prompts
     process.env.GITHUB_ACTIONS = '1'
     // Disable generate
     process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-  })
-
-  afterEach(() => {
-    // Restore env vars to backup state
-    process.env = { ...OLD_ENV }
   })
 
   describeOnly({ sqlite: true }, 'SQLite', () => {
