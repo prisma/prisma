@@ -43,8 +43,8 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       "
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('1 unapplied migration', async () => {
@@ -81,8 +81,8 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       "
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('1 unapplied migration (folder)', async () => {
@@ -119,8 +119,8 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       "
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('should throw if database is not empty', async () => {
@@ -142,8 +142,8 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
 
       "
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toMatchInlineSnapshot('[]')
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 })
 
