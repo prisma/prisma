@@ -260,15 +260,6 @@ Please run \`prisma generate\` manually.`
 
       let hint = ''
       if (prismaClientJSGenerator) {
-        const generator = prismaClientJSGenerator.options?.generator
-        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
-        if (isDeno && !generator?.isCustomOutput) {
-          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${bold(
-            generator!.provider.value!,
-          )}.
-When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
-        }
-
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 

@@ -51,8 +51,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   runtimeNameTs: RuntimeName
   /** When generating the browser client */
   browser: boolean
-  /** When generating via the Deno CLI */
-  deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
   /** When we are generating a /wasm client */
@@ -86,7 +84,6 @@ export class TSClient implements Generable {
       runtimeBase,
       runtimeNameJs,
       datasources,
-      deno,
       copyEngine = true,
       reusedJs,
       envPaths,
@@ -169,7 +166,7 @@ ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
+Object.assign(exports, Prisma)
 ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code

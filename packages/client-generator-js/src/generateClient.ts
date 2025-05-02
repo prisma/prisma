@@ -122,7 +122,6 @@ export async function buildClient({
     copyEngine,
     datamodel,
     browser: false,
-    deno: false,
     edge: false,
     wasm: false,
   }
@@ -293,26 +292,6 @@ export async function buildClient({
     fileMap['wasm.d.ts'] = fileMap['default.d.ts']
   }
 
-  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    // we create a client that is fit for edge runtimes
-    const denoEdgeClient = new TSClient({
-      ...baseClientOptions,
-      runtimeBase: `../${runtimeBase}`,
-      runtimeNameJs: 'edge-esm',
-      runtimeNameTs: 'library.d.ts',
-      deno: true,
-      edge: true,
-    })
-
-    fileMap['deno/edge.js'] = JS(denoEdgeClient)
-    fileMap['deno/index.d.ts'] = TS(denoEdgeClient)
-    fileMap['deno/edge.ts'] = `
-import './polyfill.js'
-// @deno-types="./index.d.ts"
-export * from './edge.js'`
-    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
-  }
-
   if (typedSql && typedSql.length > 0) {
     const edgeRuntimeName = usesWasmRuntime ? 'wasm' : 'edge'
     const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
@@ -467,9 +446,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   await ensureDir(outputDir)
-  if (generator.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    await ensureDir(path.join(outputDir, 'deno'))
-  }
 
   await writeFileMap(outputDir, fileMap)
 
