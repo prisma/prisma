@@ -3,35 +3,32 @@ import { UserFacingError } from '../UserFacingError'
 import { assertNever } from '../utils'
 
 export function performValidation(data: unknown, rules: DataRule[], error: ValidationError) {
-  if (!doesSatsifyRules(data, rules)) {
+  if (!rules.every((rule) => doesSatisfyRule(data, rule))) {
     const message = renderMessage(data, error)
     const code = getErrorCode(error)
-    throw new UserFacingError(message, code, data)
+    throw new UserFacingError(message, code, error.context)
   }
 }
 
-function doesSatsifyRules(data: unknown, rules: DataRule[]): boolean {
-  for (const rule of rules) {
-    switch (rule.type) {
-      case 'rowCountEq':
-        if (Array.isArray(data) && data.length !== rule.args) {
-          return false
-        }
-        if (data === null) {
-          return rule.args === 0
-        }
-        return rule.args === 1
-      case 'rowCountNeq':
-        if (Array.isArray(data) && data.length === rule.args) {
-          return false
-        }
-        if (data === null) {
-          return rule.args !== 0
-        }
-        return rule.args !== 1
-    }
+function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
+  switch (rule.type) {
+    case 'rowCountEq':
+      if (Array.isArray(data)) {
+        return data.length === rule.args
+      }
+      if (data === null) {
+        return rule.args === 0
+      }
+      return rule.args === 1
+    case 'rowCountNeq':
+      if (Array.isArray(data)) {
+        return data.length !== rule.args
+      }
+      if (data === null) {
+        return rule.args !== 0
+      }
+      return rule.args !== 1
   }
-  return true
 }
 
 function renderMessage(data: unknown, error: ValidationError): string {
