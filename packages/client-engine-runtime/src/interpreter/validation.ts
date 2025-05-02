@@ -6,7 +6,7 @@ export function performValidation(data: unknown, rules: DataRule[], error: Valid
   if (!doesSatsifyRules(data, rules)) {
     const message = renderMessage(data, error)
     const code = getErrorCode(error)
-    throw new UserFacingError(message, code, error.context)
+    throw new UserFacingError(message, code, data)
   }
 }
 
@@ -14,15 +14,21 @@ function doesSatsifyRules(data: unknown, rules: DataRule[]): boolean {
   for (const rule of rules) {
     switch (rule.type) {
       case 'rowCountEq':
-        if (!Array.isArray(data) || data.length !== rule.args) {
+        if (Array.isArray(data) && data.length !== rule.args) {
           return false
         }
-        break
+        if (data === null) {
+          return rule.args === 0
+        }
+        return rule.args === 1
       case 'rowCountNeq':
-        if (!Array.isArray(data) || data.length === rule.args) {
+        if (Array.isArray(data) && data.length === rule.args) {
           return false
         }
-        break
+        if (data === null) {
+          return rule.args !== 0
+        }
+        return rule.args !== 1
     }
   }
   return true
