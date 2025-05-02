@@ -5,7 +5,7 @@ const generatedCodePreamble = `
 /* eslint-disable */
 `
 
-const tsNoCheckPreamble = `/* @ts-nocheck */\n`
+const tsNoCheckPreamble = `// @ts-nocheck \n`
 
 /**
  * To ensure it is clear that this is generated code and shall not be lint and type checked.
