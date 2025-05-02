@@ -42,9 +42,9 @@ function renderMessage(data: unknown, error: ValidationError): string {
       return `An operation failed because it depends on one or more records that were required but not found. No '${error.context.model}' record${hint} was found for ${error.context.operation} on ${error.context.relationType} relation '${error.context.relation}'.`
     }
     case 'INCOMPLETE_CONNECT_INPUT':
-      return `Expected ${error.context.expectedRows} records to be connected, found only ${
-        Array.isArray(data) ? data.length : 0
-      }.`
+      return `An operation failed because it depends on one or more records that were required but not found. Expected ${
+        error.context.expectedRows
+      } records to be connected, found only ${Array.isArray(data) ? data.length : 0}.`
     case 'RECORDS_NOT_CONNECTED':
       return `The records for relation \`${error.context.relation}\` between the \`${error.context.parent}\` and \`${error.context.child}\` models are not connected.`
 
