@@ -210,7 +210,7 @@ const reactNativeBuildConfig: BuildOptions = {
   ],
 }
 
-// we define the config for edge in esm format (used by deno)
+// we define the config for edge in esm format
 const edgeEsmRuntimeBuildConfig: BuildOptions = {
   ...edgeRuntimeBuildConfig,
   name: 'edge-esm',
