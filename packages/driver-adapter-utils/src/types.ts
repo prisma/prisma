@@ -70,6 +70,8 @@ export type ArgType =
   | 'Date'
   // A time value.
   | 'Time'
+  // An unknown type, should be passed to the driver as is.
+  | 'Unknown'
 
 export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SNAPSHOT' | 'SERIALIZABLE'
 
