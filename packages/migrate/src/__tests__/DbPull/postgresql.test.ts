@@ -51,7 +51,39 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgres"
+        url      = env("TEST_POSTGRES_URI_MIGRATE")
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -60,7 +92,39 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -70,7 +134,39 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -80,7 +176,43 @@ describeOnly({ postgres: true }, 'postgresql', () => {
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 

@@ -51,7 +51,47 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mysql"
+        url      = env("TEST_MYSQL_URI")
+      }
+
+      model your_log {
+        click_id     Int      @id @default(autoincrement())
+        click_time   DateTime @db.DateTime(0)
+        shorturl     String   @db.VarChar(200)
+        referrer     String   @db.VarChar(200)
+        user_agent   String   @db.VarChar(255)
+        ip_address   String   @db.VarChar(41)
+        country_code String   @db.Char(2)
+
+        @@index([shorturl], map: "shorturl")
+      }
+
+      model your_options {
+        option_id    BigInt @default(autoincrement()) @db.UnsignedBigInt
+        option_name  String @default("") @db.VarChar(64)
+        option_value String @db.LongText
+
+        @@id([option_id, option_name])
+        @@index([option_name], map: "option_name")
+      }
+
+      model your_url {
+        keyword   String   @id @db.VarChar(200)
+        url       String   @db.Text
+        title     String?  @db.Text
+        timestamp DateTime @default(now()) @db.Timestamp(0)
+        ip        String   @db.VarChar(41)
+        clicks    Int      @db.UnsignedInt
+
+        @@index([ip], map: "ip")
+        @@index([timestamp], map: "timestamp")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -63,7 +103,47 @@ describeOnly({ mysql: true }, 'mysql', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mysql"
+        url      = "mysql://root:root@localhost:3306/tests"
+      }
+
+      model your_log {
+        click_id     Int      @id @default(autoincrement())
+        click_time   DateTime @db.DateTime(0)
+        shorturl     String   @db.VarChar(200)
+        referrer     String   @db.VarChar(200)
+        user_agent   String   @db.VarChar(255)
+        ip_address   String   @db.VarChar(41)
+        country_code String   @db.Char(2)
+
+        @@index([shorturl], map: "shorturl")
+      }
+
+      model your_options {
+        option_id    BigInt @default(autoincrement()) @db.UnsignedBigInt
+        option_name  String @default("") @db.VarChar(64)
+        option_value String @db.LongText
+
+        @@id([option_id, option_name])
+        @@index([option_name], map: "option_name")
+      }
+
+      model your_url {
+        keyword   String   @id @db.VarChar(200)
+        url       String   @db.Text
+        title     String?  @db.Text
+        timestamp DateTime @default(now()) @db.Timestamp(0)
+        ip        String   @db.VarChar(41)
+        clicks    Int      @db.UnsignedInt
+
+        @@index([ip], map: "ip")
+        @@index([timestamp], map: "timestamp")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

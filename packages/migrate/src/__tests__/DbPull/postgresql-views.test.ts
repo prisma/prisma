@@ -315,10 +315,8 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
     for (const { schemaDir, schemaFilename, needsMove, needsPathsArg } of schemaPaths) {
       const schemaPath = path.posix.join(schemaDir, schemaFilename)
       const viewsPath = path.posix.join(schemaDir, 'views')
-      const testName = `introspection from ${schemaPath} creates view definition files`
 
-      // these tests is too large in scope, it takes ~4.6 to ~5.2s to run
-      test(testName, async () => {
+      test(`introspection from ${schemaPath} creates view definition files`, async () => {
         ctx.fixture(fixturePath)
 
         if (needsMove) {
@@ -347,7 +345,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
           matching: `${viewsPath}/**/*`,
         })
         const polishedTree = tree.map(pathToPosix)
-        expect(polishedTree).toMatchSnapshot()
+        expect(polishedTree).toEqual([`${viewsPath}/public/simpleuser.sql`, `${viewsPath}/work/workers.sql`])
 
         const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
         expect(publicSimpleUserView).toMatchInlineSnapshot(`
@@ -371,7 +369,22 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
             );"
         `)
 
-        expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+        expect(ctx.normalizedCapturedStdout().replaceAll(schemaPath, '<schema-location>')).toMatchInlineSnapshot(`
+          "Prisma schema loaded from <schema-location>
+          Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
+
+          - Introspecting based on datasource defined in <schema-location>
+          ✔ Introspected 2 models and wrote them into <schema-location> in XXXms
+                
+          *** WARNING ***
+
+          The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+            - "simpleuser"
+            - "workers"
+
+          Run prisma generate to generate Prisma Client.
+          "
+        `)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       })
     }

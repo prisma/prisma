@@ -78,7 +78,21 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "sqlserver"
+        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+      }
+
+      model jobs {
+        job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
+        customer_id Int?
+        description String?   @db.VarChar(200)
+        created_at  DateTime?
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -87,7 +101,21 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
     const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "sqlserver"
+        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+      }
+
+      model jobs {
+        job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
+        customer_id Int?
+        description String?   @db.VarChar(200)
+        created_at  DateTime?
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 })
@@ -186,20 +214,20 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
       await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot('')
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                          // *** WARNING ***
-                                          // 
-                                          // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                                          //   - transactional_some_table
-                                          // 
-                                          // These items were renamed due to their names being duplicates in the Prisma schema:
-                                          //   - type: model, name: base_some_table
-                                          //   - type: model, name: transactional_some_table
-                                          // 
-                            `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                                //   - transactional_some_table
+                                                // 
+                                                // These items were renamed due to their names being duplicates in the Prisma schema:
+                                                //   - type: model, name: base_some_table
+                                                //   - type: model, name: transactional_some_table
+                                                // 
+                                `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
@@ -210,7 +238,34 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
       await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
+      "generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["multiSchema"]
+      }
+
+      datasource db {
+        provider = "sqlserver"
+        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+        schemas  = ["base"]
+      }
+
+      model some_table {
+        id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+
+        @@schema("base")
+      }
+
+      model SomeUser {
+        id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -235,7 +290,34 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
       ctx.config,
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
+      "generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["multiSchema"]
+      }
+
+      datasource db {
+        provider = "sqlserver"
+        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+        schemas  = ["base", "does-not-exist"]
+      }
+
+      model some_table {
+        id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+
+        @@schema("base")
+      }
+
+      model SomeUser {
+        id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -254,7 +336,24 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
     const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchSnapshot()
+    expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "sqlserver"
+        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multischema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+      }
+
+      model some_table {
+        id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+      }
+
+      model SomeUser {
+        id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+        email String @db.NVarChar(1)
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

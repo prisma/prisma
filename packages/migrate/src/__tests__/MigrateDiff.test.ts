@@ -173,7 +173,18 @@ describe('migrate diff', () => {
 
       const result = await MigrateDiff.new().parse(['--to-empty', '--from-local-d1', '--script'], await ctx.config())
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "-- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Post";
+        PRAGMA foreign_keys=on;
+
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "User";
+        PRAGMA foreign_keys=on;
+        "
+      `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -203,7 +214,18 @@ describe('migrate diff', () => {
         await ctx.config(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "-- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Post";
+        PRAGMA foreign_keys=on;
+
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "User";
+        PRAGMA foreign_keys=on;
+        "
+      `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -225,7 +247,27 @@ describe('migrate diff', () => {
         await ctx.config(),
       )
       expect(result).toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "-- CreateTable
+        CREATE TABLE "Post" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "title" TEXT NOT NULL,
+            "authorId" INTEGER NOT NULL,
+            FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+        );
+
+        -- CreateTable
+        CREATE TABLE "User" (
+            "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            "email" TEXT NOT NULL,
+            "count1" INTEGER NOT NULL,
+            "name" TEXT
+        );
+
+        -- CreateIndex
+        CREATE UNIQUE INDEX "User_email_key" ON "User"("email" ASC);
+        "
+      `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
@@ -543,11 +585,11 @@ describe('migrate diff', () => {
 
         const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'], await ctx.config())
         await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
+                  "P1003
 
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
+                  Database \`doesnotexists.db\` does not exist
+                  "
+              `)
       })
 
       it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
@@ -555,11 +597,11 @@ describe('migrate diff', () => {
 
         const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'], await ctx.config())
         await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
+                  "P1003
 
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
+                  Database \`doesnotexists.db\` does not exist
+                  "
+              `)
       })
 
       it('should fail if directory in path & sqlite file does not exist', async () => {
@@ -570,11 +612,11 @@ describe('migrate diff', () => {
           ctx.config,
         )
         await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1003
+                  "P1003
 
-        Database \`doesnotexists.db\` does not exist
-        "
-      `)
+                  Database \`doesnotexists.db\` does not exist
+                  "
+              `)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       })
 
@@ -584,20 +626,20 @@ describe('migrate diff', () => {
         const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "
-        [+] Added tables
-          - Post
-          - Profile
-          - User
-          - _Migration
+                  "
+                  [+] Added tables
+                    - Post
+                    - Profile
+                    - User
+                    - _Migration
 
-        [*] Changed the \`Profile\` table
-          [+] Added unique index on columns (userId)
+                  [*] Changed the \`Profile\` table
+                    [+] Added unique index on columns (userId)
 
-        [*] Changed the \`User\` table
-          [+] Added unique index on columns (email)
-        "
-      `)
+                  [*] Changed the \`User\` table
+                    [+] Added unique index on columns (email)
+                  "
+              `)
       })
 
       it('should diff --from-empty --to-url=file:dev.db --script', async () => {
@@ -605,7 +647,55 @@ describe('migrate diff', () => {
 
         const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
-        expect(ctx.normalizedCapturedStdout()).toMatchSnapshot()
+        expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+          "-- CreateTable
+          CREATE TABLE "Post" (
+              "authorId" INTEGER NOT NULL,
+              "content" TEXT,
+              "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+              "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              "published" BOOLEAN NOT NULL DEFAULT false,
+              "title" TEXT NOT NULL,
+              FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+
+          -- CreateTable
+          CREATE TABLE "Profile" (
+              "bio" TEXT,
+              "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              "userId" INTEGER NOT NULL,
+              FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+          );
+
+          -- CreateTable
+          CREATE TABLE "User" (
+              "email" TEXT NOT NULL,
+              "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              "name" TEXT
+          );
+
+          -- CreateTable
+          CREATE TABLE "_Migration" (
+              "revision" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+              "name" TEXT NOT NULL,
+              "datamodel" TEXT NOT NULL,
+              "status" TEXT NOT NULL,
+              "applied" INTEGER NOT NULL,
+              "rolled_back" INTEGER NOT NULL,
+              "datamodel_steps" TEXT NOT NULL,
+              "database_migration" TEXT NOT NULL,
+              "errors" TEXT NOT NULL,
+              "started_at" DATETIME NOT NULL,
+              "finished_at" DATETIME
+          );
+
+          -- CreateIndex
+          CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId" ASC);
+
+          -- CreateIndex
+          CREATE UNIQUE INDEX "User.email" ON "User"("email" ASC);
+          "
+        `)
       })
 
       it('should pass if no schema file around', async () => {
@@ -616,9 +706,9 @@ describe('migrate diff', () => {
         const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'], await ctx.config())
         await expect(result).resolves.toMatchInlineSnapshot(`""`)
         expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "No difference detected.
-        "
-      `)
+                  "No difference detected.
+                  "
+              `)
       })
 
       it('should exit with code 0 when diff is empty with --script', async () => {
