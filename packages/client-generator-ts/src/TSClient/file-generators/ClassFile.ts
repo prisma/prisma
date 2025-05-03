@@ -44,6 +44,11 @@ export function getPrismaClientClass(dirname: string): PrismaClientConstructor {
   config.dirname = dirname
   return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
 }
+
+const dmmfLazy = runtime.lazyProperty(() => runtime.runtimeDataModelToBaseDmmf(config.runtimeDataModel))
+export function getDmmf() {
+  return dmmfLazy.get()
+}
 `
 }
 

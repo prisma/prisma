@@ -11,13 +11,13 @@ import { clientTypeMapDefinition } from '../TypeMap'
 
 const jsDocHeader = `/**
  * WARNING: This is an internal file that is subject to change!
- * 
+ *
  * 🛑 Under no circumstances should you import this file directly! 🛑
- * 
+ *
  * All exports from this file are wrapped under a \`Prisma\` namespace object in the client.ts file.
  * While this enables partial backward compatibility, it is not part of the stable public API.
- * 
- * If you are looking for your Models, Enums, and Input Types, please import them from the respective 
+ *
+ * If you are looking for your Models, Enums, and Input Types, please import them from the respective
  * model files in the \`model\` directory!
  */
 `
@@ -34,6 +34,8 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
 
   return `${jsDocHeader}
 ${imports.join('\n')}
+
+export { getDmmf } from '${context.importFileName(`./class`)}'
 
 export type * from '${context.importFileName(`../models`)}'
 
@@ -58,7 +60,7 @@ ${
   fieldRefs.length > 0
     ? `
 /**
- * Field references 
+ * Field references
  */
 
 ${fieldRefs.join('\n\n')}`
@@ -127,7 +129,7 @@ export type PrismaAction =
   | 'aggregate'
   | 'count'
   | 'runCommandRaw'
-  | 'findRaw' 
+  | 'findRaw'
   | 'groupBy'
 
 /**
