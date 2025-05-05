@@ -18,6 +18,7 @@ import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
+import { version as clientVersion } from '../../../../../package.json'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
@@ -38,6 +39,24 @@ import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 const CLIENT_ENGINE_ERROR = 'P2038'
 
 const debug = Debug('prisma:client:clientEngine')
+
+type GlobalWithPanicHandler = typeof globalThis & {
+  PRISMA_WASM_PANIC_REGISTRY: {
+    set_message?: (message: string) => void
+  }
+}
+
+const globalWithPanicHandler = globalThis as GlobalWithPanicHandler
+
+// The fallback panic handler shared across all instances. This ensures that any
+// panic is caught and handled, but each instance should prefer temporarily
+// setting its own local panic handler for the duration of a synchronous WASM
+// function call for better error messages.
+globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
+  set_message(message: string) {
+    throw new PrismaClientRustPanicError(message, clientVersion)
+  },
+}
 
 export class ClientEngine implements Engine<undefined> {
   name = 'ClientEngine' as const
@@ -142,10 +161,12 @@ export class ClientEngine implements Engine<undefined> {
     }
 
     try {
-      this.queryCompiler = new this.QueryCompilerConstructor({
-        datamodel: this.datamodel,
-        provider: this.provider,
-        connectionInfo: {},
+      this.#withLocalPanicHandler(() => {
+        this.queryCompiler = new this.QueryCompilerConstructor!({
+          datamodel: this.datamodel,
+          provider: this.provider,
+          connectionInfo: {},
+        })
       })
     } catch (e) {
       throw this.#transformInitError(e)
@@ -153,6 +174,9 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   #transformInitError(err: Error): Error {
+    if (err instanceof PrismaClientRustPanicError) {
+      return err
+    }
     try {
       const error: SyncRustError = JSON.parse(err.message)
       return new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
@@ -186,6 +210,9 @@ export class ClientEngine implements Engine<undefined> {
   }
 
   #transformCompileError(error: any): any {
+    if (error instanceof PrismaClientRustPanicError) {
+      return error
+    }
     if (typeof error['message'] === 'string' && typeof error['code'] === 'string') {
       return new PrismaClientKnownRequestError(error['message'], {
         code: error['code'],
@@ -194,6 +221,26 @@ export class ClientEngine implements Engine<undefined> {
       })
     } else {
       return error
+    }
+  }
+
+  #withLocalPanicHandler<T>(fn: () => T): T {
+    const previousHandler = globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY.set_message
+    let panic: string | undefined = undefined
+
+    global.PRISMA_WASM_PANIC_REGISTRY.set_message = (message: string) => {
+      panic = message
+    }
+
+    try {
+      return fn()
+    } finally {
+      global.PRISMA_WASM_PANIC_REGISTRY.set_message = previousHandler
+
+      if (panic) {
+        // eslint-disable-next-line no-unsafe-finally
+        throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, panic), this.config.clientVersion!)
+      }
     }
   }
 
@@ -285,7 +332,7 @@ export class ClientEngine implements Engine<undefined> {
 
     let queryPlanString: string
     try {
-      queryPlanString = this.queryCompiler!.compile(queryStr)
+      queryPlanString = this.#withLocalPanicHandler(() => this.queryCompiler!.compile(queryStr))
     } catch (error) {
       throw this.#transformCompileError(error)
     }
