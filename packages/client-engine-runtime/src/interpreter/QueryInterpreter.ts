@@ -12,6 +12,7 @@ import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeSql } from './serializeSql'
+import { performValidation } from './validation'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -190,6 +191,13 @@ export class QueryInterpreter {
       case 'dataMap': {
         const data = await this.interpretNode(node.args.expr, queryable, scope, generators)
         return applyDataMap(data, node.args.structure)
+      }
+
+      case 'validate': {
+        const data = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        performValidation(data, node.args.rules, node.args)
+
+        return data
       }
 
       default:

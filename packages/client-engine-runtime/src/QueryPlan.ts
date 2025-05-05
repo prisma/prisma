@@ -159,3 +159,60 @@ export type QueryPlanNode =
         structure: ResultNode
       }
     }
+  | {
+      type: 'validate'
+      args: {
+        expr: QueryPlanNode
+        rules: DataRule[]
+      } & ValidationError
+    }
+
+export type DataRule =
+  | {
+      type: 'rowCountEq'
+      args: number
+    }
+  | {
+      type: 'rowCountNeq'
+      args: number
+    }
+
+export type ValidationError =
+  | {
+      error_identifier: 'RELATION_VIOLATION'
+      context: {
+        relation: string
+        modelA: string
+        modelB: string
+      }
+    }
+  | {
+      error_identifier: 'MISSING_RELATED_RECORD'
+      context: {
+        model: string
+        relation: string
+        relationType: string
+        operation: string
+        neededFor?: string
+      }
+    }
+  | {
+      error_identifier: 'MISSING_RECORD'
+      context: {
+        operation: string
+      }
+    }
+  | {
+      error_identifier: 'INCOMPLETE_CONNECT_INPUT'
+      context: {
+        expectedRows: number
+      }
+    }
+  | {
+      error_identifier: 'RECORDS_NOT_CONNECTED'
+      context: {
+        relation: string
+        parent: string
+        child: string
+      }
+    }
