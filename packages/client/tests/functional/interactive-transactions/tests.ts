@@ -289,6 +289,20 @@ testMatrix.setupTestSuite(
       await expect(result).rejects.toThrow('Concurrent nested transactions are not supported')
     })
 
+    testIf(provider === Providers.MONGODB)('sql: disallow nested transactions in MongoDB', async () => {
+      const result = prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: 'user_1@website.com' } })
+        await tx.$transaction(async (tx2) => {
+          await tx2.user.create({ data: { email: 'user_2@website.com' } })
+        })
+      })
+
+      await expect(result).rejects.toThrow('The mongodb provider does not support nested transactions')
+      const users = await prisma.user.findMany()
+      expect(users).toHaveLength(0)
+    })
+
+
     /**
      * We don't allow certain methods to be called in a transaction
      */

@@ -287,7 +287,7 @@ constructor() {
       validatePrismaClientOptions(optionsArg, config)
 
       // prevents unhandled error events when users do not explicitly listen to them
-      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
+      const logEmitter = new EventEmitter().on('error', () => { }) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.previewFeatures
@@ -709,7 +709,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       try {
         // execute user logic with a proxied the client
         const transaction = { kind: 'itx', ...info } as const
-        
+
         result = await callback(this._createItxClient(transaction))
 
         await this._engine.transaction('commit', headers, info)
@@ -717,7 +717,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         this._nestedTransactions = 0
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => { })
 
         this._nestedTransactions = 0
 
@@ -755,6 +755,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           callback = () => {
             throw new Error(
               'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',
+            )
+          }
+        } else if (config.activeProvider === 'mongodb' && this[TX_ID]) {
+          callback = () => {
+            throw new PrismaClientValidationError(
+              `The ${config.activeProvider} provider does not support nested transactions`,
+              { clientVersion: this._clientVersion },
             )
           }
         } else {
