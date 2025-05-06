@@ -4,7 +4,7 @@
 import os from 'node:os'
 import path from 'node:path'
 
-import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
@@ -35,7 +35,7 @@ describe('migrate diff', () => {
   describe('using Prisma Config', () => {
     it('--from-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
@@ -57,7 +57,7 @@ describe('migrate diff', () => {
 
     it('--to-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--from-url', 'file:./dev.db'], config)
@@ -79,7 +79,7 @@ describe('migrate diff', () => {
 
     it('--from-schema-datasource is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--from-schema-datasource', 'schema.prisma'], config)
@@ -101,7 +101,7 @@ describe('migrate diff', () => {
 
     it('--to-schema-datasource is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--to-schema-datasource', 'schema.prisma'], config)
@@ -123,7 +123,7 @@ describe('migrate diff', () => {
 
     it('--shadow-database-url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--shadow-database-url', 'file:./dev.shadow.db'], config)
@@ -145,7 +145,7 @@ describe('migrate diff', () => {
 
     it('--from-local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--from-local-d1', 'file:./dev.shadow.db'], config)
@@ -167,7 +167,7 @@ describe('migrate diff', () => {
 
     it('--to-local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await MigrateDiff.new().parse(['--to-local-d1', 'file:./dev.shadow.db'], config)
