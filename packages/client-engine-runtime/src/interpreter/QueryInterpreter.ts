@@ -12,7 +12,7 @@ import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeSql } from './serializeSql'
-import { performValidation } from './validation'
+import { doesSatisfyRule, performValidation } from './validation'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
 
@@ -79,11 +79,9 @@ export class QueryInterpreter {
 
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(scope)
-        await Promise.all(
-          node.args.bindings.map(async (binding) => {
-            nestedScope[binding.name] = await this.interpretNode(binding.expr, queryable, scope, generators)
-          }),
-        )
+        for (const binding of node.args.bindings) {
+          nestedScope[binding.name] = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+        }
         return this.interpretNode(node.args.expr, queryable, nestedScope, generators)
       }
 
@@ -198,6 +196,19 @@ export class QueryInterpreter {
         performValidation(data, node.args.rules, node.args)
 
         return data
+      }
+
+      case 'if': {
+        const value = await this.interpretNode(node.args.value, queryable, scope, generators)
+        if (doesSatisfyRule(value, node.args.rule)) {
+          return await this.interpretNode(node.args.then, queryable, scope, generators)
+        } else {
+          return await this.interpretNode(node.args.else, queryable, scope, generators)
+        }
+      }
+
+      case 'unit': {
+        return undefined
       }
 
       default:
