@@ -287,35 +287,32 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
 
     const schemaPaths = [
       {
-        schemaDir: 'prisma',
-        schemaFilename: 'schema.prisma',
+        schemaPath: 'prisma/schema.prisma',
+        viewsPath: 'prisma/views',
         needsMove: true,
         needsPathsArg: false,
       },
       {
-        schemaDir: 'custom/schema/dir',
-        schemaFilename: 'schema.prisma',
+        schemaPath: 'custom/schema/dir/schema.prisma',
+        viewsPath: 'custom/schema/dir/views',
         needsMove: true,
         needsPathsArg: true,
       },
       {
-        schemaDir: '',
-        schemaFilename: 'non-standard-schema.prisma',
+        schemaPath: 'non-standard-schema.prisma',
+        viewsPath: 'views',
         needsMove: true,
         needsPathsArg: true,
       },
       {
-        schemaDir: '',
-        schemaFilename: 'schema.prisma',
+        schemaPath: 'schema.prisma',
+        viewsPath: 'views',
         needsMove: false,
         needsPathsArg: false,
       },
     ] as const
 
-    for (const { schemaDir, schemaFilename, needsMove, needsPathsArg } of schemaPaths) {
-      const schemaPath = path.posix.join(schemaDir, schemaFilename)
-      const viewsPath = path.posix.join(schemaDir, 'views')
-
+    for (const { schemaPath, viewsPath, needsMove, needsPathsArg } of schemaPaths) {
       test(`introspection from ${schemaPath} creates view definition files`, async () => {
         ctx.fixture(fixturePath)
 
