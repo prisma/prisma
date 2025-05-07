@@ -10,7 +10,7 @@ export function performValidation(data: unknown, rules: DataRule[], error: Valid
   }
 }
 
-function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
+export function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
   switch (rule.type) {
     case 'rowCountEq':
       if (Array.isArray(data)) {
@@ -20,6 +20,7 @@ function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
         return rule.args === 0
       }
       return rule.args === 1
+
     case 'rowCountNeq':
       if (Array.isArray(data)) {
         return data.length !== rule.args
@@ -28,6 +29,12 @@ function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
         return rule.args !== 0
       }
       return rule.args !== 1
+
+    case 'never':
+      return false
+
+    default:
+      assertNever(rule, `Unknown rule type: ${(rule as DataRule).type}`)
   }
 }
 
