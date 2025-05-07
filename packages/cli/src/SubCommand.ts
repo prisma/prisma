@@ -9,17 +9,19 @@ import { tmpdir } from 'os'
  * Sub-CLIs that are installed on demand need to implement this interface
  */
 type Runnable = {
-  run: (args: string[], config: PrismaConfigInternal) => Promise<void>
+  run: (args: string[], config: PrismaConfigInternal, options: unknown) => Promise<void>
 }
 
 /**
  * Generic SubCommand that installs a package on demand and runs it
  */
-export class SubCommand implements Command {
+export class SubCommand<T> implements Command {
   pkg: string
+  options?: () => Promise<T> | T
 
-  constructor(pkg: string) {
+  constructor(pkg: string, options?: () => Promise<T> | T) {
     this.pkg = pkg
+    this.options = options
   }
 
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
@@ -41,7 +43,7 @@ export class SubCommand implements Command {
     // load the module and run it via the Runnable interface
     const modulePath = [prefix, 'node_modules', this.pkg, 'dist', 'index.js']
     const module: Runnable = await import(modulePath.join('/'))
-    await module.run(args, config)
+    await module.run(args, config, await this.options?.())
 
     return ''
   }

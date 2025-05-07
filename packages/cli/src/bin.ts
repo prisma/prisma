@@ -2,6 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import {
   DbCommand,
@@ -157,7 +158,9 @@ async function main(): Promise<number> {
       // TODO: add rules subcommand to --help after EA
       rules: new SubCommand('@prisma/cli-security-rules'),
       // TODO: add dev subcommand to --help after it works.
-      dev: new SubCommand('@prisma/cli-dev'),
+      dev: new SubCommand('@prisma/cli-dev', async () => ({
+        binaryTarget: await getBinaryTargetForCurrentPlatform(),
+      })),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
