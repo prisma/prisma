@@ -1,5 +1,5 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
-import { DataSource, EnvValue } from '@prisma/generator-helper'
+import { DataSource, EnvValue } from '@prisma/generator'
 
 export function buildInlineDatasources(datasources: DataSource[]): GetPrismaClientConfig['inlineDatasources'] {
   return datasources.reduce((acc, ds) => {
