@@ -20,6 +20,7 @@ import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
+import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
@@ -123,9 +124,7 @@ export class TSClient implements Generable {
       activeProvider: this.options.activeProvider,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
-      inlineDatasources: datasources.reduce((acc, ds) => {
-        return (acc[ds.name] = { url: ds.url }), acc
-      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
       inlineSchemaHash,
       copyEngine,
