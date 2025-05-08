@@ -99,7 +99,7 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
       return values.map((v) => mapValue(v, resultType.inner))
     }
     case 'Object':
-      return typeof value === 'string' ? value : { value: value }
+      return typeof value === 'string' ? value : JSON.stringify(value)
     case 'Bytes': {
       let bytes: Buffer
       if (Array.isArray(value)) {
