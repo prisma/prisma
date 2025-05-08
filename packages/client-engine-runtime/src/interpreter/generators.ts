@@ -4,8 +4,6 @@ import { nanoid } from 'nanoid'
 import { ulid } from 'ulid'
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid'
 
-import { PrismaValue } from '../QueryPlan'
-
 export class GeneratorRegistry {
   #generators: GeneratorRegistrySnapshot = {}
 
@@ -42,7 +40,7 @@ export interface GeneratorRegistrySnapshot {
 }
 
 export interface ValueGenerator {
-  generate(...args: PrismaValue[]): PrismaValue
+  generate(...args: unknown[]): unknown
 }
 
 class NowGenerator implements ValueGenerator {
@@ -54,7 +52,7 @@ class NowGenerator implements ValueGenerator {
 }
 
 class UuidGenerator implements ValueGenerator {
-  generate(arg: PrismaValue | undefined): string {
+  generate(arg: unknown): string {
     if (arg === 4) {
       return uuidv4()
     } else if (arg === 7) {
@@ -66,7 +64,7 @@ class UuidGenerator implements ValueGenerator {
 }
 
 class CuidGenerator implements ValueGenerator {
-  generate(arg: PrismaValue | undefined): string {
+  generate(arg: unknown): string {
     if (arg === 1) {
       return cuid1()
     } else if (arg === 2) {
@@ -84,7 +82,7 @@ class UlidGenerator implements ValueGenerator {
 }
 
 class NanoIdGenerator implements ValueGenerator {
-  generate(arg: PrismaValue | undefined): string {
+  generate(arg: unknown): string {
     if (typeof arg === 'number') {
       return nanoid(arg)
     } else if (arg === undefined) {
@@ -96,7 +94,7 @@ class NanoIdGenerator implements ValueGenerator {
 }
 
 class ProductGenerator implements ValueGenerator {
-  generate(lhs: PrismaValue | undefined, rhs: PrismaValue | undefined): PrismaValue[] {
+  generate(lhs: unknown, rhs: unknown): unknown[] {
     if (lhs === undefined || rhs === undefined) {
       throw new Error('Invalid Product generator arguments')
     }

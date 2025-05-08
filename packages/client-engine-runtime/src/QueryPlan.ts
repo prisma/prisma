@@ -13,6 +13,15 @@ export function isPrismaValueGenerator(value: unknown): value is PrismaValueGene
   return typeof value === 'object' && value !== null && value['prisma__type'] === 'generatorCall'
 }
 
+export type PrismaValueBytes = {
+  prisma__type: 'bytes'
+  prisma__value: string
+}
+
+export function isPrismaValueBytes(value: unknown): value is PrismaValueBytes {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bytes'
+}
+
 export type PrismaValue =
   | string
   | boolean
@@ -22,6 +31,7 @@ export type PrismaValue =
   | Record<string, unknown>
   | PrismaValuePlaceholder
   | PrismaValueGenerator
+  | PrismaValueBytes
 
 export type PrismaValueType =
   | { type: 'Any' }
