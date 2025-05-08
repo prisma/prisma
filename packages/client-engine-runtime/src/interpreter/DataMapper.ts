@@ -101,10 +101,16 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
     case 'Object':
       return typeof value === 'string' ? value : { value: value }
     case 'Bytes': {
-      if (!Array.isArray(value)) {
+      let bytes: Buffer
+      if (Array.isArray(value)) {
+        bytes = Buffer.from(value)
+      } else if (typeof value === 'string') {
+        bytes = Buffer.from(value, 'base64')
+      } else {
         throw new Error(`DataMapper: Bytes data is invalid, got: ${typeof value}`)
       }
-      const { buffer, byteOffset, byteLength } = Buffer.from(value)
+
+      const { buffer, byteOffset, byteLength } = bytes
       return new Uint8Array(buffer, byteOffset, byteLength)
     }
     default:
