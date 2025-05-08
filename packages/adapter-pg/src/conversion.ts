@@ -445,6 +445,7 @@ function formatDateWithOffset(date: Date) {
   const hours = pad(date.getHours())
   const minutes = pad(date.getMinutes())
   const seconds = pad(date.getSeconds())
+  const millis = String(date.getMilliseconds()).padStart(3, '0')
 
   const offsetMinutesTotal = -date.getTimezoneOffset()
   const offsetSign = offsetMinutesTotal >= 0 ? '+' : '-'
@@ -452,5 +453,5 @@ function formatDateWithOffset(date: Date) {
   const offsetHours = pad(Math.floor(absOffset / 60))
   const offsetMinutes = pad(absOffset % 60)
 
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${millis}${offsetSign}${offsetHours}:${offsetMinutes}`
 }
