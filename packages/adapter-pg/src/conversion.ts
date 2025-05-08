@@ -294,11 +294,13 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time
+  return formatDateWithOffset(new Date(time + 'Z'))
 }
 
 function normalize_timestampz(time: string): string {
-  return time.split('+')[0]
+  return formatDateWithOffset(new Date(time + 'Z'))
+    .split('-')[0]
+    .split('+')[0]
 }
 
 /*
@@ -430,4 +432,25 @@ export function fixArrayBufferValues(values: unknown[]) {
   }
 
   return values
+}
+
+function formatDateWithOffset(date: Date) {
+  // Helper function to pad numbers with leading zeros
+  const pad = (number: number) => String(number).padStart(2, '0')
+
+  // Extract date parts
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+
+  const offsetMinutesTotal = -date.getTimezoneOffset()
+  const offsetSign = offsetMinutesTotal >= 0 ? '+' : '-'
+  const absOffset = Math.abs(offsetMinutesTotal)
+  const offsetHours = pad(Math.floor(absOffset / 60))
+  const offsetMinutes = pad(absOffset % 60)
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`
 }
