@@ -36,6 +36,11 @@ export type PrismaValueType =
   | { type: 'Object' }
   | { type: 'Bytes' }
 
+export type TypedPrismaValue = {
+  type: PrismaValueType
+  value: PrismaValue
+}
+
 export type ResultNode =
   | {
       type: 'Object'
@@ -56,13 +61,13 @@ export type QueryPlanDbQuery =
   | {
       type: 'rawSql'
       sql: string
-      params: PrismaValue[]
+      params: TypedPrismaValue[]
     }
   | {
       type: 'templateSql'
       fragments: Fragment[]
       placeholderFormat: PlaceholderFormat
-      params: PrismaValue[]
+      params: TypedPrismaValue[]
     }
 
 export type Fragment =

@@ -9,7 +9,7 @@ test('no template', () => {
       {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE id = $1',
-        params: [1],
+        params: [{ type: { type: 'Int' }, value: 1 }],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -36,7 +36,10 @@ test('no template and scalar list parameter', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [1, [1, 2, 3]],
+        params: [
+          { type: { type: 'Int' }, value: 1 },
+          { type: { type: 'Array', inner: { type: 'Int' } }, value: [1, 2, 3] },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -63,7 +66,10 @@ test('transforms IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1, 2, 3], 0],
+        params: [
+          { type: { type: 'Array', inner: { type: 'Int' } }, value: [1, 2, 3] },
+          { type: { type: 'Int' }, value: 0 },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -90,7 +96,10 @@ test('transforms IN template with empty list', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[], 0],
+        params: [
+          { type: { type: 'Array', inner: { type: 'Any' } }, value: [] },
+          { type: { type: 'Int' }, value: 0 },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -117,7 +126,10 @@ test('handles singleton list in IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1], 0],
+        params: [
+          { type: { type: 'Array', inner: { type: 'Int' } }, value: [1] },
+          { type: { type: 'Int' }, value: 0 },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -144,7 +156,10 @@ test('treats non-array element as a singleton list in IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [1, 0],
+        params: [
+          { type: { type: 'Int' }, value: 1 },
+          { type: { type: 'Int' }, value: 0 },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -173,7 +188,11 @@ test("transforms IN template, doesn't touch scalar list", () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1, 2, 3], [1, 2, 3], 0],
+        params: [
+          { type: { type: 'Array', inner: { type: 'Int' } }, value: [1, 2, 3] },
+          { type: { type: 'Array', inner: { type: 'Int' } }, value: [1, 2, 3] },
+          { type: { type: 'Int' }, value: 0 },
+        ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -199,10 +218,13 @@ test('transforms INSERT VALUES template', () => {
           hasNumbering: true,
         } satisfies PlaceholderFormat,
         params: [
-          [
-            [1, 2],
-            [3, 4],
-          ],
+          {
+            type: { type: 'Array', inner: { type: 'Array', inner: { type: 'Int' } } },
+            value: [
+              [1, 2],
+              [3, 4],
+            ],
+          },
         ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -223,8 +245,14 @@ test('executes a generator', () => {
         type: 'rawSql',
         sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
         params: [
-          { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
-          { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
+          {
+            type: { type: 'String' },
+            value: { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
+          },
+          {
+            type: { type: 'String' },
+            value: { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
+          },
         ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
