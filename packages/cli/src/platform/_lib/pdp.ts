@@ -1,5 +1,3 @@
-import fetch, { Headers } from 'node-fetch'
-
 import { getUserAgent } from './userAgent'
 
 const platformAPIEndpoint = new URL('https://console.prisma.io/api')
