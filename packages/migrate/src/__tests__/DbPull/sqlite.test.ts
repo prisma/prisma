@@ -1,4 +1,4 @@
-import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { DbPull } from '../../commands/DbPull'
@@ -73,7 +73,7 @@ describe('common/sqlite', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await DbPull.new().parse(['--url', 'file:./dev.db'], config)
@@ -95,7 +95,7 @@ describe('common/sqlite', () => {
 
     it('--local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await DbPull.new().parse(['--local-d1'], config)

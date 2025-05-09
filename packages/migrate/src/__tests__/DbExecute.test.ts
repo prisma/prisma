@@ -1,7 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
@@ -24,7 +24,7 @@ describe('db execute', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
-      const config = (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config!
+      const config = (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 
       try {
         await DbExecute.new().parse(['--url', 'file:./dev.db'], config)
