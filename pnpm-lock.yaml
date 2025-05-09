@@ -837,9 +837,6 @@ importers:
       new-github-issue-url:
         specifier: 0.2.1
         version: 0.2.1
-      node-fetch:
-        specifier: 3.3.2
-        version: 3.3.2
       p-retry:
         specifier: 4.6.2
         version: 4.6.2
