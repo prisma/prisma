@@ -38,6 +38,12 @@ export async function handleNpsSurvey() {
     return
   }
 
+  if ('Deno' in globalThis) {
+    // For some reason merely creating the readline interface on Deno
+    // doesn't allow `prisma generate` to finish until Enter is pressed.
+    return
+  }
+
   const now = new Date()
 
   const rl = readline.promises.createInterface({
