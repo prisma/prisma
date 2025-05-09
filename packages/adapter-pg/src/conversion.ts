@@ -294,7 +294,7 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time
+  return new Date(`${time}Z`).toISOString()
 }
 
 function normalize_timestampz(time: string): string {

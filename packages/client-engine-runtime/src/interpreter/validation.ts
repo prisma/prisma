@@ -36,7 +36,7 @@ function renderMessage(data: unknown, error: ValidationError): string {
     case 'RELATION_VIOLATION':
       return `The change you are trying to make would violate the required relation '${error.context.relation}' between the \`${error.context.modelA}\` and \`${error.context.modelB}\` models.`
     case 'MISSING_RECORD':
-      return `No record was found for ${error.context.operation}.`
+      return `An operation failed because it depends on one or more records that were required but not found. No record was found for ${error.context.operation}.`
     case 'MISSING_RELATED_RECORD': {
       const hint = error.context.neededFor ? ` (needed to ${error.context.neededFor})` : ''
       return `An operation failed because it depends on one or more records that were required but not found. No '${error.context.model}' record${hint} was found for ${error.context.operation} on ${error.context.relationType} relation '${error.context.relation}'.`
