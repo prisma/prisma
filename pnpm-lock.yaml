@@ -1759,6 +1759,9 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
     devDependencies:
+      '@prisma/adapter-libsql':
+        specifier: workspace:*
+        version: link:../adapter-libsql
       '@sindresorhus/slugify':
         specifier: 1.1.2
         version: 1.1.2

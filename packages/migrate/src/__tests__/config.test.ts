@@ -1,8 +1,9 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 import path from 'path'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+import { createDefaultTestContext } from './__helpers__/context'
+
+const ctx = createDefaultTestContext()
 
 function cleanSnapshot(str: string): string {
   return str.replace(/\\/g, '/').replace(/".*?((\/config)?\/prisma\.config\.ts)"/g, '"REDACTED_ROOT$1"')

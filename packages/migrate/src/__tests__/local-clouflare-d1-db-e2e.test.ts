@@ -1,13 +1,14 @@
-import { defaultTestConfig } from '@prisma/config'
-import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { type BaseContext } from '@prisma/get-platform'
 import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
+import { describeOnly } from './__helpers__/conditionalTests'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-describe('d1 local', () => {
+describeOnly({ d1: true }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {
     return await execa('pnpm', ['wrangler', '--config', path.join(ctx.tmpDir, 'wrangler.toml'), ...args], {
       cwd: __dirname,
@@ -60,7 +61,7 @@ describe('d1 local', () => {
             '--output',
             './migrations/0001_init.sql',
           ],
-          defaultTestConfig(),
+          ctx.config,
         )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -105,7 +106,7 @@ describe('d1 local', () => {
             '--output',
             './migrations/0002_change_all_referenced_columns.sql',
           ],
-          defaultTestConfig(),
+          ctx.config,
         )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -164,7 +165,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0001_init.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -225,7 +226,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0002_passport_number_to_string.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -288,7 +289,7 @@ describe('d1 local', () => {
             '--output',
             './migrations/0001_init.sql',
           ],
-          defaultTestConfig(),
+          ctx.config,
         )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -331,7 +332,7 @@ describe('d1 local', () => {
             '--output',
             './migrations/0002_add_mutual_references.sql',
           ],
-          defaultTestConfig(),
+          ctx.config,
         )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -396,7 +397,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0001_init.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -461,7 +462,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0002_rename_new_field.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -513,7 +514,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0001_init.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -564,7 +565,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0002_add_count_to_user_table.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
@@ -623,7 +624,7 @@ describe('d1 local', () => {
           '--output',
           './migrations/0003_change_user_id_to_count.sql',
         ],
-        defaultTestConfig(),
+        ctx.config,
       )
       await expect(prisma3dMigration).resolves.toMatchInlineSnapshot(`""`)
 

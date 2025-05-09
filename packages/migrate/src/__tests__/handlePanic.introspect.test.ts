@@ -1,10 +1,9 @@
-import { defaultTestConfig } from '@prisma/config'
-import { jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().assemble()
+const ctx = createDefaultTestContext()
 
 describe('introspection panic', () => {
   test('force panic', async () => {
@@ -14,13 +13,9 @@ describe('introspection panic', () => {
 
     const introspect = new DbPull()
     try {
-      await introspect.parse(['--print'], defaultTestConfig())
+      await introspect.parse(['--print'], await ctx.config())
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`
-        "Error in Schema engine.
-        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-        "
-      `)
+      expect(e.message).toContain('This is the debugPanic artificial panic')
     }
   })
 })

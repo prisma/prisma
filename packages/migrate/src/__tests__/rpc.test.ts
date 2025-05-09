@@ -470,7 +470,7 @@ describe('markMigrationRolledBack', () => {
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkRolledBacked).resolves.toMatchSnapshot()
+    await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(`{}`)
 
     const migrationsList1 = await listMigrations(migrate.migrationsDirectoryPath!)
     const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
@@ -478,7 +478,7 @@ describe('markMigrationRolledBack', () => {
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkAppliedFailed).resolves.toMatchSnapshot()
+    await expect(resultMarkAppliedFailed).resolves.toMatchInlineSnapshot(`{}`)
 
     const migrationsList2 = await listMigrations(migrate.migrationsDirectoryPath!)
     const resultMarkApplied = migrate.engine.markMigrationApplied({
