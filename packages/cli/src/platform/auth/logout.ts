@@ -50,7 +50,6 @@ export class Logout implements Command {
             },
           })
         } catch (e) {
-          console.log('FLOOO: >>>', e)
           if (
             e instanceof Error &&
             (e.message.includes('Authentication failed because the access token was expired') ||
