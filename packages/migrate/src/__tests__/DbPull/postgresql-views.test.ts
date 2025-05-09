@@ -366,6 +366,7 @@ describeOnly({ postgres: true }, 'postgresql-views', () => {
             );"
         `)
 
+        expect(ctx.normalizedCapturedStdout()).toContain(schemaPath)
         expect(ctx.normalizedCapturedStdout().replaceAll(schemaPath, '<schema-location>')).toMatchInlineSnapshot(`
           "Prisma schema loaded from <schema-location>
           Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
