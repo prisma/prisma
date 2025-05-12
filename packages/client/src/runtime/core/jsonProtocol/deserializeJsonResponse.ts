@@ -18,6 +18,16 @@ export function deserializeJsonResponse(result: unknown): unknown {
       return deserializeTaggedValue(result)
     }
 
+    // avoid mapping known class instances
+    if (
+      typeof result === 'bigint' ||
+      result instanceof Date ||
+      result instanceof Uint8Array ||
+      result instanceof Decimal
+    ) {
+      return result
+    }
+
     return mapObjectValues(result, deserializeJsonResponse)
   }
 

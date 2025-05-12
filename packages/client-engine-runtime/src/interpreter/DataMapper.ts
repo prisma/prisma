@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js'
+
 import { PrismaValueType, ResultNode } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { PrismaObject, Value } from './scope'
@@ -89,22 +91,21 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
     case 'Boolean':
       return typeof value === 'boolean' ? value : value !== '0'
     case 'Decimal':
-      return typeof value === 'number' ? value : parseFloat(`${value}`)
+      return typeof value === 'number' ? new Decimal(value) : new Decimal(`${value}`)
     case 'Date':
       return value instanceof Date ? value : new Date(`${value}`)
     case 'Array': {
       const values = value as unknown[]
-      return values.map((v) => {
-        mapValue(v, resultType.inner)
-      })
+      return values.map((v) => mapValue(v, resultType.inner))
     }
     case 'Object':
-      return typeof value === 'object' ? value : { value: value }
-    case 'Bytes':
-      if (typeof value !== 'string') {
-        throw new Error(`DataMapper: Bytes data is not a string, got: ${typeof value}`)
+      return typeof value === 'string' ? value : JSON.stringify(value)
+    case 'Bytes': {
+      if (!Array.isArray(value)) {
+        throw new Error(`DataMapper: Bytes data is invalid, got: ${typeof value}`)
       }
-      return value
+      return new Uint8Array(value)
+    }
     default:
       assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
   }

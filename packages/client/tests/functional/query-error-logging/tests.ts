@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findUniqueOrThrow')
     })
@@ -61,7 +61,7 @@ testMatrix.setupTestSuite(
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findFirstOrThrow')
     })
