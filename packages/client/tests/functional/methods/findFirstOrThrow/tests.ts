@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
           40 const result = prisma.$transaction([
           41   prisma.user.create({ data: { email: newEmail } }),
         → 42   prisma.user.findFirstOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
+        An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 
         const record = await prisma.user.findFirst({ where: { email: newEmail } })
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
           66 const result = prisma.$transaction(async (prisma) => {
           67   await prisma.user.create({ data: { email: newEmail } })
         → 68   await prisma.user.findFirstOrThrow(
-        An operation failed because it depends on one or more records that were required but not found. Expected a record, found none."
+        An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 
         const record = await prisma.user.findFirst({ where: { email: newEmail } })
