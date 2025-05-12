@@ -176,6 +176,18 @@ export type QueryPlanNode =
         rules: DataRule[]
       } & ValidationError
     }
+  | {
+      type: 'if'
+      args: {
+        value: QueryPlanNode
+        rule: DataRule
+        then: QueryPlanNode
+        else: QueryPlanNode
+      }
+    }
+  | {
+      type: 'unit'
+    }
 
 export type DataRule =
   | {
@@ -185,6 +197,9 @@ export type DataRule =
   | {
       type: 'rowCountNeq'
       args: number
+    }
+  | {
+      type: 'never'
     }
 
 export type ValidationError =
