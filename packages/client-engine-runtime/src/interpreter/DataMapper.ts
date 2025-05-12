@@ -104,8 +104,7 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
       if (!Array.isArray(value)) {
         throw new Error(`DataMapper: Bytes data is invalid, got: ${typeof value}`)
       }
-      const { buffer, byteOffset, byteLength } = Buffer.from(value)
-      return new Uint8Array(buffer, byteOffset, byteLength)
+      return new Uint8Array(value)
     }
     default:
       assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
