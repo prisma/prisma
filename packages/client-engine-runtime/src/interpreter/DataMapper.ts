@@ -18,6 +18,16 @@ export function applyDataMap(data: Value, structure: ResultNode): Value {
 function mapArrayOrObject(data: Value, fields: Record<string, ResultNode>): PrismaObject | PrismaObject[] | null {
   if (data === null) return null
 
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data as string)
+    } catch (e) {
+      throw new Error(
+        `DataMapper(mapArrayOrObject): Failed to deserialize object from JSON; Error: ${e}; JSON: ${data}`,
+      )
+    }
+  }
+
   if (Array.isArray(data)) {
     const rows = data as PrismaObject[]
     return rows.map((row) => mapObject(row, fields))
@@ -99,7 +109,17 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
       })
     }
     case 'Object':
-      return typeof value === 'object' ? value : { value: value }
+      if (typeof value === 'object') {
+        return value
+      }
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value)
+        } catch (e) {
+          throw new Error(`DataMapper(mapValue): Failed to deserialize object from JSON; Error: ${e}; JSON: ${value}`)
+        }
+      }
+      throw new Error(`DataMapper: Object type must be a JSON string or an object, got: ${typeof value}`)
     case 'Bytes':
       if (typeof value !== 'string') {
         throw new Error(`DataMapper: Bytes data is not a string, got: ${typeof value}`)
