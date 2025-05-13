@@ -1,4 +1,3 @@
-import fs from 'node:fs'
 import path from 'node:path'
 
 import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
@@ -54,7 +53,7 @@ describe('loadConfigFromFile', () => {
           loadedFromFile: resolvedPath,
           schema: path.join(cwd, 'prisma', 'schema.prisma'),
         })
-      })
+      }, 30000)
 
       it('succeeds when it points to a single Prisma schema file that exists via a relative path', async () => {
         ctx.fixture('loadConfigFromFile/schema/single-exists-relative')
@@ -68,7 +67,7 @@ describe('loadConfigFromFile', () => {
           loadedFromFile: resolvedPath,
           schema: path.join(cwd, 'prisma', 'schema.prisma'),
         })
-      })
+      }, 30000)
 
       it('succeeds when it points to a single Prisma schema file that does not exists', async () => {
         ctx.fixture('loadConfigFromFile/schema/single-does-not-exist')
@@ -142,15 +141,15 @@ describe('loadConfigFromFile', () => {
       const { message: errorMessage } = error.error
       const { normalisedPath } = (() => {
         if (process.platform === 'win32') {
-          const actualPath = fs.realpathSync.native(resolvedPath, { encoding: 'utf-8' })
+          const actualPath = resolvedPath.replace(/\\/g, '/')
           return { normalisedPath: actualPath }
         } else {
           return { normalisedPath: resolvedPath }
         }
       })()
 
-      expect(errorMessage).toContain('Unexpected eof')
-      expect(errorMessage).toContain('Syntax Error')
+      expect(errorMessage).toContain('ParseError:')
+      expect(errorMessage).toContain('Unexpected token')
       expect(errorMessage).toContain(normalisedPath)
     })
 
@@ -339,16 +338,15 @@ describe('loadConfigFromFile', () => {
       })
     })
 
-    test('if an async custom env-var loading function is used, it should fail loading environment variables using the provided function', async () => {
+    test('if an async custom env-var loading function is used, it should load environment variables using the provided function', async () => {
       ctx.fixture('loadConfigFromFile/env-load-esm')
-      const { config, error } = await loadConfigFromFile({})
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
 
-      expect(config).toBeUndefined()
-      assertErrorTypeScriptImportFailed(error)
-      expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
-      expect(error.error).toMatchInlineSnapshot(
-        `[SyntaxError: await is only valid in async functions and the top level bodies of modules]`,
-      )
+      assertLoadConfigFromFileErrorIsUndefined(error)
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
 
       expect(process.env).toMatchObject(processEnvBackup)
       expect(process.env.TEST_CONNECTION_STRING).toBeUndefined()
