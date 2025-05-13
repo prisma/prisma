@@ -3,6 +3,7 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
 import { existsSync } from 'fs'
+import { dim } from 'kleur/colors'
 import { tmpdir } from 'os'
 
 /**
@@ -34,7 +35,17 @@ export class SubCommand implements Command {
 
     // if the package is not installed yet, we install it otherwise we skip
     if (existsSync(prefix) === false) {
-      const installCmd = getCommand('npm', 'install', [pkg, '--no-save', '--prefix', prefix, '--userconfig', prefix])
+      process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
+      const installCmd = getCommand('npm', 'install', [
+        pkg,
+        '--no-save',
+        '--prefix',
+        prefix,
+        '--userconfig',
+        prefix,
+        '--loglevel',
+        'error',
+      ])
       await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
     }
 
