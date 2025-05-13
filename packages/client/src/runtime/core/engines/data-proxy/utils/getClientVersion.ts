@@ -13,6 +13,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
+  // Automated tests should set this to "0.0.0" when using mini-proxy
   if (process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION) {
     return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION
   }
@@ -32,11 +33,6 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   // if it is an integration or dev version, we resolve its dataproxy
   // for this we infer the data proxy version from the engine version
   if (suffix !== undefined || clientVersion === '0.0.0' || clientVersion === 'in-memory') {
-    // if the host is local, then it means we are using the mini-proxy
-    if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
-      return '0.0.0' // when we are running in tests, we use mini proxy
-    }
-
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
