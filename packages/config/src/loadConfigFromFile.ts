@@ -3,6 +3,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
+import { createJiti } from 'jiti'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -106,6 +107,7 @@ export async function loadConfigFromFile({
     let defaultExport: PrismaConfigInternal<any> | undefined
 
     try {
+      // @ts-expect-error
       defaultExport = parseDefaultExport(required['default'])
     } catch (e) {
       const error = e as Error
@@ -142,20 +144,13 @@ export async function loadConfigFromFile({
   }
 }
 
-// Note: `esbuild-register` combines well with `esbuild`, which we already use.
-// However, we might consider adopting `jiti` in the future, either directly or
-// via `c12`.
 async function requireTypeScriptFile(resolvedPath: string) {
   try {
-    const { register: esbuildRegister } = await import('esbuild-register/dist/node')
-
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { unregister } = esbuildRegister({
-      format: 'cjs',
-      loader: 'ts',
+    const jiti = createJiti(__filename, {
+      interopDefault: true,
+      moduleCache: false,
     })
-    const configExport = require(resolvedPath)
-    unregister()
+    const configExport = await jiti.import(resolvedPath)
 
     return {
       required: configExport,
@@ -163,7 +158,7 @@ async function requireTypeScriptFile(resolvedPath: string) {
     }
   } catch (e) {
     const error = e as Error
-    debug('esbuild-register registration failed: %s', error.message)
+    debug('jiti import failed: %s', error.message)
 
     return {
       error: {

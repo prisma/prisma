@@ -430,7 +430,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1013')
@@ -473,7 +473,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1001')
@@ -665,7 +665,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1013')
@@ -704,7 +704,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1001')
@@ -843,7 +843,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=mysql://johndoe::::////::randompassword@doesnotexist:3306/mydb', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1013')
@@ -881,7 +881,7 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(
           ['--url=mysql://johndoe:randompassword@doesnotexist:3306/mydb', '--file=./script.sql'],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1001')
@@ -1010,7 +1010,7 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--url', jdbcConnectionString, '--file=./script.sql'], await ctx.config())
+      const result = DbExecute.new().parse(['--url', jdbcConnectionString!, '--file=./script.sql'], await ctx.config())
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
@@ -1071,7 +1071,7 @@ COMMIT;`,
             '--url=sqlserver://doesnotexist:1433;;;;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
             '--file=./script.sql',
           ],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1013')
@@ -1113,7 +1113,7 @@ COMMIT;`,
             '--url=sqlserver://doesnotexist:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
             '--file=./script.sql',
           ],
-          ctx.config,
+          await ctx.config(),
         )
       } catch (e) {
         expect(e.code).toEqual('P1001')

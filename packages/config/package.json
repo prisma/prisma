@@ -12,8 +12,7 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "esbuild": ">=0.12 <1",
-    "esbuild-register": "3.6.0"
+    "jiti": "2.4.2"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
@@ -21,15 +20,15 @@
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "effect": "3.12.10",
-    "esbuild-register": "3.6.0",
     "jest": "29.7.0",
-    "jest-junit": "16.0.0"
+    "jest-junit": "16.0.0",
+    "cross-env": "7.0.3"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "jest"
+    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest"
   },
   "files": [
     "dist"

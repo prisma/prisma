@@ -26,7 +26,6 @@ import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
-import { Init } from './Init'
 import { Mcp } from './MCP'
 import { Platform } from './platform/_Platform'
 /*
@@ -87,7 +86,7 @@ async function main(): Promise<number> {
 
   const cli = CLI.new(
     {
-      init: Init.new(),
+      init: new SubCommand('@prisma/cli-init'),
       platform: Platform.$.new({
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),

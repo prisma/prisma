@@ -79,6 +79,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
+
       try {
         await DbPull.new().parse(['--url', 'file:./dev.db'], await ctx.config())
       } catch (error) {
@@ -301,7 +302,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
       ctx.fixture('empty-schema-db-subfolder')
       const result = DbPull.new().parse(
         ['--url=file:../db/dev.db', '--schema=schema/schema.prisma', '--print'],
-        ctx.config,
+        await ctx.config(),
       )
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)

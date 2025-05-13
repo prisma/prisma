@@ -1,4 +1,4 @@
-import { defineConfig, loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
+import { defineConfig, PrismaConfigInternal } from '@prisma/config'
 import { PrismaMigrateConfigShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
@@ -56,5 +56,6 @@ function defaultTestConfig<Env extends Record<string, string | undefined>>(
 }
 
 async function loadFixtureConfig(ctx: BaseContext) {
-  return (await loadConfigFromFile({ configFile: 'prisma.config.ts', configRoot: ctx.fs.cwd() })).config
+  if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
+  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
 }
