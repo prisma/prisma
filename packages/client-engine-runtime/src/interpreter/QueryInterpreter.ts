@@ -211,6 +211,13 @@ export class QueryInterpreter {
         return undefined
       }
 
+      case 'diff': {
+        const from = await this.interpretNode(node.args.from, queryable, scope, generators)
+        const to = await this.interpretNode(node.args.to, queryable, scope, generators)
+        const toSet = new Set(asList(to))
+        return asList(from).filter((item) => !toSet.has(item))
+      }
+
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
     }

@@ -188,6 +188,13 @@ export type QueryPlanNode =
   | {
       type: 'unit'
     }
+  | {
+      type: 'diff'
+      args: {
+        from: QueryPlanNode
+        to: QueryPlanNode
+      }
+    }
 
 export type DataRule =
   | {
