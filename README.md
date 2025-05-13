@@ -50,7 +50,7 @@ The fastest way to get started with Prisma is by following the quickstart guides
 
 ### Bring your own database
 
-If you already have your own database, you can follows these guides:
+If you already have your own database, you can follow these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-typescript-postgresql)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql)
