@@ -1,0 +1,10 @@
+{
+  "tokens": [
+    {
+      "userName": "test-user",
+      "workspaceName": "test-workspace",
+      "workspaceId": "test-workspace-id",
+      "token": "test-token"
+    }
+  ]
+}
