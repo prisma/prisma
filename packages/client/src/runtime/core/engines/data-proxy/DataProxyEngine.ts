@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
+import { isPrismaPostgresDev, PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
@@ -165,6 +165,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   private host!: string
   private headerBuilder!: DataProxyHeaderBuilder
   private startPromise?: Promise<void>
+  private protocol!: 'http' | 'https'
 
   constructor(config: EngineConfig) {
     checkForbiddenMetrics(config)
@@ -203,9 +204,9 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     }
 
     this.startPromise = (async () => {
-      const [host, apiKey] = this.extractHostAndApiKey()
+      const { apiKey, url } = this.getURLAndAPIKey()
 
-      this.host = host
+      this.host = url.host
       this.headerBuilder = new DataProxyHeaderBuilder({
         apiKey,
         tracingHelper: this.tracingHelper,
@@ -213,10 +214,14 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
         logQueries: this.config.logQueries,
         engineHash: this.engineHash,
       })
+      // To simplify things, `prisma dev`, for now, will not support HTTPS.
+      // In the future, if HTTPS for `prisma dev` becomes a thing, we'll need this line to be dynamic.
+      this.protocol = isPrismaPostgresDev(url) ? 'http' : 'https'
 
-      this.remoteClientVersion = await getClientVersion(host, this.config)
+      this.remoteClientVersion = await getClientVersion(this.host, this.config)
 
       debug('host', this.host)
+      debug('protocol', this.protocol)
     })()
 
     await this.startPromise
@@ -275,7 +280,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   private async url(action: string) {
     await this.start()
 
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
+    return `${this.protocol}://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
   }
 
   private async uploadSchema() {
@@ -495,7 +500,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     })
   }
 
-  private extractHostAndApiKey() {
+  private getURLAndAPIKey() {
     const errorInfo = { clientVersion: this.clientVersion }
     const dsName = Object.keys(this.inlineDatasources)[0]
     const serviceURL = resolveDatasourceUrl({
@@ -515,11 +520,11 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       )
     }
 
-    const { protocol, host, searchParams } = url
+    const { protocol, searchParams } = url
 
     if (protocol !== 'prisma:' && protocol !== PRISMA_POSTGRES_PROTOCOL) {
       throw new InvalidDatasourceError(
-        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
+        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,
         errorInfo,
       )
     }
@@ -532,7 +537,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       )
     }
 
-    return [host, apiKey]
+    return { apiKey, url }
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>
