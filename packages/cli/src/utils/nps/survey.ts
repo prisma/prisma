@@ -55,6 +55,10 @@ export async function handleNpsSurvey() {
   rl.on('error', (err) => {
     debug(`A readline error occurred while handling NPS survey: ${err}`)
   })
+  rl.on('SIGINT', () => {
+    rl.write('Received SIGINT, closing the survey.\n')
+    rl.close()
+  })
 
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
