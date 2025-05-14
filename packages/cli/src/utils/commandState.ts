@@ -35,9 +35,8 @@ export async function loadOrInitializeCommandState(): Promise<CommandState> {
 /*
  * Calculates the number of days since the first command was issued.
  */
-export function daysSinceFirstCommand(state: CommandState): number {
+export function daysSinceFirstCommand(state: CommandState, now: Date = new Date()): number {
   const firstCommandDate = new Date(state.firstCommandTimestamp)
-  const now = new Date()
   const diffTime = now.getTime() - firstCommandDate.getTime()
   return Math.floor(diffTime / (1000 * 60 * 60 * 24))
 }
