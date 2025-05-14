@@ -264,7 +264,9 @@ describe('nps survey', () => {
     }
     const capture = jest.fn().mockReturnValue(Promise.resolve())
     const commandState = {
-      firstCommandTimestamp: new Date(Date.now() - (Math.random() % (23 * 60 * 60 * 1000))).toISOString(),
+      firstCommandTimestamp: new Date(
+        Date.now() - ((Math.random() * Number.MAX_SAFE_INTEGER) % (23 * 60 * 60 * 1000)),
+      ).toISOString(),
     }
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, commandState)
