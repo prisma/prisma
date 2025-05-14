@@ -40,6 +40,7 @@ import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
+import { loadOrInitializeCommandState } from './utils/commandState'
 import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
 import { printUpdateMessage } from './utils/printUpdateMessage'
@@ -160,6 +161,10 @@ async function main(): Promise<number> {
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
+
+  await loadOrInitializeCommandState().catch((err) => {
+    debug(`Failed to initialize the command state: ${err}`)
+  })
 
   const config = await loadConfig(args['--config'])
   if (config instanceof HelpError) {

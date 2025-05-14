@@ -6,6 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import readline from 'readline'
 
+import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
 import { EventCapture, PosthogEventCapture } from './capture'
 import { NpsStatusLookup, ProdNpsStatusLookup, Timeframe } from './status'
 
@@ -58,7 +59,8 @@ export async function handleNpsSurvey() {
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
-  await handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture)
+  await loadOrInitializeCommandState()
+    .then((state) => handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture, state))
     .catch((err) => {
       // we don't want to propagate NPS survey errors, so we catch them here and log them
       debug(`An error occurred while handling NPS survey: ${err}`)
@@ -88,8 +90,15 @@ export async function handleNpsSurveyImpl(
   statusLookup: NpsStatusLookup,
   rl: ReadlineInterface,
   eventCapture: EventCapture,
+  commandState: CommandState,
 ) {
-  if (isCi() || maybeInGitHook() || isInNpmLifecycleHook() || isInContainer()) {
+  if (
+    isCi() ||
+    maybeInGitHook() ||
+    isInNpmLifecycleHook() ||
+    isInContainer() ||
+    daysSinceFirstCommand(commandState) < 1
+  ) {
     return
   }
 
