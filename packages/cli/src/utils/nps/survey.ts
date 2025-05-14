@@ -117,9 +117,11 @@ export async function handleNpsSurveyImpl(
 
 async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> {
   const question = rl.question(
-    'Rate how likely you are to recommend Prisma (0 = "not likely" to 10 = "extremely likely") ' +
-      `and press Enter. This prompt will close in ${promptTimeoutSecs} seconds. ` +
-      'Use --no-hints to disable prompts.\n' +
+    'How likely are you to recommend Prisma?\n\n' +
+      'Enter a number from 0 to 10 (0 = not at all, 10 = extremely likely) and press Enter — ' +
+      'or leave blank to skip and not be asked again.\n\n' +
+      `This prompt closes in ${promptTimeoutSecs}s and can be suppressed with --no-hints. ` +
+      'Learn more: https://pris.ly/why-nps\n\n' +
       'Rating: ',
   )
   const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)
