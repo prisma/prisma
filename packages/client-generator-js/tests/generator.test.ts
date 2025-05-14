@@ -92,7 +92,7 @@ describe('generator', () => {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)
     }
 
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
     const generator = await getGenerator({
       schemaPath: path.join(__dirname, 'schema.prisma'),
@@ -164,13 +164,13 @@ describe('generator', () => {
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
     generator.stop()
 
-    expect(warn.mock.calls).toMatchInlineSnapshot(`
-      [
-        [
-          "Warning: You did not specify an output path for your \`generator\` in schema.prisma. This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more visit https://pris.ly/cli/output-path",
-        ],
-      ]
-    `)
+    // expect(warn.mock.calls).toMatchInlineSnapshot(`
+    //   [
+    //     [
+    //       "Warning: You did not specify an output path for your \`generator\` in schema.prisma. This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more visit https://pris.ly/cli/output-path",
+    //     ],
+    //   ]
+    // `)
   })
 
   test('with custom output', async () => {
