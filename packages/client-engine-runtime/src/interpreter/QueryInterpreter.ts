@@ -6,7 +6,7 @@ import { JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
-import { assertNever } from '../utils'
+import { assertNever, isDeepStrictEqual } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
@@ -216,6 +216,37 @@ export class QueryInterpreter {
         const to = await this.interpretNode(node.args.to, queryable, scope, generators)
         const toSet = new Set(asList(to))
         return asList(from).filter((item) => !toSet.has(item))
+      }
+
+      case 'distinctBy': {
+        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const seen = new Set()
+        const result: Value[] = []
+        for (const item of asList(value)) {
+          const key = JSON.stringify(node.args.fields.reduce((acc, field) => ({ ...acc, [field]: item![field] }), {}))
+          if (!seen.has(key)) {
+            seen.add(key)
+            result.push(item)
+          }
+        }
+        return result
+      }
+
+      case 'paginate': {
+        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const list = asList(value)
+        const { cursor, take, skip } = node.args.pagination
+
+        const cursorIndex = cursor
+          ? list.findIndex((item) => Object.keys(cursor).every((key) => isDeepStrictEqual(cursor[key], item![key])))
+          : 0
+        if (cursorIndex === -1) {
+          return []
+        }
+        const start = cursorIndex + (skip ?? 0)
+        const end = take ? start + take : list.length
+
+        return list.slice(start, end)
       }
 
       default:
