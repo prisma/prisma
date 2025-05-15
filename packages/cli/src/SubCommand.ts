@@ -51,7 +51,8 @@ export class SubCommand implements Command {
 
     // load the module and run it via the Runnable interface
     const modulePath = [prefix, 'node_modules', this.pkg, 'dist', 'index.js']
-    const module: Runnable = await import(modulePath.join('/'))
+    // Note: Windows requires to prefix the path with "file://" protocol
+    const module: Runnable = await import(`file://${modulePath.join('/')}`)
     await module.run(args, config)
 
     return ''
