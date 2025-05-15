@@ -567,6 +567,9 @@ importers:
       ora:
         specifier: 8.2.0
         version: 8.2.0
+      pathe:
+        specifier: 2.0.3
+        version: 2.0.3
       pkg-up:
         specifier: 3.1.0
         version: 3.1.0
