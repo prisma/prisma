@@ -207,13 +207,16 @@ export type QueryPlanNode =
       type: 'paginate'
       args: {
         expr: QueryPlanNode
-        pagination: {
-          cursor?: Record<string, PrismaValue>
-          take?: number
-          skip?: number
-        }
+        pagination: Pagination
       }
     }
+
+export type Pagination = {
+  cursor: Record<string, PrismaValue> | null
+  take: number | null
+  skip: number | null
+  parentLinks: string[] | null
+}
 
 export type DataRule =
   | {

@@ -2,7 +2,7 @@ import { SpanKind } from '@opentelemetry/api'
 import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
-import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import { JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
 import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
@@ -235,18 +235,25 @@ export class QueryInterpreter {
       case 'paginate': {
         const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
         const list = asList(value)
-        const { cursor, take, skip } = node.args.pagination
 
-        const cursorIndex = cursor
-          ? list.findIndex((item) => Object.keys(cursor).every((key) => isDeepStrictEqual(cursor[key], item![key])))
-          : 0
-        if (cursorIndex === -1) {
-          return []
+        const parentLinks = node.args.pagination.parentLinks
+        if (parentLinks !== null) {
+          const byParent = new Map<string, Value[]>()
+          for (const item of list) {
+            const parentId = JSON.stringify(parentLinks.map((link) => item![link]))
+            if (!byParent.has(parentId)) {
+              byParent.set(parentId, [])
+            }
+            byParent.get(parentId)!.push(item)
+          }
+
+          const all: [string, unknown[]][] = Array.from(byParent.entries())
+          all.sort(([aId], [bId]) => aId.localeCompare(bId))
+
+          return all.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination))
         }
-        const start = cursorIndex + (skip ?? 0)
-        const end = take ? start + take : list.length
 
-        return list.slice(start, end)
+        return paginate(list as {}[], node.args.pagination)
       }
 
       default:
@@ -360,4 +367,18 @@ function childRecordMatchesParent(
     }
   }
   return true
+}
+
+function paginate(list: {}[], { cursor, skip, take }: Pagination) {
+  const cursorIndex =
+    cursor !== null
+      ? list.findIndex((item) => Object.keys(cursor).every((key) => isDeepStrictEqual(cursor[key], item[key])))
+      : 0
+  if (cursorIndex === -1) {
+    return []
+  }
+  const start = cursorIndex + (skip ?? 0)
+  const end = take !== null ? start + take : list.length
+
+  return list.slice(start, end)
 }
