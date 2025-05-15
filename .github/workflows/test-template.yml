@@ -990,6 +990,10 @@ jobs:
         name: 'generator'
         working-directory: packages/generator
 
+      - run: pnpm run test
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1292,6 +1296,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'client-generator-ts'
         working-directory: packages/client-generator-ts
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
 
       - run: pnpm run test
         if: contains(inputs.jobsToRun, '-all-')
