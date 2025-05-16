@@ -1,9 +1,9 @@
 import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
 import { Debug } from '@prisma/debug'
-import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
+import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
+import { EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -33,7 +33,6 @@ import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
-const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
 const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
@@ -209,7 +208,7 @@ export class LibraryEngine implements Engine<undefined> {
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
     if (isUserFacingError(response)) {
-      const externalError = this.getExternalAdapterError(response, adapter?.errorRegistry)
+      const externalError = adapter?.errorRegistry.lookupError(response)
       if (externalError) {
         throw externalError.error
       }
@@ -593,25 +592,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    const externalError = this.getExternalAdapterError(error.user_facing_error, registry)
+    const externalError = registry?.lookupError(error.user_facing_error)
 
     return externalError
       ? externalError.error
       : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
-  }
-
-  private getExternalAdapterError(
-    error: RequestError['user_facing_error'],
-    registry?: ErrorRegistry,
-  ): ErrorRecord | undefined {
-    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && registry) {
-      const id = error.meta?.id
-      assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = registry.consumeError(id)
-      assertAlways(errorRecord, `External error with reported id was not registered`)
-      return errorRecord
-    }
-    return undefined
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>

@@ -67,14 +67,18 @@ export class SchemaEngineWasm implements SchemaEngine {
 
     // Note: `datamodels` must be either `undefined` or a *non-empty* `LoadedFile[]`.
     const datamodels = schemaContext?.schemaFiles
-    const engine = await wasmSchemaEngineLoader.loadSchemaEngine(
-      {
-        datamodels,
-      },
-      debug,
-      adapter,
-    )
-    return new SchemaEngineWasm({ ...rest, engine, errorRegistry: adapter.errorRegistry })
+    try {
+      const engine = await wasmSchemaEngineLoader.loadSchemaEngine(
+        {
+          datamodels,
+        },
+        debug,
+        adapter,
+      )
+      return new SchemaEngineWasm({ ...rest, engine, errorRegistry: adapter.errorRegistry })
+    } catch (e) {
+      throw adapter.errorRegistry.lookupError(e as Error) || e
+    }
   }
 
   private async runCommand<M extends keyof SchemaEngineMethods>(
@@ -97,7 +101,10 @@ export class SchemaEngineWasm implements SchemaEngine {
       const e = error as Error
       debugStdout('[%s] error: %o', command, e)
 
-      if (isWasmPanic(e)) {
+      const errorFromRegistry = this.errorRegistry.lookupError(e)
+      if (errorFromRegistry) {
+        throw errorFromRegistry.error
+      } else if (isWasmPanic(e)) {
         debugStdout('[schema-engine] it is a Wasm panic')
         const { message, stack } = getWasmError(e)
         // Handle error and displays the interactive dialog to send panic error
