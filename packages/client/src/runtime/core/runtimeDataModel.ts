@@ -8,7 +8,7 @@ export function defineDmmfProperty(target: object, runtimeDataModel: RuntimeData
   })
 }
 
-function runtimeDataModelToBaseDmmf(runtimeDataModel: RuntimeDataModel): BaseDMMF {
+export function runtimeDataModelToBaseDmmf(runtimeDataModel: RuntimeDataModel): BaseDMMF {
   if (TARGET_BUILD_TYPE === 'wasm') {
     throw new Error('Prisma.dmmf is not available when running in edge runtimes.')
   }
