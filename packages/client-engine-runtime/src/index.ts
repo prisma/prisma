@@ -10,3 +10,4 @@ export type { TransactionInfo, Options as TransactionOptions } from './transacti
 export { TransactionManager } from './transactionManager/TransactionManager'
 export { TransactionManagerError } from './transactionManager/TransactionManagerErrors'
 export { UserFacingError } from './UserFacingError'
+export { isDeepStrictEqual } from './utils'

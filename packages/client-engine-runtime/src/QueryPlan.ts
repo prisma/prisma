@@ -196,6 +196,27 @@ export type QueryPlanNode =
         to: QueryPlanNode
       }
     }
+  | {
+      type: 'distinctBy'
+      args: {
+        expr: QueryPlanNode
+        fields: string[]
+      }
+    }
+  | {
+      type: 'paginate'
+      args: {
+        expr: QueryPlanNode
+        pagination: Pagination
+      }
+    }
+
+export type Pagination = {
+  cursor: Record<string, PrismaValue> | null
+  take: number | null
+  skip: number | null
+  linkingFields: string[] | null
+}
 
 export type DataRule =
   | {

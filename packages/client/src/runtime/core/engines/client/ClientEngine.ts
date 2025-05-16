@@ -6,6 +6,7 @@ import {
   QueryEngineLogLevel,
 } from '@prisma/client-common'
 import {
+  isDeepStrictEqual,
   QueryEvent,
   QueryInterpreter,
   QueryInterpreterTransactionManager,
@@ -514,20 +515,5 @@ function doKeysMatch(lhs: {}, rhs: {}): boolean {
   const lhsKeys = Object.keys(lhs)
   const rhsKeys = Object.keys(rhs)
   const smallerKeyList = lhsKeys.length < rhsKeys.length ? lhsKeys : rhsKeys
-  return smallerKeyList.every((key) => isStrictDeepEqual(lhs[key], rhs[key]))
-}
-
-/**
- * Checks if two objects are deeply equal, recursively checking all properties for strict equality.
- */
-function isStrictDeepEqual(a: unknown, b: unknown): boolean {
-  return (
-    a === b ||
-    (a !== null &&
-      b !== null &&
-      typeof a === 'object' &&
-      typeof b === 'object' &&
-      Object.keys(a).length === Object.keys(b).length &&
-      Object.keys(a).every((key) => isStrictDeepEqual(a[key], b[key])))
-  )
+  return smallerKeyList.every((key) => isDeepStrictEqual(lhs[key], rhs[key]))
 }
