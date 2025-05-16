@@ -223,7 +223,7 @@ export class QueryInterpreter {
         const seen = new Set()
         const result: Value[] = []
         for (const item of asList(value)) {
-          const key = JSON.stringify(node.args.fields.reduce((acc, field) => ({ ...acc, [field]: item![field] }), {}))
+          const key = getRecordKey(item!, node.args.fields)
           if (!seen.has(key)) {
             seen.add(key)
             result.push(item)
@@ -236,19 +236,19 @@ export class QueryInterpreter {
         const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
         const list = asList(value)
 
-        const parentLinks = node.args.pagination.parentLinks
-        if (parentLinks !== null) {
-          const byParent = new Map<string, Value[]>()
+        const linkingFields = node.args.pagination.linkingFields
+        if (linkingFields !== null) {
+          const groupedByParent = new Map<string, Value[]>()
           for (const item of list) {
-            const parentId = JSON.stringify(parentLinks.map((link) => item![link]))
-            if (!byParent.has(parentId)) {
-              byParent.set(parentId, [])
+            const parentKey = getRecordKey(item!, linkingFields)
+            if (!groupedByParent.has(parentKey)) {
+              groupedByParent.set(parentKey, [])
             }
-            byParent.get(parentId)!.push(item)
+            groupedByParent.get(parentKey)!.push(item)
           }
 
-          const all: [string, unknown[]][] = Array.from(byParent.entries())
-          all.sort(([aId], [bId]) => aId.localeCompare(bId))
+          const all: [string, unknown[]][] = Array.from(groupedByParent.entries())
+          all.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
 
           return all.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination))
         }
@@ -378,6 +378,13 @@ function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
   const end = take !== null ? start + take : list.length
 
   return list.slice(start, end)
+}
+
+/*
+ * Generate a key string for a record based on the values of the specified fields.
+ */
+function getRecordKey(record: {}, fields: string[]): string {
+  return JSON.stringify(fields.map((field) => record[field]))
 }
 
 function doesMatchCursor(item: {}, cursor: Record<string, unknown>): boolean {

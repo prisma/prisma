@@ -215,7 +215,7 @@ export type Pagination = {
   cursor: Record<string, PrismaValue> | null
   take: number | null
   skip: number | null
-  parentLinks: string[] | null
+  linkingFields: string[] | null
 }
 
 export type DataRule =
