@@ -56,6 +56,14 @@ export class CredentialsStore {
     await writeFile(this.authFilePath, JSON.stringify(data, null, 2))
   }
 
+  async deleteCredentials(workspaceId: string): Promise<void> {
+    await this.reloadCredentialsFromDisk()
+    this.loadedCredentials = this.loadedCredentials?.filter((c) => c.workspaceId !== workspaceId) || []
+    const data: AuthFile = { tokens: this.loadedCredentials }
+    await mkdir(path.dirname(this.authFilePath), { recursive: true })
+    await writeFile(this.authFilePath, JSON.stringify(data, null, 2))
+  }
+
   async getCredentials(): Promise<Credentials[]> {
     if (this.loadedCredentials === undefined) {
       await this.reloadCredentialsFromDisk()
