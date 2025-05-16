@@ -47,13 +47,19 @@ export class CredentialsStore {
 
   async storeCredentials(credentials: Credentials): Promise<void> {
     await this.reloadCredentialsFromDisk()
-    this.loadedCredentials = [
+    const updatedCredentials = [
       ...(this.loadedCredentials || []).filter((c) => c.workspaceId !== credentials.workspaceId),
       credentials,
     ]
-    const data: AuthFile = { tokens: this.loadedCredentials }
-    await mkdir(path.dirname(this.authFilePath), { recursive: true })
-    await writeFile(this.authFilePath, JSON.stringify(data, null, 2))
+    this.loadedCredentials = updatedCredentials
+    await this.writeCredentialsToDisk(updatedCredentials)
+  }
+
+  async deleteCredentials(workspaceId: string): Promise<void> {
+    await this.reloadCredentialsFromDisk()
+    const updatedCredentials = (this.loadedCredentials || []).filter((c) => c.workspaceId !== workspaceId)
+    this.loadedCredentials = updatedCredentials
+    await this.writeCredentialsToDisk(updatedCredentials)
   }
 
   async getCredentials(): Promise<Credentials[]> {
@@ -65,5 +71,11 @@ export class CredentialsStore {
 
   async getCredentialsForWorkspace(workspaceId: string): Promise<Credentials | undefined> {
     return (await this.getCredentials()).filter((c) => c.workspaceId === workspaceId)[0]
+  }
+
+  private async writeCredentialsToDisk(credentials: Credentials[]): Promise<void> {
+    const data: AuthFile = { tokens: credentials }
+    await mkdir(path.dirname(this.authFilePath), { recursive: true })
+    await writeFile(this.authFilePath, JSON.stringify(data, null, 2))
   }
 }
