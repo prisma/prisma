@@ -1,11 +1,13 @@
+import { existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
 import { getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
-import { existsSync } from 'fs'
 import { dim } from 'kleur/colors'
-import { tmpdir } from 'os'
-import { join, relative } from 'pathe'
 
 /**
  * Sub-CLIs that are installed on demand need to implement this interface
@@ -51,8 +53,8 @@ export class SubCommand implements Command {
     }
 
     // load the module and run it via the Runnable interface
-    const modulePath = relative(__dirname, join(prefix, 'node_modules', this.pkg, 'dist', 'index.js'))
-    const module: Runnable = await import(modulePath)
+    const modulePath = pathToFileURL(join(prefix, 'node_modules', this.pkg, 'dist', 'index.js'))
+    const module: Runnable = await import(modulePath.toString())
     await module.run(args, config)
 
     return ''
