@@ -369,11 +369,8 @@ function childRecordMatchesParent(
   return true
 }
 
-function paginate(list: {}[], { cursor, skip, take }: Pagination) {
-  const cursorIndex =
-    cursor !== null
-      ? list.findIndex((item) => Object.keys(cursor).every((key) => isDeepStrictEqual(cursor[key], item[key])))
-      : 0
+function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
+  const cursorIndex = cursor !== null ? list.findIndex((item) => doesMatchCursor(item, cursor)) : 0
   if (cursorIndex === -1) {
     return []
   }
@@ -381,4 +378,16 @@ function paginate(list: {}[], { cursor, skip, take }: Pagination) {
   const end = take !== null ? start + take : list.length
 
   return list.slice(start, end)
+}
+
+function doesMatchCursor(item: {}, cursor: Record<string, unknown>): boolean {
+  return Object.keys(cursor).every((key) => {
+    // explicitly check for string to avoid issues with numeric types stored as strings in SQLite,
+    // we might need to come up with a better way of handling this
+    if (typeof item[key] !== typeof cursor[key] && (typeof item[key] === 'number' || typeof cursor[key] === 'number')) {
+      return `${item[key]}` === `${cursor[key]}`
+    }
+
+    return isDeepStrictEqual(cursor[key], item[key])
+  })
 }
