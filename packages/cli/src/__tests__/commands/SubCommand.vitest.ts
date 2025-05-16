@@ -1,17 +1,19 @@
+import { rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+
 import * as ni from '@antfu/ni'
 import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
-import { rm } from 'fs/promises'
 import { copy } from 'fs-extra'
-import { tmpdir } from 'os'
-import { join } from 'path'
+import { beforeEach, expect, test, vi } from 'vitest'
 
 import { SubCommand } from '../../SubCommand'
 
-jest.mock('@antfu/ni')
-jest.mock('execa')
+vi.mock('@antfu/ni')
+vi.mock('execa')
 
-jest.useFakeTimers().setSystemTime(new Date('2025-01-01'))
+vi.useFakeTimers().setSystemTime(new Date('2025-01-01'))
 
 const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 
@@ -22,7 +24,7 @@ beforeEach(async () => {
 
 test('@<version>', async () => {
   const cmd = new SubCommand('sub-command')
-  const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@0.0.0`)
@@ -52,7 +54,7 @@ test('@<version>', async () => {
 
 test('@latest', async () => {
   const cmd = new SubCommand('sub-command')
-  const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), `sub-command@latest-${getDayMillis()}`)
@@ -82,14 +84,14 @@ test('@latest', async () => {
 
 test('autoinstall', async () => {
   const cmd = new SubCommand('sub-command')
-  const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), 'sub-command@0.0.0')
 
-  jest.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
+  vi.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
   // eslint-disable-next-line @typescript-eslint/unbound-method
-  jest.mocked(execa.command).mockImplementation((async () => {
+  vi.mocked(execa.command).mockImplementation((async () => {
     await copy(copySrc, copyDest)
   }) as () => any)
 
