@@ -50,6 +50,7 @@ export type ResultNode =
   | {
       type: 'Object'
       fields: Record<string, ResultNode>
+      flattened: boolean
     }
   | {
       type: 'Value'

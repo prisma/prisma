@@ -42,17 +42,18 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   const result = {}
   for (const [name, node] of Object.entries(fields)) {
     switch (node.type) {
-      case 'Object':
-        if (Object.hasOwn(data, name)) {
-          result[name] = mapArrayOrObject(data[name], node.fields)
-        } else {
+      case 'Object': {
+        if (!node.flattened && !Object.hasOwn(data, name)) {
           throw new Error(
             `DataMapper: Missing data field (Object): '${name}'; ` +
               `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
-        break
 
+        const target = node.flattened ? data : data[name]
+        result[name] = mapArrayOrObject(target, node.fields)
+        break
+      }
       case 'Value':
         {
           const dbName = node.dbName
