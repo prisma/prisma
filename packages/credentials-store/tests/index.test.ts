@@ -97,4 +97,26 @@ describe('CredentialsStore', () => {
     const workspaceCredentials = await store.getCredentialsForWorkspace('non-existent-id')
     expect(workspaceCredentials).toBeUndefined()
   })
+
+  it('should delete credentials for a workspace', async () => {
+    const otherCredentials: Credentials = {
+      userName: 'other-user',
+      workspaceName: 'other-workspace',
+      workspaceId: 'other-workspace-id',
+      token: 'other-token',
+    }
+
+    await store.storeCredentials(mockCredentials)
+    await store.storeCredentials(otherCredentials)
+
+    await store.deleteCredentials('test-workspace-id')
+
+    const credentials = await store.getCredentials()
+    expect(credentials).toHaveLength(1)
+    expect(credentials[0]).toEqual(otherCredentials)
+
+    const fileContent = await readFile(authFilePath, 'utf-8')
+    const parsedContent = JSON.parse(fileContent)
+    expect(parsedContent).toEqual({ tokens: [otherCredentials] })
+  })
 })
