@@ -6,3 +6,18 @@
 export function assertNever(_: never, message: string): never {
   throw new Error(message)
 }
+
+/**
+ * Checks if two objects are deeply equal, recursively checking all properties for strict equality.
+ */
+export function isDeepStrictEqual(a: unknown, b: unknown): boolean {
+  return (
+    a === b ||
+    (a !== null &&
+      b !== null &&
+      typeof a === 'object' &&
+      typeof b === 'object' &&
+      Object.keys(a).length === Object.keys(b).length &&
+      Object.keys(a).every((key) => isDeepStrictEqual(a[key], b[key])))
+  )
+}
