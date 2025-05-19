@@ -69,7 +69,11 @@ export class QueryInterpreter {
   ): Promise<Value> {
     switch (node.type) {
       case 'seq': {
-        const results = await Promise.all(node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators)))
+        const results: Value[] = []
+        for (const arg of node.args) {
+          const result = await this.interpretNode(arg, queryable, scope, generators)
+          results.push(result)
+        }
         return results[results.length - 1]
       }
 
