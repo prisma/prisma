@@ -346,7 +346,12 @@ function attachChildrenToParent(parentRecord: PrismaObject, children: JoinExpres
 
 function filterChildRecords(records: Value, parentRecord: PrismaObject, joinExpr: JoinExpression) {
   if (Array.isArray(records)) {
-    return records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
+    const filtered = records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
+    if (joinExpr.isRelationUnique) {
+      return filtered.length > 0 ? filtered[0] : null
+    } else {
+      return filtered
+    }
   } else if (records === null) {
     // we can get here in case of a join with a missing UNIQUE node
     return null

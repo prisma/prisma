@@ -91,6 +91,7 @@ export type JoinExpression = {
   child: QueryPlanNode
   on: [left: string, right: string][]
   parentField: string
+  isRelationUnique: boolean
 }
 
 export type QueryPlanNode =
