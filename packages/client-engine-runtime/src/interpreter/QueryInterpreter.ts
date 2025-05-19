@@ -247,7 +247,7 @@ export class QueryInterpreter {
             groupedByParent.get(parentKey)!.push(item)
           }
 
-          const groupList: [string, unknown[]][] = Array.from(groupedByParent.entries())
+          const groupList = Array.from(groupedByParent.entries())
           groupList.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
 
           return groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination))
