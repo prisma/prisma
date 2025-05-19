@@ -33,12 +33,7 @@ export function describeOnly(matrix: Matrix, name: string, fn: jest.EmptyFunctio
   // Skip tests that shall run only for driver adapters if none is used
   if (adapterName === undefined && matrix.driverAdapter === true) return skip(name)
 
-  if (
-    adapterName === undefined ||
-    matrix[adapterName] ||
-    (provider && matrix[provider]) ||
-    (adapterName !== undefined && matrix.driverAdapter === true)
-  ) {
+  if (adapterName === undefined || matrix[adapterName] || (provider && matrix[provider])) {
     // eslint-disable-next-line jest/valid-describe-callback
     describe(name, fn)
   } else {
