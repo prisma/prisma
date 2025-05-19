@@ -15,10 +15,10 @@ export type Matrix = Partial<
  * To skip tests for the legacy schema engine, use `driverAdapter: true`.
  *
  * Examples:
- * - describeOnly({ sqlite: true}, "test will run only with all SQLite driver adapters and the legacy schema engine", () => { ... })
- * - describeOnly({ driverAdapter: true}, "test will only run with driver adapters", () => { ... })
- * - describeOnly({ driverAdapter: false}, "test will only run on the legacy schema engine", () => { ... })
- * - describeOnly({ libsql: true}, "test will only run with libsql driver adapter", () => { ... })
+ * - describeOnly({ sqlite: true }, "test will run only with all SQLite driver adapters and the legacy schema engine", () => { ... })
+ * - describeOnly({ driverAdapter: true }, "test will only run with driver adapters", () => { ... })
+ * - describeOnly({ driverAdapter: false }, "test will only run on the legacy schema engine", () => { ... })
+ * - describeOnly({ libsql: true }, "test will only run with libsql driver adapter", () => { ... })
  */
 export function describeOnly(matrix: Matrix, name: string, fn: jest.EmptyFunction) {
   // Skip tests for certain providers based on test skip env vars (e.g. used during win & mac CI tests)
