@@ -2,11 +2,11 @@ import { SpanKind } from '@opentelemetry/api'
 import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
-import { JoinExpression, QueryPlanNode } from '../QueryPlan'
+import { JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
 import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
-import { assertNever } from '../utils'
+import { assertNever, isDeepStrictEqual } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
@@ -218,6 +218,44 @@ export class QueryInterpreter {
         return asList(from).filter((item) => !toSet.has(item))
       }
 
+      case 'distinctBy': {
+        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const seen = new Set()
+        const result: Value[] = []
+        for (const item of asList(value)) {
+          const key = getRecordKey(item!, node.args.fields)
+          if (!seen.has(key)) {
+            seen.add(key)
+            result.push(item)
+          }
+        }
+        return result
+      }
+
+      case 'paginate': {
+        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const list = asList(value)
+
+        const linkingFields = node.args.pagination.linkingFields
+        if (linkingFields !== null) {
+          const groupedByParent = new Map<string, Value[]>()
+          for (const item of list) {
+            const parentKey = getRecordKey(item!, linkingFields)
+            if (!groupedByParent.has(parentKey)) {
+              groupedByParent.set(parentKey, [])
+            }
+            groupedByParent.get(parentKey)!.push(item)
+          }
+
+          const groupList = Array.from(groupedByParent.entries())
+          groupList.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
+
+          return groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination))
+        }
+
+        return paginate(list as {}[], node.args.pagination)
+      }
+
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
     }
@@ -329,4 +367,34 @@ function childRecordMatchesParent(
     }
   }
   return true
+}
+
+function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
+  const cursorIndex = cursor !== null ? list.findIndex((item) => doesMatchCursor(item, cursor)) : 0
+  if (cursorIndex === -1) {
+    return []
+  }
+  const start = cursorIndex + (skip ?? 0)
+  const end = take !== null ? start + take : list.length
+
+  return list.slice(start, end)
+}
+
+/*
+ * Generate a key string for a record based on the values of the specified fields.
+ */
+function getRecordKey(record: {}, fields: string[]): string {
+  return JSON.stringify(fields.map((field) => record[field]))
+}
+
+function doesMatchCursor(item: {}, cursor: Record<string, unknown>): boolean {
+  return Object.keys(cursor).every((key) => {
+    // explicitly check for string to avoid issues with numeric types stored as strings in SQLite,
+    // we might need to come up with a better way of handling this
+    if (typeof item[key] !== typeof cursor[key] && (typeof item[key] === 'number' || typeof cursor[key] === 'number')) {
+      return `${item[key]}` === `${cursor[key]}`
+    }
+
+    return isDeepStrictEqual(cursor[key], item[key])
+  })
 }
