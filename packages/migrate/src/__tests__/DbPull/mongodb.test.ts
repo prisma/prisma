@@ -134,7 +134,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -175,7 +175,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -255,7 +255,7 @@ describeOnly({ mongodb: true }, 'MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

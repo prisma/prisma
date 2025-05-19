@@ -38,7 +38,7 @@ describe('common', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
       ['--applied=something_applied', '--rolled-back=something_rolledback'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Pass either --applied or --rolled-back, not both."`,
@@ -51,7 +51,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/empty.prisma', '--applied=something_applied'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
@@ -197,7 +197,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
@@ -220,7 +220,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
 
     const result = MigrateResolve.new().parse(
       ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`something.cockroachlabs.cloud:26257\`

@@ -221,7 +221,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
@@ -234,7 +234,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -304,7 +304,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
@@ -379,7 +379,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schemas', 'base,transactional'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -468,7 +468,7 @@ describeOnly({ postgres: true }, 'postgresql-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schemas', 'base,does-not-exist'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

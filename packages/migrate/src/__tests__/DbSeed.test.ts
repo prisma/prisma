@@ -24,7 +24,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse(
       ['--', '--my-custom-arg-from-cli-1', 'my-value', '--my-custom-arg-from-cli-2=my-value', '-z'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

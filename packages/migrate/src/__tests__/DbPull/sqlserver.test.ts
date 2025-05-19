@@ -275,7 +275,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toThrow(`P4001`)
 
@@ -287,7 +287,7 @@ describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`

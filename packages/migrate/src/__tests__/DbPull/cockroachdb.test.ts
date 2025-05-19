@@ -205,7 +205,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schema', 'with-postgresql-provider.prisma'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.

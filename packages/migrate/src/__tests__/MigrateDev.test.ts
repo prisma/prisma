@@ -1107,7 +1107,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
 
     const dbExecuteResult = DbExecute.new().parse(
       ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
-      ctx.config,
+      await ctx.config(),
     )
     await expect(dbExecuteResult).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
 
