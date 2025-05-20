@@ -7,10 +7,10 @@ import { Credentials, CredentialsStore } from '../src'
 
 describe('CredentialsStore', () => {
   const mockCredentials: Credentials = {
-    userName: 'test-user',
-    workspaceName: 'test-workspace',
+    userId: 'test-user',
     workspaceId: 'test-workspace-id',
     token: 'test-token',
+    refreshToken: 'test-refresh-token',
   }
 
   let authFilePath: string
@@ -74,10 +74,10 @@ describe('CredentialsStore', () => {
 
   it('should get credentials for specific workspace', async () => {
     const otherCredentials: Credentials = {
-      userName: 'other-user',
-      workspaceName: 'other-workspace',
+      userId: 'other-user',
       workspaceId: 'other-workspace-id',
       token: 'other-token',
+      refreshToken: 'other-refresh-token',
     }
 
     await store.storeCredentials(mockCredentials)
@@ -100,10 +100,10 @@ describe('CredentialsStore', () => {
 
   it('should delete credentials for a workspace', async () => {
     const otherCredentials: Credentials = {
-      userName: 'other-user',
-      workspaceName: 'other-workspace',
+      userId: 'other-user',
       workspaceId: 'other-workspace-id',
       token: 'other-token',
+      refreshToken: 'other-refresh-token',
     }
 
     await store.storeCredentials(mockCredentials)
