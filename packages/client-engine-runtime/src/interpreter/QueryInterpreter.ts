@@ -154,6 +154,10 @@ export class QueryInterpreter {
       case 'join': {
         const parent = await this.interpretNode(node.args.parent, queryable, scope, generators)
 
+        if (parent === null) {
+          return null
+        }
+
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
