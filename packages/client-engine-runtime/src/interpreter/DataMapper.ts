@@ -4,6 +4,10 @@ import { PrismaValueType, ResultNode } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { PrismaObject, Value } from './scope'
 
+export class DataMapperError extends Error {
+  name = 'DataMapperError'
+}
+
 export function applyDataMap(data: Value, structure: ResultNode): Value {
   switch (structure.type) {
     case 'Object':
@@ -30,13 +34,25 @@ function mapArrayOrObject(data: Value, fields: Record<string, ResultNode>): Pris
     return mapObject(row, fields)
   }
 
-  throw new Error(`DataMapper: Expected an array or an object, got: ${typeof data}`)
+  if (typeof data === 'string') {
+    let decodedData: Value
+    try {
+      decodedData = JSON.parse(data)
+    } catch (error) {
+      throw new DataMapperError(`Expected an array or object, got a string that is not valid JSON`, {
+        cause: error,
+      })
+    }
+    return mapArrayOrObject(decodedData, fields)
+  }
+
+  throw new DataMapperError(`Expected an array or an object, got: ${typeof data}`)
 }
 
 // Recursive
 function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): PrismaObject {
   if (typeof data !== 'object') {
-    throw new Error(`DataMapper: Expected an object, but got '${typeof data}'`)
+    throw new DataMapperError(`Expected an object, but got '${typeof data}'`)
   }
 
   const result = {}
@@ -44,9 +60,8 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
     switch (node.type) {
       case 'Object': {
         if (!node.flattened && !Object.hasOwn(data, name)) {
-          throw new Error(
-            `DataMapper: Missing data field (Object): '${name}'; ` +
-              `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
+          throw new DataMapperError(
+            `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
 
@@ -60,8 +75,8 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
           if (Object.hasOwn(data, dbName)) {
             result[name] = mapValue(data[dbName], node.resultType)
           } else {
-            throw new Error(
-              `DataMapper: Missing data field (Value): '${dbName}'; ` +
+            throw new DataMapperError(
+              `Missing data field (Value): '${dbName}'; ` +
                 `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
             )
           }
@@ -103,7 +118,7 @@ function mapValue(value: unknown, resultType: PrismaValueType): unknown {
       return typeof value === 'string' ? value : JSON.stringify(value)
     case 'Bytes': {
       if (!Array.isArray(value)) {
-        throw new Error(`DataMapper: Bytes data is invalid, got: ${typeof value}`)
+        throw new DataMapperError(`Bytes data is invalid, got: ${typeof value}`)
       }
       return new Uint8Array(value)
     }

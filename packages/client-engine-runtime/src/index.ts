@@ -1,4 +1,5 @@
 export type { QueryEvent } from './events'
+export { DataMapperError } from './interpreter/DataMapper'
 export {
   QueryInterpreter,
   type QueryInterpreterOptions,
