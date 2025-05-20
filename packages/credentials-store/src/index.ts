@@ -7,10 +7,10 @@ type AuthFile = {
 }
 
 export type Credentials = {
-  userName: string
-  workspaceName: string
+  userId: string
   workspaceId: string
   token: string
+  refreshToken: string
 }
 
 /**
