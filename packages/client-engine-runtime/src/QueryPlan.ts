@@ -239,6 +239,10 @@ export type DataRule =
       args: number
     }
   | {
+      type: 'affectedRowCountEq'
+      args: number
+    }
+  | {
       type: 'never'
     }
 
@@ -271,6 +275,14 @@ export type ValidationError =
       error_identifier: 'INCOMPLETE_CONNECT_INPUT'
       context: {
         expectedRows: number
+      }
+    }
+  | {
+      error_identifier: 'INCOMPLETE_CONNECT_OUTPUT'
+      context: {
+        expectedRows: number
+        relation: string
+        relationType: string
       }
     }
   | {
