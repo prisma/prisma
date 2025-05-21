@@ -39,10 +39,10 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
     if (typeof lhs[key] !== typeof rhs[key]) {
       if (typeof lhs[key] === 'number' || typeof rhs[key] === 'number') {
         return `${lhs[key]}` === `${rhs[key]}`
+      } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
+        return BigInt(`${lhs[key]}`) === BigInt(`${rhs[key]}`)
       } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
         return new Date(`${lhs[key]}`).getTime() === new Date(`${rhs[key]}`).getTime()
-      } else if (lhs[key] instanceof BigInt || rhs[key] instanceof BigInt) {
-        return BigInt(`${lhs[key]}`) === BigInt(`${rhs[key]}`)
       } else if (Decimal.isDecimal(lhs[key]) || Decimal.isDecimal(rhs[key])) {
         return new Decimal(`${lhs[key]}`).equals(new Decimal(`${rhs[key]}`))
       }
