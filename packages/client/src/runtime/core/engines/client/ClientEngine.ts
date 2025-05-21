@@ -13,7 +13,7 @@ import {
   QueryPlanNode,
   TransactionInfo,
   TransactionManager,
-  TransactionManagerError,
+  UserFacingError,
 } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { Provider, type SqlDriverAdapter } from '@prisma/driver-adapter-utils'
@@ -192,7 +192,7 @@ export class ClientEngine implements Engine<undefined> {
     if (err.code === 'GenericFailure' && err.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm')
       return new PrismaClientRustPanicError(getErrorMessageWithLink(this, err.message), this.config.clientVersion!)
 
-    if (err instanceof TransactionManagerError) {
+    if (err instanceof UserFacingError) {
       return new PrismaClientKnownRequestError(err.message, {
         code: err.code,
         meta: err.meta,
