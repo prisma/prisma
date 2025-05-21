@@ -31,12 +31,9 @@ extended-where.findUnique (provider=postgresql, js_pg) findUnique with nested wh
 extended-where.upsert (provider=postgresql, js_pg) upsert with where 1 unique (PK)
 extended-where.upsert (provider=postgresql, js_pg) upsert with where 2 uniques (PK & non-PK)
 extensions.itx (provider=postgresql, js_pg) itx works with extended client + queryRawUnsafe
-extensions.model (provider=postgresql, js_pg) batching of PrismaPromise returning custom model methods
-extensions.model (provider=postgresql, js_pg) batching of PrismaPromise returning custom model methods and query
 extensions.query (provider=postgresql, js_pg) extending with $allModels.$allOperations and a top-level query
 extensions.query (provider=postgresql, js_pg) hijacking a batch transaction into another one with a simple call
 extensions.query (provider=postgresql, js_pg) hijacking a batch transaction into another one with multiple calls
-extensions.query (provider=postgresql, js_pg) query result mutations with batch transactions
 extensions.query (provider=postgresql, js_pg) top-level raw queries interception
 extensions.query (provider=postgresql, js_pg) transforming a simple query into a batch transaction
 extensions.tx (provider=postgresql, js_pg) extended client in tx can rollback via normal call
@@ -84,7 +81,6 @@ globalOmit.test (provider=postgresql, js_pg) groupBy does not crash
 globalOmit.test (provider=postgresql, js_pg) updateMany does not crash
 interactive-transactions (provider=postgresql, js_pg) already committed
 interactive-transactions (provider=postgresql, js_pg) batching raw rollback
-interactive-transactions (provider=postgresql, js_pg) batching rollback
 interactive-transactions (provider=postgresql, js_pg) high concurrency with SET FOR UPDATE
 interactive-transactions (provider=postgresql, js_pg) isolation levels invalid value
 interactive-transactions (provider=postgresql, js_pg) isolation levels read committed
@@ -102,11 +98,6 @@ issues.13766.at-unique (provider=postgresql, js_pg) relationMode=prisma should n
 issues.13766.at-unique (provider=postgresql, js_pg) relationMode=prisma should prevent updates on a model if any other relation references a field
 issues.13766.primary-key (provider=postgresql, js_pg) relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation
 issues.13766.primary-key (provider=postgresql, js_pg) relationMode=prisma should prevent updates on a model if any other relation references a field
-issues.14373-batch-tx-error (provider=postgresql, js_pg) correctly reports location of a batch error
-issues.14954-date-batch (provider=postgresql, js_pg) findFirst date with $transaction([...])
-issues.14954-date-batch (provider=postgresql, js_pg) findFirst date with Promise.all
-issues.14954-date-batch (provider=postgresql, js_pg) findUnique date with $transaction([...])
-issues.14954-date-batch (provider=postgresql, js_pg) findUnique date with Promise.all
 issues.15176 (provider=postgresql, js_pg) should update both updatedAt fields on a model
 issues.16390-relation-mode-m-n-dangling-pivot (relationMode=,provider=postgresql,onUpdate=undefined,onDelete=undefined,id=undefined, js_pg) issue 16390 when deleting an item, the corresponding entry in the implicit pivot table should be deleted
 issues.16390-relation-mode-m-n-dangling-pivot (relationMode=,provider=postgresql,onUpdate=undefined,onDelete=undefined,id=undefined, js_pg) when deleting a category, the corresponding entry in the implicit pivot table should be deleted
@@ -130,10 +121,6 @@ issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent u
 issues.23902 (provider=postgresql, js_pg) should not throw error when updating fields on a many to many join table
 issues.25163-typed-sql-enum.test (provider=postgresql, js_pg) returns enums that are mapped to invalid JS identifier correctly
 issues.25481-typedsql-query-extension.test (provider=postgresql, js_pg) TypedSQL should work when a client extension of type query extension is used
-issues.5952-decimal-batch (provider=postgresql, js_pg) findFirst decimal with $transaction([...])
-issues.5952-decimal-batch (provider=postgresql, js_pg) findFirst decimal with Promise.all
-issues.5952-decimal-batch (provider=postgresql, js_pg) findUnique decimal with $transaction([...])
-issues.5952-decimal-batch (provider=postgresql, js_pg) findUnique decimal with Promise.all
 issues.6578 (provider=postgresql, js_pg) should assert Dates, DateTimes, Times and UUIDs are wrapped in quotes and are deserializable
 json-fields (provider=postgresql, js_pg) object with .toJSON method
 json-fields (provider=postgresql, js_pg) simple object
