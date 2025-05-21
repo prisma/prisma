@@ -7,7 +7,6 @@ type AuthFile = {
 }
 
 export type Credentials = {
-  userId: string
   workspaceId: string
   token: string
   refreshToken: string
