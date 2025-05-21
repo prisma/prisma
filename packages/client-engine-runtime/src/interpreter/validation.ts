@@ -30,6 +30,9 @@ export function doesSatisfyRule(data: unknown, rule: DataRule): boolean {
       }
       return rule.args !== 1
 
+    case 'affectedRowCountEq':
+      return data === rule.args
+
     case 'never':
       return false
 
@@ -51,7 +54,13 @@ function renderMessage(data: unknown, error: ValidationError): string {
     case 'INCOMPLETE_CONNECT_INPUT':
       return `An operation failed because it depends on one or more records that were required but not found. Expected ${
         error.context.expectedRows
-      } records to be connected, found only ${Array.isArray(data) ? data.length : 0}.`
+      } records to be connected, found only ${Array.isArray(data) ? data.length : data}.`
+    case 'INCOMPLETE_CONNECT_OUTPUT':
+      return `The required connected records were not found. Expected ${
+        error.context.expectedRows
+      } records to be connected after connect operation on ${error.context.relationType} relation '${
+        error.context.relation
+      }', found ${Array.isArray(data) ? data.length : data}.`
     case 'RECORDS_NOT_CONNECTED':
       return `The records for relation \`${error.context.relation}\` between the \`${error.context.parent}\` and \`${error.context.child}\` models are not connected.`
 
@@ -66,6 +75,8 @@ function getErrorCode(error: ValidationError): string {
       return 'P2014'
     case 'RECORDS_NOT_CONNECTED':
       return 'P2017'
+    case 'INCOMPLETE_CONNECT_OUTPUT':
+      return 'P2018'
     case 'MISSING_RECORD':
     case 'MISSING_RELATED_RECORD':
     case 'INCOMPLETE_CONNECT_INPUT':
