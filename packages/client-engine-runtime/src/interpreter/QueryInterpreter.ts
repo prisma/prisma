@@ -100,12 +100,12 @@ export class QueryInterpreter {
 
       case 'concat': {
         const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators)))
-        return parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), [])
+        return parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : []
       }
 
       case 'sum': {
         const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators)))
-        return parts.reduce((acc, part) => asNumber(acc) + asNumber(part))
+        return parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0
       }
 
       case 'execute': {

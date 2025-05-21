@@ -22,6 +22,15 @@ export function isPrismaValueBytes(value: unknown): value is PrismaValueBytes {
   return typeof value === 'object' && value !== null && value['prisma__type'] === 'bytes'
 }
 
+export type PrismaValueBigInt = {
+  prisma__type: 'bigint'
+  prisma__value: string
+}
+
+export function isPrismaValueBigInt(value: unknown): value is PrismaValueBigInt {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bigint'
+}
+
 export type PrismaValue =
   | string
   | boolean
@@ -32,6 +41,7 @@ export type PrismaValue =
   | PrismaValuePlaceholder
   | PrismaValueGenerator
   | PrismaValueBytes
+  | PrismaValueBigInt
 
 export type PrismaValueType =
   | { type: 'Any' }
