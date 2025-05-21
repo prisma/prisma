@@ -8,7 +8,7 @@ import type {
   PrismaValuePlaceholder,
   QueryPlanDbQuery,
 } from '../QueryPlan'
-import { isPrismaValueBytes, isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
+import { isPrismaValueBigInt, isPrismaValueBytes, isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
@@ -63,10 +63,10 @@ function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: Gen
 
   if (Array.isArray(value)) {
     value = value.map((el) => evaluateParam(el, scope, generators))
-  }
-
-  if (isPrismaValueBytes(value)) {
+  } else if (isPrismaValueBytes(value)) {
     value = Buffer.from(value.prisma__value, 'base64')
+  } else if (isPrismaValueBigInt(value)) {
+    value = BigInt(value.prisma__value)
   }
 
   return value
