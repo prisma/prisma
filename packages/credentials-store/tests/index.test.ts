@@ -7,7 +7,6 @@ import { Credentials, CredentialsStore } from '../src'
 
 describe('CredentialsStore', () => {
   const mockCredentials: Credentials = {
-    userId: 'test-user',
     workspaceId: 'test-workspace-id',
     token: 'test-token',
     refreshToken: 'test-refresh-token',
@@ -74,7 +73,6 @@ describe('CredentialsStore', () => {
 
   it('should get credentials for specific workspace', async () => {
     const otherCredentials: Credentials = {
-      userId: 'other-user',
       workspaceId: 'other-workspace-id',
       token: 'other-token',
       refreshToken: 'other-refresh-token',
@@ -100,7 +98,6 @@ describe('CredentialsStore', () => {
 
   it('should delete credentials for a workspace', async () => {
     const otherCredentials: Credentials = {
-      userId: 'other-user',
       workspaceId: 'other-workspace-id',
       token: 'other-token',
       refreshToken: 'other-refresh-token',
