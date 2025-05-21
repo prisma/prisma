@@ -6,7 +6,7 @@ import {
   QueryEngineLogLevel,
 } from '@prisma/client-common'
 import {
-  isDeepStrictEqual,
+  doKeysMatch,
   QueryEvent,
   QueryInterpreter,
   QueryInterpreterTransactionManager,
@@ -419,10 +419,12 @@ export class ClientEngine implements Engine<undefined> {
       switch (batchResponse.type) {
         case 'multi': {
           results = await Promise.all(
-            batchResponse.plans.map(async (plan, i) => {
-              const rows = await interpreter.run(plan as QueryPlanNode, queryable)
-              return { data: { [queries[i].action]: rows } }
-            }),
+            batchResponse.plans.map((plan, i) =>
+              interpreter.run(plan as QueryPlanNode, queryable).then(
+                (rows) => ({ data: { [queries[i].action]: rows } }),
+                (err) => err,
+              ),
+            ),
           )
           break
         }
@@ -505,15 +507,4 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string) {
     database: engine.config.activeProvider as any,
     query: engine.lastStartedQuery!,
   })
-}
-
-/**
- * Checks if two objects representing the names and values of key columns match. A match is
- * defined by one of the sets of keys being a subset of the other.
- */
-function doKeysMatch(lhs: {}, rhs: {}): boolean {
-  const lhsKeys = Object.keys(lhs)
-  const rhsKeys = Object.keys(rhs)
-  const smallerKeyList = lhsKeys.length < rhsKeys.length ? lhsKeys : rhsKeys
-  return smallerKeyList.every((key) => isDeepStrictEqual(lhs[key], rhs[key]))
 }

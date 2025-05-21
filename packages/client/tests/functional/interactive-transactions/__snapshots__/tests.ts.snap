@@ -261,7 +261,7 @@ exports[`interactive-transactions (provider=postgresql, js_pg) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
+Unique constraint failed on the fields: (\`id\`)"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_pg) batching rollback 1`] = `

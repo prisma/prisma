@@ -6,7 +6,7 @@ import { JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
 import { providerToOtelSystem, type TracingHelper } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
-import { assertNever, isDeepStrictEqual } from '../utils'
+import { assertNever, doKeysMatch } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
@@ -382,7 +382,7 @@ function childRecordMatchesParent(
 }
 
 function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
-  const cursorIndex = cursor !== null ? list.findIndex((item) => doesMatchCursor(item, cursor)) : 0
+  const cursorIndex = cursor !== null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
   if (cursorIndex === -1) {
     return []
   }
@@ -397,16 +397,4 @@ function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
  */
 function getRecordKey(record: {}, fields: string[]): string {
   return JSON.stringify(fields.map((field) => record[field]))
-}
-
-function doesMatchCursor(item: {}, cursor: Record<string, unknown>): boolean {
-  return Object.keys(cursor).every((key) => {
-    // explicitly check for string to avoid issues with numeric types stored as strings in SQLite,
-    // we might need to come up with a better way of handling this
-    if (typeof item[key] !== typeof cursor[key] && (typeof item[key] === 'number' || typeof cursor[key] === 'number')) {
-      return `${item[key]}` === `${cursor[key]}`
-    }
-
-    return isDeepStrictEqual(cursor[key], item[key])
-  })
 }
