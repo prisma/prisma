@@ -1,8 +1,10 @@
-export class TransactionManagerError extends Error {
-  code = 'P2028'
+import { UserFacingError } from '../UserFacingError'
 
-  constructor(message: string, public meta?: Record<string, unknown>) {
-    super('Transaction API error: ' + message)
+export class TransactionManagerError extends UserFacingError {
+  name = 'TransactionManagerError'
+
+  constructor(message: string, meta?: Record<string, unknown>) {
+    super('Transaction API error: ' + message, 'P2028', meta)
   }
 }
 
