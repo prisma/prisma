@@ -5,12 +5,12 @@ import { assertNever } from './utils'
 export class UserFacingError extends Error {
   name = 'UserFacingError'
   code: string
-  meta: unknown
+  meta: Record<string, unknown>
 
-  constructor(message: string, code: string, meta?: unknown) {
+  constructor(message: string, code: string, meta?: Record<string, unknown>) {
     super(message)
     this.code = code
-    this.meta = meta
+    this.meta = meta ?? {}
   }
 
   toQueryResponseErrorObject() {
@@ -36,7 +36,7 @@ export function rethrowAsUserFacing(error: any): never {
   if (!code || !message) {
     throw error
   }
-  throw new UserFacingError(message, code, error)
+  throw new UserFacingError(message, code, { driverAdapterError: error })
 }
 
 function getErrorCode(err: DriverAdapterError): string | undefined {
