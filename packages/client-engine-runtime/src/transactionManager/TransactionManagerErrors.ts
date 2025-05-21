@@ -18,13 +18,13 @@ export class TransactionNotFoundError extends TransactionManagerError {
 
 export class TransactionClosedError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction.`)
   }
 }
 
 export class TransactionRolledBackError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back.`)
   }
 }
 

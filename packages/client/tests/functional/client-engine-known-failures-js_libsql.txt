@@ -36,12 +36,9 @@ extended-where.create (provider=sqlite, js_libsql) create with connect 2 uniques
 extended-where.findUnique (provider=sqlite, js_libsql) findUnique with nested where on optional 1:1 not found
 extended-where.upsert (provider=sqlite, js_libsql) upsert with where 1 unique (PK)
 extended-where.upsert (provider=sqlite, js_libsql) upsert with where 2 uniques (PK & non-PK)
-extensions.model (provider=sqlite, js_libsql) batching of PrismaPromise returning custom model methods
-extensions.model (provider=sqlite, js_libsql) batching of PrismaPromise returning custom model methods and query
 extensions.query (provider=sqlite, js_libsql) extending with $allModels.$allOperations and a top-level query
 extensions.query (provider=sqlite, js_libsql) hijacking a batch transaction into another one with a simple call
 extensions.query (provider=sqlite, js_libsql) hijacking a batch transaction into another one with multiple calls
-extensions.query (provider=sqlite, js_libsql) query result mutations with batch transactions
 extensions.query (provider=sqlite, js_libsql) transforming a simple query into a batch transaction
 field-reference.numeric (provider=sqlite, fieldType=BigInt, js_libsql) relationship
 field-reference.numeric (provider=sqlite, fieldType=Float, js_libsql) relationship
@@ -84,11 +81,6 @@ issues.13766.at-unique (provider=sqlite, js_libsql) relationMode=prisma should n
 issues.13766.at-unique (provider=sqlite, js_libsql) relationMode=prisma should prevent updates on a model if any other relation references a field
 issues.13766.primary-key (provider=sqlite, js_libsql) relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation
 issues.13766.primary-key (provider=sqlite, js_libsql) relationMode=prisma should prevent updates on a model if any other relation references a field
-issues.14373-batch-tx-error (provider=sqlite, js_libsql) correctly reports location of a batch error
-issues.14954-date-batch (provider=sqlite, js_libsql) findFirst date with $transaction([...])
-issues.14954-date-batch (provider=sqlite, js_libsql) findFirst date with Promise.all
-issues.14954-date-batch (provider=sqlite, js_libsql) findUnique date with $transaction([...])
-issues.14954-date-batch (provider=sqlite, js_libsql) findUnique date with Promise.all
 issues.15176 (provider=sqlite, js_libsql) should update both updatedAt fields on a model
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_libsql) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_libsql) should return a descriptive error
@@ -105,10 +97,6 @@ issues.21454-$type-in-json (provider=sqlite, js_libsql) preserves deeply nested 
 issues.21454-$type-in-json (provider=sqlite, js_libsql) preserves json with $type key inside
 issues.22947-sqlite-conccurrent-upsert (provider=sqlite, js_libsql) concurrent upserts should succeed
 issues.23902 (provider=sqlite, js_libsql) should not throw error when updating fields on a many to many join table
-issues.5952-decimal-batch (provider=sqlite, js_libsql) findFirst decimal with $transaction([...])
-issues.5952-decimal-batch (provider=sqlite, js_libsql) findFirst decimal with Promise.all
-issues.5952-decimal-batch (provider=sqlite, js_libsql) findUnique decimal with $transaction([...])
-issues.5952-decimal-batch (provider=sqlite, js_libsql) findUnique decimal with Promise.all
 json-fields (provider=sqlite, js_libsql) object with .toJSON method
 json-fields (provider=sqlite, js_libsql) simple object
 json-null-types (provider=sqlite, js_libsql) nullableJsonField JsonNull

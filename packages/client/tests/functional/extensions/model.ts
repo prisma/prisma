@@ -405,7 +405,6 @@ testMatrix.setupTestSuite(
           const expectation = [
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('COMMIT') }],
           ]
           if (driverAdapter === undefined) {
             // Driver adapters do not issue BEGIN through the query engine.
@@ -413,6 +412,10 @@ testMatrix.setupTestSuite(
           }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          if (cliMeta.engineType !== 'client') {
+            // Client engine issues COMMIT directly from the TransactionManager.
+            expectation.push([{ query: expect.stringContaining('COMMIT') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
@@ -465,7 +468,6 @@ testMatrix.setupTestSuite(
           const expectation = [
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('COMMIT') }],
           ]
           if (driverAdapter === undefined) {
             // Driver adapters do not issue BEGIN through the query engine.
@@ -473,6 +475,10 @@ testMatrix.setupTestSuite(
           }
           if (isSqlServer) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          if (cliMeta.engineType !== 'client') {
+            // Client engine issues COMMIT directly from the TransactionManager.
+            expectation.push([{ query: expect.stringContaining('COMMIT') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
           expect(fnEmitter.mock.calls).toMatchObject(expectation)
