@@ -49,6 +49,18 @@ testMatrix.setupTestSuite(
       })
     })
 
+    test('batches findUnique with re-ordered selection', async () => {
+      const res = await Promise.all([
+        prisma.user.findUnique({ where: { id: user1.id }, select: { id: true, email: true } }),
+        prisma.user.findUnique({ where: { id: user2.id }, select: { email: true, id: true } }),
+      ])
+
+      await waitFor(() => {
+        expect(queriesExecuted).toBe(1)
+        expect(res).toEqual([user1, user2])
+      })
+    })
+
     test('batches repeated findUnique for the same row correctly', async () => {
       const res = await Promise.all([
         prisma.user.findUnique({ where: { id: user1.id } }),
