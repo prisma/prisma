@@ -61,8 +61,12 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
 
     expect.assertions(2)
 
-    prisma.$on('query', (event) => {
-      executedBatchQuery = event.query
+    prisma.$on('query', ({ query }) => {
+      // TODO(query compiler): compacted batches don't need to be wrapped in transactions
+      if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
+        return
+      }
+      executedBatchQuery = query
         .replace(` /* traceparent='00-00000000000000000000000000000010-0000000000000010-01' */`, '')
         .replace(mySqlSchemaIdRegex, '')
         .trim()

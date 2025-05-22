@@ -388,6 +388,8 @@ testMatrix.setupTestSuite(
           ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
           : driverAdapter === undefined
           ? [...engineConnection(), txBegin()]
+          : engineType === ClientEngineType.Client
+          ? undefined
           : engineConnection()
       } else if (operation === 'commit') {
         children = isMongoDb ? undefined : [txCommit()]

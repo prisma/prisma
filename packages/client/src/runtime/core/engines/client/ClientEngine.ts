@@ -11,6 +11,7 @@ import {
   QueryInterpreter,
   QueryInterpreterTransactionManager,
   QueryPlanNode,
+  safeJsonStringify,
   TransactionInfo,
   TransactionManager,
   UserFacingError,
@@ -124,7 +125,7 @@ export class ClientEngine implements Engine<undefined> {
         this.logEmitter.emit('query', {
           ...event,
           // TODO: we should probably change the interface to contain a proper array in the next major version.
-          params: JSON.stringify(event.params),
+          params: safeJsonStringify(event.params),
           // TODO: this field only exists for historical reasons as we grandfathered it from the time
           // when we emitted `tracing` events to stdout in the engine unchanged, and then described
           // them in the public API as TS types. Thus this field used to contain the name of the Rust
@@ -145,6 +146,7 @@ export class ClientEngine implements Engine<undefined> {
           isolationLevel: this.#convertIsolationLevel(this.config.transactionOptions.isolationLevel),
         },
         tracingHelper: this.tracingHelper,
+        onQuery: this.#emitQueryEvent,
       })
     })
 

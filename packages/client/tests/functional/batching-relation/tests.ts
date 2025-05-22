@@ -28,7 +28,13 @@ testMatrix.setupTestSuite(
       await prisma.artist.create({ data: { name: artist1, albums: { create: { title: album1 } } } })
       await prisma.artist.create({ data: { name: artist2, albums: { create: { title: album2 } } } })
 
-      prisma.$on('query', () => queriesExecuted++)
+      prisma.$on('query', ({ query }) => {
+        // TODO(query compiler): compacted batches don't need to be wrapped in transactions
+        if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
+          return
+        }
+        queriesExecuted++
+      })
     })
 
     beforeEach(() => {
