@@ -3,6 +3,11 @@
 0-legacy-ports.aggregations (provider=sqlite, js_libsql) multiple aggregations with where
 0-legacy-ports.json (provider=sqlite, js_libsql) create required json
 0-legacy-ports.json (provider=sqlite, js_libsql) update required json with where equals
+0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRaw
+0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRawUnsafe
+0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRawUnsafe with values
+0-legacy-ports.query-raw (provider=sqlite, js_libsql) select fields via queryRaw using Prisma.join
+0-legacy-ports.query-raw (provider=sqlite, js_libsql) select fields via queryRaw using Prisma.join and Prisma.sql
 _example (provider=sqlite, previewFeatures=referentialIntegrity, js_libsql) conditional @ts-test-if
 _example (provider=sqlite, previewFeatures=relationJoins, js_libsql) conditional @ts-test-if
 blog-update (provider=sqlite, js_libsql) should create a user and post and connect them together
