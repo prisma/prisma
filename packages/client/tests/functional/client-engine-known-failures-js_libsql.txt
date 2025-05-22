@@ -3,20 +3,10 @@
 0-legacy-ports.aggregations (provider=sqlite, js_libsql) multiple aggregations with where
 0-legacy-ports.json (provider=sqlite, js_libsql) create required json
 0-legacy-ports.json (provider=sqlite, js_libsql) update required json with where equals
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRaw
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRawUnsafe
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select * via queryRawUnsafe with values
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select 1 via queryRaw
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select 1 via queryRawUnsafe
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select fields via queryRaw using Prisma.join
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select fields via queryRaw using Prisma.join and Prisma.sql
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select values via queryRawUnsafe
-0-legacy-ports.query-raw (provider=sqlite, js_libsql) select with alias via queryRaw
 _example (provider=sqlite, previewFeatures=referentialIntegrity, js_libsql) conditional @ts-test-if
 _example (provider=sqlite, previewFeatures=relationJoins, js_libsql) conditional @ts-test-if
 blog-update (provider=sqlite, js_libsql) should create a user and post and connect them together
 blog-update (provider=sqlite, js_libsql) should create a user and post and disconnect them
-chunking-query (provider=sqlite, js_libsql) issues #8832 / #9326 success cases should succeed when raw query has MAX ids
 create-default-date.test (provider=sqlite, js_libsql) correctly creates a field with default date
 distinct (provider=sqlite, js_libsql) distinct on firstName
 distinct (provider=sqlite, js_libsql) distinct on firstName and firstName
@@ -36,10 +26,8 @@ extended-where.create (provider=sqlite, js_libsql) create with connect 2 uniques
 extended-where.findUnique (provider=sqlite, js_libsql) findUnique with nested where on optional 1:1 not found
 extended-where.upsert (provider=sqlite, js_libsql) upsert with where 1 unique (PK)
 extended-where.upsert (provider=sqlite, js_libsql) upsert with where 2 uniques (PK & non-PK)
-extensions.query (provider=sqlite, js_libsql) extending with $allModels.$allOperations and a top-level query
 extensions.query (provider=sqlite, js_libsql) hijacking a batch transaction into another one with a simple call
 extensions.query (provider=sqlite, js_libsql) hijacking a batch transaction into another one with multiple calls
-extensions.query (provider=sqlite, js_libsql) transforming a simple query into a batch transaction
 field-reference.numeric (provider=sqlite, fieldType=BigInt, js_libsql) relationship
 field-reference.numeric (provider=sqlite, fieldType=Float, js_libsql) relationship
 field-reference.numeric (provider=sqlite, fieldType=Int, js_libsql) relationship
@@ -118,8 +106,6 @@ metrics.enabled (provider=sqlite, js_libsql) before a query SQL Providers: shoul
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) multiple instances does not share metrics between 2 different instances of client
-middleware-raw-args (provider=sqlite, js_libsql) $queryRaw with Prisma.sql instance
-middleware-raw-args (provider=sqlite, js_libsql) $queryRaw with template string
 multiple-types (provider=sqlite, js_libsql) 2 records, 1st with null, 2nd with values should succeed
 multiple-types (provider=sqlite, js_libsql) Bool field: true or false should succeed
 multiple-types (provider=sqlite, js_libsql) String field: true or false as string should succeed
@@ -128,30 +114,10 @@ multiple-types (provider=sqlite, js_libsql) all fields are null
 multiple-types (provider=sqlite, js_libsql) shows differences between queryRaw and findMany
 omit.test (provider=sqlite, js_libsql) upsert
 optimistic-concurrency-control (provider=sqlite, js_libsql) update with upsert relation
-prisma-promise (provider=sqlite, js_libsql) $queryRaw fluent promises should have promise properties
-prisma-promise (provider=sqlite, js_libsql) $queryRaw repeated calls to .catch
-prisma-promise (provider=sqlite, js_libsql) $queryRaw repeated calls to .finally
-prisma-promise (provider=sqlite, js_libsql) $queryRaw repeated calls to .then
-prisma-promise (provider=sqlite, js_libsql) $queryRaw repeated mixed calls to .then, .catch, .finally
-prisma-promise (provider=sqlite, js_libsql) $queryRawUnsafe fluent promises should have promise properties
-prisma-promise (provider=sqlite, js_libsql) $queryRawUnsafe repeated calls to .catch
-prisma-promise (provider=sqlite, js_libsql) $queryRawUnsafe repeated calls to .finally
-prisma-promise (provider=sqlite, js_libsql) $queryRawUnsafe repeated calls to .then
-prisma-promise (provider=sqlite, js_libsql) $queryRawUnsafe repeated mixed calls to .then, .catch, .finally
 query-error-logging (provider=sqlite, js_libsql) findFirstOrThrow when error thrown
 query-error-logging (provider=sqlite, js_libsql) findUniqueOrThrown when error thrown
 query-error-logging (provider=sqlite, js_libsql) middleware captures errors
-raw-queries.send-type-hints (provider=sqlite, js_libsql) Uint8Array ($executeRaw + Prisma.sql)
-raw-queries.send-type-hints (provider=sqlite, js_libsql) Uint8Array ($executeRaw)
-raw-queries.send-type-hints (provider=sqlite, js_libsql) Uint8Array ($queryRaw + Prisma.sql)
-raw-queries.send-type-hints (provider=sqlite, js_libsql) Uint8Array ($queryRaw)
-raw-queries.typed-results (provider=sqlite, js_libsql) query model with a BigInt = -2147483647 (-i32)
-raw-queries.typed-results (provider=sqlite, js_libsql) query model with a BigInt = -MAX_SAFE_INTEGER
-raw-queries.typed-results (provider=sqlite, js_libsql) query model with a BigInt = 2147483647 (i32)
-raw-queries.typed-results (provider=sqlite, js_libsql) query model with a BigInt = MAX_SAFE_INTEGER
 raw-queries.typed-results (provider=sqlite, js_libsql) query model with multiple types
-raw-queries.typed-results (provider=sqlite, js_libsql) simple expression
-raw-queries.typed-results (provider=sqlite, js_libsql) when BigInt value is not a safe integer query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER BigInt is natively supported
 typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) BigInt - input
 typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) BigInt - output
 typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) DateTime - input
