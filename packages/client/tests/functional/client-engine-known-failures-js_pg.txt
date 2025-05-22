@@ -3,20 +3,10 @@
 0-legacy-ports.aggregations (provider=postgresql, js_pg) multiple aggregations with where
 0-legacy-ports.json (provider=postgresql, js_pg) create required json
 0-legacy-ports.json (provider=postgresql, js_pg) update required json with where equals
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select * via queryRaw
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select * via queryRawUnsafe
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select * via queryRawUnsafe with values
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select 1 via queryRaw
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select 1 via queryRawUnsafe
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select fields via queryRaw using Prisma.join
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select fields via queryRaw using Prisma.join and Prisma.sql
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select values via queryRawUnsafe
-0-legacy-ports.query-raw (provider=postgresql, js_pg) select with alias via queryRaw
 _example (provider=postgresql, previewFeatures=referentialIntegrity, js_pg) conditional @ts-test-if
 _example (provider=postgresql, previewFeatures=relationJoins, js_pg) conditional @ts-test-if
 blog-update (provider=postgresql, js_pg) should create a user and post and connect them together
 blog-update (provider=postgresql, js_pg) should create a user and post and disconnect them
-chunking-query (provider=postgresql, js_pg) issues #8832 / #9326 success cases should succeed when raw query has MAX ids
 create-default-date.test (provider=postgresql, js_pg) correctly creates a field with default date
 decimal.precision (provider=postgresql, precision=1000, js_pg) decimals should not lose precision when written to db (with seed=XXXX)
 decimal.precision (provider=postgresql, precision=20, js_pg) decimals should not lose precision when written to db (with seed=XXXX)
@@ -29,12 +19,8 @@ extended-where.create (provider=postgresql, js_pg) create with connect 2 uniques
 extended-where.findUnique (provider=postgresql, js_pg) findUnique with nested where on optional 1:1 not found
 extended-where.upsert (provider=postgresql, js_pg) upsert with where 1 unique (PK)
 extended-where.upsert (provider=postgresql, js_pg) upsert with where 2 uniques (PK & non-PK)
-extensions.itx (provider=postgresql, js_pg) itx works with extended client + queryRawUnsafe
-extensions.query (provider=postgresql, js_pg) extending with $allModels.$allOperations and a top-level query
 extensions.query (provider=postgresql, js_pg) hijacking a batch transaction into another one with a simple call
 extensions.query (provider=postgresql, js_pg) hijacking a batch transaction into another one with multiple calls
-extensions.query (provider=postgresql, js_pg) top-level raw queries interception
-extensions.query (provider=postgresql, js_pg) transforming a simple query into a batch transaction
 extensions.tx (provider=postgresql, js_pg) extended client in tx can rollback via normal call
 field-reference.numeric (provider=postgresql, fieldType=BigInt, js_pg) relationship
 field-reference.numeric (provider=postgresql, fieldType=Float, js_pg) relationship
@@ -84,7 +70,6 @@ interactive-transactions (provider=postgresql, js_pg) high concurrency with SET 
 interactive-transactions (provider=postgresql, js_pg) timeout default
 interactive-transactions (provider=postgresql, js_pg) timeout override
 interactive-transactions (provider=postgresql, js_pg) timeout override by PrismaClient
-issues.11233 (provider=postgresql, js_pg) should not throw when using Prisma.empty inside $queryRaw
 issues.11974 (provider=postgresql, js_pg) should not throw an error when counting two relation fields using find
 issues.12557 (relationMode=,provider=postgresql,onUpdate=undefined,onDelete=undefined,id=undefined, js_pg) issue 12557 issue 12557
 issues.13097-group-by-enum (provider=postgresql, js_pg) groupBy on enumArray field
@@ -144,8 +129,6 @@ metrics.enabled (provider=postgresql, js_pg) before a query SQL Providers: shoul
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) multiple instances does not share metrics between 2 different instances of client
-middleware-raw-args (provider=postgresql, js_pg) $queryRaw with Prisma.sql instance
-middleware-raw-args (provider=postgresql, js_pg) $queryRaw with template string
 mixed-string-uuid-datetime-list-inputs (provider=postgresql, js_pg) create a string that looks like a uuid
 mixed-string-uuid-datetime-list-inputs (provider=postgresql, js_pg) create with a date and uuid
 mixed-string-uuid-datetime-list-inputs (provider=postgresql, js_pg) create with a string and a string that looks like a date
@@ -162,35 +145,13 @@ multiple-types (provider=postgresql, js_pg) shows differences between queryRaw a
 omit.test (provider=postgresql, js_pg) upsert
 optimistic-concurrency-control (provider=postgresql, js_pg) deleteMany
 optimistic-concurrency-control (provider=postgresql, js_pg) update with upsert relation
-prisma-promise (provider=postgresql, js_pg) $queryRaw fluent promises should have promise properties
-prisma-promise (provider=postgresql, js_pg) $queryRaw repeated calls to .catch
-prisma-promise (provider=postgresql, js_pg) $queryRaw repeated calls to .finally
-prisma-promise (provider=postgresql, js_pg) $queryRaw repeated calls to .then
-prisma-promise (provider=postgresql, js_pg) $queryRaw repeated mixed calls to .then, .catch, .finally
-prisma-promise (provider=postgresql, js_pg) $queryRawUnsafe fluent promises should have promise properties
-prisma-promise (provider=postgresql, js_pg) $queryRawUnsafe repeated calls to .catch
-prisma-promise (provider=postgresql, js_pg) $queryRawUnsafe repeated calls to .finally
-prisma-promise (provider=postgresql, js_pg) $queryRawUnsafe repeated calls to .then
-prisma-promise (provider=postgresql, js_pg) $queryRawUnsafe repeated mixed calls to .then, .catch, .finally
 query-error-logging (provider=postgresql, js_pg) findFirstOrThrow when error thrown
 query-error-logging (provider=postgresql, js_pg) findUniqueOrThrown when error thrown
 query-error-logging (provider=postgresql, js_pg) middleware captures errors
-raw-queries.send-type-hints (provider=postgresql, js_pg) Uint8Array ($executeRaw + Prisma.sql)
-raw-queries.send-type-hints (provider=postgresql, js_pg) Uint8Array ($executeRaw)
-raw-queries.send-type-hints (provider=postgresql, js_pg) Uint8Array ($queryRaw + Prisma.sql)
-raw-queries.send-type-hints (provider=postgresql, js_pg) Uint8Array ($queryRaw)
-raw-queries.typed-results (provider=postgresql, js_pg) query model with a BigInt = -2147483647 (-i32)
-raw-queries.typed-results (provider=postgresql, js_pg) query model with a BigInt = -MAX_SAFE_INTEGER
-raw-queries.typed-results (provider=postgresql, js_pg) query model with a BigInt = 2147483647 (i32)
-raw-queries.typed-results (provider=postgresql, js_pg) query model with a BigInt = MAX_SAFE_INTEGER
-raw-queries.typed-results (provider=postgresql, js_pg) query model with multiple types
-raw-queries.typed-results (provider=postgresql, js_pg) simple expression
-raw-queries.typed-results (provider=postgresql, js_pg) when BigInt value is not a safe integer query model with a BigInt = MAX_SAFE_INTEGER + MAX_SAFE_INTEGER BigInt is natively supported
 raw-queries.typed-results-advanced-and-native-types (provider=postgresql, js_pg) query model with multiple fields
 relationMode-17255-same-actions (relationMode=prisma,provider=postgresql,onUpdate=Cascade,onDelete=Cascade,id=String @id, js_pg) not-original onDelete: Cascade [update] main with nested delete alice should succeed
 relationMode-17255-same-actions (relationMode=prisma,provider=postgresql,onUpdate=Restrict,onDelete=Restrict,id=String @id, js_pg) not-original onUpdate: Restrict, NoAction, SetNull relationMode=foreignKeys [update] main with nested delete alice should fail
 tracing (provider=postgresql, js_pg) tracing connect should trace the implicit $connect call
-tracing (provider=postgresql, js_pg) tracing on $raw methods $queryRaw
 tracing (provider=postgresql, js_pg) tracing on crud methods aggregate
 tracing (provider=postgresql, js_pg) tracing on transactions $transaction
 tracing (provider=postgresql, js_pg) tracing on transactions interactive transaction commit
