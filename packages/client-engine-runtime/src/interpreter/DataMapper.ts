@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js'
 
 import { PrismaValueType, ResultNode } from '../QueryPlan'
-import { assertNever } from '../utils'
+import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
 export class DataMapperError extends Error {
@@ -14,7 +14,7 @@ export function applyDataMap(data: Value, structure: ResultNode): Value {
       return mapArrayOrObject(data, structure.fields)
 
     case 'Value':
-      return mapValue(data, structure.resultType)
+      return mapValue(data, '<result>', structure.resultType)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
@@ -73,7 +73,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         {
           const dbName = node.dbName
           if (Object.hasOwn(data, dbName)) {
-            result[name] = mapValue(data[dbName], node.resultType)
+            result[name] = mapValue(data[dbName], dbName, node.resultType)
           } else {
             throw new DataMapperError(
               `Missing data field (Value): '${dbName}'; ` +
@@ -90,39 +90,143 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   return result
 }
 
-function mapValue(value: unknown, resultType: PrismaValueType): unknown {
+function mapValue(value: unknown, columnName: string, resultType: PrismaValueType): unknown {
   if (value === null) return null
 
   switch (resultType.type) {
     case 'Any':
       return value
-    case 'String':
-      return typeof value === 'string' ? value : `${value}`
-    case 'Int':
-      return typeof value === 'number' ? value : parseInt(`${value}`, 10)
-    case 'BigInt':
-      return typeof value === 'bigint' ? value : BigInt(`${value}`)
-    case 'Float':
-      return typeof value === 'number' ? value : parseFloat(`${value}`)
-    case 'Boolean':
-      return typeof value === 'boolean' ? value : value !== '0'
+
+    case 'String': {
+      if (typeof value !== 'string') {
+        throw new DataMapperError(`Expected a string in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+      return value
+    }
+
+    case 'Int': {
+      switch (typeof value) {
+        case 'number': {
+          if (Number.isInteger(value)) {
+            return value
+          }
+          throw new DataMapperError(`Expected an integer in column '${columnName}', got float: ${value}`)
+        }
+
+        case 'bigint': {
+          const numberValue = Number(value)
+          if (Number.isInteger(numberValue)) {
+            return numberValue
+          }
+          throw new DataMapperError(
+            `Big integer value in column '${columnName}' is too large to represent as a JavaScript number, got: ${value}`,
+          )
+        }
+
+        case 'string': {
+          const numberValue = Number(value)
+          if (Number.isInteger(numberValue)) {
+            return numberValue
+          }
+          try {
+            BigInt(value)
+          } catch {
+            throw new DataMapperError(`Expected an integer in column '${columnName}', got string: ${value}`)
+          }
+          throw new DataMapperError(
+            `Integer value in column '${columnName}' is too large to represent as a JavaScript number without loss of precision, got: ${value}. Consider using BigInt type.`,
+          )
+        }
+
+        default:
+          throw new DataMapperError(`Expected an integer in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+    }
+
+    case 'BigInt': {
+      if (typeof value !== 'bigint' && typeof value !== 'number' && typeof value !== 'string') {
+        throw new DataMapperError(`Expected a bigint in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+      return { $type: 'BigInt', value }
+    }
+
+    case 'Float': {
+      if (typeof value === 'number') return value
+      if (typeof value === 'string') {
+        const parsedValue = Number(value)
+        if (Number.isNaN(parsedValue) && !/^[-+]?nan$/.test(value.toLowerCase())) {
+          throw new DataMapperError(`Expected a float in column '${columnName}', got string: ${value}`)
+        }
+        return parsedValue
+      }
+      throw new DataMapperError(`Expected a float in column '${columnName}', got ${typeof value}: ${value}`)
+    }
+
+    case 'Boolean': {
+      if (typeof value === 'boolean') return value
+      if (typeof value === 'number') return value === 1
+      if (typeof value === 'bigint') return value === 1n
+      if (typeof value === 'string') {
+        if (value === 'true' || value === 'TRUE' || value === '1') {
+          return true
+        } else if (value === 'false' || value === 'FALSE' || value === '0') {
+          return false
+        } else {
+          throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
+        }
+      }
+      throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
+    }
+
     case 'Decimal':
-      return typeof value === 'number' ? new Decimal(value) : new Decimal(`${value}`)
-    case 'Date':
-      return value instanceof Date ? value : new Date(`${value}`)
+      if (typeof value !== 'number' && typeof value !== 'string' && !Decimal.isDecimal(value)) {
+        throw new DataMapperError(`Expected a decimal in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+      return { $type: 'Decimal', value }
+
+    case 'Date': {
+      if (typeof value === 'string') {
+        return { $type: 'DateTime', value: ensureTimezoneInIsoString(value) }
+      }
+      if (typeof value === 'number' || value instanceof Date) {
+        return { $type: 'DateTime', value }
+      }
+      throw new DataMapperError(`Expected a date in column '${columnName}', got ${typeof value}: ${value}`)
+    }
+
     case 'Array': {
       const values = value as unknown[]
-      return values.map((v) => mapValue(v, resultType.inner))
+      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner))
     }
-    case 'Object':
-      return typeof value === 'string' ? value : JSON.stringify(value)
+
+    case 'Object': {
+      const jsonValue = typeof value === 'string' ? value : safeJsonStringify(value)
+      return { $type: 'Json', value: jsonValue }
+    }
+
     case 'Bytes': {
-      if (!Array.isArray(value)) {
-        throw new DataMapperError(`Bytes data is invalid, got: ${typeof value}`)
+      if (typeof value === 'string') {
+        return { $type: 'Bytes', value }
       }
-      return new Uint8Array(value)
+      if (Array.isArray(value) || value instanceof Uint8Array) {
+        return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
+      }
+      throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
     }
+
     default:
       assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
   }
+}
+
+const TIMEZONE_PATTERN = /Z$|[+-]\d{2}:?\d{2}$/
+
+/**
+ * Appends a UTC timezone to a datetime string if there's no timezone specified,
+ * to prevent it from being interpreted as local time. Normally this is taken
+ * care of by the driver adapters, except when using `relationLoadStrategy: join`
+ * and the data to convert is inside a JSON string containing nested records.
+ */
+function ensureTimezoneInIsoString(dt: string): string {
+  return TIMEZONE_PATTERN.test(dt) ? dt : `${dt}Z`
 }

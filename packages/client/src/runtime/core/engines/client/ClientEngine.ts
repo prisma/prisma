@@ -25,6 +25,7 @@ import { PrismaClientInitializationError } from '../../errors/PrismaClientInitia
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
+import { deserializeJsonResponse } from '../../jsonProtocol/deserializeJsonResponse'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
@@ -475,7 +476,7 @@ export class ClientEngine implements Engine<undefined> {
     // a list of objects that contain the keys of every row
     const keysPerRow = rows.map((item) =>
       response.keys.reduce((acc, key) => {
-        acc[key] = item[key]
+        acc[key] = deserializeJsonResponse(item[key])
         return acc
       }, {}),
     )
