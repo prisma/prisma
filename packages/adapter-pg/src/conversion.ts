@@ -285,7 +285,7 @@ function normalize_numeric(numeric: string): string {
  */
 
 function normalize_date(date: string): string {
-  return date
+  return `${date}T00:00:00+00:00`
 }
 
 /*
@@ -306,13 +306,13 @@ function normalize_timestampz(time: string): string {
  */
 
 function normalize_time(time: string): string {
-  return time
+  return `1970-01-01T${time}Z`
 }
 
 function normalize_timez(time: string): string {
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
-  return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
+  return `1970-01-01T${time.replace(/[+-]\d{2}(:\d{2})?$/, '')}Z`
 }
 
 /******************/
