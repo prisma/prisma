@@ -1,4 +1,4 @@
-import { copycat } from '@snaplet/copycat'
+import { copycat, faker } from '@snaplet/copycat'
 
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -7,11 +7,11 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './generated/prisma/client'
 
 const user1 = {
-  id: copycat.uuid(1),
+  id: faker.database.mongodbObjectId(),
   email: copycat.email(1),
 }
 const user2 = {
-  id: copycat.uuid(2),
+  id: faker.database.mongodbObjectId(),
   email: copycat.email(2),
 }
 

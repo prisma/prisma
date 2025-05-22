@@ -15,7 +15,7 @@ const album2 = copycat.streetName(2)
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  () => {
+  (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
     let queriesExecuted = 0
 
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(
       ])
 
       await waitFor(() => {
-        expect(queriesExecuted).toBe(2)
+        expect(queriesExecuted).toBe(cliMeta.previewFeatures.includes('relationJoins') ? 1 : 2)
         expect(res).toMatchObject([
           { name: artist1, albums: [{ title: album1 }] },
           { name: artist2, albums: [{ title: album2 }] },
@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(
       ])
 
       await waitFor(() => {
-        expect(queriesExecuted).toBe(4)
+        expect(queriesExecuted).toBe(cliMeta.previewFeatures.includes('relationJoins') ? 2 : 4)
         expect(res).toMatchObject([
           { name: artist1, albums: [{ title: album1 }] },
           { name: artist2, albums: [{ title: album2 }] },
@@ -72,7 +72,7 @@ testMatrix.setupTestSuite(
       ])
 
       await waitFor(() => {
-        expect(queriesExecuted).toBe(2)
+        expect(queriesExecuted).toBe(cliMeta.previewFeatures.includes('relationJoins') ? 1 : 2)
         expect(res).toMatchObject([
           { status: 'fulfilled', value: { name: artist1, albums: [{ title: album1 }] } },
           {
