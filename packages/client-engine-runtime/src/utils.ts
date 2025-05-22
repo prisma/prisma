@@ -1,10 +1,9 @@
+import Decimal from 'decimal.js'
+
 // Copied over to avoid the heavy dependency on `@prisma/internals` with its
 // transitive dependencies that are not needed for other query plan executor
 // implementations outside of Prisma Client (e.g. test executor for query
 // engine tests and query plan executor for Accelerate) that also depend on
-
-import Decimal from 'decimal.js'
-
 // `@prisma/client-engine-runtime`.
 export function assertNever(_: never, message: string): never {
   throw new Error(message)
@@ -49,5 +48,20 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
     }
 
     return isDeepStrictEqual(lhs[key], rhs[key])
+  })
+}
+
+/**
+ * `JSON.stringify` wrapper with custom replacer function that handles nested
+ * BigInt and Uint8Array values.
+ */
+export function safeJsonStringify(obj: unknown): string {
+  return JSON.stringify(obj, (_key, val) => {
+    if (typeof val === 'bigint') {
+      return val.toString()
+    } else if (val instanceof Uint8Array) {
+      return Buffer.from(val).toString('base64')
+    }
+    return val
   })
 }

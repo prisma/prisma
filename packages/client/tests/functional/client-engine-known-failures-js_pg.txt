@@ -154,8 +154,6 @@ relationMode-17255-same-actions (relationMode=prisma,provider=postgresql,onUpdat
 tracing (provider=postgresql, js_pg) tracing connect should trace the implicit $connect call
 tracing (provider=postgresql, js_pg) tracing on crud methods aggregate
 tracing (provider=postgresql, js_pg) tracing on transactions $transaction
-tracing (provider=postgresql, js_pg) tracing on transactions interactive transaction commit
-tracing (provider=postgresql, js_pg) tracing on transactions interactive transaction rollback
 typed-sql.postgres-lists.test (provider=postgresql, js_pg) BigInt - input
 typed-sql.postgres-lists.test (provider=postgresql, js_pg) BigInt - output
 typed-sql.postgres-lists.test (provider=postgresql, js_pg) Date - input
