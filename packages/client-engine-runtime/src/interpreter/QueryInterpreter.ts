@@ -11,7 +11,7 @@ import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
-import { serializeSql } from './serializeSql'
+import { serializeRawSql, serializeSql } from './serializeSql'
 import { doesSatisfyRule, performValidation } from './validation'
 
 export type QueryInterpreterTransactionManager = { enabled: true; manager: TransactionManager } | { enabled: false }
@@ -22,6 +22,7 @@ export type QueryInterpreterOptions = {
   onQuery?: (event: QueryEvent) => void
   tracingHelper: TracingHelper
   serializer: (results: SqlResultSet) => Value
+  rawSerializer?: (results: SqlResultSet) => Value
 }
 
 export class QueryInterpreter {
@@ -31,13 +32,22 @@ export class QueryInterpreter {
   readonly #generators: GeneratorRegistry = new GeneratorRegistry()
   readonly #tracingHelper: TracingHelper
   readonly #serializer: (results: SqlResultSet) => Value
+  readonly #rawSerializer: (results: SqlResultSet) => Value
 
-  constructor({ transactionManager, placeholderValues, onQuery, tracingHelper, serializer }: QueryInterpreterOptions) {
+  constructor({
+    transactionManager,
+    placeholderValues,
+    onQuery,
+    tracingHelper,
+    serializer,
+    rawSerializer,
+  }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
     this.#onQuery = onQuery
     this.#tracingHelper = tracingHelper
     this.#serializer = serializer
+    this.#rawSerializer = rawSerializer ?? serializer
   }
 
   static forSql(options: {
@@ -52,6 +62,7 @@ export class QueryInterpreter {
       onQuery: options.onQuery,
       tracingHelper: options.tracingHelper,
       serializer: serializeSql,
+      rawSerializer: serializeRawSql,
     })
   }
 
@@ -118,7 +129,11 @@ export class QueryInterpreter {
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQueryEvent(query, queryable, async () => {
-          return this.#serializer(await queryable.queryRaw(query))
+          if (node.args.type === 'rawSql') {
+            return this.#rawSerializer(await queryable.queryRaw(query))
+          } else {
+            return this.#serializer(await queryable.queryRaw(query))
+          }
         })
       }
 
