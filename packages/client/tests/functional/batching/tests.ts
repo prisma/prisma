@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker'
+import { copycat } from '@snaplet/copycat'
 
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
@@ -6,8 +6,14 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-const id1 = faker.database.mongodbObjectId()
-const id2 = faker.database.mongodbObjectId()
+const user1 = {
+  id: copycat.uuid(1),
+  email: copycat.email(1),
+}
+const user2 = {
+  id: copycat.uuid(2),
+  email: copycat.email(2),
+}
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -16,10 +22,13 @@ testMatrix.setupTestSuite(
     let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
     let queriesExecuted = 0
 
-    beforeAll(() => {
+    beforeAll(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       })
+
+      await prisma.user.create({ data: user1 })
+      await prisma.user.create({ data: user2 })
 
       prisma.$on('query', () => queriesExecuted++)
     })
@@ -29,31 +38,69 @@ testMatrix.setupTestSuite(
     })
 
     test('batches findUnique', async () => {
-      await Promise.all([
-        prisma.user.findUnique({ where: { id: id1 } }),
-        prisma.user.findUnique({ where: { id: id2 } }),
+      const res = await Promise.all([
+        prisma.user.findUnique({ where: { id: user1.id } }),
+        prisma.user.findUnique({ where: { id: user2.id } }),
       ])
 
       await waitFor(() => {
         expect(queriesExecuted).toBe(1)
+        expect(res).toEqual([user1, user2])
+      })
+    })
+
+    test('batches repeated findUnique for the same row correctly', async () => {
+      const res = await Promise.all([
+        prisma.user.findUnique({ where: { id: user1.id } }),
+        prisma.user.findUnique({ where: { id: user1.id } }),
+      ])
+
+      await waitFor(() => {
+        expect(queriesExecuted).toBe(1)
+        expect(res).toEqual([user1, user1])
       })
     })
 
     test('batches findUniqueOrThrow', async () => {
-      await Promise.allSettled([
-        prisma.user.findUniqueOrThrow({ where: { id: id1 } }),
-        prisma.user.findUniqueOrThrow({ where: { id: id2 } }),
+      const res = await Promise.all([
+        prisma.user.findUniqueOrThrow({ where: { id: user1.id } }),
+        prisma.user.findUniqueOrThrow({ where: { id: user2.id } }),
       ])
 
       await waitFor(() => {
         expect(queriesExecuted).toBe(1)
+        expect(res).toEqual([user1, user2])
+      })
+    })
+
+    test('batches findUniqueOrThrow with an error', async () => {
+      const res = await Promise.allSettled([
+        prisma.user.findUniqueOrThrow({ where: { id: user1.id } }),
+        prisma.user.findUniqueOrThrow({ where: { id: '0xc0ffee' } }),
+        prisma.user.findUniqueOrThrow({ where: { id: user2.id } }),
+      ])
+
+      await waitFor(() => {
+        expect(queriesExecuted).toBe(1)
+        expect(res).toEqual([
+          { status: 'fulfilled', value: user1 },
+          {
+            status: 'rejected',
+            reason: expect.objectContaining({
+              message: expect.stringContaining(
+                'An operation failed because it depends on one or more records that were required but not found',
+              ),
+            }),
+          },
+          { status: 'fulfilled', value: user2 },
+        ])
       })
     })
 
     test('does not batch different models', async () => {
       await Promise.all([
-        prisma.user.findUnique({ where: { id: id1 } }),
-        prisma.post.findUnique({ where: { id: id2 } }),
+        prisma.user.findUnique({ where: { id: user1.id } }),
+        prisma.post.findUnique({ where: { id: user2.id } }),
       ])
 
       // binary engine can retry requests sometimes, that's why we
@@ -64,7 +111,7 @@ testMatrix.setupTestSuite(
 
     test('does not batch different where', async () => {
       await Promise.all([
-        prisma.user.findUnique({ where: { id: id1 } }),
+        prisma.user.findUnique({ where: { id: user1.id } }),
         prisma.user.findUnique({ where: { email: 'user@example.com' } }),
       ])
 
@@ -73,8 +120,8 @@ testMatrix.setupTestSuite(
 
     test('does not batch different select', async () => {
       await Promise.all([
-        prisma.user.findUnique({ where: { id: id1 }, select: { id: true } }),
-        prisma.user.findUnique({ where: { id: id2 } }),
+        prisma.user.findUnique({ where: { id: user1.id }, select: { id: true } }),
+        prisma.user.findUnique({ where: { id: user2.id } }),
       ])
 
       await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
