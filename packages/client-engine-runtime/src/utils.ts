@@ -40,7 +40,7 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
       if (typeof lhs[key] === 'number' || typeof rhs[key] === 'number') {
         return `${lhs[key]}` === `${rhs[key]}`
       } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
-        return BigInt(`${lhs[key]}`) === BigInt(`${rhs[key]}`)
+        return BigInt(`${lhs[key]}`.replace(/n$/, '')) === BigInt(`${rhs[key]}`.replace(/n$/, ''))
       } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
         return new Date(`${lhs[key]}`).getTime() === new Date(`${rhs[key]}`).getTime()
       } else if (Decimal.isDecimal(lhs[key]) || Decimal.isDecimal(rhs[key])) {

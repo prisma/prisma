@@ -14,7 +14,6 @@
 0-legacy-ports.query-raw (provider=postgresql, js_pg) select with alias via queryRaw
 _example (provider=postgresql, previewFeatures=referentialIntegrity, js_pg) conditional @ts-test-if
 _example (provider=postgresql, previewFeatures=relationJoins, js_pg) conditional @ts-test-if
-batch-transaction-isolation-level (provider=postgresql, js_pg) invalid level generates run- and compile- time error
 blog-update (provider=postgresql, js_pg) should create a user and post and connect them together
 blog-update (provider=postgresql, js_pg) should create a user and post and disconnect them
 chunking-query (provider=postgresql, js_pg) issues #8832 / #9326 success cases should succeed when raw query has MAX ids
