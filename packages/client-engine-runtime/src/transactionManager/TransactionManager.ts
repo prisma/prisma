@@ -1,8 +1,9 @@
 import { Debug } from '@prisma/debug'
-import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
+import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
-import { TracingHelper } from '../tracing'
+import { QueryEvent } from '../events'
+import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
@@ -32,6 +33,17 @@ const debug = Debug('prisma:client:transactionManager')
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
 
+const PHANTOM_COMMIT_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "COMMIT" query via underlying driver',
+  args: [],
+  argTypes: [],
+})
+const PHANTOM_ROLLBACK_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "ROLLBACK" query via underlying driver',
+  args: [],
+  argTypes: [],
+})
+
 export class TransactionManager {
   // The map of active transactions.
   private transactions: Map<string, TransactionWrapper> = new Map()
@@ -41,19 +53,23 @@ export class TransactionManager {
   private readonly driverAdapter: SqlDriverAdapter
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
+  readonly #onQuery?: (event: QueryEvent) => void
 
   constructor({
     driverAdapter,
     transactionOptions,
     tracingHelper,
+    onQuery,
   }: {
     driverAdapter: SqlDriverAdapter
     transactionOptions: Options
     tracingHelper: TracingHelper
+    onQuery?: (event: QueryEvent) => void
   }) {
     this.driverAdapter = driverAdapter
     this.transactionOptions = transactionOptions
     this.tracingHelper = tracingHelper
+    this.#onQuery = onQuery
   }
 
   async startTransaction(options?: Options): Promise<TransactionInfo> {
@@ -186,15 +202,20 @@ export class TransactionManager {
     tx.status = status
 
     if (tx.transaction && status === 'committed') {
-      await tx.transaction.commit()
-
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(COMMIT_QUERY())
+      if (tx.transaction.options.usePhantomQuery) {
+        await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
+      } else {
+        await tx.transaction.commit()
+        const query = COMMIT_QUERY()
+        await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
       }
     } else if (tx.transaction) {
-      await tx.transaction.rollback()
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(ROLLBACK_QUERY())
+      if (tx.transaction.options.usePhantomQuery) {
+        await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
+      } else {
+        await tx.transaction.rollback()
+        const query = ROLLBACK_QUERY()
+        await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
       }
     }
 
@@ -222,5 +243,15 @@ export class TransactionManager {
       timeout: options.timeout,
       maxWait: options.maxWait,
     }
+  }
+
+  #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+    return withQuerySpanAndEvent({
+      query,
+      queryable,
+      execute,
+      tracingHelper: this.tracingHelper,
+      onQuery: this.#onQuery,
+    })
   }
 }
