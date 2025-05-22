@@ -88,7 +88,7 @@ testMatrix.setupTestSuite(
     test('batches findUniqueOrThrow with an error', async () => {
       const res = await Promise.allSettled([
         prisma.user.findUniqueOrThrow({ where: { id: user1.id } }),
-        prisma.user.findUniqueOrThrow({ where: { id: '0xc0ffee' } }),
+        prisma.user.findUniqueOrThrow({ where: { id: faker.database.mongodbObjectId() } }),
         prisma.user.findUniqueOrThrow({ where: { id: user2.id } }),
       ])
 
