@@ -1,32 +1,17 @@
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
-import { CaptureStdout } from '../utils/captureStdout'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 describe('seed', () => {
   it('seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
 
-    const result = DbSeed.new().parse([], defaultTestConfig())
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
       "
     `)
@@ -39,10 +24,10 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse(
       ['--', '--my-custom-arg-from-cli-1', 'my-value', '--my-custom-arg-from-cli-2=my-value', '-z'],
-      defaultTestConfig(),
+      await ctx.config(),
     )
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...
       "
     `)
@@ -53,7 +38,7 @@ describe('seed', () => {
   it('seed.js with extra args but missing -- should throw with specific message', async () => {
     ctx.fixture('seed-sqlite-js-extra-args')
 
-    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'], defaultTestConfig())
+    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "unknown or unexpected option: --my-custom-arg-from-cli
       Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
@@ -71,9 +56,9 @@ describe('seed', () => {
     ctx.fixture('seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
-    const result = DbSeed.new().parse([], defaultTestConfig())
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node prisma/seed.js\` ...
       "
     `)
@@ -84,9 +69,9 @@ describe('seed', () => {
   it('seed.ts', async () => {
     ctx.fixture('seed-sqlite-ts')
 
-    const result = DbSeed.new().parse([], defaultTestConfig())
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`ts-node prisma/seed.ts\` ...
       "
     `)
@@ -99,9 +84,9 @@ describe('seed', () => {
     // Needs ts-node to be installed
     await execa.command('npm i')
 
-    const result = DbSeed.new().parse([], defaultTestConfig())
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...
       "
     `)
@@ -113,9 +98,9 @@ describe('seed', () => {
   it('seed.sh', async () => {
     ctx.fixture('seed-sqlite-sh')
 
-    const result = DbSeed.new().parse([], defaultTestConfig())
+    const result = DbSeed.new().parse([], await ctx.config())
     await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Running seed command \`./prisma/seed.sh\` ...
       "
     `)
