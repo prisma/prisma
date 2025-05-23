@@ -1,5 +1,5 @@
 import { DbPull } from '../../commands/DbPull'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { describeMatrix, mongodbOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ mongodb: true }, 'MongoDB', () => {
+describeMatrix(mongodbOnly, 'MongoDB', () => {
   const MONGO_URI = process.env.TEST_MONGO_URI_MIGRATE!
 
   if (isMacOrWindowsCI) {

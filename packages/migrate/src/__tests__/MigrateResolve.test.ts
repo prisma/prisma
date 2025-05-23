@@ -1,8 +1,8 @@
-// describeOnly is making eslint unhappy about the test names
+// describeMatrix is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { cockroachdbOnly, describeMatrix, postgresOnly, sqliteOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -46,7 +46,7 @@ describe('common', () => {
   })
 })
 
-describeOnly({ sqlite: true }, 'SQLite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(
@@ -190,7 +190,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(10_000)
@@ -214,7 +214,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   })
 })
 
-describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
+describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
 

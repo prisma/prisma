@@ -2,7 +2,7 @@ import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -12,7 +12,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ postgres: true }, 'postgresql', () => {
+describeMatrix(postgresOnly, 'postgresql', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-postgresql',

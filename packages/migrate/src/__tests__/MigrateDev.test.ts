@@ -1,4 +1,4 @@
-// describeOnly making eslint unhappy about the test names
+// describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import fs from 'fs-jetpack'
@@ -13,7 +13,14 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeOnly } from './__helpers__/conditionalTests'
+import {
+  allDriverAdapters,
+  cockroachdbOnly,
+  describeMatrix,
+  postgresOnly,
+  sqliteOnly,
+  sqlServerOnly,
+} from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -160,7 +167,7 @@ describe('common', () => {
   })
 })
 
-describeOnly({ sqlite: true }, 'SQLite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
@@ -862,7 +869,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
@@ -1187,7 +1194,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   })
 })
 
-describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
+describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
@@ -1371,7 +1378,7 @@ describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
   })
 })
 
-describeOnly({ mysql: true }, 'mysql', () => {
+describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
@@ -1567,7 +1574,7 @@ describeOnly({ mysql: true }, 'mysql', () => {
   })
 })
 
-describeOnly({ sqlserver: true }, 'SQL Server', () => {
+describeMatrix(sqlServerOnly, 'SQL Server', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)

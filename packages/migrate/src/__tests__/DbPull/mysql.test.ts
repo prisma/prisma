@@ -3,7 +3,7 @@ import path from 'path'
 import { DbPull } from '../../commands/DbPull'
 import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { allDriverAdapters, describeMatrix } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -15,7 +15,7 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ mysql: true }, 'mysql', () => {
+describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI!.replace('tests-migrate', 'tests-migrate-db-pull-mysql')
 
   const setupParams: SetupParams = {

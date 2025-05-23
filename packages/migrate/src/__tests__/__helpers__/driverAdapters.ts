@@ -42,9 +42,9 @@ export function currentDriverAdapterName(): DriverAdapterName | undefined {
   return adapterName as DriverAdapterName
 }
 
-export function currentProvider(): Provider | undefined {
+export function providerOfCurrentDriverAdapter(): Provider {
   const adapterName = currentDriverAdapterName()
-  if (adapterName === undefined) return undefined
+  if (adapterName === undefined) throw new Error('Test is not running for a specific driver adapter!')
 
   return driverAdapters[adapterName].provider
 }

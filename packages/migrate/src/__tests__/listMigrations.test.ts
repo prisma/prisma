@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { listMigrations } from '../utils/listMigrations'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, sqliteOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -9,7 +9,7 @@ const ctx = createDefaultTestContext()
 const itIf = (condition: boolean) => (condition ? it : it.skip)
 
 describe('listMigrations', () => {
-  describeOnly({ sqlite: true }, 'SQLite', () => {
+  describeMatrix(sqliteOnly, 'SQLite', () => {
     it('lists migrations without error if the directory does not exist', async () => {
       ctx.fixture('schema-only-sqlite')
 

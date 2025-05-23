@@ -3,7 +3,7 @@ import fs from 'fs-jetpack'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, postgresOnly, sqliteOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -28,7 +28,7 @@ describe('common', () => {
   })
 })
 
-describeOnly({ sqlite: true }, 'SQLite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
@@ -147,7 +147,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-deploy')
 
   const setupParams: SetupParams = {

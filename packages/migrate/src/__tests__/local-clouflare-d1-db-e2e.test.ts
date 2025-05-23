@@ -3,12 +3,12 @@ import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ d1: true }, 'd1 local', () => {
+describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {
     return await execa('pnpm', ['wrangler', '--config', path.join(ctx.tmpDir, 'wrangler.toml'), ...args], {
       cwd: __dirname,

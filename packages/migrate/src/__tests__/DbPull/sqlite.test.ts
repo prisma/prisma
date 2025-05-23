@@ -1,5 +1,5 @@
 import { DbPull } from '../../commands/DbPull'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { describeMatrix, noDriverAdapters, sqliteOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ d1: true }, 'D1', () => {
+describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 
   test('should succeed when --local-d1 and a single local Cloudflare D1 database exists', async () => {
@@ -75,7 +75,7 @@ describeOnly({ d1: true }, 'D1', () => {
   })
 })
 
-describeOnly({ sqlite: true }, 'common/sqlite', () => {
+describeMatrix(sqliteOnly, 'common/sqlite', () => {
   describe('using Prisma Config', () => {
     it('--url is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
@@ -209,7 +209,7 @@ describeOnly({ sqlite: true }, 'common/sqlite', () => {
     `)
   })
 
-  describeOnly({ driverAdapter: false }, 'using --url', () => {
+  describeMatrix(noDriverAdapters, 'using --url', () => {
     test('basic introspection with --url', async () => {
       ctx.fixture('introspection/sqlite')
       const introspect = new DbPull()

@@ -4,7 +4,7 @@ import prompt from 'prompts'
 import { DbPush } from '../commands/DbPush'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, mongodbOnly, noDriverAdapters, postgresOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -64,7 +64,7 @@ describe('push', () => {
   })
 
   // Not relevant for driver adapters as the file location comes from prisma.config.ts then.
-  describeOnly({ driverAdapter: false }, 'SQLite file placements', () => {
+  describeMatrix(noDriverAdapters, 'SQLite file placements', () => {
     it('missing SQLite db should be created relative to the schema.prisma file', async () => {
       ctx.fixture('reset')
       ctx.fs.remove('dev.db')
@@ -269,7 +269,7 @@ describe('push', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-push')
 
   const setupParams: SetupParams = {
@@ -344,7 +344,7 @@ describeOnly({ postgres: true }, 'postgres', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres-multischema', () => {
+describeMatrix(postgresOnly, 'postgres-multischema', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-push-multischema',
@@ -397,7 +397,7 @@ describeOnly({ postgres: true }, 'postgres-multischema', () => {
   })
 })
 
-describeOnly({ mongodb: true }, 'push existing-db with mongodb', () => {
+describeMatrix(mongodbOnly, 'push existing-db with mongodb', () => {
   if (!process.env.TEST_SKIP_MONGODB && !process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB) {
     throw new Error('You must set a value for process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB')
   }

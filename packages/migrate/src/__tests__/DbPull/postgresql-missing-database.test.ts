@@ -1,5 +1,5 @@
 import { DbPull } from '../../commands/DbPull'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ postgres: true }, 'postgresql - missing database', () => {
+describeMatrix(postgresOnly, 'postgresql - missing database', () => {
   const defaultConnectionString = process.env.TEST_POSTGRES_URI_MIGRATE!
 
   // replace database name, e.g., 'tests-migrate', with 'unknown-database'

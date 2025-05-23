@@ -1,5 +1,5 @@
 import { MigrateStatus } from '../commands/MigrateStatus'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, postgresOnly, sqliteOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -24,7 +24,7 @@ describe('common', () => {
   })
 })
 
-describeOnly({ sqlite: true }, 'SQLite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
 
@@ -235,7 +235,7 @@ describeOnly({ sqlite: true }, 'SQLite', () => {
   })
 })
 
-describeOnly({ postgres: true }, 'postgres', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if cannot connect', async () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], await ctx.config())

@@ -1,4 +1,4 @@
-// describeOnly making eslint unhappy about the test names
+// describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import os from 'node:os'
@@ -10,7 +10,15 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeOnly } from './__helpers__/conditionalTests'
+import {
+  allDriverAdapters,
+  cockroachdbOnly,
+  describeMatrix,
+  mongodbOnly,
+  noDriverAdapters,
+  postgresOnly,
+  sqlServerOnly,
+} from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -167,7 +175,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ driverAdapter: false }, 'D1', () => {
+  describeMatrix(noDriverAdapters, 'D1', () => {
     it('should succeed when --from-local-d1 and a single local Cloudflare D1 database exists', async () => {
       ctx.fixture('cloudflare-d1-one-db')
 
@@ -402,7 +410,7 @@ describe('migrate diff', () => {
       }
     })
 
-    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
       it('should fail if schema does no exists, --from-schema-datasource', async () => {
         ctx.fixture('empty')
         expect.assertions(2)
@@ -579,7 +587,7 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrow(isWindows ? 'EPERM' : 'EACCES')
     })
 
-    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
       it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
         ctx.fixture('schema-only-sqlite')
 
@@ -773,7 +781,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ mongodb: true }, 'mongodb', () => {
+  describeMatrix(mongodbOnly, 'mongodb', () => {
     // it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
     //   ctx.fixture('schema-only-mongodb')
 
@@ -833,7 +841,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
+  describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
     }
@@ -916,7 +924,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ postgres: true }, 'postgres', () => {
+  describeMatrix(postgresOnly, 'postgres', () => {
     const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams: SetupParams = {
@@ -1005,7 +1013,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ mysql: true }, 'mysql', () => {
+  describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
     const databaseName = 'tests-migrate-diff'
     const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', databaseName)
 
@@ -1070,7 +1078,7 @@ describe('migrate diff', () => {
     })
   })
 
-  describeOnly({ sqlserver: true }, 'sqlserver', () => {
+  describeMatrix(sqlServerOnly, 'sqlserver', () => {
     if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }

@@ -1,12 +1,12 @@
 import { getConfig, getSchemaWithPath } from '@prisma/internals'
 
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { describeOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, sqliteOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
-describeOnly({ sqlite: true }, 'SQLite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('can create database - sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
     const schema = (await getSchemaWithPath())!

@@ -3,7 +3,7 @@ import path from 'path'
 import { DbPull } from '../../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../../utils/setupMSSQL'
 import { SetupParams } from '../../utils/setupPostgres'
-import { describeOnly } from '../__helpers__/conditionalTests'
+import { describeMatrix, sqlServerOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -29,7 +29,7 @@ function sanitizeSQLServerIdName(schema: string) {
   return schemaRowsSanitized.join('\n')
 }
 
-describeOnly({ sqlserver: true }, 'SQL Server', () => {
+describeMatrix(sqlServerOnly, 'SQL Server', () => {
   if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
@@ -120,7 +120,7 @@ describeOnly({ sqlserver: true }, 'SQL Server', () => {
   })
 })
 
-describeOnly({ sqlserver: true }, 'sqlserver-multischema', () => {
+describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)

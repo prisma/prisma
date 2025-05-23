@@ -1,4 +1,4 @@
-// describeOnly making eslint unhappy about the test names
+// describeMatrix making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import fs from 'fs'
@@ -10,7 +10,17 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeOnly } from './__helpers__/conditionalTests'
+import {
+  allDriverAdapters,
+  allProviders,
+  cockroachdbOnly,
+  describeMatrix,
+  mongodbOnly,
+  noDriverAdapters,
+  postgresOnly,
+  sqliteOnly,
+  sqlServerOnly,
+} from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const util = require('util')
@@ -73,7 +83,7 @@ describe('db execute', () => {
       `)
     })
 
-    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+    describeMatrix({ providers: allProviders, driverAdapters: {} }, 'non driver adapter', () => {
       it('should fail if both --schema and --url are provided', async () => {
         ctx.fixture('empty')
 
@@ -85,12 +95,15 @@ describe('db execute', () => {
       })
     })
 
-    describeOnly({ driverAdapter: true }, 'with driver adapter', () => {
-      it('should fail if --url is provided', async () => {
-        ctx.fixture('empty')
+    describeMatrix(
+      { providers: allProviders, driverAdapters: allDriverAdapters, onlyDriverAdapters: true },
+      'with driver adapter',
+      () => {
+        it('should fail if --url is provided', async () => {
+          ctx.fixture('empty')
 
-        const result = DbExecute.new().parse(['--stdin', '--url=1'], await ctx.config())
-        await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+          const result = DbExecute.new().parse(['--stdin', '--url=1'], await ctx.config())
+          await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "
         Passing the --url flag to the prisma db execute command is not supported when
         defining a migrate.adapter in prisma.config.ts.
@@ -98,8 +111,9 @@ describe('db execute', () => {
         More information about this limitation: https://pris.ly/d/schema-engine-limitations
         "
       `)
-      })
-    })
+        })
+      },
+    )
 
     it('should fail if --file does no exists', async () => {
       ctx.fixture('empty')
@@ -129,7 +143,7 @@ describe('db execute', () => {
     })
   })
 
-  describeOnly({ mongodb: true }, 'mongodb', () => {
+  describeMatrix(mongodbOnly, 'mongodb', () => {
     it('should fail with not supported error with --file --schema', async () => {
       ctx.fixture('schema-only-mongodb')
 
@@ -146,7 +160,7 @@ describe('db execute', () => {
     })
   })
 
-  describeOnly({ sqlite: true }, 'SQLite', () => {
+  describeMatrix(sqliteOnly, 'SQLite', () => {
     const pathToBin = path.resolve('src/bin.ts')
     const sqlScript = `-- Drop & Create & Drop
 DROP TABLE IF EXISTS 'test-dbexecute';
@@ -212,7 +226,7 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    describeOnly({ driverAdapter: false }, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
       it('should pass if no schema file in directory with --file --url', async () => {
         ctx.fixture('empty')
 
@@ -292,7 +306,7 @@ COMMIT;`,
     })
   })
 
-  describeOnly({ postgres: true }, 'postgres', () => {
+  describeMatrix(postgresOnly, 'postgres', () => {
     const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     const setupParams: SetupParams = {
@@ -522,7 +536,7 @@ COMMIT;`,
     })
   })
 
-  describeOnly({ cockroachdb: true }, 'cockroachdb', () => {
+  describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
     }
@@ -738,7 +752,7 @@ COMMIT;`,
     })
   })
 
-  describeOnly({ mysql: true }, 'mysql', () => {
+  describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
     const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     const setupParams: SetupParams = {
@@ -927,7 +941,7 @@ COMMIT;`,
     })
   })
 
-  describeOnly({ sqlserver: true }, 'sqlserver', () => {
+  describeMatrix(sqlServerOnly, 'sqlserver', () => {
     if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }
