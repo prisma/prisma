@@ -25,10 +25,23 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
 }
 
 export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown> {
+  const types = resultSet.columnTypes.map((type) => serializeColumnType(type))
+
+  const mappers = types.map((type) => {
+    switch (type) {
+      case 'int':
+        return (value: unknown) => (typeof value === 'number' ? value : parseInt(`${value}`, 10))
+      case 'bigint':
+        return (value: unknown) => (typeof value === 'bigint' ? value : BigInt(`${value}`))
+      default:
+        return (value: unknown) => value
+    }
+  })
+
   return {
     columns: resultSet.columnNames,
     types: resultSet.columnTypes.map((type) => serializeColumnType(type)),
-    rows: resultSet.rows,
+    rows: resultSet.rows.map((row) => row.map((value, index) => mappers[index](value))),
   }
 }
 
