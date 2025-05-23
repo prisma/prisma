@@ -33,6 +33,7 @@ const ArrayColumnType = {
   OID_ARRAY: 1028,
   TEXT_ARRAY: 1009,
   TIMESTAMP_ARRAY: 1115,
+  TIMESTAMPTZ_ARRAY: 1185,
   TIME_ARRAY: 1183,
   UUID_ARRAY: 2951,
   VARBIT_ARRAY: 1563,
@@ -242,6 +243,8 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       return ColumnTypeEnum.TimeArray
     case ArrayColumnType.TIMESTAMP_ARRAY:
       return ColumnTypeEnum.DateTimeArray
+    case ArrayColumnType.TIMESTAMPTZ_ARRAY:
+      return ColumnTypeEnum.DateTimeArray
     case ArrayColumnType.JSON_ARRAY:
     case ArrayColumnType.JSONB_ARRAY:
       return ColumnTypeEnum.JsonArray
@@ -402,6 +405,7 @@ export const customParsers = {
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
   [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
   [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
+  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestampz),
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
