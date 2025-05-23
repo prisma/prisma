@@ -24,16 +24,7 @@ export const allProviders = {
   cockroachdb: true,
   sqlserver: true,
   d1: true,
-}
-
-// Ensure type wise that `allProviders` contains all supported providers
-declare const __testAllProvidersA: keyof typeof allProviders
-declare const __testAllProvidersB: SupportedProviders
-// eslint-disable-next-line no-constant-condition
-if (false) {
-  __testAllProvidersB satisfies keyof typeof allProviders
-  __testAllProvidersA satisfies SupportedProviders
-}
+} satisfies Record<SupportedProviders, true>
 
 export const allDriverAdapters = {
   pg: true,
@@ -42,16 +33,7 @@ export const allDriverAdapters = {
   neon: true,
   libsql: true,
   d1: true,
-}
-
-// Ensure type wise that `allDriverAdapters` actually contains all supported driver adapters
-declare const __testAllDriverAdaptersA: keyof typeof allDriverAdapters
-declare const __testAllDriverAdaptersB: DriverAdapterName
-// eslint-disable-next-line no-constant-condition
-if (false) {
-  __testAllDriverAdaptersB satisfies keyof typeof allDriverAdapters
-  __testAllDriverAdaptersA satisfies DriverAdapterName
-}
+} satisfies Record<DriverAdapterName, true>
 
 export const sqliteOnly = {
   providers: { sqlite: true },
@@ -136,9 +118,6 @@ export function describeMatrix(matrix: Matrix, name: string, fn: jest.EmptyFunct
   if (matrix.providers.mongodb && process.env.TEST_SKIP_MONGODB) return skip(name)
 
   const adapterName = currentDriverAdapterName()
-
-  console.warn('adapterName', adapterName)
-  console.warn('matrix', matrix)
 
   if (adapterName) {
     // Skip tests that shall not run for a specific driver adapter
