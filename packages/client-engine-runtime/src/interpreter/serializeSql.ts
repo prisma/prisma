@@ -39,12 +39,18 @@ export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown
 }
 
 function coerceColumnValue(raw: boolean, type: ColumnType, value: unknown): unknown {
+  if (value === null || value === undefined) {
+    return value
+  }
+
   switch (type) {
     case ColumnTypeEnum.Int32:
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       return typeof value === 'number' ? value : parseInt(`${value}`, 10)
     case ColumnTypeEnum.Int32Array:
       return Array.isArray(value) ? value.map(coerceColumnValue.bind(null, raw, ColumnTypeEnum.Int32)) : value
     case ColumnTypeEnum.Int64:
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
       return typeof value === 'bigint' ? value : BigInt(`${value}`)
     case ColumnTypeEnum.Int64Array:
       return Array.isArray(value) ? value.map(coerceColumnValue.bind(null, raw, ColumnTypeEnum.Int64)) : value
