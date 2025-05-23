@@ -113,16 +113,6 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
           throw new DataMapperError(`Expected an integer in column '${columnName}', got float: ${value}`)
         }
 
-        case 'bigint': {
-          const numberValue = Number(value)
-          if (Number.isInteger(numberValue)) {
-            return numberValue
-          }
-          throw new DataMapperError(
-            `Big integer value in column '${columnName}' is too large to represent as a JavaScript number, got: ${value}`,
-          )
-        }
-
         case 'string': {
           const numberValue = Number(value)
           if (Number.isInteger(numberValue)) {
@@ -144,7 +134,7 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
     }
 
     case 'BigInt': {
-      if (typeof value !== 'bigint' && typeof value !== 'number' && typeof value !== 'string') {
+      if (typeof value !== 'number' && typeof value !== 'string') {
         throw new DataMapperError(`Expected a bigint in column '${columnName}', got ${typeof value}: ${value}`)
       }
       return { $type: 'BigInt', value }
@@ -165,7 +155,6 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
     case 'Boolean': {
       if (typeof value === 'boolean') return value
       if (typeof value === 'number') return value === 1
-      if (typeof value === 'bigint') return value === 1n
       if (typeof value === 'string') {
         if (value === 'true' || value === 'TRUE' || value === '1') {
           return true
@@ -205,10 +194,13 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
     }
 
     case 'Bytes': {
-      if (typeof value === 'string') {
-        return { $type: 'Bytes', value }
+      if (typeof value === 'string' && value.startsWith('\\x')) {
+        // Postgres bytea hex format. We have to handle it here and not only in
+        // driver adapters in order to support `Bytes` fields in nested records
+        // when using `relationLoadStrategy: join`.
+        return { $type: 'Bytes', value: Buffer.from(value.slice(2), 'hex').toString('base64') }
       }
-      if (Array.isArray(value) || value instanceof Uint8Array) {
+      if (Array.isArray(value)) {
         return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
       }
       throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
