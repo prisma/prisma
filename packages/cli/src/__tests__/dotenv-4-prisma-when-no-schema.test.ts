@@ -1,8 +1,8 @@
 import { defaultTestConfig } from '@prisma/config'
-import { jestContext, jestProcessContext } from '@prisma/get-platform'
+import { jestContext, jestStdoutContext } from '@prisma/get-platform'
 import { loadEnvFile } from '@prisma/internals'
 
-const ctx = jestContext.new().add(jestProcessContext()).assemble()
+const ctx = jestContext.new().add(jestStdoutContext()).assemble()
 
 it('should read .env file in prisma folder when there is no schema', async () => {
   ctx.fixture('dotenv-4-prisma-no-schema')

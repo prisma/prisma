@@ -177,7 +177,7 @@ export type Provider = 'mysql' | 'postgres' | 'sqlite'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
-// It's only used for auto-completion.
+// It's only used for auto-completion and tests.
 const officialPrismaAdapters = [
   '@prisma/adapter-planetscale',
   '@prisma/adapter-neon',
@@ -186,6 +186,8 @@ const officialPrismaAdapters = [
   '@prisma/adapter-pg',
   '@prisma/adapter-pg-worker',
 ] as const
+
+export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]
 
 /**
  * A generic driver adapter factory that allows the user to instantiate a
