@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { PrismaValueType, ResultNode } from '../QueryPlan'
+import { PrismaValueType, ResultNode, ValueArity } from '../QueryPlan'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
@@ -14,7 +14,7 @@ export function applyDataMap(data: Value, structure: ResultNode): Value {
       return mapArrayOrObject(data, structure.fields)
 
     case 'Value':
-      return mapValue(data, '<result>', structure.resultType)
+      return mapValue(data, '<result>', structure.resultType, structure.arity)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
@@ -73,7 +73,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         {
           const dbName = node.dbName
           if (Object.hasOwn(data, dbName)) {
-            result[name] = mapValue(data[dbName], dbName, node.resultType)
+            result[name] = mapValue(data[dbName], dbName, node.resultType, node.arity)
           } else {
             throw new DataMapperError(
               `Missing data field (Value): '${dbName}'; ` +
@@ -90,8 +90,19 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   return result
 }
 
-function mapValue(value: unknown, columnName: string, resultType: PrismaValueType): unknown {
-  if (value === null) return null
+function mapValue(value: unknown, columnName: string, resultType: PrismaValueType, arity: ValueArity): unknown {
+  if (value === null) {
+    switch (arity) {
+      case 'required':
+        throw new DataMapperError(`Missing required value in column '${columnName}'`)
+      case 'optional':
+        return null
+      case 'list':
+        return []
+      default:
+        assertNever(arity, `DataMapper: Invalid value arity: '${arity}'`)
+    }
+  }
 
   switch (resultType.type) {
     case 'Any':
@@ -188,10 +199,16 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
 
     case 'Array': {
       const values = value as unknown[]
-      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner))
+      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner, 'required'))
     }
 
     case 'Object': {
+      if (arity === 'list') {
+        if (!Array.isArray(value)) {
+          throw new DataMapperError(`Expected an array in column '${columnName}', got ${typeof value}: ${value}`)
+        }
+        return value.map((v) => ({ $type: 'Json', value: typeof v === 'string' ? v : safeJsonStringify(v) }))
+      }
       const jsonValue = typeof value === 'string' ? value : safeJsonStringify(value)
       return { $type: 'Json', value: jsonValue }
     }

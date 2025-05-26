@@ -57,6 +57,8 @@ export type PrismaValueType =
   | { type: 'Object' }
   | { type: 'Bytes' }
 
+export type ValueArity = 'required' | 'optional' | 'list'
+
 export type ResultNode =
   | {
       type: 'Object'
@@ -67,6 +69,7 @@ export type ResultNode =
       type: 'Value'
       dbName: string
       resultType: PrismaValueType
+      arity: ValueArity
     }
 
 export type QueryPlanBinding = {
