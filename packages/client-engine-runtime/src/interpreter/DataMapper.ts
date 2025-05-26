@@ -211,7 +211,7 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
   }
 }
 
-const TIMEZONE_PATTERN = /Z$|[+-]\d{2}:?\d{2}$/
+const TIMEZONE_PATTERN = /Z$|[+-]\d{2}(:?\d{2})?$/
 
 /**
  * Appends a UTC timezone to a datetime string if there's no timezone specified,
