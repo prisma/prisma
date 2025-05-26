@@ -57,7 +57,7 @@ process.removeAllListeners('warning')
 
 // Listen to Ctr + C and exit
 process.once('SIGINT', () => {
-  process.exit(130)
+  process.exitCode = 130
 })
 
 // Parse CLI arguments
