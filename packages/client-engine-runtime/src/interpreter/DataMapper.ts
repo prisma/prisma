@@ -178,6 +178,14 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
       throw new DataMapperError(`Expected a date in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
+    case 'Time': {
+      if (typeof value === 'string') {
+        return { $type: 'DateTime', value: `1970-01-01T${ensureTimezoneInIsoString(value)}` }
+      }
+
+      throw new DataMapperError(`Expected a time in column '${columnName}', got ${typeof value}: ${value}`)
+    }
+
     case 'Array': {
       const values = value as unknown[]
       return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner))
@@ -206,7 +214,8 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
   }
 }
 
-const TIMEZONE_PATTERN = /Z$|[+-]\d{2}(:?\d{2})?$/
+// The negative lookahead is to avoid a false positive on a date string like "2023-10-01".
+const TIMEZONE_PATTERN = /Z$|(?<!\d{4}-\d{2})[+-]\d{2}(:?\d{2})?$/
 
 /**
  * Appends a UTC timezone to a datetime string if there's no timezone specified,
@@ -215,5 +224,14 @@ const TIMEZONE_PATTERN = /Z$|[+-]\d{2}(:?\d{2})?$/
  * and the data to convert is inside a JSON string containing nested records.
  */
 function ensureTimezoneInIsoString(dt: string): string {
-  return TIMEZONE_PATTERN.test(dt) ? dt : `${dt}Z`
+  const results = TIMEZONE_PATTERN.exec(dt)
+  if (results === null) {
+    return `${dt}Z`
+  } else if (results[0] !== 'Z' && results[1] === undefined) {
+    // If the timezone is specified as +HH or -HH (without minutes), we need to append ":00"
+    // to it to satisfy the JavaScript Date constructor.
+    return `${dt}:00`
+  } else {
+    return dt
+  }
 }
