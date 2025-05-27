@@ -52,6 +52,7 @@ export type PrismaValueType =
   | { type: 'Boolean' }
   | { type: 'Decimal' }
   | { type: 'Date' }
+  | { type: 'Time' }
   | { type: 'Array'; inner: PrismaValueType }
   | { type: 'Object' }
   | { type: 'Bytes' }
