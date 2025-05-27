@@ -22,6 +22,7 @@ interactive-transactions (provider=sqlite, js_better_sqlite3) timeout override b
 invalid-sqlite-isolation-level (provider=sqlite, js_better_sqlite3) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_better_sqlite3) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_better_sqlite3) should return a descriptive error
+issues.15644-middleware-arg-types (provider=sqlite, js_better_sqlite3) middleware with updateMany
 issues.18598-select-count-true (provider=sqlite, js_better_sqlite3) works with _count shorthand
 issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
 issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
