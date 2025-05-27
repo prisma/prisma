@@ -46,17 +46,17 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
       } else if (error.message.startsWith('no such table')) {
         return {
           kind: 'TableDoesNotExist',
-          table: error.message.split(': ').pop(),
+          table: error.message.split(': ').at(1),
         }
       } else if (error.message.startsWith('no such column')) {
         return {
           kind: 'ColumnNotFound',
-          column: error.message.split(': ').pop(),
+          column: error.message.split(': ').at(1),
         }
       } else if (error.message.includes('has no column named ')) {
         return {
           kind: 'ColumnNotFound',
-          column: error.message.split('has no column named ').pop(),
+          column: error.message.split('has no column named ').at(1),
         }
       }
 
