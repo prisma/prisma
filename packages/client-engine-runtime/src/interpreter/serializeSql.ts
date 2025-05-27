@@ -30,9 +30,10 @@ export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown
   const mappers = types.map((type) => {
     switch (type) {
       case 'int':
-        return (value: unknown) => (typeof value === 'number' ? value : parseInt(`${value}`, 10))
+        return (value: unknown) =>
+          value === null ? null : typeof value === 'number' ? value : parseInt(`${value}`, 10)
       case 'bigint':
-        return (value: unknown) => (typeof value === 'bigint' ? value : BigInt(`${value}`))
+        return (value: unknown) => (value === null ? null : typeof value === 'bigint' ? value : BigInt(`${value}`))
       default:
         return (value: unknown) => value
     }
