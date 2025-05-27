@@ -107,25 +107,20 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
     case 'Int': {
       switch (typeof value) {
         case 'number': {
-          if (Number.isInteger(value)) {
-            return value
-          }
-          throw new DataMapperError(`Expected an integer in column '${columnName}', got float: ${value}`)
+          return Math.trunc(value)
         }
 
         case 'string': {
-          const numberValue = Number(value)
-          if (Number.isInteger(numberValue)) {
-            return numberValue
-          }
-          try {
-            BigInt(value)
-          } catch {
+          const numberValue = Math.trunc(Number(value))
+          if (Number.isNaN(numberValue) || !Number.isFinite(numberValue)) {
             throw new DataMapperError(`Expected an integer in column '${columnName}', got string: ${value}`)
           }
-          throw new DataMapperError(
-            `Integer value in column '${columnName}' is too large to represent as a JavaScript number without loss of precision, got: ${value}. Consider using BigInt type.`,
-          )
+          if (!Number.isSafeInteger(numberValue)) {
+            throw new DataMapperError(
+              `Integer value in column '${columnName}' is too large to represent as a JavaScript number without loss of precision, got: ${value}. Consider using BigInt type.`,
+            )
+          }
+          return numberValue
         }
 
         default:
