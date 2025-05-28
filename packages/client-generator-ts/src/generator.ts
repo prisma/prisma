@@ -80,6 +80,14 @@ export class PrismaClientTsGenerator implements Generator {
             importFileExtension,
           })
 
+    // The same rules apply to whether extensions can be omitted in imports and
+    // whether index files are treated specially: both are true in CommonJS and
+    // bunlders.
+    const generateIndexFile =
+      config.generateIndexFile !== undefined
+        ? parseBooleanFromUnknown(config.generateIndexFile)
+        : importFileExtension === ''
+
     await generateClient({
       datamodel: options.datamodel,
       schemaPath: options.schemaPath,
@@ -101,6 +109,14 @@ export class PrismaClientTsGenerator implements Generator {
       importFileExtension,
       moduleFormat,
       tsNoCheckPreamble: true, // Set to false only during internal tests
+      generateIndexFile,
     })
   }
+}
+
+function parseBooleanFromUnknown(value: unknown) {
+  if (typeof value == 'boolean') {
+    return value
+  }
+  throw new Error(`Invalid boolean value: ${value}`)
 }
