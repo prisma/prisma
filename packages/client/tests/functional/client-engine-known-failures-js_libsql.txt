@@ -1,8 +1,6 @@
 blog-update (provider=sqlite, js_libsql) should create a user and post and connect them together
 blog-update (provider=sqlite, js_libsql) should create a user and post and disconnect them
 enums (provider=sqlite, js_libsql) fails at runtime when an invalid entry is entered manually in SQLite
-globalOmit.test (provider=sqlite, js_libsql) createMany does not crash
-globalOmit.test (provider=sqlite, js_libsql) deleteMany does not crash
 globalOmit.test (provider=sqlite, js_libsql) updateMany does not crash
 invalid-sqlite-isolation-level (provider=sqlite, js_libsql) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_libsql) should return a descriptive error
@@ -18,15 +16,6 @@ metrics.enabled (provider=sqlite, js_libsql) before a query SQL Providers: shoul
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) multiple instances does not share metrics between 2 different instances of client
-multiple-types (provider=sqlite, js_libsql) 2 records, 1st with null, 2nd with values should succeed
-multiple-types (provider=sqlite, js_libsql) Bool field: true or false should succeed
-multiple-types (provider=sqlite, js_libsql) String field: true or false as string should succeed
-multiple-types (provider=sqlite, js_libsql) a record with all fields set to null should succeed
-multiple-types (provider=sqlite, js_libsql) all fields are null
-multiple-types (provider=sqlite, js_libsql) shows differences between queryRaw and findMany
-raw-queries.typed-results (provider=sqlite, js_libsql) query model with multiple types
 typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) DateTime - input
-typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) json - output
 typed-sql.sqlite-scalars.test (provider=sqlite, js_libsql) DateTime - input
-typed-sql.sqlite-scalars.test (provider=sqlite, js_libsql) json - output
 unsupported-action (provider=sqlite, js_libsql) unsupported method
