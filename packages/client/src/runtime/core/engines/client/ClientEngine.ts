@@ -167,12 +167,15 @@ export class ClientEngine implements Engine<undefined> {
       this.QueryCompilerConstructor = await this.queryCompilerLoader.loadQueryCompiler(this.config)
     }
 
+    const adapter = await this.adapterPromise
+    const connectionInfo = adapter?.getConnectionInfo?.() ?? {}
+
     try {
       this.#withLocalPanicHandler(() => {
         this.queryCompiler = new this.QueryCompilerConstructor!({
           datamodel: this.datamodel,
           provider: this.provider,
-          connectionInfo: {},
+          connectionInfo,
         })
       })
     } catch (e) {
