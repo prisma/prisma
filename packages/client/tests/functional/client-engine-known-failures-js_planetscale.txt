@@ -28,7 +28,7 @@ _example (provider=mysql, previewFeatures=relationJoins, js_planetscale) findMan
 0-legacy-ports.json (provider=mysql, js_planetscale) select required json with where path
 0-legacy-ports.json (provider=mysql, js_planetscale) update required json with where equals
 0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter empty optional relation
-0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter empty optional relation with 
+0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter empty optional relation with
 0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter empty optional relation with `null`
 0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter existing optional relation with `isNot: null`
 0-legacy-ports.optional-relation-filters (provider=mysql, js_planetscale) filter existing optional relation with empty field
@@ -372,6 +372,7 @@ issues.21592-char-truncation (provider=mysql, js_planetscale) upsert
 issues.21631-batching-in-transaction (provider=mysql, js_planetscale) Transactions and batching (query compacting) shouldn't interfere with result sets 2 `findUnique`s in a $transaction
 issues.21631-batching-in-transaction (provider=mysql, js_planetscale) Transactions and batching (query compacting) shouldn't interfere with result sets 2 concurrent `findUnique`s
 issues.21631-batching-in-transaction (provider=mysql, js_planetscale) Transactions and batching (query compacting) shouldn't interfere with result sets 2 independent `findUnique`s
+issues.22610-parallel-batch (provider=mysql, js_planetscale) batch does not times out
 issues.22947-sqlite-conccurrent-upsert (provider=mysql, js_planetscale) concurrent upserts should succeed
 issues.23902 (provider=mysql, js_planetscale) should not throw error when updating fields on a many to many join table
 issues.25404.test (provider=mysql, js_planetscale) should not throw error when using d1 adapter and creating with string field that contains date string
