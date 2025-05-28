@@ -59,6 +59,9 @@ export type PrismaValueType =
 
 export type ResultNode =
   | {
+      type: 'AffectedRows'
+    }
+  | {
       type: 'Object'
       fields: Record<string, ResultNode>
       flattened: boolean
