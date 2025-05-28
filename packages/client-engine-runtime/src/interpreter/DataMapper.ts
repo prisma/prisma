@@ -10,6 +10,12 @@ export class DataMapperError extends Error {
 
 export function applyDataMap(data: Value, structure: ResultNode): Value {
   switch (structure.type) {
+    case 'AffectedRows':
+      if (typeof data !== 'number') {
+        throw new DataMapperError(`Expected an affected rows count, got: ${typeof data} (${data})`)
+      }
+      return { count: data }
+
     case 'Object':
       return mapArrayOrObject(data, structure.fields)
 
@@ -58,6 +64,10 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   const result = {}
   for (const [name, node] of Object.entries(fields)) {
     switch (node.type) {
+      case 'AffectedRows': {
+        throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
+      }
+
       case 'Object': {
         if (!node.flattened && !Object.hasOwn(data, name)) {
           throw new DataMapperError(
@@ -69,6 +79,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         result[name] = mapArrayOrObject(target, node.fields)
         break
       }
+
       case 'Value':
         {
           const dbName = node.dbName
