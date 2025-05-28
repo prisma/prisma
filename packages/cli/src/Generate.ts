@@ -314,6 +314,13 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
 
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+
+        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+        if (!schemaResult) return ''
+
+        const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+        const directoryConfig = inferDirectoryConfig(schemaContext)
+
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
