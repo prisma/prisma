@@ -91,7 +91,9 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
 }
 
 function mapValue(value: unknown, columnName: string, resultType: PrismaValueType): unknown {
-  if (value === null) return null
+  if (value === null) {
+    return resultType.type === 'Array' ? [] : null
+  }
 
   switch (resultType.type) {
     case 'Any':
