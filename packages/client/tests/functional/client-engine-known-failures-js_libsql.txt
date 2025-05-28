@@ -10,7 +10,6 @@ issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_libsql) should
 issues.15644-middleware-arg-types (provider=sqlite, js_libsql) middleware with updateMany
 issues.21369-select-null (provider=sqlite, js_libsql) SELECT NULL works
 issues.22947-sqlite-conccurrent-upsert (provider=sqlite, js_libsql) concurrent upserts should succeed
-methods.createMany (provider=sqlite, js_libsql) should create many records
 metrics.enabled (provider=sqlite, js_libsql) after a query includes global labels in json format
 metrics.enabled (provider=sqlite, js_libsql) after a query includes global labels in prometheus format
 metrics.enabled (provider=sqlite, js_libsql) after a query returns metrics in json format

@@ -14,7 +14,6 @@ issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName 
 issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
 issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent upserts should succeed
-methods.createMany (provider=postgresql, js_pg) should create many records
 methods.findFirstOrThrow (provider=postgresql, js_pg) works with transactions
 methods.findUniqueOrThrow (provider=postgresql, js_pg) works with transactions
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in json format

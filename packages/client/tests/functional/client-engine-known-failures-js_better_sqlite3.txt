@@ -21,7 +21,6 @@ issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation mo
 issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 issues.21369-select-null (provider=sqlite, js_better_sqlite3) SELECT NULL works
 issues.22947-sqlite-conccurrent-upsert (provider=sqlite, js_better_sqlite3) concurrent upserts should succeed
-methods.createMany (provider=sqlite, js_better_sqlite3) should create many records
 methods.findFirstOrThrow (provider=sqlite, js_better_sqlite3) works with transactions
 methods.findUniqueOrThrow (provider=sqlite, js_better_sqlite3) works with transactions
 metrics.enabled (provider=sqlite, js_better_sqlite3) after a query includes global labels in json format
