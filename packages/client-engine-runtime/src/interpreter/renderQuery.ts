@@ -39,7 +39,11 @@ function evaluateParams(params: PrismaValue[], scope: ScopeBindings, generators:
   return params.map((param) => evaluateParam(param, scope, generators))
 }
 
-function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
+export function evaluateParam(
+  param: PrismaValue,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): unknown {
   let value: unknown = param
 
   while (doesRequireEvaluation(value)) {
