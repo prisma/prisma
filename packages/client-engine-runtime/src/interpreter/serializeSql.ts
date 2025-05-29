@@ -34,6 +34,15 @@ export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown
           value === null ? null : typeof value === 'number' ? value : parseInt(`${value}`, 10)
       case 'bigint':
         return (value: unknown) => (value === null ? null : typeof value === 'bigint' ? value : BigInt(`${value}`))
+      case 'json':
+        return (value: unknown) => (typeof value === 'string' ? JSON.parse(value) : value)
+      case 'bool':
+        return (value: unknown) =>
+          typeof value === 'string'
+            ? value === 'true' || value === '1'
+            : typeof value === 'number'
+            ? value === 1
+            : value
       default:
         return (value: unknown) => value
     }
