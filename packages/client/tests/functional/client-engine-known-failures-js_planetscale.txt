@@ -42,6 +42,7 @@ _example (provider=mysql, previewFeatures=relationJoins, js_planetscale) findMan
 0-legacy-ports.query-raw (provider=mysql, js_planetscale) select fields via queryRaw using Prisma.join and Prisma.sql
 0-legacy-ports.query-raw (provider=mysql, js_planetscale) select values via queryRawUnsafe
 0-legacy-ports.query-raw (provider=mysql, js_planetscale) select with alias via queryRaw
+batch-transaction-isolation-level (provider=mysql, js_planetscale) default value generates no SET TRANSACTION ISOLATION LEVEL statements (unless running MSSQL)
 batching (provider=mysql, js_planetscale) batches findUnique
 batching (provider=mysql, js_planetscale) batches findUnique with re-ordered selection
 batching (provider=mysql, js_planetscale) batches findUniqueOrThrow
@@ -390,6 +391,7 @@ json-null-types (provider=mysql, js_planetscale) nullableJsonField DbNull
 json-null-types (provider=mysql, js_planetscale) nullableJsonField JsonNull
 json-null-types (provider=mysql, js_planetscale) requiredJsonField JsonNull
 large-floats (provider=mysql, js_planetscale) floats
+logging (provider=mysql, js_planetscale) should log batched queries inside a ITX
 logging (provider=mysql, js_planetscale) should log queries inside a ITX
 logging (provider=mysql, js_planetscale) should log transaction batched queries
 max_bind_value (provider=mysql, js_planetscale) create user with nested connect with more than 98 posts should succeed
