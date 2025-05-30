@@ -55,9 +55,14 @@ const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
-// Listen to Ctr + C and exit
 process.once('SIGINT', () => {
-  process.exit(130)
+  process.exitCode = 130
+
+  // no further downstream listeners for SIGINT, exit immediately with the code set above.
+  if (process.listenerCount('SIGINT') === 0) {
+    process.exit()
+  }
+  // otherwise, let the downstream listeners handle it.
 })
 
 // Parse CLI arguments
