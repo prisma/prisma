@@ -56,6 +56,7 @@ export type PrismaValueType =
   | { type: 'Array'; inner: PrismaValueType }
   | { type: 'Object' }
   | { type: 'Bytes' }
+  | { type: 'Enum'; inner: string }
 
 export type ResultNode =
   | {
@@ -183,6 +184,7 @@ export type QueryPlanNode =
       args: {
         expr: QueryPlanNode
         structure: ResultNode
+        enums: Record<string, Record<string, string>>
       }
     }
   | {
