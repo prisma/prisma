@@ -8,7 +8,7 @@ import { rethrowAsUserFacing } from '../UserFacingError'
 import { assertNever, doKeysMatch } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
-import { renderQuery } from './renderQuery'
+import { evaluateParam, renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serializeSql'
 import { doesSatisfyRule, performValidation } from './validation'
@@ -66,9 +66,14 @@ export class QueryInterpreter {
   }
 
   async run(queryPlan: QueryPlanNode, queryable: SqlQueryable): Promise<unknown> {
-    return this.interpretNode(queryPlan, queryable, this.#placeholderValues, this.#generators.snapshot()).catch((e) =>
-      rethrowAsUserFacing(e),
-    )
+    const { value } = await this.interpretNode(
+      queryPlan,
+      queryable,
+      this.#placeholderValues,
+      this.#generators.snapshot(queryable.provider),
+    ).catch((e) => rethrowAsUserFacing(e))
+
+    return value
   }
 
   private async interpretNode(
@@ -76,24 +81,25 @@ export class QueryInterpreter {
     queryable: SqlQueryable,
     scope: ScopeBindings,
     generators: GeneratorRegistrySnapshot,
-  ): Promise<Value> {
+  ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'seq': {
-        let result: Value
+        let result: IntermediateValue | undefined
         for (const arg of node.args) {
           result = await this.interpretNode(arg, queryable, scope, generators)
         }
-        return result
+        return result ?? { value: undefined }
       }
 
       case 'get': {
-        return scope[node.args.name]
+        return { value: scope[node.args.name] }
       }
 
       case 'let': {
         const nestedScope: ScopeBindings = Object.create(scope)
         for (const binding of node.args.bindings) {
-          nestedScope[binding.name] = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+          const { value } = await this.interpretNode(binding.expr, queryable, nestedScope, generators)
+          nestedScope[binding.name] = value
         }
         return this.interpretNode(node.args.expr, queryable, nestedScope, generators)
       }
@@ -102,80 +108,89 @@ export class QueryInterpreter {
         for (const name of node.args.names) {
           const value = scope[name]
           if (!isEmpty(value)) {
-            return value
+            return { value }
           }
         }
-        return []
+        return { value: [] }
       }
 
       case 'concat': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators)))
-        return parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : []
+        const parts = await Promise.all(
+          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+        )
+        return {
+          value: parts.length > 0 ? parts.reduce<Value[]>((acc, part) => acc.concat(asList(part)), []) : [],
+        }
       }
 
       case 'sum': {
-        const parts = await Promise.all(node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators)))
-        return parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0
+        const parts = await Promise.all(
+          node.args.map((arg) => this.interpretNode(arg, queryable, scope, generators).then((res) => res.value)),
+        )
+        return {
+          value: parts.length > 0 ? parts.reduce((acc, part) => asNumber(acc) + asNumber(part)) : 0,
+        }
       }
 
       case 'execute': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQuerySpanAndEvent(query, queryable, async () => {
-          return await queryable.executeRaw(query)
+          return { value: await queryable.executeRaw(query) }
         })
       }
 
       case 'query': {
         const query = renderQuery(node.args, scope, generators)
         return this.#withQuerySpanAndEvent(query, queryable, async () => {
+          const result = await queryable.queryRaw(query)
           if (node.args.type === 'rawSql') {
-            return this.#rawSerializer(await queryable.queryRaw(query))
+            return { value: this.#rawSerializer(result), lastInsertId: result.lastInsertId }
           } else {
-            return this.#serializer(await queryable.queryRaw(query))
+            return { value: this.#serializer(result), lastInsertId: result.lastInsertId }
           }
         })
       }
 
       case 'reverse': {
-        const value = await this.interpretNode(node.args, queryable, scope, generators)
-        return Array.isArray(value) ? value.reverse() : value
+        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
+        return { value: Array.isArray(value) ? value.reverse() : value, lastInsertId }
       }
 
       case 'unique': {
-        const value = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
         if (!Array.isArray(value)) {
-          return value
+          return { value, lastInsertId }
         }
         if (value.length > 1) {
           throw new Error(`Expected zero or one element, got ${value.length}`)
         }
-        return value[0] ?? null
+        return { value: value[0] ?? null, lastInsertId }
       }
 
       case 'required': {
-        const value = await this.interpretNode(node.args, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args, queryable, scope, generators)
         if (isEmpty(value)) {
           throw new Error('Required value is empty')
         }
-        return value
+        return { value, lastInsertId }
       }
 
       case 'mapField': {
-        const value = await this.interpretNode(node.args.records, queryable, scope, generators)
-        return mapField(value, node.args.field)
+        const { value, lastInsertId } = await this.interpretNode(node.args.records, queryable, scope, generators)
+        return { value: mapField(value, node.args.field), lastInsertId }
       }
 
       case 'join': {
-        const parent = await this.interpretNode(node.args.parent, queryable, scope, generators)
+        const { value: parent, lastInsertId } = await this.interpretNode(node.args.parent, queryable, scope, generators)
 
         if (parent === null) {
-          return null
+          return { value: null, lastInsertId }
         }
 
         const children = (await Promise.all(
           node.args.children.map(async (joinExpr) => ({
             joinExpr,
-            childRecords: await this.interpretNode(joinExpr.child, queryable, scope, generators),
+            childRecords: (await this.interpretNode(joinExpr.child, queryable, scope, generators)).value,
           })),
         )) satisfies JoinExpressionWithRecords[]
 
@@ -183,10 +198,10 @@ export class QueryInterpreter {
           for (const record of parent) {
             attachChildrenToParent(asRecord(record), children)
           }
-          return parent
+          return { value: parent, lastInsertId }
         }
 
-        return attachChildrenToParent(asRecord(parent), children)
+        return { value: attachChildrenToParent(asRecord(parent), children), lastInsertId }
       }
 
       case 'transaction': {
@@ -208,19 +223,19 @@ export class QueryInterpreter {
       }
 
       case 'dataMap': {
-        const data = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        return applyDataMap(data, node.args.structure)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        return { value: applyDataMap(value, node.args.structure), lastInsertId }
       }
 
       case 'validate': {
-        const data = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        performValidation(data, node.args.rules, node.args)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        performValidation(value, node.args.rules, node.args)
 
-        return data
+        return { value, lastInsertId }
       }
 
       case 'if': {
-        const value = await this.interpretNode(node.args.value, queryable, scope, generators)
+        const { value } = await this.interpretNode(node.args.value, queryable, scope, generators)
         if (doesSatisfyRule(value, node.args.rule)) {
           return await this.interpretNode(node.args.then, queryable, scope, generators)
         } else {
@@ -229,18 +244,18 @@ export class QueryInterpreter {
       }
 
       case 'unit': {
-        return undefined
+        return { value: undefined }
       }
 
       case 'diff': {
-        const from = await this.interpretNode(node.args.from, queryable, scope, generators)
-        const to = await this.interpretNode(node.args.to, queryable, scope, generators)
+        const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
+        const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
         const toSet = new Set(asList(to))
-        return asList(from).filter((item) => !toSet.has(item))
+        return { value: asList(from).filter((item) => !toSet.has(item)) }
       }
 
       case 'distinctBy': {
-        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
         const seen = new Set()
         const result: Value[] = []
         for (const item of asList(value)) {
@@ -250,11 +265,11 @@ export class QueryInterpreter {
             result.push(item)
           }
         }
-        return result
+        return { value: result, lastInsertId }
       }
 
       case 'paginate': {
-        const value = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
         const list = asList(value)
 
         const linkingFields = node.args.pagination.linkingFields
@@ -271,10 +286,28 @@ export class QueryInterpreter {
           const groupList = Array.from(groupedByParent.entries())
           groupList.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
 
-          return groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination))
+          return {
+            value: groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination)),
+            lastInsertId,
+          }
         }
 
-        return paginate(list as {}[], node.args.pagination)
+        return { value: paginate(list as {}[], node.args.pagination), lastInsertId }
+      }
+
+      case 'extendRecord': {
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+        const record = value === null ? {} : asRecord(value)
+
+        for (const [key, entry] of Object.entries(node.args.values)) {
+          if (entry.type === 'lastInsertId') {
+            record[key] = lastInsertId
+          } else {
+            record[key] = evaluateParam(entry.value, scope, generators)
+          }
+        }
+
+        return { value: record, lastInsertId }
       }
 
       default:
@@ -292,6 +325,8 @@ export class QueryInterpreter {
     })
   }
 }
+
+type IntermediateValue = { value: Value; lastInsertId?: string }
 
 function isEmpty(value: Value): boolean {
   if (Array.isArray(value)) {

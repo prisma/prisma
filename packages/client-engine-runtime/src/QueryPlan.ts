@@ -225,6 +225,13 @@ export type QueryPlanNode =
         pagination: Pagination
       }
     }
+  | {
+      type: 'extendRecord'
+      args: {
+        expr: QueryPlanNode
+        values: Record<string, { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }>
+      }
+    }
 
 export type Pagination = {
   cursor: Record<string, PrismaValue> | null
