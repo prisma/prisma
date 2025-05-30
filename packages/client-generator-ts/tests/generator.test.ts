@@ -224,10 +224,10 @@ describe('generator', () => {
 
       await generator.generate()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`
-      [Error: An output path is required for the \`prisma-client-ts\` generator. Please provide an output path in your schema file:
+      [Error: An output path is required for the \`prisma-client\` generator. Please provide an output path in your schema file:
 
       generator client {
-        provider = "prisma-client-ts"
+        provider = "prisma-client"
         output   = "../src/generated"
       }
 
