@@ -25,26 +25,43 @@ export function getCliQueryEngineBinaryType(): BinaryType {
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
 }
-export async function ensureBinariesExist() {
+
+type EnsureSomeBinariesExistInput = {
+  clientEngineType: 'library' | 'binary' | 'client'
+  previewFeatures: string[]
+}
+
+export async function ensureNeededBinariesExist({ clientEngineType, previewFeatures }: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
-  let binaryTargets: string[] | undefined
-  if (process.env.PRISMA_CLI_BINARY_TARGETS) {
-    binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS.split(',')
-  }
-
-  const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-
+  
   const binaries = {
-    [cliQueryEngineBinaryType]: binaryDir,
+    // Schema engine is always needed, as `SchemaEngineWasm` is currently not gated behind a preview feature
     [BinaryType.SchemaEngineBinary]: binaryDir,
   }
+  
+  // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
+  // QE is enabled explicitly by specifying the engineType generator property.
+  const usesQueryCompiler = previewFeatures.includes('queryCompiler') && clientEngineType === 'client'
+
+  if (!usesQueryCompiler) {
+    // Note: Prisma 6 ignores the actual `clientEngineType`.
+    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+
+    binaries[cliQueryEngineBinaryType] = binaryDir
+  }
+
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
+  
+  const binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS
+    ? process.env.PRISMA_CLI_BINARY_TARGETS.split(',') as BinaryTarget[]
+    : undefined
+
   await download({
     binaries: binaries,
     showProgress: true,
     version: enginesVersion,
     failSilent: false,
-    binaryTargets: binaryTargets as BinaryTarget[],
+    binaryTargets,
   })
 }
 

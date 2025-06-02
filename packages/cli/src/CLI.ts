@@ -1,9 +1,10 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { ensureBinariesExist } from '@prisma/engines'
+import { ensureNeededBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 
+import { getClientInfoFromSchema } from './utils/client'
 import { Version } from './Version'
 
 /**
@@ -34,14 +35,21 @@ export class CLI implements Command {
       return this.help(args.message)
     }
 
-    if (args['--version']) {
-      await ensureBinariesExist()
-      return Version.new().parse(argv, config)
-    }
-
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
       return this.help()
+    }
+
+    const { previewFeatures, engineType } = await getClientInfoFromSchema({
+      schemaPathFromConfig: config.schema,
+      schemaPathFromArg: args['--schema'],
+    }).catch((error) => {
+      throw new Error('Cannot read schema information', { cause: error })
+    })
+
+    if (args['--version']) {
+      await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })
+      return Version.new().parse(argv, config)
     }
 
     // check if we have that subcommand
@@ -65,7 +73,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        await ensureBinariesExist()
+        await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })
       }
 
       let argsForCmd: string[]
