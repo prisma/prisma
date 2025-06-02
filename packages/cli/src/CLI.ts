@@ -1,4 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
+import { Debug } from '@prisma/debug'
 import { ensureNeededBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
@@ -6,6 +7,8 @@ import { bold, dim, green, red, underline } from 'kleur/colors'
 
 import { getClientInfoFromSchema } from './utils/client'
 import { Version } from './Version'
+
+const debug = Debug('prisma:cli')
 
 /**
  * CLI command
@@ -43,9 +46,15 @@ export class CLI implements Command {
     const { previewFeatures, engineType } = await getClientInfoFromSchema({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg: args['--schema'],
-    }).catch((error) => {
-      throw new Error('Cannot read schema information', { cause: error })
     })
+      .catch((error) => {
+        const e = error as Error
+        debug('Failed to read schema information. Using default values: %o', e)
+        return {
+          previewFeatures: [],
+          engineType: 'library' as const,
+        }
+      })
 
     if (args['--version']) {
       await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })

@@ -7,7 +7,7 @@ type GetClientInfoFromSchemaInput = {
 
 type ClientInfo = {
   previewFeatures: string[]
-  engineType: ClientEngineType
+  engineType: `${ClientEngineType}`
 }
 
 export async function getClientInfoFromSchema(
