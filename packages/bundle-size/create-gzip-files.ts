@@ -37,7 +37,7 @@ void (async () => {
     await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
       .catch((error) => {
         const e = error as Error
-        console.error(`Failed to generate Prisma Client from ${projectDir}/schema.prisma`)
+        console.error(`Failed to generate Prisma Client from ${getSchemaFile(project)} (copied to ${projectDir}/schema.prisma)`)
         throw e
       })
 

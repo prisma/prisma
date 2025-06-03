@@ -10,9 +10,10 @@ type ClientInfo = {
   engineType: `${ClientEngineType}`
 }
 
-export async function getClientInfoFromSchema(
-  { schemaPathFromConfig, schemaPathFromArg }: GetClientInfoFromSchemaInput,
-): Promise<ClientInfo> {
+export async function getClientInfoFromSchema({
+  schemaPathFromConfig,
+  schemaPathFromArg,
+}: GetClientInfoFromSchemaInput): Promise<ClientInfo> {
   const { generators } = await loadSchemaContext({
     schemaPathFromConfig,
     schemaPathFromArg,
@@ -20,8 +21,8 @@ export async function getClientInfoFromSchema(
   })
 
   const prismaClientGenerator = generators
-    .filter((g) => ['prisma-client-js', 'prisma-client']
-      .includes(g.provider.value!) // if provider wasn't set, `prisma validate` would fail
+    .filter(
+      (g) => ['prisma-client-js', 'prisma-client'].includes(g.provider.value!), // if provider wasn't set, `prisma validate` would fail
     )
     .shift()
 

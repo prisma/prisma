@@ -46,15 +46,14 @@ export class CLI implements Command {
     const { previewFeatures, engineType } = await getClientInfoFromSchema({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg: args['--schema'],
+    }).catch((error) => {
+      const e = error as Error
+      debug('Failed to read schema information. Using default values: %o', e)
+      return {
+        previewFeatures: [],
+        engineType: 'library' as const,
+      }
     })
-      .catch((error) => {
-        const e = error as Error
-        debug('Failed to read schema information. Using default values: %o', e)
-        return {
-          previewFeatures: [],
-          engineType: 'library' as const,
-        }
-      })
 
     if (args['--version']) {
       await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })
