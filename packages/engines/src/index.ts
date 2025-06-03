@@ -1,6 +1,7 @@
 import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
+import { BinaryType } from '@prisma/fetch-engine'
 import type { BinaryTarget } from '@prisma/get-platform'
 import path from 'path'
 
@@ -29,31 +30,37 @@ export function getCliQueryEngineBinaryType(): BinaryType {
 type EnsureSomeBinariesExistInput = {
   clientEngineType: 'library' | 'binary' | 'client'
   previewFeatures: string[]
+  download: (options: DownloadOptions) => Promise<BinaryPaths>
 }
 
-export async function ensureNeededBinariesExist({ clientEngineType, previewFeatures }: EnsureSomeBinariesExistInput) {
+export async function ensureNeededBinariesExist({
+  clientEngineType,
+  previewFeatures,
+  download,
+}: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
-  
+
   const binaries = {
     // Schema engine is always needed, as `SchemaEngineWasm` is currently not gated behind a preview feature
     [BinaryType.SchemaEngineBinary]: binaryDir,
   }
-  
+
   // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
   // QE is enabled explicitly by specifying the engineType generator property.
   const usesQueryCompiler = previewFeatures.includes('queryCompiler') && clientEngineType === 'client'
 
   if (!usesQueryCompiler) {
     // Note: Prisma 6 ignores the actual `clientEngineType`.
-    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+    const cliQueryEngineBinaryType =
+      clientEngineType === 'binary' ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
 
     binaries[cliQueryEngineBinaryType] = binaryDir
   }
 
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
-  
+
   const binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS
-    ? process.env.PRISMA_CLI_BINARY_TARGETS.split(',') as BinaryTarget[]
+    ? (process.env.PRISMA_CLI_BINARY_TARGETS.split(',') as BinaryTarget[])
     : undefined
 
   await download({

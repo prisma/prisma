@@ -1,6 +1,7 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { ensureNeededBinariesExist } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
@@ -59,7 +60,7 @@ export class CLI implements Command {
     })
 
     if (args['--version']) {
-      await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })
+      await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures, download })
       return Version.new().parse(argv, config)
     }
 
@@ -84,7 +85,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures })
+        await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures, download })
       }
 
       let argsForCmd: string[]
