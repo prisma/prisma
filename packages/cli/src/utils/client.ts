@@ -1,3 +1,4 @@
+import type { GeneratorConfig } from '@prisma/generator'
 import { ClientEngineType, getClientEngineType, loadSchemaContext } from '@prisma/internals'
 
 type GetClientInfoFromSchemaInput = {
@@ -10,7 +11,7 @@ type ClientInfo = {
   engineType: `${ClientEngineType}`
 }
 
-export async function getClientInfoFromSchema({
+export async function getClientGeneratorInfo({
   schemaPathFromConfig,
   schemaPathFromArg,
 }: GetClientInfoFromSchemaInput): Promise<ClientInfo> {
@@ -22,9 +23,10 @@ export async function getClientInfoFromSchema({
 
   const prismaClientGenerator = generators
     .filter(
-      (g) => ['prisma-client-js', 'prisma-client'].includes(g.provider.value!), // if provider wasn't set, `prisma validate` would fail
+      // if provider wasn't set, `prisma validate` would fail
+      (g) => ['prisma-client-js', 'prisma-client'].includes(g.provider.value!),
     )
-    .shift()
+    .shift() satisfies GeneratorConfig | undefined
 
   const engineType = getClientEngineType(prismaClientGenerator)
   const previewFeatures = prismaClientGenerator?.previewFeatures ?? []

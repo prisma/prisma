@@ -5,7 +5,7 @@ import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 
-import { getClientInfoFromSchema } from './utils/client'
+import { getClientGeneratorInfo } from './utils/client'
 import { Version } from './Version'
 
 const debug = Debug('prisma:cli')
@@ -39,11 +39,14 @@ export class CLI implements Command {
     }
 
     // display help for help flag or no subcommand
-    if (args._.length === 0 || args['--help']) {
+    if (!args['--version'] && (args._.length === 0 || args['--help'])) {
       return this.help()
     }
 
-    const { previewFeatures, engineType } = await getClientInfoFromSchema({
+    // Extract client generator info once, use it for either `prisma --version`, or
+    // for any other supported command. If no client generator is successfully found,
+    // use sensible default values.
+    const { previewFeatures, engineType } = await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg: args['--schema'],
     }).catch((error) => {
