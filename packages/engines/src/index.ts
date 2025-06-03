@@ -14,9 +14,7 @@ export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrar
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(
-  clientEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE,
-): BinaryType {
+export function getCliQueryEngineBinaryType(clientEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE): BinaryType {
   if (clientEngineType === 'binary') {
     return BinaryType.QueryEngineBinary
   }
