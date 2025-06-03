@@ -8,7 +8,7 @@ export class DataMapperError extends Error {
   name = 'DataMapperError'
 }
 
-export function applyDataMap(data: Value, structure: ResultNode): Value {
+export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
   switch (structure.type) {
     case 'AffectedRows':
       if (typeof data !== 'number') {
@@ -17,27 +17,31 @@ export function applyDataMap(data: Value, structure: ResultNode): Value {
       return { count: data }
 
     case 'Object':
-      return mapArrayOrObject(data, structure.fields)
+      return mapArrayOrObject(data, structure.fields, enums)
 
     case 'Value':
-      return mapValue(data, '<result>', structure.resultType)
+      return mapValue(data, '<result>', structure.resultType, enums)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
   }
 }
 
-function mapArrayOrObject(data: Value, fields: Record<string, ResultNode>): PrismaObject | PrismaObject[] | null {
+function mapArrayOrObject(
+  data: Value,
+  fields: Record<string, ResultNode>,
+  enums: Record<string, Record<string, string>>,
+): PrismaObject | PrismaObject[] | null {
   if (data === null) return null
 
   if (Array.isArray(data)) {
     const rows = data as PrismaObject[]
-    return rows.map((row) => mapObject(row, fields))
+    return rows.map((row) => mapObject(row, fields, enums))
   }
 
   if (typeof data === 'object') {
     const row = data as PrismaObject
-    return mapObject(row, fields)
+    return mapObject(row, fields, enums)
   }
 
   if (typeof data === 'string') {
@@ -49,14 +53,18 @@ function mapArrayOrObject(data: Value, fields: Record<string, ResultNode>): Pris
         cause: error,
       })
     }
-    return mapArrayOrObject(decodedData, fields)
+    return mapArrayOrObject(decodedData, fields, enums)
   }
 
   throw new DataMapperError(`Expected an array or an object, got: ${typeof data}`)
 }
 
 // Recursive
-function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): PrismaObject {
+function mapObject(
+  data: PrismaObject,
+  fields: Record<string, ResultNode>,
+  enums: Record<string, Record<string, string>>,
+): PrismaObject {
   if (typeof data !== 'object') {
     throw new DataMapperError(`Expected an object, but got '${typeof data}'`)
   }
@@ -76,7 +84,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         }
 
         const target = node.flattened ? data : data[name]
-        result[name] = mapArrayOrObject(target, node.fields)
+        result[name] = mapArrayOrObject(target, node.fields, enums)
         break
       }
 
@@ -84,7 +92,7 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
         {
           const dbName = node.dbName
           if (Object.hasOwn(data, dbName)) {
-            result[name] = mapValue(data[dbName], dbName, node.resultType)
+            result[name] = mapValue(data[dbName], dbName, node.resultType, enums)
           } else {
             throw new DataMapperError(
               `Missing data field (Value): '${dbName}'; ` +
@@ -101,7 +109,12 @@ function mapObject(data: PrismaObject, fields: Record<string, ResultNode>): Pris
   return result
 }
 
-function mapValue(value: unknown, columnName: string, resultType: PrismaValueType): unknown {
+function mapValue(
+  value: unknown,
+  columnName: string,
+  resultType: PrismaValueType,
+  enums: Record<string, Record<string, string>>,
+): unknown {
   if (value === null) {
     return resultType.type === 'Array' ? [] : null
   }
@@ -201,7 +214,7 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
 
     case 'Array': {
       const values = value as unknown[]
-      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner))
+      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner, enums))
     }
 
     case 'Object': {
@@ -220,6 +233,18 @@ function mapValue(value: unknown, columnName: string, resultType: PrismaValueTyp
         return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
       }
       throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
+    }
+
+    case 'Enum': {
+      const enumDef = enums[resultType.inner]
+      if (enumDef === undefined) {
+        throw new DataMapperError(`Unknown enum '${resultType.inner}'`)
+      }
+      const enumValue = enumDef[`${value}`]
+      if (enumValue === undefined) {
+        throw new DataMapperError(`Unknown enum value '${value}' for enum '${resultType.inner}'`)
+      }
+      return enumValue
     }
 
     default:

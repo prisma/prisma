@@ -224,7 +224,7 @@ export class QueryInterpreter {
 
       case 'dataMap': {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        return { value: applyDataMap(value, node.args.structure), lastInsertId }
+        return { value: applyDataMap(value, node.args.structure, node.args.enums), lastInsertId }
       }
 
       case 'validate': {
