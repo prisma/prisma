@@ -163,6 +163,8 @@ async function main(): Promise<number> {
       rules: new SubCommand('@prisma/cli-security-rules'),
       // TODO: add dev subcommand to --help after it works.
       dev: new SubCommand('@prisma/cli-dev'),
+      // TODO: add login subcommand to --help after it works.
+      login: new SubCommand('@prisma/cli-login'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
