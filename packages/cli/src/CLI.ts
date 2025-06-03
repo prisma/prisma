@@ -47,7 +47,7 @@ export class CLI implements Command {
     // Extract client generator info once, use it for either `prisma --version`, or
     // for any other supported command. If no client generator is successfully found,
     // use sensible default values.
-    const { previewFeatures, engineType } = await getClientGeneratorInfo({
+    const { engineType } = await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg: args['--schema'],
     }).catch((error) => {
@@ -60,7 +60,7 @@ export class CLI implements Command {
     })
 
     if (args['--version']) {
-      await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures, download })
+      await ensureNeededBinariesExist({ clientEngineType: engineType, download })
       return Version.new().parse(argv, config)
     }
 
@@ -85,7 +85,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        await ensureNeededBinariesExist({ clientEngineType: engineType, previewFeatures, download })
+        await ensureNeededBinariesExist({ clientEngineType: engineType, download })
       }
 
       let argsForCmd: string[]

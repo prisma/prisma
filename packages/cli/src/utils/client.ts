@@ -7,7 +7,6 @@ type GetClientInfoFromSchemaInput = {
 }
 
 type ClientInfo = {
-  previewFeatures: string[]
   engineType: `${ClientEngineType}`
 }
 
@@ -29,10 +28,8 @@ export async function getClientGeneratorInfo({
     .shift() satisfies GeneratorConfig | undefined
 
   const engineType = getClientEngineType(prismaClientGenerator)
-  const previewFeatures = prismaClientGenerator?.previewFeatures ?? []
 
   return {
-    previewFeatures,
     engineType,
   }
 }

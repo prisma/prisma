@@ -23,15 +23,10 @@ export function getCliQueryEngineBinaryType(clientEngineType = process.env.PRISM
 
 type EnsureSomeBinariesExistInput = {
   clientEngineType: 'library' | 'binary' | 'client'
-  previewFeatures: string[]
   download: (options: DownloadOptions) => Promise<BinaryPaths>
 }
 
-export async function ensureNeededBinariesExist({
-  clientEngineType,
-  previewFeatures,
-  download,
-}: EnsureSomeBinariesExistInput) {
+export async function ensureNeededBinariesExist({ clientEngineType, download }: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
 
   const binaries = {
@@ -41,7 +36,7 @@ export async function ensureNeededBinariesExist({
 
   // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
   // QE is enabled explicitly by specifying the engineType generator property.
-  const usesQueryCompiler = previewFeatures.includes('queryCompiler') && clientEngineType === 'client'
+  const usesQueryCompiler = clientEngineType === 'client'
 
   if (!usesQueryCompiler) {
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType(clientEngineType)
