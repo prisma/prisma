@@ -44,14 +44,13 @@
   },
   "devDependencies": {
     "@types/pluralize": "0.0.33",
-    "strip-ansi": "7.1.0",
-    "vitest": "3.0.9"
+    "strip-ansi": "7.1.0"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "vitest run --testTimeout 30000"
+    "test": "vitest run --config ../../vitest.config.ts --testTimeout 30000"
   },
   "files": [
     "dist"

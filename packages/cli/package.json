@@ -114,7 +114,6 @@
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
@@ -159,7 +158,6 @@
     "strip-ansi": "6.0.1",
     "ts-pattern": "5.6.2",
     "typescript": "5.4.5",
-    "vitest": "3.1.3",
     "xdg-app-paths": "8.3.0",
     "zod": "3.24.2",
     "zx": "8.4.1"
@@ -178,7 +176,8 @@
   },
   "dependencies": {
     "@prisma/config": "workspace:*",
-    "@prisma/engines": "workspace:*"
+    "@prisma/engines": "workspace:*",
+    "@prisma/fetch-engine": "workspace:*"
   },
   "peerDependencies": {
     "typescript": ">=5.1.0"
