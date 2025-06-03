@@ -29,7 +29,7 @@ export function buildQueryEngineWasmModule(
   // isn't able to handle dynamic imports with `import(#MODULE_NAME)`, which used
   // to lead to a runtime "No such module .prisma/client/#wasm-engine-loader" error.
   // Related issue: https://github.com/vitest-dev/vitest/issues/5486.
-  if (copyEngine && wasm === true) {
+  if (copyEngine && wasm === true && runtimeNameJs === 'wasm-engine-edge') {
     return `config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),
   getQueryEngineWasmModule: async () => {

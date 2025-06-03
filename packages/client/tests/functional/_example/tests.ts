@@ -78,9 +78,4 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
-  {
-    skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
-    },
-  },
 )

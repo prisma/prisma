@@ -139,10 +139,11 @@ const defaultFillersConfig: Fillers = {
   path: { imports: path.join(__dirname, 'fillers', 'path.ts') },
   tty: { imports: path.join(__dirname, 'fillers', 'tty.ts') },
   util: { imports: path.join(__dirname, 'fillers', 'util.ts') },
+  crypto: { imports: path.join(__dirname, 'fillers', 'crypto.ts') },
+  'node:crypto': { imports: path.join(__dirname, 'fillers', 'crypto.ts') },
 
   // disabled
   constants: { contents: '' },
-  crypto: { contents: '' },
   domain: { contents: '' },
   http: { contents: '' },
   https: { contents: '' },

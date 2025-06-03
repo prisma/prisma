@@ -218,10 +218,9 @@ export async function buildClient({
   }
 
   const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
+  const usesClientEngine = clientEngineType === ClientEngineType.Client
 
   if (usesWasmRuntime) {
-    const usesClientEngine = clientEngineType === ClientEngineType.Client
-
     // The trampoline client points to #main-entry-point (see below).  We use
     // imports similar to an exports map to ensure correct imports.❗ Before
     // going GA, please notify @millsp as some things can be cleaned up:
@@ -278,7 +277,7 @@ export async function buildClient({
 
     const wasmClient = new TSClient({
       ...baseClientOptions,
-      runtimeNameJs: 'wasm',
+      runtimeNameJs: usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge',
       runtimeNameTs: 'library.js',
       reusedTs: 'default',
       edge: true,
@@ -293,7 +292,7 @@ export async function buildClient({
   }
 
   if (typedSql && typedSql.length > 0) {
-    const edgeRuntimeName = usesWasmRuntime ? 'wasm' : 'edge'
+    const edgeRuntimeName = usesWasmRuntime ? (usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge') : 'edge'
     const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
     const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
     pkgJson.exports['./sql'] = {
@@ -746,7 +745,8 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'edge.js',
     'edge-esm.js',
     'react-native.js',
-    'wasm.js',
+    'wasm-engine-edge.js',
+    'wasm-compiler-edge.js',
   ]
 
   files.push(`${runtimeName}.js`)

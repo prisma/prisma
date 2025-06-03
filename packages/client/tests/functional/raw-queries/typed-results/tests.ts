@@ -112,7 +112,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm-engine-edge') {
         expect(result![0].bInt === 9007199254740991).toBe(true)
       } else {
         expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
@@ -128,7 +128,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm-engine-edge') {
         // It's a number
         expect(result![0].bInt === -9007199254740991).toBe(true)
       } else {
@@ -180,7 +180,7 @@ testMatrix.setupTestSuite(
         testIf(isBigIntNativelySupported)('BigInt is natively supported', async () => {
           const create = createBigIntMinSafeIntPlusMinSafeInt(prisma)
 
-          if (clientRuntime !== 'wasm') {
+          if (clientRuntime !== 'wasm-engine-edge') {
             if (driverAdapter === 'js_libsql') {
               await expect(create).rejects.toThrow(
                 `bigint is too large to be represented as a 64-bit integer and passed as argument`,
