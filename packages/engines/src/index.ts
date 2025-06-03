@@ -14,15 +14,11 @@ export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrar
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType {
-  const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
-  if (envCliQueryEngineType) {
-    if (envCliQueryEngineType === 'binary') {
-      return BinaryType.QueryEngineBinary
-    }
-    if (envCliQueryEngineType === 'library') {
-      return BinaryType.QueryEngineLibrary
-    }
+export function getCliQueryEngineBinaryType(
+  clientEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE,
+): BinaryType {
+  if (clientEngineType === 'binary') {
+    return BinaryType.QueryEngineBinary
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
 }
@@ -50,10 +46,7 @@ export async function ensureNeededBinariesExist({
   const usesQueryCompiler = previewFeatures.includes('queryCompiler') && clientEngineType === 'client'
 
   if (!usesQueryCompiler) {
-    // Note: Prisma 6 ignores the actual `clientEngineType`.
-    const cliQueryEngineBinaryType =
-      clientEngineType === 'binary' ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
-
+    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType(clientEngineType)
     binaries[cliQueryEngineBinaryType] = binaryDir
   }
 
