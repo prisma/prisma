@@ -2,6 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import {
   DbCommand,
@@ -168,6 +169,7 @@ async function main(): Promise<number> {
       login: new SubCommand('@prisma/cli-login'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    download,
   )
 
   await loadOrInitializeCommandState().catch((err) => {
