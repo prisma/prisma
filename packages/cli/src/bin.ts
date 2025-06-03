@@ -165,6 +165,8 @@ async function main(): Promise<number> {
       dev: new SubCommand('@prisma/cli-dev'),
       // TODO: add deploy subcommand to --help after it works.
       deploy: new SubCommand('@prisma/cli-deploy'),
+      // TODO: add login subcommand to --help after it works.
+      login: new SubCommand('@prisma/cli-login'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
   )
