@@ -56,7 +56,7 @@ describe('CLI', () => {
 
   describe('ensureNeededBinariesExist', () => {
     const originalEnv = process.env
-    process.env = { ...originalEnv } 
+    process.env = { ...originalEnv }
 
     beforeAll(() => {
       process.env = {
@@ -69,7 +69,7 @@ describe('CLI', () => {
     afterAll(() => {
       process.env = { ...originalEnv }
     })
-    
+
     describe('with config.migrate.adapter, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
