@@ -1,7 +1,7 @@
 import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
-import { JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
+import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
@@ -83,6 +83,10 @@ export class QueryInterpreter {
     generators: GeneratorRegistrySnapshot,
   ): Promise<IntermediateValue> {
     switch (node.type) {
+      case 'value': {
+        return { value: evaluateParam(node.args, scope, generators) }
+      }
+
       case 'seq': {
         let result: IntermediateValue | undefined
         for (const arg of node.args) {
@@ -295,18 +299,23 @@ export class QueryInterpreter {
         return { value: paginate(list as {}[], node.args.pagination), lastInsertId }
       }
 
-      case 'extendRecord': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        const record = value === null ? {} : asRecord(value)
+      case 'initializeRecord': {
+        const { lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
 
-        for (const [key, entry] of Object.entries(node.args.values)) {
-          if (entry.type === 'lastInsertId') {
-            record[key] = lastInsertId
-          } else {
-            record[key] = evaluateParam(entry.value, scope, generators)
-          }
+        const record = {}
+        for (const [key, initializer] of Object.entries(node.args.fields)) {
+          record[key] = evalFieldInitializer(initializer, lastInsertId, scope, generators)
         }
+        return { value: record, lastInsertId }
+      }
 
+      case 'mapRecord': {
+        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
+
+        const record = value === null ? {} : asRecord(value)
+        for (const [key, entry] of Object.entries(node.args.fields)) {
+          record[key] = evalFieldOperation(entry, record[key], scope, generators)
+        }
         return { value: record, lastInsertId }
       }
 
@@ -428,4 +437,42 @@ function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
  */
 function getRecordKey(record: {}, fields: string[]): string {
   return JSON.stringify(fields.map((field) => record[field]))
+}
+
+function evalFieldInitializer(
+  initializer: FieldInitializer,
+  lastInsertId: string | undefined,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): Value {
+  switch (initializer.type) {
+    case 'value':
+      return evaluateParam(initializer.value, scope, generators)
+    case 'lastInsertId':
+      return lastInsertId
+    default:
+      assertNever(initializer, `Unexpected field initializer type: ${initializer['type']}`)
+  }
+}
+
+function evalFieldOperation(
+  op: FieldOperation,
+  value: Value,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): Value {
+  switch (op.type) {
+    case 'set':
+      return evaluateParam(op.value, scope, generators)
+    case 'add':
+      return asNumber(value) + asNumber(evaluateParam(op.value, scope, generators))
+    case 'subtract':
+      return asNumber(value) - asNumber(evaluateParam(op.value, scope, generators))
+    case 'multiply':
+      return asNumber(value) * asNumber(evaluateParam(op.value, scope, generators))
+    case 'divide':
+      return asNumber(value) / asNumber(evaluateParam(op.value, scope, generators))
+    default:
+      assertNever(op, `Unexpected field operation type: ${op['type']}`)
+  }
 }
