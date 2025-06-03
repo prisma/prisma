@@ -135,8 +135,11 @@ ${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
-      Set up a new Prisma project
+      Set up a new local Prisma Postgres \`prisma dev\`-ready project
       ${dim('$')} prisma init
+
+      Start a local Prisma Postgres server for development
+      ${dim('$')} prisma dev
 
       Generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma generate
