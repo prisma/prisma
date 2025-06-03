@@ -29,7 +29,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "vitest run --config ../../vitest.config.ts",
+    "test": "jest --passWithNoTests",
     "prepublishOnly": "pnpm run build",
     "postinstall": "node scripts/postinstall.js"
   },

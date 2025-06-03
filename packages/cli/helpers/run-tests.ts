@@ -32,7 +32,7 @@ export async function main() {
     env: process.env,
   })
 
-  execa.sync('vitest', ['run', '--config', '../../vitest.config.ts', '--passWithNoTests', ...process.argv.slice(2)], {
+  execa.sync('vitest', ['run', '--passWithNoTests', ...process.argv.slice(2)], {
     preferLocal: true,
     stdio: 'inherit',
     env: process.env,

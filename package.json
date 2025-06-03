@@ -93,7 +93,6 @@
     "ts-toolbelt": "9.6.0",
     "tsx": "4.19.3",
     "typescript": "5.4.5",
-    "vitest": "3.2.0",
     "zx": "8.4.1"
   },
   "pnpm": {

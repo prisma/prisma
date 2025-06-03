@@ -27,13 +27,14 @@
     "xdg-app-paths": "8.3.0"
   },
   "devDependencies": {
-    "tempy": "1.0.1"
+    "tempy": "1.0.1",
+    "vitest": "3.1.3"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "vitest run --config ../../vitest.config.ts --testTimeout 30000"
+    "test": "vitest run --testTimeout 30000"
   },
   "files": [
     "dist"
