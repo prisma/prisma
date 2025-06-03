@@ -51,7 +51,8 @@ export class TSClient {
       return acc
     }, {})
 
-    const fileMap: FileMap = {
+    return {
+      [context.outputFileName('index')]: `export * from '${context.importFileName('./client')}'`,
       [context.outputFileName('client')]: createClientFile(context, this.options),
       [context.outputFileName('enums')]: createEnumsFile(context),
       [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),
@@ -62,11 +63,5 @@ export class TSClient {
         [context.outputFileName('class')]: createClassFile(context, this.options),
       },
     }
-
-    if (this.options.generateIndexFile) {
-      fileMap[context.outputFileName('index')] = `export * from '${context.importFileName('./client')}'`
-    }
-
-    return fileMap
   }
 }
