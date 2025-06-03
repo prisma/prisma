@@ -9,7 +9,7 @@ import { buildTypedQueryCjs, buildTypedQueryEsm, buildTypedQueryTs } from './bui
 type TypeSqlBuildOptions = {
   runtimeBase: string
   mainRuntimeName: string
-  edgeRuntimeName: 'wasm' | 'edge'
+  edgeRuntimeName: 'wasm-engine-edge' | 'wasm-compiler-edge' | 'edge'
   dmmf: DMMF.Document
   queries: SqlQueryOutput[]
 }

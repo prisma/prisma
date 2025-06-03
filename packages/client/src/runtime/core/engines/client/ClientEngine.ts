@@ -104,7 +104,7 @@ export class ClientEngine implements Engine<undefined> {
       debug('Using driver adapter: %O', config.adapter)
     }
 
-    if (TARGET_BUILD_TYPE === 'client') {
+    if (TARGET_BUILD_TYPE === 'client' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
       this.queryCompilerLoader = queryCompilerLoader ?? wasmQueryCompilerLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
@@ -198,7 +198,7 @@ export class ClientEngine implements Engine<undefined> {
   #transformRequestError(err: any): Error {
     if (err instanceof PrismaClientInitializationError) return err
 
-    if (err.code === 'GenericFailure' && err.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm')
+    if (err.code === 'GenericFailure' && err.message?.startsWith('PANIC:'))
       return new PrismaClientRustPanicError(getErrorMessageWithLink(this, err.message), this.config.clientVersion!)
 
     if (err instanceof UserFacingError) {

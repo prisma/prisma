@@ -161,17 +161,17 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 }
 
 // we define the config for wasm
-function wasmRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat): BuildOptions {
+function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, name: string): BuildOptions {
   return {
     ...runtimesCommonBuildConfig,
     format,
     target: 'ES2022',
-    name: 'wasm',
-    outfile: 'runtime/wasm',
+    name,
+    outfile: `runtime/${name}`,
     outExtension: getOutExtension(format),
     define: {
       ...runtimesCommonBuildConfig.define,
-      TARGET_BUILD_TYPE: '"wasm"',
+      TARGET_BUILD_TYPE: `"${name}"`,
     },
     plugins: [
       fillPlugin({
@@ -258,10 +258,10 @@ function* allNodeRuntimeBuildConfigs(): Generator<BuildOptions> {
   }
 }
 
-function* allWasmRuntimeConfigs(): Generator<BuildOptions> {
+function* allWasmEdgeRuntimeConfigs(): Generator<BuildOptions> {
   for (const component of WASM_COMPONENTS) {
     for (const format of MODULE_FORMATS) {
-      yield wasmRuntimeBuildConfig(component, format)
+      yield wasmEdgeRuntimeBuildConfig(component, format, `wasm-${component}-edge`)
     }
   }
 }
@@ -282,12 +282,13 @@ void build([
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
-  ...allWasmRuntimeConfigs(),
+  ...allWasmEdgeRuntimeConfigs(),
   ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,
   reactNativeBuildConfig,
   accelerateContractBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
-  writeDtsRexport('wasm.d.ts')
+  writeDtsRexport('wasm-engine-edge.d.ts')
+  writeDtsRexport('wasm-compiler-edge.d.ts')
 })

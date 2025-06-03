@@ -11,7 +11,6 @@ import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
-import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -37,7 +36,8 @@ import { PrismaClientClass } from './PrismaClient'
 type RuntimeName =
   | 'binary'
   | 'library'
-  | 'wasm'
+  | 'wasm-engine-edge'
+  | 'wasm-compiler-edge'
   | 'edge'
   | 'edge-esm'
   | 'index-browser'

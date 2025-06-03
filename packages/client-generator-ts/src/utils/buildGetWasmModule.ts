@@ -34,8 +34,9 @@ export function buildGetWasmModule({
     .with('client', () => component === 'compiler')
     .otherwise(() => false)
 
-  // We're missing an edge bundle for client engine right now
-  const buildEdgeLoader = runtimeName === 'wasm' && component === 'engine'
+  const buildEdgeLoader =
+    (runtimeName === 'wasm-engine-edge' && component === 'engine') ||
+    (runtimeName === 'wasm-compiler-edge' && component === 'compiler')
 
   if (buildNodeLoader) {
     return `config.${component}Wasm = {

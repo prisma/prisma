@@ -74,7 +74,14 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
+  const TARGET_BUILD_TYPE:
+    | 'binary'
+    | 'library'
+    | 'edge'
+    | 'wasm-engine-edge'
+    | 'wasm-compiler-edge'
+    | 'react-native'
+    | 'client'
 }
 
 // used by esbuild for tree-shaking
