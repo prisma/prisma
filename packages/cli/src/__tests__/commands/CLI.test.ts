@@ -55,6 +55,21 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
+    const originalEnv = process.env
+    process.env = { ...originalEnv } 
+
+    beforeAll(() => {
+      process.env = {
+        ...originalEnv,
+        PRISMA_CLI_QUERY_ENGINE_TYPE: undefined,
+        PRISMA_CLIENT_ENGINE_TYPE: undefined,
+      }
+    })
+
+    afterAll(() => {
+      process.env = { ...originalEnv }
+    })
+    
     describe('with config.migrate.adapter, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
