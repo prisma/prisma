@@ -140,9 +140,13 @@ export async function setupTestSuiteClient({
       client: 'generated/prisma/client/edge',
       sql: 'generated/prisma/client/sql/index.edge.js',
     },
-    wasm: {
+    'wasm-engine-edge': {
       client: 'generated/prisma/client/wasm',
-      sql: 'generated/prisma/client/sql/index.wasm.js',
+      sql: 'generated/prisma/client/sql/index.wasm-engine-edge.js',
+    },
+    'wasm-compiler-edge': {
+      client: 'generated/prisma/client/wasm',
+      sql: 'generated/prisma/client/sql/index.wasm-compiler-edge.js',
     },
     client: {
       client: 'generated/prisma/client',
@@ -183,7 +187,7 @@ export function setupTestSuiteClientDriverAdapter({
     throw new Error(`Missing Driver Adapter`)
   }
 
-  if (clientMeta.runtime === 'wasm') {
+  if (clientMeta.runtime === 'wasm-engine-edge') {
     __internal.configOverride = (config) => {
       config.engineWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
@@ -196,7 +200,7 @@ export function setupTestSuiteClientDriverAdapter({
       }
       return config
     }
-  } else if (clientMeta.runtime === 'client') {
+  } else if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
