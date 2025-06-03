@@ -23,15 +23,21 @@ export function getCliQueryEngineBinaryType(clientEngineType = process.env.PRISM
 
 type EnsureSomeBinariesExistInput = {
   clientEngineType: 'library' | 'binary' | 'client'
+  hasMigrateAdapterInConfig: boolean
   download: (options: DownloadOptions) => Promise<BinaryPaths>
 }
 
-export async function ensureNeededBinariesExist({ clientEngineType, download }: EnsureSomeBinariesExistInput) {
+export async function ensureNeededBinariesExist({
+  clientEngineType,
+  download,
+  hasMigrateAdapterInConfig,
+}: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
 
-  const binaries = {
-    // Schema engine is always needed, as `SchemaEngineWasm` is currently not gated behind a preview feature
-    [BinaryType.SchemaEngineBinary]: binaryDir,
+  const binaries = {} as Record<BinaryType, string>
+
+  if (!hasMigrateAdapterInConfig) {
+    binaries[BinaryType.SchemaEngineBinary] = binaryDir
   }
 
   // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
