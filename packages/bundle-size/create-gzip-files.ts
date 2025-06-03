@@ -34,7 +34,13 @@ void (async () => {
 
     // Install deps & copy schema & generate Prisma Client
     await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
-    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
+    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`.catch((error) => {
+      const e = error as Error
+      console.error(
+        `Failed to generate Prisma Client from ${getSchemaFile(project)} (copied to ${projectDir}/schema.prisma)`,
+      )
+      throw e
+    })
 
     // Delete existing output (if it exists)
     await $`rm -rf ${projectDir}/output`
