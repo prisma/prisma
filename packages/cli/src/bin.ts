@@ -161,7 +161,6 @@ async function main(): Promise<number> {
       debug: DebugInfo.new(),
       // TODO: add rules subcommand to --help after EA
       rules: new SubCommand('@prisma/cli-security-rules'),
-      // TODO: add dev subcommand to --help after it works.
       dev: new SubCommand('@prisma/cli-dev'),
       // TODO: add deploy subcommand to --help after it works.
       deploy: new SubCommand('@prisma/cli-deploy'),

@@ -115,6 +115,7 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
     ${bold('Commands')}
 
                 init   Set up Prisma for your app
+                 dev   Start a local Prisma Postgres server for development
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
              migrate   Migrate your database
@@ -134,8 +135,11 @@ ${this.boxedTryPdpMessage}
 
     ${bold('Examples')}
 
-      Set up a new Prisma project
+      Set up a new local Prisma Postgres \`prisma dev\`-ready project
       ${dim('$')} prisma init
+
+      Start a local Prisma Postgres server for development
+      ${dim('$')} prisma dev
 
       Generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma generate
