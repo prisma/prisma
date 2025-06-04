@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   arg,
@@ -7,18 +7,20 @@ import {
   Command,
   format,
   formatTable,
-  getEnginesMetaInfo,
+  getEnginesInfo,
   getTypescriptVersion,
   HelpError,
   isError,
   loadEnvFile,
   loadSchemaContext,
+  resolveEngine,
   wasm,
 } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
-import { match, P } from 'ts-pattern'
+import { match } from 'ts-pattern'
 
+import { getClientGeneratorInfo } from './utils/client'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
@@ -66,27 +68,77 @@ export class Version implements Command {
 
     await loadEnvFile({ printMessage: !args['--json'], config })
 
-    const binaryTarget = await getBinaryTargetForCurrentPlatform()
-    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+    const schemaPathFromArg = args['--schema']
 
-    const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
-
-    const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
-      return (
-        match(engineMetaInfo)
-          .with({ 'query-engine': P.select() }, (currEngineInfo) => {
-            return [
-              `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
-              currEngineInfo,
-            ]
-          })
-          // @ts-ignore TODO @jkomyno, as affects the type of rows
-          .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
-            return ['Schema Engine', currEngineInfo]
-          })
-          .exhaustive()
-      )
+    const { engineType } = await getClientGeneratorInfo({
+      schemaPathFromConfig: config.schema,
+      schemaPathFromArg,
+    }).catch((_) => {
+      return {
+        engineType: process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
+          ? ('binary' as const)
+          : process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
+          ? ('library' as const)
+          : ('library' as const),
+      }
     })
+
+    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.migrate?.adapter)
+      .with(undefined, async () => {
+        const name = BinaryType.SchemaEngineBinary
+        const engineResult = await resolveEngine(name)
+        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
+
+        return {
+          schemaEngineRows: [['Schema Engine', enginesInfo] as const],
+          schemaEngineRetrievalErrors: enginesRetrievalErrors,
+        }
+      })
+      .otherwise(async (adapterFn) => {
+        const adapter = await adapterFn(process.env as never)
+        const enginesRetrievalErrors = [] as Error[]
+
+        return {
+          schemaEngineRows: [
+            ['Schema Engine', `@prisma/schema-engine-wasm ${wasm.schemaEngineWasmVersion}`] as const,
+            ['Schema Engine Adapter', adapter.adapterName] as const,
+          ],
+          schemaEngineRetrievalErrors: enginesRetrievalErrors,
+        }
+      })
+
+    const { queryEngineRows, queryEngineRetrievalErrors } = await match(engineType)
+      // eslint-disable-next-line @typescript-eslint/require-await
+      .with('client', async () => {
+        const engineRetrievalErrors = [] as Error[]
+        return {
+          queryEngineRows: [['Query Compiler', 'enabled']],
+          queryEngineRetrievalErrors: engineRetrievalErrors,
+        }
+      })
+      .with('library', async () => {
+        const name = BinaryType.QueryEngineLibrary
+        const engineResult = await resolveEngine(name)
+        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
+
+        return {
+          queryEngineRows: [['Query Engine (Node-API)', enginesInfo] as const],
+          queryEngineRetrievalErrors: enginesRetrievalErrors,
+        }
+      })
+      .with('binary', async () => {
+        const name = BinaryType.QueryEngineBinary
+        const engineResult = await resolveEngine(name)
+        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
+
+        return {
+          queryEngineRows: [['Query Engine (Binary)', enginesInfo] as const],
+          queryEngineRetrievalErrors: enginesRetrievalErrors,
+        }
+      })
+      .exhaustive()
+
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
@@ -99,9 +151,9 @@ export class Version implements Command {
       ['Architecture', os.arch()],
       ['Node.js', process.version],
       ['TypeScript', typescriptVersion],
-
-      ...enginesRows,
-      ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
+      ...queryEngineRows,
+      ['PSL', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
+      ...schemaEngineRows,
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
@@ -111,6 +163,9 @@ export class Version implements Command {
      * If reading Rust engines metainfo (like their git hash) failed, display the errors to stderr,
      * and let Node.js exit naturally, but with error code 1.
      */
+
+    const enginesMetaInfoErrors = [...queryEngineRetrievalErrors, ...schemaEngineRetrievalErrors]
+
     if (enginesMetaInfoErrors.length > 0) {
       process.exitCode = 1
       enginesMetaInfoErrors.forEach((e) => console.error(e))

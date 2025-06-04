@@ -1,4 +1,3 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
@@ -29,46 +28,6 @@ export type BinaryMatrix<T> = {
 }
 
 export type BinaryInfoMatrix = BinaryMatrix<EngineInfo>
-
-export async function getEnginesMetaInfo() {
-  const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-
-  const engines = [
-    {
-      name: 'query-engine' as const,
-      type: cliQueryEngineBinaryType,
-    },
-    {
-      name: 'schema-engine' as const,
-      type: BinaryType.SchemaEngineBinary,
-    },
-  ] as const
-
-  /**
-   * Resolve `resolveEngine` promises (that can never fail) and forward a reference to
-   * the engine name in the promise result.
-   */
-  const enginePromises = engines.map(({ name, type }) => {
-    return resolveEngine(type).then((result) => [name, result])
-  })
-  const engineMatrix: BinaryInfoMatrix = await Promise.all(enginePromises).then(Object.fromEntries)
-
-  const engineDataAcc = engines.map(({ name }) => {
-    const [engineInfo, errors] = getEnginesInfo(engineMatrix[name])
-    return [{ [name]: engineInfo } as { [name in keyof BinaryInfoMatrix]: string }, errors] as const
-  })
-
-  // map each engine to its version
-  const engineMetaInfo: {
-    'query-engine': string
-    'schema-engine': string
-  }[] = engineDataAcc.map((arr) => arr[0])
-
-  // keep track of any error that has occurred, if any
-  const enginesMetaInfoErrors: Error[] = engineDataAcc.flatMap((arr) => arr[1])
-
-  return [engineMetaInfo, enginesMetaInfoErrors] as const
-}
 
 export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error[]] {
   // if the engine is not found, or the version cannot be retrieved, keep track of the resulting errors.

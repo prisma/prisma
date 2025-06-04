@@ -76,7 +76,6 @@ export class CLI implements Command {
       const e = error as Error
       debug('Failed to read schema information. Using default values: %o', e)
       return {
-        previewFeatures: [],
         engineType: 'library' as const,
       }
     })
