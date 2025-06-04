@@ -14,13 +14,23 @@ import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
 export async function getBinaryPathsByVersion({
   neededVersions,
-  binaryTarget,
+  detectBinaryTarget,
   version,
   printDownloadProgress,
   skipDownload,
   binaryPathsOverride,
-}: GetBinaryPathsByVersionInput): Promise<Record<string, BinaryPaths>> {
+}: GetBinaryPathsByVersionInput): Promise<{
+  binaryPathsByVersion: Record<string, BinaryPaths>
+  binaryTarget: BinaryTarget
+}> {
   const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
+
+  if (Object.entries(neededVersions).length === 0) {
+    const UNUSED_BINARY_TARGET = 'native' satisfies BinaryTarget
+    return { binaryPathsByVersion, binaryTarget: UNUSED_BINARY_TARGET }
+  }
+
+  const binaryTarget = await detectBinaryTarget()
 
   // make sure, that at least the current platform is being fetched
   for (const currentVersion in neededVersions) {
@@ -119,5 +129,5 @@ export async function getBinaryPathsByVersion({
     }
   }
 
-  return binaryPathsByVersion
+  return { binaryPathsByVersion, binaryTarget }
 }

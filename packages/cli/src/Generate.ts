@@ -126,6 +126,7 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
+      // TODO: no longer needed, remove in Prisma 7
       '--allow-no-models': Boolean,
       '--require-models': Boolean,
       '--sql': Boolean,
