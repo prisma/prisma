@@ -470,8 +470,18 @@ function evalFieldOperation(
       return asNumber(value) - asNumber(evaluateParam(op.value, scope, generators))
     case 'multiply':
       return asNumber(value) * asNumber(evaluateParam(op.value, scope, generators))
-    case 'divide':
-      return asNumber(value) / asNumber(evaluateParam(op.value, scope, generators))
+    case 'divide': {
+      const lhs = asNumber(value)
+      const rhs = asNumber(evaluateParam(op.value, scope, generators))
+      // SQLite and older versions of MySQL return NULL for division by zero, so we emulate
+      // that behavior here.
+      // If the database does not permit division by zero, a database error should be raised,
+      // preventing this case from being executed.
+      if (rhs === 0) {
+        return null
+      }
+      return lhs / rhs
+    }
     default:
       assertNever(op, `Unexpected field operation type: ${op['type']}`)
   }
