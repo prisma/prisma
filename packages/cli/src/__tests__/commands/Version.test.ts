@@ -44,7 +44,7 @@ describe('version', () => {
     describe('bypassing query engine env vars', () => {
       const originalEnv = process.env
       process.env = { ...originalEnv }
-  
+
       beforeAll(() => {
         process.env = {
           ...originalEnv,
@@ -52,7 +52,7 @@ describe('version', () => {
           PRISMA_CLIENT_ENGINE_TYPE: undefined,
         }
       })
-  
+
       afterAll(() => {
         process.env = { ...originalEnv }
       })

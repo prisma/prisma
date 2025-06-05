@@ -6,6 +6,6 @@ export default {
       return Promise.resolve({
         adapterName: '@prisma/adapter-sqlite-mock',
       })
-    }
-  }
+    },
+  },
 }

@@ -73,18 +73,17 @@ export class CLI implements Command {
     const { engineType } = await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg,
-    })
-      .catch((e) => {
-        debug('Failed to read schema information. Using default values: %o', e)
+    }).catch((e) => {
+      debug('Failed to read schema information. Using default values: %o', e)
 
-        const id = <const T>(x: T): T => x
-        const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
-          .with('binary', id)
-          .with('library', id)
-          .otherwise(() => 'library' as const)
-        
-        return { engineType }
-      })
+      const id = <const T>(x: T): T => x
+      const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
+        .with('binary', id)
+        .with('library', id)
+        .otherwise(() => 'library' as const)
+
+      return { engineType }
+    })
 
     if (args['--version']) {
       await ensureNeededBinariesExist({
