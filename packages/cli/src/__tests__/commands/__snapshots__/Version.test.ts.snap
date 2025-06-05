@@ -2,7 +2,7 @@
 
 exports[`version basic version (Node-API) 1`] = `
 "prisma                  : 0.0.0
-@prisma/client          : Not found
+@prisma/client          : 0.0.0
 Computed binaryTarget   : TEST_PLATFORM
 Operating System        : OS
 Architecture            : ARCHITECTURE
@@ -31,7 +31,7 @@ Studio                : STUDIO_VERSION"
 
 exports[`version version with custom binaries (Node-API) 1`] = `
 "prisma                  : 0.0.0
-@prisma/client          : Not found
+@prisma/client          : 0.0.0
 Computed binaryTarget   : TEST_PLATFORM
 Operating System        : OS
 Architecture            : ARCHITECTURE
