@@ -41,28 +41,36 @@ describe('version', () => {
       `)
     })
 
-    test('does not download query-engine when queryCompiler is turned on', async () => {
-      ctx.fixture('prisma-config-dont-download-engines')
-      const data = await ctx.cli('version')
-      expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-        "Loaded Prisma config from "sanitized prisma.config.ts path".
-        Prisma config detected, skipping environment variable loading.
-        Prisma schema loaded from schema.prisma
-        prisma                : 0.0.0
-        @prisma/client        : 0.0.0
-        Computed binaryTarget : TEST_PLATFORM
-        Operating System      : OS
-        Architecture          : ARCHITECTURE
-        Node.js               : NODEJS_VERSION
-        TypeScript            : TYPESCRIPT_VERSION
-        Query Compiler        : enabled
-        PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine Adapter : @prisma/adapter-sqlite-mock
-        Default Engines Hash  : ENGINE_VERSION
-        Studio                : STUDIO_VERSION
-        Preview Features      : queryCompiler"
-      `)
+    describe('bypassing query engine env vars', () => {
+      const OLD_ENV = { ...process.env }
+
+      afterEach(() => {
+        process.env = { ...OLD_ENV }
+      })
+
+      test('does not download query-engine when queryCompiler is turned on', async () => {
+        ctx.fixture('prisma-config-dont-download-engines')
+        const data = await ctx.cli('version')
+        expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
+          "Loaded Prisma config from "sanitized prisma.config.ts path".
+          Prisma config detected, skipping environment variable loading.
+          Prisma schema loaded from schema.prisma
+          prisma                : 0.0.0
+          @prisma/client        : 0.0.0
+          Computed binaryTarget : TEST_PLATFORM
+          Operating System      : OS
+          Architecture          : ARCHITECTURE
+          Node.js               : NODEJS_VERSION
+          TypeScript            : TYPESCRIPT_VERSION
+          Query Compiler        : enabled
+          PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
+          Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
+          Schema Engine Adapter : @prisma/adapter-sqlite-mock
+          Default Engines Hash  : ENGINE_VERSION
+          Studio                : STUDIO_VERSION
+          Preview Features      : queryCompiler"
+        `)
+      })
     })
   })
 
