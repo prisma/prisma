@@ -5,6 +5,7 @@ import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red, underline } from 'kleur/colors'
+import { match } from 'ts-pattern'
 
 import { getClientGeneratorInfo } from './utils/client'
 import { Version } from './Version'
@@ -72,13 +73,18 @@ export class CLI implements Command {
     const { engineType } = await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg,
-    }).catch((error) => {
-      const e = error as Error
-      debug('Failed to read schema information. Using default values: %o', e)
-      return {
-        engineType: 'library' as const,
-      }
     })
+      .catch((e) => {
+        debug('Failed to read schema information. Using default values: %o', e)
+
+        const id = <const T>(x: T): T => x
+        const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
+          .with('binary', id)
+          .with('library', id)
+          .otherwise(() => 'library' as const)
+        
+        return { engineType }
+      })
 
     if (args['--version']) {
       await ensureNeededBinariesExist({
