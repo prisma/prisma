@@ -19,6 +19,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
 
@@ -95,17 +96,14 @@ function onError(error: Error): never {
   if (error.name === 'DatabaseError') {
     const parsed = parseErrorMessage(error.message)
     if (parsed) {
-      throw new DriverAdapterError({
-        kind: 'mysql',
-        ...parsed,
-      })
+      throw new DriverAdapterError(convertDriverError(parsed))
     }
   }
   debug('Error in performIO: %O', error)
   throw error
 }
 
-function parseErrorMessage(message: string) {
+function parseErrorMessage(message: string): ParsedDatabaseError | undefined {
   const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
   const match = message.match(regex)
 
@@ -214,4 +212,10 @@ export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory 
   async connect(): Promise<SqlDriverAdapter> {
     return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
   }
+}
+
+export type ParsedDatabaseError = {
+  message: string
+  code: number
+  state: string
 }
