@@ -111,6 +111,10 @@ export type JoinExpression = {
 
 export type QueryPlanNode =
   | {
+      type: 'value'
+      args: PrismaValue
+    }
+  | {
       type: 'seq'
       args: QueryPlanNode[]
     }
@@ -228,12 +232,28 @@ export type QueryPlanNode =
       }
     }
   | {
-      type: 'extendRecord'
+      type: 'initializeRecord'
       args: {
         expr: QueryPlanNode
-        values: Record<string, { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }>
+        fields: Record<string, FieldInitializer>
       }
     }
+  | {
+      type: 'mapRecord'
+      args: {
+        expr: QueryPlanNode
+        fields: Record<string, FieldOperation>
+      }
+    }
+
+export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
+
+export type FieldOperation =
+  | { type: 'set'; value: PrismaValue }
+  | { type: 'add'; value: PrismaValue }
+  | { type: 'subtract'; value: PrismaValue }
+  | { type: 'multiply'; value: PrismaValue }
+  | { type: 'divide'; value: PrismaValue }
 
 export type Pagination = {
   cursor: Record<string, PrismaValue> | null
