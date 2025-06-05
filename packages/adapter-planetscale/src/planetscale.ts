@@ -15,6 +15,7 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
@@ -75,7 +76,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
+  protected async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -123,7 +124,14 @@ function parseErrorMessage(message: string) {
   }
 }
 
+const LOCK_TAG = Symbol()
+
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
+  // The PlanetScale connection objects are not meant to be used concurrently,
+  // so we override the `performIO` method to synchronize access to it with a mutex.
+  // See: https://github.com/mattrobenolt/ps-http-sim/issues/7
+  [LOCK_TAG] = new Mutex()
+
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -131,6 +139,17 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     private txResultPromise: Promise<void>,
   ) {
     super(tx)
+  }
+
+  async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
+    const release = await this[LOCK_TAG].acquire()
+    try {
+      return await super.performIO(query)
+    } catch (e) {
+      onError(e as Error)
+    } finally {
+      release()
+    }
   }
 
   async commit(): Promise<void> {
