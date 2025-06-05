@@ -42,10 +42,19 @@ describe('version', () => {
     })
 
     describe('bypassing query engine env vars', () => {
-      const OLD_ENV = { ...process.env }
-
-      afterEach(() => {
-        process.env = { ...OLD_ENV }
+      const originalEnv = process.env
+      process.env = { ...originalEnv }
+  
+      beforeAll(() => {
+        process.env = {
+          ...originalEnv,
+          PRISMA_CLI_QUERY_ENGINE_TYPE: undefined,
+          PRISMA_CLIENT_ENGINE_TYPE: undefined,
+        }
+      })
+  
+      afterAll(() => {
+        process.env = { ...originalEnv }
       })
 
       test('does not download query-engine when queryCompiler is turned on', async () => {
