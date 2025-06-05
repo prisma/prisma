@@ -73,16 +73,15 @@ export class Version implements Command {
     const { engineType } = await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg,
+    }).catch((_) => {
+      const id = <const T>(x: T): T => x
+      const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
+        .with('binary', id)
+        .with('library', id)
+        .otherwise(() => 'library' as const)
+
+      return { engineType }
     })
-      .catch((_) => {
-        const id = <const T>(x: T): T => x
-        const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
-          .with('binary', id)
-          .with('library', id)
-          .otherwise(() => 'library' as const)
-        
-        return { engineType }
-      })
 
     const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.migrate?.adapter)
       .with(undefined, async () => {
