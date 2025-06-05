@@ -103,11 +103,23 @@ function onError(error: Error): never {
   throw error
 }
 
-function parseErrorMessage(message: string): ParsedDatabaseError | undefined {
+function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
   const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
-  const match = message.match(regex)
+  let match: RegExpMatchArray | null = null
 
-  if (match) {
+  while (true) {
+    const result = error.match(regex)
+    if (result === null) {
+      break
+    }
+
+    // Try again with the rest of the error message. The driver can return multiple
+    // concatenated error messages.
+    match = result
+    error = match[1]
+  }
+
+  if (match !== null) {
     const [, message, codeAsString, sqlstate] = match
     const code = Number.parseInt(codeAsString, 10)
 
