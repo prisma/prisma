@@ -20,6 +20,7 @@ import { Mutex } from 'async-mutex'
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
 
@@ -96,21 +97,30 @@ function onError(error: Error): never {
   if (error.name === 'DatabaseError') {
     const parsed = parseErrorMessage(error.message)
     if (parsed) {
-      throw new DriverAdapterError({
-        kind: 'mysql',
-        ...parsed,
-      })
+      throw new DriverAdapterError(convertDriverError(parsed))
     }
   }
   debug('Error in performIO: %O', error)
   throw error
 }
 
-function parseErrorMessage(message: string) {
+function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
   const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
-  const match = message.match(regex)
+  let match: RegExpMatchArray | null = null
 
-  if (match) {
+  while (true) {
+    const result = error.match(regex)
+    if (result === null) {
+      break
+    }
+
+    // Try again with the rest of the error message. The driver can return multiple
+    // concatenated error messages.
+    match = result
+    error = match[1]
+  }
+
+  if (match !== null) {
     const [, message, codeAsString, sqlstate] = match
     const code = Number.parseInt(codeAsString, 10)
 
@@ -233,4 +243,10 @@ export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory 
   async connect(): Promise<SqlDriverAdapter> {
     return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
   }
+}
+
+export type ParsedDatabaseError = {
+  message: string
+  code: number
+  state: string
 }
