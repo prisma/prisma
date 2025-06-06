@@ -160,6 +160,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
+      supportsRelationJoins: true,
     }
   }
 
