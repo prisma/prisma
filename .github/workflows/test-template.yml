@@ -502,7 +502,7 @@ jobs:
   #
   client-e2e:
     name: Client E2E ${{ matrix.os }} [v${{ matrix.node }}]
-    timeout-minutes: 35
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
       contains(inputs.jobsToRun, '-all-') ||
