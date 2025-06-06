@@ -64,7 +64,7 @@ describe('version', () => {
           "Loaded Prisma config from "sanitized prisma.config.ts path".
           Prisma config detected, skipping environment variable loading.
           Prisma schema loaded from schema.prisma
-          prisma                : 0.0.0
+          prisma                : k
           @prisma/client        : 0.0.0
           Computed binaryTarget : TEST_PLATFORM
           Operating System      : OS
@@ -183,7 +183,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // Replace 'Loaded Prisma config from "/.../prisma.config.ts"'
   // with 'Loaded Prisma config from "sanitized prisma.config.ts path"'
   str = str.replace(
-    /Loaded Prisma config from ".*\/prisma\.config\.ts"/g,
+    /Loaded Prisma config from ".*(\/|\\)prisma\.config\.ts"/g,
     'Loaded Prisma config from "sanitized prisma.config.ts path"',
   )
 
