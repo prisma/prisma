@@ -13,24 +13,24 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   stripped = stripped.split('SqliteError: ').at(1) ?? stripped
 
   if (stripped.startsWith('UNIQUE constraint failed') || stripped.startsWith('PRIMARY KEY constraint failed')) {
+    const fields = stripped
+      .split(': ')
+      .at(1)
+      ?.split(', ')
+      .map((field) => field.split('.').pop()!)
     return {
       kind: 'UniqueConstraintViolation',
-      fields:
-        stripped
-          .split(': ')
-          .at(1)
-          ?.split(', ')
-          .map((field) => field.split('.').pop()!) ?? [],
+      constraint: fields !== undefined ? { fields } : undefined,
     }
   } else if (stripped.startsWith('NOT NULL constraint failed')) {
+    const fields = stripped
+      .split(': ')
+      .at(1)
+      ?.split(', ')
+      .map((field) => field.split('.').pop()!)
     return {
       kind: 'NullConstraintViolation',
-      fields:
-        stripped
-          .split(': ')
-          .at(1)
-          ?.split(', ')
-          .map((field) => field.split('.').pop()!) ?? [],
+      constraint: fields !== undefined ? { fields } : undefined,
     }
   } else if (stripped.startsWith('FOREIGN KEY constraint failed') || stripped.startsWith('CHECK constraint failed')) {
     return {
