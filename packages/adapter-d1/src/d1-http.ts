@@ -253,6 +253,7 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
   getConnectionInfo(): ConnectionInfo {
     return {
       maxBindValues: MAX_BIND_VALUES,
+      supportsRelationJoins: false,
     }
   }
 

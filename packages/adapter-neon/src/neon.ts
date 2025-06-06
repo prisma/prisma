@@ -200,6 +200,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
+      supportsRelationJoins: true,
     }
   }
 
