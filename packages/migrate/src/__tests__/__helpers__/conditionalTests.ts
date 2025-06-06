@@ -28,7 +28,6 @@ export const allProviders = {
 
 export const allDriverAdapters = {
   pg: true,
-  'pg-worker': true,
   planetscale: true,
   neon: true,
   libsql: true,

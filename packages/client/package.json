@@ -228,7 +228,6 @@
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
-    "@prisma/adapter-pg-worker": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/client-common": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
