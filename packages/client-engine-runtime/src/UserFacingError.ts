@@ -61,12 +61,16 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
       return 'P2010'
     case 'NullConstraintViolation':
       return 'P2011'
+    case 'ValueOutOfRange':
+      return 'P2020'
     case 'TableDoesNotExist':
       return 'P2021'
     case 'ColumnNotFound':
       return 'P2022'
     case 'InvalidIsolationLevel':
       return 'P2023'
+    case 'MissingFullTextSearchIndex':
+      return 'P2030'
     case 'TransactionWriteConflict':
       return 'P2034'
     case 'GenericJs':
@@ -107,13 +111,15 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
       return `The provided value for the column is too long for the column's type. Column: ${column}`
     }
     case 'UniqueConstraintViolation':
-      return `Unique constraint failed on the ${renderConstraint({ fields: err.cause.fields })}`
+      return `Unique constraint failed on the ${renderConstraint(err.cause.constraint)}`
     case 'ForeignKeyConstraintViolation':
       return `Foreign key constraint violated on the ${renderConstraint(err.cause.constraint)}`
     case 'UnsupportedNativeDataType':
       return `Failed to deserialize column of type '${err.cause.type}'. If you're using $queryRaw and this column is explicitly marked as \`Unsupported\` in your Prisma schema, try casting this column to any supported Prisma type such as \`String\`.`
     case 'NullConstraintViolation':
-      return `Null constraint violation on the ${renderConstraint({ fields: err.cause.fields })}`
+      return `Null constraint violation on the ${renderConstraint(err.cause.constraint)}`
+    case 'ValueOutOfRange':
+      return `Value out of range for the type. ${err.cause.cause}`
     case 'TableDoesNotExist': {
       const table = err.cause.table ?? '(not available)'
       return `The table \`${table}\` does not exist in the current database.`
@@ -124,6 +130,8 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     }
     case 'InvalidIsolationLevel':
       return `Invalid isolation level \`${err.cause.level}\``
+    case 'MissingFullTextSearchIndex':
+      return 'Cannot find a fulltext index to use for the native search, try adding a @@fulltext([Fields...]) to your schema'
     case 'TransactionWriteConflict':
       return `Transaction failed due to a write conflict or a deadlock. Please retry your transaction`
     case 'GenericJs':

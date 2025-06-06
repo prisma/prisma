@@ -12,26 +12,28 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   const rawCode: number = error.rawCode ?? error.cause?.['rawCode']
   switch (rawCode) {
     case 2067:
-    case 1555:
+    case 1555: {
+      const fields = error.message
+        .split('constraint failed: ')
+        .at(1)
+        ?.split(', ')
+        .map((field) => field.split('.').pop()!)
       return {
         kind: 'UniqueConstraintViolation',
-        fields:
-          error.message
-            .split('constraint failed: ')
-            .at(1)
-            ?.split(', ')
-            .map((field) => field.split('.').pop()!) ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
-    case 1299:
+    }
+    case 1299: {
+      const fields = error.message
+        .split('constraint failed: ')
+        .at(1)
+        ?.split(', ')
+        .map((field) => field.split('.').pop()!)
       return {
         kind: 'NullConstraintViolation',
-        fields:
-          error.message
-            .split('constraint failed: ')
-            .at(1)
-            ?.split(', ')
-            .map((field) => field.split('.').pop()!) ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
+    }
     case 787:
     case 1811:
       return {

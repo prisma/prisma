@@ -100,11 +100,11 @@ export type Error =
     }
   | {
       kind: 'UniqueConstraintViolation'
-      fields: string[]
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
     }
   | {
       kind: 'NullConstraintViolation'
-      fields: string[]
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
     }
   | {
       kind: 'ForeignKeyConstraintViolation'
@@ -140,6 +140,13 @@ export type Error =
   | {
       kind: 'TooManyConnections'
       cause: string
+    }
+  | {
+      kind: 'ValueOutOfRange'
+      cause: string
+    }
+  | {
+      kind: 'MissingFullTextSearchIndex'
     }
   | {
       kind: 'SocketTimeout'

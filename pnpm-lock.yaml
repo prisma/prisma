@@ -331,6 +331,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
     devDependencies:
       '@planetscale/database':
         specifier: 1.19.0
