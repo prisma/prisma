@@ -182,6 +182,15 @@ async function main(): Promise<number> {
     return 1
   }
 
+  const checkResult = await runCheckpointClientCheck({
+    command: redactedCommandAsString,
+    isPrismaInstalledGlobally,
+    schemaPath: args['--schema'],
+    schemaPathFromConfig: config.schema,
+    telemetryInformation: args['--telemetry-information'],
+    version: packageJson.version,
+  })
+
   const startCliExec = performance.now()
   // Execute the command
   const result = await cli.parse(commandArray, config)
@@ -204,18 +213,6 @@ async function main(): Promise<number> {
   // Success
   console.log(result)
 
-  /**
-   * Prepare data and run the Checkpoint Client
-   * See function for more info
-   */
-  const checkResult = await runCheckpointClientCheck({
-    command: redactedCommandAsString,
-    isPrismaInstalledGlobally,
-    schemaPath: args['--schema'],
-    schemaPathFromConfig: config.schema,
-    telemetryInformation: args['--telemetry-information'],
-    version: packageJson.version,
-  })
   // if the result is cached and CLI outdated, show the `Update available` message
   const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
   if (checkResult && checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
