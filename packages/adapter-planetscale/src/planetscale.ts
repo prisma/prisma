@@ -15,10 +15,12 @@ import type {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
 
@@ -75,7 +77,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
+  protected async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -95,21 +97,30 @@ function onError(error: Error): never {
   if (error.name === 'DatabaseError') {
     const parsed = parseErrorMessage(error.message)
     if (parsed) {
-      throw new DriverAdapterError({
-        kind: 'mysql',
-        ...parsed,
-      })
+      throw new DriverAdapterError(convertDriverError(parsed))
     }
   }
   debug('Error in performIO: %O', error)
   throw error
 }
 
-function parseErrorMessage(message: string) {
+function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
   const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
-  const match = message.match(regex)
+  let match: RegExpMatchArray | null = null
 
-  if (match) {
+  while (true) {
+    const result = error.match(regex)
+    if (result === null) {
+      break
+    }
+
+    // Try again with the rest of the error message. The driver can return multiple
+    // concatenated error messages.
+    match = result
+    error = match[1]
+  }
+
+  if (match !== null) {
     const [, message, codeAsString, sqlstate] = match
     const code = Number.parseInt(codeAsString, 10)
 
@@ -123,7 +134,14 @@ function parseErrorMessage(message: string) {
   }
 }
 
+const LOCK_TAG = Symbol()
+
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
+  // The PlanetScale connection objects are not meant to be used concurrently,
+  // so we override the `performIO` method to synchronize access to it with a mutex.
+  // See: https://github.com/mattrobenolt/ps-http-sim/issues/7
+  [LOCK_TAG] = new Mutex()
+
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -131,6 +149,17 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     private txResultPromise: Promise<void>,
   ) {
     super(tx)
+  }
+
+  async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
+    const release = await this[LOCK_TAG].acquire()
+    try {
+      return await super.performIO(query)
+    } catch (e) {
+      onError(e as Error)
+    } finally {
+      release()
+    }
   }
 
   async commit(): Promise<void> {
@@ -214,4 +243,10 @@ export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory 
   async connect(): Promise<SqlDriverAdapter> {
     return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
   }
+}
+
+export type ParsedDatabaseError = {
+  message: string
+  code: number
+  state: string
 }

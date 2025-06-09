@@ -12,24 +12,26 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
         kind: 'LengthMismatch',
         column: error.column,
       }
-    case '23505':
+    case '23505': {
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
       return {
         kind: 'UniqueConstraintViolation',
-        fields:
-          error.detail
-            ?.match(/Key \(([^)]+)\)/)
-            ?.at(1)
-            ?.split(', ') ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
-    case '23502':
+    }
+    case '23502': {
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
       return {
         kind: 'NullConstraintViolation',
-        fields:
-          error.detail
-            ?.match(/Key \(([^)]+)\)/)
-            ?.at(1)
-            ?.split(', ') ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
+    }
     case '23503': {
       let constraint: { fields: string[] } | { index: string } | undefined
 
