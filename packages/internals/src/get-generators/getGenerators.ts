@@ -1,7 +1,5 @@
 import Debug from '@prisma/debug'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import type { DownloadOptions } from '@prisma/fetch-engine'
-import { download } from '@prisma/fetch-engine'
 import type {
   BinaryTargetsEnvValue,
   EngineType,
@@ -17,7 +15,7 @@ import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { getDMMF, getEnvPaths, loadSchemaContext, mergeSchemas, SchemaContext, vercelPkgPathRegex } from '..'
+import { getDMMF, getEnvPaths, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -122,32 +120,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   if (!schemaContext) {
     throw new Error(`no schema provided for getGenerators`)
-  }
-
-  const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-  const queryEngineBinaryType = getCliQueryEngineBinaryType()
-
-  const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
-
-  // overwrite query engine if the version is provided
-  if (version && !binaryPathsOverride?.[queryEngineType]) {
-    const potentialPath = eval(`require('path').join(__dirname, '..')`)
-    // for pkg we need to make an exception
-    if (!potentialPath.match(vercelPkgPathRegex)) {
-      const downloadParams: DownloadOptions = {
-        binaries: {
-          [queryEngineBinaryType]: potentialPath,
-        },
-        binaryTargets: [binaryTarget],
-        showProgress: false,
-        version,
-        skipDownload,
-      }
-
-      // Ignoring return value - just downloading binaries to ensure they are in the right location
-      await download(downloadParams)
-    }
   }
 
   if (!schemaContext.primaryDatasource) {
@@ -313,10 +285,20 @@ generator gen {
         }
       }
     }
+
+    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
+
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
-    const binaryPathsByVersion = await getBinaryPathsByVersion({
+    const { binaryPathsByVersion, binaryTarget } = await getBinaryPathsByVersion({
       neededVersions,
-      binaryTarget,
+      // We're lazily computing the binary target here, to avoid printing the
+      // `Prisma failed to detect the libssl/openssl version to use` warning
+      // on StackBlitz, where the binary target is not detected.
+      //
+      // On other platforms, it's safe and fast to call this function again,
+      // as its result is memoized anyway.
+      detectBinaryTarget: getBinaryTargetForCurrentPlatform,
       version,
       printDownloadProgress,
       skipDownload,
@@ -370,7 +352,7 @@ type NeededVersions = {
 
 export type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
-  binaryTarget: BinaryTarget
+  detectBinaryTarget: () => Promise<BinaryTarget>
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
