@@ -422,7 +422,7 @@ function childRecordMatchesParent(
 }
 
 function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
-  const cursorIndex = cursor !== null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
+  const cursorIndex = cursor ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
   if (cursorIndex === -1) {
     return []
   }
