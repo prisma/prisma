@@ -192,7 +192,6 @@ const officialPrismaAdapters = [
   '@prisma/adapter-libsql',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',
-  '@prisma/adapter-pg-worker',
 ] as const
 
 export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]

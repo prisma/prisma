@@ -301,31 +301,6 @@ importers:
         specifier: 8.14.1
         version: 8.14.1
 
-  packages/adapter-pg-worker:
-    dependencies:
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      postgres-array:
-        specifier: 3.0.4
-        version: 3.0.4
-    devDependencies:
-      '@prisma/pg-worker':
-        specifier: workspace:*
-        version: link:../pg-worker
-      '@swc/core':
-        specifier: 1.11.5
-        version: 1.11.5
-      '@swc/jest':
-        specifier: 0.2.37
-        version: 0.2.37(@swc/core@1.11.5)
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
-      jest-junit:
-        specifier: 16.0.0
-        version: 16.0.0
-
   packages/adapter-planetscale:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -377,18 +352,12 @@ importers:
       '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
-      '@prisma/adapter-pg-worker':
-        specifier: workspace:*
-        version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
-      '@prisma/pg-worker':
-        specifier: workspace:*
-        version: link:../pg-worker
       pg:
         specifier: 8.14.1
         version: 8.14.1
@@ -669,9 +638,6 @@ importers:
       '@prisma/adapter-pg':
         specifier: workspace:*
         version: link:../adapter-pg
-      '@prisma/adapter-pg-worker':
-        specifier: workspace:*
-        version: link:../adapter-pg-worker
       '@prisma/adapter-planetscale':
         specifier: workspace:*
         version: link:../adapter-planetscale
@@ -729,9 +695,6 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.5
         version: 0.9.5
-      '@prisma/pg-worker':
-        specifier: workspace:*
-        version: link:../pg-worker
       '@prisma/query-compiler-wasm':
         specifier: 6.10.0-7.3204c4d27cbc18b9a1c06d84b071ae8aff645fce
         version: 6.10.0-7.3204c4d27cbc18b9a1c06d84b071ae8aff645fce
@@ -1880,37 +1843,6 @@ importers:
       webpack:
         specifier: 5.92.1
         version: 5.92.1(@swc/core@1.11.5)(esbuild@0.25.1)
-
-  packages/pg-worker:
-    dependencies:
-      '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
-    devDependencies:
-      '@types/jest':
-        specifier: 29.5.14
-        version: 29.5.14
-      '@types/node':
-        specifier: 18.19.76
-        version: 18.19.76
-      esbuild:
-        specifier: 0.25.1
-        version: 0.25.1
-      jest:
-        specifier: 29.7.0
-        version: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5))
-      jest-junit:
-        specifier: 16.0.0
-        version: 16.0.0
-      pg:
-        specifier: 8.14.1
-        version: 8.14.1
-      pg-cloudflare:
-        specifier: 1.1.1
-        version: 1.1.1
-      typescript:
-        specifier: 5.4.5
-        version: 5.4.5
 
   packages/schema-files-loader:
     dependencies:
@@ -13776,7 +13708,8 @@ snapshots:
 
   pathval@2.0.0: {}
 
-  pg-cloudflare@1.1.1: {}
+  pg-cloudflare@1.1.1:
+    optional: true
 
   pg-connection-string@2.7.0: {}
 
