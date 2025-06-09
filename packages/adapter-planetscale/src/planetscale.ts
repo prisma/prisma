@@ -191,6 +191,7 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
     const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
     return {
       schemaName: dbName,
+      supportsRelationJoins: true,
     }
   }
 
