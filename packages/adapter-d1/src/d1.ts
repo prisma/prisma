@@ -162,6 +162,7 @@ export class PrismaD1Adapter extends D1Queryable<StdClient> implements SqlDriver
   getConnectionInfo(): ConnectionInfo {
     return {
       maxBindValues: MAX_BIND_VALUES,
+      supportsRelationJoins: false,
     }
   }
 

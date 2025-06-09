@@ -168,7 +168,7 @@ export class ClientEngine implements Engine<undefined> {
     }
 
     const adapter = await this.adapterPromise
-    const connectionInfo = adapter?.getConnectionInfo?.() ?? {}
+    const connectionInfo = adapter?.getConnectionInfo?.() ?? { supportsRelationJoins: false }
 
     try {
       this.#withLocalPanicHandler(() => {

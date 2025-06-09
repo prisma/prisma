@@ -27,8 +27,6 @@
       "@prisma/adapter-neon": ["./packages/adapter-neon/src"],
       "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
       "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"],
-      "@prisma/adapter-pg-worker": ["./packages/adapter-pg-worker/src"],
-      "@prisma/pg-worker": ["./packages/pg-worker/src"],
       "@prisma/ts-builders": ["./packages/ts-builders/src"]
     }
   }
