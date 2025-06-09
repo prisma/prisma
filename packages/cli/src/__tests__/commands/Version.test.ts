@@ -64,7 +64,7 @@ describe('version', () => {
           "Loaded Prisma config from "sanitized prisma.config.ts path".
           Prisma config detected, skipping environment variable loading.
           Prisma schema loaded from schema.prisma
-          prisma                : k
+          prisma                : 0.0.0
           @prisma/client        : 0.0.0
           Computed binaryTarget : TEST_PLATFORM
           Operating System      : OS
