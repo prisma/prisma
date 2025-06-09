@@ -178,6 +178,7 @@ export type Error =
 export type ConnectionInfo = {
   schemaName?: string
   maxBindValues?: number
+  supportsRelationJoins: boolean
 }
 
 export type Provider = 'mysql' | 'postgres' | 'sqlite'
