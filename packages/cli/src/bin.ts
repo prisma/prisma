@@ -3,7 +3,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isRustPanic } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -40,7 +40,7 @@ import { Platform } from './platform/_Platform'
 import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
-import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
+import { CheckpointClientCheckOptions, redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
 import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
@@ -172,6 +172,15 @@ async function main(): Promise<number> {
     download,
   )
 
+  const checkpointClientCheckOptions: CheckpointClientCheckOptions = {
+    command: redactedCommandAsString,
+    isPrismaInstalledGlobally,
+    schemaPath: args['--schema'],
+    schemaPathFromConfig: undefined, // This will be set later after loading the config
+    telemetryInformation: args['--telemetry-information'],
+    version: packageJson.version,
+  }
+
   await loadOrInitializeCommandState().catch((err) => {
     debug(`Failed to initialize the command state: ${err}`)
   })
@@ -179,8 +188,18 @@ async function main(): Promise<number> {
   const config = await loadConfig(args['--config'])
   if (config instanceof HelpError) {
     console.error(config.message)
+
+    await runCheckpointClientCheck(checkpointClientCheckOptions).catch(() => {
+      // noop
+    })
+
     return 1
   }
+
+  checkpointClientCheckOptions.schemaPathFromConfig = config.schema
+  const checkResultPromise = runCheckpointClientCheck(checkpointClientCheckOptions).catch(() => {
+    // noop
+  })
 
   const startCliExec = performance.now()
   // Execute the command
@@ -189,33 +208,19 @@ async function main(): Promise<number> {
   const cliExecElapsedTime = endCliExec - startCliExec
   debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
 
-  // Did it error?
-  if (result instanceof HelpError) {
-    console.error(result.message)
-    // TODO: We could do like Bash (and other)
-    // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
-    // https://tldp.org/LDP/abs/html/exitcodes.html
-    return 1
-  } else if (isError(result)) {
-    console.error(result)
+  if (result instanceof Error) {
+    console.error(result instanceof HelpError ? result.message : result)
+
+    await checkResultPromise
+
     return 1
   }
 
   // Success
   console.log(result)
 
-  /**
-   * Prepare data and run the Checkpoint Client
-   * See function for more info
-   */
-  const checkResult = await runCheckpointClientCheck({
-    command: redactedCommandAsString,
-    isPrismaInstalledGlobally,
-    schemaPath: args['--schema'],
-    schemaPathFromConfig: config.schema,
-    telemetryInformation: args['--telemetry-information'],
-    version: packageJson.version,
-  })
+  const checkResult = await checkResultPromise
+
   // if the result is cached and CLI outdated, show the `Update available` message
   const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
   if (checkResult && checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
