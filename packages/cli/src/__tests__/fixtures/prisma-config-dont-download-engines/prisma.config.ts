@@ -1,11 +1,11 @@
 export default {
   earlyAccess: true,
-  schema: './prisma/schema.prisma',
   migrate: {
+    // @ts-ignore
     adapter: async () => {
       return Promise.resolve({
-        adapterName: '@prisma/adapter-mock-sqlite',
+        adapterName: '@prisma/adapter-sqlite-mock',
       })
-    }
-  }
+    },
+  },
 }
