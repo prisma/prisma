@@ -27,7 +27,7 @@ testMatrix.setupTestSuite(
         log: [{ emit: 'event', level: 'query' }],
       })
 
-      await prisma.user.create({ data: user1 })
+      await prisma.user.create({ data: { posts: { create: {} }, ...user1 } })
       await prisma.user.create({ data: user2 })
 
       prisma.$on('query', ({ query }) => {
@@ -52,6 +52,17 @@ testMatrix.setupTestSuite(
       await waitFor(() => {
         expect(queriesExecuted).toBe(1)
         expect(res).toEqual([user1, user2])
+      })
+    })
+
+    test('batches findUnique (issue 27363)', async () => {
+      const first = (async () =>
+        await prisma.user.findUnique({ where: { id: user1.id }, select: { posts: { take: 1 } } }))()
+      const second = await prisma.user.findUnique({ where: { id: user1.id }, select: { posts: { take: 1 } } })
+
+      await waitFor(async () => {
+        expect(await first).toMatchObject({ posts: [{ id: expect.any(String) }] })
+        expect(second).toMatchObject({ posts: [{ id: expect.any(String) }] })
       })
     })
 

@@ -343,17 +343,15 @@ export class ClientEngine implements Engine<undefined> {
       throw this.#transformRequestError(err)
     })
 
-    let queryPlanString: string
+    let queryPlan: QueryPlanNode
     try {
-      queryPlanString = this.#withLocalPanicHandler(() => this.queryCompiler!.compile(queryStr))
+      queryPlan = this.#withLocalPanicHandler(() => this.queryCompiler!.compile(queryStr)) as QueryPlanNode
     } catch (error) {
       throw this.#transformCompileError(error)
     }
 
     try {
-      const queryPlan: QueryPlanNode = JSON.parse(queryPlanString)
-
-      debug(`query plan created`, queryPlanString)
+      debug(`query plan created`, queryPlan)
 
       const queryable = interactiveTransaction
         ? transactionManager.getTransaction(interactiveTransaction, 'query')
