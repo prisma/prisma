@@ -17,6 +17,72 @@ const runBinaryTest =
   getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
+  describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
+    testIf(runLibraryTest)('shows query-engine library when queryCompiler is turned off', async () => {
+      ctx.fixture('prisma-config-dont-download-schema-engine')
+      const data = await ctx.cli('version')
+      expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
+        "Loaded Prisma config from "sanitized prisma.config.ts path".
+        Prisma config detected, skipping environment variable loading.
+        Prisma schema loaded from schema.prisma
+        prisma                  : 0.0.0
+        @prisma/client          : 0.0.0
+        Computed binaryTarget   : TEST_PLATFORM
+        Operating System        : OS
+        Architecture            : ARCHITECTURE
+        Node.js                 : NODEJS_VERSION
+        TypeScript              : TYPESCRIPT_VERSION
+        Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
+        PSL                     : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
+        Schema Engine           : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
+        Schema Engine Adapter   : @prisma/adapter-sqlite-mock
+        Default Engines Hash    : ENGINE_VERSION
+        Studio                  : STUDIO_VERSION"
+      `)
+    })
+
+    describe('bypassing query engine env vars', () => {
+      const originalEnv = process.env
+      process.env = { ...originalEnv }
+
+      beforeAll(() => {
+        process.env = {
+          ...originalEnv,
+          PRISMA_CLI_QUERY_ENGINE_TYPE: undefined,
+          PRISMA_CLIENT_ENGINE_TYPE: undefined,
+        }
+      })
+
+      afterAll(() => {
+        process.env = { ...originalEnv }
+      })
+
+      test('does not download query-engine when queryCompiler is turned on', async () => {
+        ctx.fixture('prisma-config-dont-download-engines')
+        const data = await ctx.cli('version')
+        expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
+          "Loaded Prisma config from "sanitized prisma.config.ts path".
+          Prisma config detected, skipping environment variable loading.
+          Prisma schema loaded from schema.prisma
+          prisma                : 0.0.0
+          @prisma/client        : 0.0.0
+          Computed binaryTarget : TEST_PLATFORM
+          Operating System      : OS
+          Architecture          : ARCHITECTURE
+          Node.js               : NODEJS_VERSION
+          TypeScript            : TYPESCRIPT_VERSION
+          Query Compiler        : enabled
+          PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
+          Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
+          Schema Engine Adapter : @prisma/adapter-sqlite-mock
+          Default Engines Hash  : ENGINE_VERSION
+          Studio                : STUDIO_VERSION
+          Preview Features      : queryCompiler"
+        `)
+      })
+    })
+  })
+
   // Node-API Tests
 
   testIf(runLibraryTest)('basic version (Node-API)', async () => {
@@ -113,6 +179,13 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
+
+  // Replace 'Loaded Prisma config from "/.../prisma.config.ts"'
+  // with 'Loaded Prisma config from "sanitized prisma.config.ts path"'
+  str = str.replace(
+    /Loaded Prisma config from ".*(\/|\\)prisma\.config\.ts"/g,
+    'Loaded Prisma config from "sanitized prisma.config.ts path"',
+  )
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
