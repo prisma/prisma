@@ -29,6 +29,8 @@ export function providerToOtelSystem(provider: Provider): string {
       return 'mysql'
     case 'sqlite':
       return 'sqlite'
+    case 'sqlserver':
+      return 'sqlserver'
     default:
       assertNever(provider, `Unknown provider: ${provider}`)
   }

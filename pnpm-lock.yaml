@@ -248,6 +248,34 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
 
+  packages/adapter-mssql:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
+      mssql:
+        specifier: ^11.0.1
+        version: 11.0.1
+    devDependencies:
+      '@swc/core':
+        specifier: 1.11.5
+        version: 1.11.5
+      '@swc/jest':
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.11.5)
+      '@types/mssql':
+        specifier: 9.1.7
+        version: 9.1.7
+      jest:
+        specifier: 29.7.0
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
+      jest-junit:
+        specifier: 16.0.0
+        version: 16.0.0
+
   packages/adapter-neon:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -346,6 +374,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mssql':
+        specifier: workspace:*
+        version: link:../adapter-mssql
       '@prisma/adapter-neon':
         specifier: workspace:*
         version: link:../adapter-neon
@@ -632,6 +663,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mssql':
+        specifier: workspace:*
+        version: link:../adapter-mssql
       '@prisma/adapter-neon':
         specifier: workspace:*
         version: link:../adapter-neon
@@ -3679,6 +3713,9 @@ packages:
 
   '@types/mssql@9.1.5':
     resolution: {integrity: sha512-Q9EsgXwuRoX5wvUSu24YfbKMbFChv7pZ/jeCzPkj47ehcuXYsBcfogwrtVFosSjinD4Q/MY2YPGk9Yy1cM2Ywg==}
+
+  '@types/mssql@9.1.7':
+    resolution: {integrity: sha512-eIOEe78nuSW5KctDHImDhLZ9a+jV/z/Xs5RBhcG/jrk+YWqhdNmzBmHVWV7aWQ5fW+jbIGtX6Ph+bbVqfhzafg==}
 
   '@types/node@18.19.76':
     resolution: {integrity: sha512-yvR7Q9LdPz2vGpmpJX5LolrgRdWvB67MJKDPSgIIzpFbaf9a1j/f5DnLp5VDyHGMR0QZHlTr1afsD87QCXFHKw==}
@@ -10090,6 +10127,14 @@ snapshots:
       '@types/node': 20.12.7
       '@types/tedious': 4.0.9
       tarn: 3.0.2
+
+  '@types/mssql@9.1.7':
+    dependencies:
+      '@types/node': 18.19.76
+      tarn: 3.0.2
+      tedious: 18.2.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@types/node@18.19.76':
     dependencies:
