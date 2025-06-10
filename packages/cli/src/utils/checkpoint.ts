@@ -5,6 +5,15 @@ import * as checkpoint from 'checkpoint-client'
 
 const debug = Debug('prisma:cli:checkpoint')
 
+export interface CheckpointClientCheckOptions {
+  isPrismaInstalledGlobally: 'npm' | false
+  version: string
+  command: string
+  telemetryInformation: string
+  schemaPath?: string
+  schemaPathFromConfig?: string
+}
+
 /**
  * Collect and prepare data then run the Checkpoint Client which will send some info to the remote Checkpoint Server
  * It will be done in a child process so the CLI won't have to wait for it to finish to exit
@@ -21,14 +30,7 @@ export async function runCheckpointClientCheck({
   version,
   command,
   telemetryInformation,
-}: {
-  isPrismaInstalledGlobally: 'npm' | false
-  version: string
-  command: string
-  telemetryInformation: string
-  schemaPath?: string
-  schemaPathFromConfig?: string
-}): Promise<Check.Result | 0> {
+}: CheckpointClientCheckOptions): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {
     // TODO: this breaks checkpoint-client abstraction, ideally it would export a reusable isGloballyDisabled() function
