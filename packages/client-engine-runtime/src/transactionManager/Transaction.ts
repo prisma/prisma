@@ -10,6 +10,7 @@ export type Options = {
   /// Transaction isolation level
   isolationLevel?: IsolationLevel
   newTxId?: string
+  parentId?: string
 }
 
 export type TransactionInfo = {

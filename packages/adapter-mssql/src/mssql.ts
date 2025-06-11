@@ -24,7 +24,7 @@ class MssqlQueryable implements SqlQueryable {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private conn: sql.ConnectionPool | sql.Transaction) {}
+  constructor(private conn: sql.ConnectionPool | sql.Transaction) { }
 
   async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
@@ -86,6 +86,12 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
     }
   }
 
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
+
+    await this.transaction.begin()
+  }
+
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
@@ -140,7 +146,7 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private readonly config: sql.config) {}
+  constructor(private readonly config: sql.config) { }
 
   async connect(): Promise<SqlDriverAdapter> {
     const pool = await sql.connect(this.config)

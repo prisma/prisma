@@ -45,7 +45,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(protected readonly client: ClientT) { }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -138,6 +138,12 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
     super(client)
   }
 
+  begin(): Promise<void> {
+    debug(`[js::begin]`)
+    this.unlockParent()
+    return Promise.resolve()
+  }
+
   commit(): Promise<void> {
     debug(`[js::commit]`)
     this.unlockParent()
@@ -208,7 +214,7 @@ export class PrismaBetterSQLite3AdapterFactory implements SqlMigrationAwareDrive
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(private readonly config: BetterSQLite3InputParams) {}
+  constructor(private readonly config: BetterSQLite3InputParams) { }
 
   connect(): Promise<SqlDriverAdapter> {
     return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client(this.config)))
