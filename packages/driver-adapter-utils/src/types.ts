@@ -192,6 +192,8 @@ const officialPrismaAdapters = [
   '@prisma/adapter-libsql',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',
+  '@prisma/adapter-better-sqlite3',
+  '@prisma/adapter-mysql2',
 ] as const
 
 export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]

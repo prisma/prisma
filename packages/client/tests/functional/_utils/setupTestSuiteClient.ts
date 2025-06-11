@@ -293,5 +293,17 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
+  if (driverAdapter === AdapterProviders.JS_MYSQL2) {
+    const { PrismaMySQL2 } =
+      require('@prisma/adapter-mysql2') as typeof import('@prisma/adapter-mysql2')
+
+    return {
+      adapter: new PrismaMySQL2({
+        uri: datasourceInfo.databaseUrl,
+      }),
+      __internal,
+    }
+  }
+
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }

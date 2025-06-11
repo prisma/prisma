@@ -195,6 +195,7 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_COCKROACHDB: 'cockroachdb',
   TEST_SKIP_POSTGRESQL: 'postgresql',
   TEST_SKIP_SQLITE: 'sqlite',
+  TEST_SKIP_MYSQL: 'mysql',
 }
 
 const excludeEnvToProviderFlavorMap = {
@@ -205,6 +206,7 @@ const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,
   TEST_SKIP_D1: AdapterProviders.JS_D1,
   TEST_SKIP_BETTER_SQLITE3: AdapterProviders.JS_BETTER_SQLITE3,
+  TEST_SKIP_MYSQL2: AdapterProviders.JS_MYSQL2,
 }
 
 function getExclusionsFromEnv(exclusionMap: Record<string, string>) {

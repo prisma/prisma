@@ -229,6 +229,7 @@
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
+    "@prisma/adapter-mysql2": "workspace:*",
     "@prisma/client-common": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/client-generator-js": "workspace:*",

@@ -3,7 +3,7 @@ import { $ } from 'zx'
 void (async () => {
   const postgresProjects = ['da-workers-neon', 'da-workers-pg']
   const sqliteProjects = ['da-workers-libsql', 'da-workers-libsql-web', 'da-workers-d1']
-  const mysqlProjects = ['da-workers-planetscale']
+  const mysqlProjects = ['da-workers-planetscale', 'da-workers-mysql2']
 
   const nodeCompatProjects = new Set(['da-workers-pg', 'da-workers-d1', 'da-workers-planetscale'])
 
