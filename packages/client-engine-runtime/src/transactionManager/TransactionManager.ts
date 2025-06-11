@@ -8,6 +8,8 @@ import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
+  NestedTransactionActiveError,
+  NestedTransactionOrderError,
   TransactionClosedError,
   TransactionExecutionTimeoutError,
   TransactionInternalConsistencyError,
@@ -26,6 +28,9 @@ type TransactionWrapper = {
   timeout: number
   startedAt: number
   transaction?: Transaction
+  label?: string
+  parentId?: string
+  children: string[]
 }
 
 const debug = Debug('prisma:client:transactionManager')
@@ -80,12 +85,19 @@ export class TransactionManager {
     const validatedOptions = options !== undefined ? this.validateOptions(options) : this.transactionOptions
 
     const transaction: TransactionWrapper = {
-      id: options.newTxId ?? await randomUUID(),
+      id: options?.newTxId ?? await randomUUID(),
       status: 'waiting',
       timer: undefined,
       timeout: validatedOptions.timeout!,
       startedAt: Date.now(),
       transaction: undefined,
+      label: options?.label,
+      parentId: options?.parentId,
+      children: [],
+    }
+    if (transaction.parentId) {
+      const parent = this.getActiveTransaction(transaction.parentId, 'start')
+      parent.children.push(transaction.id)
     }
     this.transactions.set(transaction.id, transaction)
 
@@ -122,6 +134,16 @@ export class TransactionManager {
   async commitTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
       const txw = this.getActiveTransaction(transactionId, 'commit')
+      if (txw.children.length > 0) {
+        throw new NestedTransactionActiveError()
+      }
+      if (txw.parentId) {
+        const parent = this.transactions.get(txw.parentId)
+        if (!parent || parent.children[parent.children.length - 1] !== txw.id) {
+          throw new NestedTransactionOrderError()
+        }
+        parent.children.pop()
+      }
       await this.closeTransaction(txw, 'committed')
     })
   }
@@ -129,6 +151,16 @@ export class TransactionManager {
   async rollbackTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
       const txw = this.getActiveTransaction(transactionId, 'rollback')
+      if (txw.children.length > 0) {
+        throw new NestedTransactionActiveError()
+      }
+      if (txw.parentId) {
+        const parent = this.transactions.get(txw.parentId)
+        if (!parent || parent.children[parent.children.length - 1] !== txw.id) {
+          throw new NestedTransactionOrderError()
+        }
+        parent.children.pop()
+      }
       await this.closeTransaction(txw, 'rolled_back')
     })
   }
@@ -222,6 +254,14 @@ export class TransactionManager {
     clearTimeout(tx.timer)
     tx.timer = undefined
 
+    if (tx.parentId) {
+      const parent = this.transactions.get(tx.parentId)
+      if (parent) {
+        const idx = parent.children.lastIndexOf(tx.id)
+        if (idx !== -1) parent.children.splice(idx, 1)
+      }
+    }
+
     this.transactions.delete(tx.id)
 
     this.closedTransactions.push(tx)
@@ -237,6 +277,10 @@ export class TransactionManager {
 
     // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
     if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
+
+    if (options.parentId && !options.label) {
+      throw new TransactionManagerError('label is required for nested transactions')
+    }
 
     return {
       ...options,
