@@ -28,7 +28,6 @@ type TransactionWrapper = {
   timeout: number
   startedAt: number
   transaction?: Transaction
-  label?: string
   parentId?: string
   children: string[]
 }
@@ -91,7 +90,6 @@ export class TransactionManager {
       timeout: validatedOptions.timeout!,
       startedAt: Date.now(),
       transaction: undefined,
-      label: options?.label,
       parentId: options?.parentId,
       children: [],
     }
@@ -277,10 +275,6 @@ export class TransactionManager {
 
     // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
     if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
-
-    if (options.parentId && !options.label) {
-      throw new TransactionManagerError('label is required for nested transactions')
-    }
 
     return {
       ...options,

@@ -308,7 +308,7 @@ test('nested transactions must be closed in order', async () => {
   })
 
   const parentId = await startTransaction(transactionManager)
-  const childId = await startTransaction(transactionManager, { parentId, label: 'child' })
+  const childId = await startTransaction(transactionManager, { parentId })
 
   await expect(transactionManager.commitTransaction(parentId)).rejects.toBeInstanceOf(NestedTransactionActiveError)
 
