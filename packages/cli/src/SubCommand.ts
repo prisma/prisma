@@ -5,9 +5,12 @@ import { pathToFileURL } from 'node:url'
 
 import { detect, getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
 import { dim } from 'kleur/colors'
+
+const debug = Debug('prisma:cli:subcommand')
 
 /**
  * Sub-CLIs that are installed on demand need to implement this interface
@@ -35,6 +38,13 @@ export class SubCommand implements Command {
     const dayMillis = new Date().setHours(0, 0, 0, 0)
     const cacheKey = version === '@latest' ? `-${dayMillis}` : ''
     const prefix = `${tmpdir()}/${pkg}${cacheKey}`
+
+    // if running under deno run the subcommand via deno, too
+    if (typeof globalThis.Deno !== 'undefined' && typeof globalThis.Deno.version !== 'undefined') {
+      debug(`detected deno runtime, running subcommand via 'deno run -A npm:${pkg}'`)
+      await command(`deno run -A npm:${pkg}`, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      return ''
+    }
 
     // if the package is not installed yet, we install it otherwise we skip
     if (existsSync(prefix) === false) {
@@ -72,6 +82,7 @@ export class SubCommand implements Command {
       '--loglevel',
       'error',
     ])
+    debug(`running install cmd: ${installCmd}\n`)
     await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
   }
 }
