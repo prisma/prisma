@@ -88,6 +88,9 @@ export function mapArg(arg: unknown): unknown {
     return Buffer.from(arg)
   }
   if (typeof arg === 'bigint') {
+    if (arg >= BigInt(Number.MIN_SAFE_INTEGER) && arg <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return Number(arg)
+    }
     return arg.toString()
   }
   return arg
