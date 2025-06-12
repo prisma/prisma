@@ -100,13 +100,14 @@ export async function setupTestSuiteClient({
   } else {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
+  const outputPath = generatorType === 'prisma-client-ts' ? 'generated/prisma' : 'generated/prisma/client'
 
   const clientGenOptions: GenerateClientLegacyOptions & GenerateClientESMOptions = {
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: schemaContext.datasources,
-    outputDir: path.join(suiteFolderPath, 'generated/prisma/client'),
+    outputDir: path.join(suiteFolderPath, outputPath),
     copyRuntime: false,
     dmmf: dmmf,
     generator: generator,
@@ -134,23 +135,23 @@ export async function setupTestSuiteClient({
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     node: {
       client: 'generated/prisma/client',
-      sql: 'generated/prisma/client/sql',
+      sql: path.join(outputPath, 'sql'),
     },
     edge: {
-      client: 'generated/prisma/client/edge',
-      sql: 'generated/prisma/client/sql/index.edge.js',
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/edge',
+      sql: path.join(outputPath, 'sql', 'index.edge.js'),
     },
     'wasm-engine-edge': {
-      client: 'generated/prisma/client/wasm',
-      sql: 'generated/prisma/client/sql/index.wasm-engine-edge.js',
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
+      sql: path.join(outputPath, 'sql', 'index.wasm-engine-edge.js'),
     },
     'wasm-compiler-edge': {
-      client: 'generated/prisma/client/wasm',
-      sql: 'generated/prisma/client/sql/index.wasm-compiler-edge.js',
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
+      sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
     },
     client: {
       client: 'generated/prisma/client',
-      sql: 'generated/prisma/client/sql',
+      sql: path.join(outputPath, 'sql'),
     },
   }
 
