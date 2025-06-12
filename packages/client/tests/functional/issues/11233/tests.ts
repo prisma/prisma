@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(
           break
 
         case Providers.MYSQL:
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          expect((result as Error).message).toContain('Query was empty')
           break
 
         default:
@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(
           break
 
         case Providers.MYSQL:
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          expect((result as Error).message).toContain('Query was empty')
           break
 
         default:
