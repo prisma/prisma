@@ -92,7 +92,7 @@ function renderTemplateSql(fragments: Fragment[], placeholderFormat: Placeholder
           return formatPlaceholder(placeholderFormat, placeholderNumber++)
 
         case 'stringChunk':
-          return fragment.value
+          return fragment.chunk
 
         case 'parameterTuple': {
           if (paramIndex >= params.length) {
@@ -136,10 +136,10 @@ function renderTemplateSql(fragments: Fragment[], placeholderFormat: Placeholder
                   flattenedParams.push(value)
                   return formatPlaceholder(placeholderFormat, placeholderNumber++)
                 })
-                .join(',')
-              return `(${elements})`
+                .join(fragment.itemSeparator)
+              return `${fragment.itemPrefix}${elements}${fragment.itemSuffix}`
             })
-            .join(',')
+            .join(fragment.groupSeparator)
           return tupleList
         }
 
