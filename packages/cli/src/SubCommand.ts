@@ -1,9 +1,9 @@
-import { existsSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { getCommand } from '@antfu/ni'
+import { detect, getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import { command } from 'execa'
@@ -38,27 +38,40 @@ export class SubCommand implements Command {
 
     // if the package is not installed yet, we install it otherwise we skip
     if (existsSync(prefix) === false) {
-      process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
-      const installCmd = getCommand('npm', 'install', [
-        pkg,
-        '--no-save',
-        '--prefix',
-        prefix,
-        '--userconfig',
-        prefix,
-        '--loglevel',
-        'error',
-      ])
-      await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      await this.installPackage(pkg, prefix)
     }
 
     // load the module and run it via the Runnable interface
     const modulePath = pathToFileURL(join(prefix, 'node_modules', this.pkg, 'dist', 'index.js'))
-    const module: Runnable = await import(modulePath.toString())
+    let module: Runnable
+    try {
+      module = await import(modulePath.toString())
+    } catch (e) {
+      // Wipe cache and retry if import fails
+      rmSync(prefix, { recursive: true })
+      await this.installPackage(pkg, prefix)
+      module = await import(modulePath.toString())
+    }
     await module.run(args, config)
 
     return ''
   }
 
   public help() {}
+
+  private async installPackage(pkg: string, prefix: string) {
+    process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
+    const agent = await detect({ cwd: process.cwd(), autoInstall: false, programmatic: true })
+    const installCmd = getCommand(agent ?? 'npm', 'install', [
+      pkg,
+      '--no-save',
+      '--prefix',
+      prefix,
+      '--userconfig',
+      prefix,
+      '--loglevel',
+      'error',
+    ])
+    await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+  }
 }
