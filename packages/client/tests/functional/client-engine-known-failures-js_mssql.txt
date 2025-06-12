@@ -1,1 +1,27 @@
-
+extensions.tx (provider=sqlserver, js_mssql) extended client in tx can rollback via custom call
+extensions.tx (provider=sqlserver, js_mssql) extended client in tx can rollback via normal call
+filter-count-relations (provider=sqlserver, js_mssql) nested relation
+interactive-transactions (provider=sqlserver, js_mssql) batching raw rollback
+interactive-transactions (provider=sqlserver, js_mssql) batching rollback
+interactive-transactions (provider=sqlserver, js_mssql) timeout default
+interactive-transactions (provider=sqlserver, js_mssql) timeout override
+interactive-transactions (provider=sqlserver, js_mssql) timeout override by PrismaClient
+issues.13766.at-unique (provider=sqlserver, js_mssql) relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation
+issues.13766.at-unique (provider=sqlserver, js_mssql) relationMode=prisma should prevent updates on a model if any other relation references a field
+issues.20724 (provider=sqlserver, js_mssql) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
+issues.20724 (provider=sqlserver, js_mssql) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
+issues.20724 (provider=sqlserver, js_mssql) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
+issues.9678 (provider=sqlserver, js_mssql) concurrent deleteMany/createMany
+methods.findFirstOrThrow (provider=sqlserver, js_mssql) works with transactions
+methods.findUniqueOrThrow (provider=sqlserver, js_mssql) works with transactions
+metrics.enabled (provider=sqlserver, js_mssql) after a query includes global labels in json format
+metrics.enabled (provider=sqlserver, js_mssql) after a query includes global labels in prometheus format
+metrics.enabled (provider=sqlserver, js_mssql) after a query returns metrics in json format
+metrics.enabled (provider=sqlserver, js_mssql) after a query returns metrics in prometheus format
+metrics.enabled (provider=sqlserver, js_mssql) before a query SQL Providers: should have the same keys, before and after a query
+metrics.enabled (provider=sqlserver, js_mssql) empty $metrics.json() does not crash before client is connected
+metrics.enabled (provider=sqlserver, js_mssql) empty $metrics.prometheus() does not crash before client is connected
+metrics.enabled (provider=sqlserver, js_mssql) multiple instances does not share metrics between 2 different instances of client
+tracing (provider=sqlserver, js_mssql) tracing connect should trace the implicit $connect call
+tracing (provider=sqlserver, js_mssql) tracing on transactions $transaction
+unsupported-action (provider=sqlserver, js_mssql) unsupported method
