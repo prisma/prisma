@@ -15,7 +15,7 @@ import { Mutex } from 'async-mutex'
 import * as sql from 'mssql'
 
 import { name as packageName } from '../package.json'
-import { mapColumnType, mapIsolationLevel, mapRow } from './conversion'
+import { mapArg, mapColumnType, mapIsolationLevel, mapRow } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:mssql')
@@ -51,7 +51,7 @@ class MssqlQueryable implements SqlQueryable {
       req.arrayRowMode = true
 
       for (let i = 0; i < query.args.length; i++) {
-        req.input(`P${i + 1}`, query.args[i])
+        req.input(`P${i + 1}`, mapArg(query.args[i]))
       }
       const res = (await req.query(query.sql)) as unknown as ArrayModeResult
       return res
@@ -140,9 +140,7 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private readonly config: sql.config) {
-    sql.map.register(BigInt, sql.BigInt)
-  }
+  constructor(private readonly config: sql.config) {}
 
   async connect(): Promise<SqlDriverAdapter> {
     const pool = await sql.connect(this.config)

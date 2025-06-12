@@ -481,7 +481,7 @@ exports[`interactive-transactions (provider=sqlserver, js_mssql) batching raw ro
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Unique constraint failed on the constraint: \`dbo.User\`"
+Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: dbo.User\`"
 `;
 
 exports[`interactive-transactions (provider=sqlserver, js_mssql) batching rollback 1`] = `

@@ -83,6 +83,16 @@ export function mapIsolationLevel(level: IsolationLevel): sql.IIsolationLevel {
   }
 }
 
+export function mapArg(arg: unknown): unknown {
+  if (arg instanceof Uint8Array) {
+    return Buffer.from(arg)
+  }
+  if (typeof arg === 'bigint') {
+    return arg.toString()
+  }
+  return arg
+}
+
 export function mapRow(row: unknown[]): unknown[] {
   return row.map((value) => {
     if (value instanceof Date) {
