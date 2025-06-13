@@ -18,6 +18,7 @@ const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 beforeEach(async () => {
   await rm(join(tmpdir(), `sub-command@0.0.0`), { recursive: true, force: true })
   await rm(join(tmpdir(), `sub-command@latest-${getDayMillis()}`), { recursive: true, force: true })
+  vi.resetModules()
 })
 
 afterEach(() => {
@@ -121,12 +122,12 @@ test('autoinstall', async () => {
 })
 
 test('cleans up corrupted tmp directory', async () => {
-  const cmd = new SubCommand('sub-command-2')
+  const cmd = new SubCommand('sub-command')
   const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copySrcCorrupted = join(__dirname, '..', 'fixtures', 'sub-command-corrupted')
-  const copyDest = join(tmpdir(), 'sub-command-2@0.0.0')
+  const copyDest = join(tmpdir(), 'sub-command@0.0.0')
 
   await copy(copySrcCorrupted, copyDest)
 
