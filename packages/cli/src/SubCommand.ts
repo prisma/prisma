@@ -84,25 +84,21 @@ export class SubCommand implements Command {
     const cacheKey = version === '@latest' ? `-${dayMillis}` : ''
     const prefix = `${tmpdir()}/${pkgWithVersion}${cacheKey}`
 
-    // if the package is not installed yet, we install it otherwise we skip
-    if (existsSync(prefix) === false) {
-      await this.installPackage(pkgWithVersion, prefix)
-    }
+    const modulePath = await this.installPackage(pkgWithVersion, prefix)
 
-    const modulePath = pathToFileURL(join(prefix, 'node_modules', pkg, 'dist', 'index.js')).toString()
     try {
       return await import(modulePath)
     } catch (e) {
       debug(`import failed: ${e}`)
       debug(`=> wiping cache and retrying`)
-      return this.wipeCacheAndRetry(pkgWithVersion, prefix, modulePath)
+      return this.wipeCacheAndRetry(pkgWithVersion, prefix)
     }
   }
 
-  private async wipeCacheAndRetry(pkgWithVersion: string, prefix: string, modulePath: string): Promise<Runnable> {
+  private async wipeCacheAndRetry(pkgWithVersion: string, prefix: string): Promise<Runnable> {
     // Wipe cache and retry if import fails
     rmSync(prefix, { recursive: true })
-    await this.installPackage(pkgWithVersion, prefix)
+    const modulePath = await this.installPackage(pkgWithVersion, prefix)
     try {
       return await import(modulePath)
     } catch (e) {
@@ -111,6 +107,9 @@ export class SubCommand implements Command {
   }
 
   private async installPackage(pkgWithVersion: string, prefix: string) {
+    const npmCachedModulePath = pathToFileURL(join(prefix, 'node_modules', this.pkg, 'dist', 'index.js')).toString()
+    if (existsSync(prefix)) return npmCachedModulePath
+
     process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
 
     const installCmd = getCommand('npm', 'install', [
@@ -127,10 +126,11 @@ export class SubCommand implements Command {
 
     try {
       await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      return npmCachedModulePath
     } catch (e: unknown) {
       debug(`install via npm failed: ${e}`)
       if (typeof globalThis.Bun !== 'undefined' && typeof globalThis.Bun.version !== 'undefined') {
-        await this.installPackageViaBun(pkgWithVersion)
+        return await this.installPackageViaBun(pkgWithVersion)
       } else {
         throw new NpmInstallError(e)
       }
@@ -146,6 +146,7 @@ export class SubCommand implements Command {
     debug(`detected bun runtime - running install via: ${installCmd}`)
     try {
       await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      return this.pkg
     } catch (e: unknown) {
       debug(`install via bun failed: ${e}`)
       throw new BunInstallError(e)
