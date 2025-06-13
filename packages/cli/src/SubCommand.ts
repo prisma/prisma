@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
-import execa from 'execa'
+import * as execa from 'execa'
 import { dim, underline } from 'kleur/colors'
 
 import { printError } from './utils/prompt/utils/print'
@@ -79,8 +79,11 @@ export class SubCommand implements Command {
     const cacheKey = version === '@latest' ? `-${dayMillis}` : ''
     const prefix = `${tmpdir()}/${pkgWithVersion}${cacheKey}`
 
+    debug(`using cache directory: ${prefix}`)
+
     const modulePath = await this.installPackage(pkgWithVersion, prefix)
 
+    debug(`using module path: ${modulePath}`)
     try {
       return await import(modulePath)
     } catch (e) {
@@ -122,7 +125,7 @@ export class SubCommand implements Command {
 
     try {
       // Note: Using execa this way ensure proper argument encoding for whitespaces
-      await execa('npm', installCmdArgs, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      await execa.default('npm', installCmdArgs, { stdout: 'ignore', stderr: 'inherit', env: process.env })
       return npmCachedModulePath
     } catch (e: unknown) {
       debug(`install via npm failed: ${e}`)
