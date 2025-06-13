@@ -107,7 +107,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       // - Since https://github.com/prisma/prisma-engines/pull/4640,
       //   we also skip a read when possible, on SQLite.
 
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {
@@ -183,7 +183,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {
@@ -249,7 +249,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {

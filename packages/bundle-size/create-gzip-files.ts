@@ -4,10 +4,11 @@ void (async () => {
   const postgresProjects = ['da-workers-neon', 'da-workers-pg']
   const sqliteProjects = ['da-workers-libsql', 'da-workers-libsql-web', 'da-workers-d1']
   const mysqlProjects = ['da-workers-planetscale']
+  const mssqlProjects = ['da-workers-mssql']
 
-  const nodeCompatProjects = new Set(['da-workers-pg', 'da-workers-d1', 'da-workers-planetscale'])
+  const nodeCompatProjects = new Set(['da-workers-pg', 'da-workers-d1', 'da-workers-planetscale', 'da-workers-mssql'])
 
-  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
+  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects, ...mssqlProjects]
 
   const getSchemaFile = (project: string) => {
     if (postgresProjects.includes(project)) {
@@ -15,6 +16,9 @@ void (async () => {
     }
     if (mysqlProjects.includes(project)) {
       return `${__dirname}/schema.mysql.prisma`
+    }
+    if (mssqlProjects.includes(project)) {
+      return `${__dirname}/schema.mssql.prisma`
     }
     return `${__dirname}/schema.sqlite.prisma`
   }

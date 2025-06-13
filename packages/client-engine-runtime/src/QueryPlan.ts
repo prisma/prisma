@@ -92,10 +92,16 @@ export type QueryPlanDbQuery =
     }
 
 export type Fragment =
-  | { type: 'stringChunk'; value: string }
+  | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
   | { type: 'parameterTuple' }
-  | { type: 'parameterTupleList' }
+  | {
+      type: 'parameterTupleList'
+      itemPrefix: string
+      itemSeparator: string
+      itemSuffix: string
+      groupSeparator: string
+    }
 
 export interface PlaceholderFormat {
   prefix: string

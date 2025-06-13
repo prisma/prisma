@@ -152,6 +152,14 @@ export type Error =
       kind: 'SocketTimeout'
     }
   | {
+      kind: 'InconsistentColumnData'
+      cause: string
+    }
+  | {
+      kind: 'TransactionAlreadyClosed'
+      cause: string
+    }
+  | {
       kind: 'postgres'
       code: string
       severity: string
@@ -174,6 +182,11 @@ export type Error =
       extendedCode: number
       message: string
     }
+  | {
+      kind: 'mssql'
+      code: number
+      message: string
+    }
 
 export type ConnectionInfo = {
   schemaName?: string
@@ -181,7 +194,7 @@ export type ConnectionInfo = {
   supportsRelationJoins: boolean
 }
 
-export type Provider = 'mysql' | 'postgres' | 'sqlite'
+export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
@@ -192,6 +205,7 @@ const officialPrismaAdapters = [
   '@prisma/adapter-libsql',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',
+  '@prisma/adapter-mssql',
 ] as const
 
 export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]

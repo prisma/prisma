@@ -27,9 +27,9 @@ test('no template and scalar list parameter', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE id = ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE id = ' },
           { type: 'parameter' },
-          { type: 'stringChunk', value: ' AND numbers = ' },
+          { type: 'stringChunk', chunk: ' AND numbers = ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -54,9 +54,9 @@ test('transforms IN template', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
           { type: 'parameterTuple' },
-          { type: 'stringChunk', value: ' OFFSET ' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -81,9 +81,9 @@ test('transforms IN template with empty list', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
           { type: 'parameterTuple' },
-          { type: 'stringChunk', value: ' OFFSET ' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -108,9 +108,9 @@ test('handles singleton list in IN template', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
           { type: 'parameterTuple' },
-          { type: 'stringChunk', value: ' OFFSET ' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -135,9 +135,9 @@ test('treats non-array element as a singleton list in IN template', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
           { type: 'parameterTuple' },
-          { type: 'stringChunk', value: ' OFFSET ' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -162,11 +162,11 @@ test("transforms IN template, doesn't touch scalar list", () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'SELECT * FROM users WHERE "userId" IN ' },
+          { type: 'stringChunk', chunk: 'SELECT * FROM users WHERE "userId" IN ' },
           { type: 'parameterTuple' },
-          { type: 'stringChunk', value: ' AND numbers = ' },
+          { type: 'stringChunk', chunk: ' AND numbers = ' },
           { type: 'parameter' },
-          { type: 'stringChunk', value: ' OFFSET ' },
+          { type: 'stringChunk', chunk: ' OFFSET ' },
           { type: 'parameter' },
         ],
         placeholderFormat: {
@@ -191,8 +191,8 @@ test('transforms INSERT VALUES template', () => {
       {
         type: 'templateSql',
         fragments: [
-          { type: 'stringChunk', value: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ' },
-          { type: 'parameterTupleList' },
+          { type: 'stringChunk', chunk: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ' },
+          { type: 'parameterTupleList', itemPrefix: '(', itemSeparator: ',', itemSuffix: ')', groupSeparator: ',' },
         ],
         placeholderFormat: {
           prefix: '$',

@@ -321,7 +321,10 @@ List of types:
 
 List of directories in the monorepo:
 
+- adapter-better-sqlite3
+- adapter-d1
 - adapter-libsql
+- adapter-mmssql
 - adapter-neon
 - adapter-pg
 - adapter-planetscale

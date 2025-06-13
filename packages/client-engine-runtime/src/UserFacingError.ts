@@ -51,6 +51,8 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
       return 'P1009'
     case 'DatabaseAccessDenied':
       return 'P1010'
+    case 'TransactionAlreadyClosed':
+      return 'P1018'
     case 'LengthMismatch':
       return 'P2000'
     case 'UniqueConstraintViolation':
@@ -68,6 +70,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'ColumnNotFound':
       return 'P2022'
     case 'InvalidIsolationLevel':
+    case 'InconsistentColumnData':
       return 'P2023'
     case 'MissingFullTextSearchIndex':
       return 'P2030'
@@ -80,6 +83,7 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
     case 'postgres':
     case 'sqlite':
     case 'mysql':
+    case 'mssql':
       return
     default:
       assertNever(err.cause, `Unknown error: ${err.cause}`)
@@ -106,6 +110,8 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
       const db = err.cause.db ?? '(not available)'
       return `User was denied access on the database \`${db}\``
     }
+    case 'TransactionAlreadyClosed':
+      return err.cause.cause
     case 'LengthMismatch': {
       const column = err.cause.column ?? '(not available)'
       return `The provided value for the column is too long for the column's type. Column: ${column}`
@@ -130,6 +136,8 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     }
     case 'InvalidIsolationLevel':
       return `Invalid isolation level \`${err.cause.level}\``
+    case 'InconsistentColumnData':
+      return `Inconsistent column data: ${err.cause.cause}`
     case 'MissingFullTextSearchIndex':
       return 'Cannot find a fulltext index to use for the native search, try adding a @@fulltext([Fields...]) to your schema'
     case 'TransactionWriteConflict':
@@ -141,6 +149,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'sqlite':
     case 'postgres':
     case 'mysql':
+    case 'mssql':
       return
     default:
       assertNever(err.cause, `Unknown error: ${err.cause}`)
