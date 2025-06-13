@@ -16,7 +16,7 @@ const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
-const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql'] as const
+const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql', 'sqlserver'] as const
 type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS)[number]
 
 const MODULE_FORMATS = ['esm', 'cjs'] as const

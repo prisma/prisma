@@ -41,5 +41,10 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB],
       reason: 'First query does not fail even when database does not exist.',
     },
+    skipDriverAdapter: {
+      // TODO: fix this case
+      from: ['js_mssql'],
+      reason: 'Driver fails with `Login failed for user ...`',
+    },
   },
 )

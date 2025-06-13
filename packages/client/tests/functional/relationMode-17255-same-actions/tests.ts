@@ -89,6 +89,7 @@ testMatrix.setupTestSuite(
                   [AdapterProviders.JS_NEON]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
                   [AdapterProviders.JS_PG]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
                   [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint violated on the fields: (`aliceId`)',
+                  [AdapterProviders.JS_MSSQL]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
                 },
                 prisma: errors[onDelete],
               }),

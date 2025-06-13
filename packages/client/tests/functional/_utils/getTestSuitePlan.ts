@@ -206,6 +206,7 @@ const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,
   TEST_SKIP_D1: AdapterProviders.JS_D1,
   TEST_SKIP_BETTER_SQLITE3: AdapterProviders.JS_BETTER_SQLITE3,
+  TEST_SKIP_MSSQL: AdapterProviders.JS_MSSQL,
   TEST_SKIP_MYSQL2: AdapterProviders.JS_MYSQL2,
 }
 
