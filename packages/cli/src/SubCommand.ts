@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
-import execa, { command } from 'execa'
+import execa from 'execa'
 import { bold, dim, red } from 'kleur/colors'
 
 const debug = Debug('prisma:cli:subcommand')
@@ -16,12 +16,6 @@ const debug = Debug('prisma:cli:subcommand')
  */
 type Runnable = {
   run: (args: string[], config: PrismaConfigInternal) => Promise<void>
-}
-
-class BunInstallError extends Error {
-  constructor(readonly reason: unknown) {
-    super('Failed to install subcommand package via bun')
-  }
 }
 
 class NpmInstallError extends Error {
@@ -130,27 +124,7 @@ export class SubCommand implements Command {
       return npmCachedModulePath
     } catch (e: unknown) {
       debug(`install via npm failed: ${e}`)
-      if (typeof globalThis.Bun !== 'undefined' && typeof globalThis.Bun.version !== 'undefined') {
-        return await this.installPackageViaBun(pkgWithVersion)
-      } else {
-        throw new NpmInstallError(e)
-      }
-    }
-  }
-
-  /**
-   * We install via bun only as fallback because bun does not support a custom install directory like npm via `--prefix`.
-   * This means we cannot properly cache the package in the tmp directory but have to reinstall on every run if the user only has bun installed.
-   */
-  private async installPackageViaBun(pkgWithVersion: string) {
-    const installCmd = `bun install ${pkgWithVersion} --no-save --silent`
-    debug(`detected bun runtime - running install via: ${installCmd}`)
-    try {
-      await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
-      return this.pkg
-    } catch (e: unknown) {
-      debug(`install via bun failed: ${e}`)
-      throw new BunInstallError(e)
+      throw new NpmInstallError(e)
     }
   }
 
@@ -158,11 +132,6 @@ export class SubCommand implements Command {
     process.exitCode = 1
     if (error instanceof ImportError) {
       process.stdout.write(bold(red(`\nFailed to import this dynamic subcommand.\n`)))
-      process.stdout.write(dim(`\nUnderlying Error: ${error.reason}\n`))
-    } else if (error instanceof BunInstallError) {
-      process.stdout.write(bold(red(`\nFailed to install this dynamic subcommand via bun.\n`)))
-      process.stdout.write(`Prisma's dynamic subcommands work best with npm.\n`)
-      process.stdout.write(`If you keep having issues, please try to install npm and rerun this command.\n`)
       process.stdout.write(dim(`\nUnderlying Error: ${error.reason}\n`))
     } else if (error instanceof NpmInstallError) {
       process.stdout.write(bold(red(`\nFailed to install dynamic subcommand via npm.\n`)))
