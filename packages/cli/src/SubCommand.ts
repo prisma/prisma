@@ -3,11 +3,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
-import { command } from 'execa'
+import execa, { command } from 'execa'
 import { bold, dim, red } from 'kleur/colors'
 
 const debug = Debug('prisma:cli:subcommand')
@@ -112,7 +111,8 @@ export class SubCommand implements Command {
 
     process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
 
-    const installCmd = getCommand('npm', 'install', [
+    const installCmdArgs = [
+      'install',
       pkgWithVersion,
       '--no-save',
       '--prefix',
@@ -121,11 +121,12 @@ export class SubCommand implements Command {
       prefix,
       '--loglevel',
       'error',
-    ])
-    debug(`running install cmd: ${installCmd}`)
+    ]
+    debug(`running install cmd: npm ${installCmdArgs.join(' ')}`)
 
     try {
-      await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      // Note: Using execa this way ensure proper argument encoding for whitespaces
+      await execa('npm', installCmdArgs, { stdout: 'ignore', stderr: 'inherit', env: process.env })
       return npmCachedModulePath
     } catch (e: unknown) {
       debug(`install via npm failed: ${e}`)
