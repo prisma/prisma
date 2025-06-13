@@ -1,4 +1,3 @@
-import { existsSync } from 'node:fs'
 import { rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -122,26 +121,14 @@ test('autoinstall', async () => {
 })
 
 test('cleans up corrupted tmp directory', async () => {
-  const cmd = new SubCommand('sub-command')
+  const cmd = new SubCommand('sub-command-2')
   const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-  console.log(
-    `pre copy exists: ${existsSync(
-      join(tmpdir(), 'sub-command@0.0.0', 'node_modules', 'sub-command', 'dist', 'index.js'),
-    )}`,
-  )
 
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copySrcCorrupted = join(__dirname, '..', 'fixtures', 'sub-command-corrupted')
-  const copyDest = join(tmpdir(), 'sub-command@0.0.0')
+  const copyDest = join(tmpdir(), 'sub-command-2@0.0.0')
 
   await copy(copySrcCorrupted, copyDest)
-
-  console.log(
-    `post copy exists: ${existsSync(
-      join(tmpdir(), 'sub-command@0.0.0', 'node_modules', 'sub-command', 'dist', 'index.js'),
-    )}`,
-  )
 
   vi.mocked(execa.default).mockImplementation((async () => {
     await copy(copySrc, copyDest)
