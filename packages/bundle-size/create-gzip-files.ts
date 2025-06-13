@@ -5,7 +5,7 @@ void (async () => {
   const sqliteProjects = ['da-workers-libsql', 'da-workers-libsql-web', 'da-workers-d1']
   const mysqlProjects = ['da-workers-planetscale', 'da-workers-mysql2']
 
-  const nodeCompatProjects = new Set(['da-workers-pg', 'da-workers-d1', 'da-workers-planetscale'])
+  const nodeCompatProjects = new Set(['da-workers-pg', 'da-workers-d1', 'da-workers-planetscale', 'da-workers-mysql2'])
 
   const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
 
