@@ -7,7 +7,9 @@ import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
 import execa from 'execa'
-import { bold, dim, red } from 'kleur/colors'
+import { dim, underline } from 'kleur/colors'
+
+import { printError } from './utils/prompt/utils/print'
 
 const debug = Debug('prisma:cli:subcommand')
 
@@ -131,25 +133,27 @@ export class SubCommand implements Command {
   private handleError(error: unknown) {
     process.exitCode = 1
     if (error instanceof ImportError) {
-      process.stdout.write(bold(red(`\nFailed to import this dynamic subcommand.\n`)))
-      process.stdout.write(dim(`\nUnderlying Error: ${error.reason}\n`))
+      console.log(`\n${printError('Failed to import this dynamic subcommand.')}`)
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error.reason}`))
     } else if (error instanceof NpmInstallError) {
-      process.stdout.write(bold(red(`\nFailed to install dynamic subcommand via npm.\n`)))
-      process.stdout.write(`This subcommand is dynamically loaded and therefore requires npm to be installed.\n`)
-      process.stdout.write(`Please install npm and rerun this command.\n`)
-      process.stdout.write(dim(`\nUnderlying Error: ${error.reason}\n`))
+      console.log(
+        `\n${printError(`Failed to install dynamic subcommand via npm.
+        This subcommand is dynamically loaded and therefore requires npm to be installed.
+        Please install npm and rerun this command.`)}`,
+      )
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error.reason}`))
     } else if (error instanceof DenoNotSupportedError) {
-      process.stdout.write(bold(red(`\nThis subcommand is not supported in Deno.\n`)))
-      process.stdout.write(`Please use regular node.js to run this command.\nE.g. via 'npx prisma <cmd>'.\n`)
-      process.stdout.write(
-        `\nNote: You can still use Prisma's generated code via the 'prisma-client' generator on deno.\n`,
+      console.log(
+        `\n${printError(`This subcommand is not supported in Deno.
+        Please use node.js to run this command.
+        E.g. via 'npx prisma <cmd>'.`)}`,
       )
-      process.stdout.write(
-        `See https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-deno-deploy for more information.\n`,
-      )
+      console.log(`
+Note: You can still use Prisma's generated code via the 'prisma-client' generator on deno.
+See https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-deno-deploy for more information.`)
     } else {
-      process.stdout.write(bold(red(`\nFailed to run subcommand.\n`)))
-      process.stdout.write(dim(`\nUnderlying Error: ${error}\n`))
+      console.log(`\n${printError(`Failed to run subcommand.`)}`)
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error}`))
     }
   }
 }
