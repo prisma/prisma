@@ -37,11 +37,32 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const [rows, fields] = await this.client.query({
-      sql: query.sql,
-      values: query.args,
-      rowsAsArray: true,
-    })
+    // Note: mysql2's TypeScript definitions are messy wrong.
+    // When you call `client.query()` with a `SELECT` query, it returns a tuple of `[rows, fields]`,
+    // where `rows` is an array of columns, and `fields` is an array of field metadata (containing column type, name, etc).
+    // When you call `client.query()` with a non-`SELECT` query, it returns a single `rows` object with `fieldCount === 0`,
+    // `insertId`, etc, and `fields` is undefined.
+    const clientQuery = (query: SqlQuery): Promise<[sql.RowDataPacket[], sql.FieldPacket[]] | [sql.ResultSetHeader, undefined]> => {
+      return this.client.query({
+        sql: query.sql,
+        values: query.args,
+        rowsAsArray: true, // This is important to ensure we get an array of arrays as rows
+      }) as Promise<any>
+    }
+
+    const [rows, fields] = await clientQuery(query)
+
+    if (fields === undefined) {
+      // If there are no fields, we return an empty result set.
+      // This is the case for queries like `INSERT`, `UPDATE`, etc.
+      return {
+        columnNames: [],
+        columnTypes: [],
+        rows: [],
+        // Note: by default, mysql2 returns `insertId = 0`.
+        lastInsertId: rows.insertId !== 0 ? rows['insertId'].toString(10) : undefined,
+      }
+    }
 
     const columnNames = fields.map((field) => field.name)
     let columnTypes: ColumnType[] = []
@@ -161,8 +182,11 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    await this.client.beginTransaction();
+    // Note: mysql2's TypeScript definitions are wrong.
+    // You can't call `Pool.prototype.beginTransaction()`. You need to retrieve a PoolConnection first,
+    // and then call `PoolConnection.prototype.beginTransaction()`.
     const conn = await this.client.getConnection();
+    await conn.beginTransaction();
 
     try {
       const tx = new MySQL2Transaction(conn, options)
@@ -209,10 +233,20 @@ export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapte
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
+  static #defaultConfig = {
+    database: 'mysql',
+    // https://sidorares.github.io/node-mysql2/docs/documentation/connect-on-cloudflare#mysql2-connection
+    disableEval: true,
+    // read JSON datatypes as strings
+    jsonStrings: true,
+  } satisfies sql.PoolOptions
+
   constructor(private readonly config: sql.PoolOptions, private readonly options?: PrismaMySQL2Options) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaMySQL2Adapter(sql.createPool(this.config), this.options, async () => {})
+    const config = { ...PrismaMySQL2AdapterFactory.#defaultConfig, ...this.config } satisfies sql.PoolOptions
+    const options = { schema: config.database, ...this.options } satisfies PrismaMySQL2Options
+    return new PrismaMySQL2Adapter(sql.createPool(config), options, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -220,7 +254,9 @@ export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapte
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaMySQL2Adapter(sql.createPool({ ...this.config, database }), undefined, async () => {
+    const config = { ...PrismaMySQL2AdapterFactory.#defaultConfig, ...this.config, database }
+
+    return new PrismaMySQL2Adapter(sql.createPool(config), undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
       // Note: no need to call dispose here. This callback is run as part of dispose.
     })

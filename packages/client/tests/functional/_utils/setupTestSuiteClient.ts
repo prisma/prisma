@@ -297,9 +297,12 @@ export function setupTestSuiteClientDriverAdapter({
     const { PrismaMySQL2 } =
       require('@prisma/adapter-mysql2') as typeof import('@prisma/adapter-mysql2')
 
+    const database = new URL(datasourceInfo.databaseUrl).pathname.split('/').pop()
+
     return {
       adapter: new PrismaMySQL2({
         uri: datasourceInfo.databaseUrl,
+        database,
       }),
       __internal,
     }
