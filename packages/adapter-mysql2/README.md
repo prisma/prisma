@@ -52,7 +52,7 @@ import { PrismaClient } from '@prisma/client'
 
 const connectionString = `${process.env.DATABASE_URL}`
 
-const adapter = new PrismaMySQL2({ connectionString })
+const adapter = new PrismaMySQL2({ uri: connectionString })
 const prisma = new PrismaClient({ adapter })
 ```
 
