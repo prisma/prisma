@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe",
+    "@prisma/engines-version": "6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

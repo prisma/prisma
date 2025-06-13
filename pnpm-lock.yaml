@@ -703,8 +703,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -730,11 +730,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-compiler-wasm':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/query-engine-wasm':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -975,8 +975,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1058,8 +1058,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1199,8 +1199,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1236,8 +1236,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1582,11 +1582,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/schema-engine-wasm':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1760,8 +1760,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -1881,8 +1881,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
-        version: 6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe
+        specifier: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
+        version: 6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
@@ -3296,25 +3296,25 @@ packages:
     peerDependencies:
       prettier: '*'
 
-  '@prisma/engines-version@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe':
-    resolution: {integrity: sha512-K2YzFwAZN/GZYlR2kSnFW1jDghpOkPO2KXCT4doINYOCThgFvOmi2aRvJf5ilTd0D9bW9Ukh7kHuiwGqAPKZCA==}
+  '@prisma/engines-version@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0':
+    resolution: {integrity: sha512-iDs/edWClRLWKkTjuQjJpRadrk00fEqbGH/1uYULzRDQ/3zksHQPyNJUVih0DHtjl9BZM9Z+IBGbys/R0nWjzA==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe':
-    resolution: {integrity: sha512-hbR25hxUNuuDdeo3JTdHz4ueyjbqvYrDrs1EPDTIUEe1D376JdbWE8l9X67jhvFZB1+d6gDQVWLPYLfFasitRA==}
+  '@prisma/prisma-schema-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0':
+    resolution: {integrity: sha512-qfFvWGZOKTxVURlJNPDbxzoA+R59DHZeFTzDPpPbc52LcsaPiUHlgch5fB2Sxb50P/qIIXMTok13McQpDDWTlQ==}
 
-  '@prisma/query-compiler-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe':
-    resolution: {integrity: sha512-1BgFqav+pvnksnCFso58e36e+fSUmtfhxZVMpeipJgUK2lNt056SWc0Us5GdMT3wo7qfV/8Mc9I1y89KkHVPoQ==}
+  '@prisma/query-compiler-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0':
+    resolution: {integrity: sha512-qNYqNQxxzqy1rmWpSQoqItejNFiPBJ2BAb+6KzPEHQYg4z9lgsm6jeUGruuDcsgRy1be79b18CP8CwvEz8uPxQ==}
 
-  '@prisma/query-engine-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe':
-    resolution: {integrity: sha512-Ect8GzgH39JOI1VUfZt/sGJCEKknOccgsakEqP4fEc8SxwOoaTL4M2gXC+SwDs2xUz08UzIWYQbR14G5KHdnKg==}
+  '@prisma/query-engine-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0':
+    resolution: {integrity: sha512-mN1W4AOTGFrU9I1EcbThG4983PerNSfDUzPL1rrraCred+6rKFAyqRAqv8iEHI1FKT7u2lhUGF+p9BfyMh79kw==}
 
-  '@prisma/schema-engine-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe':
-    resolution: {integrity: sha512-S/aEx8q15kkUZN3UCNxECB3Y5iZW17psN4FlEiCCitB85o7LEO/Up/AC+ltaCE5sS/WGwgeAQPKguBL9vMsK6Q==}
+  '@prisma/schema-engine-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0':
+    resolution: {integrity: sha512-WO/GHoXtMm6vHtqE/UP75AyzZ56sEtziyPQhmtB0kMhWRGUKoqNpwIYKil3bO7D7TpZjmCmLan90IEyyw7sz2w==}
 
   '@prisma/studio-common@0.511.0':
     resolution: {integrity: sha512-oYpLFPvNVF66F5lgZL7allwCkHe8u0mFSV+yB34uTfJOXZXp+eDFN6Wo8FCX2ztcahCLXNMs0h4IdcMCeXFoxw==}
@@ -9729,17 +9729,17 @@ snapshots:
       make-synchronized: 0.4.2
       prettier: 3.5.3
 
-  '@prisma/engines-version@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe': {}
+  '@prisma/engines-version@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe': {}
+  '@prisma/prisma-schema-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0': {}
 
-  '@prisma/query-compiler-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe': {}
+  '@prisma/query-compiler-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0': {}
 
-  '@prisma/query-engine-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe': {}
+  '@prisma/query-engine-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0': {}
 
-  '@prisma/schema-engine-wasm@6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe': {}
+  '@prisma/schema-engine-wasm@6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0': {}
 
   '@prisma/studio-common@0.511.0':
     dependencies:

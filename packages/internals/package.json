@@ -87,8 +87,8 @@
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe",
-    "@prisma/schema-engine-wasm": "6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe",
+    "@prisma/prisma-schema-wasm": "6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0",
+    "@prisma/schema-engine-wasm": "6.10.0-36.feat-adapter-mysql2-726a4f1d29fc74561d7c8dd7545727e2f8bc26e0",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"
