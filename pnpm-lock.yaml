@@ -395,9 +395,6 @@ importers:
         specifier: workspace:*
         version: link:../engines
     devDependencies:
-      '@antfu/ni':
-        specifier: 0.21.12
-        version: 0.21.12
       '@inquirer/prompts':
         specifier: 7.3.3
         version: 7.3.3(@types/node@18.19.76)
