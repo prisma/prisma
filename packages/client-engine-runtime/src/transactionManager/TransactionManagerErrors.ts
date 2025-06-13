@@ -57,3 +57,15 @@ export class InvalidTransactionIsolationLevelError extends TransactionManagerErr
     super(`Invalid isolation level: ${isolationLevel}`, { isolationLevel })
   }
 }
+
+export class NestedTransactionOrderError extends TransactionManagerError {
+  constructor() {
+    super('Nested transactions must be closed in reverse order of creation.')
+  }
+}
+
+export class NestedTransactionActiveError extends TransactionManagerError {
+  constructor() {
+    super('Cannot close transaction while a nested transaction is still active.')
+  }
+}

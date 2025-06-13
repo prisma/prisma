@@ -261,6 +261,12 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
+    /**
+     * A map of nested transactions that are currently active.
+     * The key is the transaction id, the value is the transaction object.
+     * Currently, only one nested transaction at a time is supported.
+     */
+    _nestedTransactions: number = 0
 
     constructor(optionsArg?: PrismaClientOptions) {
       config = optionsArg?.__internal?.configOverride?.(config) ?? config
@@ -272,7 +278,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       // prevents unhandled error events when users do not explicitly listen to them
-      const logEmitter = new EventEmitter().on('error', () => {}) as LogEmitter
+      const logEmitter = new EventEmitter().on('error', () => { }) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = getPreviewFeatures(config)
@@ -704,17 +710,30 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async _transactionWithCallback({
       callback,
-      options,
+      options = {},
     }: {
       callback: (client: Client) => Promise<unknown>
-      options?: Options
+      options?: Options & { newTxId?: string }
     }) {
+      if (this._nestedTransactions > 0) {
+        throw new Error('Concurrent nested transactions are not supported')
+      }
+
+      // Check if the client is already in a transaction, if so this is a nested 
+      // transaction, and the engine will use savepoints to manage it provided 
+      // the same transaction id is used.
+      if (this[TX_ID]) {
+        this._nestedTransactions++
+        options.newTxId = this[TX_ID]
+      }
+
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
 
       const optionsWithDefaults: Options = {
         maxWait: options?.maxWait ?? this._engineConfig.transactionOptions.maxWait,
         timeout: options?.timeout ?? this._engineConfig.transactionOptions.timeout,
         isolationLevel: options?.isolationLevel ?? this._engineConfig.transactionOptions.isolationLevel,
+        newTxId: options.newTxId,
       }
       const info = await this._engine.transaction('start', headers, optionsWithDefaults)
 
@@ -725,11 +744,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         result = await callback(this._createItxClient(transaction))
 
-        // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)
+
+        this._nestedTransactions = 0
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => { })
+
+        this._nestedTransactions = 0
 
         throw e // silent rollback, throw original error
       }
@@ -765,6 +787,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           callback = () => {
             throw new Error(
               'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',
+            )
+          }
+        } else if (config.activeProvider === 'mongodb' && this[TX_ID]) {
+          callback = () => {
+            throw new PrismaClientValidationError(
+              `The ${config.activeProvider} provider does not support nested transactions`,
+              { clientVersion: this._clientVersion },
             )
           }
         } else {
