@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "6.10.0-34.e6b48d184465be4b54acae924ed99763db7d4dfe",
+    "@prisma/prisma-schema-wasm": "6.10.0-35.feat-adapter-mysql2-54968c1a9947183f610650a29a0b231be7c4328a",
     "fs-extra": "11.3.0"
   },
   "devDependencies": {
