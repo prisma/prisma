@@ -60,7 +60,6 @@ export class TSClient {
     }, {})
 
     return {
-      [context.outputFileName('index')]: `export * from '${context.importFileName('./client')}'`,
       [context.outputFileName('client')]: createClientFile(context, this.options),
       [context.outputFileName('enums')]: createEnumsFile(context),
       [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),
