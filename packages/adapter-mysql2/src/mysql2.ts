@@ -40,7 +40,9 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
       // where `rows` is an array of columns, and `fields` is an array of field metadata (containing column type, name, etc).
       // When you call `client.query()` with a non-`SELECT` query, it returns a single `rows` object with `fieldCount === 0`,
       // `insertId`, etc, and `fields` is undefined.
-      const performClientQuery = (query: SqlQuery): Promise<[sql.RowDataPacket[], sql.FieldPacket[]] | [sql.ResultSetHeader, undefined]> => {
+      const performClientQuery = (
+        query: SqlQuery,
+      ): Promise<[sql.RowDataPacket[], sql.FieldPacket[]] | [sql.ResultSetHeader, undefined]> => {
         return this.client.query({
           sql: query.sql,
           values: query.args,
@@ -63,7 +65,7 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
           rows: [],
         }
       }
-  
+
       const columnNames = fields.map((field) => field.name)
       const columnTypes = fields.map((field) => fieldToColumnType(field.type ?? field.columnType))
 
@@ -72,7 +74,6 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
         columnTypes,
         rows: rows as unknown[][],
       }
-
     } catch (error) {
       onError(error as Error)
     }
@@ -107,7 +108,6 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
     return affectedRows ?? 0
   }
 }
-
 
 function onError(error: Error): never {
   if (error instanceof UnsupportedNativeDataType) {
@@ -161,12 +161,12 @@ const LOCK_TAG = Symbol()
 
 class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Transaction {
   [LOCK_TAG] = new Mutex()
-  
+
   constructor(client: sql.PoolConnection, readonly options: TransactionOptions) {
     super(client)
   }
 
-  protected override async performIO(query: SqlQuery){
+  protected override async performIO(query: SqlQuery) {
     const tag = '[js::performIO]'
     debug(`${tag} %O`, query)
 
@@ -200,7 +200,11 @@ export type PrismaMySQL2Options = {
 }
 
 export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements SqlDriverAdapter {
-  constructor(client: sql.Pool, private options?: Required<PrismaMySQL2Options>, private readonly release?: () => Promise<void>) {
+  constructor(
+    client: sql.Pool,
+    private options?: Required<PrismaMySQL2Options>,
+    private readonly release?: () => Promise<void>,
+  ) {
     super(client)
   }
 
@@ -279,10 +283,12 @@ async function getCapabilities(pool: sql.Pool): Promise<{ supportsRelationJoins:
     debug(`${tag} Is MariaDB: %s`, isMariaDB)
 
     // No relation-joins support for mysql < 8.0.13 or mariadb.
-    const supportsRelationJoins = !isMariaDB && (() => {
-      const [major, minor, patch] = version.split('.').map(x => parseInt(x, 10))
-      return (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
-    })()
+    const supportsRelationJoins =
+      !isMariaDB &&
+      (() => {
+        const [major, minor, patch] = version.split('.').map((x) => parseInt(x, 10))
+        return major > 8 || (major === 8 && minor >= 0 && patch >= 13)
+      })()
     debug(`${tag} Supports relation joins: %s`, supportsRelationJoins)
 
     return {

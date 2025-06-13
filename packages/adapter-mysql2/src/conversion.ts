@@ -50,9 +50,7 @@ export class UnsupportedNativeDataType extends Error {
  * the correct quaint::Value variant.
  */
 export function fieldToColumnType(fieldTypeIdx?: number): ColumnType {
-  const fieldType = fieldTypeIdx !== undefined
-    ? typeNames[fieldTypeIdx as keyof typeof typeNames]
-    : undefined;
+  const fieldType = fieldTypeIdx !== undefined ? typeNames[fieldTypeIdx as keyof typeof typeNames] : undefined
 
   switch (fieldType) {
     case 'TINY':

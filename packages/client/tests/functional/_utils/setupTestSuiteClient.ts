@@ -295,8 +295,7 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_MYSQL2) {
-    const { PrismaMySQL2 } =
-      require('@prisma/adapter-mysql2') as typeof import('@prisma/adapter-mysql2')
+    const { PrismaMySQL2 } = require('@prisma/adapter-mysql2') as typeof import('@prisma/adapter-mysql2')
 
     // Given mysql://user:password@host:port/database,
     // --> database
