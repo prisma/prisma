@@ -535,7 +535,13 @@ function writeFileMap(outputDir: string, fileMap: FileMap) {
 }
 
 function isWasmEngineSupported(provider: ConnectorType) {
-  return provider === 'postgresql' || provider === 'postgres' || provider === 'mysql' || provider === 'sqlite'
+  return (
+    provider === 'postgresql' ||
+    provider === 'postgres' ||
+    provider === 'mysql' ||
+    provider === 'sqlite' ||
+    provider === 'sqlserver'
+  )
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: DMMF.Document): Error[] | null {

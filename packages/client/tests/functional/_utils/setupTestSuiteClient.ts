@@ -294,5 +294,28 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
+  if (driverAdapter === AdapterProviders.JS_MSSQL) {
+    const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
+
+    const [, server, port, database, user, password] =
+      datasourceInfo.databaseUrl.match(
+        /^sqlserver:\/\/([^:;]+):(\d+);database=([^;]+);user=([^;]+);password=([^;]+);/,
+      ) || []
+
+    return {
+      adapter: new PrismaMssql({
+        user,
+        password,
+        database,
+        server,
+        port: Number(port),
+        options: {
+          trustServerCertificate: true,
+        },
+      }),
+      __internal,
+    }
+  }
+
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }
