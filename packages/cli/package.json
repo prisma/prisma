@@ -105,7 +105,6 @@
     }
   },
   "devDependencies": {
-    "@antfu/ni": "0.21.12",
     "@inquirer/prompts": "7.3.3",
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.7.0",
