@@ -161,7 +161,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -174,7 +174,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
            └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrate" | "loadedFromFile""
       `)
