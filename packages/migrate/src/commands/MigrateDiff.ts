@@ -332,7 +332,7 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.migrate?.adapter?.(process.env)
     const migrate = await Migrate.setup({ adapter })
 
     // Capture stdout if --output is defined

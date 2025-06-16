@@ -173,12 +173,22 @@ function transformPathsInConfigToAbsolute(
   prismaConfig: PrismaConfigInternal<any>,
   resolvedPath: string,
 ): PrismaConfigInternal<any> {
+  if (prismaConfig.migrate?.migrationsDirectory) {
+    prismaConfig = {
+      ...prismaConfig,
+      migrate: {
+        ...prismaConfig.migrate,
+        migrationsDirectory: path.resolve(path.dirname(resolvedPath), prismaConfig.migrate.migrationsDirectory),
+      },
+    }
+  }
+
   if (prismaConfig.schema) {
-    return {
+    prismaConfig = {
       ...prismaConfig,
       schema: path.resolve(path.dirname(resolvedPath), prismaConfig.schema),
     }
-  } else {
-    return prismaConfig
   }
+
+  return prismaConfig
 }

@@ -84,11 +84,14 @@ function defineMigrateConfig<Env extends Record<string, string | undefined> = ne
   const { adapter: getAdapterFactory } = configInput.migrate
 
   config.migrate = {
-    adapter: async (env) => {
-      const adapterFactory = await getAdapterFactory(env)
-      debug('[config.migrate.adapter]: %o', adapterFactory.adapterName)
-      return bindMigrationAwareSqlAdapterFactory(adapterFactory)
-    },
+    ...configInput.migrate,
+    adapter: getAdapterFactory
+      ? async (env) => {
+          const adapterFactory = await getAdapterFactory(env)
+          debug('[config.migrate.adapter]: %o', adapterFactory.adapterName)
+          return bindMigrationAwareSqlAdapterFactory(adapterFactory)
+        }
+      : undefined,
   }
   debug('[config.schema]: %o', config.migrate)
 }

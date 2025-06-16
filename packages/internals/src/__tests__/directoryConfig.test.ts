@@ -1,3 +1,4 @@
+import { defineConfig, PrismaConfigInternal } from '@prisma/config'
 import { inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
 import path from 'path'
 
@@ -5,11 +6,19 @@ import { fixturesPath } from './__utils__/fixtures'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'directoryConfig')
 
-async function testDirectoryConfig({ fixtureName, schemaPath }: { fixtureName: string; schemaPath?: string }) {
+async function testDirectoryConfig({
+  fixtureName,
+  schemaPath,
+  config,
+}: {
+  fixtureName: string
+  schemaPath?: string
+  config?: PrismaConfigInternal
+}) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath, cwd, allowNull: true })
-  return inferDirectoryConfig(schemaContext, cwd)
+  return inferDirectoryConfig(schemaContext, config, cwd)
 }
 it('places folders next to single schema file', async () => {
   const res = await testDirectoryConfig({ fixtureName: 'single-schema-file' })
@@ -84,5 +93,23 @@ it('places folders to /prisma if no schema file present', async () => {
     migrationsDirPath: path.resolve(FIXTURE_CWD, 'no-schema-file', 'prisma', 'migrations'),
     typedSqlDirPath: path.resolve(FIXTURE_CWD, 'no-schema-file', 'prisma', 'sql'),
     viewsDirPath: path.resolve(FIXTURE_CWD, 'no-schema-file', 'prisma', 'views'),
+  })
+})
+
+it('uses migrationsDirectory from config if given', async () => {
+  const res = await testDirectoryConfig({
+    fixtureName: 'single-schema-file',
+    config: defineConfig({
+      earlyAccess: true,
+      migrate: {
+        migrationsDirectory: path.resolve(FIXTURE_CWD, 'custom', 'migrations'),
+      },
+    }),
+  })
+
+  expect(res).toEqual({
+    migrationsDirPath: path.resolve(FIXTURE_CWD, 'custom', 'migrations'),
+    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'sql'),
+    viewsDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'views'),
   })
 })
