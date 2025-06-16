@@ -11,13 +11,25 @@ import { dim, underline } from 'kleur/colors'
 
 import { printError } from './utils/prompt/utils/print'
 
+const packageJson = require('../package.json')
+
 const debug = Debug('prisma:cli:subcommand')
+
+/**
+ * Additional context that is passed to the subcommand.
+ */
+type RunnableContext = {
+  /**
+   * Version of the CLI that is running the subcommand. Can be used to check for breaking changes etc..
+   */
+  cliVersion: string
+}
 
 /**
  * Sub-CLIs that are installed on demand need to implement this interface
  */
 type Runnable = {
-  run: (args: string[], config: PrismaConfigInternal) => Promise<void>
+  run: (args: string[], config: PrismaConfigInternal, context: RunnableContext) => Promise<void>
 }
 
 class NpmInstallError extends Error {
@@ -55,9 +67,13 @@ export class SubCommand implements Command {
       // we accept forcing a version with @, eg. prisma rules @1.0.0 --help
       const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
 
+      const context: RunnableContext = {
+        cliVersion: packageJson.version,
+      }
+
       // load the module and run it via the Runnable interface
       const module = await this.importPackage(this.pkg, version)
-      await module.run(args, config)
+      await module.run(args, config, context)
     } catch (e) {
       this.handleError(e)
     }

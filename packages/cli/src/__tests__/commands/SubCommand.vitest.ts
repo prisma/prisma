@@ -47,6 +47,9 @@ test('@<version>', async () => {
             "earlyAccess": true,
             "loadedFromFile": null,
           },
+          {
+            "cliVersion": "0.0.0",
+          },
         ],
       ],
     ]
@@ -76,6 +79,9 @@ test('@latest', async () => {
           {
             "earlyAccess": true,
             "loadedFromFile": null,
+          },
+          {
+            "cliVersion": "0.0.0",
           },
         ],
       ],
@@ -109,6 +115,9 @@ test('autoinstall', async () => {
           {
             "earlyAccess": true,
             "loadedFromFile": null,
+          },
+          {
+            "cliVersion": "0.0.0",
           },
         ],
       ],
