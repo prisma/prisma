@@ -18,7 +18,6 @@ const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 beforeEach(async () => {
   await rm(join(tmpdir(), `sub-command@0.0.0`), { recursive: true, force: true })
   await rm(join(tmpdir(), `sub-command@latest-${getDayMillis()}`), { recursive: true, force: true })
-  vi.resetModules()
 })
 
 afterEach(() => {
