@@ -21,6 +21,7 @@ export function defineConfig<Env extends Record<string, string | undefined> = ne
   debug('[default]: %o', config)
 
   defineSchemaConfig<Env>(config, configInput)
+  defineDirectoryConfig<Env>(config, configInput)
   defineStudioConfig<Env>(config, configInput)
   defineMigrateConfig<Env>(config, configInput)
 
@@ -44,6 +45,24 @@ function defineSchemaConfig<Env extends Record<string, string | undefined> = nev
 
   config.schema = configInput.schema
   debug('[config.schema]: %o', config.schema)
+}
+
+/**
+ * `configInput.viewsDirectory` and `configInput.typedSqlDirectory` are forwarded to `config.viewsDirectory` and `config.typedSqlDirectory` as is.
+ */
+function defineDirectoryConfig<Env extends Record<string, string | undefined> = never>(
+  config: DeepMutable<PrismaConfigInternal<Env>>,
+  configInput: PrismaConfig<Env>,
+) {
+  if (configInput.viewsDirectory) {
+    config.viewsDirectory = configInput.viewsDirectory
+    debug('[config.viewsDirectory]: %o', config.viewsDirectory)
+  }
+
+  if (configInput.typedSqlDirectory) {
+    config.typedSqlDirectory = configInput.typedSqlDirectory
+    debug('[config.typedSqlDirectory]: %o', config.typedSqlDirectory)
+  }
 }
 
 /**
@@ -93,5 +112,5 @@ function defineMigrateConfig<Env extends Record<string, string | undefined> = ne
         }
       : undefined,
   }
-  debug('[config.schema]: %o', config.migrate)
+  debug('[config.migrate]: %o', config.migrate)
 }

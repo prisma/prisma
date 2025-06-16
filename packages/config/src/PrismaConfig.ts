@@ -116,6 +116,8 @@ const createPrismaConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
+    viewsDirectory: Shape.optional(Shape.String),
+    typedSqlDirectory: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigShape<Env>()),
   })
@@ -133,6 +135,14 @@ export type PrismaConfig<Env extends EnvVars = never> = {
    * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
   schema?: string
+  /**
+   * The path to the directory where view definition files are stored.
+   */
+  viewsDirectory?: string
+  /**
+   * The path to the directory where typed SQL definition files are stored.
+   */
+  typedSqlDirectory?: string
   /**
    * The configuration for Prisma Studio.
    */
@@ -169,6 +179,8 @@ const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
+    viewsDirectory: Shape.optional(Shape.String),
+    typedSqlDirectory: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
@@ -183,6 +195,14 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
    * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
   schema?: string
+  /**
+   * The path to the directory where view definition files are stored.
+   */
+  viewsDirectory?: string
+  /**
+   * The path to the directory where typed SQL definition files are stored.
+   */
+  typedSqlDirectory?: string
   /**
    * The configuration for Prisma Studio.
    */

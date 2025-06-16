@@ -113,3 +113,35 @@ it('uses migrationsDirectory from config if given', async () => {
     viewsDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'views'),
   })
 })
+
+it('uses viewsDirectory from config if given', async () => {
+  const res = await testDirectoryConfig({
+    fixtureName: 'single-schema-file',
+    config: defineConfig({
+      earlyAccess: true,
+      viewsDirectory: path.resolve(FIXTURE_CWD, 'custom', 'views'),
+    }),
+  })
+
+  expect(res).toEqual({
+    migrationsDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'migrations'),
+    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'sql'),
+    viewsDirPath: path.resolve(FIXTURE_CWD, 'custom', 'views'),
+  })
+})
+
+it('uses typedSqlDirectory from config if given', async () => {
+  const res = await testDirectoryConfig({
+    fixtureName: 'single-schema-file',
+    config: defineConfig({
+      earlyAccess: true,
+      typedSqlDirectory: path.resolve(FIXTURE_CWD, 'custom', 'sql'),
+    }),
+  })
+
+  expect(res).toEqual({
+    migrationsDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'migrations'),
+    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'custom', 'sql'),
+    viewsDirPath: path.resolve(FIXTURE_CWD, 'single-schema-file', 'prisma', 'views'),
+  })
+})
