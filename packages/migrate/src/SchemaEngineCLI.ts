@@ -265,6 +265,7 @@ export class SchemaEngineCLI implements SchemaEngine {
 
   public stop(): void {
     if (this.child) {
+      this.child.stdin?.end()
       this.child.kill()
       this.isRunning = false
     }
