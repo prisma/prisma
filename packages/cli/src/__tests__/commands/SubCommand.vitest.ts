@@ -2,15 +2,13 @@ import { rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-import * as ni from '@antfu/ni'
 import { defaultTestConfig } from '@prisma/config'
 import * as execa from 'execa'
 import { copy } from 'fs-extra'
-import { beforeEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 
 import { SubCommand } from '../../SubCommand'
 
-vi.mock('@antfu/ni')
 vi.mock('execa')
 
 vi.useFakeTimers().setSystemTime(new Date('2025-01-01'))
@@ -20,6 +18,11 @@ const getDayMillis = () => new Date().setHours(0, 0, 0, 0)
 beforeEach(async () => {
   await rm(join(tmpdir(), `sub-command@0.0.0`), { recursive: true, force: true })
   await rm(join(tmpdir(), `sub-command@latest-${getDayMillis()}`), { recursive: true, force: true })
+})
+
+afterEach(() => {
+  vi.clearAllMocks()
+  globalThis.Deno = undefined
 })
 
 test('@<version>', async () => {
@@ -89,9 +92,7 @@ test('autoinstall', async () => {
   const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
   const copyDest = join(tmpdir(), 'sub-command@0.0.0')
 
-  vi.mocked(ni.getCommand).mockReturnValue('npm install sub-command --no-save --prefix /tmp/sub-command@0.0.0')
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  vi.mocked(execa.command).mockImplementation((async () => {
+  vi.mocked(execa.default).mockImplementation((async () => {
     await copy(copySrc, copyDest)
   }) as () => any)
 
@@ -114,9 +115,17 @@ test('autoinstall', async () => {
     ]
   `)
 
-  // eslint-disable-next-line @typescript-eslint/unbound-method
-  expect(execa.command).toHaveBeenCalled()
-  expect(ni.getCommand).toHaveBeenCalled()
+  expect(execa.default).toHaveBeenCalled()
 
   consoleLogSpy.mockRestore()
+})
+
+test('aborts on deno', async () => {
+  globalThis.Deno = { version: '2.0.0' } // fake being Deno
+
+  const cmd = new SubCommand('sub-command')
+
+  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
+
+  expect(execa.default).not.toHaveBeenCalled()
 })
