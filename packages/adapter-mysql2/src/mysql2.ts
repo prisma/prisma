@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/require-await */
-
 import type {
   ConnectionInfo,
   IsolationLevel,
@@ -16,7 +14,7 @@ import { Mutex } from 'async-mutex'
 import * as sql from 'mysql2/promise'
 
 import { name as packageName } from '../package.json'
-import { fieldToColumnType, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:mysql2')
@@ -34,6 +32,9 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
     const tag = '[js::performIO]'
     debug(`${tag} %O`, query)
 
+    const args = query.args.map(mapArg)
+    debug(`${tag} mapped args: %O`, args)
+
     try {
       // Note: mysql2's TypeScript definitions are messy wrong.
       // When you call `client.query()` with a `SELECT` query, it returns a tuple of `[rows, fields]`,
@@ -45,7 +46,7 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
       ): Promise<[sql.RowDataPacket[], sql.FieldPacket[]] | [sql.ResultSetHeader, undefined]> => {
         return this.client.query({
           sql: query.sql,
-          values: query.args,
+          values: args,
           rowsAsArray: true, // This is important to ensure we get an array of arrays as rows
         }) as Promise<any>
       }
@@ -170,41 +171,52 @@ class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Tr
     const tag = '[js::performIO]'
     debug(`${tag} %O`, query)
 
+    console.warn('[MySQL2Transaction::performIO]')
     const releaseTx = await this[LOCK_TAG].acquire()
+    console.warn('[MySQL2Transaction::performIO] acquired lock')
     try {
       const result = await super.performIO(query)
       return result
     } finally {
       releaseTx()
+      console.warn('[MySQL2Transaction::performIO] released lock')
     }
   }
 
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    await this.client.commit()
-    this.client.release()
+    console.warn('[MySQL2Transaction::commit]')
+    try {
+      await this.client.commit()
+      console.warn('[MySQL2Transaction::commit] client committed')
+    } finally {
+      this.client.release()
+      console.warn('[MySQL2Transaction::commit] client released')
+    }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    await this.client.rollback()
-    this.client.release()
+    console.warn('[MySQL2Transaction::rollback]')
+    try {
+      await this.client.rollback()
+      console.warn('[MySQL2Transaction::rollback] client rolled back')
+    } finally {
+      this.client.release()
+      console.warn('[MySQL2Transaction::rollback] client released')
+    }
   }
 }
 
 export type PrismaMySQL2Options = {
   schema?: string
-  supportsRelationJoins?: boolean
+  supportsRelationJoins: boolean
 }
 
 export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements SqlDriverAdapter {
-  constructor(
-    client: sql.Pool,
-    private options?: Required<PrismaMySQL2Options>,
-    private readonly release?: () => Promise<void>,
-  ) {
+  constructor(client: sql.Pool, private options: PrismaMySQL2Options, private readonly release?: () => Promise<void>) {
     super(client)
   }
 
@@ -224,7 +236,6 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
       // and then call `PoolConnection.prototype.beginTransaction()`.
       conn = await this.client.getConnection()
       await conn.beginTransaction()
-      // await this.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
 
       const tx = new MySQL2Transaction(conn, options)
       if (isolationLevel) {
@@ -237,7 +248,7 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
       return tx
     } catch (error) {
       if (conn) {
-        await conn.end()
+        conn.release()
       }
       onError(error)
     }
@@ -257,12 +268,14 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
-      supportsRelationJoins: true,
+      supportsRelationJoins: this.options.supportsRelationJoins,
     }
   }
 
   async dispose(): Promise<void> {
+    console.log('[PrismaMySQL2Adapter::dispose]')
     await this.release?.()
+    console.log('[PrismaMySQL2Adapter::dispose] client released')
   }
 }
 
@@ -274,10 +287,13 @@ async function getCapabilities(pool: sql.Pool): Promise<{ supportsRelationJoins:
   const tag = '[js::getCapabilities]'
 
   try {
-    const [rows] = await pool.query<sql.RowDataPacket[]>(`SELECT VERSION()`)
+    const [rows] = await pool.query<sql.RowDataPacket[]>({
+      sql: `SELECT VERSION()`,
+      rowsAsArray: true,
+    })
 
     const version = rows[0][0] as `${number}.${number}.${number}${'-MariaDB' | ''}`
-    debug(`${tag} MySQL version: %s`, version)
+    debug(`${tag} MySQL version: %s from %o`, version, rows)
 
     const isMariaDB = version.toLowerCase().includes('mariadb')
     debug(`${tag} Is MariaDB: %s`, isMariaDB)
@@ -292,13 +308,13 @@ async function getCapabilities(pool: sql.Pool): Promise<{ supportsRelationJoins:
     debug(`${tag} Supports relation joins: %s`, supportsRelationJoins)
 
     return {
-      supportsRelationJoins,
+      supportsRelationJoins: true,
     }
   } catch (e) {
     debug(`${tag} Error while checking capabilities: %O`, e)
     return {
       // fallback to default capabilities
-      supportsRelationJoins: true,
+      supportsRelationJoins: false,
     }
   }
 }
@@ -335,10 +351,27 @@ export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapte
     const config = { ...PrismaMySQL2AdapterFactory.#defaultConfig, ...this.config, database }
     const pool = sql.createPool(config)
 
-    return new PrismaMySQL2Adapter(pool, undefined, async () => {
-      await conn.executeScript(`DROP DATABASE "${database}"`)
-      await conn.dispose()
-      await pool.end()
+    const capabilities = await getCapabilities(pool)
+    const options = { schema: config.database, ...capabilities, ...this.options } satisfies PrismaMySQL2Options
+
+    return new PrismaMySQL2Adapter(pool, options, async () => {
+      try {
+        await conn.executeScript(`DROP DATABASE "${database}"`)
+      } catch (error) {
+        console.warn('Failed to drop shadow database:', error)
+      }
+
+      try {
+        await conn.dispose()
+      } catch (error) {
+        console.warn('Failed to dispose shadow connection:', error)
+      }
+
+      try {
+        await pool.end()
+      } catch (error) {
+        console.warn('Failed to end shadow pool:', error)
+      }
     })
   }
 }

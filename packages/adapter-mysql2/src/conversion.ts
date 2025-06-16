@@ -97,3 +97,16 @@ export function fieldToColumnType(fieldTypeIdx?: number): ColumnType {
       throw new Error(`Unsupported column type: ${fieldTypeIdx}`)
   }
 }
+
+export function mapArg(arg: unknown): unknown {
+  if (arg instanceof Uint8Array) {
+    return Buffer.from(arg)
+  }
+  if (typeof arg === 'bigint') {
+    if (arg >= BigInt(Number.MIN_SAFE_INTEGER) && arg <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return Number(arg)
+    }
+    return arg.toString()
+  }
+  return arg
+}
