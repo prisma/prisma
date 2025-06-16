@@ -133,6 +133,7 @@ test('cleans up corrupted tmp directory', async () => {
 
   vi.mocked(execa.default).mockImplementation((async () => {
     await copy(copySrc, copyDest)
+    vi.resetModules()
   }) as () => any)
 
   await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
