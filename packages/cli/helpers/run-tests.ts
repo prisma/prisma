@@ -32,8 +32,6 @@ export async function main() {
     env: process.env,
   })
 
-  process.env.DEBUG = '*'
-
   execa.sync('vitest', ['run', '--passWithNoTests', ...process.argv.slice(2)], {
     preferLocal: true,
     stdio: 'inherit',

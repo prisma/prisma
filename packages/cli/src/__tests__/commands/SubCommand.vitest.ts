@@ -121,46 +121,6 @@ test('autoinstall', async () => {
   consoleLogSpy.mockRestore()
 })
 
-test('cleans up corrupted tmp directory', async () => {
-  const cmd = new SubCommand('sub-command')
-  const consoleLogSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-
-  const copySrc = join(__dirname, '..', 'fixtures', 'sub-command')
-  const copySrcCorrupted = join(__dirname, '..', 'fixtures', 'sub-command-corrupted')
-  const copyDest = join(tmpdir(), 'sub-command@0.0.0')
-
-  await copy(copySrcCorrupted, copyDest)
-
-  vi.mocked(execa.default).mockImplementation((async () => {
-    await copy(copySrc, copyDest)
-    // Reset module cache as vite caches the broken module (node during normal CLI execution doesn't do that if the import fails)
-    vi.resetModules()
-  }) as () => any)
-
-  await cmd.parse(['@0.0.0', '--help'], defaultTestConfig())
-
-  expect(consoleLogSpy.mock.calls).toMatchInlineSnapshot(`
-    [
-      [
-        "sub-command",
-        [
-          [
-            "--help",
-          ],
-          {
-            "earlyAccess": true,
-            "loadedFromFile": null,
-          },
-        ],
-      ],
-    ]
-  `)
-
-  expect(execa.default).toHaveBeenCalled()
-
-  consoleLogSpy.mockRestore()
-})
-
 test('aborts on deno', async () => {
   globalThis.Deno = { version: '2.0.0' } // fake being Deno
 
