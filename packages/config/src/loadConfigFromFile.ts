@@ -4,6 +4,7 @@ import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
 import { createJiti } from 'jiti'
+import { dim } from 'kleur'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -120,7 +121,7 @@ export async function loadConfigFromFile({
       }
     }
 
-    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
+    process.stdout.write(dim(`Loaded Prisma config from "${resolvedPath}".\n`))
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
     return {

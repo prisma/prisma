@@ -12,7 +12,8 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "jiti": "2.4.2"
+    "jiti": "2.4.2",
+    "kleur": "4.1.5"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
