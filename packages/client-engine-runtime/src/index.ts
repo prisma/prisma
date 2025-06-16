@@ -9,6 +9,10 @@ export * from './QueryPlan'
 export { noopTracingHelper, type TracingHelper } from './tracing'
 export type { TransactionInfo, Options as TransactionOptions } from './transactionManager/Transaction'
 export { TransactionManager } from './transactionManager/TransactionManager'
-export { TransactionManagerError } from './transactionManager/TransactionManagerErrors'
+export {
+  NestedTransactionActiveError,
+  NestedTransactionOrderError,
+  TransactionManagerError,
+} from './transactionManager/TransactionManagerErrors'
 export { UserFacingError } from './UserFacingError'
 export { doKeysMatch, isDeepStrictEqual, safeJsonStringify } from './utils'

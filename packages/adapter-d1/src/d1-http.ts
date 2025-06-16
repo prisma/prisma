@@ -97,7 +97,7 @@ class D1HTTPQueryable implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = `${packageName}-http`
 
-  constructor(protected readonly client: KyInstance) {}
+  constructor(protected readonly client: KyInstance) { }
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -180,6 +180,10 @@ class D1HTTPQueryable implements SqlQueryable {
 class D1HTTPTransaction extends D1HTTPQueryable implements Transaction {
   constructor(client: KyInstance, readonly options: TransactionOptions) {
     super(client)
+  }
+
+  async begin(): Promise<void> {
+    debug(`[js::begin]`)
   }
 
   async commit(): Promise<void> {
@@ -289,10 +293,10 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
   readonly provider = 'sqlite'
   readonly adapterName = `${packageName}-http`
 
-  constructor(private params: D1HTTPParams) {}
+  constructor(private params: D1HTTPParams) { }
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaD1HTTPAdapter(this.params, async () => {})
+    return new PrismaD1HTTPAdapter(this.params, async () => { })
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -320,11 +324,11 @@ export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapte
             },
           })
           .json()) as {
-          errors: D1HTTPResponseInfo[]
-          messages: D1HTTPResponseInfo[]
-          result: { name: string; uuid: string }
-          success?: true
-        }
+            errors: D1HTTPResponseInfo[]
+            messages: D1HTTPResponseInfo[]
+            result: { name: string; uuid: string }
+            success?: true
+          }
 
         debug(`${tag} %O`, response)
 

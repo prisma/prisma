@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker'
 import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
@@ -31,7 +32,7 @@ testMatrix.setupTestSuite(
       await prisma
         .$transaction(
           // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-          /* note how there's no `async` here */ (tx) => {
+          /* note how there's no `async` here */(tx) => {
             console.log('1')
             console.log(tx)
             console.log('2')
@@ -213,10 +214,120 @@ testMatrix.setupTestSuite(
     })
 
     /**
+     * If a parent transaction is rolled back, the child transaction should also rollback
+     * - This is only supported in SQL derived servers
+     */
+    testIf(provider !== Providers.MONGODB)('sql: nested rollback', async () => {
+      const rand1 = Math.floor(Math.random() * 1000)
+      const rand2 = rand1 + 1
+      const email1 = 'user_' + rand1 + '@website.com'
+      const email2 = 'user_' + rand2 + '@website.com'
+      const client = prisma
+      await expect(
+        client.$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: email1,
+            },
+          })
+
+          await tx.$transaction(async (tx2) => {
+            await tx2.user.create({
+              data: {
+                email: email2,
+              },
+            })
+          })
+
+          // Abort the outer transaction
+          throw new Error('Rollback')
+        }),
+      ).rejects.toThrow(/Rollback/)
+
+      const result = await prisma.user.findMany({
+        where: {
+          email: {
+            in: [email1, email2],
+          },
+        },
+      })
+
+      // Both transactions should rollback
+      expect(result).toHaveLength(0)
+    })
+
+    testIf(provider !== Providers.MONGODB)('sql: multiple interactive transactions', async () => {
+      const existingEmail = faker.internet.email()
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: existingEmail } })
+      })
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: existingEmail + 1 } })
+      })
+
+      const result = await prisma.user.findMany({
+        where: {
+          email: {
+            in: [existingEmail, existingEmail + 1],
+          },
+        },
+      })
+
+      // Both transactions should succeed
+      expect(result).toHaveLength(2)
+    })
+
+    testIf(provider !== Providers.MONGODB)('sql: disallow concurrent nested transactions', async () => {
+      const result = prisma.$transaction(async (tx) => {
+        const email1 = faker.internet.email()
+        const email2 = faker.internet.email()
+        const email3 = faker.internet.email()
+        const email4 = faker.internet.email()
+        const email5 = faker.internet.email()
+        const email6 = faker.internet.email()
+        const email7 = faker.internet.email()
+
+        await Promise.all([
+          tx.$transaction(async (tx2) => {
+            await tx2.user.create({ data: { email: email1 } })
+            await tx2.user.create({ data: { email: email2 } })
+            await tx2.user.create({ data: { email: email3 } })
+          }),
+          tx.$transaction(async (tx3) => {
+            await tx3.user.create({ data: { email: email4 } })
+            await tx3.user.create({ data: { email: email5 } })
+          }),
+          tx.$transaction(async (tx4) => {
+            await tx4.user.create({ data: { email: email6 } })
+            await tx4.user.create({ data: { email: email7 } })
+          }),
+        ])
+      })
+
+      await expect(result).rejects.toThrow('Concurrent nested transactions are not supported')
+    });
+
+    testIf(provider === Providers.MONGODB)('sql: disallow nested transactions in MongoDB', async () => {
+      const result = prisma.$transaction(async (tx) => {
+        await tx.user.create({ data: { email: 'user_1@website.com' } })
+        await tx.$transaction(async (tx2) => {
+          await tx2.user.create({ data: { email: 'user_2@website.com' } })
+        })
+      })
+
+      await expect(result).rejects.toThrow('The mongodb provider does not support nested transactions')
+      const users = await prisma.user.findMany()
+      expect(users).toHaveLength(0)
+    })
+
+
+    /**
      * We don't allow certain methods to be called in a transaction
      */
     test('forbidden', async () => {
-      const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+      const forbidden = ['$connect', '$disconnect', '$on', '$use']
       expect.assertions(forbidden.length + 1)
 
       const result = prisma.$transaction((prisma) => {
@@ -233,25 +344,32 @@ testMatrix.setupTestSuite(
      * If one of the query fails, all queries should cancel
      */
     testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
+      const email1 = faker.internet.email()
       const result = prisma.$transaction(async (prisma) => {
         await prisma.user.create({
           data: {
             id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
 
         await prisma.user.create({
           data: {
             id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
+            email: email1,
           },
         })
       })
 
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany({
+        where: {
+          email: {
+            equals: email1,
+          },
+        },
+      })
 
       expect(users.length).toBe(0)
     })
@@ -394,25 +512,25 @@ testMatrix.setupTestSuite(
         const result =
           provider === Providers.MYSQL
             ? prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM User`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM User`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
             : prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM "User"`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM "User"`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
 
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
@@ -591,7 +709,7 @@ testMatrix.setupTestSuite(
           prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
             timeout: 25,
           }),
-        ]).catch(() => {}) // we don't care for errors, there will be
+        ]).catch(() => { }) // we don't care for errors, there will be
       }
     })
 

@@ -7,6 +7,9 @@ export type Options = {
 
   /** Transaction isolation level */
   isolationLevel?: IsolationLevel
+
+  /** New transaction ID */
+  newTxId?: string
 }
 
 export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'

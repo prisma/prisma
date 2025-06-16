@@ -32,18 +32,18 @@ type DefaultLookupError = {
 type DefaultLookupResult =
   | SuccessfulLookupResult
   | {
-      ok: false
-      error: DefaultLookupError
-    }
+    ok: false
+    error: DefaultLookupError
+  }
 
 type PackageJsonLookupResult =
   | SuccessfulLookupResult
   | {
-      ok: false
-      error: {
-        kind: 'PackageJsonNotConfigured'
-      }
+    ok: false
+    error: {
+      kind: 'PackageJsonNotConfigured'
     }
+  }
 
 export type GetSchemaOptions = {
   cwd?: string
