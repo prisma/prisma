@@ -14,7 +14,7 @@ import { Mutex } from 'async-mutex'
 import * as sql from 'mysql2/promise'
 
 import { name as packageName } from '../package.json'
-import { fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
+import { fieldToColumnType, mapArg, mapRow, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:mysql2')
@@ -73,7 +73,7 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
       return {
         columnNames,
         columnTypes,
-        rows: rows as unknown[][],
+        rows: rows.map(row => mapRow(columnTypes)(row as unknown[])),
       }
     } catch (error) {
       onError(error as Error)
@@ -110,6 +110,17 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
   }
 }
 
+type DatabaseError = Error & { errno: number, sqlState: string }
+
+function isDatabaseError(error: Error): error is DatabaseError {
+  return (
+    'errno' in error
+    && 'sqlState' in error
+    && typeof error['errno'] === 'number'
+    && typeof error['sqlState'] === 'string'
+  )
+}
+
 function onError(error: Error): never {
   if (error instanceof UnsupportedNativeDataType) {
     throw new DriverAdapterError({
@@ -118,44 +129,19 @@ function onError(error: Error): never {
     })
   }
 
-  if (error.name === 'DatabaseError') {
-    const parsed = parseErrorMessage(error.message)
-    if (parsed) {
-      throw new DriverAdapterError(convertDriverError(parsed))
-    }
-  }
   debug('Error in performIO: %O', error)
+
+  if (isDatabaseError(error)) {
+    const parsed = {
+      code: error.errno,
+      message: error.message,
+      state: error.sqlState,
+    } satisfies ParsedDatabaseError
+    
+    throw new DriverAdapterError(convertDriverError(parsed))
+  }
+
   throw error
-}
-
-function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
-  const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
-  let match: RegExpMatchArray | null = null
-
-  while (true) {
-    const result = error.match(regex)
-    if (result === null) {
-      break
-    }
-
-    // Try again with the rest of the error message. The driver can return multiple
-    // concatenated error messages.
-    match = result
-    error = match[1]
-  }
-
-  if (match !== null) {
-    const [, message, codeAsString, sqlstate] = match
-    const code = Number.parseInt(codeAsString, 10)
-
-    return {
-      message,
-      code,
-      state: sqlstate,
-    }
-  } else {
-    return undefined
-  }
 }
 
 const LOCK_TAG = Symbol()
@@ -171,41 +157,48 @@ class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Tr
     const tag = '[js::performIO]'
     debug(`${tag} %O`, query)
 
-    console.warn('[MySQL2Transaction::performIO]')
     const releaseTx = await this[LOCK_TAG].acquire()
-    console.warn('[MySQL2Transaction::performIO] acquired lock')
     try {
       const result = await super.performIO(query)
       return result
     } finally {
       releaseTx()
-      console.warn('[MySQL2Transaction::performIO] released lock')
     }
+  }
+
+  async startTransaction(isolationLevel?: IsolationLevel) {
+    if (isolationLevel) {
+      await this.performIO({
+        sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+        args: [],
+        argTypes: [],
+      })
+    }
+
+    await this.performIO({
+      sql: 'BEGIN',
+      args: [],
+      argTypes: [],
+    })
   }
 
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
-    console.warn('[MySQL2Transaction::commit]')
     try {
       await this.client.commit()
-      console.warn('[MySQL2Transaction::commit] client committed')
     } finally {
       this.client.release()
-      console.warn('[MySQL2Transaction::commit] client released')
     }
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    console.warn('[MySQL2Transaction::rollback]')
     try {
       await this.client.rollback()
-      console.warn('[MySQL2Transaction::rollback] client rolled back')
     } finally {
       this.client.release()
-      console.warn('[MySQL2Transaction::rollback] client released')
     }
   }
 }
@@ -235,16 +228,8 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
       // You can't call `Pool.prototype.beginTransaction()`. You need to retrieve a PoolConnection first,
       // and then call `PoolConnection.prototype.beginTransaction()`.
       conn = await this.client.getConnection()
-      await conn.beginTransaction()
-
       const tx = new MySQL2Transaction(conn, options)
-      if (isolationLevel) {
-        await tx.executeRaw({
-          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
-          args: [],
-          argTypes: [],
-        })
-      }
+      await tx.startTransaction(isolationLevel)
       return tx
     } catch (error) {
       if (conn) {
@@ -326,9 +311,14 @@ export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapte
   static #defaultConfig = {
     database: 'mysql',
     // https://sidorares.github.io/node-mysql2/docs/documentation/connect-on-cloudflare#mysql2-connection
-    disableEval: true,
+    disableEval: false,
     // read JSON datatypes as strings
     jsonStrings: true,
+    // read datetime as string
+    dateStrings: true,
+    // interpret dates as UTC
+    timezone: 'Z',
+    supportBigNumbers: true,
   } satisfies sql.PoolOptions
 
   constructor(private readonly config: sql.PoolOptions, private readonly options?: PrismaMySQL2Options) {}

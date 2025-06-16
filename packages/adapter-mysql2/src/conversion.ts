@@ -110,3 +110,34 @@ export function mapArg(arg: unknown): unknown {
   }
   return arg
 }
+
+export const mapRow = (columnTypes: ColumnType[]) => (row: unknown[]): unknown[] => {
+  const result: unknown[] = Array.from(row)
+
+  for (let i = 0; i < result.length; i++) {
+    const value = result[i]
+
+    // Convert array buffers to arrays of bytes.
+    // Base64 would've been more efficient but would collide with the existing
+    // logic that treats string values of type Bytes as raw UTF-8 bytes that was
+    // implemented for other adapters.
+    if (value instanceof ArrayBuffer) {
+      result[i] = Array.from(new Uint8Array(value))
+      continue
+    }
+
+    if (value instanceof Uint8Array) {
+      result[i] = Array.from(value)
+      continue
+    }
+
+    // Decode DateTime values saved as numeric timestamps which is the
+    // format used by the native quaint sqlite connector.
+    if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
+      result[i] = new Date(Number(value)).toISOString()
+      continue
+    }
+  }
+
+  return result
+}
