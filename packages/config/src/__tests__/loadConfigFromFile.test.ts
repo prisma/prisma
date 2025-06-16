@@ -129,6 +129,46 @@ describe('loadConfigFromFile', () => {
     })
   })
 
+  describe('directory-configs', () => {
+    it('supports absolute paths', async () => {
+      ctx.fixture('loadConfigFromFile/directory-configs/absolute')
+      const cwd = ctx.fs.cwd()
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+
+      expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+        viewsDirectory: path.join(cwd, 'custom', 'views'),
+        typedSqlDirectory: path.join(cwd, 'custom', 'sql'),
+        migrate: {
+          migrationsDirectory: path.join(cwd, 'custom', 'migrations'),
+        },
+      })
+    })
+
+    it('supports relative paths', async () => {
+      ctx.fixture('loadConfigFromFile/directory-configs/relative')
+      const cwd = ctx.fs.cwd()
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+
+      expect(resolvedPath).toMatch(path.join(cwd, 'prisma.config.ts'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+        viewsDirectory: path.join(cwd, 'custom', 'views'),
+        typedSqlDirectory: path.join(cwd, 'custom', 'sql'),
+        migrate: {
+          migrationsDirectory: path.join(cwd, 'custom', 'migrations'),
+        },
+      })
+    })
+  })
+
   describe('invalid', () => {
     it('fails with `TypeScriptImportFailed` when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
@@ -161,7 +201,7 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+        `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly viewsDirectory?: string | undefined; readonly typedSqlDirectory?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
       )
     })
 
@@ -174,9 +214,9 @@ describe('loadConfigFromFile', () => {
       expect(config).toBeUndefined()
       assertErrorConfigFileParseError(error)
       expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }
+        "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly viewsDirectory?: string | undefined; readonly typedSqlDirectory?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory<Env> } | undefined; readonly migrate?: { readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env> | undefined; readonly migrationsDirectory?: string | undefined } | undefined; readonly loadedFromFile: string | null }
         └─ ["thisShouldFail"]
-           └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrate" | "loadedFromFile""
+           └─ is unexpected, expected: "earlyAccess" | "schema" | "viewsDirectory" | "typedSqlDirectory" | "studio" | "migrate" | "loadedFromFile""
       `)
     })
   })
