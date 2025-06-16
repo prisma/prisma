@@ -1,19 +1,41 @@
-import { existsSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-import { getCommand } from '@antfu/ni'
 import type { PrismaConfigInternal } from '@prisma/config'
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
-import { command } from 'execa'
-import { dim } from 'kleur/colors'
+import * as execa from 'execa'
+import { dim, underline } from 'kleur/colors'
+
+import { printError } from './utils/prompt/utils/print'
+
+const debug = Debug('prisma:cli:subcommand')
 
 /**
  * Sub-CLIs that are installed on demand need to implement this interface
  */
 type Runnable = {
   run: (args: string[], config: PrismaConfigInternal) => Promise<void>
+}
+
+class NpmInstallError extends Error {
+  constructor(readonly reason: unknown) {
+    super('Failed to install subcommand package via npm')
+  }
+}
+
+class ImportError extends Error {
+  constructor(readonly reason: unknown) {
+    super('Failed to import subcommand package')
+  }
+}
+
+class DenoNotSupportedError extends Error {
+  constructor() {
+    super('Deno is an unsupported CLI runtime for this subcommand')
+  }
 }
 
 /**
@@ -27,38 +49,114 @@ export class SubCommand implements Command {
   }
 
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
-    // we accept forcing a version with @, eg. prisma rules @1.0.0 --help
-    const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
-    const pkg = `${this.pkg}${version}`
+    try {
+      this.checkForDeno()
 
-    // when version defaults to @latest, we cache it for the current day only
-    const dayMillis = new Date().setHours(0, 0, 0, 0)
-    const cacheKey = version === '@latest' ? `-${dayMillis}` : ''
-    const prefix = `${tmpdir()}/${pkg}${cacheKey}`
+      // we accept forcing a version with @, eg. prisma rules @1.0.0 --help
+      const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
 
-    // if the package is not installed yet, we install it otherwise we skip
-    if (existsSync(prefix) === false) {
-      process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
-      const installCmd = getCommand('npm', 'install', [
-        pkg,
-        '--no-save',
-        '--prefix',
-        prefix,
-        '--userconfig',
-        prefix,
-        '--loglevel',
-        'error',
-      ])
-      await command(installCmd, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      // load the module and run it via the Runnable interface
+      const module = await this.importPackage(this.pkg, version)
+      await module.run(args, config)
+    } catch (e) {
+      this.handleError(e)
     }
-
-    // load the module and run it via the Runnable interface
-    const modulePath = pathToFileURL(join(prefix, 'node_modules', this.pkg, 'dist', 'index.js'))
-    const module: Runnable = await import(modulePath.toString())
-    await module.run(args, config)
-
     return ''
   }
 
   public help() {}
+
+  private checkForDeno() {
+    if (typeof globalThis.Deno !== 'undefined' && typeof globalThis.Deno.version !== 'undefined')
+      throw new DenoNotSupportedError()
+  }
+
+  private async importPackage(pkg: string, version: string): Promise<Runnable> {
+    const pkgWithVersion = `${pkg}${version}`
+
+    // when version defaults to @latest, we cache it for the current day only
+    const dayMillis = new Date().setHours(0, 0, 0, 0)
+    const cacheKey = version === '@latest' ? `-${dayMillis}` : ''
+    const prefix = `${tmpdir()}/${pkgWithVersion}${cacheKey}`
+
+    debug(`using cache directory: ${prefix}`)
+
+    const modulePath = await this.installPackage(pkgWithVersion, prefix)
+
+    debug(`using module path: ${modulePath}`)
+    try {
+      return await import(modulePath)
+    } catch (e) {
+      debug(`import failed: ${e}`)
+      debug(`=> wiping cache and retrying`)
+      return this.wipeCacheAndRetry(pkgWithVersion, prefix)
+    }
+  }
+
+  private async wipeCacheAndRetry(pkgWithVersion: string, prefix: string): Promise<Runnable> {
+    // Wipe cache and retry if import fails
+    rmSync(prefix, { recursive: true })
+    const modulePath = await this.installPackage(pkgWithVersion, prefix)
+    try {
+      return await import(modulePath)
+    } catch (e) {
+      throw new ImportError(e)
+    }
+  }
+
+  private async installPackage(pkgWithVersion: string, prefix: string) {
+    const npmCachedModulePath = pathToFileURL(join(prefix, 'node_modules', this.pkg, 'dist', 'index.js')).toString()
+    if (existsSync(prefix)) return npmCachedModulePath
+
+    process.stdout.write(dim(`Fetching latest updates for this subcommand...\n`))
+
+    const installCmdArgs = [
+      'install',
+      pkgWithVersion,
+      '--no-save',
+      '--prefix',
+      prefix,
+      '--userconfig',
+      prefix,
+      '--loglevel',
+      'error',
+    ]
+    debug(`running install cmd: npm ${installCmdArgs.join(' ')}`)
+
+    try {
+      // Note: Using execa this way ensure proper argument encoding for whitespaces
+      await execa.default('npm', installCmdArgs, { stdout: 'ignore', stderr: 'inherit', env: process.env })
+      return npmCachedModulePath
+    } catch (e: unknown) {
+      debug(`install via npm failed: ${e}`)
+      throw new NpmInstallError(e)
+    }
+  }
+
+  private handleError(error: unknown) {
+    process.exitCode = 1
+    if (error instanceof ImportError) {
+      console.log(`\n${printError('Failed to import this dynamic subcommand.')}`)
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error.reason}`))
+    } else if (error instanceof NpmInstallError) {
+      console.log(
+        `\n${printError(`Failed to install dynamic subcommand via npm.
+        This subcommand is dynamically loaded and therefore requires npm to be installed.
+        Please install npm and rerun this command.`)}`,
+      )
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error.reason}`))
+    } else if (error instanceof DenoNotSupportedError) {
+      console.log(
+        `\n${printError(`This subcommand is not supported in Deno.
+        Please use Node.js to run this command.
+        E.g. via 'npx prisma <cmd>'.`)}`,
+      )
+      console.log(`
+Note: You can still use Prisma's generated code via the 'prisma-client' generator on Deno.
+See https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-deno-deploy for more information.`)
+    } else {
+      console.log(`\n${printError(`Failed to run subcommand.`)}`)
+      console.log(dim(`\n${underline('Underlying Error:')}\n${error}`))
+    }
+  }
 }
