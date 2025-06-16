@@ -148,11 +148,11 @@ export class SubCommand implements Command {
     } else if (error instanceof DenoNotSupportedError) {
       console.log(
         `\n${printError(`This subcommand is not supported in Deno.
-        Please use node.js to run this command.
+        Please use Node.js to run this command.
         E.g. via 'npx prisma <cmd>'.`)}`,
       )
       console.log(`
-Note: You can still use Prisma's generated code via the 'prisma-client' generator on deno.
+Note: You can still use Prisma's generated code via the 'prisma-client' generator on Deno.
 See https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-deno-deploy for more information.`)
     } else {
       console.log(`\n${printError(`Failed to run subcommand.`)}`)
