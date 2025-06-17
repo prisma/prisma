@@ -139,6 +139,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
 
   getConnectionInfo?(): ConnectionInfo {
     return {
+      maxBindValues: 2098,
       schemaName: this.options?.schema,
       supportsRelationJoins: false,
     }

@@ -107,7 +107,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     default:
       return {
         kind: 'mssql',
-        code: Number(error.code),
+        code: error.number,
         message: error.message,
       }
   }
