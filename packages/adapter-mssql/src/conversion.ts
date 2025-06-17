@@ -1,5 +1,5 @@
 import { ColumnType, ColumnTypeEnum, DriverAdapterError, IsolationLevel } from '@prisma/driver-adapter-utils'
-import * as sql from 'mssql'
+import sql from 'mssql'
 
 export function mapColumnType(col: sql.IColumn): ColumnType {
   switch (col.type) {
@@ -58,7 +58,7 @@ export function mapColumnType(col: sql.IColumn): ColumnType {
     default:
       throw new DriverAdapterError({
         kind: 'UnsupportedNativeDataType',
-        type: `${col.type['constructor'].name}`,
+        type: col['udt']?.name ?? 'N/A',
       })
   }
 }
@@ -96,14 +96,26 @@ export function mapArg(arg: unknown): unknown {
   return arg
 }
 
-export function mapRow(row: unknown[]): unknown[] {
-  return row.map((value) => {
+export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
+  return row.map((value, i) => {
     if (value instanceof Date) {
+      if (columns?.[i]?.type === sql.Time) {
+        return value.toISOString().split('T').at(1)?.replace('Z', '')
+      }
       return value.toISOString()
     }
 
     if (Buffer.isBuffer(value)) {
       return Array.from(value)
+    }
+
+    // Using lower case to make it consistent with the driver in prisma-engines.
+    if (typeof value === 'string' && columns?.[i].type === sql.UniqueIdentifier) {
+      return value.toLowerCase()
+    }
+
+    if (typeof value === 'boolean' && columns?.[i]?.type === sql.Bit) {
+      return value ? 1 : 0
     }
 
     return value

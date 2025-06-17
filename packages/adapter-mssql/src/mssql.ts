@@ -12,7 +12,7 @@ import {
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
-import * as sql from 'mssql'
+import sql from 'mssql'
 
 import { name as packageName } from '../package.json'
 import { mapArg, mapColumnType, mapIsolationLevel, mapRow } from './conversion'
@@ -30,11 +30,12 @@ class MssqlQueryable implements SqlQueryable {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { recordset, columns } = await this.performIO(query)
+    const { recordset, columns: columnsList } = await this.performIO(query)
+    const columns = columnsList?.[0]
     return {
-      columnNames: columns?.[0]?.map((col) => col.name) ?? [],
-      columnTypes: columns?.[0]?.map(mapColumnType) ?? [],
-      rows: recordset?.map(mapRow) ?? [],
+      columnNames: columns?.map((col) => col.name) ?? [],
+      columnTypes: columns?.map(mapColumnType) ?? [],
+      rows: recordset?.map((row) => mapRow(row, columns)) ?? [],
     }
   }
 
@@ -95,12 +96,23 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
-    await this.transaction.rollback()
+    await this.transaction.rollback().catch((e) => {
+      if (e.code === 'EABORT') {
+        debug(`[js::rollback] Transaction already aborted`)
+        return
+      }
+
+      throw e
+    })
   }
 }
 
+export type PrismaMssqlOptions = {
+  schema?: string
+}
+
 class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
-  constructor(private pool: sql.ConnectionPool) {
+  constructor(private pool: sql.ConnectionPool, private readonly options?: PrismaMssqlOptions) {
     super(pool)
   }
 
@@ -127,6 +139,7 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
 
   getConnectionInfo?(): ConnectionInfo {
     return {
+      schemaName: this.options?.schema,
       supportsRelationJoins: false,
     }
   }
@@ -140,11 +153,11 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private readonly config: sql.config) {}
+  constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
 
   async connect(): Promise<SqlDriverAdapter> {
     const pool = await sql.connect(this.config)
-    return new PrismaMssqlAdapter(pool)
+    return new PrismaMssqlAdapter(pool, this.options)
   }
 }
 
