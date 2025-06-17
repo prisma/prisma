@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../generated"
@@ -13,4 +10,8 @@ datasource db {
 
 model A {
   id Int @id
+}
+
+model B {
+  id String @id
 }

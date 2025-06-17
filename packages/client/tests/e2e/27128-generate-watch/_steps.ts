@@ -7,7 +7,7 @@ void executeSteps({
     await $`pnpm install`
   },
   test: async () => {
-    await $`tsx tests/main.mts`
+    await $`tsx test.mts`
     await $`pnpm exec tsc --noEmit`
   },
   finish: async () => {
