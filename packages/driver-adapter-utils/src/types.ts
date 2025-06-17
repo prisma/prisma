@@ -184,7 +184,8 @@ export type Error =
     }
   | {
       kind: 'mssql'
-      code: number
+      code?: number
+      codeName?: string
       message: string
     }
 

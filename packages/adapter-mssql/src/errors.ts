@@ -104,12 +104,15 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
         kind: 'TooManyConnections',
         cause: error.message,
       }
-    default:
+    default: {
+      const numericCode = Number(error.code)
       return {
         kind: 'mssql',
-        code: Number(error.code),
+        code: Number.isNaN(numericCode) ? undefined : numericCode,
+        codeName: error.code,
         message: error.message,
       }
+    }
   }
 }
 
