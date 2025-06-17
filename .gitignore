@@ -46,3 +46,6 @@ junit.xml
 package.copy.json
 
 *.tgz
+
+prisma.code-workspace
+mise.toml
