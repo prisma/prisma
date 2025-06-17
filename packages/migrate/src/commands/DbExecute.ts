@@ -207,7 +207,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         datasourceType,
       })
     } finally {
-      migrate.stop()
+      await migrate.stop()
     }
 
     return `Script executed successfully.`
