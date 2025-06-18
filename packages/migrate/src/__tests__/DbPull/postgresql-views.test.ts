@@ -8,11 +8,9 @@ import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 if (process.env.CI) {
-  if (['darwin', 'win32'].includes(process.platform)) {
-    jest.setTimeout(300_000)
-  } else {
-    jest.setTimeout(60_000)
-  }
+  jest.setTimeout(300_000)
+} else {
+  jest.setTimeout(60_000)
 }
 
 const ctx = createDefaultTestContext()
@@ -83,7 +81,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         })
 
         expect(introspectionResult.views).toEqual(null)
-        engine.stop()
+        await engine.stop()
       })
     })
 
@@ -105,7 +103,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         })
 
         expect(introspectionResult.views).toEqual([])
-        engine.stop()
+        await engine.stop()
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
@@ -132,7 +130,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         })
 
         expect(introspectionResult.views).toEqual([])
-        engine.stop()
+        await engine.stop()
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
@@ -159,7 +157,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         })
 
         expect(introspectionResult.views).toEqual([])
-        engine.stop()
+        await engine.stop()
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(['README.md'])
