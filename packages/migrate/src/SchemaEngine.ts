@@ -125,5 +125,5 @@ export interface SchemaEngine {
   /**
    * Stop the engine.
    */
-  stop(): void
+  stop(): Promise<void>
 }
