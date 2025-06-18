@@ -2,7 +2,6 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
-
 /**
  * - `copyEngine === false` implies Prisma Accelerate usage
  * - If we detect Prisma Accelerate usage, we want to recommend using `--no-engine` in production.
@@ -38,7 +37,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(false)
@@ -51,7 +50,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(false)
@@ -65,7 +64,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: true,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(isUsing.accelerate).toBe(false)
       expect(isUsing.driverAdapters).toBe(true)
       expect(isUsing.ppg).toBe(false)
@@ -78,7 +77,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(true)
@@ -95,7 +94,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: true,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`
         [
@@ -120,7 +119,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(true)
@@ -136,7 +135,11 @@ describe('validateEngineInstanceConfig', () => {
         adapter: mockAdapter,
       })
 
-      expect(ok).toBe(false)
+      if (!ok) {
+        diagnostics.errors
+      }
+
+      expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
         "Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.
@@ -157,7 +160,7 @@ describe('validateEngineInstanceConfig', () => {
         adapter: mockAdapter,
       })
 
-      expect(ok).toBe(false)
+      expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
         "Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
@@ -176,7 +179,7 @@ describe('validateEngineInstanceConfig', () => {
         adapter: mockAdapter,
       })
 
-      expect(ok).toBe(false)
+      expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
         "Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.
@@ -195,7 +198,7 @@ describe('validateEngineInstanceConfig', () => {
         adapter: mockAdapter,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(false)
@@ -212,7 +215,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(diagnostics.errors).toBe(undefined)
       expect(isUsing.accelerate).toBe(true)
@@ -227,7 +230,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: true,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`
         [
@@ -252,7 +255,7 @@ describe('validateEngineInstanceConfig', () => {
         copyEngine: false,
       })
 
-      expect(ok).toBe(true)
+      expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(true)
@@ -261,3 +264,15 @@ describe('validateEngineInstanceConfig', () => {
     })
   })
 })
+
+/**
+ * Type assertion helpers, useful to narrow down types.
+ */
+
+function expectTrue(ok: boolean): asserts ok is true {
+  expect(ok).toBe(true)
+}
+
+function expectFalse(ok: boolean): asserts ok is false {
+  expect(ok).toBe(false)
+}

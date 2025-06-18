@@ -26,6 +26,7 @@ type WithDiagnostics =
 
     diagnostics: {
       warnings: WarningDiagnostic[]
+      errors?: never
     }
   }
   | {
