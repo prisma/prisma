@@ -10,8 +10,8 @@ import { isPrismaPostgres } from '@prisma/internals'
  * - Prisma Postgres can be used with either Accelerate or Driver Adapters
  */
 
-type WarningDiagnostic = { _tag: 'warning', value: [key: string, message: string, ...args: unknown[]] }
-type ErrorDiagnostic = { _tag: 'error', value: string }
+type WarningDiagnostic = { _tag: 'warning'; value: [key: string, message: string, ...args: unknown[]] }
+type ErrorDiagnostic = { _tag: 'error'; value: string }
 
 type ValidateEngineInstanceConfigParams = {
   url?: string
@@ -22,21 +22,21 @@ type ValidateEngineInstanceConfigParams = {
 
 type WithDiagnostics =
   | {
-    ok: true
+      ok: true
 
-    diagnostics: {
-      warnings: WarningDiagnostic[]
-      errors?: never
+      diagnostics: {
+        warnings: WarningDiagnostic[]
+        errors?: never
+      }
     }
-  }
   | {
-    ok: false
+      ok: false
 
-    diagnostics: {
-      warnings: WarningDiagnostic[]
-      errors: [ErrorDiagnostic, ...ErrorDiagnostic[]]
+      diagnostics: {
+        warnings: WarningDiagnostic[]
+        errors: [ErrorDiagnostic, ...ErrorDiagnostic[]]
+      }
     }
-  }
 
 type ValidateEngineInstanceConfigOutput = WithDiagnostics & {
   isUsing: {
@@ -46,9 +46,12 @@ type ValidateEngineInstanceConfigOutput = WithDiagnostics & {
   }
 }
 
-export function validateEngineInstanceConfig(
-  { url, adapter, copyEngine, targetBuildType }: ValidateEngineInstanceConfigParams,
-): ValidateEngineInstanceConfigOutput {
+export function validateEngineInstanceConfig({
+  url,
+  adapter,
+  copyEngine,
+  targetBuildType,
+}: ValidateEngineInstanceConfigParams): ValidateEngineInstanceConfigOutput {
   const warnings = [] as WarningDiagnostic[]
   const errors = [] as ErrorDiagnostic[]
 
@@ -60,19 +63,19 @@ export function validateEngineInstanceConfig(
     const value = input.join('\n')
     errors.push({ _tag: 'error', value })
   }
-  
+
   const isUsingPrismaAccelerate = Boolean(url?.startsWith('prisma://')) || !copyEngine
   const isUsingPrismaPostgres = isPrismaPostgres(url)
   const isUsingDriverAdapters = Boolean(adapter)
   const isCompatibleWithPrismaAccelerate = isUsingPrismaAccelerate || isUsingPrismaPostgres
-  
-  if (!isUsingDriverAdapters && (copyEngine && isCompatibleWithPrismaAccelerate)) {
+
+  if (!isUsingDriverAdapters && copyEngine && isCompatibleWithPrismaAccelerate) {
     pushWarning([
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
     ])
   }
-  
+
   if (isUsingDriverAdapters && (isCompatibleWithPrismaAccelerate || targetBuildType === 'edge')) {
     if (targetBuildType === 'edge') {
       pushError([
@@ -90,9 +93,7 @@ export function validateEngineInstanceConfig(
         `Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor.`,
       ])
     } else if (!isUsingPrismaPostgres) {
-      pushError([
-        'Prisma Client was configured to use both the `adapter` and Accelerate, please chose one.',
-      ])
+      pushError(['Prisma Client was configured to use both the `adapter` and Accelerate, please chose one.'])
     }
   }
 

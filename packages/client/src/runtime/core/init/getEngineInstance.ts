@@ -31,11 +31,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     // means we can't use the DataProxyEngine and will default to LibraryEngine
   }
 
-  const {
-    ok,
-    isUsing,
-    diagnostics,
-  } = validateEngineInstanceConfig({
+  const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
     url,
     adapter: engineConfig.adapter,
     copyEngine,
