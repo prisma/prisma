@@ -198,14 +198,7 @@ export class QueryInterpreter {
           })),
         )) satisfies JoinExpressionWithRecords[]
 
-        if (Array.isArray(parent)) {
-          for (const record of parent) {
-            attachChildrenToParent(asRecord(record), children)
-          }
-          return { value: parent, lastInsertId }
-        }
-
-        return { value: attachChildrenToParent(asRecord(parent), children), lastInsertId }
+        return { value: attachChildrenToParents(parent, children), lastInsertId }
       }
 
       case 'transaction': {
@@ -384,41 +377,44 @@ type JoinExpressionWithRecords = {
   childRecords: Value
 }
 
-function attachChildrenToParent(parentRecord: PrismaObject, children: JoinExpressionWithRecords[]) {
+function attachChildrenToParents(parentRecords: unknown, children: JoinExpressionWithRecords[]) {
   for (const { joinExpr, childRecords } of children) {
-    parentRecord[joinExpr.parentField] = filterChildRecords(childRecords, parentRecord, joinExpr)
-  }
-  return parentRecord
-}
+    const parentKeys = joinExpr.on.map(([k]) => k)
+    const childKeys = joinExpr.on.map(([, k]) => k)
+    const parentMap = {}
 
-function filterChildRecords(records: Value, parentRecord: PrismaObject, joinExpr: JoinExpression) {
-  if (Array.isArray(records)) {
-    const filtered = records.filter((record) => childRecordMatchesParent(asRecord(record), parentRecord, joinExpr))
-    if (joinExpr.isRelationUnique) {
-      return filtered.length > 0 ? filtered[0] : null
-    } else {
-      return filtered
-    }
-  } else if (records === null) {
-    // we can get here in case of a join with a missing UNIQUE node
-    return null
-  } else {
-    const record = asRecord(records)
-    return childRecordMatchesParent(record, parentRecord, joinExpr) ? record : null
-  }
-}
+    for (const parent of Array.isArray(parentRecords) ? parentRecords : [parentRecords]) {
+      const parentRecord = asRecord(parent)
+      const key = getRecordKey(parentRecord, parentKeys)
+      if (!parentMap[key]) {
+        parentMap[key] = []
+      }
+      parentMap[key].push(parentRecord)
 
-function childRecordMatchesParent(
-  childRecord: PrismaObject,
-  parentRecord: PrismaObject,
-  joinExpr: JoinExpression,
-): boolean {
-  for (const [parentField, childField] of joinExpr.on) {
-    if (parentRecord[parentField] !== childRecord[childField]) {
-      return false
+      if (joinExpr.isRelationUnique) {
+        parentRecord[joinExpr.parentField] = null
+      } else {
+        parentRecord[joinExpr.parentField] = []
+      }
+    }
+
+    for (const childRecord of Array.isArray(childRecords) ? childRecords : [childRecords]) {
+      if (childRecord === null) {
+        continue
+      }
+
+      const key = getRecordKey(asRecord(childRecord), childKeys)
+      for (const parentRecord of parentMap[key] ?? []) {
+        if (joinExpr.isRelationUnique) {
+          parentRecord[joinExpr.parentField] = childRecord
+        } else {
+          parentRecord[joinExpr.parentField].push(childRecord)
+        }
+      }
     }
   }
-  return true
+
+  return parentRecords
 }
 
 function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
