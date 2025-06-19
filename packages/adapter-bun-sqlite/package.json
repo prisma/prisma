@@ -1,0 +1,45 @@
+{
+  "name": "@prisma/adapter-bun-sqlite",
+  "version": "0.0.0",
+  "description": "Prisma's driver adapter for bun-sqlite, Bun natively implements a high-performance SQLite3 driver",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/adapter-bun-sqlite"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [],
+  "author": "Danilo Kuehn <me@ctl.wtf>",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@prisma/driver-adapter-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "async-mutex": "0.5.0"
+  },
+  "peerDependencies": {
+  }
+}
