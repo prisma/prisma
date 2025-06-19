@@ -1,0 +1,53 @@
+diff --git a/lib/base/pool.js b/lib/base/pool.js
+index fbcfd68a9035be1ab72779dcb312d9b64753e3aa..f195cb756365024a167068c31b72a35d64d4fbb1 100644
+--- a/lib/base/pool.js
++++ b/lib/base/pool.js
+@@ -121,7 +121,7 @@ class BasePool extends EventEmitter {
+     }
+     for (let i = 0; i < this._allConnections.length; i++) {
+       connection = this._allConnections.get(i);
+-      connection._realEnd(endCB);
++      connection.end(endCB);
+     }
+   }
+ 
+@@ -200,7 +200,7 @@ class BasePool extends EventEmitter {
+             Date.now() - this._freeConnections.get(0).lastActiveTime >
+               this.config.idleTimeout)
+         ) {
+-          this._freeConnections.get(0).destroy();
++          this._freeConnections.get(0).end();
+         }
+       } finally {
+         this._removeIdleTimeoutConnections();
+diff --git a/lib/base/pool_connection.js b/lib/base/pool_connection.js
+index 9413b70be7b7e65ac066352b3a49c098c4150b62..5bba18a449ce2e7b6c58825bb4dc366c794d4a62 100644
+--- a/lib/base/pool_connection.js
++++ b/lib/base/pool_connection.js
+@@ -29,16 +29,9 @@ class BasePoolConnection extends BaseConnection {
+     this._pool.releaseConnection(this);
+   }
+ 
+-  end() {
+-    const err = new Error(
+-      'Calling conn.end() to release a pooled connection is ' +
+-        'deprecated. In next version calling conn.end() will be ' +
+-        'restored to default conn.end() behavior. Use ' +
+-        'conn.release() instead.'
+-    );
+-    this.emit('warn', err);
+-    console.warn(err.message);
+-    this.release();
++  end(callback) {
++    this._removeFromPool();
++    super.end(callback);
+   }
+ 
+   destroy() {
+@@ -58,6 +51,3 @@ class BasePoolConnection extends BaseConnection {
+ 
+ BasePoolConnection.statementKey = BaseConnection.statementKey;
+ module.exports = BasePoolConnection;
+-
+-// TODO: Remove this when we are removing PoolConnection#end
+-BasePoolConnection.prototype._realEnd = BaseConnection.prototype.end;

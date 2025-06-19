@@ -40,7 +40,7 @@ export type PlanetScaleColumnType =
   | 'HEXNUM'
   | 'HEXVAL'
   | 'BITNUM'
-
+  
 /**
  * This is a simplification of quaint's value inference logic. Take a look at quaint's conversion.rs
  * module to see how other attributes of the field packet such as the field length are used to infer
