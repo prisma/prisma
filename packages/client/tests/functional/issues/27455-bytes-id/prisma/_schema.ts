@@ -21,7 +21,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
       model AccommodationTimeTable {
         id              Bytes @id${provider === Providers.MYSQL ? ' @db.VarBinary(16)' : ''}
-        accommodationId Bytes
+        accommodationId Bytes${provider === Providers.MYSQL ? ' @db.VarBinary(16)' : ''}
         accommodation   Accommodation @relation(fields: [accommodationId], references: [id])
       }
       `
