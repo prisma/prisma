@@ -163,8 +163,8 @@ describe('validateEngineInstanceConfig', () => {
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
-        Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor."
+        "Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` import path.
+        Please either remove the \`/edge\` suffix from the import path, or remove the \`adapter\` from the Prisma Client constructor."
       `)
       expect(isUsing.accelerate).toBe(false)
       expect(isUsing.driverAdapters).toBe(true)

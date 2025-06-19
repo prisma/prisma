@@ -10,8 +10,8 @@ test('driver adapters cannot be used via @prisma/client/edge', () => {
       })
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-"Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
-Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor."
+"Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` import path.
+Please either remove the \`/edge\` suffix from the import path, or remove \`adapter\` from the Prisma Client constructor."
 `)
   })
 })
