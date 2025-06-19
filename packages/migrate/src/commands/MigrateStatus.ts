@@ -109,7 +109,7 @@ Check the status of your database migrations
       listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
       debug({ listMigrationDirectoriesResult })
     } finally {
-      migrate.stop()
+      await migrate.stop()
     }
 
     process.stdout.write('\n') // empty line
