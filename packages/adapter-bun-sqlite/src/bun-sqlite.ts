@@ -37,6 +37,7 @@ class BunSQLiteQueryable implements SqlQueryable {
 
     const { columnNames, declaredTypes, values } = await this.performIO(query);
     const rows = values as Array<Row>;
+
     const columnTypes = getColumnTypes(declaredTypes, rows);
 
     return {
@@ -52,11 +53,9 @@ class BunSQLiteQueryable implements SqlQueryable {
     return (await this.executeIO(query)).changes;
   }
 
-  private executeIO(query: SqlQuery): Promise<{ changes: number }> {
+  private async executeIO(query: SqlQuery): Promise<{ changes: number }> {
     try {
       const stmt = this.db.query(query.sql);
-      // CORRECTED: `stmt.run()` directly takes parameters and executes.
-      // Removed the unnecessary `bound` variable and second `.run()` call.
       const result = stmt.run(...mapQueryArgs(query.args, query.argTypes));
       return Promise.resolve({ changes: result.changes });
     } catch (e) {
@@ -64,14 +63,13 @@ class BunSQLiteQueryable implements SqlQueryable {
     }
   }
 
-  private performIO(query: SqlQuery): Promise<BunSQLiteResultSet> {
+  private async performIO(query: SqlQuery): Promise<BunSQLiteResultSet> {
     try {
       const stmt = this.db.query(query.sql);
       const args = mapQueryArgs(query.args, query.argTypes);
 
       const columns = stmt.columnNames;
 
-      // Non-reader statements are identified by no columns being returned
       if (columns.length === 0) {
         stmt.run(...args);
         return Promise.resolve({
@@ -81,19 +79,20 @@ class BunSQLiteQueryable implements SqlQueryable {
         });
       }
 
-      // Using stmt.values() to ensure an array of arrays, consistent with Row type.
-      const values = stmt.values(...args) as unknown[][];
-      const declaredTypes = columns.map((col: any) => null); // bun:sqlite does not expose declared types directly
-      const columnNames = columns;
+      const resultSet = {
+        declaredTypes: columns.map((col: any) => null),
+        columnNames: columns,
+        values: stmt.values(...args) as unknown[][],
+      };
 
-      return Promise.resolve({ declaredTypes, columnNames, values });
+      return Promise.resolve(resultSet);
     } catch (e) {
       this.onError(e);
     }
   }
 
   protected onError(error: any): never {
-    debug("Error in IO: %O", error);
+    debug("Error in performIO: %O", error);
     throw new DriverAdapterError(convertDriverError(error));
   }
 }
@@ -103,35 +102,21 @@ class BunSQLiteTransaction extends BunSQLiteQueryable implements Transaction {
   constructor(
     db: Database,
     readonly options: TransactionOptions,
-    readonly unlock: () => void,
+    readonly unlockParent: () => void,
   ) {
     super(db);
   }
 
-  async commit(): Promise<void> {
-    debug("[js::commit]");
-    try {
-      // CORRECTED: Explicitly commit the transaction.
-      this.db.query("COMMIT").run();
-    } catch (e) {
-      this.onError(e);
-    } finally {
-      // Ensure unlock is called even if commit fails.
-      this.unlock();
-    }
+  commit(): Promise<void> {
+    debug(`[js::commit]`);
+    this.unlockParent();
+    return Promise.resolve();
   }
 
-  async rollback(): Promise<void> {
-    debug("[js::rollback]");
-    try {
-      // CORRECTED: Explicitly rollback the transaction.
-      this.db.query("ROLLBACK").run();
-    } catch (e) {
-      this.onError(e);
-    } finally {
-      // Ensure unlock is called even if rollback fails.
-      this.unlock();
-    }
+  rollback(): Promise<void> {
+    debug(`[js::rollback]`);
+    this.unlockParent();
+    return Promise.resolve();
   }
 }
 
@@ -146,7 +131,7 @@ export class PrismaBunSQLiteAdapter
     super(db);
   }
 
-  async executeScript(script: string): Promise<void> {
+  executeScript(script: string): Promise<void> {
     try {
       this.db.exec(script);
     } catch (e) {
@@ -168,11 +153,12 @@ export class PrismaBunSQLiteAdapter
     const options: TransactionOptions = { usePhantomQuery: false };
     debug("[js::startTransaction] options: %O", options);
 
+    const release = await this[LOCK_TAG].acquire();
     try {
-      const release = await this[LOCK_TAG].acquire();
       this.db.query("BEGIN").run();
       return new BunSQLiteTransaction(this.db, options, release);
     } catch (e) {
+      release();
       this.onError(e);
     }
   }
@@ -198,16 +184,15 @@ export class PrismaBunSQLiteAdapterFactory
   constructor(private readonly config: BunSQLiteFactoryParams) {}
 
   connect(): Promise<SqlDriverAdapter> {
-    const url = this.config.url.replace("file:", "");
+    const url = this.config.url.replace("file:", "").replace("//", "");
     const db = new Database(url);
     return Promise.resolve(new PrismaBunSQLiteAdapter(db));
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
-    const url = (this.config.shadowDatabaseURL ?? ":memory:").replace(
-      /^file:\/?\/?/,
-      "",
-    );
+    const url = (this.config.shadowDatabaseURL ?? ":memory:")
+      .replace("file:", "")
+      .replace("//", "");
     const db = new Database(url);
     return Promise.resolve(new PrismaBunSQLiteAdapter(db));
   }
