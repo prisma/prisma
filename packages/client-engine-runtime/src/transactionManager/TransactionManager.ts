@@ -201,34 +201,32 @@ export class TransactionManager {
 
     tx.status = status
 
-    try {
-      if (tx.transaction && status === 'committed') {
-        if (tx.transaction.options.usePhantomQuery) {
-          await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
-        } else {
-          await tx.transaction.commit()
-          const query = COMMIT_QUERY()
-          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-        }
-      } else if (tx.transaction) {
-        if (tx.transaction.options.usePhantomQuery) {
-          await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
-        } else {
-          await tx.transaction.rollback()
-          const query = ROLLBACK_QUERY()
-          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-        }
+    if (tx.transaction && status === 'committed') {
+      if (tx.transaction.options.usePhantomQuery) {
+        await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
+      } else {
+        const query = COMMIT_QUERY()
+        await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+        await tx.transaction.commit()
       }
-    } finally {
-      clearTimeout(tx.timer)
-      tx.timer = undefined
-
-      this.transactions.delete(tx.id)
-
-      this.closedTransactions.push(tx)
-      if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
-        this.closedTransactions.shift()
+    } else if (tx.transaction) {
+      if (tx.transaction.options.usePhantomQuery) {
+        await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
+      } else {
+        const query = ROLLBACK_QUERY()
+        await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+        await tx.transaction.rollback()
       }
+    }
+
+    clearTimeout(tx.timer)
+    tx.timer = undefined
+
+    this.transactions.delete(tx.id)
+
+    this.closedTransactions.push(tx)
+    if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
+      this.closedTransactions.shift()
     }
   }
 
