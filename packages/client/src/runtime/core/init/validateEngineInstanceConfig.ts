@@ -17,7 +17,14 @@ type ValidateEngineInstanceConfigParams = {
   url?: string
   adapter?: SqlDriverAdapterFactory
   copyEngine: boolean
-  targetBuildType: 'edge' | typeof TARGET_BUILD_TYPE //  (string & {})
+
+  /**
+   * The type indicates that {@link validateEngineInstanceConfig} only cares about
+   * the {@link targetBuildType} being `edge`. If all other input options are fixed,
+   * changing the value of this param to something else will exhibit no different
+   * validation behavior.
+   */
+  targetBuildType: 'edge' | (string & {}) // typeof TARGET_BUILD_TYPE
 }
 
 type WithDiagnostics =
@@ -46,6 +53,13 @@ type ValidateEngineInstanceConfigOutput = WithDiagnostics & {
   }
 }
 
+/**
+ * Validates the engine instance configuration, without side effects.
+ * @param url The URL passed to the Prisma Client constructor
+ * @param adapter The driver adapter passed to the Prisma Client constructor
+ * @param copyEngine Whether the engine was copied. `prisma generate --no-engine` implies `copyEngine: false`
+ * @param targetBuildType The target build type
+ */
 export function validateEngineInstanceConfig({
   url,
   adapter,
@@ -76,6 +90,7 @@ export function validateEngineInstanceConfig({
     ])
   }
 
+  // Note: we're explicitly allowing the `isUsingDriverAdapters && isUsingPrismaPostgres` case to pass through.
   if (isUsingDriverAdapters && (isCompatibleWithPrismaAccelerate || targetBuildType === 'edge')) {
     if (targetBuildType === 'edge') {
       pushError([
@@ -92,8 +107,6 @@ export function validateEngineInstanceConfig({
         `Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.`,
         `Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor.`,
       ])
-    } else if (!isUsingPrismaPostgres) {
-      pushError(['Prisma Client was configured to use both the `adapter` and Accelerate, please chose one.'])
     }
   }
 

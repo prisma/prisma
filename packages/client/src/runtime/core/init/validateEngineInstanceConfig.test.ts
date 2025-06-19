@@ -8,7 +8,7 @@ import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
  * - Driver Adapters should NOT be used with `prisma generate `--no-engine`
  * - Driver Adapters should NOT be imported from `@prisma/client/edge` endpoint
  * - Accelerate should NOT be used with Driver Adapters
- * - Prisma Postgres can be used with either Accelerate or Driver Adapters
+ * - Prisma Postgres can be used exclusively with either Accelerate or Driver Adapters
  */
 
 describe('validateEngineInstanceConfig', () => {
