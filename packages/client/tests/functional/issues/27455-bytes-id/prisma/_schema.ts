@@ -1,3 +1,4 @@
+import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -13,13 +14,13 @@ export default testMatrix.setupSchema(({ provider }) => {
       }
 
       model Accommodation {
-        id         Bytes                    @id
+        id         Bytes @id${provider === Providers.MYSQL ? ' @db.VarBinary(16)' : ''}
         name       String
         timeTables AccommodationTimeTable[]
       }
 
       model AccommodationTimeTable {
-        id              Bytes         @id
+        id              Bytes @id${provider === Providers.MYSQL ? ' @db.VarBinary(16)' : ''}
         accommodationId Bytes
         accommodation   Accommodation @relation(fields: [accommodationId], references: [id])
       }

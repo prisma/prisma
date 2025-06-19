@@ -38,8 +38,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
-      reason: 'MongoDB does not support Bytes ID',
+      from: ['mongodb', 'sqlserver'],
+      reason: 'MongoDB and SQL Server do not support Bytes IDs',
     },
   },
 )

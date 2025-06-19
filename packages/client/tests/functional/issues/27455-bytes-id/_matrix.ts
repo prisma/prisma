@@ -1,4 +1,4 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
-import { sqlProviders } from '../../_utils/providers'
+import { Providers, sqlProviders } from '../../_utils/providers'
 
-export default defineMatrix(() => [sqlProviders])
+export default defineMatrix(() => [sqlProviders.filter(({ provider }) => provider !== Providers.SQLSERVER)])
