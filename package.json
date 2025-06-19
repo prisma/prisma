@@ -100,6 +100,9 @@
       "allowedVersions": {
         "@octokit/core": ">=3"
       }
+    },
+    "patchedDependencies": {
+      "mysql2": "patches/mysql2.patch"
     }
   },
   "lint-staged": {

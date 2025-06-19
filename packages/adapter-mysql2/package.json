@@ -38,18 +38,12 @@
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "async-mutex": "0.5.0",
-    "mysql2": "3.14.1",
-    "postgres-array": "3.0.4"
+    "mysql2": "3.14.1"
   },
   "devDependencies": {
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
-    "@types/pg": "8.11.11",
     "jest": "29.7.0",
-    "jest-junit": "16.0.0",
-    "pg": "8.14.1"
-  },
-  "peerDependencies": {
-    "pg": "^8.11.3"
+    "jest-junit": "16.0.0"
   }
 }

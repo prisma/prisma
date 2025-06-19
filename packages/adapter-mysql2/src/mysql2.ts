@@ -11,6 +11,10 @@ import type {
 } from '@prisma/driver-adapter-utils'
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
+/**
+ * Note: we're using an older version of mysql2, due to:
+ * https://github.com/sidorares/node-mysql2/issues/3202
+ */
 import * as sql from 'mysql2/promise'
 
 import { name as packageName } from '../package.json'
@@ -73,7 +77,7 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
       return {
         columnNames,
         columnTypes,
-        rows: rows.map(row => mapRow(columnTypes)(row as unknown[])),
+        rows: rows.map((row) => mapRow(columnTypes)(row as unknown[])),
       }
     } catch (error) {
       onError(error as Error)
@@ -110,14 +114,14 @@ class MySQL2Queryable<ClientT extends StdClient | TransactionClient> implements 
   }
 }
 
-type DatabaseError = Error & { errno: number, sqlState: string }
+type DatabaseError = Error & { errno: number; sqlState: string }
 
 function isDatabaseError(error: Error): error is DatabaseError {
   return (
-    'errno' in error
-    && 'sqlState' in error
-    && typeof error['errno'] === 'number'
-    && typeof error['sqlState'] === 'string'
+    'errno' in error &&
+    'sqlState' in error &&
+    typeof error['errno'] === 'number' &&
+    typeof error['sqlState'] === 'string'
   )
 }
 
@@ -137,17 +141,17 @@ function onError(error: Error): never {
       message: error.message,
       state: error.sqlState,
     } satisfies ParsedDatabaseError
-    
+
     throw new DriverAdapterError(convertDriverError(parsed))
   }
 
   throw error
 }
 
-const LOCK_TAG = Symbol()
+const LOCK_TAG_TRANSACTION = Symbol()
 
 class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Transaction {
-  [LOCK_TAG] = new Mutex()
+  [LOCK_TAG_TRANSACTION] = new Mutex()
 
   constructor(client: sql.PoolConnection, readonly options: TransactionOptions) {
     super(client)
@@ -157,7 +161,7 @@ class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Tr
     const tag = '[js::performIO]'
     debug(`${tag} %O`, query)
 
-    const releaseTx = await this[LOCK_TAG].acquire()
+    const releaseTx = await this[LOCK_TAG_TRANSACTION].acquire()
     try {
       const result = await super.performIO(query)
       return result
@@ -187,8 +191,15 @@ class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Tr
 
     try {
       await this.client.commit()
+    } catch (error) {
+      // Try to rollback on commit failure
+      await this.client.rollback()
     } finally {
-      this.client.release()
+      try {
+        this.client.release()
+      } catch (releaseError) {
+        console.log(`[js::commit] Failed to release connection: %O`, releaseError)
+      }
     }
   }
 
@@ -197,8 +208,16 @@ class MySQL2Transaction extends MySQL2Queryable<TransactionClient> implements Tr
 
     try {
       await this.client.rollback()
+    } catch (error) {
+      console.log(`[js::rollback] Rollback failed: %O`, error)
+      throw error
     } finally {
-      this.client.release()
+      // Always release the connection, but handle potential errors
+      try {
+        this.client.release()
+      } catch (releaseError) {
+        console.log(`[js::rollback] Failed to release connection: %O`, releaseError)
+      }
     }
   }
 }
@@ -208,7 +227,11 @@ export type PrismaMySQL2Options = {
   supportsRelationJoins: boolean
 }
 
+const LOCK_TAG_ACQUIRE_CONNECTION = Symbol()
+
 export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements SqlDriverAdapter {
+  [LOCK_TAG_ACQUIRE_CONNECTION] = new Mutex()
+
   constructor(client: sql.Pool, private options: PrismaMySQL2Options, private readonly release?: () => Promise<void>) {
     super(client)
   }
@@ -223,19 +246,30 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
 
     let conn: sql.PoolConnection | undefined
 
+    // Note2:
+    // - `sql.Pool.prototype.getConnection` returns the same connection when accessed concurrently.
+    //   See: https://github.com/sidorares/node-mysql2/issues/2325
+    // - mysql2's TypeScript definitions are wrong.
+    //   You can't call `Pool.prototype.beginTransaction()`. You need to retrieve a PoolConnection first,
+    //   and then call `PoolConnection.prototype.beginTransaction()`.
+    const releaseLock = await this[LOCK_TAG_ACQUIRE_CONNECTION].acquire()
     try {
-      // Note: mysql2's TypeScript definitions are wrong.
-      // You can't call `Pool.prototype.beginTransaction()`. You need to retrieve a PoolConnection first,
-      // and then call `PoolConnection.prototype.beginTransaction()`.
       conn = await this.client.getConnection()
       const tx = new MySQL2Transaction(conn, options)
       await tx.startTransaction(isolationLevel)
       return tx
     } catch (error) {
       if (conn) {
-        conn.release()
+        try {
+          conn.release()
+        } catch (releaseError) {
+          console.log('%s Failed to release connection during error cleanup: %O', tag, releaseError)
+          onError(releaseError)
+        }
       }
       onError(error)
+    } finally {
+      releaseLock()
     }
   }
 
@@ -258,9 +292,7 @@ export class PrismaMySQL2Adapter extends MySQL2Queryable<StdClient> implements S
   }
 
   async dispose(): Promise<void> {
-    console.log('[PrismaMySQL2Adapter::dispose]')
     await this.release?.()
-    console.log('[PrismaMySQL2Adapter::dispose] client released')
   }
 }
 
@@ -304,16 +336,19 @@ async function getCapabilities(pool: sql.Pool): Promise<{ supportsRelationJoins:
   }
 }
 
+const STATS_TAG = Symbol()
+
 export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+  [STATS_TAG] = new Mutex()
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
   static #defaultConfig = {
     database: 'mysql',
     // https://sidorares.github.io/node-mysql2/docs/documentation/connect-on-cloudflare#mysql2-connection
-    disableEval: false,
+    // disableEval: false,
     // read JSON datatypes as strings
-    jsonStrings: true,
+    // jsonStrings: true,
     // read datetime as string
     dateStrings: true,
     // interpret dates as UTC
@@ -321,16 +356,58 @@ export class PrismaMySQL2AdapterFactory implements SqlMigrationAwareDriverAdapte
     supportBigNumbers: true,
   } satisfies sql.PoolOptions
 
+  private stats = {
+    connections: 0,
+    acquisitions: 0,
+    releases: 0,
+  }
+
   constructor(private readonly config: sql.PoolOptions, private readonly options?: PrismaMySQL2Options) {}
 
   async connect(): Promise<SqlDriverAdapter> {
     const config = { ...PrismaMySQL2AdapterFactory.#defaultConfig, ...this.config } satisfies sql.PoolOptions
     const pool = sql.createPool(config)
 
+    pool.on('connection', () => {
+      void this[STATS_TAG].acquire().then((release) => {
+        console.log('[+1 connection]')
+        this.stats.connections += 1
+        release()
+      })
+    })
+
+    pool.on('acquire', () => {
+      void this[STATS_TAG].acquire().then((release) => {
+        console.log('[+1 acquisition]')
+        this.stats.acquisitions += 1
+        release()
+      })
+    })
+
+    pool.on('release', () => {
+      void this[STATS_TAG].acquire().then((release) => {
+        console.log('[+1 release]')
+        this.stats.releases += 1
+        release()
+      })
+    })
+
+    const dispose = async () => {
+      console.log('[dispose::BEFORE]')
+      console.dir({ stats: this.stats }, { depth: null })
+      await pool.end()
+      pool.destroy()
+
+      console.log('[dispose::AFTER]')
+      console.dir({ stats: this.stats }, { depth: null })
+      // ^^^
+      // { stats: { connection: 1, acquisition: 0, release: 0 } }
+    }
+
     const capabilities = await getCapabilities(pool)
     const options = { schema: config.database, ...capabilities, ...this.options } satisfies PrismaMySQL2Options
 
-    return new PrismaMySQL2Adapter(pool, options, async () => await pool.end())
+    return new PrismaMySQL2Adapter(pool, options, dispose)
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {

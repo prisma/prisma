@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  mysql2:
+    hash: 5hdddkg7svghunb2v7fcgsuzji
+    path: patches/mysql2.patch
+
 importers:
 
   .:
@@ -286,10 +291,7 @@ importers:
         version: 0.5.0
       mysql2:
         specifier: 3.14.1
-        version: 3.14.1
-      postgres-array:
-        specifier: 3.0.4
-        version: 3.0.4
+        version: 3.14.1(patch_hash=5hdddkg7svghunb2v7fcgsuzji)
     devDependencies:
       '@swc/core':
         specifier: 1.11.5
@@ -297,18 +299,12 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.11.5)
-      '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
-      pg:
-        specifier: 8.14.1
-        version: 8.14.1
 
   packages/adapter-neon:
     dependencies:
@@ -13524,7 +13520,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  mysql2@3.14.1:
+  mysql2@3.14.1(patch_hash=5hdddkg7svghunb2v7fcgsuzji):
     dependencies:
       aws-ssl-profiles: 1.1.2
       denque: 2.1.0
