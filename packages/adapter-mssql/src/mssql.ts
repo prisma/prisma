@@ -157,7 +157,8 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    const pool = await sql.connect(this.config)
+    const pool = new sql.ConnectionPool(this.config)
+    await pool.connect()
     return new PrismaMssqlAdapter(pool, this.options)
   }
 }

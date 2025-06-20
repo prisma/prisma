@@ -300,9 +300,10 @@ export class SchemaEngineWasm implements SchemaEngine {
   /**
    * Stop the engine.
    */
-  public stop(): void {
+  public stop(): Promise<void> {
     this.isRunning = false
     this.engine.free()
+    return Promise.resolve()
   }
 }
 

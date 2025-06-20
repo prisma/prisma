@@ -72,7 +72,7 @@ export async function introspectSql(
       }
     }
   } finally {
-    schemaEngine.stop()
+    await schemaEngine.stop()
   }
 
   if (errors.length > 0) {
