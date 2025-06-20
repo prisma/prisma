@@ -232,6 +232,9 @@ function mapValue(
       if (Array.isArray(value)) {
         return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
       }
+      if (value instanceof Uint8Array) {
+        return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
+      }
       throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
