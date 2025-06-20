@@ -4,7 +4,12 @@ import { blue, bold } from 'kleur/colors'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
-export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Response }): void {
+export function printUpdateMessage(checkResult: Check.Result | 0 | void): void {
+  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+  if (!checkResult || checkResult.status !== 'ok' || shouldHide || !checkResult.data.outdated) {
+    return
+  }
+
   let boxHeight = 4
   let majorText = ''
 
