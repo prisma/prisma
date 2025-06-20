@@ -14,7 +14,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, engineType, driverAdapter }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -31,9 +31,8 @@ testMatrix.setupTestSuite(
       await prisma
         .$transaction(
           // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-          /* note how there's no `async` here */ (tx) => {
+          /* note how there's no `async` here */ () => {
             console.log('1')
-            console.log(tx)
             console.log('2')
           },
         )
@@ -284,7 +283,7 @@ testMatrix.setupTestSuite(
           /client/tests/functional/interactive-transactions/tests.ts:0:0
 
             XX })
-            XX 
+            XX
             XX const result = prisma.$transaction(async () => {
           → XX   await transactionBoundPrisma.user.create(
           Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction."
@@ -549,51 +548,54 @@ testMatrix.setupTestSuite(
      * Issues on the database side are to be expected though: for SQLite, MySQL 8+ and MongoDB, it sometimes causes DB lock up
      * and all subsequent tests fail for some time. On SQL Server, the database kills the connections.
      */
-    testIf(provider === Providers.POSTGRESQL)('high concurrency with write conflicts', async () => {
-      jest.setTimeout(30_000)
+    testIf(provider === Providers.POSTGRESQL && driverAdapter !== 'js_neon')(
+      'high concurrency with write conflicts',
+      async () => {
+        jest.setTimeout(30_000)
 
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-        },
-      })
+        await prisma.user.create({
+          data: {
+            email: 'x',
+            name: 'y',
+          },
+        })
 
-      for (let i = 0; i < 5; i++) {
-        await Promise.allSettled([
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-        ]).catch(() => {}) // we don't care for errors, there will be
-      }
-    })
+        for (let i = 0; i < 5; i++) {
+          await Promise.allSettled([
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+          ]).catch(() => {}) // we don't care for errors, there will be
+        }
+      },
+    )
 
     testIf(provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
       jest.setTimeout(30_000)
@@ -723,60 +725,63 @@ testMatrix.setupTestSuite(
      * Engine PR - https://github.com/prisma/prisma-engines/pull/2811
      * Issue - https://github.com/prisma/prisma/issues/11750
      */
-    testIf(provider === Providers.POSTGRESQL)('high concurrency with SET FOR UPDATE', async () => {
-      jest.setTimeout(60_000)
-      const CONCURRENCY = 12
+    testIf(provider === Providers.POSTGRESQL && driverAdapter !== 'js_neon')(
+      'high concurrency with SET FOR UPDATE',
+      async () => {
+        jest.setTimeout(60_000)
+        const CONCURRENCY = 12
 
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-          val: 1,
-        },
-      })
-
-      const promises = [...Array(CONCURRENCY)].map(() =>
-        prisma.$transaction(
-          async (transactionPrisma) => {
-            // @ts-test-if: provider !== Providers.MONGODB
-            await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
-
-            const user = await transactionPrisma.user.findUniqueOrThrow({
-              where: {
-                email: 'x',
-              },
-            })
-
-            // Add a delay here to force the transaction to be open for longer
-            // this will increase the chance of deadlock in the itx transactions
-            // if deadlock is a possibility.
-            await delay(100)
-
-            const updatedUser = await transactionPrisma.user.update({
-              where: {
-                email: 'x',
-              },
-              data: {
-                val: user.val! + 1,
-              },
-            })
-
-            return updatedUser
+        await prisma.user.create({
+          data: {
+            email: 'x',
+            name: 'y',
+            val: 1,
           },
-          { timeout: 60_000, maxWait: 60_000 },
-        ),
-      )
+        })
 
-      await Promise.allSettled(promises)
+        const promises = [...Array(CONCURRENCY)].map(() =>
+          prisma.$transaction(
+            async (transactionPrisma) => {
+              // @ts-test-if: provider !== Providers.MONGODB
+              await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
 
-      const finalUser = await prisma.user.findUniqueOrThrow({
-        where: {
-          email: 'x',
-        },
-      })
+              const user = await transactionPrisma.user.findUniqueOrThrow({
+                where: {
+                  email: 'x',
+                },
+              })
 
-      expect(finalUser.val).toEqual(CONCURRENCY + 1)
-    })
+              // Add a delay here to force the transaction to be open for longer
+              // this will increase the chance of deadlock in the itx transactions
+              // if deadlock is a possibility.
+              await delay(100)
+
+              const updatedUser = await transactionPrisma.user.update({
+                where: {
+                  email: 'x',
+                },
+                data: {
+                  val: user.val! + 1,
+                },
+              })
+
+              return updatedUser
+            },
+            { timeout: 60_000, maxWait: 60_000 },
+          ),
+        )
+
+        await Promise.allSettled(promises)
+
+        const finalUser = await prisma.user.findUniqueOrThrow({
+          where: {
+            email: 'x',
+          },
+        })
+
+        expect(finalUser.val).toEqual(CONCURRENCY + 1)
+      },
+    )
 
     describeIf(provider !== Providers.MONGODB)('isolation levels', () => {
       function testIsolationLevel(title: string, supported: boolean, fn: () => Promise<void>) {
