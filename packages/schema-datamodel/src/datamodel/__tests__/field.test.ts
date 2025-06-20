@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest'
-import { Field, IdFieldDefinition, UniqueFieldAttribute, Relation } from '../field'
-import { DefaultValue } from '../default-value'
+
 import { Function } from '../../values'
+import { DefaultValue } from '../default-value'
+import { Field, IdFieldDefinition, Relation, UniqueFieldAttribute } from '../field'
 
 test('creates basic required field', () => {
   const field = Field.create('name', 'String')
@@ -67,10 +68,7 @@ test('creates ID field', () => {
 
 test('creates ID field with options', () => {
   const field = Field.create('id', 'String')
-  const idDef = IdFieldDefinition.create()
-    .sortOrder('Desc')
-    .length(32)
-    .clustered(false)
+  const idDef = IdFieldDefinition.create().sortOrder('Desc').length(32).clustered(false)
   field.idField(idDef)
   expect(field.toString()).toBe('id String @id(sort: Desc, length: 32, clustered: false)')
 })
@@ -84,23 +82,18 @@ test('creates unique field', () => {
 
 test('creates unique field with options', () => {
   const field = Field.create('email', 'String')
-  const uniqueAttr = UniqueFieldAttribute.create()
-    .sortOrder('Asc')
-    .length(100)
-    .clustered(true)
+  const uniqueAttr = UniqueFieldAttribute.create().sortOrder('Asc').length(100).clustered(true)
   field.uniqueConstraint(uniqueAttr)
   expect(field.toString()).toBe('email String @unique(sort: Asc, length: 100, clustered: true)')
 })
 
 test('creates relation field', () => {
   const field = Field.create('user', 'User')
-  const relation = Relation.create()
-    .fields(['userId'])
-    .references(['id'])
-    .onDelete('Cascade')
-    .onUpdate('Restrict')
+  const relation = Relation.create().fields(['userId']).references(['id']).onDelete('Cascade').onUpdate('Restrict')
   field.relationField(relation)
-  expect(field.toString()).toBe('user User @relation(fields: [userId], references: [id], onDelete: "Cascade", onUpdate: "Restrict")')
+  expect(field.toString()).toBe(
+    'user User @relation(fields: [userId], references: [id], onDelete: "Cascade", onUpdate: "Restrict")',
+  )
 })
 
 test('creates updatedAt field', () => {
@@ -130,13 +123,14 @@ test('creates unsupported field', () => {
 test('creates complex field with multiple attributes', () => {
   const field = Field.create('id', 'String')
   field.documentation('Primary key')
-  
+
   const idDef = IdFieldDefinition.create().sortOrder('Desc').length(32).clustered(false)
   field.idField(idDef)
-  
+
   field.default(DefaultValue.function(Function.create('uuid')))
   field.nativeType('db', 'VarChar', ['255'])
-  
-  const expected = '/// Primary key\nid String @id(sort: Desc, length: 32, clustered: false) @default(uuid()) @db.VarChar("255")'
+
+  const expected =
+    '/// Primary key\nid String @id(sort: Desc, length: 32, clustered: false) @default(uuid()) @db.VarChar("255")'
   expect(field.toString()).toBe(expected)
 })

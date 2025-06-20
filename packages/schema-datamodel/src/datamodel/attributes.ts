@@ -2,7 +2,7 @@ import { Function } from '../values'
 
 /**
  * Defines a field attribute, wrapping a function.
- * 
+ *
  * Example:
  * ```
  * model X {
@@ -14,7 +14,7 @@ import { Function } from '../values'
 export class FieldAttribute {
   private prefix?: string
 
-  constructor(private readonly attribute: Function) { }
+  constructor(private readonly attribute: Function) {}
 
   /**
    * Adds a prefix to the field attribute. Useful for native types,
@@ -30,10 +30,7 @@ export class FieldAttribute {
    */
   public pushParam(param: string | number | boolean): this
   public pushParam(key: string, value: string | number | boolean): this
-  public pushParam(
-    keyOrParam: string | number | boolean,
-    value?: string | number | boolean
-  ): this {
+  public pushParam(keyOrParam: string | number | boolean, value?: string | number | boolean): this {
     if (value !== undefined) {
       this.attribute.pushParam(keyOrParam as string, value)
     } else {
@@ -69,7 +66,7 @@ export class FieldAttribute {
 
 /**
  * Defines a block attribute, wrapping a function.
- * 
+ *
  * Example:
  * ```
  * model X {
@@ -79,17 +76,14 @@ export class FieldAttribute {
  * ```
  */
 export class BlockAttribute {
-  constructor(private readonly attribute: Function) { }
+  constructor(private readonly attribute: Function) {}
 
   /**
    * Add a new parameter to the attribute function.
    */
   public pushParam(param: string | number | boolean): this
   public pushParam(key: string, value: string | number | boolean): this
-  public pushParam(
-    keyOrParam: string | number | boolean,
-    value?: string | number | boolean
-  ): this {
+  public pushParam(keyOrParam: string | number | boolean, value?: string | number | boolean): this {
     if (value !== undefined) {
       this.attribute.pushParam(keyOrParam as string, value)
     } else {

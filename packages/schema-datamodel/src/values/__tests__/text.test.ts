@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Text } from '../text'
 
 test('creates quoted text value', () => {

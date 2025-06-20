@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Documentation } from '../documentation'
 
 test('creates single line documentation', () => {

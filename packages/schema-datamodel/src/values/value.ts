@@ -1,7 +1,7 @@
-import { Text } from './text'
 import { Constant } from './constant'
-import { Function } from './function'
 import { Env } from './env'
+import { Function } from './function'
+import { Text } from './text'
 
 /**
  * A PSL value representation.
@@ -10,8 +10,8 @@ import { Env } from './env'
 export class Value {
   private constructor(
     private readonly type: 'text' | 'bytes' | 'constant' | 'array' | 'function' | 'env',
-    private readonly value: Text | Constant | Array<Value> | Function | Env | string
-  ) { }
+    private readonly value: Text | Constant | Array<Value> | Function | Env | string,
+  ) {}
 
   /**
    * Create a string value, quoted and escaped accordingly.
@@ -58,11 +58,13 @@ export class Value {
   }
 
   public toString(): string {
-    if (this.value instanceof Text ||
+    if (
+      this.value instanceof Text ||
       this.value instanceof Constant ||
       this.value instanceof Array ||
       this.value instanceof Function ||
-      this.value instanceof Env) {
+      this.value instanceof Env
+    ) {
       return this.value.toString()
     }
     return String(this.value)

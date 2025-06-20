@@ -167,7 +167,7 @@ export class Relation {
    * Defines the foreign field names of the foreign key.
    */
   public references(references: string[]): this {
-    // Create array of reference names  
+    // Create array of reference names
     const refArray = `[${references.join(', ')}]`
     this.attribute.pushParam('references', refArray)
     return this

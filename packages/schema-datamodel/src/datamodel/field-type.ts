@@ -1,7 +1,7 @@
 /**
  * The kind of field type - required, optional, array, or unsupported variants.
  */
-type FieldKind = 
+type FieldKind =
   | { type: 'required'; typeName: string }
   | { type: 'optional'; typeName: string }
   | { type: 'array'; typeName: string }

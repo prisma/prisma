@@ -17,14 +17,16 @@ export class Documentation {
   }
 
   public toString(): string {
-    return this.lines
-      .map(line => {
-        if (line.trim() === '') {
-          return '///'
-        }
-        return `/// ${line}`
-      })
-      .join('\n') + '\n'
+    return (
+      this.lines
+        .map((line) => {
+          if (line.trim() === '') {
+            return '///'
+          }
+          return `/// ${line}`
+        })
+        .join('\n') + '\n'
+    )
   }
 
   public getContent(): string {

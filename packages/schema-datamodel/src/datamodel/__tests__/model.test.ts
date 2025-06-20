@@ -1,8 +1,9 @@
 import { expect, test } from 'vitest'
-import { Model, IndexDefinition, IdDefinition } from '../model'
-import { Field, IdFieldDefinition } from '../field'
-import { DefaultValue } from '../default-value'
+
 import { Function } from '../../values'
+import { DefaultValue } from '../default-value'
+import { Field, IdFieldDefinition } from '../field'
+import { IdDefinition, IndexDefinition, Model } from '../model'
 
 test('creates basic model', () => {
   const model = Model.create('User')
@@ -21,25 +22,25 @@ test('creates model with field', () => {
   const field = Field.create('id', 'Int')
   field.idField(IdFieldDefinition.create())
   model.pushField(field)
-  
+
   expect(model.toString()).toBe('model User {\n  id Int @id\n}\n')
 })
 
 test('creates model with multiple fields', () => {
   const model = Model.create('User')
-  
+
   const idField = Field.create('id', 'Int')
   idField.idField(IdFieldDefinition.create())
   idField.default(DefaultValue.function(Function.create('autoincrement')))
   model.pushField(idField)
-  
+
   const nameField = Field.create('name', 'String')
   model.pushField(nameField)
-  
+
   const emailField = Field.create('email', 'String')
   emailField.optional()
   model.pushField(emailField)
-  
+
   const expected = `model User {
   id Int @id @default(autoincrement())
   name String
@@ -69,61 +70,59 @@ test('creates model with ignore attribute', () => {
 
 test('creates model with index', () => {
   const model = Model.create('User')
-  
+
   const field = Field.create('email', 'String')
   model.pushField(field)
-  
+
   const index = IndexDefinition.unique([{ name: 'email' }])
   model.pushIndex(index)
-  
+
   expect(model.toString()).toBe('model User {\n  email String\n  @@unique([email])\n}\n')
 })
 
 test('creates model with compound index', () => {
   const model = Model.create('User')
-  
+
   const nameField = Field.create('firstName', 'String')
   const lastField = Field.create('lastName', 'String')
   model.pushField(nameField)
   model.pushField(lastField)
-  
-  const index = IndexDefinition.index([
-    { name: 'firstName' },
-    { name: 'lastName', sortOrder: 'Asc', length: 32 }
-  ])
+
+  const index = IndexDefinition.index([{ name: 'firstName' }, { name: 'lastName', sortOrder: 'Asc', length: 32 }])
   index.name('full_name_idx')
   model.pushIndex(index)
-  
-  expect(model.toString()).toBe('model User {\n  firstName String\n  lastName String\n  @@index([firstName, lastName(sort: Asc, length: 32)], name: "full_name_idx")\n}\n')
+
+  expect(model.toString()).toBe(
+    'model User {\n  firstName String\n  lastName String\n  @@index([firstName, lastName(sort: Asc, length: 32)], name: "full_name_idx")\n}\n',
+  )
 })
 
 test('creates model with compound ID', () => {
   const model = Model.create('UserRole')
-  
+
   const userField = Field.create('userId', 'Int')
   const roleField = Field.create('roleId', 'Int')
   model.pushField(userField)
   model.pushField(roleField)
-  
-  const id = IdDefinition.create([
-    { name: 'userId' },
-    { name: 'roleId', sortOrder: 'Desc' }
-  ])
+
+  const id = IdDefinition.create([{ name: 'userId' }, { name: 'roleId', sortOrder: 'Desc' }])
   id.name('primary').map('PK_user_role').clustered(false)
   model.idDefinition(id)
-  
-  expect(model.toString()).toBe('model UserRole {\n  userId Int\n  roleId Int\n  @@id([userId, roleId(sort: Desc)], name: "primary", map: "PK_user_role", clustered: false)\n}\n')
+
+  expect(model.toString()).toBe(
+    'model UserRole {\n  userId Int\n  roleId Int\n  @@id([userId, roleId(sort: Desc)], name: "primary", map: "PK_user_role", clustered: false)\n}\n',
+  )
 })
 
 test('creates commented out model', () => {
   const model = Model.create('User')
   model.commentOut()
-  
+
   const field = Field.create('id', 'Int')
   field.idField(IdFieldDefinition.create())
   model.pushField(field)
-  
+
   model.schemaAttribute('public')
-  
+
   expect(model.toString()).toBe('// model User {\n// id Int @id\n//   @@schema("public")\n// }\n')
 })

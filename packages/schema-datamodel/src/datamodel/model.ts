@@ -29,8 +29,7 @@ export class IndexDefinition {
   }
 
   private buildFieldsArray(fields: IndexFieldInput[]): string {
-    const fieldStrings = fields.map(field => {
-      const parts = [field.name]
+    const fieldStrings = fields.map((field) => {
       const options: string[] = []
 
       if (field.sortOrder) {
@@ -120,7 +119,7 @@ export class IdDefinition {
     const func = Function.create('id')
 
     // Build the fields array parameter
-    const fieldStrings = fields.map(field => {
+    const fieldStrings = fields.map((field) => {
       const options: string[] = []
 
       if (field.sortOrder) {
@@ -293,7 +292,7 @@ export class Model {
       if (this.commentedOut) {
         // Add comment prefix to each line
         const lines = fieldStr.split('\n')
-        result += lines.map(line => line ? `${comment}${line}` : comment.trim()).join('\n') + '\n'
+        result += lines.map((line) => (line ? `${comment}${line}` : comment.trim())).join('\n') + '\n'
       } else {
         result += `  ${fieldStr}\n`
       }

@@ -5,11 +5,11 @@ import { FieldAttribute } from './attributes'
  * A field default value.
  */
 export class DefaultValue {
-  constructor(private readonly attribute: FieldAttribute) { }
+  constructor(private readonly attribute: FieldAttribute) {}
 
   /**
    * A function default value.
-   * 
+   *
    * Example:
    * ```
    * model Foo {
@@ -31,7 +31,7 @@ export class DefaultValue {
 
   /**
    * A textual default value.
-   * 
+   *
    * Example:
    * ```
    * model Foo {
@@ -49,7 +49,7 @@ export class DefaultValue {
 
   /**
    * A byte array default value, base64-encoded.
-   * 
+   *
    * Example:
    * ```
    * model Foo {
@@ -67,7 +67,7 @@ export class DefaultValue {
 
   /**
    * A constant default value.
-   * 
+   *
    * Example:
    * ```
    * model Foo {
@@ -85,7 +85,7 @@ export class DefaultValue {
 
   /**
    * An array default value.
-   * 
+   *
    * Example:
    * ```
    * model Foo {
@@ -96,7 +96,7 @@ export class DefaultValue {
    */
   public static array(values: (string | number | boolean)[]): DefaultValue {
     const defaultFunc = Function.create('default')
-    const arrayOfValues = values.map(value => Value.constant(value))
+    const arrayOfValues = values.map((value) => Value.constant(value))
     defaultFunc.pushParam(Value.array(arrayOfValues))
 
     return new DefaultValue(FieldAttribute.create(defaultFunc))
@@ -104,7 +104,7 @@ export class DefaultValue {
 
   /**
    * Sets the default map argument.
-   * 
+   *
    * Example:
    * ```
    * model Foo {

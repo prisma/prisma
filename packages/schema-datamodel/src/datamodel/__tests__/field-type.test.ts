@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { FieldType } from '../field-type'
 
 test('creates required field type', () => {

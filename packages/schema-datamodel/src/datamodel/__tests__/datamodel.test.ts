@@ -1,12 +1,13 @@
 import { expect, test } from 'vitest'
-import { Datamodel } from '../datamodel'
-import { Model } from '../model'
-import { Enum } from '../enum'
-import { View } from '../view'
-import { CompositeType } from '../composite-type'
-import { Field, IdFieldDefinition } from '../field'
-import { DefaultValue } from '../default-value'
+
 import { Function } from '../../values'
+import { CompositeType } from '../composite-type'
+import { Datamodel } from '../datamodel'
+import { DefaultValue } from '../default-value'
+import { Enum } from '../enum'
+import { Field, IdFieldDefinition } from '../field'
+import { Model } from '../model'
+import { View } from '../view'
 
 test('creates simple data model', () => {
   const fileName = 'schema.prisma'
@@ -57,7 +58,7 @@ test('creates simple data model', () => {
 
   // The exact order should match the Rust implementation:
   // 1. Composite types
-  // 2. Models  
+  // 2. Models
   // 3. Views
   // 4. Enums
   const expected = `type Address {
@@ -142,7 +143,7 @@ model User {
   id Int @id @default(autoincrement())
 }`)
 
-  // Check b.prisma  
+  // Check b.prisma
   expect(sortedRendered[1][0]).toBe('b.prisma')
   const bContent = sortedRendered[1][1].content
   expect(bContent).toBe(`enum TrafficLight {

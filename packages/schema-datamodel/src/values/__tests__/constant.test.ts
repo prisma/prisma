@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest'
+
 import { Constant } from '../constant'
 
 test('creates constant with string value', () => {

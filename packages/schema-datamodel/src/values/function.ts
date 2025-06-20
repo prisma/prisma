@@ -4,9 +4,7 @@ import { Value } from './value'
  * Represents a function parameter in the PSL.
  * Equivalent to Rust's FunctionParam<'a> enum.
  */
-export type FunctionParam =
-  | { type: 'keyValue'; key: string; value: Value }
-  | { type: 'onlyValue'; value: Value }
+export type FunctionParam = { type: 'keyValue'; key: string; value: Value } | { type: 'onlyValue'; value: Value }
 
 /**
  * Represents a function value in the PSL.
@@ -16,7 +14,7 @@ export class Function {
   private params: FunctionParam[] = []
   private renderEmptyParentheses = false
 
-  constructor(private readonly name: string) { }
+  constructor(private readonly name: string) {}
 
   /**
    * Add a new parameter to the function. If no parameters are
@@ -24,23 +22,20 @@ export class Function {
    */
   public pushParam(param: Value | string | number | boolean): this
   public pushParam(key: string, value: Value | string | number | boolean): this
-  public pushParam(
-    keyOrParam: string | Value | number | boolean,
-    value?: Value | string | number | boolean
-  ): this {
+  public pushParam(keyOrParam: string | Value | number | boolean, value?: Value | string | number | boolean): this {
     if (value !== undefined) {
       // Key-value parameter
       const key = keyOrParam as string
       this.params.push({
         type: 'keyValue',
         key,
-        value: this.normalizeValue(value)
+        value: this.normalizeValue(value),
       })
     } else {
       // Only value parameter
       this.params.push({
         type: 'onlyValue',
-        value: this.normalizeValue(keyOrParam as Value | string | number | boolean)
+        value: this.normalizeValue(keyOrParam as Value | string | number | boolean),
       })
     }
     return this
@@ -72,7 +67,7 @@ export class Function {
     }
 
     if (this.params.length > 0) {
-      const paramStrings = this.params.map(param => {
+      const paramStrings = this.params.map((param) => {
         if (param.type === 'keyValue') {
           return `${param.key}: ${param.value.toString()}`
         }

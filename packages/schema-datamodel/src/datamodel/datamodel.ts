@@ -1,7 +1,7 @@
+import { CompositeType } from './composite-type'
+import { Enum } from './enum'
 import { Model } from './model'
 import { View } from './view'
-import { Enum } from './enum'
-import { CompositeType } from './composite-type'
 
 /**
  * Configuration section (generators and datasources) - placeholder for now
@@ -32,7 +32,7 @@ export class Datamodel {
   /**
    * Create a new empty data model.
    */
-  constructor() { }
+  constructor() {}
 
   /**
    * Add a model block to the data model.
@@ -82,10 +82,7 @@ export class Datamodel {
    * True if the render output would be an empty string.
    */
   public isEmpty(): boolean {
-    return this.models.size === 0 &&
-      this.enums.size === 0 &&
-      this.compositeTypes.size === 0 &&
-      this.views.size === 0
+    return this.models.size === 0 && this.enums.size === 0 && this.compositeTypes.size === 0 && this.views.size === 0
   }
 
   /**
@@ -152,7 +149,7 @@ export class Datamodel {
     // Convert to array of tuples with SourceFile objects
     return Array.from(rendered.entries()).map(([file, content]) => [
       file,
-      { content: content.trim() + (content.trim() ? '\n' : '') }
+      { content: content.trim() + (content.trim() ? '\n' : '') },
     ])
   }
 
