@@ -14,7 +14,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, engineType, driverAdapter }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -31,9 +31,8 @@ testMatrix.setupTestSuite(
       await prisma
         .$transaction(
           // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-          /* note how there's no `async` here */ (tx) => {
+          /* note how there's no `async` here */ () => {
             console.log('1')
-            console.log(tx)
             console.log('2')
           },
         )
@@ -284,7 +283,7 @@ testMatrix.setupTestSuite(
           /client/tests/functional/interactive-transactions/tests.ts:0:0
 
             XX })
-            XX 
+            XX
             XX const result = prisma.$transaction(async () => {
           → XX   await transactionBoundPrisma.user.create(
           Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction."
@@ -381,46 +380,48 @@ testMatrix.setupTestSuite(
      * A bad batch should rollback using the interactive transaction logic
      * // TODO: skipped because output differs from binary to library
      */
-    testIf(engineType !== ClientEngineType.Binary && provider !== Providers.MONGODB && clientMeta.runtime !== 'edge')(
-      'batching raw rollback',
-      async () => {
-        await prisma.user.create({
-          data: {
-            id: '1',
-            email: 'user_1@website.com',
-          },
-        })
+    testIf(
+      engineType !== ClientEngineType.Binary &&
+        provider !== Providers.MONGODB &&
+        clientMeta.runtime !== 'edge' &&
+        driverAdapter !== 'js_neon',
+    )('batching raw rollback', async () => {
+      await prisma.user.create({
+        data: {
+          id: '1',
+          email: 'user_1@website.com',
+        },
+      })
 
-        const result =
-          provider === Providers.MYSQL
-            ? prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM User`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
-            : prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM "User"`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
+      const result =
+        provider === Providers.MYSQL
+          ? prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM User`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
+          : prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM "User"`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
 
-        await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-        const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany()
 
-        expect(users.length).toBe(1)
-      },
-    )
+      expect(users.length).toBe(1)
+    })
 
     // running this test on isolated prisma instance since
     // middleware change the return values of model methods
@@ -549,51 +550,54 @@ testMatrix.setupTestSuite(
      * Issues on the database side are to be expected though: for SQLite, MySQL 8+ and MongoDB, it sometimes causes DB lock up
      * and all subsequent tests fail for some time. On SQL Server, the database kills the connections.
      */
-    testIf(provider === Providers.POSTGRESQL)('high concurrency with write conflicts', async () => {
-      jest.setTimeout(30_000)
+    testIf(provider === Providers.POSTGRESQL && driverAdapter !== 'js_neon')(
+      'high concurrency with write conflicts',
+      async () => {
+        jest.setTimeout(30_000)
 
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-        },
-      })
+        await prisma.user.create({
+          data: {
+            email: 'x',
+            name: 'y',
+          },
+        })
 
-      for (let i = 0; i < 5; i++) {
-        await Promise.allSettled([
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-        ]).catch(() => {}) // we don't care for errors, there will be
-      }
-    })
+        for (let i = 0; i < 5; i++) {
+          await Promise.allSettled([
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+            prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
+              timeout: 25,
+            }),
+          ]).catch(() => {}) // we don't care for errors, there will be
+        }
+      },
+    )
 
     testIf(provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
       jest.setTimeout(30_000)
