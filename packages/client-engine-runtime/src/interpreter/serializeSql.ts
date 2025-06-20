@@ -12,10 +12,10 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
     }
   })
 
-  return resultSet.rows
-    .map((row) => row.map((value, index) => mappers[index](value)))
-    .map((row) =>
-      row.reduce<Record<string, unknown>>((acc, value, index) => {
+  return resultSet.rows.map((row) =>
+    row
+      .map((value, index) => mappers[index](value))
+      .reduce<Record<string, unknown>>((acc, value, index) => {
         const splitByDot = resultSet.columnNames[index].split('.')
 
         let nested: {} = acc
@@ -32,7 +32,7 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
         }
         return acc
       }, {}),
-    )
+  )
 }
 
 export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown> {
