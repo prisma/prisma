@@ -13,119 +13,97 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
-    // TODO: Technically, only "high concurrency" test requires larger timeout
-    // but `jest.setTimeout` does not work inside of the test at the moment
-    //  https://github.com/facebook/jest/issues/11543
-    jest.setTimeout(60_000)
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
 
-    beforeEach(async () => {
-      await prisma.user.deleteMany()
-    })
+  // Regression test for https://github.com/prisma/prisma/issues/19137.
+  test('issue #19137', async () => {
+    expect.assertions(1)
 
-    // Regression test for https://github.com/prisma/prisma/issues/19137.
-    test('issue #19137', async () => {
-      expect.assertions(1)
-
-      await prisma
-        .$transaction(
-          // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-          /* note how there's no `async` here */ (tx) => {
-            console.log('1')
-            console.log(tx)
-            console.log('2')
-          },
-        )
-        .then(() => expect(true).toBe(true))
-    }, 30_000)
-
-    /**
-     * Minimal example of an interactive transaction
-     */
-    test('basic', async () => {
-      const result = await prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-
-        await prisma.user.create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        })
-
-        return prisma.user.findMany()
-      })
-
-      expect(result.length).toBe(2)
-    })
-
-    /**
-     * Transactions should fail after the default timeout
-     */
-    test('timeout default', async () => {
-      const result = prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-
-        await delay(6000)
-      })
-
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringContaining('Transaction API error: Transaction already closed'),
-        code: 'P2028',
-        clientVersion: '0.0.0',
-      })
-
-      expect(await prisma.user.findMany()).toHaveLength(0)
-    })
-
-    /**
-     * Transactions should fail if they time out on `timeout`
-     */
-    test('timeout override', async () => {
-      const result = prisma.$transaction(
-        async (prisma) => {
-          await prisma.user.create({
-            data: {
-              email: 'user_1@website.com',
-            },
-          })
-
-          await delay(600)
-        },
-        {
-          maxWait: 200,
-          timeout: 500,
+    await prisma
+      .$transaction(
+        // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
+        /* note how there's no `async` here */ () => {
+          console.log('1')
+          console.log('2')
         },
       )
+      .then(() => expect(true).toBe(true))
+  }, 30_000)
+})
 
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
-        ),
-      })
-
-      expect(await prisma.user.findMany()).toHaveLength(0)
-    })
-
-    /**
-     * Transactions should fail if they time out on `timeout` by PrismaClient
-     */
-    test('timeout override by PrismaClient', async () => {
-      const isolatedPrisma = newPrismaClient({
-        transactionOptions: {
-          maxWait: 200,
-          timeout: 500,
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Minimal example of an interactive transaction
+   */
+  test('basic', async () => {
+    const result = await prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
         },
       })
-      const result = isolatedPrisma.$transaction(async (prisma) => {
+
+      await prisma.user.create({
+        data: {
+          email: 'user_2@website.com',
+        },
+      })
+
+      return prisma.user.findMany()
+    })
+
+    expect(result.length).toBe(2)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Transactions should fail after the default timeout
+   */
+  test('timeout default', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      await delay(6000)
+    })
+
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
+    })
+
+    expect(await prisma.user.findMany()).toHaveLength(0)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Transactions should fail if they time out on `timeout`
+   */
+  test('timeout override', async () => {
+    const result = prisma.$transaction(
+      async (prisma) => {
         await prisma.user.create({
           data: {
             email: 'user_1@website.com',
@@ -133,196 +111,286 @@ testMatrix.setupTestSuite(
         })
 
         await delay(600)
-      })
+      },
+      {
+        maxWait: 200,
+        timeout: 500,
+      },
+    )
 
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
-        ),
-      })
-
-      expect(await prisma.user.findMany()).toHaveLength(0)
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringMatching(
+        /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+      ),
     })
 
-    /**
-     * Transactions should fail and rollback if thrown within
-     */
-    test('rollback throw', async () => {
-      const result = prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
+    expect(await prisma.user.findMany()).toHaveLength(0)
+  })
+})
 
-        throw new Error('you better rollback now')
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Transactions should fail if they time out on `timeout` by PrismaClient
+   */
+  test('timeout override by PrismaClient', async () => {
+    const isolatedPrisma = newPrismaClient({
+      transactionOptions: {
+        maxWait: 200,
+        timeout: 500,
+      },
+    })
+    const result = isolatedPrisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"you better rollback now"`)
-
-      const users = await prisma.user.findMany()
-
-      expect(users.length).toBe(0)
+      await delay(600)
     })
 
-    /**
-     * Transactions should fail and rollback if a value is thrown within
-     */
-    test('rollback throw value', async () => {
-      const result = prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringMatching(
+        /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+      ),
+    })
 
-        throw 'you better rollback now'
+    expect(await prisma.user.findMany()).toHaveLength(0)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Transactions should fail and rollback if thrown within
+   */
+  test('rollback throw', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
       })
 
-      await expect(result).rejects.toBe(`you better rollback now`)
-
-      const users = await prisma.user.findMany()
-
-      expect(users.length).toBe(0)
+      throw new Error('you better rollback now')
     })
 
-    /**
-     * A transaction might fail if it's called inside another transaction
-     * //! this works only for postgresql
-     */
-    testIf(provider === Providers.POSTGRESQL)('postgresql: nested create', async () => {
-      const result = prisma.$transaction(async (tx) => {
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"you better rollback now"`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Transactions should fail and rollback if a value is thrown within
+   */
+  test('rollback throw value', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      throw 'you better rollback now'
+    })
+
+    await expect(result).rejects.toBe(`you better rollback now`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * A transaction might fail if it's called inside another transaction
+   * //! this works only for postgresql
+   */
+  testIf(_meta.provider === Providers.POSTGRESQL)('postgresql: nested create', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await tx.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      await prisma.$transaction(async (tx) => {
         await tx.user.create({
           data: {
-            email: 'user_1@website.com',
+            email: 'user_2@website.com',
           },
         })
-
-        await prisma.$transaction(async (tx) => {
-          await tx.user.create({
-            data: {
-              email: 'user_2@website.com',
-            },
-          })
-        })
-
-        return tx.user.findMany()
       })
 
-      await expect(result).resolves.toHaveLength(2)
+      return tx.user.findMany()
     })
 
-    /**
-     * We don't allow certain methods to be called in a transaction
-     */
-    test('forbidden', async () => {
-      const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
-      expect.assertions(forbidden.length + 1)
+    await expect(result).resolves.toHaveLength(2)
+  })
+})
 
-      const result = prisma.$transaction((prisma) => {
-        for (const method of forbidden) {
-          expect(prisma).not.toHaveProperty(method)
-        }
-        return Promise.resolve()
-      })
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * We don't allow certain methods to be called in a transaction
+   */
+  test('forbidden', async () => {
+    const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+    expect.assertions(forbidden.length + 1)
 
-      await expect(result).resolves.toBe(undefined)
+    const result = prisma.$transaction((prisma) => {
+      for (const method of forbidden) {
+        expect(prisma).not.toHaveProperty(method)
+      }
+      return Promise.resolve()
     })
 
-    /**
-     * If one of the query fails, all queries should cancel
-     */
-    testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
-      const result = prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
-          },
-        })
+    await expect(result).resolves.toBe(undefined)
+  })
+})
 
-        await prisma.user.create({
-          data: {
-            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-            email: 'user_1@website.com',
-          },
-        })
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * If one of the query fails, all queries should cancel
+   */
+  testIf(_clientMeta.runtime !== 'edge')('rollback query', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
-      const users = await prisma.user.findMany()
-
-      expect(users.length).toBe(0)
+      await prisma.user.create({
+        data: {
+          id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
+      })
     })
 
-    test('already committed', async () => {
-      let transactionBoundPrisma
-      await prisma.$transaction((prisma) => {
-        transactionBoundPrisma = prisma
-        return Promise.resolve()
-      })
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-      const result = prisma.$transaction(async () => {
-        await transactionBoundPrisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-      })
+    const users = await prisma.user.findMany()
 
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringContaining('Transaction API error: Transaction already closed'),
-        code: 'P2028',
-        clientVersion: '0.0.0',
-      })
+    expect(users.length).toBe(0)
+  })
+})
 
-      if (clientMeta.runtime !== 'edge') {
-        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  test('already committed', async () => {
+    let transactionBoundPrisma
+    await prisma.$transaction((prisma) => {
+      transactionBoundPrisma = prisma
+      return Promise.resolve()
+    })
+
+    const result = prisma.$transaction(async () => {
+      await transactionBoundPrisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+    })
+
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
+    })
+
+    if (_clientMeta.runtime !== 'edge') {
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
           "
           Invalid \`transactionBoundPrisma.user.create()\` invocation in
           /client/tests/functional/interactive-transactions/tests.ts:0:0
 
             XX })
-            XX 
+            XX
             XX const result = prisma.$transaction(async () => {
           → XX   await transactionBoundPrisma.user.create(
           Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction."
         `)
-      }
+    }
 
-      const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany()
 
-      expect(users.length).toBe(0)
-    })
+    expect(users.length).toBe(0)
+  })
+})
 
-    /**
-     * Batching should work with using the interactive transaction logic
-     */
-    test('batching', async () => {
-      await prisma.$transaction([
-        prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        }),
-        prisma.user.create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        }),
-      ])
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * Batching should work with using the interactive transaction logic
+   */
+  test('batching', async () => {
+    await prisma.$transaction([
+      prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      }),
+      prisma.user.create({
+        data: {
+          email: 'user_2@website.com',
+        },
+      }),
+    ])
 
-      const users = await prisma.user.findMany()
+    const users = await prisma.user.findMany()
 
-      expect(users.length).toBe(2)
-    })
+    expect(users.length).toBe(2)
+  })
+})
 
-    /**
-     * A bad batch should rollback using the interactive transaction logic
-     * // TODO: skipped because output differs from binary to library
-     */
-    testIf(engineType !== ClientEngineType.Binary && clientMeta.runtime !== 'edge')('batching rollback', async () => {
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * A bad batch should rollback using the interactive transaction logic
+   * // TODO: skipped because output differs from binary to library
+   */
+  testIf(_meta.engineType !== ClientEngineType.Binary && _clientMeta.runtime !== 'edge')(
+    'batching rollback',
+    async () => {
       const result = prisma.$transaction([
         prisma.user.create({
           data: {
@@ -343,85 +411,319 @@ testMatrix.setupTestSuite(
       const users = await prisma.user.findMany()
 
       expect(users.length).toBe(0)
+    },
+  )
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  testIf(_clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.user.create({
+          data: {
+            id: copycat.uuid(1).replaceAll('-', '').slice(-24),
+            email: 'user_1@website.com',
+          },
+        }),
+        tx.user.create({
+          data: {
+            id: copycat.uuid(2).replaceAll('-', '').slice(-24),
+            email: 'user_2@website.com',
+          },
+        }),
+      ])
+
+      await tx.user.create({
+        data: {
+          id: copycat.uuid(3).replaceAll('-', '').slice(-24),
+          email: 'user_1@website.com',
+        },
+      })
     })
 
-    testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
-      const result = prisma.$transaction(async (tx) => {
-        await Promise.all([
-          tx.user.create({
-            data: {
-              id: copycat.uuid(1).replaceAll('-', '').slice(-24),
-              email: 'user_1@website.com',
-            },
-          }),
-          tx.user.create({
-            data: {
-              id: copycat.uuid(2).replaceAll('-', '').slice(-24),
-              email: 'user_2@website.com',
-            },
-          }),
-        ])
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-        await tx.user.create({
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
+  /**
+   * A bad batch should rollback using the interactive transaction logic
+   * // TODO: skipped because output differs from binary to library
+   */
+  testIf(
+    _meta.engineType !== ClientEngineType.Binary &&
+      _meta.provider !== Providers.MONGODB &&
+      _clientMeta.runtime !== 'edge',
+  )('batching raw rollback', async () => {
+    await prisma.user.create({
+      data: {
+        id: '1',
+        email: 'user_1@website.com',
+      },
+    })
+
+    const result =
+      _meta.provider === Providers.MYSQL
+        ? prisma.$transaction([
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$queryRaw`DELETE FROM User`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          ])
+        : prisma.$transaction([
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$queryRaw`DELETE FROM "User"`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            // @ts-test-if: provider !== Providers.MONGODB
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          ])
+
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(1)
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  /**
+   * Makes sure that the engine itself does not deadlock (regression test for https://github.com/prisma/prisma/issues/11750).
+   * Issues on the database side are to be expected though: for SQLite, MySQL 8+ and MongoDB, it sometimes causes DB lock up
+   * and all subsequent tests fail for some time. On SQL Server, the database kills the connections.
+   */
+  testIf(_meta.provider === Providers.POSTGRESQL)('high concurrency with write conflicts', async () => {
+    jest.setTimeout(30_000)
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+      },
+    })
+
+    for (let i = 0; i < 5; i++) {
+      await Promise.allSettled([
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
+          timeout: 25,
+        }),
+      ]).catch(() => {}) // we don't care for errors, there will be
+    }
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  testIf(_meta.provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
+    jest.setTimeout(30_000)
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+      },
+    })
+
+    // None of these transactions should fail.
+    for (let i = 0; i < 5; i++) {
+      await Promise.allSettled([
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+      ])
+    }
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  testIf(_meta.provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
+    jest.setTimeout(30_000)
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+      },
+    })
+
+    // None of these transactions should fail.
+    for (let i = 0; i < 5; i++) {
+      await Promise.allSettled([
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+        prisma.$transaction((tx) => tx.user.findMany()),
+      ])
+    }
+  })
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  /**
+   * Makes sure that the engine can process when the transaction has locks inside
+   * Engine PR - https://github.com/prisma/prisma-engines/pull/2811
+   * Issue - https://github.com/prisma/prisma/issues/11750
+   */
+  testIf(_meta.provider === Providers.POSTGRESQL && _meta.driverAdapter !== 'js_neon')(
+    'high concurrency with SET FOR UPDATE',
+    async () => {
+      jest.setTimeout(60_000)
+      const CONCURRENCY = 12
+
+      await prisma.user.create({
+        data: {
+          email: 'x',
+          name: 'y',
+          val: 1,
+        },
+      })
+
+      const promises = [...Array(CONCURRENCY)].map(() =>
+        prisma.$transaction(
+          async (transactionPrisma) => {
+            // @ts-test-if: provider !== Providers.MONGODB
+            await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
+
+            const user = await transactionPrisma.user.findUniqueOrThrow({
+              where: {
+                email: 'x',
+              },
+            })
+
+            // Add a delay here to force the transaction to be open for longer
+            // this will increase the chance of deadlock in the itx transactions
+            // if deadlock is a possibility.
+            await delay(100)
+
+            const updatedUser = await transactionPrisma.user.update({
+              where: {
+                email: 'x',
+              },
+              data: {
+                val: user.val! + 1,
+              },
+            })
+
+            return updatedUser
+          },
+          { timeout: 60_000, maxWait: 60_000 },
+        ),
+      )
+
+      await Promise.allSettled(promises)
+
+      const finalUser = await prisma.user.findUniqueOrThrow({
+        where: {
+          email: 'x',
+        },
+      })
+
+      expect(finalUser.val).toEqual(CONCURRENCY + 1)
+    },
+  )
+})
+
+testMatrix.setupTestSuite((_meta, _suiteMeta, _clientMeta) => {
+  // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
+  // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
+  // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
+  // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
+  testIf(_meta.provider !== Providers.SQLITE)('middleware exclude from transaction', async () => {
+    const isolatedPrisma = newPrismaClient()
+
+    isolatedPrisma.$use((params, next) => {
+      return next({ ...params, runInTransaction: false })
+    })
+
+    await isolatedPrisma
+      .$transaction(async (prisma) => {
+        await prisma.user.create({
           data: {
-            id: copycat.uuid(3).replaceAll('-', '').slice(-24),
+            email: 'user_1@website.com',
+          },
+        })
+
+        await prisma.user.create({
+          data: {
             email: 'user_1@website.com',
           },
         })
       })
+      .catch((err) => {
+        if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
+          throw err
+        }
+      })
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    const users = await isolatedPrisma.user.findMany()
+    expect(users).toHaveLength(1)
+  })
+})
 
-      const users = await prisma.user.findMany()
-
-      expect(users.length).toBe(0)
-    })
-
-    /**
-     * A bad batch should rollback using the interactive transaction logic
-     * // TODO: skipped because output differs from binary to library
-     */
-    testIf(engineType !== ClientEngineType.Binary && provider !== Providers.MONGODB && clientMeta.runtime !== 'edge')(
-      'batching raw rollback',
-      async () => {
-        await prisma.user.create({
-          data: {
-            id: '1',
-            email: 'user_1@website.com',
-          },
-        })
-
-        const result =
-          provider === Providers.MYSQL
-            ? prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM User`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
-            : prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM "User"`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
-
-        await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
-        const users = await prisma.user.findMany()
-
-        expect(users.length).toBe(1)
-      },
-    )
-
+testMatrix.setupTestSuite(
+  (meta, _suiteMeta, _clientMeta) => {
+    // TODO: Technically, only "high concurrency" test requires larger timeout
+    // but `jest.setTimeout` does not work inside of the test at the moment
+    //  https://github.com/facebook/jest/issues/11543
+    jest.setTimeout(60_000)
     // running this test on isolated prisma instance since
     // middleware change the return values of model methods
     // and this would affect subsequent tests if run on a main instance
@@ -481,41 +783,6 @@ testMatrix.setupTestSuite(
 
         expect(users.length).toBe(2)
       })
-
-      // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
-      // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
-      // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
-      // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
-      testIf(provider !== Providers.SQLITE)('middleware exclude from transaction', async () => {
-        const isolatedPrisma = newPrismaClient()
-
-        isolatedPrisma.$use((params, next) => {
-          return next({ ...params, runInTransaction: false })
-        })
-
-        await isolatedPrisma
-          .$transaction(async (prisma) => {
-            await prisma.user.create({
-              data: {
-                email: 'user_1@website.com',
-              },
-            })
-
-            await prisma.user.create({
-              data: {
-                email: 'user_1@website.com',
-              },
-            })
-          })
-          .catch((err) => {
-            if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
-              throw err
-            }
-          })
-
-        const users = await isolatedPrisma.user.findMany()
-        expect(users).toHaveLength(1)
-      })
     })
 
     /**
@@ -542,84 +809,6 @@ testMatrix.setupTestSuite(
       const users = await prisma.user.findMany()
 
       expect(users.length).toBe(2)
-    })
-
-    /**
-     * Makes sure that the engine itself does not deadlock (regression test for https://github.com/prisma/prisma/issues/11750).
-     * Issues on the database side are to be expected though: for SQLite, MySQL 8+ and MongoDB, it sometimes causes DB lock up
-     * and all subsequent tests fail for some time. On SQL Server, the database kills the connections.
-     */
-    testIf(provider === Providers.POSTGRESQL)('high concurrency with write conflicts', async () => {
-      jest.setTimeout(30_000)
-
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-        },
-      })
-
-      for (let i = 0; i < 5; i++) {
-        await Promise.allSettled([
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-          prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), {
-            timeout: 25,
-          }),
-        ]).catch(() => {}) // we don't care for errors, there will be
-      }
-    })
-
-    testIf(provider !== Providers.SQLITE)('high concurrency with no conflicts', async () => {
-      jest.setTimeout(30_000)
-
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-        },
-      })
-
-      // None of these transactions should fail.
-      for (let i = 0; i < 5; i++) {
-        await Promise.allSettled([
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-          prisma.$transaction((tx) => tx.user.findMany()),
-        ])
-      }
     })
 
     /**
@@ -718,67 +907,7 @@ testMatrix.setupTestSuite(
       expect(users.length).toBe(0)
     })
 
-    /**
-     * Makes sure that the engine can process when the transaction has locks inside
-     * Engine PR - https://github.com/prisma/prisma-engines/pull/2811
-     * Issue - https://github.com/prisma/prisma/issues/11750
-     */
-    testIf(provider === Providers.POSTGRESQL)('high concurrency with SET FOR UPDATE', async () => {
-      jest.setTimeout(60_000)
-      const CONCURRENCY = 12
-
-      await prisma.user.create({
-        data: {
-          email: 'x',
-          name: 'y',
-          val: 1,
-        },
-      })
-
-      const promises = [...Array(CONCURRENCY)].map(() =>
-        prisma.$transaction(
-          async (transactionPrisma) => {
-            // @ts-test-if: provider !== Providers.MONGODB
-            await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
-
-            const user = await transactionPrisma.user.findUniqueOrThrow({
-              where: {
-                email: 'x',
-              },
-            })
-
-            // Add a delay here to force the transaction to be open for longer
-            // this will increase the chance of deadlock in the itx transactions
-            // if deadlock is a possibility.
-            await delay(100)
-
-            const updatedUser = await transactionPrisma.user.update({
-              where: {
-                email: 'x',
-              },
-              data: {
-                val: user.val! + 1,
-              },
-            })
-
-            return updatedUser
-          },
-          { timeout: 60_000, maxWait: 60_000 },
-        ),
-      )
-
-      await Promise.allSettled(promises)
-
-      const finalUser = await prisma.user.findUniqueOrThrow({
-        where: {
-          email: 'x',
-        },
-      })
-
-      expect(finalUser.val).toEqual(CONCURRENCY + 1)
-    })
-
-    describeIf(provider !== Providers.MONGODB)('isolation levels', () => {
+    describeIf(meta.provider !== Providers.MONGODB)('isolation levels', () => {
       function testIsolationLevel(title: string, supported: boolean, fn: () => Promise<void>) {
         test(title, async () => {
           if (supported) {
@@ -789,7 +918,7 @@ testMatrix.setupTestSuite(
         })
       }
 
-      testIsolationLevel('read committed', provider !== Providers.SQLITE, async () => {
+      testIsolationLevel('read committed', meta.provider !== Providers.SQLITE, async () => {
         await prisma.$transaction(
           async (tx) => {
             await tx.user.create({ data: { email: 'user@example.com' } })
@@ -804,7 +933,7 @@ testMatrix.setupTestSuite(
 
       testIsolationLevel(
         'read uncommitted',
-        provider !== Providers.SQLITE && provider !== Providers.COCKROACHDB,
+        meta.provider !== Providers.SQLITE && meta.provider !== Providers.COCKROACHDB,
         async () => {
           await prisma.$transaction(
             async (tx) => {
@@ -821,7 +950,7 @@ testMatrix.setupTestSuite(
 
       testIsolationLevel(
         'repeatable read',
-        provider !== Providers.SQLITE && provider !== Providers.COCKROACHDB,
+        meta.provider !== Providers.SQLITE && meta.provider !== Providers.COCKROACHDB,
         async () => {
           await prisma.$transaction(
             async (tx) => {
@@ -890,7 +1019,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    testIf(provider === Providers.MONGODB)('attempt to set isolation level on mongo', async () => {
+    testIf(meta.provider === Providers.MONGODB)('attempt to set isolation level on mongo', async () => {
       // @ts-test-if: provider === Providers.MONGODB
       const result = prisma.$transaction(
         async (tx) => {
