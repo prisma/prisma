@@ -1,7 +1,9 @@
 import cuid1 from '@bugsnag/cuid'
 import { createId as cuid2 } from '@paralleldrive/cuid2'
 import { Provider } from '@prisma/driver-adapter-utils'
+import ksuid from 'ksuid'
 import { nanoid } from 'nanoid'
+import { typeid } from 'typeid-js'
 import { ulid } from 'ulid'
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid'
 
@@ -13,6 +15,8 @@ export class GeneratorRegistry {
     this.register('cuid', new CuidGenerator())
     this.register('ulid', new UlidGenerator())
     this.register('nanoid', new NanoIdGenerator())
+    this.register('ksuid', new KsuidGenerator())
+    this.register('typeid', new TypeidGenerator())
     this.register('product', new ProductGenerator())
   }
 
@@ -97,6 +101,24 @@ class NanoIdGenerator implements ValueGenerator {
       return nanoid(arg)
     } else if (arg === undefined) {
       return nanoid()
+    } else {
+      throw new Error('Invalid Nanoid generator arguments')
+    }
+  }
+}
+
+class KsuidGenerator implements ValueGenerator {
+  generate(): string {
+    return ksuid.randomSync().string
+  }
+}
+
+class TypeidGenerator implements ValueGenerator {
+  generate(arg: unknown): string {
+    if (typeof arg === 'string') {
+      return typeid(arg).toString()
+    } else if (arg === undefined) {
+      return typeid('id').toString()
     } else {
       throw new Error('Invalid Nanoid generator arguments')
     }
