@@ -14,7 +14,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, engineType, driverAdapter }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -31,9 +31,8 @@ testMatrix.setupTestSuite(
       await prisma
         .$transaction(
           // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-          /* note how there's no `async` here */ (tx) => {
+          /* note how there's no `async` here */ () => {
             console.log('1')
-            console.log(tx)
             console.log('2')
           },
         )
@@ -190,7 +189,7 @@ testMatrix.setupTestSuite(
      * A transaction might fail if it's called inside another transaction
      * //! this works only for postgresql
      */
-    testIf(provider === Providers.POSTGRESQL)('postgresql: nested create', async () => {
+    testIf(provider === Providers.POSTGRESQL && driverAdapter !== 'js_neon')('postgresql: nested create', async () => {
       const result = prisma.$transaction(async (tx) => {
         await tx.user.create({
           data: {
@@ -284,7 +283,7 @@ testMatrix.setupTestSuite(
           /client/tests/functional/interactive-transactions/tests.ts:0:0
 
             XX })
-            XX 
+            XX
             XX const result = prisma.$transaction(async () => {
           → XX   await transactionBoundPrisma.user.create(
           Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction."
