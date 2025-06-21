@@ -90,23 +90,21 @@ export class TransactionManager {
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait!)
+    const startTimer = setTimeout(() => (transaction.status = 'timed_out'), validatedOptions.maxWait!)
 
-    const startedTransaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+    transaction.transaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+
+    clearTimeout(startTimer)
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        transaction.transaction = startedTransaction
-        clearTimeout(transaction.timer)
-        transaction.timer = undefined
         transaction.status = 'running'
-
         // Start timeout to wait for transaction to be finished.
         transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
-
         return { id: transaction.id }
       case 'timed_out':
+        await this.closeTransaction(transaction, 'timed_out')
         throw new TransactionStartTimeoutError()
       case 'running':
       case 'committed':
