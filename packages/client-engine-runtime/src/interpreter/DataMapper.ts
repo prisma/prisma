@@ -185,6 +185,12 @@ function mapValue(
           throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
         }
       }
+      if (value instanceof Uint8Array) {
+        for (const byte of value) {
+          if (byte !== 0) return true
+        }
+        return false
+      }
       throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
