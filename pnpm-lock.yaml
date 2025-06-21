@@ -1112,6 +1112,9 @@ importers:
       jiti:
         specifier: 2.4.2
         version: 2.4.2
+      kleur:
+        specifier: 4.1.5
+        version: 4.1.5
     devDependencies:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*

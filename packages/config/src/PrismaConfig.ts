@@ -37,39 +37,45 @@ const errorCapturingSqlMigrationAwareDriverAdapterFactoryShape = <Env extends En
   )
 
 export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
+  /**
+   * Instantiates the Prisma driver adapter to use for Prisma Studio.
+   */
   adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
 const createPrismaStudioConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Studio.
-     */
     adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
   })
 
 export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
+  /**
+   * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
+   */
+  adapter?: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
+  /**
+   * Path to the directory where migrations are stored.
+   * If not provided, the migrations directory will be placed next to the schema file that defines the datasource block.
+   * See https://www.prisma.io/docs/orm/prisma-schema/overview/location for more details.
+   */
+  migrationsDirectory?: string
 }
 
 const createPrismaMigrateConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
-     */
-    adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
+    adapter: Shape.optional(sqlMigrationAwareDriverAdapterFactoryShape<Env>()),
+    migrationsDirectory: Shape.optional(Shape.String),
   })
 
 export type PrismaMigrateConfigInternalShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
+  adapter?: (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
+  migrationsDirectory?: string
 }
 
 const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
-     */
-    adapter: errorCapturingSqlMigrationAwareDriverAdapterFactoryShape<Env>(),
+    adapter: Shape.optional(errorCapturingSqlMigrationAwareDriverAdapterFactoryShape<Env>()),
+    migrationsDirectory: Shape.optional(Shape.String),
   })
 
 // The exported types are re-declared manually instead of using the Shape.Type
@@ -110,6 +116,8 @@ const createPrismaConfigShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
+    viewsDirectory: Shape.optional(Shape.String),
+    typedSqlDirectory: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigShape<Env>()),
   })
@@ -127,6 +135,14 @@ export type PrismaConfig<Env extends EnvVars = never> = {
    * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
   schema?: string
+  /**
+   * The path to the directory where view definition files are stored.
+   */
+  viewsDirectory?: string
+  /**
+   * The path to the directory where typed SQL definition files are stored.
+   */
+  typedSqlDirectory?: string
   /**
    * The configuration for Prisma Studio.
    */
@@ -163,6 +179,8 @@ const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
   Shape.Struct({
     earlyAccess: Shape.Literal(true),
     schema: Shape.optional(Shape.String),
+    viewsDirectory: Shape.optional(Shape.String),
+    typedSqlDirectory: Shape.optional(Shape.String),
     studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
     migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
     loadedFromFile: Shape.NullOr(Shape.String),
@@ -177,6 +195,14 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
    * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
    */
   schema?: string
+  /**
+   * The path to the directory where view definition files are stored.
+   */
+  viewsDirectory?: string
+  /**
+   * The path to the directory where typed SQL definition files are stored.
+   */
+  typedSqlDirectory?: string
   /**
    * The configuration for Prisma Studio.
    */

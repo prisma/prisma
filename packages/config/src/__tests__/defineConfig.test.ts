@@ -88,11 +88,11 @@ describe('defineConfig', () => {
         adapter: expect.any(Function),
       })
 
-      if (!config?.migrate) {
+      if (!config?.migrate?.adapter) {
         throw new Error('Expected config.migrate to be defined')
       }
 
-      const { adapter: adapterFactory } = config.migrate
+      const adapterFactory = config.migrate.adapter
       expect(adapterFactory).toBeDefined()
 
       const adapter = await adapterFactory(process.env)
