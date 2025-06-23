@@ -156,7 +156,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
 
     // Decode DateTime values saved as numeric timestamps which is the
     // format used by the native quaint sqlite connector.
-    if (['number', 'bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
+    if (['bigint'].includes(typeof value) && columnTypes[i] === ColumnTypeEnum.DateTime) {
       result[i] = new Date(Number(value)).toISOString()
       continue
     }
