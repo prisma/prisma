@@ -248,6 +248,28 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
 
+  packages/adapter-mariadb:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+    devDependencies:
+      '@swc/core':
+        specifier: 1.11.5
+        version: 1.11.5
+      '@swc/jest':
+        specifier: 0.2.37
+        version: 0.2.37(@swc/core@1.11.5)
+      jest:
+        specifier: 29.7.0
+        version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
+      jest-junit:
+        specifier: 16.0.0
+        version: 16.0.0
+      mariadb:
+        specifier: 3.4.2
+        version: 3.4.2
+
   packages/adapter-mssql:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -374,6 +396,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mariadb':
+        specifier: workspace:*
+        version: link:../adapter-mariadb
       '@prisma/adapter-mssql':
         specifier: workspace:*
         version: link:../adapter-mssql
@@ -660,6 +685,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mariadb':
+        specifier: workspace:*
+        version: link:../adapter-mariadb
       '@prisma/adapter-mssql':
         specifier: workspace:*
         version: link:../adapter-mssql
@@ -6162,6 +6190,10 @@ packages:
 
   mariadb@3.4.0:
     resolution: {integrity: sha512-hdRPcAzs+MTxK5VG1thBW18gGTlw6yWBe9YnLB65GLo7q0fO5DWsgomIevV/pXSaWRmD3qi6ka4oSFRTExRiEQ==}
+    engines: {node: '>= 14'}
+
+  mariadb@3.4.2:
+    resolution: {integrity: sha512-B17vhYRHDMQ1XXvhSWsvKJbpw3Q8B6py93ThBEXZXSgxIbqnKqoHK1RzoPLbIxoEzWN3jA86ZaMMc3IG6L5wsw==}
     engines: {node: '>= 14'}
 
   math-intrinsics@1.1.0:
@@ -13183,6 +13215,14 @@ snapshots:
   map-obj@4.3.0: {}
 
   mariadb@3.4.0:
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/node': 22.13.9
+      denque: 2.1.0
+      iconv-lite: 0.6.3
+      lru-cache: 10.4.3
+
+  mariadb@3.4.2:
     dependencies:
       '@types/geojson': 7946.0.16
       '@types/node': 22.13.9
