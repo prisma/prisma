@@ -5,6 +5,7 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
+import { setImmediate } from 'timers/promises'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -456,7 +457,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     const stopFn = async () => {
-      await new Promise((r) => setTimeout(r, 5))
+      await setImmediate() // defer to next tick
 
       debug('library stopping')
 
@@ -465,8 +466,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
-      this.engine?.free?.()
-      this.engine = undefined
+      // Only the WASM engine has a free method that we need to call to ensure the engine is freed upon disconnect.
+      // Otherwise it causes memory leaks as the WASM engine instance still references this LibraryEngine.
+      if (this.engine?.free) {
+        this.engine.free()
+        this.engine = undefined
+      }
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
@@ -551,7 +556,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     this.lastQuery = JSON.stringify(request)
 
-    this.executingQueryPromise = this.engine!.query(
+    this.executingQueryPromise = this.engine?.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
