@@ -77,13 +77,13 @@ function mapObject(
       }
 
       case 'Object': {
-        if (!node.flattened && !Object.hasOwn(data, name)) {
+        if (node.serializedName !== null && !Object.hasOwn(data, node.serializedName)) {
           throw new DataMapperError(
             `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
           )
         }
 
-        const target = node.flattened ? data : data[name]
+        const target = node.serializedName !== null ? data[node.serializedName] : data
         result[name] = mapArrayOrObject(target, node.fields, enums)
         break
       }
