@@ -139,6 +139,7 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
+      free: engine.free?.bind(engine),
     }
   }
 
@@ -464,6 +465,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
+      this.engine?.free?.()
+      this.engine = undefined
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
