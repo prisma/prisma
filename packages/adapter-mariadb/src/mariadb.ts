@@ -175,25 +175,27 @@ async function getCapabilities(pool: mariadb.Pool): Promise<{ supportsRelationJo
     const version = rows[0][0] as `${number}.${number}.${number}${'-MariaDB' | ''}`
     debug(`${tag} MySQL version: %s from %o`, version, rows)
 
-    // No relation-joins support for mysql < 8.0.13 or mariadb.
-    const isMariaDB = version.toLowerCase().includes('mariadb')
-    const supportsRelationJoins =
-      !isMariaDB &&
-      (() => {
-        const [major, minor, patch] = version.split('.').map((x) => parseInt(x, 10))
-        return major > 8 || (major === 8 && minor >= 0 && patch >= 13)
-      })()
-    debug(`${tag} Supports relation joins: %s`, supportsRelationJoins)
+    const capabilities = inferCapabilities(version)
+    debug(`${tag} Inferred capabilities: %O`, capabilities)
 
-    return {
-      supportsRelationJoins: true,
-    }
+    return capabilities
   } catch (e) {
     debug(`${tag} Error while checking capabilities: %O`, e)
-    return {
-      supportsRelationJoins: false,
-    }
+    return { supportsRelationJoins: false }
   }
+}
+
+export function inferCapabilities(version: string): Capabilities {
+  // No relation-joins support for mysql < 8.0.13 or mariadb.
+  const isMariaDB = version.toLowerCase().includes('mariadb')
+  const supportsRelationJoins =
+    !isMariaDB &&
+    (() => {
+      const [major, minor, patch] = version.split('.').map((x) => parseInt(x, 10))
+      return major > 8 || (major === 8 && minor >= 0 && patch >= 13)
+    })()
+
+  return { supportsRelationJoins }
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
