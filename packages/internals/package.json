@@ -87,8 +87,8 @@
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "6.11.0-4.e1b354ed349f552d0798ff7ee5ee6d2e308b318b",
-    "@prisma/schema-engine-wasm": "6.11.0-4.e1b354ed349f552d0798ff7ee5ee6d2e308b318b",
+    "@prisma/prisma-schema-wasm": "6.11.0-6.0d5b126bd9dab5935a80ad7e2b6cc42ed02b10f1",
+    "@prisma/schema-engine-wasm": "6.11.0-6.0d5b126bd9dab5935a80ad7e2b6cc42ed02b10f1",
     "@prisma/schema-files-loader": "workspace:*",
     "arg": "5.0.2",
     "prompts": "2.4.2"
