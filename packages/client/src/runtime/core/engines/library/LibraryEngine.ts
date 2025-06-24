@@ -472,8 +472,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // Otherwise it causes memory leaks as the WASM engine instance still references this LibraryEngine.
       if (this.engine?.free) {
         this.engine.free()
-        this.engine = undefined
       }
+      this.engine = undefined
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
