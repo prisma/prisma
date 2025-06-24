@@ -396,6 +396,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async start(): Promise<void> {
+    if (!this.libraryInstantiationPromise) {
+      this.libraryInstantiationPromise = this.instantiateLibrary()
+    }
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
 
@@ -474,6 +477,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
+      this.libraryInstantiationPromise = undefined
 
       await (await this.adapterPromise)?.dispose()
       this.adapterPromise = undefined
