@@ -5,7 +5,6 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
-import { setImmediate } from 'timers/promises'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -457,7 +456,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     const stopFn = async () => {
-      await setImmediate() // defer to next tick
+      await new Promise((r) => setImmediate(r)) // defer to next tick
 
       debug('library stopping')
 
