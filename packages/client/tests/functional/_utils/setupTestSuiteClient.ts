@@ -330,7 +330,7 @@ export function setupTestSuiteClientDriverAdapter({
         database,
         host,
         port: Number(port),
-        connectionLimit: 1, // to avoid running out of connections in tests
+        connectionLimit: 4, // avoid running out of connections, some tests create multiple clients
       }),
       __internal,
     }
