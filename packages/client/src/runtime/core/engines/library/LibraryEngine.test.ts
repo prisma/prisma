@@ -1,4 +1,5 @@
 import { QueryEngineInstance } from '@prisma/client-common'
+import { SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -44,11 +45,28 @@ function setupMockLibraryEngine() {
     },
   }
 
+  const adapterMock = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-libsql',
+    queryRaw: jest.fn().mockResolvedValue(undefined),
+    executeRaw: jest.fn().mockResolvedValue(0),
+    executeScript: jest.fn().mockResolvedValue(undefined),
+    startTransaction: jest.fn().mockResolvedValue(undefined),
+    dispose: jest.fn().mockResolvedValue(undefined),
+  } satisfies SqlDriverAdapter
+
+  const adapterFactoryMock = {
+    provider: 'sqlite',
+    adapterName: '@prisma/adapter-libsql',
+    connect: () => Promise.resolve(adapterMock),
+  } satisfies SqlDriverAdapterFactory
+
   const engine = new LibraryEngine(
     {
       dirname: __dirname,
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
+      adapter: adapterFactoryMock,
       env: {},
       cwd: process.cwd(),
       transactionOptions: {
@@ -64,7 +82,7 @@ function setupMockLibraryEngine() {
     },
     loader,
   )
-  return { engine, rustEngineMock }
+  return { engine, rustEngineMock, adapterMock }
 }
 
 function panicError() {
@@ -227,4 +245,15 @@ test('responds to a non panic error without github link', async () => {
   await expect(engine.request(dummyQuery, { isWrite: false })).rejects.toMatchObject({
     message: expect.not.stringContaining('https://github.com/'),
   })
+})
+
+test('stop frees resources', async () => {
+  const { engine, rustEngineMock, adapterMock } = setupMockLibraryEngine()
+
+  await engine.request(dummyQuery, { isWrite: false })
+  await engine.stop()
+
+  expect(adapterMock.dispose).toHaveBeenCalled()
+  expect(rustEngineMock.disconnect).toHaveBeenCalled()
+  expect(rustEngineMock.free).toHaveBeenCalled()
 })
