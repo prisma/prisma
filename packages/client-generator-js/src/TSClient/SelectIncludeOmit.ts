@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
@@ -76,7 +76,7 @@ export function buildSelectType({
 }
 
 function modelResultExtensionsType(modelName: string) {
-  return extArgsParam.toArgument().subKey('result').subKey(lowerCase(modelName))
+  return extArgsParam.toArgument().subKey('result').subKey(uncapitalize(modelName))
 }
 
 export function buildScalarSelectType({ modelName, fields, context }: BuildSelectTypeParams) {

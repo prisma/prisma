@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import levenshtein from 'js-levenshtein'
 
 import {
@@ -155,7 +155,7 @@ function applyEmptySelectionError(
     }
   }
 
-  if (globalOmit?.[lowerCase(error.outputType.name)]) {
+  if (globalOmit?.[uncapitalize(error.outputType.name)]) {
     applyEmptySelectionErrorGlobalOmit(error, argsTree)
     return
   }

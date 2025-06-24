@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import { Writer } from '@prisma/ts-builders'
 
 import { ErrorFormat } from '../../getPrismaClient'
@@ -100,7 +100,7 @@ function buildInputValue(value: unknown) {
   }
 
   if (isFieldRef(value)) {
-    return new ScalarValue(`prisma.${lowerCase(value.modelName)}.$fields.${value.name}`)
+    return new ScalarValue(`prisma.${uncapitalize(value.modelName)}.$fields.${value.name}`)
   }
 
   if (Array.isArray(value)) {
