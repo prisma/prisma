@@ -419,6 +419,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.libraryStarted = true
 
+        if (!this.adapterPromise) {
+          this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+        }
+        await this.adapterPromise
+
         debug('library started')
       } catch (err) {
         const error = this.parseInitError(err.message as string)
@@ -451,6 +456,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     if (!this.libraryStarted) {
+      await (await this.adapterPromise)?.dispose()
+      this.adapterPromise = undefined
       return
     }
 
