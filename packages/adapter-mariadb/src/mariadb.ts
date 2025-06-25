@@ -172,7 +172,7 @@ async function getCapabilities(pool: mariadb.Pool): Promise<{ supportsRelationJo
       rowsAsArray: true,
     })
 
-    const version = rows[0][0] as `${number}.${number}.${number}${'-MariaDB' | ''}`
+    const version = rows[0][0]
     debug(`${tag} MySQL version: %s from %o`, version, rows)
 
     const capabilities = inferCapabilities(version)
@@ -185,15 +185,17 @@ async function getCapabilities(pool: mariadb.Pool): Promise<{ supportsRelationJo
   }
 }
 
-export function inferCapabilities(version: string): Capabilities {
+export function inferCapabilities(version: unknown): Capabilities {
+  if (typeof version !== 'string') {
+    return { supportsRelationJoins: false }
+  }
+
+  const [versionStr, suffix] = version.split('-')
+  const [major, minor, patch] = versionStr.split('.').map((n) => parseInt(n, 10))
+
   // No relation-joins support for mysql < 8.0.13 or mariadb.
-  const isMariaDB = version.toLowerCase().includes('mariadb')
-  const supportsRelationJoins =
-    !isMariaDB &&
-    (() => {
-      const [major, minor, patch] = version.split('.').map((x) => parseInt(x, 10))
-      return major > 8 || (major === 8 && minor >= 0 && patch >= 13)
-    })()
+  const isMariaDB = suffix?.toLowerCase()?.includes('mariadb') ?? false
+  const supportsRelationJoins = !isMariaDB && (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
 
   return { supportsRelationJoins }
 }
