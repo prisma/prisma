@@ -100,7 +100,7 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
 
 export function mapArg(arg: unknown): unknown {
   if (arg instanceof Uint8Array) {
-    return Buffer.from(arg)
+    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
   }
   return arg
 }
