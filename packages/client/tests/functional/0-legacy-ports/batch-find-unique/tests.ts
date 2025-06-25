@@ -11,7 +11,7 @@ import type { PrismaClient } from './generated/prisma/client'
 declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
+testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
   beforeAll(async () => {
     prisma = newPrismaClient({
       log: [
@@ -100,9 +100,17 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
         break
 
       case Providers.MYSQL:
-        if (cliMeta.previewFeatures.includes('relationJoins')) {
+        if (cliMeta.previewFeatures.includes('relationJoins') && driverAdapter === 'js_mariadb') {
+          expect(executedBatchQuery).toMatchInlineSnapshot(
+            `"SELECT \`t0\`.\`id\`, \`t0\`.\`email\`, \`t0\`.\`age\`, \`t0\`.\`name\` FROM \`User\` AS \`t0\` WHERE \`t0\`.\`email\` IN (?,?,?,?)"`,
+          )
+        } else if (cliMeta.previewFeatures.includes('relationJoins')) {
           expect(executedBatchQuery).toMatchInlineSnapshot(
             `"SELECT \`t0\`.\`id\`, \`t0\`.\`email\`, \`t0\`.\`age\`, \`t0\`.\`name\` FROM \`\`.\`User\` AS \`t0\` WHERE \`t0\`.\`email\` IN (?,?,?,?)"`,
+          )
+        } else if (driverAdapter === 'js_mariadb') {
+          expect(executedBatchQuery).toMatchInlineSnapshot(
+            `"SELECT \`User\`.\`id\`, \`User\`.\`email\`, \`User\`.\`age\`, \`User\`.\`name\` FROM \`User\` WHERE \`User\`.\`email\` IN (?,?,?,?)"`,
           )
         } else {
           expect(executedBatchQuery).toMatchInlineSnapshot(
