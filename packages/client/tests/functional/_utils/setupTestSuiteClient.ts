@@ -320,8 +320,9 @@ export function setupTestSuiteClientDriverAdapter({
   if (driverAdapter === 'js_mariadb') {
     const { PrismaMariaDb } = require('@prisma/adapter-mariadb') as typeof import('@prisma/adapter-mariadb')
 
-    const [, user, password, host, port, database] =
-      datasourceInfo.databaseUrl.match(/^mysql:\/\/([^:]+):([^@]+)@([^:;]+):(\d+)\/(.+)$/) || []
+    const url = new URL(datasourceInfo.databaseUrl)
+    const { username: user, password, hostname: host, port } = url
+    const database = url.pathname && url.pathname.slice(1)
 
     return {
       adapter: new PrismaMariaDb({
