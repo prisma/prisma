@@ -135,7 +135,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres postgres_isolated mysql mysql_isolated mssql mysql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -194,7 +194,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongo cockroachdb vitess-8
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mysql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -244,7 +244,8 @@ jobs:
       fail-fast: false
       matrix:
         clientRuntime: ['node', 'wasm-engine-edge']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1', 'js_better_sqlite3', 'js_mssql']
+        flavor:
+          ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1', 'js_better_sqlite3', 'js_mssql', 'js_mysql2']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
         previewFeatures: ['', ',relationJoins']
@@ -257,7 +258,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql mysql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -355,7 +356,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: ['js_pg', 'js_libsql', 'js_d1', 'js_better_sqlite3', 'js_planetscale', 'js_mssql', 'js_neon']
+        flavor:
+          ['js_pg', 'js_libsql', 'js_d1', 'js_better_sqlite3', 'js_planetscale', 'js_mssql', 'js_neon', 'js_mysql2']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
         previewFeatures: ['driverAdapters,queryCompiler']
@@ -368,7 +370,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql neon_wsproxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql mysql neon_wsproxy
 
       - name: Install & build
         uses: ./.github/actions/setup

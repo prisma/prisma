@@ -15,6 +15,7 @@ export enum AdapterProviders {
   JS_D1 = 'js_d1',
   JS_BETTER_SQLITE3 = 'js_better_sqlite3',
   JS_MSSQL = 'js_mssql',
+  JS_MYSQL2 = 'js_mysql2',
 
   // TODO: what to do with Vitess? It's not a driver adapter, but it's a flavor of MySQL.
   VITESS_8 = 'vitess_8',
@@ -29,7 +30,7 @@ export type GeneratorTypes = 'prisma-client-js' | 'prisma-client-ts'
 
 export const adaptersForProvider = {
   [Providers.POSTGRESQL]: [AdapterProviders.JS_PG, AdapterProviders.JS_NEON],
-  [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE],
+  [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE, AdapterProviders.JS_MYSQL2],
   [Providers.SQLITE]: [AdapterProviders.JS_LIBSQL, AdapterProviders.JS_D1, AdapterProviders.JS_BETTER_SQLITE3],
   [Providers.MONGODB]: [],
   [Providers.COCKROACHDB]: [],
@@ -45,6 +46,7 @@ export const relationModesForAdapter = {
   [AdapterProviders.JS_BETTER_SQLITE3]: undefined,
   [AdapterProviders.VITESS_8]: RelationModes.PRISMA,
   [AdapterProviders.JS_MSSQL]: undefined,
+  [AdapterProviders.JS_MYSQL2]: undefined,
 } satisfies Record<AdapterProviders, RelationModes | undefined>
 
 export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))

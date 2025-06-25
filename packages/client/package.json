@@ -227,6 +227,7 @@
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/adapter-mssql": "workspace:*",
+    "@prisma/adapter-mysql2": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
