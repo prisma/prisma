@@ -139,6 +139,7 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
+      free: engine.free?.bind(engine),
     }
   }
 
@@ -395,6 +396,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async start(): Promise<void> {
+    if (!this.libraryInstantiationPromise) {
+      this.libraryInstantiationPromise = this.instantiateLibrary()
+    }
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
 
@@ -462,7 +466,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     const stopFn = async () => {
-      await new Promise((r) => setTimeout(r, 5))
+      await new Promise((r) => setImmediate(r)) // defer to next tick
 
       debug('library stopping')
 
@@ -471,9 +475,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
+      // Only the WASM engine has a free method that we need to call to ensure the engine is freed upon disconnect.
+      // Otherwise it causes memory leaks as the WASM engine instance still references this LibraryEngine.
+      if (this.engine?.free) {
+        this.engine.free()
+      }
+      this.engine = undefined
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
+      this.libraryInstantiationPromise = undefined
 
       await (await this.adapterPromise)?.dispose()
       this.adapterPromise = undefined
@@ -555,7 +566,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     this.lastQuery = JSON.stringify(request)
 
-    this.executingQueryPromise = this.engine!.query(
+    this.executingQueryPromise = this.engine?.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
