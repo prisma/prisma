@@ -248,6 +248,19 @@ importers:
         specifier: 16.0.0
         version: 16.0.0
 
+  packages/adapter-mariadb:
+    dependencies:
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
+      mariadb:
+        specifier: 3.4.2
+        version: 3.4.2
+    devDependencies:
+      vitest:
+        specifier: 3.0.9
+        version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
   packages/adapter-mssql:
     dependencies:
       '@prisma/driver-adapter-utils':
@@ -374,6 +387,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mariadb':
+        specifier: workspace:*
+        version: link:../adapter-mariadb
       '@prisma/adapter-mssql':
         specifier: workspace:*
         version: link:../adapter-mssql
@@ -660,6 +676,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/adapter-mariadb':
+        specifier: workspace:*
+        version: link:../adapter-mariadb
       '@prisma/adapter-mssql':
         specifier: workspace:*
         version: link:../adapter-mssql
@@ -4857,9 +4876,6 @@ packages:
   es-module-lexer@1.2.1:
     resolution: {integrity: sha512-9978wrXM50Y4rTMmW5kXIC09ZdXQZqkE4mxhwkd8VbzsGkXGPgV4zWuqQJgCEzYngdo2dYDa0l8xhX4fkSwJSg==}
 
-  es-module-lexer@1.6.0:
-    resolution: {integrity: sha512-qqnD1yMU6tk/jnaMosogGySTZP8YtUgAffA9nMN+E/rjxcfRQ6IEk7IiozUjgxKoFHBGjTLnrHB/YC45r/59EQ==}
-
   es-module-lexer@1.7.0:
     resolution: {integrity: sha512-jEQoCwk8hyb2AZziIOLhDqpm5+2ww5uIE6lkO/6jcOCusfk6LhMHpXXfBLXTZ7Ydyt0j4VoUQv6uGNYbdW+kBA==}
 
@@ -6164,6 +6180,10 @@ packages:
     resolution: {integrity: sha512-hdRPcAzs+MTxK5VG1thBW18gGTlw6yWBe9YnLB65GLo7q0fO5DWsgomIevV/pXSaWRmD3qi6ka4oSFRTExRiEQ==}
     engines: {node: '>= 14'}
 
+  mariadb@3.4.2:
+    resolution: {integrity: sha512-B17vhYRHDMQ1XXvhSWsvKJbpw3Q8B6py93ThBEXZXSgxIbqnKqoHK1RzoPLbIxoEzWN3jA86ZaMMc3IG6L5wsw==}
+    engines: {node: '>= 14'}
+
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
@@ -7377,9 +7397,6 @@ packages:
   statuses@2.0.1:
     resolution: {integrity: sha512-RwNA9Z/7PrK06rYLIzFMlaF+l73iwpzsqRIFgbMLbTcLD6cOao82TaWefPXQvB2fOC4AjuYSEndS7N/mTCbkdQ==}
     engines: {node: '>= 0.8'}
-
-  std-env@3.8.1:
-    resolution: {integrity: sha512-vj5lIj3Mwf9D79hBkltk5qmkFI+biIKWS2IBxEyEU3AX1tUf7AoL8nSazCOiiqQsGKIq01SClsKEzweu34uwvA==}
 
   std-env@3.9.0:
     resolution: {integrity: sha512-UGvjygr6F6tpH7o2qyqR6QYpwraIjKSdtzyBdyytFOHmPZY917kwdwLG0RbOjWOnKmnm3PeHjaoLLMie7kPLQw==}
@@ -11417,8 +11434,6 @@ snapshots:
 
   es-module-lexer@1.2.1: {}
 
-  es-module-lexer@1.6.0: {}
-
   es-module-lexer@1.7.0: {}
 
   es-object-atoms@1.1.1:
@@ -13190,6 +13205,14 @@ snapshots:
       iconv-lite: 0.6.3
       lru-cache: 10.4.3
 
+  mariadb@3.4.2:
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/node': 22.13.9
+      denque: 2.1.0
+      iconv-lite: 0.6.3
+      lru-cache: 10.4.3
+
   math-intrinsics@1.1.0: {}
 
   media-typer@0.3.0: {}
@@ -14475,8 +14498,6 @@ snapshots:
 
   statuses@2.0.1: {}
 
-  std-env@3.8.1: {}
-
   std-env@3.9.0: {}
 
   stdin-discarder@0.2.2: {}
@@ -14972,7 +14993,7 @@ snapshots:
     dependencies:
       cac: 6.7.14
       debug: 4.4.0
-      es-module-lexer: 1.6.0
+      es-module-lexer: 1.7.0
       pathe: 2.0.3
       vite: 6.2.2(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
     transitivePeerDependencies:
@@ -15082,7 +15103,7 @@ snapshots:
     dependencies:
       '@vitest/expect': 3.0.9
       '@vitest/mocker': 3.0.9(vite@6.2.2(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0))
-      '@vitest/pretty-format': 3.0.9
+      '@vitest/pretty-format': 3.2.0
       '@vitest/runner': 3.0.9
       '@vitest/snapshot': 3.0.9
       '@vitest/spy': 3.0.9
@@ -15092,10 +15113,10 @@ snapshots:
       expect-type: 1.2.0
       magic-string: 0.30.17
       pathe: 2.0.3
-      std-env: 3.8.1
+      std-env: 3.9.0
       tinybench: 2.9.0
       tinyexec: 0.3.2
-      tinypool: 1.0.2
+      tinypool: 1.1.0
       tinyrainbow: 2.0.0
       vite: 6.2.2(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
       vite-node: 3.0.9(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)

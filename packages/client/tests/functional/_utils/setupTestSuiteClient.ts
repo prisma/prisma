@@ -317,5 +317,25 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
+  if (driverAdapter === 'js_mariadb') {
+    const { PrismaMariaDb } = require('@prisma/adapter-mariadb') as typeof import('@prisma/adapter-mariadb')
+
+    const url = new URL(datasourceInfo.databaseUrl)
+    const { username: user, password, hostname: host, port } = url
+    const database = url.pathname && url.pathname.slice(1)
+
+    return {
+      adapter: new PrismaMariaDb({
+        user,
+        password,
+        database,
+        host,
+        port: Number(port),
+        connectionLimit: 4, // avoid running out of connections, some tests create multiple clients
+      }),
+      __internal,
+    }
+  }
+
   throw new Error(`No Driver Adapter support for ${driverAdapter}`)
 }
