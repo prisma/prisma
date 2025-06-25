@@ -183,8 +183,12 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   }
 
   async executeScript(script: string): Promise<void> {
-    // TODO: crude implementation for now, might need to refine it
-    for (const stmt of script.split(';')) {
+    const statements = script
+      .split(/;[\t\r\n ]*/g)
+      .map(stmt => stmt.trim())
+      .filter(stmt => stmt.length > 0);
+
+    for (const stmt of statements) {
       try {
         await this.client.query(stmt)
       } catch (error) {
