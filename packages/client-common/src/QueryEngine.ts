@@ -22,6 +22,11 @@ export type QueryEngineInstance = {
   connect(headers: string, requestId: string): Promise<void>
   disconnect(headers: string, requestId: string): Promise<void>
   /**
+   * Frees any resources allocated by the engine's WASM instance. This method is automatically created by WASM bindgen.
+   * Noop for other engines.
+   */
+  free?(): void
+  /**
    * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
    * @param headersStr JSON.stringified `QueryEngineRequestHeaders`
    */

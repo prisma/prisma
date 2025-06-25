@@ -20,6 +20,7 @@ metrics.enabled (provider=sqlite, js_d1) before a query SQL Providers: should ha
 metrics.enabled (provider=sqlite, js_d1) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_d1) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_d1) multiple instances does not share metrics between 2 different instances of client
+reconnect (provider=sqlite, js_d1) can disconnect and reconnect
 relationMode-17255-mixed-actions (relationMode=prisma,provider=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id, js_d1) original [update] main with nested delete alice should succeed
 relationMode-17255-mixed-actions (relationMode=prisma,provider=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id, js_d1) original [update] main with nested disconnect alice should succeed
 relationMode-17255-same-actions (relationMode=prisma,provider=sqlite,onUpdate=DEFAULT,onDelete=DEFAULT,id=String @id, js_d1) not-original onDelete: DEFAULT [update] main with nested delete alice should succeed
