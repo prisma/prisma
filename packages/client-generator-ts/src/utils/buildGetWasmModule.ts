@@ -19,7 +19,7 @@ export type BuildWasmModuleOptions = {
  * This function evaluates to:
  * - `import(name)` for all bundler targets, except Webpack, but including Turbopack.
  * - `__non_webpack_require__(name)` for Webpack targets.
- * 
+ *
  * This is used to dynamically import a module at runtime, while also excluding it from Webpack's bundle.
  * It allows to mitigate the following issues:
  * - https://github.com/webpack/webpack/issues/19607
