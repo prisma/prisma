@@ -206,6 +206,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      better-sqlite3:
+        specifier: '>= ^11.9.0 < 12'
+        version: 11.9.1
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.12
@@ -213,9 +216,6 @@ importers:
       async-mutex:
         specifier: 0.5.0
         version: 0.5.0
-      better-sqlite3:
-        specifier: 11.9.1
-        version: 11.9.1
 
   packages/adapter-d1:
     dependencies:
@@ -291,6 +291,9 @@ importers:
 
   packages/adapter-neon:
     dependencies:
+      '@neondatabase/serverless':
+        specifier: '>0.6.0 <2'
+        version: 0.10.2
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -298,9 +301,6 @@ importers:
         specifier: 3.0.4
         version: 3.0.4
     devDependencies:
-      '@neondatabase/serverless':
-        specifier: 0.10.2
-        version: 0.10.2
       '@swc/core':
         specifier: 1.11.5
         version: 1.11.5
@@ -319,6 +319,9 @@ importers:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
+      pg:
+        specifier: ^8.11.3
+        version: 8.14.1
       postgres-array:
         specifier: 3.0.4
         version: 3.0.4
@@ -338,12 +341,12 @@ importers:
       jest-junit:
         specifier: 16.0.0
         version: 16.0.0
-      pg:
-        specifier: 8.14.1
-        version: 8.14.1
 
   packages/adapter-planetscale:
     dependencies:
+      '@planetscale/database':
+        specifier: ^1.15.0
+        version: 1.19.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -351,9 +354,6 @@ importers:
         specifier: 0.5.0
         version: 0.5.0
     devDependencies:
-      '@planetscale/database':
-        specifier: 1.19.0
-        version: 1.19.0
       '@swc/core':
         specifier: 1.11.5
         version: 1.11.5
