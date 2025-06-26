@@ -13,7 +13,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import * as mariadb from 'mariadb'
 
 import { name as packageName } from '../package.json'
-import { mapArg, mapColumnType, mapRow } from './conversion'
+import { mapArg, mapColumnType, mapRow, typeCast } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:mariadb')
@@ -48,14 +48,19 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
     const { sql, args: values } = query
 
     try {
-      return await this.client.query(
-        {
-          sql,
-          dateStrings: true,
-          rowsAsArray: true,
-        },
-        values.map(mapArg),
-      )
+      const query = {
+        sql,
+        rowsAsArray: true,
+        dateStrings: true,
+        // Return JSON strings as strings, not objects.
+        // Available in the driver, but not provided in the typings.
+        jsonStrings: true,
+        // Disable automatic conversion of BIT(1) to boolean.
+        // Available in the driver, but not provided in the typings.
+        bitOneIsBoolean: false,
+        typeCast,
+      }
+      return await this.client.query(query, values.map(mapArg))
     } catch (e) {
       const error = e as Error
       onError(error)
@@ -167,7 +172,7 @@ async function getCapabilities(pool: mariadb.Pool): Promise<{ supportsRelationJo
   const tag = '[js::getCapabilities]'
 
   try {
-    const [rows] = await pool.query({
+    const rows = await pool.query({
       sql: `SELECT VERSION()`,
       rowsAsArray: true,
     })

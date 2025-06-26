@@ -75,6 +75,9 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
     case MariaDbColumnType.VARCHAR:
     case MariaDbColumnType.VAR_STRING:
     case MariaDbColumnType.STRING:
+    case MariaDbColumnType.BLOB:
+    case MariaDbColumnType.TINY_BLOB:
+    case MariaDbColumnType.MEDIUM_BLOB:
       if (field.flags.valueOf() & BINARY_FLAG) {
         return ColumnTypeEnum.Bytes
       } else {
@@ -84,9 +87,6 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
       return ColumnTypeEnum.Enum
     case MariaDbColumnType.JSON:
       return ColumnTypeEnum.Json
-    case MariaDbColumnType.BLOB:
-    case MariaDbColumnType.TINY_BLOB:
-    case MariaDbColumnType.MEDIUM_BLOB:
     case MariaDbColumnType.BIT:
     case MariaDbColumnType.GEOMETRY:
       return ColumnTypeEnum.Bytes
@@ -109,12 +109,8 @@ export function mapRow(row: unknown[], fields?: mariadb.FieldInfo[]): unknown[] 
   return row.map((value, i) => {
     const type = fields?.[i].type as unknown as MariaDbColumnType
 
-    if (value === null && type !== MariaDbColumnType.JSON) {
+    if (value === null) {
       return null
-    }
-
-    if (typeof value === 'boolean' && type === MariaDbColumnType.BIT) {
-      return value ? [1] : [0]
     }
 
     switch (type) {
@@ -123,8 +119,6 @@ export function mapRow(row: unknown[], fields?: mariadb.FieldInfo[]): unknown[] 
       case MariaDbColumnType.DATETIME:
       case MariaDbColumnType.DATETIME2:
         return new Date(`${value}Z`).toISOString()
-      case MariaDbColumnType.JSON:
-        return JSON.stringify(value)
     }
 
     if (Buffer.isBuffer(value)) {
@@ -137,4 +131,11 @@ export function mapRow(row: unknown[], fields?: mariadb.FieldInfo[]): unknown[] 
 
     return value
   })
+}
+
+export const typeCast: mariadb.TypeCastFunction = (field, next) => {
+  if ((field.type as unknown as MariaDbColumnType) === MariaDbColumnType.GEOMETRY) {
+    return field.buffer()
+  }
+  return next()
 }
