@@ -17,7 +17,9 @@ export enum AdapterProviders {
   JS_MSSQL = 'js_mssql',
   JS_MARIADB = 'js_mariadb',
 
-  // TODO: what to do with Vitess? It's not a driver adapter, but it's a flavor of MySQL.
+  // entries below are not driver adapters,
+  // they are used for testing different databases
+  JS_PG_COCKROACHDB = 'js_pg_cockroachdb',
   VITESS_8 = 'vitess_8',
 }
 
@@ -33,7 +35,7 @@ export const adaptersForProvider = {
   [Providers.MYSQL]: [AdapterProviders.JS_PLANETSCALE, AdapterProviders.JS_MARIADB],
   [Providers.SQLITE]: [AdapterProviders.JS_LIBSQL, AdapterProviders.JS_D1, AdapterProviders.JS_BETTER_SQLITE3],
   [Providers.MONGODB]: [],
-  [Providers.COCKROACHDB]: [],
+  [Providers.COCKROACHDB]: [AdapterProviders.JS_PG_COCKROACHDB],
   [Providers.SQLSERVER]: [AdapterProviders.JS_MSSQL],
 } satisfies Record<Providers, AdapterProviders[]>
 
@@ -47,6 +49,7 @@ export const relationModesForAdapter = {
   [AdapterProviders.VITESS_8]: RelationModes.PRISMA,
   [AdapterProviders.JS_MSSQL]: undefined,
   [AdapterProviders.JS_MARIADB]: undefined,
+  [AdapterProviders.JS_PG_COCKROACHDB]: undefined,
 } satisfies Record<AdapterProviders, RelationModes | undefined>
 
 export const allProviders = Object.values(Providers).map((p) => ({ provider: p }))
