@@ -17,5 +17,9 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB],
       reason: 'Raw SQL query requires an SQL database',
     },
+    skipDriverAdapter: {
+      from: ['js_pg_cockroachdb'],
+      reason: "Failed to deserialize column of type 'unknown'",
+    },
   },
 )

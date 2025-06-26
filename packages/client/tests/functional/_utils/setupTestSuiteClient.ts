@@ -216,7 +216,7 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
-  if (driverAdapter === AdapterProviders.JS_PG) {
+  if (driverAdapter === AdapterProviders.JS_PG || driverAdapter === AdapterProviders.JS_PG_COCKROACHDB) {
     const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
     return {
