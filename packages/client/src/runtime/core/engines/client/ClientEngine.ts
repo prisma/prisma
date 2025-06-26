@@ -169,24 +169,30 @@ export class ClientEngine implements Engine<undefined> {
     switch (this.#state.type) {
       case 'disconnected': {
         const connecting = this.tracingHelper.runInChildSpan('connect', async () => {
+          let driverAdapter: SqlDriverAdapter | undefined = undefined
+          let transactionManager: TransactionManager | undefined = undefined
+          let queryCompiler: QueryCompiler | undefined = undefined
+
           try {
-            const driverAdapter = await this.#driverAdapterFactory.connect()
-            const transactionManager = this.#createTransactionManager(driverAdapter)
-            const queryCompiler = await this.#instantiateQueryCompiler(driverAdapter)
-
-            const engine: ConnectedEngine = {
-              driverAdapter,
-              transactionManager,
-              queryCompiler,
-            }
-
-            this.#state = { type: 'connected', engine }
-
-            return engine
+            driverAdapter = await this.#driverAdapterFactory.connect()
+            transactionManager = this.#createTransactionManager(driverAdapter)
+            queryCompiler = await this.#instantiateQueryCompiler(driverAdapter)
           } catch (error) {
             this.#state = { type: 'disconnected' }
+            queryCompiler?.free()
+            await driverAdapter?.dispose()
             throw error
           }
+
+          const engine: ConnectedEngine = {
+            driverAdapter,
+            transactionManager,
+            queryCompiler,
+          }
+
+          this.#state = { type: 'connected', engine }
+
+          return engine
         })
 
         this.#state = {
@@ -243,6 +249,8 @@ export class ClientEngine implements Engine<undefined> {
             provider: this.#driverAdapterFactory.provider,
             connectionInfo,
           }),
+        undefined,
+        false,
       )
     } catch (e) {
       throw this.#transformInitError(e)
@@ -303,7 +311,7 @@ export class ClientEngine implements Engine<undefined> {
     }
   }
 
-  #withLocalPanicHandler<T>(fn: () => T, query?: string): T {
+  #withLocalPanicHandler<T>(fn: () => T, query?: string, disconnectOnPanic = true): T {
     const previousHandler = globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY.set_message
     let panic: string | undefined = undefined
 
@@ -317,11 +325,15 @@ export class ClientEngine implements Engine<undefined> {
       global.PRISMA_WASM_PANIC_REGISTRY.set_message = previousHandler
 
       if (panic) {
-        // Disconnect and drop the compiler, and discard the
-        // `WebAssembly.Instance` completely to avoid memory leaks:
+        // Discard the current `WebAssembly.Instance` to avoid memory leaks:
         // WebAssembly doesn't unwind the stack or call destructors on panic.
         this.#QueryCompilerConstructor = undefined
-        void this.stop()
+        // Disconnect and drop the compiler, unless this panic happened during
+        // initialization. In that case, we let `#ensureStarted` deal with it
+        // and change the state to `disconnected` by itself.
+        if (disconnectOnPanic) {
+          void this.stop().catch((err) => debug('failed to disconnect:', err))
+        }
         // eslint-disable-next-line no-unsafe-finally
         throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, panic, query), this.config.clientVersion)
       }
