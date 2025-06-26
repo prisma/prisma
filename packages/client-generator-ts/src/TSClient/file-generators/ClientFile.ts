@@ -74,7 +74,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
       const docs = `${modelLine}${docLines}`
 
       const modelTypeExport = ts
-        .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`Prisma.${model.name}Model`)))
+        .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`Prisma.${model.name}`)))
         .setDocComment(ts.docComment(docs))
 
       return ts.stringify(modelTypeExport)
