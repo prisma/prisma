@@ -40,6 +40,8 @@ export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown
 
   const mappers = types.map((type) => {
     switch (type) {
+      case 'bytes':
+        return (value: unknown) => (Array.isArray(value) ? new Uint8Array(value) : value)
       case 'int':
         return (value: unknown) =>
           value === null ? null : typeof value === 'number' ? value : parseInt(`${value}`, 10)
