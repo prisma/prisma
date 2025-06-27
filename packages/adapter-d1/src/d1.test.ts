@@ -6,7 +6,7 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { afterEach, describe, expect, expectTypeOf, test, vi } from 'vitest'
 
-import { PrismaD1 } from './d1'
+import { PrismaD1, PrismaD1HTTP } from './d1'
 import { PrismaD1HTTPAdapterFactory } from './d1-http'
 import { PrismaD1WorkerAdapterFactory } from './d1-worker'
 
@@ -23,6 +23,26 @@ describe('D1 adapter instance creation', () => {
       .mockResolvedValue(adapter)
 
     const factory = new PrismaD1({
+      CLOUDFLARE_ACCOUNT_ID: 'test',
+      CLOUDFLARE_D1_TOKEN: 'test',
+      CLOUDFLARE_DATABASE_ID: 'test',
+    })
+    await factory.connect()
+    await factory.connectToShadowDb()
+
+    expectTypeOf(factory).toExtend<SqlMigrationAwareDriverAdapterFactory>()
+    expect(connect).toHaveBeenCalled()
+    expect(connectToShadowDb).toHaveBeenCalled()
+  })
+
+  test('create a migration-aware adapter using PrismaD1HTTP with cloudflare env variables', async () => {
+    const adapter = mockAdapter('sqlite')
+    const connect = vi.spyOn(PrismaD1HTTPAdapterFactory.prototype, 'connect').mockResolvedValue(adapter)
+    const connectToShadowDb = vi
+      .spyOn(PrismaD1HTTPAdapterFactory.prototype, 'connectToShadowDb')
+      .mockResolvedValue(adapter)
+
+    const factory = new PrismaD1HTTP({
       CLOUDFLARE_ACCOUNT_ID: 'test',
       CLOUDFLARE_D1_TOKEN: 'test',
       CLOUDFLARE_DATABASE_ID: 'test',
