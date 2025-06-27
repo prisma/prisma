@@ -6,7 +6,7 @@ import { D1HTTPParams, isD1HTTPParams, PrismaD1HTTPAdapterFactory } from './d1-h
 import { PrismaD1WorkerAdapterFactory } from './d1-worker'
 
 // exported for backwards compatibility
-export { PrismaD1 as PrismaD1HTTP }
+export { PrismaD1HTTPAdapterFactory as PrismaD1HTTP }
 
 // This is a wrapper type that can conform to either `SqlDriverAdapterFactory` or
 // `SqlMigrationAwareDriverAdapterFactory`, depending on the type of the argument passed to the
