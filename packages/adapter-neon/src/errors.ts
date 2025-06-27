@@ -12,6 +12,11 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
         kind: 'LengthMismatch',
         column: error.column,
       }
+    case '22003':
+      return {
+        kind: 'ValueOutOfRange',
+        cause: error.message,
+      }
     case '23505': {
       const fields = error.detail
         ?.match(/Key \(([^)]+)\)/)
