@@ -352,7 +352,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const modelTypeExport = ts
       .moduleExport(
         ts.typeDeclaration(
-          `${this.model.name}Model`,
+          this.model.name,
           ts
             .namedType(`runtime.Types.Result.DefaultSelection`)
             .addGenericArgument(ts.namedType(getPayloadName(this.model.name))),
