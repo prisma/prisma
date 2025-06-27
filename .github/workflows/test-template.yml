@@ -1047,6 +1047,14 @@ jobs:
         name: 'adapter-libsql'
         working-directory: packages/adapter-libsql
 
+      - run: pnpm run test
+        name: 'adapter-mariadb'
+        working-directory: packages/adapter-mariadb
+
+      - run: pnpm run test
+        name: 'adapter-d1'
+        working-directory: packages/adapter-d1
+
   #
   # Run type performance benchmark tests
   #
