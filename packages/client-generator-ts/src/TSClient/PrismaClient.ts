@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
@@ -266,7 +266,7 @@ export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.Do
     \`\`\`
     const prisma = new PrismaClient()
     // Fetch zero or more ${capitalize(example.plural)}
-    const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+    const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
     \`\`\`
 
     Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
@@ -345,7 +345,7 @@ ${[
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
         .map((m) => {
-          let methodName = lowerCase(m.model)
+          let methodName = uncapitalize(m.model)
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
@@ -356,7 +356,7 @@ ${[
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
-  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+  * const ${uncapitalize(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
