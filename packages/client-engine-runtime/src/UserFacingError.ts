@@ -125,7 +125,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'NullConstraintViolation':
       return `Null constraint violation on the ${renderConstraint(err.cause.constraint)}`
     case 'ValueOutOfRange':
-      return `Value out of range for the type. ${err.cause.cause}`
+      return `Value out of range for the type: ${err.cause.cause}`
     case 'TableDoesNotExist': {
       const table = err.cause.table ?? '(not available)'
       return `The table \`${table}\` does not exist in the current database.`
