@@ -4,6 +4,7 @@ import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
 import { createJiti } from 'jiti'
+import { dim } from 'kleur'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -120,7 +121,7 @@ export async function loadConfigFromFile({
       }
     }
 
-    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
+    process.stdout.write(dim(`Loaded Prisma config from "${resolvedPath}".\n`))
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
     return {
@@ -173,12 +174,19 @@ function transformPathsInConfigToAbsolute(
   prismaConfig: PrismaConfigInternal<any>,
   resolvedPath: string,
 ): PrismaConfigInternal<any> {
-  if (prismaConfig.schema) {
-    return {
-      ...prismaConfig,
-      schema: path.resolve(path.dirname(resolvedPath), prismaConfig.schema),
-    }
-  } else {
-    return prismaConfig
+  const resolvePath = (value: string | undefined) =>
+    value ? path.resolve(path.dirname(resolvedPath), value) : undefined
+
+  return {
+    ...prismaConfig,
+    migrate: prismaConfig.migrate
+      ? {
+          ...prismaConfig.migrate,
+          migrationsDirectory: resolvePath(prismaConfig.migrate.migrationsDirectory),
+        }
+      : undefined,
+    schema: resolvePath(prismaConfig.schema),
+    viewsDirectory: resolvePath(prismaConfig.viewsDirectory),
+    typedSqlDirectory: resolvePath(prismaConfig.typedSqlDirectory),
   }
 }
