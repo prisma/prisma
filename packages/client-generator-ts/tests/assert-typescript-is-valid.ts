@@ -161,27 +161,27 @@ declare module '*.wasm?module' {
 
     resolveModuleNames: (moduleNames: string[], containingFile: string): Array<ts.ResolvedModule | undefined> => {
       return moduleNames.map((moduleName) => {
+        // Don't try to resolve .wasm files as modules
         if (moduleName.endsWith('.wasm') || moduleName.endsWith('.wasm?module')) {
           return undefined
         }
 
-        // First check if it's one of our in-memory files
-        if (files[moduleName] || files[`${moduleName}.ts`] || files[`${moduleName}.js`]) {
-          const resolvedFileName = files[moduleName]
-            ? moduleName
-            : files[`${moduleName}.ts`]
-            ? `${moduleName}.ts`
-            : `${moduleName}.js`
-
+        // If the module is already loaded in memory, return it directly
+        if (virtualFiles.has(moduleName)) {
           return {
-            resolvedFileName,
+            resolvedFileName: moduleName,
             isExternalLibraryImport: false,
             extension: ts.Extension.Ts,
           }
         }
 
         // Use TypeScript's module resolution for everything else
-        const result = ts.resolveModuleName(moduleName, containingFile, compilerOptions, defaultHost)
+        const result = ts.resolveModuleName(
+          moduleName,
+          containingFile,
+          compilerOptions,
+          defaultHost,
+        )
 
         return result.resolvedModule
       })
