@@ -31,6 +31,9 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB, Providers.COCKROACHDB, Providers.MYSQL, Providers.SQLITE, Providers.SQLSERVER],
       reason: 'Test exercises specific bug with Postgres prepared statement caching.',
     },
-    skipDriverAdapter: { from: ['js_pg', 'js_neon'], reason: 'https://github.com/prisma/team-orm/issues/1159' },
+    skipDriverAdapter: {
+      from: ['js_pg', 'js_pg_cockroachdb', 'js_neon'],
+      reason: 'https://github.com/prisma/team-orm/issues/1159',
+    },
   },
 )

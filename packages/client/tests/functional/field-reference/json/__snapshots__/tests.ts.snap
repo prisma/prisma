@@ -12,6 +12,18 @@ Invalid \`prisma.product.findMany()\` invocation in
 Input error. Expected a referenced scalar field of type Json but found Product.title of type String."
 `;
 
+exports[`field-reference.json (provider=cockroachdb, js_pg_cockroachdb) wrong field type 1`] = `
+"
+Invalid \`prisma.product.findMany()\` invocation in
+/client/tests/functional/field-reference/json/tests.ts:0:0
+
+  XX 
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany(
+Input error. Expected a referenced scalar field of type Json but found Product.title of type String."
+`;
+
 exports[`field-reference.json (provider=mongodb) wrong field type 1`] = `
 "
 Invalid \`prisma.product.findMany()\` invocation in
@@ -25,6 +37,18 @@ Input error. Expected a referenced scalar field of type Json but found Product.t
 `;
 
 exports[`field-reference.json (provider=mysql) wrong field type 1`] = `
+"
+Invalid \`prisma.product.findMany()\` invocation in
+/client/tests/functional/field-reference/json/tests.ts:0:0
+
+  XX 
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany(
+Input error. Expected a referenced scalar field of type Json but found Product.title of type String."
+`;
+
+exports[`field-reference.json (provider=mysql, js_mariadb) wrong field type 1`] = `
 "
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0

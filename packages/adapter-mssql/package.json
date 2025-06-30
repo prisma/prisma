@@ -32,7 +32,7 @@
     "README.md"
   ],
   "keywords": [],
-  "author": "Jacek Malec <jacek@prisma.io>",
+  "author": "Jacek Malec <malec@prisma.io>",
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {

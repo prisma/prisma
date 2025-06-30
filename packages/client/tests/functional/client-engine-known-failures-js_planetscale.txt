@@ -20,7 +20,6 @@ metrics.enabled (provider=mysql, js_planetscale) before a query SQL Providers: s
 metrics.enabled (provider=mysql, js_planetscale) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=mysql, js_planetscale) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=mysql, js_planetscale) multiple instances does not share metrics between 2 different instances of client
-tracing (provider=mysql, js_planetscale) tracing connect should trace the implicit $connect call
 tracing (provider=mysql, js_planetscale) tracing on crud methods create
 tracing (provider=mysql, js_planetscale) tracing on crud methods delete
 tracing (provider=mysql, js_planetscale) tracing on crud methods deleteMany()
