@@ -12,7 +12,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
   
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = globalThis.require
+    const _require = require
 
     const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
     const wasmModuleBytes = await readFile(wasmModulePath)
@@ -57,7 +57,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
   
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = globalThis.require
+    const _require = require
 
     const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
     const wasmModuleBytes = await readFile(wasmModulePath)
@@ -125,7 +125,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
   
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = globalThis.require
+    const _require = require
 
     const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
     const wasmModuleBytes = await readFile(wasmModulePath)
@@ -170,7 +170,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
   
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = globalThis.require
+    const _require = require
 
     const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
     const wasmModuleBytes = await readFile(wasmModulePath)
@@ -215,7 +215,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
   
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = globalThis.require
+    const _require = require
 
     const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
     const wasmModuleBytes = await readFile(wasmModulePath)
