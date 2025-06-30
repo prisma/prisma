@@ -28,8 +28,8 @@ export type BuildWasmModuleOptions = {
  */
 export function buildDynamicRequireFn() {
   return `const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof __non_webpack_require__ === 'function'
-        ? Promise.resolve(__non_webpack_require__(name))
+      typeof globalThis.__non_webpack_require__ === 'function'
+        ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ name)`
 }
 
@@ -92,7 +92,7 @@ export function buildGetWasmModule({
 
 function buildRequire(moduleFormat: ModuleFormat): string {
   if (moduleFormat === 'cjs') {
-    return 'const _require = require\n'
+    return 'const _require = globalThis.require\n'
   }
 
   return `const { createRequire } = await dynamicRequireFn('node:module')
