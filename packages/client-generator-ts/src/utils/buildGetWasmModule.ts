@@ -92,7 +92,7 @@ export function buildGetWasmModule({
 
 function buildRequire(moduleFormat: ModuleFormat): string {
   if (moduleFormat === 'cjs') {
-    return 'const _require = globalThis.require\n'
+    return 'const _require = require\n'
   }
 
   return `const { createRequire } = await dynamicRequireFn('node:module')
