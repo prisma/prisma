@@ -7,6 +7,7 @@ import {
   GeneratorRegistry,
   getClientEngineType,
   getGenerator,
+  getGenerators,
   parseEnvValue,
 } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
@@ -47,6 +48,10 @@ addSnapshotPathSanitizer({
     return error
   },
 })
+
+function expectToBeDefined<T>(value: T | undefined): asserts value is T {
+  expect(value).toBeDefined()
+}
 
 expect.addSnapshotSerializer({
   test(val) {
@@ -161,6 +166,131 @@ describe('generator', () => {
     expect(fs.existsSync(clientDir)).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
     generator.stop()
+  })
+
+  test.only('nodejs + edge', async () => {
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'nodejs-plus-edge.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    const clientGenerator = generators.find((g) => g.config.name === 'client')
+    const edgeGenerator = generators.find((g) => g.config.name === 'edge')
+
+    expectToBeDefined(clientGenerator)
+    expectToBeDefined(edgeGenerator)
+
+    {
+      const generator = clientGenerator
+      const manifest = omit(generator.manifest!, ['version'])
+  
+      if (manifest.requiresEngineVersion?.length !== 40) {
+        throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
+      }
+      manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
+  
+      expect(manifest).toMatchInlineSnapshot(`
+        {
+          "defaultOutput": "./generated/client",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [],
+        }
+      `)
+  
+      expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
+        {
+          "binaryTargets": [
+            {
+              "fromEnvVar": null,
+              "native": true,
+              "value": "NATIVE_BINARY_TARGET",
+            },
+          ],
+          "config": {
+            "runtime": "nodejs",
+          },
+          "isCustomOutput": true,
+          "name": "client",
+          "previewFeatures": [
+            "driverAdapters",
+            "queryCompiler",
+          ],
+          "provider": {
+            "fromEnvVar": null,
+            "value": "prisma-client-ts",
+          },
+          "sourceFilePath": "/project/nodejs-plus-edge.prisma",
+        }
+      `)
+  
+      expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+        `"generated/client"`,
+      )
+  
+      await generator.generate()
+      const clientDir = path.join(__dirname, 'generated')
+      expect(fs.existsSync(clientDir)).toBe(true)
+      expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
+      generator.stop()
+    }
+
+    {
+      const generator = edgeGenerator
+      const manifest = omit(generator.manifest!, ['version'])
+  
+      if (manifest.requiresEngineVersion?.length !== 40) {
+        throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
+      }
+      manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
+  
+      expect(manifest).toMatchInlineSnapshot(`
+        {
+          "defaultOutput": "./generated/edge",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [],
+        }
+      `)
+  
+      expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
+        {
+          "binaryTargets": [
+            {
+              "fromEnvVar": null,
+              "native": true,
+              "value": "NATIVE_BINARY_TARGET",
+            },
+          ],
+          "config": {
+            "runtime": "edge-light",
+          },
+          "isCustomOutput": true,
+          "name": "edge",
+          "previewFeatures": [
+            "driverAdapters",
+            "queryCompiler",
+          ],
+          "provider": {
+            "fromEnvVar": null,
+            "value": "prisma-client-ts",
+          },
+          "sourceFilePath": "/project/nodejs-plus-edge.prisma",
+        }
+      `)
+  
+      expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+        `"generated/edge"`,
+      )
+  
+      await generator.generate()
+      const clientDir = path.join(__dirname, 'generated')
+      expect(fs.existsSync(clientDir)).toBe(true)
+      expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
+      generator.stop()
+    }
   })
 
   test('denylist from engine validation', async () => {
