@@ -2,6 +2,7 @@ import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-uti
 
 import { QueryEvent } from '../events'
 import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
+import { type SchemaProvider } from '../schema'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing } from '../UserFacingError'
@@ -22,6 +23,7 @@ export type QueryInterpreterOptions = {
   tracingHelper: TracingHelper
   serializer: (results: SqlResultSet) => Value
   rawSerializer?: (results: SqlResultSet) => Value
+  provider?: SchemaProvider
 }
 
 export class QueryInterpreter {
@@ -32,6 +34,7 @@ export class QueryInterpreter {
   readonly #tracingHelper: TracingHelper
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
+  readonly #provider?: SchemaProvider
 
   constructor({
     transactionManager,
@@ -40,6 +43,7 @@ export class QueryInterpreter {
     tracingHelper,
     serializer,
     rawSerializer,
+    provider,
   }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
@@ -47,6 +51,7 @@ export class QueryInterpreter {
     this.#tracingHelper = tracingHelper
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
+    this.#provider = provider
   }
 
   static forSql(options: {
@@ -54,6 +59,7 @@ export class QueryInterpreter {
     placeholderValues: Record<string, unknown>
     onQuery?: (event: QueryEvent) => void
     tracingHelper: TracingHelper
+    provider?: SchemaProvider
   }): QueryInterpreter {
     return new QueryInterpreter({
       transactionManager: options.transactionManager,
@@ -62,6 +68,7 @@ export class QueryInterpreter {
       tracingHelper: options.tracingHelper,
       serializer: serializeSql,
       rawSerializer: serializeRawSql,
+      provider: options.provider,
     })
   }
 
@@ -320,8 +327,8 @@ export class QueryInterpreter {
   #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
     return withQuerySpanAndEvent({
       query,
-      queryable,
       execute,
+      provider: this.#provider ?? queryable.provider,
       tracingHelper: this.#tracingHelper,
       onQuery: this.#onQuery,
     })
