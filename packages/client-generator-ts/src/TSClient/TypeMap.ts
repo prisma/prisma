@@ -1,4 +1,4 @@
-import { lowerCase, NonModelOperation, Operation } from '@prisma/client-common'
+import { NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
 import { assertNever } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
@@ -35,7 +35,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
   if (modelNames.length === 0) {
     meta.add(ts.property('modelProps', ts.neverType))
   } else {
-    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(lowerCase(name))))))
+    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(uncapitalize(name))))))
   }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
