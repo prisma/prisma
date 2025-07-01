@@ -6,7 +6,8 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { afterEach, describe, expect, expectTypeOf, test, vi } from 'vitest'
 
-import { PrismaD1, PrismaD1HTTP } from './d1'
+import { PrismaD1HTTP } from '.'
+import { PrismaD1 } from './d1'
 import { PrismaD1HTTPAdapterFactory } from './d1-http'
 import { PrismaD1WorkerAdapterFactory } from './d1-worker'
 
