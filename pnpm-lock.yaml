@@ -967,6 +967,9 @@ importers:
         specifier: 11.1.0
         version: 11.1.0
     devDependencies:
+      '@prisma/generator':
+        specifier: workspace:*
+        version: link:../generator
       '@types/jest':
         specifier: 29.5.14
         version: 29.5.14

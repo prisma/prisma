@@ -3,6 +3,7 @@ import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/d
 
 import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
+import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
@@ -54,22 +55,26 @@ export class TransactionManager {
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
   readonly #onQuery?: (event: QueryEvent) => void
+  readonly #provider?: SchemaProvider
 
   constructor({
     driverAdapter,
     transactionOptions,
     tracingHelper,
     onQuery,
+    provider,
   }: {
     driverAdapter: SqlDriverAdapter
     transactionOptions: Options
     tracingHelper: TracingHelper
     onQuery?: (event: QueryEvent) => void
+    provider?: SchemaProvider
   }) {
     this.driverAdapter = driverAdapter
     this.transactionOptions = transactionOptions
     this.tracingHelper = tracingHelper
     this.#onQuery = onQuery
+    this.#provider = provider
   }
 
   async startTransaction(options?: Options): Promise<TransactionInfo> {
@@ -248,8 +253,8 @@ export class TransactionManager {
   #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
     return withQuerySpanAndEvent({
       query,
-      queryable,
       execute,
+      provider: this.#provider ?? queryable.provider,
       tracingHelper: this.tracingHelper,
       onQuery: this.#onQuery,
     })
