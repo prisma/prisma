@@ -295,6 +295,7 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
   }
 }
 
+/** @deprecated Use PrismaD1 instead */
 export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = `${packageName}-http`
