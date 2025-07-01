@@ -184,7 +184,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
 
   async executeScript(script: string): Promise<void> {
     const statements = script
-      .split(new RegExp(/;[\t\r\n ]*/g))
+      .split(/;[\t\r\n ]*/)
       .map(stmt => stmt.trim())
       .filter(stmt => stmt.length > 0);
 
