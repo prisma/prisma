@@ -290,6 +290,9 @@ testMatrix.setupTestSuite(
         if (provider === Providers.SQLSERVER) {
           return dbSystem === 'mssql'
         }
+        if (driverAdapter === 'js_pg_cockroachdb') {
+          return dbSystem === 'postgresql'
+        }
 
         return dbSystem === provider
       })

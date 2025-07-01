@@ -36,11 +36,10 @@ Generate Prisma Client:
 npx prisma generate
 ```
 
-Install the Prisma adapter for PlanetScale, PlanetScale serverless driver and `undici` packages:
+Install the Prisma adapter for PlanetScale and `undici` packages:
 
 ```sh
 npm install @prisma/adapter-planetscale
-npm install @planetscale/database
 npm install undici
 ```
 
