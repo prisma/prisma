@@ -5,9 +5,6 @@ import { name as packageName } from '../package.json'
 import { D1HTTPParams, isD1HTTPParams, PrismaD1HTTPAdapterFactory } from './d1-http'
 import { PrismaD1WorkerAdapterFactory } from './d1-worker'
 
-// exported for backwards compatibility
-export { PrismaD1HTTPAdapterFactory as PrismaD1HTTP }
-
 // This is a wrapper type that can conform to either `SqlDriverAdapterFactory` or
 // `SqlMigrationAwareDriverAdapterFactory`, depending on the type of the argument passed to the
 // constructor. If the argument is of type `D1HTTPParams`, it will leverage
