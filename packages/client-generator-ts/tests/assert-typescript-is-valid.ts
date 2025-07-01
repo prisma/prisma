@@ -176,12 +176,7 @@ declare module '*.wasm?module' {
         }
 
         // Use TypeScript's module resolution for everything else
-        const result = ts.resolveModuleName(
-          moduleName,
-          containingFile,
-          compilerOptions,
-          defaultHost,
-        )
+        const result = ts.resolveModuleName(moduleName, containingFile, compilerOptions, defaultHost)
 
         return result.resolvedModule
       })
