@@ -321,8 +321,8 @@ ${green('Your database is now in sync with your schema.')}\n`,
     let message: string
 
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
-      if (datasourceInfo.schemas?.length) {
-        message = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+      if (datasourceInfo.namespaces?.length) {
+        message = `We need to reset the following schemas: "${datasourceInfo.namespaces.join(', ')}"`
       } else if (datasourceInfo.schema) {
         message = `We need to reset the "${datasourceInfo.schema}" schema`
       } else {

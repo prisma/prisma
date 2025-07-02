@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     const newEmail = faker.internet.email()
     const newTitle = faker.person.jobTitle()
 
-    describe('multischema', () => {
+    describe('multinamespace', () => {
       test('create', async () => {
         const created = await prisma.user.create({
           data: {

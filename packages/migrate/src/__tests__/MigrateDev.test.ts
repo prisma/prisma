@@ -1121,7 +1121,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     prompt.inject(['test', new Error()]) // simulate user cancellation
     // prompt.inject(['y']) // simulate user cancellation
 
-    const result = MigrateDev.new().parse(['--schema=prisma/multiSchema.prisma'], await ctx.config())
+    const result = MigrateDev.new().parse(['--schema=prisma/multiNamespace.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
@@ -1131,7 +1131,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     expect(ctx.recordedExitCode()).toEqual(130)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/multiSchema.prisma
+      Prisma schema loaded from prisma/multiNamespace.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schemas "schema1, schema2" at "localhost:5432"
 
       Enter a name for the new migration:

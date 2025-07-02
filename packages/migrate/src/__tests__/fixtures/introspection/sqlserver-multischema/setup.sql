@@ -1,4 +1,4 @@
-USE [tests-migrate-db-pull-sqlserver-multischema];
+USE [tests-migrate-db-pull-sqlserver-multinamespace];
 
 IF NOT EXISTS ( SELECT  *
                 FROM    sys.schemas

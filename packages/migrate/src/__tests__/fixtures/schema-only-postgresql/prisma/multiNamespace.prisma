@@ -4,14 +4,14 @@ generator client {
 }
 
 datasource my_db {
-    provider = "postgresql"
-    url      = env("TEST_POSTGRES_URI_MIGRATE")
-    schemas  = ["schema1", "schema2"]
+    provider   = "postgresql"
+    url        = env("TEST_POSTGRES_URI_MIGRATE")
+    namespaces = ["schema1", "schema2"]
 }
 
 model Blog {
     id          Int @id
     viewCount20 Int
 
-    @@schema("schema1")
+    @@namespace("schema1")
 }

@@ -23,8 +23,8 @@ export function printDatasource({
   }
 
   // If schemas are defined in the datasource block, print them
-  if (datasourceInfo.schemas?.length) {
-    message += `, schemas "${datasourceInfo.schemas.join(', ')}"`
+  if (datasourceInfo.namespaces?.length) {
+    message += `, schemas "${datasourceInfo.namespaces.join(', ')}"`
   }
   // Otherwise, print the schema if it's defined in the connection string
   else if (datasourceInfo.schema) {

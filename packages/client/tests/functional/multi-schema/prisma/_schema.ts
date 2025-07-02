@@ -12,9 +12,9 @@ generator client {
 }
 
 datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URI_${provider}")
-  schemas  = ["base", "transactional"]
+  provider   = "${provider}"
+  url        = env("DATABASE_URI_${provider}")
+  namespaces = ["base", "transactional"]
 }
 
 model User {
@@ -22,7 +22,7 @@ model User {
   email String
   posts Post[]
 
-  @@schema("base")
+  @@namespace("base")
   ${mapTable ? `@@map("${mapTableUser}")` : ''}
 }
 
@@ -32,7 +32,7 @@ model Post {
   authorId  String
   author    User?    @relation(fields: [authorId], references: [id])
 
-  @@schema("transactional")
+  @@namespace("transactional")
   ${mapTable ? `@@map("${mapTablePost}")` : ''}
 }
   `

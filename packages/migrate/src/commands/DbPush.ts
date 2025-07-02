@@ -126,10 +126,10 @@ ${bold('Examples')}
         successfulResetMsg += ` "${datasourceInfo.dbName}"`
       }
 
-      const schemasLength = datasourceInfo.schemas?.length || 0
+      const schemasLength = datasourceInfo.namespaces?.length || 0
       // If schemas are defined in the datasource block, print them
-      if (datasourceInfo.schemas && schemasLength > 0) {
-        successfulResetMsg += ` schema${schemasLength > 1 ? 's' : ''} "${datasourceInfo.schemas.join(', ')}"`
+      if (datasourceInfo.namespaces && schemasLength > 0) {
+        successfulResetMsg += ` schema${schemasLength > 1 ? 's' : ''} "${datasourceInfo.namespaces.join(', ')}"`
       }
       // Otherwise, print the schema if it's defined in the connection string
       else if (datasourceInfo.schema) {

@@ -32,7 +32,7 @@ export type DatasourceInfo = {
   dbLocation?: string // host without credentials
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
-  schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
+  namespaces?: string[] // database schemas from the datasource (multiSchema preview feature)
   configDir?: string
 }
 
@@ -45,7 +45,7 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
       dbLocation: undefined,
       url: undefined,
       schema: undefined,
-      schemas: undefined,
+      namespaces: undefined,
       configDir: undefined,
     }
   }
@@ -62,7 +62,7 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
       dbLocation: undefined,
       url: url || undefined,
       schema: undefined,
-      schemas: datasource.schemas,
+      namespaces: datasource.namespaces,
       configDir: path.dirname(datasource.sourceFilePath),
     }
   }
@@ -87,7 +87,7 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
       dbLocation,
       url,
       schema,
-      schemas: datasource.schemas,
+      schemas: datasource.namespaces,
       configDir: path.dirname(datasource.sourceFilePath),
     }
 
@@ -106,7 +106,7 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
       dbLocation: undefined,
       url,
       schema: undefined,
-      schemas: datasource.schemas,
+      namespaces: datasource.namespaces,
       configDir: path.dirname(datasource.sourceFilePath),
     }
   }

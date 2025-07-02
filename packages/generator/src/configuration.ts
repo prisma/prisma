@@ -56,7 +56,7 @@ export interface DataSource {
   activeProvider: ActiveConnectorType
   url: EnvValue
   directUrl?: EnvValue
-  schemas: string[] | []
+  namespaces: string[] | []
   sourceFilePath: string
 }
 

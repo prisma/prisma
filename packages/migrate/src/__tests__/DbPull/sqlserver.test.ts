@@ -120,7 +120,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
   })
 })
 
-describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
+describeMatrix(sqlServerOnly, 'sqlserver-multinamespace', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)
@@ -133,12 +133,12 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   }
 
   // Note that this needs to be exactly the same as the one in the setup.sql file
-  const databaseName = 'tests-migrate-db-pull-sqlserver-multischema'
+  const databaseName = 'tests-migrate-db-pull-sqlserver-multinamespace'
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_MSSQL_URI!,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multischema'),
+    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multinamespace'),
   }
 
   beforeAll(async () => {
@@ -166,7 +166,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
@@ -175,7 +175,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
@@ -207,7 +207,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   // https://github.com/prisma/prisma/actions/runs/4013789656/jobs/6893546711 (most recent)
   // https://buildkite.com/prisma/test-prisma-typescript/builds/18825#01855966-3d90-4362-b130-502021a1047b
   test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
@@ -231,7 +231,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
@@ -245,23 +245,23 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       }
 
       datasource db {
-        provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-        schemas  = ["base"]
+        provider   = "sqlserver"
+        url        = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+        namespaces = ["base"]
       }
 
       model some_table {
         id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
         email String @db.NVarChar(1)
 
-        @@schema("base")
+        @@namespace("base")
       }
 
       model SomeUser {
         id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
         email String @db.NVarChar(1)
 
-        @@schema("base")
+        @@namespace("base")
       }
 
       "
@@ -271,7 +271,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
@@ -283,7 +283,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multischema')
+    ctx.fixture('introspection/sqlserver-multinamespace')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
@@ -297,23 +297,23 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       }
 
       datasource db {
-        provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-        schemas  = ["base", "does-not-exist"]
+        provider   = "sqlserver"
+        url        = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+        namespaces = ["base", "does-not-exist"]
       }
 
       model some_table {
         id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
         email String @db.NVarChar(1)
 
-        @@schema("base")
+        @@namespace("base")
       }
 
       model SomeUser {
         id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
         email String @db.NVarChar(1)
 
-        @@schema("base")
+        @@namespace("base")
       }
 
       "
@@ -339,7 +339,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multischema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multinamespace;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
       }
 
       model some_table {

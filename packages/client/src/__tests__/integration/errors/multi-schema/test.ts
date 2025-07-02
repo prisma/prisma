@@ -13,9 +13,9 @@ const title = faker.person.jobTitle()
 const newEmail = faker.internet.email()
 const newTitle = faker.person.jobTitle()
 
-describe('multischema', () => {
+describe('multinamespace', () => {
   beforeAll(async () => {
-    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-multischema')
+    process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-multinamespace')
     await tearDownPostgres(process.env.DATABASE_URL)
     const SetupParams: SetupParams = {
       connectionString: process.env.DATABASE_URL,

@@ -344,17 +344,17 @@ describeMatrix(postgresOnly, 'postgres', () => {
   })
 })
 
-describeMatrix(postgresOnly, 'postgres-multischema', () => {
+describeMatrix(postgresOnly, 'postgres-multinamespace', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
-    'tests-migrate-db-push-multischema',
+    'tests-migrate-db-push-multinamespace',
   )
 
   const setupParams: SetupParams = {
     connectionString,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multischema'),
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multinamespace'),
   }
 
   beforeAll(async () => {
@@ -378,8 +378,8 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     })
   })
 
-  it('multiSchema: --force-reset should succeed and display a log', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+  it('multiNamespace: --force-reset should succeed and display a log', async () => {
+    ctx.fixture('introspection/postgresql-multinamespace')
 
     prompt.inject(['y'])
 
@@ -387,9 +387,9 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-db-push-multischema", schemas "base, transactional" <location placeholder>
+      Datasource "db": PostgreSQL database "tests-migrate-db-push-multinamespace", schemas "base, transactional" <location placeholder>
 
-      The PostgreSQL database "tests-migrate-db-push-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
+      The PostgreSQL database "tests-migrate-db-push-multinamespace" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
