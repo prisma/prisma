@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { capitalize, lowerCase } from './casing'
+import { capitalize, uncapitalize } from './casing'
 
 describe('capitalize', () => {
   test('empty', () => {
@@ -20,24 +20,24 @@ describe('capitalize', () => {
   })
 })
 
-describe('lowerCase', () => {
+describe('uncapitalize', () => {
   test('empty', () => {
-    expect(lowerCase('')).toBe('')
+    expect(uncapitalize('')).toBe('')
   })
 
   test('single character', () => {
-    expect(lowerCase('A')).toBe('a')
+    expect(uncapitalize('A')).toBe('a')
   })
 
   test('multiple characters', () => {
-    expect(lowerCase('Hello')).toBe('hello')
+    expect(uncapitalize('Hello')).toBe('hello')
   })
 
   test('does not modify already lower case string', () => {
-    expect(lowerCase('hello')).toBe('hello')
+    expect(uncapitalize('hello')).toBe('hello')
   })
 
   test('only lowercases the first character', () => {
-    expect(lowerCase('HelloWorld')).toBe('helloWorld')
+    expect(uncapitalize('HelloWorld')).toBe('helloWorld')
   })
 })

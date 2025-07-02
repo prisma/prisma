@@ -1,4 +1,4 @@
-import { lowerCase, RuntimeDataModel, RuntimeModel } from '@prisma/client-common'
+import { RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
 import { assertNever } from '@prisma/internals'
 
 import { ErrorFormat } from '../../getPrismaClient'
@@ -517,7 +517,7 @@ class SerializeContext {
 
   getGlobalOmit(): Record<string, boolean> {
     if (this.params.modelName && this.shouldApplyGlobalOmit()) {
-      return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
+      return this.params.globalOmit?.[uncapitalize(this.params.modelName)] ?? {}
     }
     return {}
   }

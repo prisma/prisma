@@ -22,6 +22,7 @@ import type {
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
 } from '@prisma/driver-adapter-utils'
+import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { version as clientVersion } from '../../../../../package.json'
@@ -224,6 +225,7 @@ export class ClientEngine implements Engine<undefined> {
       },
       tracingHelper: this.tracingHelper,
       onQuery: this.#emitQueryEvent,
+      provider: this.config.activeProvider as ActiveConnectorType | undefined,
     })
   }
 
@@ -469,6 +471,7 @@ export class ClientEngine implements Engine<undefined> {
         placeholderValues,
         onQuery: this.#emitQueryEvent,
         tracingHelper: this.tracingHelper,
+        provider: this.config.activeProvider as ActiveConnectorType | undefined,
       })
       const result = await interpreter.run(queryPlan, queryable)
 
