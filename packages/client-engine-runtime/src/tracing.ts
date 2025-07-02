@@ -1,7 +1,8 @@
 import { type Context, type Span, SpanKind, type SpanOptions } from '@opentelemetry/api'
-import type { Provider, SqlQuery, SqlQueryable } from '@prisma/driver-adapter-utils'
+import type { SqlQuery } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from './events'
+import type { SchemaProvider } from './schema'
 import { assertNever } from './utils'
 
 export type SpanCallback<R> = (span?: Span, context?: Context) => R
@@ -21,16 +22,19 @@ export const noopTracingHelper: TracingHelper = {
   },
 }
 
-export function providerToOtelSystem(provider: Provider): string {
+export function providerToOtelSystem(provider: SchemaProvider): string {
   switch (provider) {
+    case 'postgresql':
     case 'postgres':
+    case 'prisma+postgres':
       return 'postgresql'
-    case 'mysql':
-      return 'mysql'
-    case 'sqlite':
-      return 'sqlite'
     case 'sqlserver':
       return 'mssql'
+    case 'mysql':
+    case 'sqlite':
+    case 'cockroachdb':
+    case 'mongodb':
+      return provider
     default:
       assertNever(provider, `Unknown provider: ${provider}`)
   }
@@ -38,14 +42,14 @@ export function providerToOtelSystem(provider: Provider): string {
 
 export async function withQuerySpanAndEvent<T>({
   query,
-  queryable,
   tracingHelper,
+  provider,
   onQuery,
   execute,
 }: {
   query: SqlQuery
-  queryable: SqlQueryable
   tracingHelper: TracingHelper
+  provider: SchemaProvider
   onQuery?: (event: QueryEvent) => void
   execute: () => Promise<T>
 }): Promise<T> {
@@ -55,7 +59,7 @@ export async function withQuerySpanAndEvent<T>({
       kind: SpanKind.CLIENT,
       attributes: {
         'db.query.text': query.sql,
-        'db.system.name': providerToOtelSystem(queryable.provider),
+        'db.system.name': providerToOtelSystem(provider),
       },
     },
     async () => {

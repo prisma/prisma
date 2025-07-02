@@ -290,10 +290,9 @@ testMatrix.setupTestSuite(
         if (provider === Providers.SQLSERVER) {
           return dbSystem === 'mssql'
         }
-        if (driverAdapter === 'js_pg_cockroachdb') {
+        if (driverAdapter === 'js_pg_cockroachdb' && engineType !== ClientEngineType.Client) {
           return dbSystem === 'postgresql'
         }
-
         return dbSystem === provider
       })
     }

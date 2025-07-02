@@ -28,8 +28,8 @@ export type BuildWasmModuleOptions = {
  */
 export function buildDynamicRequireFn() {
   return `const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof __non_webpack_require__ === 'function'
-        ? Promise.resolve(__non_webpack_require__(name))
+      typeof globalThis.__non_webpack_require__ === 'function'
+        ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ name)`
 }
 

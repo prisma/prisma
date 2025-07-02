@@ -15,8 +15,8 @@ importers:
         specifier: 3.3.0
         version: 3.3.0
       '@eslint/js':
-        specifier: 9.19.0
-        version: 9.19.0
+        specifier: 9.30.0
+        version: 9.30.0
       '@microsoft/api-extractor':
         specifier: 7.52.1
         version: 7.52.1(@types/node@18.19.76)
@@ -208,7 +208,7 @@ importers:
         version: link:../driver-adapter-utils
       better-sqlite3:
         specifier: '>= ^11.9.0 < 12'
-        version: 11.9.1
+        version: 11.10.0
     devDependencies:
       '@types/better-sqlite3':
         specifier: 7.6.12
@@ -453,8 +453,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1
       '@modelcontextprotocol/sdk':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.13.2
+        version: 1.13.2
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
@@ -723,8 +723,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -750,11 +750,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-compiler-wasm':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/query-engine-wasm':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -852,8 +852,8 @@ importers:
         specifier: 3.4.0
         version: 3.4.0
       memfs:
-        specifier: 4.17.0
-        version: 4.17.0
+        specifier: 4.17.2
+        version: 4.17.2
       mssql:
         specifier: 11.0.1
         version: 11.0.1
@@ -995,8 +995,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1078,8 +1078,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1219,8 +1219,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1256,8 +1256,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1602,11 +1602,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/schema-engine-wasm':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1780,8 +1780,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -1910,8 +1910,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
-        version: 6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173
+        specifier: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
+        version: 6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
@@ -1933,8 +1933,8 @@ importers:
   packages/type-benchmark-tests:
     dependencies:
       '@ark/attest':
-        specifier: 0.45.11
-        version: 0.45.11(typescript@5.8.2)
+        specifier: 0.48.2
+        version: 0.48.2(typescript@5.8.2)
 
 packages:
 
@@ -1946,23 +1946,20 @@ packages:
     resolution: {integrity: sha512-2aDL3WUv8hMJb2L3r/PIQWsTLyq7RQr3v9xD16fiz6O8ys1xEyLhhTOv8gxtZvJiTzjTF5pHoArvRdesGL1DMQ==}
     hasBin: true
 
-  '@ark/attest@0.45.11':
-    resolution: {integrity: sha512-1qGdE/ZlY8sf1IfQTSo8zlRi0sNH9mqqGsAYA4scKJugJ2JQ4Yl/B3bztnRW0Z6XdDrhCvPmtH4mcqVnnd84jQ==}
+  '@ark/attest@0.48.2':
+    resolution: {integrity: sha512-3k+PRxQSXk55Dqhghg+B+Ftpk+le+s2TBJpFoFRBseTOL0FNjZmXFuy9ZNBXCTGVT7nAUDBZrcmz+AAMQNr+Bw==}
     hasBin: true
     peerDependencies:
       typescript: '*'
 
-  '@ark/fs@0.45.10':
-    resolution: {integrity: sha512-xHHaLk77d3V7K1ZcJKgOJanmSfinezG/J8zVZ2/sx/mIOgjzMY3wPD6BQsQerlGtP4W34GrcCczhjfr8QfGyyg==}
+  '@ark/fs@0.46.0':
+    resolution: {integrity: sha512-lBW6Vv6dZ74Gcc+zvJP8gjZACMo5o6hEuOvAtX6EJ5xNYBmX7nrXQaDdRfQNGDzgaX5UHGqi/vxk5moK94K7Yw==}
 
-  '@ark/schema@0.45.9':
-    resolution: {integrity: sha512-rG0v/JI0sibn/0wERAHTYVLCtEqoMP2IIlxnb+S5DrEjCI5wpubbZSWMDW50tZ8tV6FANu6zzHDeeKbp6lsZdg==}
+  '@ark/schema@0.46.0':
+    resolution: {integrity: sha512-c2UQdKgP2eqqDArfBqQIJppxJHvNNXuQPeuSPlDML4rjw+f1cu0qAlzOG4b8ujgm9ctIDWwhpyw6gjG5ledIVQ==}
 
-  '@ark/util@0.45.10':
-    resolution: {integrity: sha512-O0tI/nCCOsTqnT0Vcunz97o66EROOXc0BOAVzBxurYkgU+Pp5I2nCaj0sRPQ1y9UCwaCwkW8qS7VTJYUTicGzg==}
-
-  '@ark/util@0.45.9':
-    resolution: {integrity: sha512-0WYNAb8aRGp7dNt6xIvIrRzL7V1XL3u3PK2vcklhtTrdaP235DjC9qJhzidrxtWr68mA5ySSjUrgrXk622bKkw==}
+  '@ark/util@0.46.0':
+    resolution: {integrity: sha512-JPy/NGWn/lvf1WmGCPw2VGpBg5utZraE84I7wli18EDF3p3zc/e9WolT35tINeZO3l7C77SjqRJeAUoT0CvMRg==}
 
   '@azure/abort-controller@1.1.0':
     resolution: {integrity: sha512-TrRLIoSQVzfAJX9H1JeFjzAoDGcoK1IYX1UImfceTZpsyYfWr09Ss1aHW1y5TrrR3iq6RZLBwJ3E24uwPhwahw==}
@@ -2615,12 +2612,12 @@ packages:
     resolution: {integrity: sha512-yaVPAiNAalnCZedKLdR21GOGILMLKPyqSLWaAjQFvYA2i/ciDi8ArYVr69Anohb6cH2Ukhqti4aFnYyPm8wdwQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@eslint/js@9.19.0':
-    resolution: {integrity: sha512-rbq9/g38qjfqFLOVPvwjIvFFdNziEC5S65jmjPw5r6A//QH+W91akh9irMwjDN8zKUTak6W9EsAv4m/7Wnw0UQ==}
-    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
-
   '@eslint/js@9.22.0':
     resolution: {integrity: sha512-vLFajx9o8d1/oL2ZkpMYbkLv8nDB6yaIwFNt7nI4+I80U/z03SxmfOMsLbvWr3p7C+Wnoh//aOu2pQW8cS0HCQ==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@eslint/js@9.30.0':
+    resolution: {integrity: sha512-Wzw3wQwPvc9sHM+NjakWTcPx11mbZyiYHuwWa/QfZ7cIRX7WK54PSk7bdyXDaoaopUcMatv1zaQvOAAO8hCdww==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
   '@eslint/object-schema@2.1.6':
@@ -3032,20 +3029,20 @@ packages:
   '@js-joda/core@5.6.3':
     resolution: {integrity: sha512-T1rRxzdqkEXcou0ZprN1q9yDRlvzCPLqmlNt5IIsGBzoEVgLCCYrKEwc84+TvsXuAc95VAZwtWD2zVsKPY4bcA==}
 
-  '@jsonjoy.com/base64@1.1.1':
-    resolution: {integrity: sha512-LnFjVChaGY8cZVMwAIMjvA1XwQjZ/zIXHyh28IyJkyNkzof4Dkm1+KN9UIm3lHhREH4vs7XwZ0NpkZKnwOtEfg==}
+  '@jsonjoy.com/base64@1.1.2':
+    resolution: {integrity: sha512-q6XAnWQDIMA3+FTiOYajoYqySkO+JSat0ytXGSuRdq9uXE7o92gzuQwQM14xaCRlBLGq3v5miDGC4vkVTn54xA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/json-pack@1.0.3':
-    resolution: {integrity: sha512-Q0SPAdmK6s5Fe3e1kcNvwNyk6e2+CxM8XZdGbf4abZG7nUO05KSie3/iX29loTBuY+75uVP6RixDSPVpotfzmQ==}
+  '@jsonjoy.com/json-pack@1.2.0':
+    resolution: {integrity: sha512-io1zEbbYcElht3tdlqEOFxZ0dMTYrHz9iMf0gqn1pPjZFTCgM5R4R5IMA20Chb2UPYYsxjzs8CgZ7Nb5n2K2rA==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
 
-  '@jsonjoy.com/util@1.5.0':
-    resolution: {integrity: sha512-ojoNsrIuPI9g6o8UxhraZQSyF2ByJanAY4cTFbc8Mf2AXEF4aQRGY1dJxyJpuyav8r9FGflEt/Ff3u5Nt6YMPA==}
+  '@jsonjoy.com/util@1.6.0':
+    resolution: {integrity: sha512-sw/RMbehRhN68WRtcKCpQOPfnH6lLP4GJfqzi3iYej8tnzpZUDr6UkZYJjcjjC0FWEJOJbyM3PTIwxucUmDG2A==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -3120,8 +3117,8 @@ packages:
   '@microsoft/tsdoc@0.15.1':
     resolution: {integrity: sha512-4aErSrCR/On/e5G2hDP0wjooqDdauzEbIq8hIkIe5pXV0rtWJZvdCEKL0ykZxex+IxIwBp0eGeV48hQN07dXtw==}
 
-  '@modelcontextprotocol/sdk@1.7.0':
-    resolution: {integrity: sha512-IYPe/FLpvF3IZrd/f5p5ffmWhMc3aEMuM2wGJASDqC2Ge7qatVCdbfPx3n/5xFeb19xN0j/911M2AaFuircsWA==}
+  '@modelcontextprotocol/sdk@1.13.2':
+    resolution: {integrity: sha512-Vx7qOcmoKkR3qhaQ9qf3GxiVKCEu+zfJddHv6x3dY/9P6+uIwJnmuAur5aB+4FDXf41rRrDnOEGkviX5oYZ67w==}
     engines: {node: '>=18'}
 
   '@mongodb-js/saslprep@1.2.2':
@@ -3325,25 +3322,25 @@ packages:
     peerDependencies:
       prettier: '*'
 
-  '@prisma/engines-version@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173':
-    resolution: {integrity: sha512-M3vbyDICFIA1oJl0cFkM0omD4HsJZjFi0hu0f0UxyPABH8KEcZyUd5BToCrNl4B8lUeQn+L5+gfaQleOKp6Lrg==}
+  '@prisma/engines-version@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4':
+    resolution: {integrity: sha512-Fx9iFuutd6lRGGinxpmLKIudDnyKnWtmgTg43pTuX2nbE5CtvBkwI81W4Paq893Cl5hhOxMOF5xOgjkF4MPCIA==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173':
-    resolution: {integrity: sha512-gEDvKvw7jucw30jdA2It83QnpG3Cf3BE/o79xORXePHXo5TEGSDojjUG3aW2kXZPTJf9bL/B9j/eZ0x+IczwbQ==}
+  '@prisma/prisma-schema-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4':
+    resolution: {integrity: sha512-0mRK6nGcTELt+FHoEDgyLkctJDqyYsDnxmHWkqOTulYF4JvTgdJHCYtTZVljMKkkfoPYnLw94iFmkh47UCK4zw==}
 
-  '@prisma/query-compiler-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173':
-    resolution: {integrity: sha512-JL7T5fc9wJn5Z+VyegkrcOpYI5aLtqvlRmtSE6hfXelFq8AzRSt0ac7xykZaqI8vZzYFhJkIFIEHJ3PqYHbZhg==}
+  '@prisma/query-compiler-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4':
+    resolution: {integrity: sha512-ok+pW4+arx4jBGfwlTM2R3SFW0QYhYm7/ud7nGje5quQ9bQfkJYz9izVnKmHnnUcs1nOwckvB2/hnjQR6Kmvdg==}
 
-  '@prisma/query-engine-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173':
-    resolution: {integrity: sha512-X1S7yYn8JR96jhhIEUhClLkn+bK0IBPPJ6e3rpxs4mBV262UBoKMEu2WUaftp6dZeVHQ+zTjnPNAaz651N7QAA==}
+  '@prisma/query-engine-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4':
+    resolution: {integrity: sha512-5FXJaxnG01yCTV0O/ZFgtoOzokwYyY4lcp8md29rHpoyBEGVFPZZ8BnBXqFiKQPx1BK9EcUsUsEWlBQBmj0rpg==}
 
-  '@prisma/schema-engine-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173':
-    resolution: {integrity: sha512-HEf0ZVVjpJV8DdkAJXWbcHd5Bv3DmgkTniil8JRCHTKFmFel3ci53WJjLh5CaR0PziFa0W2BKlBC6hUXxscWdw==}
+  '@prisma/schema-engine-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4':
+    resolution: {integrity: sha512-AMKIEunckwLrniUgtEW4w8QgtKKC5eSywmahmeFpnzMy6bb/NVaA5YhIwFNZ7O+Xz8gXVTxEprbUWOZoUJO7CA==}
 
   '@prisma/studio-common@0.511.0':
     resolution: {integrity: sha512-oYpLFPvNVF66F5lgZL7allwCkHe8u0mFSV+yB34uTfJOXZXp+eDFN6Wo8FCX2ztcahCLXNMs0h4IdcMCeXFoxw==}
@@ -4210,8 +4207,8 @@ packages:
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
-  arktype@2.1.19:
-    resolution: {integrity: sha512-notORSuTSpfLV7rq0kYC4mTgIVlVR0xQuvtFxOaE9aKiXyON/kgoIBwZZcKeSSb4BebNcfJoGlxJicAUl/HMdw==}
+  arktype@2.1.20:
+    resolution: {integrity: sha512-IZCEEXaJ8g+Ijd59WtSYwtjnqXiwM8sWQ5EjGamcto7+HVN9eK0C4p0zDlCuAwWhpqr6fIBkxPuYDl4/Mcj/+Q==}
 
   array-flatten@1.1.1:
     resolution: {integrity: sha512-PCVAQswWemu6UdxsDFFX/+gVeYqKAod3D3UVm91jHwynguOwAvYPhx8nNlM++NqRcK6CxxpUafjmhIdKiHibqg==}
@@ -4298,8 +4295,8 @@ packages:
   benchmark@2.1.4:
     resolution: {integrity: sha512-l9MlfN4M1K/H2fbhfMy3B7vJd6AGKJVQn2h6Sg/Yx+KckoUA7ewS5Vv6TjSq18ooE1kS9hhAlQRH3AkXIh/aOQ==}
 
-  better-sqlite3@11.9.1:
-    resolution: {integrity: sha512-Ba0KR+Fzxh2jDRhdg6TSH0SJGzb8C0aBY4hR8w8madIdIzzC6Y1+kx5qR6eS1Z+Gy20h6ZU28aeyg0z1VIrShQ==}
+  better-sqlite3@11.10.0:
+    resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -4917,6 +4914,10 @@ packages:
 
   escalade@3.1.1:
     resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
+    engines: {node: '>=6'}
+
+  escalade@3.2.0:
+    resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
 
   escape-html@1.0.3:
@@ -6209,8 +6210,8 @@ packages:
     resolution: {integrity: sha512-aisnrDP4GNe06UcKFnV5bfMNPBUw4jsLGaWwWfnH3v02GnBuXX2MCVn5RbrWo0j3pczUilYblq7fQ7Nw2t5XKw==}
     engines: {node: '>= 0.8'}
 
-  memfs@4.17.0:
-    resolution: {integrity: sha512-4eirfZ7thblFmqFjywlTmuWVSvccHAJbn1r8qQLzmTO11qcqpohOjmY2mFce6x7x7WtskzRqApPD0hv+Oa74jg==}
+  memfs@4.17.2:
+    resolution: {integrity: sha512-NgYhCOWgovOXSzvYgUW0LQ7Qy72rWQMGGFJDoWg4G30RHd3z77VbYdtJ4fembJXBy8pMIUA31XNAupobOQlwdg==}
     engines: {node: '>= 4.0.0'}
 
   memory-pager@1.5.0:
@@ -6832,8 +6833,8 @@ packages:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
 
-  pkce-challenge@4.1.0:
-    resolution: {integrity: sha512-ZBmhE1C9LcPoH9XZSdwiPtbPHZROwAnMy+kIFQVrnMCxY4Cudlz3gBOpzilgc0jOgRaiT3sIWfpMomW2ar2orQ==}
+  pkce-challenge@5.0.0:
+    resolution: {integrity: sha512-ueGLflrrnvwB3xuo/uGob5pd5FN7l0MsLf0Z87o/UQmRtwjvfylfc9MurIxRAWywCYTgrvpXBcqjV4OfCYGCIQ==}
     engines: {node: '>=16.20.0'}
 
   pkg-dir@4.2.0:
@@ -7049,6 +7050,10 @@ packages:
 
   readable-stream@3.6.0:
     resolution: {integrity: sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA==}
+    engines: {node: '>= 6'}
+
+  readable-stream@3.6.2:
+    resolution: {integrity: sha512-9u/sniCrY3D5WdsERHzHE4G2YCXqoG5FTHUiCC4SIbr6XcLZBY05ya9EKjYek9O5xOAwjGq+1JdGBAS7Q9ScoA==}
     engines: {node: '>= 6'}
 
   readable-stream@4.4.2:
@@ -7666,8 +7671,8 @@ packages:
     resolution: {integrity: sha512-hdF5ZgjTqgAntKkklYw0R03MG2x/bSzTtkxmIRw/sTNV8YXsCJ1tfLAX23lhxhHJlEf3CRCOCGGWw3vI3GaSPw==}
     engines: {node: '>=18'}
 
-  tree-dump@1.0.1:
-    resolution: {integrity: sha512-WCkcRBVPSlHHq1dc/px9iOfqklvzCbdRwvlNfxGZsrHqf6aZttfPrd7DJTt6oR10dwUfpFFQeVTkPbBIZxX/YA==}
+  tree-dump@1.0.3:
+    resolution: {integrity: sha512-il+Cv80yVHFBwokQSfd4bldvr1Md951DpgAGfmhydt04L+YzHgubm2tQ7zueWDcGENKHq0ZvGFR/hjvNXilHEg==}
     engines: {node: '>=10.0'}
     peerDependencies:
       tslib: '2'
@@ -8244,28 +8249,26 @@ snapshots:
 
   '@antfu/ni@0.21.12': {}
 
-  '@ark/attest@0.45.11(typescript@5.8.2)':
+  '@ark/attest@0.48.2(typescript@5.8.2)':
     dependencies:
-      '@ark/fs': 0.45.10
-      '@ark/util': 0.45.10
+      '@ark/fs': 0.46.0
+      '@ark/util': 0.46.0
       '@prettier/sync': 0.5.5(prettier@3.5.3)
       '@typescript/analyze-trace': 0.10.1
       '@typescript/vfs': 1.6.1(typescript@5.8.2)
-      arktype: 2.1.19
+      arktype: 2.1.20
       prettier: 3.5.3
       typescript: 5.8.2
     transitivePeerDependencies:
       - supports-color
 
-  '@ark/fs@0.45.10': {}
+  '@ark/fs@0.46.0': {}
 
-  '@ark/schema@0.45.9':
+  '@ark/schema@0.46.0':
     dependencies:
-      '@ark/util': 0.45.9
+      '@ark/util': 0.46.0
 
-  '@ark/util@0.45.10': {}
-
-  '@ark/util@0.45.9': {}
+  '@ark/util@0.46.0': {}
 
   '@azure/abort-controller@1.1.0':
     dependencies:
@@ -8879,9 +8882,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@eslint/js@9.19.0': {}
-
   '@eslint/js@9.22.0': {}
+
+  '@eslint/js@9.30.0': {}
 
   '@eslint/object-schema@2.1.6': {}
 
@@ -9414,21 +9417,21 @@ snapshots:
 
   '@js-joda/core@5.6.3': {}
 
-  '@jsonjoy.com/base64@1.1.1(tslib@2.6.3)':
+  '@jsonjoy.com/base64@1.1.2(tslib@2.8.1)':
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
-  '@jsonjoy.com/json-pack@1.0.3(tslib@2.6.3)':
+  '@jsonjoy.com/json-pack@1.2.0(tslib@2.8.1)':
     dependencies:
-      '@jsonjoy.com/base64': 1.1.1(tslib@2.6.3)
-      '@jsonjoy.com/util': 1.5.0(tslib@2.6.3)
+      '@jsonjoy.com/base64': 1.1.2(tslib@2.8.1)
+      '@jsonjoy.com/util': 1.6.0(tslib@2.8.1)
       hyperdyperid: 1.2.0
-      thingies: 1.21.0(tslib@2.6.3)
-      tslib: 2.6.3
+      thingies: 1.21.0(tslib@2.8.1)
+      tslib: 2.8.1
 
-  '@jsonjoy.com/util@1.5.0(tslib@2.6.3)':
+  '@jsonjoy.com/util@1.6.0(tslib@2.8.1)':
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   '@libsql/client@0.8.0':
     dependencies:
@@ -9547,14 +9550,16 @@ snapshots:
 
   '@microsoft/tsdoc@0.15.1': {}
 
-  '@modelcontextprotocol/sdk@1.7.0':
+  '@modelcontextprotocol/sdk@1.13.2':
     dependencies:
+      ajv: 6.12.6
       content-type: 1.0.5
       cors: 2.8.5
+      cross-spawn: 7.0.6
       eventsource: 3.0.6
       express: 5.1.0
       express-rate-limit: 7.5.0(express@5.1.0)
-      pkce-challenge: 4.1.0
+      pkce-challenge: 5.0.0
       raw-body: 3.0.0
       zod: 3.24.2
       zod-to-json-schema: 3.24.5(zod@3.24.2)
@@ -9756,17 +9761,17 @@ snapshots:
       make-synchronized: 0.4.2
       prettier: 3.5.3
 
-  '@prisma/engines-version@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173': {}
+  '@prisma/engines-version@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173': {}
+  '@prisma/prisma-schema-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4': {}
 
-  '@prisma/query-compiler-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173': {}
+  '@prisma/query-compiler-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4': {}
 
-  '@prisma/query-engine-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173': {}
+  '@prisma/query-engine-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4': {}
 
-  '@prisma/schema-engine-wasm@6.11.0-18.9c30299f5a0ea26a96790e13f796dc6094db3173': {}
+  '@prisma/schema-engine-wasm@6.12.0-2.c717abe28d5e8e01b58d43e0c0134630791630c4': {}
 
   '@prisma/studio-common@0.511.0':
     dependencies:
@@ -9954,7 +9959,7 @@ snapshots:
   '@swc-node/sourcemap-support@0.5.1':
     dependencies:
       source-map-support: 0.5.21
-      tslib: 2.8.1
+      tslib: 2.6.3
 
   '@swc/core-darwin-arm64@1.11.5':
     optional: true
@@ -10748,12 +10753,12 @@ snapshots:
   are-we-there-yet@2.0.0:
     dependencies:
       delegates: 1.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   are-we-there-yet@3.0.1:
     dependencies:
       delegates: 1.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
     optional: true
 
   arg@4.1.3: {}
@@ -10766,10 +10771,10 @@ snapshots:
 
   argparse@2.0.1: {}
 
-  arktype@2.1.19:
+  arktype@2.1.20:
     dependencies:
-      '@ark/schema': 0.45.9
-      '@ark/util': 0.45.9
+      '@ark/schema': 0.46.0
+      '@ark/util': 0.46.0
 
   array-flatten@1.1.1: {}
 
@@ -10878,7 +10883,7 @@ snapshots:
       lodash: 4.17.21
       platform: 1.3.6
 
-  better-sqlite3@11.9.1:
+  better-sqlite3@11.10.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3
@@ -10891,7 +10896,7 @@ snapshots:
     dependencies:
       buffer: 5.7.1
       inherits: 2.0.4
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   bl@6.0.12:
     dependencies:
@@ -11529,6 +11534,8 @@ snapshots:
       '@esbuild/win32-x64': 0.25.1
 
   escalade@3.1.1: {}
+
+  escalade@3.2.0: {}
 
   escape-html@1.0.3: {}
 
@@ -13240,12 +13247,12 @@ snapshots:
 
   media-typer@1.1.0: {}
 
-  memfs@4.17.0:
+  memfs@4.17.2:
     dependencies:
-      '@jsonjoy.com/json-pack': 1.0.3(tslib@2.6.3)
-      '@jsonjoy.com/util': 1.5.0(tslib@2.6.3)
-      tree-dump: 1.0.1(tslib@2.6.3)
-      tslib: 2.6.3
+      '@jsonjoy.com/json-pack': 1.2.0(tslib@2.8.1)
+      '@jsonjoy.com/util': 1.6.0(tslib@2.8.1)
+      tree-dump: 1.0.3(tslib@2.8.1)
+      tslib: 2.8.1
 
   memory-pager@1.5.0: {}
 
@@ -13855,7 +13862,7 @@ snapshots:
 
   pirates@4.0.6: {}
 
-  pkce-challenge@4.1.0: {}
+  pkce-challenge@5.0.0: {}
 
   pkg-dir@4.2.0:
     dependencies:
@@ -14067,6 +14074,12 @@ snapshots:
       util-deprecate: 1.0.2
 
   readable-stream@3.6.0:
+    dependencies:
+      inherits: 2.0.4
+      string_decoder: 1.3.0
+      util-deprecate: 1.0.2
+
+  readable-stream@3.6.2:
     dependencies:
       inherits: 2.0.4
       string_decoder: 1.3.0
@@ -14459,7 +14472,7 @@ snapshots:
 
   split2@3.2.2:
     dependencies:
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   split2@4.2.0: {}
 
@@ -14712,13 +14725,13 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  thingies@1.21.0(tslib@2.6.3):
+  thingies@1.21.0(tslib@2.8.1):
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   through2@4.0.2:
     dependencies:
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   timeout-signal@2.0.0: {}
 
@@ -14773,9 +14786,9 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  tree-dump@1.0.1(tslib@2.6.3):
+  tree-dump@1.0.3(tslib@2.8.1):
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   treeify@1.1.0: {}
 
@@ -15509,7 +15522,7 @@ snapshots:
   yargs@16.2.0:
     dependencies:
       cliui: 7.0.4
-      escalade: 3.1.1
+      escalade: 3.2.0
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3
