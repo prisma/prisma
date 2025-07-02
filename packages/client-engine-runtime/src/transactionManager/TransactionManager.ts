@@ -1,8 +1,10 @@
 import { Debug } from '@prisma/debug'
-import { SqlDriverAdapter, SqlQuery, Transaction } from '@prisma/driver-adapter-utils'
+import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
 import { randomUUID } from '../crypto'
-import { TracingHelper } from '../tracing'
+import { QueryEvent } from '../events'
+import type { SchemaProvider } from '../schema'
+import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
@@ -32,6 +34,17 @@ const debug = Debug('prisma:client:transactionManager')
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
 
+const PHANTOM_COMMIT_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "COMMIT" query via underlying driver',
+  args: [],
+  argTypes: [],
+})
+const PHANTOM_ROLLBACK_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "ROLLBACK" query via underlying driver',
+  args: [],
+  argTypes: [],
+})
+
 export class TransactionManager {
   // The map of active transactions.
   private transactions: Map<string, TransactionWrapper> = new Map()
@@ -41,19 +54,27 @@ export class TransactionManager {
   private readonly driverAdapter: SqlDriverAdapter
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
+  readonly #onQuery?: (event: QueryEvent) => void
+  readonly #provider?: SchemaProvider
 
   constructor({
     driverAdapter,
     transactionOptions,
     tracingHelper,
+    onQuery,
+    provider,
   }: {
     driverAdapter: SqlDriverAdapter
     transactionOptions: Options
     tracingHelper: TracingHelper
+    onQuery?: (event: QueryEvent) => void
+    provider?: SchemaProvider
   }) {
     this.driverAdapter = driverAdapter
     this.transactionOptions = transactionOptions
     this.tracingHelper = tracingHelper
+    this.#onQuery = onQuery
+    this.#provider = provider
   }
 
   async startTransaction(options?: Options): Promise<TransactionInfo> {
@@ -74,23 +95,21 @@ export class TransactionManager {
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait!)
+    const startTimer = setTimeout(() => (transaction.status = 'timed_out'), validatedOptions.maxWait!)
 
-    const startedTransaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+    transaction.transaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+
+    clearTimeout(startTimer)
 
     // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        transaction.transaction = startedTransaction
-        clearTimeout(transaction.timer)
-        transaction.timer = undefined
         transaction.status = 'running'
-
         // Start timeout to wait for transaction to be finished.
         transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
-
         return { id: transaction.id }
       case 'timed_out':
+        await this.closeTransaction(transaction, 'timed_out')
         throw new TransactionStartTimeoutError()
       case 'running':
       case 'committed':
@@ -185,27 +204,34 @@ export class TransactionManager {
 
     tx.status = status
 
-    if (tx.transaction && status === 'committed') {
-      await tx.transaction.commit()
-
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(COMMIT_QUERY())
+    try {
+      if (tx.transaction && status === 'committed') {
+        if (tx.transaction.options.usePhantomQuery) {
+          await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
+        } else {
+          const query = COMMIT_QUERY()
+          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+          await tx.transaction.commit()
+        }
+      } else if (tx.transaction) {
+        if (tx.transaction.options.usePhantomQuery) {
+          await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
+        } else {
+          const query = ROLLBACK_QUERY()
+          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+          await tx.transaction.rollback()
+        }
       }
-    } else if (tx.transaction) {
-      await tx.transaction.rollback()
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(ROLLBACK_QUERY())
+    } finally {
+      clearTimeout(tx.timer)
+      tx.timer = undefined
+
+      this.transactions.delete(tx.id)
+
+      this.closedTransactions.push(tx)
+      if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
+        this.closedTransactions.shift()
       }
-    }
-
-    clearTimeout(tx.timer)
-    tx.timer = undefined
-
-    this.transactions.delete(tx.id)
-
-    this.closedTransactions.push(tx)
-    if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
-      this.closedTransactions.shift()
     }
   }
 
@@ -222,5 +248,15 @@ export class TransactionManager {
       timeout: options.timeout,
       maxWait: options.maxWait,
     }
+  }
+
+  #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+    return withQuerySpanAndEvent({
+      query,
+      execute,
+      provider: this.#provider ?? queryable.provider,
+      tracingHelper: this.tracingHelper,
+      onQuery: this.#onQuery,
+    })
   }
 }

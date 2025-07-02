@@ -20,46 +20,51 @@ jest.retryTimes(3)
  * Reproduction for issue #9678
  */
 testMatrix.setupTestSuite(
-  ({ provider }) => {
-    test('concurrent deleteMany/createMany', async () => {
-      const MAX_RETRIES = 5
-      let hasRetried = false
-      const fn = async () => {
-        for (let retries = 0; retries < MAX_RETRIES; retries++) {
-          let result
-          try {
-            result = await prisma.$transaction(
-              [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
-              {
-                isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-              },
-            )
-          } catch (e) {
-            // P2034 = Transaction failed due to a write conflict or a deadlock. Please retry your transaction
-            if (e.code === 'P2034') {
-              hasRetried = true
-              continue
+  ({ provider, driverAdapter, engineType }) => {
+    // TODO: crashes the database when used with js_planetscale driver adapter
+    // TODO: can also randomly hang for mssql
+    testIf(!(engineType === 'client' && (driverAdapter === 'js_planetscale' || driverAdapter === 'js_mssql')))(
+      'concurrent deleteMany/createMany',
+      async () => {
+        const MAX_RETRIES = 5
+        let hasRetried = false
+        const fn = async () => {
+          for (let retries = 0; retries < MAX_RETRIES; retries++) {
+            let result
+            try {
+              result = await prisma.$transaction(
+                [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
+                {
+                  isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+                },
+              )
+            } catch (e) {
+              // P2034 = Transaction failed due to a write conflict or a deadlock. Please retry your transaction
+              if (e.code === 'P2034') {
+                hasRetried = true
+                continue
+              }
+              throw e
             }
-            throw e
+            return result
           }
-          return result
         }
-      }
 
-      // FIXME: Potentially flaky test case
-      await Promise.all([fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn()])
-      // Before https://github.com/prisma/prisma-engines/pull/4249
-      // The expectation for all providers that `hasRetried` would be set as `true`
-      // It has changed for MySQL and SQL Server only
-      // and also for cockroachdb, but not deterministic
-      if (provider === Providers.COCKROACHDB) {
-        // no expectation, it looks flaky
-      } else if (provider === Providers.MYSQL || provider === Providers.SQLSERVER) {
-        expect(hasRetried).toBe(false)
-      } else {
-        expect(hasRetried).toBe(true)
-      }
-    })
+        // FIXME: Potentially flaky test case
+        await Promise.all([fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn()])
+        // Before https://github.com/prisma/prisma-engines/pull/4249
+        // The expectation for all providers that `hasRetried` would be set as `true`
+        // It has changed for MySQL and SQL Server only
+        // and also for cockroachdb, but not deterministic
+        if (provider === Providers.COCKROACHDB) {
+          // no expectation, it looks flaky
+        } else if (provider === Providers.MYSQL || provider === Providers.SQLSERVER) {
+          expect(hasRetried).toBe(false)
+        } else {
+          expect(hasRetried).toBe(true)
+        }
+      },
+    )
   },
   {
     optOut: {

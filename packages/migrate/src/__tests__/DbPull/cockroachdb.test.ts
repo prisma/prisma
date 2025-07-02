@@ -1,37 +1,18 @@
-// describeIf is making eslint unhappy about the test names
-
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { cockroachdbOnly, describeMatrix } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const ctx = createDefaultTestContext()
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-
-describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
@@ -71,9 +52,45 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with cockroachdb provider)', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url      = env("TEST_COCKROACH_URI_MIGRATE")
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -81,7 +98,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with postgresql provider) should fail', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
@@ -94,9 +111,45 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (no schema) --url', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url      = "postgresql://prisma@localhost:26257/tests-migrate-db-pull-cockroachdb"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -104,9 +157,45 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   test('basic introspection (with cockroach provider) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url      = "postgresql://prisma@localhost:26257/tests-migrate-db-pull-cockroachdb"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -116,14 +205,17 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--url', setupParams.connectionString, '--schema', 'with-postgresql-provider.prisma'],
-      defaultTestConfig(),
+      await ctx.config(),
     )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "You are trying to connect to a CockroachDB database, but the provider in your Prisma schema is \`postgresql\`. Please change it to \`cockroachdb\`.
 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

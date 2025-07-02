@@ -9,4 +9,5 @@ export const process: Partial<NodeJS.Process> = {
   cwd: () => '/',
   stderr: {} as any,
   argv: ['/bin/node'],
+  pid: 10000,
 }

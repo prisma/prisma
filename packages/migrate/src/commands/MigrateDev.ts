@@ -130,7 +130,7 @@ ${bold('Examples')}
       devDiagnostic = await migrate.devDiagnostic()
       debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -147,7 +147,7 @@ ${bold('Examples')}
           `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
           `${bold(red('All data will be lost.'))}\n`,
       )
-      migrate.stop()
+      await migrate.stop()
       // Return SIGINT exit code to signal that the process was cancelled.
       process.exit(130)
     }
@@ -169,7 +169,7 @@ ${bold('Examples')}
         )
       }
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -178,7 +178,7 @@ ${bold('Examples')}
       evaluateDataLossResult = await migrate.evaluateDataLoss()
       debug({ evaluateDataLossResult })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -189,7 +189,7 @@ ${bold('Examples')}
       args['--create-only'],
     )
     if (unexecutableStepsError) {
-      migrate.stop()
+      await migrate.stop()
       throw new Error(unexecutableStepsError)
     }
 
@@ -203,7 +203,7 @@ ${bold('Examples')}
 
       if (!args['--force']) {
         if (!canPrompt()) {
-          migrate.stop()
+          await migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
 
@@ -218,7 +218,7 @@ ${bold('Examples')}
 
         if (!confirmation.value) {
           process.stdout.write('Migration cancelled.\n')
-          migrate.stop()
+          await migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
         }
@@ -231,7 +231,7 @@ ${bold('Examples')}
 
       if (getMigrationNameResult.userCancelled) {
         process.stdout.write(getMigrationNameResult.userCancelled + '\n')
-        migrate.stop()
+        await migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else {
@@ -249,7 +249,7 @@ ${bold('Examples')}
       debug({ createMigrationResult })
 
       if (args['--create-only']) {
-        migrate.stop()
+        await migrate.stop()
 
         return `Prisma Migrate created the following migration without applying it ${printMigrationId(
           createMigrationResult.generatedMigrationName!,
@@ -260,7 +260,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // For display only, empty line

@@ -3,8 +3,8 @@ import type { ArgType } from '@prisma/driver-adapter-utils'
 // Sanitize the query arguments before sending them to the database.
 export function cleanArg(arg: unknown, argType: ArgType): unknown {
   if (arg !== null) {
-    if (argType === 'Int64') {
-      const asInt56 = Number.parseInt(arg as string)
+    if (argType === 'Int64' || typeof arg === 'bigint') {
+      const asInt56 = Number.parseInt(`${arg}`)
       if (!Number.isSafeInteger(asInt56)) {
         throw new Error(`Invalid Int64-encoded value received: ${arg}`)
       }

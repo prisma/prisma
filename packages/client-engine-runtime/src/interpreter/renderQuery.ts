@@ -8,7 +8,7 @@ import type {
   PrismaValuePlaceholder,
   QueryPlanDbQuery,
 } from '../QueryPlan'
-import { isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
+import { isPrismaValueBigInt, isPrismaValueBytes, isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
 import { assertNever } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'
@@ -35,16 +35,16 @@ export function renderQuery(
   }
 }
 
-function evaluateParams(
-  params: PrismaValue[],
-  scope: ScopeBindings,
-  generators: GeneratorRegistrySnapshot,
-): PrismaValue[] {
+function evaluateParams(params: PrismaValue[], scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown[] {
   return params.map((param) => evaluateParam(param, scope, generators))
 }
 
-function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): PrismaValue {
-  let value = param
+export function evaluateParam(
+  param: PrismaValue,
+  scope: ScopeBindings,
+  generators: GeneratorRegistrySnapshot,
+): unknown {
+  let value: unknown = param
 
   while (doesRequireEvaluation(value)) {
     if (isPrismaValuePlaceholder(value)) {
@@ -52,7 +52,7 @@ function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: Gen
       if (found === undefined) {
         throw new Error(`Missing value for query variable ${value.prisma__value.name}`)
       }
-      value = found as PrismaValue
+      value = found
     } else if (isPrismaValueGenerator(value)) {
       const { name, args } = value.prisma__value
       const generator = generators[name]
@@ -67,19 +67,19 @@ function evaluateParam(param: PrismaValue, scope: ScopeBindings, generators: Gen
 
   if (Array.isArray(value)) {
     value = value.map((el) => evaluateParam(el, scope, generators))
+  } else if (isPrismaValueBytes(value)) {
+    value = Buffer.from(value.prisma__value, 'base64')
+  } else if (isPrismaValueBigInt(value)) {
+    value = BigInt(value.prisma__value)
   }
 
   return value
 }
 
-function renderTemplateSql(
-  fragments: Fragment[],
-  placeholderFormat: PlaceholderFormat,
-  params: PrismaValue[],
-): SqlQuery {
+function renderTemplateSql(fragments: Fragment[], placeholderFormat: PlaceholderFormat, params: unknown[]): SqlQuery {
   let paramIndex = 0
   let placeholderNumber = 1
-  const flattenedParams: PrismaValue[] = []
+  const flattenedParams: unknown[] = []
   const sql = fragments
     .map((fragment) => {
       const fragmentType = fragment.type
@@ -92,7 +92,7 @@ function renderTemplateSql(
           return formatPlaceholder(placeholderFormat, placeholderNumber++)
 
         case 'stringChunk':
-          return fragment.value
+          return fragment.chunk
 
         case 'parameterTuple': {
           if (paramIndex >= params.length) {
@@ -136,10 +136,10 @@ function renderTemplateSql(
                   flattenedParams.push(value)
                   return formatPlaceholder(placeholderFormat, placeholderNumber++)
                 })
-                .join(',')
-              return `(${elements})`
+                .join(fragment.itemSeparator)
+              return `${fragment.itemPrefix}${elements}${fragment.itemSuffix}`
             })
-            .join(',')
+            .join(fragment.groupSeparator)
           return tupleList
         }
 
@@ -156,7 +156,7 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
+function renderRawSql(sql: string, params: unknown[]): SqlQuery {
   const argTypes = params.map((param) => toArgType(param))
 
   return {
@@ -166,13 +166,7 @@ function renderRawSql(sql: string, params: PrismaValue[]): SqlQuery {
   }
 }
 
-function toArgType(value: PrismaValue): ArgType {
-  if (value === null) {
-    // TODO: either introduce Unknown or Null type in driver adapters,
-    // or change PrismaValue to be able to represent typed nulls.
-    return 'Int32'
-  }
-
+function toArgType(value: unknown): ArgType {
   if (typeof value === 'string') {
     return 'Text'
   }
@@ -189,37 +183,13 @@ function toArgType(value: PrismaValue): ArgType {
     return 'Array'
   }
 
-  if (isPrismaValuePlaceholder(value)) {
-    return placeholderTypeToArgType(value.prisma__value.type)
+  if (Buffer.isBuffer(value)) {
+    return 'Bytes'
   }
 
-  return 'Json'
+  return 'Unknown'
 }
 
-function placeholderTypeToArgType(type: string): ArgType {
-  const typeMap = {
-    Any: 'Json',
-    String: 'Text',
-    Int: 'Int32',
-    BigInt: 'Int64',
-    Float: 'Double',
-    Boolean: 'Boolean',
-    Decimal: 'Numeric',
-    Date: 'DateTime',
-    Object: 'Json',
-    Bytes: 'Bytes',
-    Array: 'Array',
-  } satisfies Record<string, ArgType>
-
-  const mappedType = typeMap[type] as ArgType | undefined
-
-  if (!mappedType) {
-    throw new Error(`Unknown placeholder type: ${type}`)
-  }
-
-  return mappedType
-}
-
-function doesRequireEvaluation(param: PrismaValue): param is PrismaValuePlaceholder | PrismaValueGenerator {
+function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder | PrismaValueGenerator {
   return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }

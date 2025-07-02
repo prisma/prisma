@@ -62,6 +62,10 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB],
       reason: `test for SQL databases only`,
     },
+    skipDriverAdapter: {
+      from: ['js_pg_cockroachdb'],
+      reason: 'Code: `42P18`. Message: `ERROR: could not determine data type of placeholder $1',
+    },
     skipDefaultClientInstance: true,
   },
 )

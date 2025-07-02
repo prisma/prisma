@@ -34,7 +34,6 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     },
     datamodel: '',
     browser: false,
-    deno: false,
     edge: false,
     wasm: false,
     envPaths: {

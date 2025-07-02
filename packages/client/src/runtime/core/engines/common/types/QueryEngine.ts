@@ -1,9 +1,9 @@
-import { IsolationLevel } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
+import { IsolationLevel } from './Transaction'
 
 // Events
 export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent

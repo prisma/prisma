@@ -10,34 +10,10 @@ export const commonCodeJS = ({
   clientVersion,
   engineVersion,
   generator,
-  deno,
-}: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
+}: TSClientOptions): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  deno
-    ? `
-import {
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientInitializationError,
-  PrismaClientValidationError,
-  getPrismaClient,
-  sqltag,
-  empty,
-  join,
-  raw,
-  Decimal,
-  Debug,
-  objectEnumValues,
-  makeStrictEnum,
-  Extensions,
-  defineDmmfProperty,
-  Public,
-  getRuntime,
-  skip
-} from '${runtimeBase}/${runtimeNameJs}.js'`
-    : browser
+  browser
     ? `
 const {
   Decimal,

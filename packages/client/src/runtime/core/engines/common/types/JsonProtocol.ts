@@ -1,4 +1,4 @@
-import type { IsolationLevel } from '@prisma/driver-adapter-utils'
+import type { IsolationLevel } from './Transaction'
 
 export type JsonQuery = {
   modelName?: string

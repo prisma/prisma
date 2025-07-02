@@ -62,8 +62,8 @@ export class Migrate {
     return new Migrate({ engine, schemaContext, ...rest })
   }
 
-  public stop(): void {
-    this.engine.stop()
+  public async stop(): Promise<void> {
+    await this.engine.stop()
   }
 
   public getPrismaSchema(): MigrateTypes.SchemasContainer {

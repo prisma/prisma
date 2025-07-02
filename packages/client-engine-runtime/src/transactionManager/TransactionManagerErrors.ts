@@ -1,8 +1,10 @@
-export class TransactionManagerError extends Error {
-  code = 'P2028'
+import { UserFacingError } from '../UserFacingError'
 
-  constructor(message: string, public meta?: Record<string, unknown>) {
-    super('Transaction API error: ' + message)
+export class TransactionManagerError extends UserFacingError {
+  name = 'TransactionManagerError'
+
+  constructor(message: string, meta?: Record<string, unknown>) {
+    super('Transaction API error: ' + message, 'P2028', meta)
   }
 }
 
@@ -16,13 +18,13 @@ export class TransactionNotFoundError extends TransactionManagerError {
 
 export class TransactionClosedError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction.`)
   }
 }
 
 export class TransactionRolledBackError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back.`)
   }
 }
 

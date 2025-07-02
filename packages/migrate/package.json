@@ -17,6 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
+    "@prisma/adapter-libsql": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
@@ -37,7 +38,7 @@
     "log-update": "6.1.0",
     "mariadb": "3.4.0",
     "mock-stdin": "1.0.0",
-    "mongoose": "8.12.1",
+    "mongoose": "8.15.0",
     "mssql": "11.0.1",
     "ora": "8.2.0",
     "pg": "8.14.1",
@@ -57,7 +58,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/engines-version": "6.8.0-11.25148b9e00dcffe957ba9f31ed278578aa5fe95c",
+    "@prisma/engines-version": "6.12.0-1.f560fd5c80213d979714317a06077e85afd58ca4",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

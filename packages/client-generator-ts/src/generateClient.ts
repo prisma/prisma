@@ -122,7 +122,7 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    edge: (['edge', 'wasm', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    edge: (['edge', 'wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
     generatedFileExtension,
@@ -411,7 +411,7 @@ function getRuntimeNameForTarget(
     case 'edge-light':
     case 'deno-deploy':
       if (previewFeatures.includes('driverAdapters')) {
-        return 'wasm'
+        return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
       } else {
         return 'edge'
       }

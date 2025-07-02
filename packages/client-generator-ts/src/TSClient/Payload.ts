@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
@@ -30,7 +30,7 @@ export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {
     : ts
         .namedType('runtime.Types.Extensions.GetPayloadResult')
         .addGenericArgument(scalars)
-        .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
+        .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(uncapitalize(model.name)))
 
   const payloadTypeDeclaration = ts.typeDeclaration(
     getPayloadName(model.name, false),

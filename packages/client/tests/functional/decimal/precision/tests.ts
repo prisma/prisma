@@ -62,5 +62,9 @@ testMatrix.setupTestSuite(
         mongo - decimals are not supported
     `,
     },
+    skipDriverAdapter: {
+      from: ['js_mssql'],
+      reason: `The mssql driver appears to be losing precision even when receiving a stringified decimal`,
+    },
   },
 )

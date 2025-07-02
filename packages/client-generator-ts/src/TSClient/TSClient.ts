@@ -14,7 +14,15 @@ import { createModelsFile } from './file-generators/ModelsFile'
 import { createPrismaNamespaceFile } from './file-generators/PrismaNamespaceFile'
 import { GenerateContext } from './GenerateContext'
 
-export type RuntimeName = 'binary' | 'library' | 'wasm' | 'edge' | 'react-native' | 'client' | (string & {})
+export type RuntimeName =
+  | 'binary'
+  | 'library'
+  | 'wasm-engine-edge'
+  | 'wasm-compiler-edge'
+  | 'edge'
+  | 'react-native'
+  | 'client'
+  | (string & {})
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** The name of the runtime bundle to use */
@@ -52,7 +60,6 @@ export class TSClient {
     }, {})
 
     return {
-      [context.outputFileName('index')]: `export * from '${context.importFileName('./client')}'`,
       [context.outputFileName('client')]: createClientFile(context, this.options),
       [context.outputFileName('enums')]: createEnumsFile(context),
       [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),

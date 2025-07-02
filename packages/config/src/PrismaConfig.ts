@@ -15,7 +15,7 @@ type EnvVars = Record<string, string | undefined>
 const sqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory> => {
-      return input instanceof Function
+      return typeof input === 'function'
     },
     {
       identifier: 'SqlMigrationAwareDriverAdapterFactory<Env>',
@@ -27,7 +27,7 @@ const sqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>
 const errorCapturingSqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
   Shape.declare(
     (input: any): input is (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
-      return input instanceof Function
+      return typeof input === 'function'
     },
     {
       identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env>',

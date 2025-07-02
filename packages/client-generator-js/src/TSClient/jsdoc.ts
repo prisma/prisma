@@ -1,4 +1,4 @@
-import { capitalize, lowerCase } from '@prisma/client-common'
+import { capitalize, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 
 import { getGroupByArgsName, getModelArgName } from '../utils'
@@ -96,7 +96,7 @@ const ${ctx.singular} = await ${ctx.method}({
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
 @example
 // Create many ${ctx.plural}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   data: [
     // ... provide data here
   ]
@@ -110,7 +110,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Create many ${ctx.plural} and only return the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   select: { ${ctx.firstScalar.name}: true },
   data: [
     // ... provide data here
@@ -122,7 +122,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
 @example
 // Create many ${ctx.plural}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   data: [
     // ... provide data here
   ]
@@ -141,7 +141,7 @@ ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   }
@@ -157,7 +157,7 @@ if no matches were found.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   }
@@ -173,7 +173,7 @@ ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   }
@@ -195,7 +195,7 @@ ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   }
@@ -213,7 +213,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Only select the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
+const ${uncapitalize(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
             ctx.firstScalar.name
           }: true } })`
         : ''
@@ -244,7 +244,7 @@ ${onlySelect}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one ${ctx.singular}.
 @example
 // Update one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   },
@@ -264,7 +264,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.singular}.
 @example
 // Update or create a ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   create: {
     // ... data to create a ${ctx.singular}
   },
@@ -364,7 +364,7 @@ ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one or more rows.
 @example
 // Update many ${ctx.plural}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   },
@@ -383,7 +383,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Update zero or more ${ctx.plural} and only return the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   select: { ${ctx.firstScalar.name}: true },
   where: {
     // ... provide filter here
@@ -398,7 +398,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update many ${ctx.plural}.
 @example
 // Update many ${ctx.plural}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   where: {
     // ... provide filter here
   },
@@ -438,7 +438,7 @@ const { count } = await ${ctx.method}({
       `Perform aggregation operations on a ${ctx.singular}.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
 @example
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   pipeline: [
     { $match: { status: "registered" } },
     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -456,7 +456,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
       `Find zero or more ${ctx.plural} that matches the filter.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
 @example
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+const ${uncapitalize(ctx.mapping.model)} = await ${ctx.method}({
   filter: { age: { $gt: 25 } }
 })`,
     fields: {

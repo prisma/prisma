@@ -354,7 +354,7 @@ ${bold('Examples')}
       })
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // Write output to file if --output is defined

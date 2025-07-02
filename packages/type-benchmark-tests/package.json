@@ -14,7 +14,7 @@
     "test:update": "tsx test.ts -- --updateSnapshots"
   },
   "dependencies": {
-    "@ark/attest": "0.45.11"
+    "@ark/attest": "0.48.2"
   },
   "sideEffects": false
 }

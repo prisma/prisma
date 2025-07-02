@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`update available message dev tag - major 1`] = `
+exports[`update available message update available dev tag - major 1`] = `
 "┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1-dev.18 -> 3.0.1-dev.8           │
 │                                                         │
@@ -13,7 +13,7 @@ exports[`update available message dev tag - major 1`] = `
 └─────────────────────────────────────────────────────────┘"
 `;
 
-exports[`update available message dev tag - minor 1`] = `
+exports[`update available message update available dev tag - minor 1`] = `
 "┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1-dev.18 -> 2.16.0-dev.8          │
 │  Run the following to update                            │
@@ -22,7 +22,7 @@ exports[`update available message dev tag - minor 1`] = `
 └─────────────────────────────────────────────────────────┘"
 `;
 
-exports[`update available message latest tag - major 1`] = `
+exports[`update available message update available latest tag - major 1`] = `
 "┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1 -> 3.0.0                        │
 │                                                         │
@@ -35,7 +35,7 @@ exports[`update available message latest tag - major 1`] = `
 └─────────────────────────────────────────────────────────┘"
 `;
 
-exports[`update available message latest tag - minor 1`] = `
+exports[`update available message update available latest tag - minor 1`] = `
 "┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1 -> 2.16.0                       │
 │  Run the following to update                            │

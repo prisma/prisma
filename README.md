@@ -37,7 +37,7 @@ Prisma ORM is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme).**
+**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
 
 ## Getting started
 
@@ -50,7 +50,7 @@ The fastest way to get started with Prisma is by following the quickstart guides
 
 ### Bring your own database
 
-If you already have your own database, you can follows these guides:
+If you already have your own database, you can follow these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-typescript-postgresql)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql)
@@ -237,29 +237,6 @@ Built something awesome with Prisma? 🌟 Show it off with these [badges](https:
 ```
 [![Made with Prisma](http://made-with.prisma.io/indigo.svg)](https://prisma.io)
 ```
-
-## MCP server
-
-The Prisma CLI includes a [Prisma MCP server](https://www.prisma.io/docs/postgres/mcp-server). It's started via this CLI command:
-
-```
-npx prisma mcp
-```
-
-Most AI tools support a JSON-based configuration for MCP servers looking like this:
-
-```json
-{
-  "mcpServers": {
-    "Prisma": {
-      "command": "npx",
-      "args": ["-y", "prisma", "mcp"]
-    }
-  }
-}
-```
-
-Prisma's MCP server gives AI agents the ability to manage [Prisma Postgres](https://www.prisma.io/postgres) databases (e.g. spin up new database instances or run schema migrations).
 
 ## Security
 

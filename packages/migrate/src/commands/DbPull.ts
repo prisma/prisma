@@ -154,6 +154,7 @@ Set composite types introspection depth to 2 levels
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
+      // TODO: the following line is likely redundant
       process.stdout.write(dim(`Prisma schema loaded from ${schemaContext.loadedFromPathForLogMessages}`) + '\n')
 
       printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })

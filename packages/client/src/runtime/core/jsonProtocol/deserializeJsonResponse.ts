@@ -18,6 +18,11 @@ export function deserializeJsonResponse(result: unknown): unknown {
       return deserializeTaggedValue(result)
     }
 
+    // avoid mapping class instances
+    if (result.constructor !== null && result.constructor.name !== 'Object') {
+      return result
+    }
+
     return mapObjectValues(result, deserializeJsonResponse)
   }
 

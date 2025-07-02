@@ -7,7 +7,7 @@ import testMatrix from './_matrix'
 const libraryRuntime = 'runtime/library'
 const binaryRuntime = 'runtime/binary'
 const edgeRuntime = 'runtime/edge'
-const wasmRuntime = 'runtime/wasm'
+const wasmRuntime = 'runtime/wasm-engine-edge'
 const nftAnnotation = '// file annotations for bundling tools'
 const wasmFileUsage = '#wasm-engine-loader'
 
@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
           expect(generatedClientContents).not.toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
           expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm') {
+        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
           expect(generatedClientContents).toContain(wasmRuntime)
           expect(generatedClientContents).not.toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
@@ -89,7 +89,7 @@ testMatrix.setupTestSuite(
         } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
           expect(generatedClientContents).not.toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm') {
+        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
           expect(generatedClientContents).not.toContain(nftAnnotation)
           expect(generatedClientContents).toContain(wasmFileUsage)
         } else {

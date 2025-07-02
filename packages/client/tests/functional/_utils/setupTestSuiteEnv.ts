@@ -64,10 +64,10 @@ async function copyPreprocessed({
 }): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
-  const newContents = contents
+  let newContents = contents
     .replace(/'\.\.\//g, "'../../../")
     .replace(/'\.\//g, "'../../")
-    .replace(/'\.\.\/\.\.\/generated\/prisma\/client/g, "'./generated/prisma/client")
+    .replace(/'\.\.\/\.\.\/generated\/prisma\//g, "'./generated/prisma/")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment({ conditionFromComment: condition, suiteConfig })) {
@@ -75,6 +75,10 @@ async function copyPreprocessed({
       }
       return match
     })
+
+  if (suiteConfig['generatorType'] !== 'prisma-client-ts') {
+    newContents = newContents.replace(/\/generated\/prisma\/sql/g, '/generated/prisma/client/sql')
+  }
 
   await fs.writeFile(to, newContents, 'utf8')
 }

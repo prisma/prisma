@@ -12,26 +12,28 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   const rawCode: number = error.rawCode ?? error.cause?.['rawCode']
   switch (rawCode) {
     case 2067:
-    case 1555:
+    case 1555: {
+      const fields = error.message
+        .split('constraint failed: ')
+        .at(1)
+        ?.split(', ')
+        .map((field) => field.split('.').pop()!)
       return {
         kind: 'UniqueConstraintViolation',
-        fields:
-          error.message
-            .split('constraint failed: ')
-            .at(1)
-            ?.split(', ')
-            .map((field) => field.split('.').pop()!) ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
-    case 1299:
+    }
+    case 1299: {
+      const fields = error.message
+        .split('constraint failed: ')
+        .at(1)
+        ?.split(', ')
+        .map((field) => field.split('.').pop()!)
       return {
         kind: 'NullConstraintViolation',
-        fields:
-          error.message
-            .split('constraint failed: ')
-            .at(1)
-            ?.split(', ')
-            .map((field) => field.split('.').pop()!) ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
+    }
     case 787:
     case 1811:
       return {
@@ -46,17 +48,17 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
       } else if (error.message.startsWith('no such table')) {
         return {
           kind: 'TableDoesNotExist',
-          table: error.message.split(': ').pop(),
+          table: error.message.split(': ').at(1),
         }
       } else if (error.message.startsWith('no such column')) {
         return {
           kind: 'ColumnNotFound',
-          column: error.message.split(': ').pop(),
+          column: error.message.split(': ').at(1),
         }
       } else if (error.message.includes('has no column named ')) {
         return {
           kind: 'ColumnNotFound',
-          column: error.message.split('has no column named ').pop(),
+          column: error.message.split('has no column named ').at(1),
         }
       }
 

@@ -6,20 +6,23 @@ export default testMatrix.setupSchema(({ provider }) => {
   generator client {
     provider = "prisma-client-js"
   }
-  
+
   datasource db {
     provider = "${provider}"
     url      = env("DATABASE_URI_${provider}")
   }
-  
+
   model User {
     id ${idForProvider(provider)}
     email String @unique
+    posts Post[]
   }
 
 
   model Post {
     id ${idForProvider(provider)}
+    userId String
+    user User @relation(fields: [userId], references: [id])
   }
   `
 })

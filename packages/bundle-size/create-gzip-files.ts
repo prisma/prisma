@@ -1,18 +1,20 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker']
+  const postgresProjects = ['da-workers-neon', 'da-workers-pg']
   const sqliteProjects = ['da-workers-libsql', 'da-workers-libsql-web', 'da-workers-d1']
-  const mysqlProjects = ['da-workers-planetscale']
+  const mysqlProjects = ['da-workers-planetscale', 'da-workers-mariadb']
+  const mssqlProjects = ['da-workers-mssql']
 
   const nodeCompatProjects = new Set([
     'da-workers-pg',
-    'da-workers-pg-worker',
     'da-workers-d1',
     'da-workers-planetscale',
+    'da-workers-mssql',
+    'da-workers-mariadb',
   ])
 
-  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
+  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects, ...mssqlProjects]
 
   const getSchemaFile = (project: string) => {
     if (postgresProjects.includes(project)) {
@@ -20,6 +22,9 @@ void (async () => {
     }
     if (mysqlProjects.includes(project)) {
       return `${__dirname}/schema.mysql.prisma`
+    }
+    if (mssqlProjects.includes(project)) {
+      return `${__dirname}/schema.mssql.prisma`
     }
     return `${__dirname}/schema.sqlite.prisma`
   }
@@ -34,7 +39,13 @@ void (async () => {
 
     // Install deps & copy schema & generate Prisma Client
     await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
-    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
+    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`.catch((error) => {
+      const e = error as Error
+      console.error(
+        `Failed to generate Prisma Client from ${getSchemaFile(project)} (copied to ${projectDir}/schema.prisma)`,
+      )
+      throw e
+    })
 
     // Delete existing output (if it exists)
     await $`rm -rf ${projectDir}/output`

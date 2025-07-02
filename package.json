@@ -34,7 +34,7 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
     "@eslint/eslintrc": "3.3.0",
-    "@eslint/js": "9.19.0",
+    "@eslint/js": "9.30.0",
     "@microsoft/api-extractor": "7.52.1",
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
@@ -140,7 +140,7 @@
       "brotli": false
     },
     {
-      "path": "packages/client/runtime/wasm.js",
+      "path": "packages/client/runtime/wasm-engine-edge.js",
       "gzip": false,
       "brotli": false
     },
@@ -181,11 +181,6 @@
     },
     {
       "path": "packages/bundle-size/da-workers-pg/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
       "gzip": false,
       "brotli": false
     },

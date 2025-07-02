@@ -11,7 +11,6 @@ import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
-import type { buildClient } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -20,6 +19,7 @@ import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
 import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
+import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
@@ -36,7 +36,8 @@ import { PrismaClientClass } from './PrismaClient'
 type RuntimeName =
   | 'binary'
   | 'library'
-  | 'wasm'
+  | 'wasm-engine-edge'
+  | 'wasm-compiler-edge'
   | 'edge'
   | 'edge-esm'
   | 'index-browser'
@@ -51,8 +52,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   runtimeNameTs: RuntimeName
   /** When generating the browser client */
   browser: boolean
-  /** When generating via the Deno CLI */
-  deno: boolean
   /** When we are generating an /edge client */
   edge: boolean
   /** When we are generating a /wasm client */
@@ -86,7 +85,6 @@ export class TSClient implements Generable {
       runtimeBase,
       runtimeNameJs,
       datasources,
-      deno,
       copyEngine = true,
       reusedJs,
       envPaths,
@@ -126,9 +124,7 @@ export class TSClient implements Generable {
       activeProvider: this.options.activeProvider,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
-      inlineDatasources: datasources.reduce((acc, ds) => {
-        return (acc[ds.name] = { url: ds.url }), acc
-      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
       inlineSchemaHash,
       copyEngine,
@@ -169,7 +165,7 @@ ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
+Object.assign(exports, Prisma)
 ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code

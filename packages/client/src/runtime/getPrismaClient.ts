@@ -74,7 +74,14 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
+  const TARGET_BUILD_TYPE:
+    | 'binary'
+    | 'library'
+    | 'edge'
+    | 'wasm-engine-edge'
+    | 'wasm-compiler-edge'
+    | 'react-native'
+    | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -295,11 +302,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
         //
         // TODO: Normalize these provider names once and for all in Prisma 6.
-        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+        const expectedDriverAdapterProvider =
+          config.activeProvider === 'postgresql'
+            ? 'postgres'
+            : // CockroachDB is only accessible through Postgres driver adapters
+            config.activeProvider === 'cockroachdb'
+            ? 'postgres'
+            : config.activeProvider
 
-        if (adapter.provider !== normalizedActiveProvider) {
+        if (adapter.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(
-            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }

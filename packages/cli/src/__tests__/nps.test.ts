@@ -2,12 +2,15 @@ import fs from 'fs'
 import readline from 'readline'
 import { PassThrough } from 'stream'
 
+import { CommandState } from '../utils/commandState'
 import { createSafeReadlineProxy, handleNpsSurveyImpl } from '../utils/nps/survey'
 
 const currentDate = new Date('2022-01-01T00:00:00.000Z')
 const laterDate = new Date('2023-01-01T00:00:00.000Z')
 const earlierDate = new Date('2021-01-01T00:00:00.000Z')
 const evenEarlierDate = new Date('2020-01-01T00:00:00.000Z')
+
+const longTimeUserCommandState: CommandState = { firstCommandTimestamp: '2019-01-01T00:00:00.000Z' }
 
 describe('nps survey', () => {
   const originalEnv = { ...process.env }
@@ -42,7 +45,7 @@ describe('nps survey', () => {
     const capture = jest.fn()
 
     process.env.CI = 'true'
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -66,7 +69,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn()
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -90,7 +93,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn()
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -111,7 +114,7 @@ describe('nps survey', () => {
     const capture = jest.fn()
 
     process.env.KUBERNETES_SERVICE_HOST = '10.96.0.1'
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -132,7 +135,7 @@ describe('nps survey', () => {
     const capture = jest.fn()
 
     process.env.GIT_EXEC_PATH = '/nix/store/9z3jhc0rlj3zaw8nd1zka9vli6w0q11g-git-2.47.2/libexec/git-core'
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -154,7 +157,7 @@ describe('nps survey', () => {
 
     process.env.npm_command = 'install'
     process.env.npm_lifecycle_event = 'prepare'
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(0)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -178,7 +181,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn()
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(1)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -200,7 +203,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn()
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(1)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -224,7 +227,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn()
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(1)
     expect(mockWrite).toHaveBeenCalledTimes(0)
@@ -244,11 +247,31 @@ describe('nps survey', () => {
     }
     const capture = jest.fn().mockReturnValue(Promise.resolve())
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(1)
     expect(mockWrite).toHaveBeenCalledTimes(0)
     expect(status).toHaveBeenCalledTimes(1)
+    expect(readline.question).toHaveBeenCalledTimes(0)
+    expect(capture).toHaveBeenCalledTimes(0)
+  })
+
+  it('should exit if this command is within 24 hours of the first command issued', async () => {
+    const status = jest.fn().mockResolvedValue({})
+    const readline = {
+      question: jest.fn(),
+      write: jest.fn(),
+    }
+    const capture = jest.fn().mockReturnValue(Promise.resolve())
+    const commandState = {
+      firstCommandTimestamp: new Date(
+        Date.now() - ((Math.random() * Number.MAX_SAFE_INTEGER) % (23 * 60 * 60 * 1000)),
+      ).toISOString(),
+    }
+
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, commandState)
+
+    expect(status).toHaveBeenCalledTimes(0)
     expect(readline.question).toHaveBeenCalledTimes(0)
     expect(capture).toHaveBeenCalledTimes(0)
   })
@@ -265,7 +288,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn().mockReturnValue(Promise.resolve())
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalled()
     expect(mockWrite).toHaveBeenLastCalledWith(
@@ -290,7 +313,7 @@ describe('nps survey', () => {
     }
     const capture = jest.fn().mockReturnValue(Promise.resolve())
 
-    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture })
+    await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
     expect(mockRead).toHaveBeenCalledTimes(1)
     expect(mockWrite).toHaveBeenCalledWith(

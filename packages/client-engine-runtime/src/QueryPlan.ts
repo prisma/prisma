@@ -13,6 +13,24 @@ export function isPrismaValueGenerator(value: unknown): value is PrismaValueGene
   return typeof value === 'object' && value !== null && value['prisma__type'] === 'generatorCall'
 }
 
+export type PrismaValueBytes = {
+  prisma__type: 'bytes'
+  prisma__value: string
+}
+
+export function isPrismaValueBytes(value: unknown): value is PrismaValueBytes {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bytes'
+}
+
+export type PrismaValueBigInt = {
+  prisma__type: 'bigint'
+  prisma__value: string
+}
+
+export function isPrismaValueBigInt(value: unknown): value is PrismaValueBigInt {
+  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bigint'
+}
+
 export type PrismaValue =
   | string
   | boolean
@@ -22,6 +40,8 @@ export type PrismaValue =
   | Record<string, unknown>
   | PrismaValuePlaceholder
   | PrismaValueGenerator
+  | PrismaValueBytes
+  | PrismaValueBigInt
 
 export type PrismaValueType =
   | { type: 'Any' }
@@ -32,14 +52,20 @@ export type PrismaValueType =
   | { type: 'Boolean' }
   | { type: 'Decimal' }
   | { type: 'Date' }
+  | { type: 'Time' }
   | { type: 'Array'; inner: PrismaValueType }
   | { type: 'Object' }
   | { type: 'Bytes' }
+  | { type: 'Enum'; inner: string }
 
 export type ResultNode =
   | {
+      type: 'AffectedRows'
+    }
+  | {
       type: 'Object'
       fields: Record<string, ResultNode>
+      serializedName: string | null
     }
   | {
       type: 'Value'
@@ -66,10 +92,16 @@ export type QueryPlanDbQuery =
     }
 
 export type Fragment =
-  | { type: 'stringChunk'; value: string }
+  | { type: 'stringChunk'; chunk: string }
   | { type: 'parameter' }
   | { type: 'parameterTuple' }
-  | { type: 'parameterTupleList' }
+  | {
+      type: 'parameterTupleList'
+      itemPrefix: string
+      itemSeparator: string
+      itemSuffix: string
+      groupSeparator: string
+    }
 
 export interface PlaceholderFormat {
   prefix: string
@@ -80,9 +112,14 @@ export type JoinExpression = {
   child: QueryPlanNode
   on: [left: string, right: string][]
   parentField: string
+  isRelationUnique: boolean
 }
 
 export type QueryPlanNode =
+  | {
+      type: 'value'
+      args: PrismaValue
+    }
   | {
       type: 'seq'
       args: QueryPlanNode[]
@@ -157,5 +194,141 @@ export type QueryPlanNode =
       args: {
         expr: QueryPlanNode
         structure: ResultNode
+        enums: Record<string, Record<string, string>>
+      }
+    }
+  | {
+      type: 'validate'
+      args: {
+        expr: QueryPlanNode
+        rules: DataRule[]
+      } & ValidationError
+    }
+  | {
+      type: 'if'
+      args: {
+        value: QueryPlanNode
+        rule: DataRule
+        then: QueryPlanNode
+        else: QueryPlanNode
+      }
+    }
+  | {
+      type: 'unit'
+    }
+  | {
+      type: 'diff'
+      args: {
+        from: QueryPlanNode
+        to: QueryPlanNode
+      }
+    }
+  | {
+      type: 'distinctBy'
+      args: {
+        expr: QueryPlanNode
+        fields: string[]
+      }
+    }
+  | {
+      type: 'paginate'
+      args: {
+        expr: QueryPlanNode
+        pagination: Pagination
+      }
+    }
+  | {
+      type: 'initializeRecord'
+      args: {
+        expr: QueryPlanNode
+        fields: Record<string, FieldInitializer>
+      }
+    }
+  | {
+      type: 'mapRecord'
+      args: {
+        expr: QueryPlanNode
+        fields: Record<string, FieldOperation>
+      }
+    }
+
+export type FieldInitializer = { type: 'value'; value: PrismaValue } | { type: 'lastInsertId' }
+
+export type FieldOperation =
+  | { type: 'set'; value: PrismaValue }
+  | { type: 'add'; value: PrismaValue }
+  | { type: 'subtract'; value: PrismaValue }
+  | { type: 'multiply'; value: PrismaValue }
+  | { type: 'divide'; value: PrismaValue }
+
+export type Pagination = {
+  cursor: Record<string, PrismaValue> | null
+  take: number | null
+  skip: number | null
+  linkingFields: string[] | null
+}
+
+export type DataRule =
+  | {
+      type: 'rowCountEq'
+      args: number
+    }
+  | {
+      type: 'rowCountNeq'
+      args: number
+    }
+  | {
+      type: 'affectedRowCountEq'
+      args: number
+    }
+  | {
+      type: 'never'
+    }
+
+export type ValidationError =
+  | {
+      error_identifier: 'RELATION_VIOLATION'
+      context: {
+        relation: string
+        modelA: string
+        modelB: string
+      }
+    }
+  | {
+      error_identifier: 'MISSING_RELATED_RECORD'
+      context: {
+        model: string
+        relation: string
+        relationType: string
+        operation: string
+        neededFor?: string
+      }
+    }
+  | {
+      error_identifier: 'MISSING_RECORD'
+      context: {
+        operation: string
+      }
+    }
+  | {
+      error_identifier: 'INCOMPLETE_CONNECT_INPUT'
+      context: {
+        expectedRows: number
+      }
+    }
+  | {
+      error_identifier: 'INCOMPLETE_CONNECT_OUTPUT'
+      context: {
+        expectedRows: number
+        relation: string
+        relationType: string
+      }
+    }
+  | {
+      error_identifier: 'RECORDS_NOT_CONNECTED'
+      context: {
+        relation: string
+        parent: string
+        child: string
       }
     }

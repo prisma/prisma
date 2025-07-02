@@ -128,7 +128,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
           migrationId: args['--applied'],
         })
       } finally {
-        migrate.stop()
+        await migrate.stop()
       }
 
       process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
@@ -151,7 +151,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
           migrationId: args['--rolled-back'],
         })
       } finally {
-        migrate.stop()
+        await migrate.stop()
       }
 
       process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)

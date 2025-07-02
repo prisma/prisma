@@ -22,7 +22,7 @@ exports[`int-errors overflow-int 1`] = `
 Invalid \`prisma.user.update()\` invocation:
 
 
-Value out of range for the type. Out of range value for column 'age' at row 1
+Value out of range for the type: Out of range value for column 'age' at row 1
 `;
 
 exports[`int-errors signed-int 1`] = `
@@ -30,5 +30,5 @@ exports[`int-errors signed-int 1`] = `
 Invalid \`prisma.user.update()\` invocation:
 
 
-Value out of range for the type. Out of range value for column 'age' at row 1
+Value out of range for the type: Out of range value for column 'age' at row 1
 `;

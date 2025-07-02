@@ -14,10 +14,10 @@ import { parseRuntimeTargetFromUnknown } from './runtime-targets'
 
 const debug = Debug('prisma:client:generator')
 
-const missingOutputErrorMessage = `An output path is required for the \`prisma-client-ts\` generator. Please provide an output path in your schema file:
+const missingOutputErrorMessage = `An output path is required for the \`prisma-client\` generator. Please provide an output path in your schema file:
 
 ${dim(`generator client {
-  provider = "prisma-client-ts"`)}
+  provider = "prisma-client"`)}
 ${green('  output   = "../src/generated"')}
 ${dim('}')}
 

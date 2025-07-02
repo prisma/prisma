@@ -88,7 +88,11 @@ testMatrix.setupTestSuite(
                   [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                   [AdapterProviders.JS_NEON]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
                   [AdapterProviders.JS_PG]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [AdapterProviders.JS_PG_COCKROACHDB]:
+                    'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
                   [AdapterProviders.JS_PLANETSCALE]: 'Foreign key constraint violated on the fields: (`aliceId`)',
+                  [AdapterProviders.JS_MSSQL]: 'Foreign key constraint violated on the constraint: `Main_aliceId_fkey`',
+                  [AdapterProviders.JS_MARIADB]: 'Foreign key constraint violated on the fields: (`aliceId`)',
                 },
                 prisma: errors[onDelete],
               }),

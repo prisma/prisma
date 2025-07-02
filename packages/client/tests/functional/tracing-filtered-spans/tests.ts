@@ -74,7 +74,7 @@ testMatrix.setupTestSuite(
         // 'prisma:client:operation',                   <-- Filtered out parent span (by regex)
       ]
 
-      if (clientRuntime === 'wasm') {
+      if (clientRuntime === 'wasm-engine-edge') {
         expectedSpans.shift() // With wasm we do not perform platform detection
       } else if (engineType === 'client') {
         expectedSpans.splice(0, 3) // Client engine performs no binary engine related spans
@@ -86,7 +86,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDataProxy: {
-      runtimes: ['edge', 'node', 'wasm', 'client'],
+      runtimes: ['edge', 'node', 'wasm-engine-edge', 'wasm-compiler-edge', 'client'],
       reason: 'Data proxy creates different traces',
     },
   },

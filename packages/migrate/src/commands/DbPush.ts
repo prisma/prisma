@@ -117,7 +117,7 @@ ${bold('Examples')}
       try {
         await migrate.reset()
       } catch (e) {
-        migrate.stop()
+        await migrate.stop()
         throw e
       }
 
@@ -153,7 +153,7 @@ ${bold('Examples')}
         force: args['--accept-data-loss'],
       })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -165,7 +165,7 @@ ${bold('Examples')}
       }
       process.stdout.write('\n') // empty line
 
-      migrate.stop()
+      await migrate.stop()
       throw new Error(`${messages.join('\n')}\n
 You may use the --force-reset flag to drop the database before push like ${bold(
         green(getCommandWithExecutor('prisma db push --force-reset')),
@@ -184,7 +184,7 @@ ${bold(red('All data will be lost.'))}
 
       if (!args['--accept-data-loss']) {
         if (!canPrompt()) {
-          migrate.stop()
+          await migrate.stop()
           throw new DbPushIgnoreWarningsWithFlagError()
         }
 
@@ -197,7 +197,7 @@ ${bold(red('All data will be lost.'))}
 
         if (!confirmation.value) {
           process.stdout.write('Push cancelled.\n')
-          migrate.stop()
+          await migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
         }
@@ -207,13 +207,13 @@ ${bold(red('All data will be lost.'))}
             force: true,
           })
         } catch (e) {
-          migrate.stop()
+          await migrate.stop()
           throw e
         }
       }
     }
 
-    migrate.stop()
+    await migrate.stop()
 
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       process.stdout.write(`\nThe database is already in sync with the Prisma schema.\n`)

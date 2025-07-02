@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { defineConfig } from '@prisma/config'
-import { PrismaD1HTTP } from '@prisma/adapter-d1'
+import { PrismaD1 } from '@prisma/adapter-d1'
 
 type Env = {
   CLOUDFLARE_D1_TOKEN: string
@@ -19,7 +19,7 @@ export default defineConfig<Env>({
   schema: path.join('schema.prisma'),
   migrate: {
     async adapter(_) {
-      return new PrismaD1HTTP({
+      return new PrismaD1({
         CLOUDFLARE_D1_TOKEN: env.CLOUDFLARE_D1_TOKEN,
         CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
         CLOUDFLARE_DATABASE_ID: env.CLOUDFLARE_DATABASE_ID,

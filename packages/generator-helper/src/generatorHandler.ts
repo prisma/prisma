@@ -77,5 +77,5 @@ export function generatorHandler(handler: Handler): void {
 }
 
 function respond(response: JsonRpc.Response): void {
-  console.error(JSON.stringify(response))
+  process.stderr.write(JSON.stringify(response) + '\n')
 }

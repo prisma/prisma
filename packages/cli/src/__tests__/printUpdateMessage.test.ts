@@ -26,8 +26,16 @@ function printUpdateMessageFromTo(from: string, to: string): void {
 
 const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation()
 
+let originalPrismaHideUpdateMessageEnv: string | undefined
+
+beforeEach(() => {
+  originalPrismaHideUpdateMessageEnv = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+  delete process.env.PRISMA_HIDE_UPDATE_MESSAGE
+})
+
 afterEach(() => {
   consoleErrorMock.mockReset()
+  process.env.PRISMA_HIDE_UPDATE_MESSAGE = originalPrismaHideUpdateMessageEnv
 })
 
 test('normal release', () => {

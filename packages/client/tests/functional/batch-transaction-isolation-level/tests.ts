@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(
       await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})])
 
       const match = queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(match).toBeDefined()
       } else {
         expect(match).toBeUndefined()

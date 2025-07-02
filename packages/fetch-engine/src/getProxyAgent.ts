@@ -3,7 +3,6 @@
 import Debug from '@prisma/debug'
 import { HttpProxyAgent } from 'http-proxy-agent'
 import { HttpsProxyAgent } from 'https-proxy-agent'
-import Url from 'url'
 
 const debug = Debug('prisma:fetch-engine:getProxyAgent')
 
@@ -29,7 +28,7 @@ function parseNoProxyZone(zone: string): {
   return { hostname: zoneHost, port: zonePort, hasPort: hasPort }
 }
 
-function uriInNoProxy(uri, noProxy): boolean {
+function uriInNoProxy(uri: URL, noProxy: string): boolean {
   const port = uri.port || (uri.protocol === 'https:' ? '443' : '80')
   const hostname = formatHostname(uri.hostname)
   const noProxyList = noProxy.split(',')
@@ -47,7 +46,7 @@ function uriInNoProxy(uri, noProxy): boolean {
   })
 }
 
-function getProxyFromURI(uri): string | null {
+function getProxyFromURI(uri: URL): string | null {
   // Decide the proper request proxy to use based on the request URI object and the
   // environmental variables (NO_PROXY, HTTP_PROXY, etc.)
   // respect NO_PROXY environment variables (see: http://lynx.isc.org/current/breakout/lynx_help/keystrokes/environments.html)
@@ -87,7 +86,7 @@ function getProxyFromURI(uri): string | null {
 
 export function getProxyAgent(url: string): HttpProxyAgent<string> | HttpsProxyAgent<string> | undefined {
   try {
-    const uri = Url.parse(url)
+    const uri = new URL(url)
     const proxy = getProxyFromURI(uri)
 
     if (!proxy) {

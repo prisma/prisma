@@ -219,6 +219,7 @@ test('transaction times out during starting', async () => {
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
     TransactionStartTimeoutError,
   )
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
 })
 
 test('transaction times out during execution', async () => {

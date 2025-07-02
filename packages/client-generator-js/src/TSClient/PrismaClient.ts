@@ -1,4 +1,4 @@
-import { lowerCase, NonModelOperation, Operation } from '@prisma/client-common'
+import { NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import type { DataSource } from '@prisma/generator'
 import { assertNever } from '@prisma/internals'
@@ -34,7 +34,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
   if (modelNames.length === 0) {
     meta.add(ts.property('modelProps', ts.neverType))
   } else {
-    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(lowerCase(name))))))
+    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(uncapitalize(name))))))
   }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
@@ -452,7 +452,7 @@ export class PrismaClientClass implements Generable {
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+ * const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
  * \`\`\`
  *
  *
@@ -511,7 +511,7 @@ ${[
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
         .map((m) => {
-          let methodName = lowerCase(m.model)
+          let methodName = uncapitalize(m.model)
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
@@ -522,7 +522,7 @@ ${[
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
-  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+  * const ${uncapitalize(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
