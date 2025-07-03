@@ -201,7 +201,7 @@ describe('validateEngineInstanceConfig', () => {
       expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(false)
+      expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(true)
       expect(isUsing.ppg).toBe(true)
     })
@@ -243,7 +243,7 @@ describe('validateEngineInstanceConfig', () => {
           },
         ]
       `)
-      expect(isUsing.accelerate).toBe(false)
+      expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(true)
     })
