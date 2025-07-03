@@ -8,20 +8,13 @@ import {
 import {
   doKeysMatch,
   QueryEvent,
-  QueryInterpreter,
-  QueryInterpreterTransactionManager,
   QueryPlanNode,
   safeJsonStringify,
   TransactionInfo,
-  TransactionManager,
   UserFacingError,
 } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
-import type {
-  IsolationLevel as SqlIsolationLevel,
-  SqlDriverAdapter,
-  SqlDriverAdapterFactory,
-} from '@prisma/driver-adapter-utils'
+import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
@@ -41,6 +34,8 @@ import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
+import type { Executor } from './Executor'
+import { LocalExecutor } from './LocalExecutor'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 import { wasmQueryCompilerLoader } from './WasmQueryCompilerLoader'
 
@@ -67,8 +62,7 @@ globalWithPanicHandler.PRISMA_WASM_PANIC_REGISTRY = {
 }
 
 interface ConnectedEngine {
-  driverAdapter: SqlDriverAdapter
-  transactionManager: TransactionManager
+  executor: Executor
   queryCompiler: QueryCompiler
 }
 
@@ -89,7 +83,7 @@ type EngineState =
       promise: Promise<void>
     }
 
-export class ClientEngine implements Engine<undefined> {
+export class ClientEngine implements Engine {
   name = 'ClientEngine' as const
 
   #QueryCompilerConstructor?: QueryCompilerConstructor
@@ -170,24 +164,30 @@ export class ClientEngine implements Engine<undefined> {
     switch (this.#state.type) {
       case 'disconnected': {
         const connecting = this.tracingHelper.runInChildSpan('connect', async () => {
-          let driverAdapter: SqlDriverAdapter | undefined = undefined
-          let transactionManager: TransactionManager | undefined = undefined
+          let executor: Executor | undefined = undefined
           let queryCompiler: QueryCompiler | undefined = undefined
 
           try {
-            driverAdapter = await this.#driverAdapterFactory.connect()
-            transactionManager = this.#createTransactionManager(driverAdapter)
-            queryCompiler = await this.#instantiateQueryCompiler(driverAdapter)
+            executor = await LocalExecutor.connect({
+              driverAdapterFactory: this.#driverAdapterFactory,
+              tracingHelper: this.tracingHelper,
+              transactionOptions: {
+                ...this.config.transactionOptions,
+                isolationLevel: this.#convertIsolationLevel(this.config.transactionOptions.isolationLevel),
+              },
+              onQuery: this.#emitQueryEvent,
+              provider: this.config.activeProvider as ActiveConnectorType | undefined,
+            })
+            queryCompiler = await this.#instantiateQueryCompiler(executor)
           } catch (error) {
             this.#state = { type: 'disconnected' }
             queryCompiler?.free()
-            await driverAdapter?.dispose()
+            await executor?.disconnect()
             throw error
           }
 
           const engine: ConnectedEngine = {
-            driverAdapter,
-            transactionManager,
+            executor,
             queryCompiler,
           }
 
@@ -216,20 +216,7 @@ export class ClientEngine implements Engine<undefined> {
     }
   }
 
-  #createTransactionManager(driverAdapter: SqlDriverAdapter): TransactionManager {
-    return new TransactionManager({
-      driverAdapter,
-      transactionOptions: {
-        ...this.config.transactionOptions,
-        isolationLevel: this.#convertIsolationLevel(this.config.transactionOptions.isolationLevel),
-      },
-      tracingHelper: this.tracingHelper,
-      onQuery: this.#emitQueryEvent,
-      provider: this.config.activeProvider as ActiveConnectorType | undefined,
-    })
-  }
-
-  async #instantiateQueryCompiler(driverAdapter: SqlDriverAdapter): Promise<QueryCompiler> {
+  async #instantiateQueryCompiler(executor: Executor): Promise<QueryCompiler> {
     // We reuse the `QueryCompilerConstructor` from the same `WebAssembly.Instance` between
     // reconnects as long as there are no panics. This avoids the overhead of loading and
     // JIT compiling the WebAssembly module after every reconnect. If it panics, we discard
@@ -241,7 +228,7 @@ export class ClientEngine implements Engine<undefined> {
       this.#QueryCompilerConstructor = QueryCompilerConstructor
     }
 
-    const connectionInfo = driverAdapter?.getConnectionInfo?.() ?? { supportsRelationJoins: false }
+    const connectionInfo = await executor.getConnectionInfo()
 
     try {
       return this.#withLocalPanicHandler(
@@ -366,8 +353,7 @@ export class ClientEngine implements Engine<undefined> {
 
         const disconnecting = this.tracingHelper.runInChildSpan('disconnect', async () => {
           try {
-            await engine.transactionManager.cancelAllTransactions()
-            await engine.driverAdapter.dispose()
+            await engine.executor.disconnect()
             engine.queryCompiler.free()
           } finally {
             this.#state = { type: 'disconnected' }
@@ -395,39 +381,39 @@ export class ClientEngine implements Engine<undefined> {
     action: 'start',
     headers: Tx.TransactionHeaders,
     options: Tx.Options,
-  ): Promise<Tx.InteractiveTransactionInfo<undefined>>
+  ): Promise<Tx.InteractiveTransactionInfo>
   async transaction(
     action: 'commit',
     headers: Tx.TransactionHeaders,
-    info: Tx.InteractiveTransactionInfo<undefined>,
+    info: Tx.InteractiveTransactionInfo,
   ): Promise<undefined>
   async transaction(
     action: 'rollback',
     headers: Tx.TransactionHeaders,
-    info: Tx.InteractiveTransactionInfo<undefined>,
+    info: Tx.InteractiveTransactionInfo,
   ): Promise<undefined>
   async transaction(
     action: 'start' | 'commit' | 'rollback',
     _headers: Tx.TransactionHeaders,
     arg?: any,
-  ): Promise<Tx.InteractiveTransactionInfo<undefined> | undefined> {
+  ): Promise<Tx.InteractiveTransactionInfo | undefined> {
     let result: TransactionInfo | undefined
 
-    const { transactionManager } = await this.#ensureStarted()
+    const { executor } = await this.#ensureStarted()
 
     try {
       if (action === 'start') {
         const options: Tx.Options = arg
-        result = await transactionManager.startTransaction({
+        result = await executor.startTransaction({
           ...options,
           isolationLevel: this.#convertIsolationLevel(options.isolationLevel),
         })
       } else if (action === 'commit') {
         const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-        await transactionManager.commitTransaction(txInfo.id)
+        await executor.commitTransaction(txInfo)
       } else if (action === 'rollback') {
         const txInfo: Tx.InteractiveTransactionInfo<undefined> = arg
-        await transactionManager.rollbackTransaction(txInfo.id)
+        await executor.rollbackTransaction(txInfo)
       } else {
         assertNever(action, 'Invalid transaction action.')
       }
@@ -438,11 +424,14 @@ export class ClientEngine implements Engine<undefined> {
     return result ? { id: result.id, payload: undefined } : undefined
   }
 
-  async request<T>(query: JsonQuery, { interactiveTransaction }: RequestOptions<undefined>): Promise<{ data: T }> {
+  async request<T>(
+    query: JsonQuery,
+    { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
+  ): Promise<{ data: T }> {
     debug(`sending request`)
     const queryStr = JSON.stringify(query)
 
-    const { driverAdapter, transactionManager, queryCompiler } = await this.#ensureStarted().catch((err) => {
+    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, queryStr)
     })
 
@@ -456,24 +445,17 @@ export class ClientEngine implements Engine<undefined> {
     try {
       debug(`query plan created`, queryPlan)
 
-      const queryable = interactiveTransaction
-        ? transactionManager.getTransaction(interactiveTransaction, 'query')
-        : driverAdapter
-
-      const qiTransactionManager = (
-        interactiveTransaction ? { enabled: false } : { enabled: true, manager: transactionManager }
-      ) satisfies QueryInterpreterTransactionManager
-
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = QueryInterpreter.forSql({
-        transactionManager: qiTransactionManager,
+      const result = await executor.execute({
+        plan: queryPlan,
+        model: query.modelName,
+        operation: query.action,
         placeholderValues,
-        onQuery: this.#emitQueryEvent,
-        tracingHelper: this.tracingHelper,
-        provider: this.config.activeProvider as ActiveConnectorType | undefined,
+        transaction: interactiveTransaction,
+        batchIndex: undefined,
+        customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
       })
-      const result = await interpreter.run(queryPlan, queryable)
 
       debug(`query plan executed`)
 
@@ -485,7 +467,7 @@ export class ClientEngine implements Engine<undefined> {
 
   async requestBatch<T>(
     queries: JsonQuery[],
-    { transaction, traceparent: _traceparent }: RequestBatchOptions<undefined>,
+    { transaction, customDataProxyFetch }: RequestBatchOptions<unknown>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     if (queries.length === 0) {
       return []
@@ -494,7 +476,7 @@ export class ClientEngine implements Engine<undefined> {
 
     const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
 
-    const { transactionManager, queryCompiler } = await this.#ensureStarted().catch((err) => {
+    const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, request)
     })
 
@@ -506,7 +488,7 @@ export class ClientEngine implements Engine<undefined> {
     }
 
     try {
-      let txInfo: InteractiveTransactionInfo<undefined>
+      let txInfo: InteractiveTransactionInfo
       if (transaction?.kind === 'itx') {
         // If we are already in an interactive transaction we do not nest transactions
         txInfo = transaction.options
@@ -519,23 +501,23 @@ export class ClientEngine implements Engine<undefined> {
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
-      const interpreter = QueryInterpreter.forSql({
-        transactionManager: { enabled: false },
-        placeholderValues,
-        onQuery: this.#emitQueryEvent,
-        tracingHelper: this.tracingHelper,
-      })
-      const queryable = transactionManager.getTransaction(txInfo, 'batch query')
 
       let results: BatchQueryEngineResult<unknown>[] = []
       switch (batchResponse.type) {
         case 'multi': {
           results = await Promise.all(
             batchResponse.plans.map((plan, i) =>
-              interpreter.run(plan as QueryPlanNode, queryable).then(
-                (rows) => ({ data: { [queries[i].action]: rows } }),
-                (err) => err,
-              ),
+              executor
+                .execute({
+                  plan: plan as QueryPlanNode,
+                  placeholderValues,
+                  model: queries[i].modelName,
+                  operation: queries[i].action,
+                  batchIndex: i,
+                  transaction: txInfo,
+                  customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+                })
+                .then((rows) => ({ data: { [queries[i].action]: rows } })),
             ),
           )
           break
@@ -545,7 +527,15 @@ export class ClientEngine implements Engine<undefined> {
             throw new Error('All queries in a batch must have the same action')
           }
 
-          const rows = await interpreter.run(batchResponse.plan as QueryPlanNode, queryable)
+          const rows = await executor.execute({
+            plan: batchResponse.plan as QueryPlanNode,
+            placeholderValues,
+            model: queries[0].modelName,
+            operation: firstAction,
+            batchIndex: undefined,
+            transaction: txInfo,
+            customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+          })
           results = this.#convertCompactedRows(rows as {}[], batchResponse, firstAction)
           break
         }
