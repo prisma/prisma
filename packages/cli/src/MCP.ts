@@ -11,10 +11,7 @@ import { createHelp } from './platform/_lib/help'
 // Only apply console redirection when running in MCP mode
 // This prevents stdout pollution that breaks MCP's JSON-RPC protocol
 if (process.argv.includes('mcp')) {
-  console.log = (...a: unknown[]) => process.stderr.write(a.map(String).join(' ') + '\n')
-  console.warn = console.log
-  console.info = console.log
-  console.debug = console.log
+  console.log = console.error.bind(console)
 }
 
 async function runCommand({
