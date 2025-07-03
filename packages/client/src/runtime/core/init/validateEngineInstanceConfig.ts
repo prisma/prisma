@@ -78,20 +78,22 @@ export function validateEngineInstanceConfig({
     errors.push({ _tag: 'error', value })
   }
 
-  const isUsingPrismaAccelerate = Boolean(url?.startsWith('prisma://')) || !copyEngine
+  const isUsingPrismaAccelerate = Boolean(url?.startsWith('prisma://'))
   const isUsingPrismaPostgres = isPrismaPostgres(url)
   const isUsingDriverAdapters = Boolean(adapter)
-  const isCompatibleWithPrismaAccelerate = isUsingPrismaAccelerate || isUsingPrismaPostgres
+  const isAccelerateUrlScheme = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
-  if (!isUsingDriverAdapters && copyEngine && isCompatibleWithPrismaAccelerate) {
+  if (!isUsingDriverAdapters && copyEngine && isAccelerateUrlScheme) {
     pushWarning([
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
     ])
   }
 
+  const isAccelerateConfigured = isAccelerateUrlScheme || !copyEngine
+
   // Note: we're explicitly allowing the `isUsingDriverAdapters && isUsingPrismaPostgres` case to pass through.
-  if (isUsingDriverAdapters && (isCompatibleWithPrismaAccelerate || targetBuildType === 'edge')) {
+  if (isUsingDriverAdapters && (isAccelerateConfigured || targetBuildType === 'edge')) {
     if (targetBuildType === 'edge') {
       pushError([
         `Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.`,
@@ -111,7 +113,7 @@ export function validateEngineInstanceConfig({
   }
 
   const isUsing = {
-    accelerate: isUsingPrismaAccelerate,
+    accelerate: isAccelerateConfigured,
     ppg: isUsingPrismaPostgres,
     driverAdapters: isUsingDriverAdapters,
   }
