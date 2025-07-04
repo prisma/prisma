@@ -35,20 +35,81 @@ export function doKeysMatch(lhs: {}, rhs: {}): boolean {
   const smallerKeyList = lhsKeys.length < rhsKeys.length ? lhsKeys : rhsKeys
 
   return smallerKeyList.every((key) => {
-    if (typeof lhs[key] !== typeof rhs[key]) {
-      if (typeof lhs[key] === 'number' || typeof rhs[key] === 'number') {
-        return `${lhs[key]}` === `${rhs[key]}`
-      } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
-        return BigInt(`${lhs[key]}`.replace(/n$/, '')) === BigInt(`${rhs[key]}`.replace(/n$/, ''))
-      } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
-        return new Date(`${lhs[key]}`).getTime() === new Date(`${rhs[key]}`).getTime()
-      } else if (Decimal.isDecimal(lhs[key]) || Decimal.isDecimal(rhs[key])) {
-        return new Decimal(`${lhs[key]}`).equals(new Decimal(`${rhs[key]}`))
-      }
+    if (typeof lhs[key] === typeof rhs[key] && typeof lhs[key] !== 'object') {
+      // fast path for primitive types
+      return lhs[key] === rhs[key]
+    }
+
+    if (Decimal.isDecimal(lhs[key]) || Decimal.isDecimal(rhs[key])) {
+      const lhsDecimal = asDecimal(lhs[key])
+      const rhsDecimal = asDecimal(rhs[key])
+      return lhsDecimal && rhsDecimal && lhsDecimal.equals(rhsDecimal)
+    } else if (lhs[key] instanceof Uint8Array || rhs[key] instanceof Uint8Array) {
+      const lhsBuffer = asBuffer(lhs[key])
+      const rhsBuffer = asBuffer(rhs[key])
+      return lhsBuffer && rhsBuffer && lhsBuffer.equals(rhsBuffer)
+    } else if (lhs[key] instanceof Date || rhs[key] instanceof Date) {
+      return asDate(lhs[key])?.getTime() === asDate(rhs[key])?.getTime()
+    } else if (typeof lhs[key] === 'bigint' || typeof rhs[key] === 'bigint') {
+      return asBigInt(lhs[key]) === asBigInt(rhs[key])
+    } else if (typeof lhs[key] === 'number' || typeof rhs[key] === 'number') {
+      return asNumber(lhs[key]) === asNumber(rhs[key])
     }
 
     return isDeepStrictEqual(lhs[key], rhs[key])
   })
+}
+
+function asDecimal(value: unknown): Decimal | undefined {
+  if (Decimal.isDecimal(value)) {
+    return value
+  } else if (typeof value === 'number' || typeof value === 'string') {
+    return new Decimal(value)
+  } else {
+    return
+  }
+}
+
+function asBuffer(value: unknown): Buffer | undefined {
+  if (Buffer.isBuffer(value)) {
+    return value
+  } else if (value instanceof Uint8Array) {
+    return Buffer.from(value.buffer, value.byteOffset, value.byteLength)
+  } else if (typeof value === 'string') {
+    return Buffer.from(value, 'base64')
+  } else {
+    return
+  }
+}
+
+function asDate(value: unknown): Date | undefined {
+  if (value instanceof Date) {
+    return value
+  } else if (typeof value === 'string' || typeof value === 'number') {
+    return new Date(value)
+  } else {
+    return
+  }
+}
+
+function asBigInt(value: unknown): bigint | undefined {
+  if (typeof value === 'bigint') {
+    return value
+  } else if (typeof value === 'number' || typeof value === 'string') {
+    return BigInt(value)
+  } else {
+    return
+  }
+}
+
+function asNumber(value: unknown): number | undefined {
+  if (typeof value === 'number') {
+    return value
+  } else if (typeof value === 'string') {
+    return Number(value)
+  } else {
+    return
+  }
 }
 
 /**
