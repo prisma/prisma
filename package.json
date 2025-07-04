@@ -39,7 +39,7 @@
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
     "@prisma/engines": "workspace:*",
-    "@sindresorhus/slugify": "1.1.2",
+    "@sindresorhus/slugify": "2.2.1",
     "@size-limit/file": "11.2.0",
     "@slack/webhook": "7.0.5",
     "@types/benchmark": "2.1.5",
