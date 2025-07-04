@@ -1,0 +1,22 @@
+datasource db {
+  provider = "postgres"
+  url      = env("SOME_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-ts"
+  output   = "./generated/client"
+  runtime  = "nodejs"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+}
+
+generator edge {
+  provider = "prisma-client-ts"
+  output   = "./generated/edge"
+  runtime  = "edge-light"
+  previewFeatures = ["queryCompiler", "driverAdapters"]
+}
+
+model User {
+  id Int @id
+}
