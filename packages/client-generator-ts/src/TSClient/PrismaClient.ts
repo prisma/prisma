@@ -301,9 +301,9 @@ export interface PrismaClientConstructor {
 
 ${this.jsDoc}
 export interface PrismaClient<
-  ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = LogOptions<ClientOptions>,
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+  in out ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  in out U = LogOptions<ClientOptions>,
+  in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -364,7 +364,10 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
         .join('\n\n'),
       2,
     )}
-}`
+}
+
+export type AnyPrismaClient = PrismaClient<any, any, any>
+`
   }
 
   private applyPendingMigrationsDefinition(this: PrismaClientClass) {
