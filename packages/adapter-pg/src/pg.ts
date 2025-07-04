@@ -215,11 +215,18 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
+  private readonly instance: pg.Pool
 
-  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
+  constructor(instanceOrConfig: pg.Pool | pg.PoolConfig, private readonly options?: PrismaPgOptions) {
+    if (instanceOrConfig instanceof pg.Pool) {
+      this.instance = instanceOrConfig
+    } else {
+      this.instance = new pg.Pool(instanceOrConfig)
+    }
+  }
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
+    return new PrismaPgAdapter(this.instance, this.options, async () => {})
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -227,7 +234,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
+    return new PrismaPgAdapter(new pg.Pool({ ...this.instance.options, database }), undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
       // Note: no need to call dispose here. This callback is run as part of dispose.
     })
