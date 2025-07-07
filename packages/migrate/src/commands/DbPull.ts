@@ -367,7 +367,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
@@ -386,7 +386,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */

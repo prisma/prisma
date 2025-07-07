@@ -5,6 +5,7 @@ export const stdoutNormalizationRules: ProcessContextSettings = {
     ['🌱  ', ''],
     ['🚀  ', ''],
     [/\\/g, '/'], // normalize path separators on windows
+    [/mysql:\/\/(.+):(.+)@localhost:(.+)\//g, 'mysql://root:root@localhost:3306/'],
     [/(Datasource.*)(at ".*")/g, '$1<location placeholder>'],
     [/(Datasource.*)(using driver adapter ".*")/g, '$1<location placeholder>'],
     [/Applying migration .*\n/g, ''], // TODO: only logged by Rust engine - shall we log this in wasm, too?

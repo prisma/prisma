@@ -1,0 +1,10 @@
+datasource db {
+  provider = "mysql"
+  url      = env("TEST_MYSQL_URI_MIGRATE")
+  schemas  = ["does-not-exist"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}

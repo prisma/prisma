@@ -29,7 +29,7 @@ describeMatrix(postgresOnly, 'postgresql - missing database', () => {
       - manually create a database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 

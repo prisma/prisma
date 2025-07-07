@@ -535,7 +535,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       - manually create a database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 
@@ -564,7 +564,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       - manually create a table in your database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 

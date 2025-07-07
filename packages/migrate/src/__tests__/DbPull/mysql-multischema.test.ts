@@ -1,8 +1,8 @@
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
+import { setupMysql, SetupParams, tearDownMysql } from '../../utils/setupMysql'
+import { describeMatrix, mysqlOnly } from '../__helpers__/conditionalTests'
 import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -12,42 +12,42 @@ if (isMacOrWindowsCI) {
 
 const ctx = createDefaultTestContext()
 
-describeMatrix(postgresOnly, 'postgresql-multischema', () => {
-  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
+describeMatrix(mysqlOnly, 'mysql-multischema', () => {
+  const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace(
     'tests-migrate',
-    'tests-migrate-db-pull-multischema-postgresql',
+    'tests-migrate-db-pull-multischema-mysql',
   )
 
   const setupParams: SetupParams = {
     connectionString,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multischema'),
+    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'mysql-multischema'),
   }
 
   beforeAll(async () => {
-    await tearDownPostgres(setupParams).catch((e) => {
+    await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupPostgres(setupParams).catch((e) => {
+    await setupMysql(setupParams).catch((e) => {
       console.error(e)
     })
 
     // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    await tearDownPostgres(setupParams).catch((e) => {
+    await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
@@ -56,7 +56,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
@@ -68,7 +68,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       error: If provided, the schemas array can not be empty.
         -->  with-schemas-in-datasource-0-value.prisma:4
          | 
-       3 |   url      = env("TEST_POSTGRES_URI_MIGRATE")
+       3 |   url      = env("TEST_MYSQL_URI_MIGRATE")
        4 |   schemas  = []
          | 
 
@@ -82,7 +82,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
@@ -96,60 +96,62 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        provider = "mysql"
+        url      = env("TEST_MYSQL_URI_MIGRATE")
         schemas  = ["base", "transactional"]
       }
 
-      model User {
-        id    String @id
-        email String
-        Post  Post[]
-
-        @@schema("base")
-      }
-
       model base_some_table {
-        id         String                     @id(map: "User_pkey2")
-        email      String
+        id         Int                        @id
+        email      String                     @db.Text
         some_table transactional_some_table[]
 
         @@map("some_table")
         @@schema("base")
       }
 
-      model Post {
-        id       String @id
-        title    String
-        authorId String
-        User     User   @relation(fields: [authorId], references: [id])
+      model user {
+        id    Int    @id
+        email String @db.Text
+        post  post[]
 
+        @@schema("base")
+      }
+
+      model post {
+        id       Int         @id
+        title    String      @db.Text
+        authorId Int
+        status   post_status
+        user     user        @relation(fields: [authorId], references: [id])
+
+        @@index([authorId], map: "post_authorId_fkey")
         @@schema("transactional")
       }
 
       model transactional_some_table {
-        id         String          @id(map: "Post_pkey2")
-        title      String
-        authorId   String
-        some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+        id         Int               @id
+        title      String            @db.Text
+        authorId   Int
+        status     some_table_status
+        some_table base_some_table   @relation(fields: [authorId], references: [id], map: "post_authorId_fkey2")
 
+        @@index([authorId], map: "post_authorId_fkey2")
         @@map("some_table")
         @@schema("transactional")
       }
 
-      enum base_status {
+      enum post_status {
         ON
         OFF
 
-        @@map("status")
-        @@schema("base")
+        @@schema("transactional")
       }
 
-      enum transactional_status {
+      enum some_table_status {
         ON
         OFF
 
-        @@map("status")
         @@schema("transactional")
       }
 
@@ -161,8 +163,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       // *** WARNING ***
       // 
       // These items were renamed due to their names being duplicates in the Prisma schema:
-      //   - Type: "enum", name: "base_status"
-      //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
       //   - Type: "model", name: "transactional_some_table"
       // "
@@ -170,7 +170,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
@@ -184,28 +184,21 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        provider = "mysql"
+        url      = env("TEST_MYSQL_URI_MIGRATE")
         schemas  = ["base"]
       }
 
-      model User {
-        id    String @id
-        email String
-
-        @@schema("base")
-      }
-
       model some_table {
-        id    String @id(map: "User_pkey2")
-        email String
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
 
-      enum status {
-        ON
-        OFF
+      model user {
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
@@ -217,7 +210,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
@@ -230,7 +223,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
@@ -244,28 +237,21 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        provider = "mysql"
+        url      = env("TEST_MYSQL_URI_MIGRATE")
         schemas  = ["base", "does-not-exist"]
       }
 
-      model User {
-        id    String @id
-        email String
-
-        @@schema("base")
-      }
-
       model some_table {
-        id    String @id(map: "User_pkey2")
-        email String
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
 
-      enum status {
-        ON
-        OFF
+      model user {
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
@@ -277,7 +263,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('--url with --schemas=base without preview feature should error', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
     ctx.fs.remove(`./schema.prisma`)
 
     const introspect = new DbPull()
@@ -299,7 +285,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('--url with --schemas=does-not-exist should error', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(
@@ -326,7 +312,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('--url --schemas=base (1 existing schema) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(
@@ -341,28 +327,21 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        provider = "mysql"
+        url      = "mysql://root:root@localhost:3306/tests-migrate-db-pull-multischema-mysql"
         schemas  = ["base"]
       }
 
-      model User {
-        id    String @id
-        email String
-
-        @@schema("base")
-      }
-
       model some_table {
-        id    String @id(map: "User_pkey2")
-        email String
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
 
-      enum status {
-        ON
-        OFF
+      model user {
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
@@ -374,7 +353,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('--url  --schemas=base,transactional (2 existing schemas) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(
@@ -389,60 +368,62 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        provider = "mysql"
+        url      = "mysql://root:root@localhost:3306/tests-migrate-db-pull-multischema-mysql"
         schemas  = ["base", "transactional"]
       }
 
-      model User {
-        id    String @id
-        email String
-        Post  Post[]
-
-        @@schema("base")
-      }
-
       model base_some_table {
-        id         String                     @id(map: "User_pkey2")
-        email      String
+        id         Int                        @id
+        email      String                     @db.Text
         some_table transactional_some_table[]
 
         @@map("some_table")
         @@schema("base")
       }
 
-      model Post {
-        id       String @id
-        title    String
-        authorId String
-        User     User   @relation(fields: [authorId], references: [id])
+      model user {
+        id    Int    @id
+        email String @db.Text
+        post  post[]
 
+        @@schema("base")
+      }
+
+      model post {
+        id       Int         @id
+        title    String      @db.Text
+        authorId Int
+        status   post_status
+        user     user        @relation(fields: [authorId], references: [id])
+
+        @@index([authorId], map: "post_authorId_fkey")
         @@schema("transactional")
       }
 
       model transactional_some_table {
-        id         String          @id(map: "Post_pkey2")
-        title      String
-        authorId   String
-        some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+        id         Int               @id
+        title      String            @db.Text
+        authorId   Int
+        status     some_table_status
+        some_table base_some_table   @relation(fields: [authorId], references: [id], map: "post_authorId_fkey2")
 
+        @@index([authorId], map: "post_authorId_fkey2")
         @@map("some_table")
         @@schema("transactional")
       }
 
-      enum base_status {
+      enum post_status {
         ON
         OFF
 
-        @@map("status")
-        @@schema("base")
+        @@schema("transactional")
       }
 
-      enum transactional_status {
+      enum some_table_status {
         ON
         OFF
 
-        @@map("status")
         @@schema("transactional")
       }
 
@@ -454,8 +435,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       // *** WARNING ***
       // 
       // These items were renamed due to their names being duplicates in the Prisma schema:
-      //   - Type: "enum", name: "base_status"
-      //   - Type: "enum", name: "transactional_status"
       //   - Type: "model", name: "base_some_table"
       //   - Type: "model", name: "transactional_some_table"
       // "
@@ -463,7 +442,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   })
 
   test('--url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
+    ctx.fixture('introspection/mysql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(
@@ -478,28 +457,21 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       }
 
       datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        provider = "mysql"
+        url      = "mysql://root:root@localhost:3306/tests-migrate-db-pull-multischema-mysql"
         schemas  = ["base", "does-not-exist"]
       }
 
-      model User {
-        id    String @id
-        email String
-
-        @@schema("base")
-      }
-
       model some_table {
-        id    String @id(map: "User_pkey2")
-        email String
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
 
-      enum status {
-        ON
-        OFF
+      model user {
+        id    Int    @id
+        email String @db.Text
 
         @@schema("base")
       }
@@ -516,38 +488,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
-
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('--url with `?schema=base` should succeed', async () => {
-    const introspect = new DbPull()
-    const connectionString = `${setupParams.connectionString}?schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql?schema=base"
-      }
-
-      model User {
-        id    String @id
-        email String
-      }
-
-      model some_table {
-        id    String @id(map: "User_pkey2")
-        email String
-      }
-
-      enum status {
-        ON
-        OFF
-      }
-
-      "
-    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

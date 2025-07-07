@@ -44,6 +44,11 @@ export const postgresOnly = {
   driverAdapters: allDriverAdapters,
 } satisfies Matrix
 
+export const mysqlOnly = {
+  providers: { mysql: true },
+  driverAdapters: allDriverAdapters,
+} satisfies Matrix
+
 export const noDriverAdapters = {
   providers: allProviders,
   driverAdapters: {},
