@@ -49,7 +49,7 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -77,7 +77,7 @@ Check the status of your database migrations
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = config.adapter ? await config.adapter() : undefined
 
     checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 

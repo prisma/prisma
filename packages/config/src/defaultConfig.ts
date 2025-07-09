@@ -7,10 +7,10 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
  * Modules should not have to deal with missing config values and determining a default themselves as far as possible.
  * => Consistent defaults and centralized top-level control of configuration via the CLI.
  */
-export function defaultConfig<Env extends Record<string, string | undefined> = never>(): DeepMutable<
-  PrismaConfigInternal<Env>
+export function defaultConfig(): DeepMutable<
+  PrismaConfigInternal
 > {
-  return makePrismaConfigInternal<Env>({
+  return makePrismaConfigInternal({
     earlyAccess: true,
     loadedFromFile: null,
   })
