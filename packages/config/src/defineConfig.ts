@@ -11,9 +11,7 @@ const debug = Debug('prisma:config:defineConfig')
 /**
  * Define the configuration for the Prisma Development Kit.
  */
-export function defineConfig(
-  configInput: PrismaConfig,
-): PrismaConfigInternal {
+export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
@@ -34,10 +32,7 @@ export function defineConfig(
 /**
  * `configInput.schema` is forwarded to `config.schema` as is.
  */
-function defineSchemaConfig(
-  config: DeepMutable<PrismaConfigInternal>,
-  configInput: PrismaConfig,
-) {
+function defineSchemaConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.schema) {
     return
   }
@@ -49,10 +44,7 @@ function defineSchemaConfig(
 /**
  * `configInput.studio` is forwarded to `config.studio` as is.
  */
-function defineStudioConfig(
-  config: DeepMutable<PrismaConfigInternal>,
-  configInput: PrismaConfig,
-) {
+function defineStudioConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.studio?.adapter) {
     return
   }
@@ -73,10 +65,7 @@ function defineStudioConfig(
  * For `config.adapter`, we internally retrieve the `ErrorCapturingSqlMigrationAwareDriverAdapterFactory`
  * instance from the `SqlMigrationAwareDriverAdapterFactory` retrieved after invoking `configInput.migrate.adapter()`.
  */
-function defineAdapterConfig(
-  config: DeepMutable<PrismaConfigInternal>,
-  configInput: PrismaConfig,
-) {
+function defineAdapterConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.adapter) {
     return
   }

@@ -71,7 +71,7 @@ describe('defineConfig', () => {
   })
 
   describe('adapter', () => {
-    test('if no `migrate` configuration is provided, it should not configure Prisma CLI\'s adapter', () => {
+    test("if no `migrate` configuration is provided, it should not configure Prisma CLI's adapter", () => {
       const config = defineConfig(baselineConfig)
       expect(config.adapter).toBeUndefined()
     })
