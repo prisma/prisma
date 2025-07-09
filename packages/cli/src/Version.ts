@@ -83,7 +83,7 @@ export class Version implements Command {
       return { engineType }
     })
 
-    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.migrate?.adapter)
+    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.adapter)
       .with(undefined, async () => {
         const name = BinaryType.SchemaEngineBinary
         const engineResult = await resolveEngine(name)
@@ -95,7 +95,7 @@ export class Version implements Command {
         }
       })
       .otherwise(async (adapterFn) => {
-        const adapter = await adapterFn(process.env as never)
+        const adapter = await adapterFn()
         const enginesRetrievalErrors = [] as Error[]
 
         return {

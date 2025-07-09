@@ -53,7 +53,7 @@ function defineStudioConfig(
   config: DeepMutable<PrismaConfigInternal>,
   configInput: PrismaConfig,
 ) {
-  if (!configInput.studio) {
+  if (!configInput.studio?.adapter) {
     return
   }
 

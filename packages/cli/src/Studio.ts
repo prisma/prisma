@@ -119,7 +119,7 @@ ${bold('Examples')}
       schemas: schemaContext.schemaFiles,
     })
 
-    const adapter = await config.studio?.adapter(process.env)
+    const adapter = await config.studio?.adapter()
 
     if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
 
