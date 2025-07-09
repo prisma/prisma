@@ -332,7 +332,7 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = config.adapter ? await config.adapter() : undefined
+    const adapter = await config.adapter?.()
     const migrate = await Migrate.setup({ adapter })
 
     // Capture stdout if --output is defined

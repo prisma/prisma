@@ -198,7 +198,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       }
     }
 
-    const adapter = config.adapter ? await config.adapter() : undefined
+    const adapter = await config.adapter?.()
     const migrate = await Migrate.setup({ adapter })
 
     try {

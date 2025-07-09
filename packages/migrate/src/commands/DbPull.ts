@@ -150,7 +150,7 @@ Set composite types introspection depth to 2 levels
       flags: ['--url', '--local-d1'],
     })
 
-    const adapter = config.adapter ? await config.adapter() : undefined
+    const adapter = await config.adapter?.()
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {

@@ -79,7 +79,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = config.adapter ? await config.adapter() : undefined
+    const adapter = await config.adapter?.()
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
     const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })

@@ -83,7 +83,7 @@ ${bold('Examples')}
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.adapter ? await config.adapter() : undefined
+    const adapter = await config.adapter?.()
 
     printDatasource({ datasourceInfo, adapter })
 
