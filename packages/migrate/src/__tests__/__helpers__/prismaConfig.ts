@@ -35,9 +35,7 @@ export const configContextContributor =
  * Creates a PrismaConfig with a driver adapter if the test are run with a driver adapter.
  * If a prisma.config.ts file exists, it will be merged with the default config.
  */
-function defaultTestConfig(
-  ctx: BaseContext,
-): PrismaConfigInternal {
+function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
   let adapter: SqlMigrationAwareDriverAdapterFactoryShape | undefined
 
   const adapterName = currentDriverAdapterName()
