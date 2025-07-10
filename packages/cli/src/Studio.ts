@@ -78,7 +78,7 @@ ${bold('Examples')}
    * @param argv Array of all arguments
    * @param config The loaded Prisma config
    */
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -119,7 +119,7 @@ ${bold('Examples')}
       schemas: schemaContext.schemaFiles,
     })
 
-    const adapter = await config.studio?.adapter(process.env)
+    const adapter = await config.studio?.adapter()
 
     if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
 
