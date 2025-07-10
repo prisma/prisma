@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
@@ -98,7 +100,7 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
@@ -273,9 +275,12 @@ ${bold('Examples')}
         process.stdout.write(`Already in sync, no schema change or pending migration was found.\n`)
       }
     } else {
+      // e.g., "./prisma/custom-migrations"
+      const migrationsDirPathRelative = path.relative(process.cwd(), migrationsDirPath)
+
       process.stdout.write(
         `\nThe following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
-          'migrations',
+          migrationsDirPathRelative,
           migrationIds,
           {
             'migration.sql': '',

@@ -21,6 +21,9 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   defineSchemaConfig(config, configInput)
   defineAdapterConfig(config, configInput)
   defineStudioConfig(config, configInput)
+  defineMigrationsConfig(config, configInput)
+  defineTypedSqlConfig(config, configInput)
+  defineViewsConfig(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
@@ -39,6 +42,42 @@ function defineSchemaConfig(config: DeepMutable<PrismaConfigInternal>, configInp
 
   config.schema = configInput.schema
   debug('[config.schema]: %o', config.schema)
+}
+
+/**
+ * `configInput.migrations` is forwarded to `config.migrations` as is.
+ */
+function defineMigrationsConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.migrations) {
+    return
+  }
+
+  config.migrations = configInput.migrations
+  debug('[config.migrations]: %o', config.migrations)
+}
+
+/**
+ * `configInput.typedSql` is forwarded to `config.typedSql` as is.
+ */
+function defineTypedSqlConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.typedSql) {
+    return
+  }
+
+  config.typedSql = configInput.typedSql
+  debug('[config.typedSql]: %o', config.typedSql)
+}
+
+/**
+ * `configInput.views` is forwarded to `config.views` as is.
+ */
+function defineViewsConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.views) {
+    return
+  }
+
+  config.views = configInput.views
+  debug('[config.views]: %o', config.views)
 }
 
 /**

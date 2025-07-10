@@ -81,7 +81,7 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     const adapter = await config.adapter?.()
 

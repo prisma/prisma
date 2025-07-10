@@ -165,7 +165,7 @@ ${bold('Examples')}
 
     // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
     const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
-    const directoryConfig = inferDirectoryConfig(schemaContext)
+    const directoryConfig = inferDirectoryConfig(schemaContext, config)
 
     // TODO Extract logic from here
     let hasJsClient = false
@@ -320,7 +320,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         if (!schemaResult) return ''
 
         const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
-        const directoryConfig = inferDirectoryConfig(schemaContext)
+        const directoryConfig = inferDirectoryConfig(schemaContext, config)
 
         let generatorsWatch: Generator[] | undefined
         try {
