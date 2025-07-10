@@ -48,7 +48,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -79,7 +79,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
     const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })

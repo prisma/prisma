@@ -10,94 +10,62 @@ import { defineConfig } from './defineConfig'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
-type EnvVars = Record<string, string | undefined>
+const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
+  (input: any): input is () => Promise<SqlMigrationAwareDriverAdapterFactory> => {
+    return typeof input === 'function'
+  },
+  {
+    identifier: 'SqlMigrationAwareDriverAdapterFactory',
+    encode: identity,
+    decode: identity,
+  },
+)
 
-const sqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
-  Shape.declare(
-    (input: any): input is (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory> => {
-      return typeof input === 'function'
-    },
-    {
-      identifier: 'SqlMigrationAwareDriverAdapterFactory<Env>',
-      encode: identity,
-      decode: identity,
-    },
-  )
+export type SqlMigrationAwareDriverAdapterFactoryShape =
+  | undefined
+  | (() => Promise<SqlMigrationAwareDriverAdapterFactory>)
 
-const errorCapturingSqlMigrationAwareDriverAdapterFactoryShape = <Env extends EnvVars = never>() =>
-  Shape.declare(
-    (input: any): input is (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
-      return typeof input === 'function'
-    },
-    {
-      identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory<Env>',
-      encode: identity,
-      decode: identity,
-    },
-  )
+const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
+  (input: any): input is () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
+    return typeof input === 'function'
+  },
+  {
+    identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory',
+    encode: identity,
+    decode: identity,
+  },
+)
 
-export type PrismaStudioConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
+export type PrismaStudioConfigShape = {
+  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
 
-const createPrismaStudioConfigShape = <Env extends EnvVars = never>() =>
-  Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Studio.
-     */
-    adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
-  })
-
-export type PrismaMigrateConfigShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<SqlMigrationAwareDriverAdapterFactory>
-}
-
-const createPrismaMigrateConfigShape = <Env extends EnvVars = never>() =>
-  Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
-     */
-    adapter: sqlMigrationAwareDriverAdapterFactoryShape<Env>(),
-  })
-
-export type PrismaMigrateConfigInternalShape<Env extends EnvVars = never> = {
-  adapter: (env: Env) => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
-}
-
-const createPrismaMigrateConfigInternalShape = <Env extends EnvVars = never>() =>
-  Shape.Struct({
-    /**
-     * Instantiates the Prisma driver adapter to use for Prisma Migrate + Introspect.
-     */
-    adapter: errorCapturingSqlMigrationAwareDriverAdapterFactoryShape<Env>(),
-  })
+const PrismaStudioConfigShape = Shape.Struct({
+  /**
+   * Instantiates the Prisma driver adapter to use for Prisma Studio.
+   */
+  adapter: SqlMigrationAwareDriverAdapterFactoryShape,
+})
 
 // The exported types are re-declared manually instead of using the Shape.Type
 // types because `effect` types make API Extractor crash, making it impossible
 // to bundle them, and `effect` is too large to ship as a full dependency
 // without bundling and tree-shaking. The following tests ensure that the
 // exported types are structurally equal to the ones defined by the schemas.
-declare const __testPrismaStudioConfigShapeValueA: ReturnType<typeof createPrismaStudioConfigShape>['Type']
-declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape<EnvVars>
-declare const __testPrismaMigrateConfigShapeValueA: ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
-declare const __testPrismaMigrateConfigShapeValueB: PrismaMigrateConfigInternalShape<EnvVars>
+declare const __testPrismaStudioConfigShapeValueA: (typeof PrismaStudioConfigShape)['Type']
+declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape<EnvVars>
-  __testPrismaStudioConfigShapeValueB satisfies ReturnType<typeof createPrismaStudioConfigShape>['Type']
-  __testPrismaMigrateConfigShapeValueA satisfies PrismaMigrateConfigInternalShape<EnvVars>
-  __testPrismaMigrateConfigShapeValueB satisfies ReturnType<typeof createPrismaMigrateConfigInternalShape>['Type']
+  __testPrismaStudioConfigShapeValueA satisfies PrismaStudioConfigShape
+  __testPrismaStudioConfigShapeValueB satisfies (typeof PrismaStudioConfigShape)['Type']
 }
 
 // Ensure that the keys of the `PrismaConfig` type are the same as the keys of the `PrismaConfigInternal` type.
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
-declare const __testPrismaConfig: keyof ReturnType<typeof createPrismaConfigShape>['Type']
-declare const __testPrismaConfigInternal: keyof Omit<
-  ReturnType<typeof createPrismaConfigInternalShape>['Type'],
-  'loadedFromFile'
->
+declare const __testPrismaConfig: keyof (typeof PrismaConfigShape)['Type']
+declare const __testPrismaConfigInternal: keyof Omit<(typeof PrismaConfigInternalShape)['Type'], 'loadedFromFile'>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
@@ -106,51 +74,50 @@ if (false) {
 }
 
 // Define the shape for the `PrismaConfig` type.
-const createPrismaConfigShape = <Env extends EnvVars = never>() =>
-  Shape.Struct({
-    earlyAccess: Shape.Literal(true),
-    schema: Shape.optional(Shape.String),
-    studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
-    migrate: Shape.optional(createPrismaMigrateConfigShape<Env>()),
-  })
+const PrismaConfigShape = Shape.Struct({
+  earlyAccess: Shape.Literal(true),
+  schema: Shape.optional(Shape.String),
+  studio: Shape.optional(PrismaStudioConfigShape),
+  adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
+})
 
 /**
  * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfig<Env extends EnvVars = never> = {
+export type PrismaConfig = {
   /**
    * Whether features with an unstable API are enabled.
    */
   earlyAccess: true
   /**
-   * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
+   * The path to the schema file, or path to a folder that shall be recursively searched for *.prisma files.
    */
   schema?: string
   /**
+   * The Driver Adapter used for Prisma CLI.
+   */
+  adapter?: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+  /**
    * The configuration for Prisma Studio.
    */
-  studio?: PrismaStudioConfigShape<Env>
-  /**
-   * The configuration for Prisma Migrate + Introspect
-   */
-  migrate?: PrismaMigrateConfigShape<Env>
+  studio?: PrismaStudioConfigShape
 }
 
-declare const __testPrismaConfigValueA: ReturnType<typeof createPrismaConfigShape>['Type']
-declare const __testPrismaConfigValueB: PrismaConfig<EnvVars>
+declare const __testPrismaConfigValueA: (typeof PrismaConfigShape)['Type']
+declare const __testPrismaConfigValueB: PrismaConfig
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaConfigValueA satisfies PrismaConfig<EnvVars>
-  __testPrismaConfigValueB satisfies ReturnType<typeof createPrismaConfigShape>['Type']
+  __testPrismaConfigValueA satisfies PrismaConfig
+  __testPrismaConfigValueB satisfies (typeof PrismaConfigShape)['Type']
 }
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-function parsePrismaConfigShape<Env extends EnvVars = never>(input: unknown): Either.Either<PrismaConfig<Env>, Error> {
-  return Shape.decodeUnknownEither(createPrismaConfigShape<Env>(), {})(input, {
+function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
+  return Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
     onExcessProperty: 'error',
   })
 }
@@ -159,16 +126,15 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
-const createPrismaConfigInternalShape = <Env extends EnvVars = never>() =>
-  Shape.Struct({
-    earlyAccess: Shape.Literal(true),
-    schema: Shape.optional(Shape.String),
-    studio: Shape.optional(createPrismaStudioConfigShape<Env>()),
-    migrate: Shape.optional(createPrismaMigrateConfigInternalShape<Env>()),
-    loadedFromFile: Shape.NullOr(Shape.String),
-  })
+const PrismaConfigInternalShape = Shape.Struct({
+  earlyAccess: Shape.Literal(true),
+  schema: Shape.optional(Shape.String),
+  studio: Shape.optional(PrismaStudioConfigShape),
+  adapter: Shape.optional(ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape),
+  loadedFromFile: Shape.NullOr(Shape.String),
+})
 
-type _PrismaConfigInternal<Env extends EnvVars = never> = {
+type _PrismaConfigInternal = {
   /**
    * Whether features with an unstable API are enabled.
    */
@@ -180,11 +146,11 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
   /**
    * The configuration for Prisma Studio.
    */
-  studio?: PrismaStudioConfigShape<Env>
+  studio?: PrismaStudioConfigShape
   /**
-   * The configuration for Prisma Migrate + Introspect
+   * The Driver Adapter used for Prisma CLI.
    */
-  migrate?: PrismaMigrateConfigInternalShape<Env>
+  adapter?: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
   /**
    * The path from where the config was loaded.
    * It's set to `null` if no config file was found and only default config is applied.
@@ -192,12 +158,12 @@ type _PrismaConfigInternal<Env extends EnvVars = never> = {
   loadedFromFile: string | null
 }
 
-declare const __testPrismaConfigInternalValueA: ReturnType<typeof createPrismaConfigInternalShape>['Type']
-declare const __testPrismaConfigInternalValueB: _PrismaConfigInternal<EnvVars>
+declare const __testPrismaConfigInternalValueA: (typeof PrismaConfigInternalShape)['Type']
+declare const __testPrismaConfigInternalValueB: _PrismaConfigInternal
 // eslint-disable-next-line no-constant-condition
 if (false) {
   __testPrismaConfigInternalValueA satisfies _PrismaConfigInternal
-  __testPrismaConfigInternalValueB satisfies ReturnType<typeof createPrismaConfigInternalShape>['Type']
+  __testPrismaConfigInternalValueB satisfies (typeof PrismaConfigInternalShape)['Type']
 }
 
 /**
@@ -205,39 +171,35 @@ if (false) {
  * by the `defineConfig` function.
  * Thanks to the branding, this type is opaque and cannot be constructed directly.
  */
-export type PrismaConfigInternal<Env extends EnvVars = never> = _PrismaConfigInternal<Env> & {
+export type PrismaConfigInternal = _PrismaConfigInternal & {
   __brand: typeof PRISMA_CONFIG_INTERNAL_BRAND
 }
 
-function brandPrismaConfigInternal<Env extends EnvVars = never>(
-  config: _PrismaConfigInternal<Env>,
-): PrismaConfigInternal<Env> {
+function brandPrismaConfigInternal(config: _PrismaConfigInternal): PrismaConfigInternal {
   Object.defineProperty(config, '__brand', {
     value: PRISMA_CONFIG_INTERNAL_BRAND,
     writable: true,
     configurable: true,
     enumerable: false,
   })
-  return config as PrismaConfigInternal<Env>
+  return config as PrismaConfigInternal
 }
 
 /**
  * Parse a given input object to ensure it conforms to the `PrismaConfigInternal` type Shape.
  * This function may fail, but it will never throw.
  */
-function parsePrismaConfigInternalShape<Env extends EnvVars = never>(
-  input: unknown,
-): Either.Either<PrismaConfigInternal<Env>, Error> {
+function parsePrismaConfigInternalShape(input: unknown): Either.Either<PrismaConfigInternal, Error> {
   debug('Parsing PrismaConfigInternal: %o', input)
 
   // Bypass the parsing step when the input is already an object with the correct internal brand.
   if (typeof input === 'object' && input !== null && input['__brand'] === PRISMA_CONFIG_INTERNAL_BRAND) {
     debug('Short-circuit: input is already a PrismaConfigInternal object')
-    return Either.right(input as PrismaConfigInternal<Env>)
+    return Either.right(input as PrismaConfigInternal)
   }
 
   return pipe(
-    Shape.decodeUnknownEither(createPrismaConfigInternalShape<Env>(), {})(input, {
+    Shape.decodeUnknownEither(PrismaConfigInternalShape, {})(input, {
       onExcessProperty: 'error',
     }),
     // Brand the output type to make `PrismaConfigInternal` opaque, without exposing the `Effect/Brand` type
@@ -246,26 +208,24 @@ function parsePrismaConfigInternalShape<Env extends EnvVars = never>(
     // - https://github.com/microsoft/rushstack/issues/1308
     // - https://github.com/microsoft/rushstack/issues/4034
     // - https://github.com/microsoft/TypeScript/issues/58914
-    Either.map(brandPrismaConfigInternal<Env>),
+    Either.map(brandPrismaConfigInternal),
   )
 }
 
-export function makePrismaConfigInternal<Env extends EnvVars = never>(
-  makeArgs: _PrismaConfigInternal<Env>,
-): PrismaConfigInternal<Env> {
-  return pipe(createPrismaConfigInternalShape<Env>().make(makeArgs), brandPrismaConfigInternal<Env>)
+export function makePrismaConfigInternal(makeArgs: _PrismaConfigInternal): PrismaConfigInternal {
+  return pipe(PrismaConfigInternalShape.make(makeArgs), brandPrismaConfigInternal)
 }
 
 export function parseDefaultExport(defaultExport: unknown) {
   const parseResultEither = pipe(
     // If the given config conforms to the `PrismaConfig` shape, feed it to `defineConfig`.
-    parsePrismaConfigShape<any>(defaultExport),
+    parsePrismaConfigShape(defaultExport),
     Either.map((config) => {
       debug('Parsed `PrismaConfig` shape: %o', config)
-      return defineConfig<any>(config)
+      return defineConfig(config)
     }),
     // Otherwise, try to parse it as a `PrismaConfigInternal` shape.
-    Either.orElse(() => parsePrismaConfigInternalShape<any>(defaultExport)),
+    Either.orElse(() => parsePrismaConfigInternalShape(defaultExport)),
   )
 
   // Failure case

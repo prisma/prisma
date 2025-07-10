@@ -14,16 +14,14 @@ const env = {
   CLOUDFLARE_DATABASE_ID: '$CLOUDFLARE_DATABASE_ID',
 } satisfies Env
 
-export default defineConfig<Env>({
+export default defineConfig({
   earlyAccess: true,
   schema: path.join('schema.prisma'),
-  migrate: {
-    async adapter(_) {
-      return new PrismaD1({
-        CLOUDFLARE_D1_TOKEN: env.CLOUDFLARE_D1_TOKEN,
-        CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
-        CLOUDFLARE_DATABASE_ID: env.CLOUDFLARE_DATABASE_ID,
-      })
-    },
+  async adapter() {
+    return new PrismaD1({
+      CLOUDFLARE_D1_TOKEN: env.CLOUDFLARE_D1_TOKEN,
+      CLOUDFLARE_ACCOUNT_ID: env.CLOUDFLARE_ACCOUNT_ID,
+      CLOUDFLARE_DATABASE_ID: env.CLOUDFLARE_DATABASE_ID,
+    })
   },
 })

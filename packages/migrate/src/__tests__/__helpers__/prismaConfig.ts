@@ -1,11 +1,11 @@
 import { defineConfig, PrismaConfigInternal } from '@prisma/config'
-import { PrismaMigrateConfigShape } from '@prisma/config/src/PrismaConfig'
+import { SqlMigrationAwareDriverAdapterFactoryShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
 import driverAdapters, { currentDriverAdapterName } from './driverAdapters'
 
 type ConfigContext = {
-  config: () => Promise<PrismaConfigInternal<any>>
+  config: () => Promise<PrismaConfigInternal>
 }
 
 /**
@@ -35,27 +35,25 @@ export const configContextContributor =
  * Creates a PrismaConfig with a driver adapter if the test are run with a driver adapter.
  * If a prisma.config.ts file exists, it will be merged with the default config.
  */
-function defaultTestConfig<Env extends Record<string, string | undefined>>(
-  ctx: BaseContext,
-): PrismaConfigInternal<Env> {
-  let migrate: PrismaMigrateConfigShape<Env> | undefined
+function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
+  let adapter: SqlMigrationAwareDriverAdapterFactoryShape | undefined
 
   const adapterName = currentDriverAdapterName()
   if (adapterName) {
-    const { adapter } = driverAdapters[adapterName]
-    if (!adapter) {
+    const { adapter: createAdapter } = driverAdapters[adapterName]
+    if (!createAdapter) {
       throw new Error(`Driver Adapter ${adapterName} not found`)
     }
-    migrate = { adapter: adapter(ctx) }
+    adapter = createAdapter(ctx)
   }
 
   return defineConfig({
     earlyAccess: true,
-    migrate,
+    adapter,
   })
 }
 
 async function loadFixtureConfig(ctx: BaseContext) {
   if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
-  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal<any>
+  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
 }
