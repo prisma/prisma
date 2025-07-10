@@ -85,7 +85,7 @@ describe('defineConfig', () => {
       expect(config.adapter).toStrictEqual(expect.any(Function))
 
       if (!config?.adapter) {
-        throw new Error('Expected config.migrate to be defined')
+        throw new Error('Expected config.adapter to be defined')
       }
 
       const { adapter: adapterFactory } = config
