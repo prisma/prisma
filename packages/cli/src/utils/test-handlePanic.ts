@@ -13,7 +13,7 @@ async function main() {
     process.chdir(dirPath)
 
     const schemaContext = await loadSchemaContext({ schemaPathFromArg: path.join(dirPath, 'schema.prisma') })
-    const { viewsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const { viewsDirPath } = inferDirectoryConfig(schemaContext)
 
     const migrate = await Migrate.setup({ schemaContext })
     const engine = migrate.engine
