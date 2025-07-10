@@ -196,7 +196,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -219,7 +219,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/schema/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -257,7 +257,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end/
           └─ migration.sql
 
@@ -285,7 +285,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -514,7 +514,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_new_change/
           └─ migration.sql
 
@@ -629,7 +629,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -705,7 +705,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -752,7 +752,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_y/
           └─ migration.sql
 
@@ -781,7 +781,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_y/
           └─ migration.sql
 
@@ -807,7 +807,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_y/
           └─ migration.sql
 
@@ -840,7 +840,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_y/
           └─ migration.sql
 
@@ -915,7 +915,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -937,7 +937,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -959,7 +959,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -981,7 +981,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -1005,7 +1005,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -1062,7 +1062,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -1172,7 +1172,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1243,7 +1243,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1265,7 +1265,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1287,7 +1287,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1309,7 +1309,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -1368,7 +1368,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -1423,7 +1423,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1444,7 +1444,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1465,7 +1465,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1487,7 +1487,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
 
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -1510,7 +1510,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -1564,7 +1564,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
@@ -1628,7 +1628,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1649,7 +1649,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1670,7 +1670,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_/
           └─ migration.sql
 
@@ -1692,7 +1692,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
 
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -1715,7 +1715,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
   //     Prisma schema loaded from prisma/schema.prisma
   //     The following migration(s) have been created and applied from new schema changes:
 
-  //     migrations/
+  //     prisma/migrations/
   //       └─ 20201231000000_first/
   //         └─ migration.sql
 
@@ -1768,7 +1768,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
+      prisma/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 

@@ -86,7 +86,7 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const adapter = await config.adapter?.()
 
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })

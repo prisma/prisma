@@ -76,7 +76,7 @@ Check the status of your database migrations
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const adapter = await config.adapter?.()
 
     checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })

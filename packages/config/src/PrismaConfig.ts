@@ -3,10 +3,11 @@ import {
   ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
   SqlMigrationAwareDriverAdapterFactory,
 } from '@prisma/driver-adapter-utils'
-import { Either, identity, Schema as Shape } from 'effect'
+import { Either, identity, Schema as Shape, Struct } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
+import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
@@ -36,6 +37,71 @@ const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   },
 )
 
+export type MigrationsConfigShape = {
+  /**
+   * The path to the directory where Prisma should store migration files, and look for them.
+   */
+  path?: string
+}
+
+const MigrationsConfigShape = Shape.Struct({
+  path: Shape.optional(Shape.String),
+})
+
+// The exported types are re-declared manually instead of using the Shape.Type
+// types because `effect` types make API Extractor crash, making it impossible
+// to bundle them, and `effect` is too large to ship as a full dependency
+// without bundling and tree-shaking. The following tests ensure that the
+// exported types are structurally equal to the ones defined by the schemas.
+declare const __testMigrationsConfigShapeValueA: (typeof MigrationsConfigShape)['Type']
+declare const __testMigrationsConfigShapeValueB: MigrationsConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testMigrationsConfigShapeValueA satisfies MigrationsConfigShape
+  __testMigrationsConfigShapeValueB satisfies (typeof MigrationsConfigShape)['Type']
+}
+
+export type ViewsConfigShape = {
+  /**
+   * The path to the directory where Prisma should look for the view definitions, where *.sql files will be loaded.
+   */
+  path?: string
+}
+
+const ViewsConfigShape = Shape.Struct({
+  path: Shape.optional(Shape.String),
+})
+
+declare const __testViewsConfigShapeValueA: (typeof ViewsConfigShape)['Type']
+declare const __testViewsConfigShapeValueB: ViewsConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testViewsConfigShapeValueA satisfies ViewsConfigShape
+  __testViewsConfigShapeValueB satisfies (typeof ViewsConfigShape)['Type']
+}
+
+export type TypedSqlConfigShape = {
+  /**
+   * The path to the directory where Prisma should look for the `typedSql` queries, where *.sql files will be loaded.
+   */
+  path?: string
+}
+
+const TypedSqlConfigShape = Shape.Struct({
+  path: Shape.optional(Shape.String),
+})
+
+declare const __testTypedSqlConfigShapeValueA: (typeof TypedSqlConfigShape)['Type']
+declare const __testTypedSqlConfigShapeValueB: TypedSqlConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testTypedSqlConfigShapeValueA satisfies TypedSqlConfigShape
+  __testTypedSqlConfigShapeValueB satisfies (typeof TypedSqlConfigShape)['Type']
+}
+
 export type PrismaStudioConfigShape = {
   adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
 }
@@ -47,11 +113,6 @@ const PrismaStudioConfigShape = Shape.Struct({
   adapter: SqlMigrationAwareDriverAdapterFactoryShape,
 })
 
-// The exported types are re-declared manually instead of using the Shape.Type
-// types because `effect` types make API Extractor crash, making it impossible
-// to bundle them, and `effect` is too large to ship as a full dependency
-// without bundling and tree-shaking. The following tests ensure that the
-// exported types are structurally equal to the ones defined by the schemas.
 declare const __testPrismaStudioConfigShapeValueA: (typeof PrismaStudioConfigShape)['Type']
 declare const __testPrismaStudioConfigShapeValueB: PrismaStudioConfigShape
 
@@ -73,12 +134,15 @@ if (false) {
   __testPrismaConfigInternal satisfies typeof __testPrismaConfig
 }
 
-// Define the shape for the `PrismaConfig` type.
+// Define the shape for the user-facing `PrismaConfig` type.
 const PrismaConfigShape = Shape.Struct({
   earlyAccess: Shape.Literal(true),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
   adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
+  migrations: Shape.optional(MigrationsConfigShape),
+  views: Shape.optional(ViewsConfigShape),
+  typedSql: Shape.optional(TypedSqlConfigShape),
 })
 
 /**
@@ -101,7 +165,19 @@ export type PrismaConfig = {
   /**
    * The configuration for Prisma Studio.
    */
-  studio?: PrismaStudioConfigShape
+  studio?: Simplify<PrismaStudioConfigShape>
+  /**
+   * Configuration for Prisma migrations.
+   */
+  migrations?: Simplify<MigrationsConfigShape>
+  /**
+   * Configuration for the database view entities.
+   */
+  views?: Simplify<ViewsConfigShape>
+  /**
+   * Configuration for the `typedSql` preview feature.
+   */
+  typedSql?: Simplify<TypedSqlConfigShape>
 }
 
 declare const __testPrismaConfigValueA: (typeof PrismaConfigShape)['Type']
@@ -127,26 +203,12 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
 const PrismaConfigInternalShape = Shape.Struct({
-  earlyAccess: Shape.Literal(true),
-  schema: Shape.optional(Shape.String),
-  studio: Shape.optional(PrismaStudioConfigShape),
+  ...Struct.omit(PrismaConfigShape.fields, 'adapter'),
   adapter: Shape.optional(ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape),
   loadedFromFile: Shape.NullOr(Shape.String),
 })
 
-type _PrismaConfigInternal = {
-  /**
-   * Whether features with an unstable API are enabled.
-   */
-  earlyAccess: true
-  /**
-   * The path to the schema file or path to a folder that shall be recursively searched for .prisma files.
-   */
-  schema?: string
-  /**
-   * The configuration for Prisma Studio.
-   */
-  studio?: PrismaStudioConfigShape
+type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
   /**
    * The Driver Adapter used for Prisma CLI.
    */
