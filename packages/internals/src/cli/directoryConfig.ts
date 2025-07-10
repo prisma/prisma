@@ -1,3 +1,4 @@
+import { PrismaConfigInternal } from '@prisma/config'
 import path from 'path'
 
 import { SchemaContext } from './schemaContext'
@@ -8,9 +9,9 @@ export type DirectoryConfig = {
   migrationsDirPath: string
 }
 
-// TODO: Pass PrismaConfig as second argument to enable setting custom directory paths. See ORM-663 & ORM-664.
 export function inferDirectoryConfig(
   schemaContext?: SchemaContext | null,
+  config?: PrismaConfigInternal,
   cwd: string = process.cwd(),
 ): DirectoryConfig {
   const baseDir =
@@ -24,8 +25,8 @@ export function inferDirectoryConfig(
     path.join(cwd, 'prisma')
 
   return {
-    viewsDirPath: path.join(baseDir, 'views'),
-    typedSqlDirPath: path.join(baseDir, 'sql'),
-    migrationsDirPath: path.join(baseDir, 'migrations'),
+    viewsDirPath: config?.viewsDirectory ?? path.join(baseDir, 'views'),
+    typedSqlDirPath: config?.typedSqlDirectory ?? path.join(baseDir, 'sql'),
+    migrationsDirPath: config?.migrate?.migrationsDirectory ?? path.join(baseDir, 'migrations'),
   }
 }
