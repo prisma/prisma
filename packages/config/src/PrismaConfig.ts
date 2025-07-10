@@ -5,9 +5,9 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape, Struct } from 'effect'
 import { pipe } from 'effect/Function'
-import type { Simplify } from 'effect/Types'
 
 import { defineConfig } from './defineConfig'
+import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
