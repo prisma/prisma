@@ -219,7 +219,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
       The following migration(s) have been created and applied from new schema changes:
 
-      prisma/migrations/
+      prisma/schema/migrations/
         └─ 20201231000000_first/
           └─ migration.sql
 
