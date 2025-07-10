@@ -120,6 +120,7 @@ export async function loadConfigFromFile({
       }
     }
 
+    // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
@@ -173,12 +174,28 @@ function transformPathsInConfigToAbsolute(
   prismaConfig: PrismaConfigInternal,
   resolvedPath: string,
 ): PrismaConfigInternal {
-  if (prismaConfig.schema) {
-    return {
-      ...prismaConfig,
-      schema: path.resolve(path.dirname(resolvedPath), prismaConfig.schema),
+  function resolvePath(value: string | undefined) {
+    if (!value) {
+      return undefined
     }
-  } else {
-    return prismaConfig
+
+    return path.resolve(path.dirname(resolvedPath), value)
+  }
+
+  return {
+    ...prismaConfig,
+    schema: resolvePath(prismaConfig.schema),
+    migrations: {
+      ...prismaConfig.migrations,
+      path: resolvePath(prismaConfig.migrations?.path),
+    },
+    typedSql: {
+      ...prismaConfig.typedSql,
+      path: resolvePath(prismaConfig.typedSql?.path),
+    },
+    views: {
+      ...prismaConfig.views,
+      path: resolvePath(prismaConfig.views?.path),
+    },
   }
 }

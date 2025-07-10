@@ -1152,8 +1152,8 @@ importers:
         specifier: 7.0.3
         version: 7.0.3
       effect:
-        specifier: 3.12.10
-        version: 3.12.10
+        specifier: 3.16.12
+        version: 3.16.12
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@22.13.9)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@22.13.9)(typescript@5.8.2))
@@ -3504,6 +3504,9 @@ packages:
   '@snaplet/copycat@6.0.0':
     resolution: {integrity: sha512-ZBxlsWfhd+fxubKHrZglUQmSxHe70sGxHqTPiIBqoqX/41jABG8VCbgB8KrMm8to6V6Y/tBMqQUGzuWFFNHimg==}
 
+  '@standard-schema/spec@1.0.0':
+    resolution: {integrity: sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA==}
+
   '@swc-node/core@1.13.3':
     resolution: {integrity: sha512-OGsvXIid2Go21kiNqeTIn79jcaX4l0G93X2rAnas4LFoDyA9wAwVK7xZdm+QsKoMn5Mus2yFLCc4OtX2dD/PWA==}
     engines: {node: '>= 10'}
@@ -4813,6 +4816,9 @@ packages:
 
   effect@3.12.10:
     resolution: {integrity: sha512-fGg3sEN+l1rffWJvXICBTqyyzpa4y1uNo3aI/JLezJDmDk0Qj/WHiy6wVe0cecdr0eFU0XkZcFu2TWpgV8kBiw==}
+
+  effect@3.16.12:
+    resolution: {integrity: sha512-N39iBk0K71F9nb442TLbTkjl24FLUzuvx2i1I2RsEAQsdAdUTuUoW0vlfUXgkMTUOnYqKnWcFfqw4hK4Pw27hg==}
 
   electron-to-chromium@1.4.645:
     resolution: {integrity: sha512-EeS1oQDCmnYsRDRy2zTeC336a/4LZ6WKqvSaM1jLocEk5ZuyszkQtCpsqvuvaIXGOUjwtvF6LTcS8WueibXvSw==}
@@ -9927,6 +9933,8 @@ snapshots:
       string-argv: 0.3.2
       uuid: 9.0.1
 
+  '@standard-schema/spec@1.0.0': {}
+
   '@swc-node/core@1.13.3(@swc/core@1.11.5)(@swc/types@0.1.19)':
     dependencies:
       '@swc/core': 1.11.5
@@ -11391,6 +11399,11 @@ snapshots:
 
   effect@3.12.10:
     dependencies:
+      fast-check: 3.23.2
+
+  effect@3.16.12:
+    dependencies:
+      '@standard-schema/spec': 1.0.0
       fast-check: 3.23.2
 
   electron-to-chromium@1.4.645: {}
