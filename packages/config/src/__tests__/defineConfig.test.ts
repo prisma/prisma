@@ -71,7 +71,7 @@ describe('defineConfig', () => {
   })
 
   describe('adapter', () => {
-    test("if no `migrate` configuration is provided, it should not configure Prisma CLI's adapter", () => {
+    test("if no `adapter` configuration is provided, it should not configure Prisma CLI's adapter", () => {
       const config = defineConfig(baselineConfig)
       expect(config.adapter).toBeUndefined()
     })
@@ -85,7 +85,7 @@ describe('defineConfig', () => {
       expect(config.adapter).toStrictEqual(expect.any(Function))
 
       if (!config?.adapter) {
-        throw new Error('Expected config.migrate to be defined')
+        throw new Error('Expected config.adapter to be defined')
       }
 
       const { adapter: adapterFactory } = config
