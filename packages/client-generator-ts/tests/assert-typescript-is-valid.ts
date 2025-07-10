@@ -53,7 +53,7 @@ export function assertTypeScriptIsValid({ files, moduleFormat }: AssertTypeScrip
 
     const sourceExtension = match(filename)
       .when(
-        (name) => name.endsWith('.mjs'),
+        (name) => name.endsWith('.js') || name.endsWith('.mjs'),
         () => ts.ScriptKind.JS,
       )
       .when(

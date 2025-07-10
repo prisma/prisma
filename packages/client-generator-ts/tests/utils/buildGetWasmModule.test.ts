@@ -1,7 +1,7 @@
 import { capitalize } from '@prisma/client-common'
 import { describe, expect, it } from 'vitest'
 
-import { buildGetWasmModule, type BuildWasmModuleOptions as Options } from '../../src/utils/buildGetWasmModule'
+import { buildGetWasmModule, type BuildWasmModuleOptions as Options } from '../../src/utils/wasm'
 import { assertTypeScriptIsValid } from '../assert-typescript-is-valid'
 
 /**
@@ -29,6 +29,7 @@ function makeTypeScriptFiles({ component, output }: MakeTypeScriptFilesInput) {
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
     [`./query_${component}_bg.postgresql.mjs`]: 'export const runtime = ``',
+    [`./query_${component}_bg.js`]: 'export const runtime = ``',
   } as const
 }
 
