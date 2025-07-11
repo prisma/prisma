@@ -25,7 +25,8 @@
     "MSSQL",
     "SQL Server",
     "SQLServer",
-    "MongoDB"
+    "MongoDB",
+    "MCP"
   ],
   "main": "build/index.js",
   "repository": {
