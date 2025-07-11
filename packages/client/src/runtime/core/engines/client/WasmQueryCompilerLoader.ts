@@ -4,21 +4,13 @@
 // import * as wasmBindgenRuntime from '@prisma/query-compiler-wasm/query_compiler_bg.js'
 import { QueryCompilerConstructor } from '@prisma/client-common'
 
-import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 
 let loadedWasmInstance: Promise<QueryCompilerConstructor>
 export const wasmQueryCompilerLoader: QueryCompilerLoader = {
   async loadQueryCompiler(config) {
-    const { clientVersion, adapter, compilerWasm } = config
-
-    if (adapter === undefined) {
-      throw new PrismaClientInitializationError(
-        `The \`adapter\` option for \`PrismaClient\` is required in this context (${getRuntime().prettyName})`,
-        clientVersion,
-      )
-    }
+    const { clientVersion, compilerWasm } = config
 
     if (compilerWasm === undefined) {
       throw new PrismaClientInitializationError('WASM query compiler was unexpectedly `undefined`', clientVersion)
