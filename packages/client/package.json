@@ -269,6 +269,7 @@
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
+    "cookie-es": "2.0.0",
     "decimal.js": "10.5.0",
     "esbuild": "0.25.5",
     "execa": "5.1.1",
