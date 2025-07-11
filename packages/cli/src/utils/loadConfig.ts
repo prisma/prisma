@@ -1,7 +1,6 @@
 import { loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { assertNever, HelpError } from '@prisma/internals'
-import { dim } from 'kleur/colors'
 
 const debug = Debug('prisma:cli:loadConfig')
 
@@ -26,9 +25,6 @@ export async function loadConfig(configFilePath?: string): Promise<PrismaConfigI
         assertNever(error, `Unhandled error '${JSON.stringify(error)}' in 'loadConfigFromFile'.`)
     }
   }
-  
-  // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
-  process.stdout.write(dim(`Loaded Prisma config from "${resolvedPath}".\n`))
 
   return config
 }

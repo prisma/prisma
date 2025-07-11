@@ -120,6 +120,8 @@ export async function loadConfigFromFile({
       }
     }
 
+    // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
+    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
     return {
