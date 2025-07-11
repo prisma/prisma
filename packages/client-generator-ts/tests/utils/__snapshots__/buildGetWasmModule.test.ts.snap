@@ -9,7 +9,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const _require = require
@@ -31,7 +31,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const { createRequire } = await dynamicRequireFn('node:module')
@@ -54,7 +54,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const _require = require
@@ -76,7 +76,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const { createRequire } = await dynamicRequireFn('node:module')
@@ -99,7 +99,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-b
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const { createRequire } = await dynamicRequireFn('node:module')
@@ -122,7 +122,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const _require = require
@@ -144,7 +144,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const { createRequire } = await dynamicRequireFn('node:module')
@@ -167,7 +167,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const _require = require
@@ -189,7 +189,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const { createRequire } = await dynamicRequireFn('node:module')
@@ -212,7 +212,7 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-client-w
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
         : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-  
+
     // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
     const { readFile } = await dynamicRequireFn('node:fs/promises')
     const _require = require
@@ -267,10 +267,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-library-
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-bun-esm' > buildGetWasmModule-compiler-wasm-compiler-edge-bun-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -278,10 +278,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-bun-esm' > buildGetWasmModule-compiler-wasm-compiler-edge-bun-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -289,10 +289,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-bun-esm' > buildGetWasmModule-compiler-wasm-compiler-edge-deno-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -300,10 +300,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-bun-esm' > buildGetWasmModule-compiler-wasm-compiler-edge-deno-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -311,10 +311,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-bun-esm' > buildGetWasmModule-compiler-wasm-compiler-edge-workerd-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -322,10 +322,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-workerd-c…' > buildGetWasmModule-compiler-wasm-compiler-edge-edge-light-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm?module")
+    const { default: module } = await import("./query_compiler_bg.wasm?module")
     return module
   }
 }"
@@ -333,10 +333,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-workerd-c…' > buildGetWasmModule-compiler-wasm-compiler-edge-edge-light-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm?module")
+    const { default: module } = await import("./query_compiler_bg.wasm?module")
     return module
   }
 }"
@@ -344,10 +344,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-workerd-c…' > buildGetWasmModule-compiler-wasm-compiler-edge-nodejs-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -355,10 +355,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-workerd-c…' > buildGetWasmModule-compiler-wasm-compiler-edge-nodejs-esm.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
@@ -366,10 +366,10 @@ exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-com
 
 exports[`buildGetWasmModule > generates valid TypeScript for: 'compiler-wasm-compiler-edge-workerd-c…' > buildGetWasmModule-compiler-wasm-compiler-edge-workerd-cjs.ts 1`] = `
 "config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+  getRuntime: async () => await import("./query_compiler_bg.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.postgresql.wasm")
+    const { default: module } = await import("./query_compiler_bg.wasm")
     return module
   }
 }"
