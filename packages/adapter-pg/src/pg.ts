@@ -148,6 +148,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 
 export type PrismaPgOptions = {
   schema?: string
+  disposeExternalPool?: boolean
 }
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
@@ -207,19 +208,39 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   }
 
   async dispose(): Promise<void> {
-    await this.release?.()
-    return await this.client.end()
+    return this.release?.()
   }
 }
 
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
+  private readonly config: pg.PoolConfig
+  private externalPool: pg.Pool | null
 
-  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
+  constructor(poolOrConfig: pg.Pool | pg.PoolConfig, private readonly options?: PrismaPgOptions) {
+    if (poolOrConfig instanceof pg.Pool) {
+      this.externalPool = poolOrConfig
+      this.config = poolOrConfig.options
+    } else {
+      this.externalPool = null
+      this.config = poolOrConfig
+    }
+  }
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
+    const client = this.externalPool ?? new pg.Pool(this.config)
+
+    return new PrismaPgAdapter(client, this.options, async () => {
+      if (this.externalPool) {
+        if (this.options?.disposeExternalPool) {
+          await this.externalPool.end()
+          this.externalPool = null
+        }
+      } else {
+        await client.end()
+      }
+    })
   }
 
   async connectToShadowDb(): Promise<SqlDriverAdapter> {
@@ -227,9 +248,10 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
+    const client = new pg.Pool({ ...this.config, database })
+    return new PrismaPgAdapter(client, undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
-      // Note: no need to call dispose here. This callback is run as part of dispose.
+      await client.end()
     })
   }
 }
