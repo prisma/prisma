@@ -217,7 +217,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   readonly adapterName = packageName
   private readonly config: pg.PoolConfig
   private externalPool: pg.Pool | null
-  
+
   constructor(poolOrConfig: pg.Pool | pg.PoolConfig, private readonly options?: PrismaPgOptions) {
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
