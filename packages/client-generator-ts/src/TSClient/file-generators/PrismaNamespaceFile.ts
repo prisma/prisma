@@ -235,7 +235,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
   )
 
   if (
-    ['library', 'client', 'wasm-compiler-edge'].includes(options.runtimeName) &&
+    ['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName) &&
     context.isPreviewFeatureOn('driverAdapters')
   ) {
     clientOptions.add(
