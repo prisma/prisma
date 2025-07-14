@@ -30,7 +30,8 @@ import { RuntimeTarget } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
-import { addPreambleToTSFiles } from './utils/addPreamble'
+import { addPreambleToSourceFiles } from './utils/addPreamble'
+import { buildWasmFileMap } from './utils/wasm'
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -69,7 +70,7 @@ export interface GenerateClientOptions {
 }
 
 export interface FileMap {
-  [name: string]: string | FileMap
+  [name: string]: string | Buffer | FileMap
 }
 
 export interface BuildClientResult {
@@ -153,7 +154,18 @@ export function buildClient({
     }
   }
 
-  addPreambleToTSFiles(fileMap, tsNoCheckPreamble)
+  fileMap = {
+    ...fileMap,
+    internal: {
+      ...(fileMap.internal as FileMap),
+      ...buildWasmFileMap({
+        runtimeName,
+        activeProvider,
+      }),
+    },
+  }
+
+  addPreambleToSourceFiles(fileMap, tsNoCheckPreamble)
 
   return {
     fileMap, // a map of file names to their contents
@@ -285,7 +297,7 @@ function writeFileMap(outputDir: string, fileMap: FileMap) {
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       await fs.rm(absolutePath, { recursive: true, force: true })
-      if (typeof content === 'string') {
+      if (typeof content === 'string' || Buffer.isBuffer(content)) {
         // file
         await fs.writeFile(absolutePath, content)
       } else {
