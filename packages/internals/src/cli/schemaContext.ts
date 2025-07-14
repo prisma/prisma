@@ -1,9 +1,12 @@
+import Debug from '@prisma/debug'
 import { DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 import path from 'path'
 
 import { getConfig } from '../engine-commands'
 import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
+
+const debug = Debug('prisma:cli:schemaContext')
 
 export type SchemaContext = {
   /**
@@ -102,6 +105,7 @@ export async function processSchemaResult({
     printSchemaLoadedMessage(loadedFromPathForLogMessages)
   }
 
+  debug('processSchemaResult with ignoreEnvVarErrors=%s:\n%s', ignoreEnvVarErrors, schemaResult.schemas)
   const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
 
   const primaryDatasource = configFromPsl.datasources.at(0)

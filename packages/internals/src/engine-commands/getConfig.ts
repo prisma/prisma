@@ -150,6 +150,8 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     return Promise.resolve(data)
   }
 
+  debug('original error in getConfig Wasm:\n%s', configEither.left)
+
   /**
    * Check which error to throw.
    */
