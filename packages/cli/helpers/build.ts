@@ -53,11 +53,26 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       )
       await fs.promises.copyFile(prismaSchemaEngineWasmFile, './build/schema_engine_bg.wasm')
 
+      await copyClientWasmRuntime()
+
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
       chmodX('./build/index.js')
     })
   },
+}
+
+async function copyClientWasmRuntime() {
+  const clientRuntimePath = path.join(__dirname, '..', '..', 'client', 'runtime')
+
+  for (const component of ['compiler', 'engine']) {
+    for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
+      const baseName = `query_${component}_bg.${provider}`
+      for (const file of [`${baseName}.mjs`, `${baseName}.wasm`]) {
+        await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
+      }
+    }
+  }
 }
 
 /**
