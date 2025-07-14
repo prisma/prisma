@@ -30,7 +30,7 @@ export function buildDynamicRequireFn() {
   return `const dynamicRequireFn = async <const T extends string>(name: T) =>
       typeof globalThis.__non_webpack_require__ === 'function'
         ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ name)`
+        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)`
 }
 
 export function buildGetWasmModule({

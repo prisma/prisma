@@ -8,7 +8,7 @@ import type { PrismaConfig, PrismaConfigInternal } from '../PrismaConfig'
 describe('defineConfig', () => {
   const baselineConfig = {
     earlyAccess: true,
-  } satisfies PrismaConfig<never>
+  } satisfies PrismaConfig
 
   describe('defaultConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
@@ -48,7 +48,7 @@ describe('defineConfig', () => {
 
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
       const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
-      const config = defineConfig<any>({
+      const config = defineConfig({
         earlyAccess: true,
         studio: {
           adapter: () => Promise.resolve(expectedAdapter),
@@ -65,37 +65,33 @@ describe('defineConfig', () => {
       const { adapter: adapterFactory } = config.studio
       expect(adapterFactory).toBeDefined()
 
-      const adapter = await adapterFactory(process.env)
+      const adapter = await adapterFactory()
       expect(JSON.stringify(adapter)).toEqual(JSON.stringify(expectedAdapter))
     })
   })
 
-  describe('migrate', () => {
-    test('if no `migrate` configuration is provided, it should not configure Prisma Migrate', () => {
+  describe('adapter', () => {
+    test("if no `adapter` configuration is provided, it should not configure Prisma CLI's adapter", () => {
       const config = defineConfig(baselineConfig)
-      expect(config.migrate).toBeUndefined()
+      expect(config.adapter).toBeUndefined()
     })
 
-    test('if a `migrate` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+    test('if an `adapter` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
       const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
-      const config = defineConfig<any>({
+      const config = defineConfig({
         earlyAccess: true,
-        migrate: {
-          adapter: () => Promise.resolve(expectedAdapter),
-        },
+        adapter: () => Promise.resolve(expectedAdapter),
       })
-      expect(config.migrate).toStrictEqual({
-        adapter: expect.any(Function),
-      })
+      expect(config.adapter).toStrictEqual(expect.any(Function))
 
-      if (!config?.migrate) {
-        throw new Error('Expected config.migrate to be defined')
+      if (!config?.adapter) {
+        throw new Error('Expected config.adapter to be defined')
       }
 
-      const { adapter: adapterFactory } = config.migrate
+      const { adapter: adapterFactory } = config
       expect(adapterFactory).toBeDefined()
 
-      const adapter = await adapterFactory(process.env)
+      const adapter = await adapterFactory()
       expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
     })
   })

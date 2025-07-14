@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@prisma/adapter-libsql": "workspace:*",
-    "@sindresorhus/slugify": "1.1.2",
+    "@sindresorhus/slugify": "2.2.1",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "@types/jest": "29.5.14",
@@ -58,7 +58,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/engines-version": "6.12.0-7.c238eea7bd55fe78a5fbd21d9119bee49f0ee79b",
+    "@prisma/engines-version": "6.12.0-14.cf92c4bfad34aa635b071a7d483b78c3975bf639",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",

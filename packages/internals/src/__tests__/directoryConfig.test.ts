@@ -1,16 +1,51 @@
+import path from 'node:path'
+
+import { defineConfig, type PrismaConfigInternal } from '@prisma/config'
 import { inferDirectoryConfig, loadSchemaContext } from '@prisma/internals'
-import path from 'path'
 
 import { fixturesPath } from './__utils__/fixtures'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'directoryConfig')
 
-async function testDirectoryConfig({ fixtureName, schemaPath }: { fixtureName: string; schemaPath?: string }) {
+async function testDirectoryConfig({
+  config,
+  fixtureName,
+  schemaPath,
+}: {
+  config?: PrismaConfigInternal
+  fixtureName: string
+  schemaPath?: string
+}) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath, cwd, allowNull: true })
-  return inferDirectoryConfig(schemaContext, cwd)
+  return inferDirectoryConfig(schemaContext, config, cwd)
 }
+
+it('it uses custom paths if specified in the config', async () => {
+  const res = await testDirectoryConfig({
+    fixtureName: 'single-schema-file',
+    config: defineConfig({
+      earlyAccess: true,
+      migrations: {
+        path: path.join(FIXTURE_CWD, 'custom', 'migrations'),
+      },
+      typedSql: {
+        path: path.join(FIXTURE_CWD, 'custom', 'typedSql'),
+      },
+      views: {
+        path: path.join(FIXTURE_CWD, 'custom', 'views'),
+      },
+    }),
+  })
+
+  expect(res).toEqual({
+    migrationsDirPath: path.resolve(FIXTURE_CWD, 'custom', 'migrations'),
+    typedSqlDirPath: path.resolve(FIXTURE_CWD, 'custom', 'typedSql'),
+    viewsDirPath: path.resolve(FIXTURE_CWD, 'custom', 'views'),
+  })
+})
+
 it('places folders next to single schema file', async () => {
   const res = await testDirectoryConfig({ fixtureName: 'single-schema-file' })
 

@@ -74,11 +74,9 @@ describe('CLI', () => {
       // prisma.config.ts
       const config = defineConfig({
         earlyAccess: true,
-        migrate: {
-          // @ts-ignore: we don't need to import an actual adapter
-          adapter: async () => {
-            return Promise.resolve({})
-          },
+        // @ts-ignore: we don't need to import an actual adapter
+        adapter: async () => {
+          return Promise.resolve({})
         },
       })
 

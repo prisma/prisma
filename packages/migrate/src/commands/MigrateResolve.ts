@@ -57,7 +57,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -86,8 +86,8 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
-    const adapter = await config.migrate?.adapter(process.env)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const adapter = await config.adapter?.()
 
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
 

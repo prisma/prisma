@@ -1,10 +1,11 @@
 import { Debug } from '@prisma/debug'
-import { isPrismaPostgresDev, PRISMA_POSTGRES_PROTOCOL, TracingHelper } from '@prisma/internals'
+import { TracingHelper } from '@prisma/internals'
 
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
+import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
+import { HeaderBuilder } from '../common/accelerate/HeaderBuilder'
 import type {
   BatchQueryEngineResult,
   CustomDataProxyFetch,
@@ -28,7 +29,6 @@ import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
-import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
 import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
@@ -56,18 +56,6 @@ type RequestInternalOptions = {
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
 
-type DataProxyHeaders = {
-  Authorization: string
-  'X-capture-telemetry'?: string
-  traceparent?: string
-  'Prisma-Engine-Hash': string
-}
-
-type HeaderBuilderOptions = {
-  traceparent?: string
-  interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
-}
-
 type StartTransactionResult = {
   id: string
   'data-proxy': {
@@ -78,74 +66,6 @@ type StartTransactionResult = {
 
 type CloseTransactionResult = {
   extensions?: QueryEngineResultExtensions
-}
-
-class DataProxyHeaderBuilder {
-  readonly apiKey: string
-  readonly tracingHelper: TracingHelper
-  readonly logLevel: EngineConfig['logLevel']
-  readonly logQueries: boolean | undefined
-  readonly engineHash: string
-
-  constructor({
-    apiKey,
-    tracingHelper,
-    logLevel,
-    logQueries,
-    engineHash,
-  }: {
-    apiKey: string
-    tracingHelper: TracingHelper
-    logLevel: EngineConfig['logLevel']
-    logQueries: boolean | undefined
-    engineHash: string
-  }) {
-    this.apiKey = apiKey
-    this.tracingHelper = tracingHelper
-    this.logLevel = logLevel
-    this.logQueries = logQueries
-    this.engineHash = engineHash
-  }
-
-  build({ traceparent, interactiveTransaction }: HeaderBuilderOptions = {}): DataProxyHeaders {
-    const headers: DataProxyHeaders = {
-      Authorization: `Bearer ${this.apiKey}`,
-      'Prisma-Engine-Hash': this.engineHash,
-    }
-
-    if (this.tracingHelper.isEnabled()) {
-      headers.traceparent = traceparent ?? this.tracingHelper.getTraceParent()
-    }
-
-    if (interactiveTransaction) {
-      headers['X-transaction-id'] = interactiveTransaction.id
-    }
-
-    const captureTelemetry: string[] = this.buildCaptureSettings()
-
-    if (captureTelemetry.length > 0) {
-      headers['X-capture-telemetry'] = captureTelemetry.join(', ')
-    }
-
-    return headers
-  }
-
-  private buildCaptureSettings() {
-    const captureTelemetry: string[] = []
-
-    if (this.tracingHelper.isEnabled()) {
-      captureTelemetry.push('tracing')
-    }
-
-    if (this.logLevel) {
-      captureTelemetry.push(this.logLevel)
-    }
-
-    if (this.logQueries) {
-      captureTelemetry.push('query')
-    }
-    return captureTelemetry
-  }
 }
 
 export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
@@ -163,7 +83,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   private tracingHelper: TracingHelper
   private remoteClientVersion!: string
   private host!: string
-  private headerBuilder!: DataProxyHeaderBuilder
+  private headerBuilder!: HeaderBuilder
   private startPromise?: Promise<void>
   private protocol!: 'http' | 'https'
 
@@ -171,7 +91,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
     checkForbiddenMetrics(config)
 
     this.config = config
-    this.env = { ...config.env, ...(typeof process !== 'undefined' ? process.env : {}) }
+    this.env = config.env
     // TODO (perf) schema should be uploaded as-is
     this.inlineSchema = toBase64(config.inlineSchema)
     this.inlineDatasources = config.inlineDatasources
@@ -207,16 +127,14 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
       const { apiKey, url } = this.getURLAndAPIKey()
 
       this.host = url.host
-      this.headerBuilder = new DataProxyHeaderBuilder({
+      this.protocol = url.protocol
+      this.headerBuilder = new HeaderBuilder({
         apiKey,
         tracingHelper: this.tracingHelper,
-        logLevel: this.config.logLevel,
+        logLevel: this.config.logLevel ?? 'error',
         logQueries: this.config.logQueries,
         engineHash: this.engineHash,
       })
-      // To simplify things, `prisma dev`, for now, will not support HTTPS.
-      // In the future, if HTTPS for `prisma dev` becomes a thing, we'll need this line to be dynamic.
-      this.protocol = isPrismaPostgresDev(url) ? 'http' : 'https'
 
       this.remoteClientVersion = await getClientVersion(this.host, this.config)
 
@@ -280,7 +198,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   private async url(action: string) {
     await this.start()
 
-    return `${this.protocol}://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
+    return `${this.protocol}//${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${action}`
   }
 
   private async uploadSchema() {
@@ -379,7 +297,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
           url,
           {
             method: 'POST',
-            headers: this.headerBuilder.build({ traceparent, interactiveTransaction }),
+            headers: this.headerBuilder.build({ traceparent, transactionId: interactiveTransaction?.id }),
             body: JSON.stringify(body),
             clientVersion: this.clientVersion,
           },
@@ -501,43 +419,12 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   }
 
   private getURLAndAPIKey() {
-    const errorInfo = { clientVersion: this.clientVersion }
-    const dsName = Object.keys(this.inlineDatasources)[0]
-    const serviceURL = resolveDatasourceUrl({
-      inlineDatasources: this.inlineDatasources,
-      overrideDatasources: this.config.overrideDatasources,
+    return getUrlAndApiKey({
       clientVersion: this.clientVersion,
       env: this.env,
+      inlineDatasources: this.inlineDatasources,
+      overrideDatasources: this.config.overrideDatasources,
     })
-
-    let url: URL
-    try {
-      url = new URL(serviceURL)
-    } catch {
-      throw new InvalidDatasourceError(
-        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
-        errorInfo,
-      )
-    }
-
-    const { protocol, searchParams } = url
-
-    if (protocol !== 'prisma:' && protocol !== PRISMA_POSTGRES_PROTOCOL) {
-      throw new InvalidDatasourceError(
-        `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,
-        errorInfo,
-      )
-    }
-
-    const apiKey = searchParams.get('api_key')
-    if (apiKey === null || apiKey.length < 1) {
-      throw new InvalidDatasourceError(
-        `Error validating datasource \`${dsName}\`: the URL must contain a valid API key`,
-        errorInfo,
-      )
-    }
-
-    return { apiKey, url }
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>

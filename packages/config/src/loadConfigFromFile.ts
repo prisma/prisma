@@ -43,7 +43,7 @@ export type LoadConfigFromFileError =
 export type ConfigFromFile =
   | {
       resolvedPath: string
-      config: PrismaConfigInternal<any>
+      config: PrismaConfigInternal
       error?: never
     }
   | {
@@ -53,7 +53,7 @@ export type ConfigFromFile =
     }
   | {
       resolvedPath: null
-      config: PrismaConfigInternal<any>
+      config: PrismaConfigInternal
       error?: never
     }
 
@@ -104,7 +104,7 @@ export async function loadConfigFromFile({
 
     debug(`Config file loaded in %s`, getTime())
 
-    let defaultExport: PrismaConfigInternal<any> | undefined
+    let defaultExport: PrismaConfigInternal | undefined
 
     try {
       // @ts-expect-error
@@ -120,6 +120,7 @@ export async function loadConfigFromFile({
       }
     }
 
+    // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
@@ -170,15 +171,31 @@ async function requireTypeScriptFile(resolvedPath: string) {
 }
 
 function transformPathsInConfigToAbsolute(
-  prismaConfig: PrismaConfigInternal<any>,
+  prismaConfig: PrismaConfigInternal,
   resolvedPath: string,
-): PrismaConfigInternal<any> {
-  if (prismaConfig.schema) {
-    return {
-      ...prismaConfig,
-      schema: path.resolve(path.dirname(resolvedPath), prismaConfig.schema),
+): PrismaConfigInternal {
+  function resolvePath(value: string | undefined) {
+    if (!value) {
+      return undefined
     }
-  } else {
-    return prismaConfig
+
+    return path.resolve(path.dirname(resolvedPath), value)
+  }
+
+  return {
+    ...prismaConfig,
+    schema: resolvePath(prismaConfig.schema),
+    migrations: {
+      ...prismaConfig.migrations,
+      path: resolvePath(prismaConfig.migrations?.path),
+    },
+    typedSql: {
+      ...prismaConfig.typedSql,
+      path: resolvePath(prismaConfig.typedSql?.path),
+    },
+    views: {
+      ...prismaConfig.views,
+      path: resolvePath(prismaConfig.views?.path),
+    },
   }
 }

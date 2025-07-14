@@ -60,18 +60,20 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
 
   if (TARGET_BUILD_TYPE === 'react-native') return new LibraryEngine(engineConfig)
+  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client')
+    return new ClientEngine(engineConfig, isUsing.accelerate)
+  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
+    return new ClientEngine(engineConfig, isUsing.accelerate)
   else if (isUsing.accelerate && TARGET_BUILD_TYPE !== 'wasm-engine-edge') return new DataProxyEngine(engineConfig)
   else if (isUsing.driverAdapters && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   else if (isUsing.accelerate && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new AccelerateEngine(engineConfig)
-  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
-  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge') return new ClientEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
   else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
-  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
+  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, isUsing.accelerate)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
     const message = [

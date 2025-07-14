@@ -4,10 +4,8 @@ import { mockMigrationAwareAdapterFactory } from 'test-utils/mock-adapter'
 export default {
   earlyAccess: true,
   schema: 'schema.prisma',
-  migrate: {
-    adapter: async () => {
-      return mockMigrationAwareAdapterFactory('postgres')
-    },
+  adapter: async () => {
+    return mockMigrationAwareAdapterFactory('postgres')
   },
   studio: {
     adapter: async () => {

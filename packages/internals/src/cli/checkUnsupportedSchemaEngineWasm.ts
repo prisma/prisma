@@ -28,11 +28,11 @@ export function checkUnsupportedSchemaEngineWasm({
   flags,
 }: {
   cmd: string
-  config: PrismaConfigInternal<any>
+  config: PrismaConfigInternal
   args: Record<string, unknown>
   flags: Array<string>
 }) {
-  if (!config.migrate?.adapter) {
+  if (!config.adapter) {
     return
   }
 

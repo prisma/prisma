@@ -3,8 +3,8 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
 /**
  * This default config can be used as basis for unit and integration tests.
  */
-export function defaultTestConfig<Env extends Record<string, string | undefined> = never>(): PrismaConfigInternal<Env> {
-  return makePrismaConfigInternal<Env>({
+export function defaultTestConfig(): PrismaConfigInternal {
+  return makePrismaConfigInternal({
     earlyAccess: true,
     loadedFromFile: null,
   })
