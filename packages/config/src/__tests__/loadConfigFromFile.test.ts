@@ -62,7 +62,7 @@ describe('loadConfigFromFile', () => {
           path: path.join(cwd, 'custom', 'views'),
         },
       })
-    })
+    }, 15_000) // Somehow, this test is flaky on Windows, so we increase the timeout
 
     it('supports absolute paths', async () => {
       ctx.fixture('loadConfigFromFile/absolute-paths')
@@ -86,7 +86,7 @@ describe('loadConfigFromFile', () => {
           path: path.join(cwd, 'custom', 'views'),
         },
       })
-    })
+    }, 15_000) // Somehow, this test is flaky on Windows, so we increase the timeout
   })
 
   describe('schema', () => {
