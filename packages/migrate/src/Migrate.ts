@@ -26,26 +26,30 @@ interface MigrateSetupInput {
   migrationsDirPath?: string
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
+  schemaFilter?: MigrateTypes.SchemaFilter
 }
 
 interface MigrateOptions {
   engine: SchemaEngine
   schemaContext?: SchemaContext
   migrationsDirPath?: string
+  schemaFilter?: MigrateTypes.SchemaFilter
 }
 
 export class Migrate {
   public readonly engine: SchemaEngine
   private schemaContext?: SchemaContext
+  private schemaFilter?: MigrateTypes.SchemaFilter
   public migrationsDirectoryPath?: string
 
-  private constructor({ schemaContext, migrationsDirPath, engine }: MigrateOptions) {
+  private constructor({ schemaContext, migrationsDirPath, engine, schemaFilter }: MigrateOptions) {
     this.engine = engine
 
     // schemaPath and migrationsDirectoryPath are optional for primitives
     // like migrate diff and db execute
     this.schemaContext = schemaContext
     this.migrationsDirectoryPath = migrationsDirPath
+    this.schemaFilter = schemaFilter
   }
 
   static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
@@ -85,6 +89,7 @@ export class Migrate {
     const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
       ...params,
       migrationsList,
+      filters: this.schemaFilter,
     })
     const { baseDir, lockfile } = migrationsList
 
@@ -135,6 +140,7 @@ export class Migrate {
     return this.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase,
+      filters: this.schemaFilter,
     })
   }
 
@@ -155,6 +161,7 @@ export class Migrate {
 
     return this.engine.devDiagnostic({
       migrationsList,
+      filters: this.schemaFilter,
     })
   }
 
@@ -194,6 +201,7 @@ export class Migrate {
     return this.engine.evaluateDataLoss({
       migrationsList,
       schema: schema,
+      filters: this.schemaFilter,
     })
   }
 
