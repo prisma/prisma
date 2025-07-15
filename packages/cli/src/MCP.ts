@@ -8,9 +8,26 @@ import { z } from 'zod'
 import { version } from '../package.json'
 import { createHelp } from './platform/_lib/help'
 
-async function runCommand({ args, cwd }: { args: string[]; cwd: string }) {
-  const result = await execa.node(process.argv[1], args, { cwd })
-  return `${result.stdout}\n${result.stderr}`
+// Only apply console redirection when running in MCP mode
+// This prevents stdout pollution that breaks MCP's JSON-RPC protocol
+if (process.argv.includes('mcp')) {
+  console.log = console.error.bind(console)
+}
+
+async function runCommand({
+  args,
+  cwd,
+}: {
+  args: string[]
+  cwd: string
+}): Promise<{ content: { type: 'text'; text: string; _meta?: { [x: string]: unknown } }[] }> {
+  try {
+    const { stdout, stderr } = await execa.node(process.argv[1], args, { cwd })
+    const combined = [stdout, stderr].filter(Boolean).join('\n')
+    return { content: [{ type: 'text', text: String(combined || 'No output') }] }
+  } catch (error: any) {
+    return { content: [{ type: 'text', text: String(error?.message || 'Unknown error') }] }
+  }
 }
 
 export class Mcp implements Command {
@@ -54,8 +71,7 @@ export class Mcp implements Command {
             20201208100950_new_migration`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'status'] })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['migrate', 'status'] })
       },
     )
 
@@ -72,8 +88,7 @@ export class Mcp implements Command {
             5. Triggers the generation of artifacts (for example, Prisma Client)`,
       { name: z.string(), projectCWD: z.string() },
       async ({ name, projectCWD }) => {
-        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'dev', '--name', name] })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['migrate', 'dev', '--name', name] })
       },
     )
 
@@ -89,8 +104,7 @@ export class Mcp implements Command {
                 4. Runs seed scripts`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const text = await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
       },
     )
 
@@ -99,11 +113,7 @@ export class Mcp implements Command {
       `Prisma Platform Auth Show provides information about the currently logged in user. If the user is not logged in, you should instruct them to do so by running \`npx prisma platform auth login --early-access\` and then re-running this command to verify.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const text = await runCommand({
-          cwd: projectCWD,
-          args: ['platform', 'auth', 'show', '--early-access'],
-        })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'show', '--early-access'] })
       },
     )
 
@@ -119,11 +129,10 @@ export class Mcp implements Command {
       - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
       { name: z.string(), region: z.string(), projectCWD: z.string() },
       async ({ name, region, projectCWD }) => {
-        const text = await runCommand({
+        return await runCommand({
           cwd: projectCWD,
           args: ['init', '--db', '--name', name, '--region', region, '--non-interactive'],
         })
-        return { content: [{ type: 'text', text }] }
       },
     )
 
@@ -132,8 +141,7 @@ export class Mcp implements Command {
       `Login or create an account in order to be able to use Prisma Postgres.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const text = await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'login', '--early-access'] })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'login', '--early-access'] })
       },
     )
 
@@ -143,8 +151,7 @@ export class Mcp implements Command {
       Provide the current working directory of the users project. This should be the top level directory of the project.`,
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
-        const text = await runCommand({ cwd: projectCWD, args: ['studio'] })
-        return { content: [{ type: 'text', text }] }
+        return await runCommand({ cwd: projectCWD, args: ['studio'] })
       },
     )
 
