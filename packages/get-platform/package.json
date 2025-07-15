@@ -19,10 +19,13 @@
       "import": "./dist/index.js",
       "default": "./dist/index.js"
     },
-    "./vitest": {
-      "types": "./dist/test-utils/vitestContext.d.ts",
+    "./src/test-utils/jestSnapshotSerializer": {
+      "import": "./src/test-utils/jestSnapshotSerializer.ts",
+      "default": "./src/test-utils/jestSnapshotSerializer.ts"
+    },
+    "./src/test-utils/vitestContext": {
       "import": "./src/test-utils/vitestContext.ts",
-      "default": "./dist/test-utils/vitestContext.js"
+      "default": "./src/test-utils/vitestContext.ts"
     }
   },
   "devDependencies": {

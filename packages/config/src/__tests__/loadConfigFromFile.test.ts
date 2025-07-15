@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
-import { vitestContext } from '@prisma/get-platform/vitest'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import type { ParseError } from 'effect/ParseResult'
 import { afterEach, beforeEach, describe, expect, it, test } from 'vitest'
 
