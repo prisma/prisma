@@ -16,7 +16,7 @@ for (const line of env.split('\n')) {
   value = value.trim()
 
   // Remove surrounding quotes
-  value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+  value = value.replace(/^(['"`])([\s\S]*)\1$/gm, '$2')
 
   process.env[key] = value
 }
