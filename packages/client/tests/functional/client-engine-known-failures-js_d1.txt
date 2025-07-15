@@ -1,8 +1,5 @@
-blog-update (provider=sqlite, js_d1) should create a user and post and connect them together
-blog-update (provider=sqlite, js_d1) should create a user and post and disconnect them
 enums (provider=sqlite, js_d1) fails at runtime when an invalid entry is entered manually in SQLite
 filter-count-relations (provider=sqlite, js_d1) nested relation
-globalOmit.test (provider=sqlite, js_d1) updateMany does not crash
 invalid-sqlite-isolation-level (provider=sqlite, js_d1) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_d1) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_d1) should return a descriptive error
@@ -10,8 +7,6 @@ issues.15644-middleware-arg-types (provider=sqlite, js_d1) middleware with updat
 issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
 issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
 issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
-issues.21369-select-null (provider=sqlite, js_d1) SELECT NULL works
-issues.22947-sqlite-conccurrent-upsert (provider=sqlite, js_d1) concurrent upserts should succeed
 metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in json format
 metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in prometheus format
 metrics.enabled (provider=sqlite, js_d1) after a query returns metrics in json format
@@ -20,7 +15,4 @@ metrics.enabled (provider=sqlite, js_d1) before a query SQL Providers: should ha
 metrics.enabled (provider=sqlite, js_d1) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_d1) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_d1) multiple instances does not share metrics between 2 different instances of client
-relationMode-17255-mixed-actions (relationMode=prisma,provider=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id, js_d1) original [update] main with nested delete alice should succeed
-relationMode-17255-mixed-actions (relationMode=prisma,provider=sqlite,onUpdate=Cascade,onDelete=Cascade,id=String @id, js_d1) original [update] main with nested disconnect alice should succeed
-relationMode-17255-same-actions (relationMode=prisma,provider=sqlite,onUpdate=DEFAULT,onDelete=DEFAULT,id=String @id, js_d1) not-original onDelete: DEFAULT [update] main with nested delete alice should succeed
 unsupported-action (provider=sqlite, js_d1) unsupported method
