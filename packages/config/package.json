@@ -11,15 +11,6 @@
   },
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
-  },
   "dependencies": {
     "jiti": "2.4.2"
   },
@@ -27,7 +18,6 @@
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "effect": "3.16.12",
-    "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.4"
   },
   "scripts": {
