@@ -13,21 +13,6 @@
     "directory": "packages/get-platform"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./src/test-utils/jestSnapshotSerializer": {
-      "import": "./src/test-utils/jestSnapshotSerializer.ts",
-      "default": "./src/test-utils/jestSnapshotSerializer.ts"
-    },
-    "./src/test-utils/vitestContext": {
-      "import": "./src/test-utils/vitestContext.ts",
-      "default": "./src/test-utils/vitestContext.ts"
-    }
-  },
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "4.0.0",
     "@swc/core": "1.11.5",
