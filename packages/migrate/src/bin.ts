@@ -4,7 +4,7 @@ import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
-import { bold, red } from 'kleur/colors'
+import { bold, dim, red } from 'kleur/colors'
 
 import { version as packageVersion } from '../package.json'
 import { CLI } from './CLI'
@@ -73,6 +73,9 @@ async function main(): Promise<number> {
     console.error(`Failed to load config file: ${error._tag}`)
     return 1
   }
+
+  // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
+  process.stdout.write(dim(`Loaded Prisma config from "${config.loadedFromFile}".\n`))
 
   // Execute the command
   const result = await cli.parse(commandArray, config)
