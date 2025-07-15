@@ -59,11 +59,17 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   // - Delete DataProxyEngine and all related files
   // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
 
+  // When a local driver adapter is configured, the URL from the datasource
+  // block in the Prisma schema is no longer relevant as driver adapters don't
+  // use it. Therefore, a configured driver adapter takes precedence over the
+  // Accelerate or PPg URL in the schema file.
+  const clientEngineUsesRemoteExecutor = (isUsing.accelerate || isUsing.ppg) && !isUsing.driverAdapters
+
   if (TARGET_BUILD_TYPE === 'react-native') return new LibraryEngine(engineConfig)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client')
-    return new ClientEngine(engineConfig, isUsing.accelerate)
+    return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
-    return new ClientEngine(engineConfig, isUsing.accelerate)
+    return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (isUsing.accelerate && TARGET_BUILD_TYPE !== 'wasm-engine-edge') return new DataProxyEngine(engineConfig)
   else if (isUsing.driverAdapters && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
@@ -73,7 +79,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
-  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, isUsing.accelerate)
+  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
     const message = [
