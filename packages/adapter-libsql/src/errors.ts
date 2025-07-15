@@ -9,7 +9,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     throw error
   }
 
-  const rawCode: number = error.rawCode ?? error.cause?.['rawCode']
+  const rawCode: number = error.rawCode ?? error.cause?.['rawCode'] ?? 1
   switch (rawCode) {
     case 2067:
     case 1555: {
