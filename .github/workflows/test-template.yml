@@ -1055,6 +1055,9 @@ jobs:
         name: 'adapter-d1'
         working-directory: packages/adapter-d1
 
+      - run: pnpm run test
+        name: 'adapter-pg'
+        working-directory: packages/adapter-pg
   #
   # Run type performance benchmark tests
   #
