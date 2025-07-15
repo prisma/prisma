@@ -4,7 +4,6 @@ interactive-transactions (provider=postgresql, js_neon) batching raw rollback
 interactive-transactions (provider=postgresql, js_neon) timeout default
 interactive-transactions (provider=postgresql, js_neon) timeout override
 interactive-transactions (provider=postgresql, js_neon) timeout override by PrismaClient
-issues.13097-group-by-enum (provider=postgresql, js_neon) groupBy on enumArray field
 issues.20724 (provider=postgresql, js_neon) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
 issues.20724 (provider=postgresql, js_neon) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
 issues.20724 (provider=postgresql, js_neon) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries

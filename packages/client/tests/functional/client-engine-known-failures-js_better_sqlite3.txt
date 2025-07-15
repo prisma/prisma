@@ -1,10 +1,7 @@
-blog-update (provider=sqlite, js_better_sqlite3) should create a user and post and connect them together
-blog-update (provider=sqlite, js_better_sqlite3) should create a user and post and disconnect them
 enums (provider=sqlite, js_better_sqlite3) fails at runtime when an invalid entry is entered manually in SQLite
 extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via custom call
 extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via normal call
 filter-count-relations (provider=sqlite, js_better_sqlite3) nested relation
-globalOmit.test (provider=sqlite, js_better_sqlite3) updateMany does not crash
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching raw rollback
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback
 interactive-transactions (provider=sqlite, js_better_sqlite3) timeout default
