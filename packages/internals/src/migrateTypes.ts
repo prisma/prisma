@@ -78,6 +78,10 @@ export namespace MigrateTypes {
     configDir: string
   }
 
+  export type SchemaFilter = {
+    externalTables: string[]
+  }
+
   export type UrlContainer = {
     url: string
   }
