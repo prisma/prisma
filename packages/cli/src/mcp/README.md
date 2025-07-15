@@ -1,4 +1,4 @@
-# Prisma MPC
+# Prisma MCP
 
 MCP or [Model Context Protocol](https://docs.anthropic.com/en/docs/mcp) allows the Prisma ORM to wrap CLI commands into workflows that work well with LLMs and AI code editors.
 
