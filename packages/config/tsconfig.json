@@ -1,6 +1,10 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["./**/*"],
+  "include": [
+    "./**/*",
+    "src/__tests__/fixtures/loadConfigFromFile/schema/with-config-dir-proposal/single-exists-relative/.config/prisma.config copy.ts",
+    "src/__tests__/fixtures/loadConfigFromFile/schema/with-config-dir-proposal/multi-exist/.config/prisma.config.ts"
+  ],
   "compilerOptions": {
     "paths": {
       "src/*": ["./src/*"],
