@@ -322,6 +322,177 @@ describe('loadConfigFromFile', () => {
     })
   })
 
+  describe.only('precedence', () => {
+    it('prisma.config.js is 1st choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.js'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    it('prisma.config.ts is 2nd choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await ctx.fs.removeAsync('prisma.config.js')
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    it('prisma.config.mjs is 3rd choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.mjs'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    it('prisma.config.cjs is 4th choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.cjs'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    it('prisma.config.mts is 5th choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+        ctx.fs.removeAsync('prisma.config.cjs'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.mts'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    it('prisma.config.cts is 6th choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+        ctx.fs.removeAsync('prisma.config.cjs'),
+        ctx.fs.removeAsync('prisma.config.mts'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.cts'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+
+    // Note: As of c12@3.1.0, it tries loading `.json` even when such extension is excluded
+    // from `jiti` or `jitiOptions.extensions`.
+    // See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L443.
+    it('prisma.config.json is 7th choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+        ctx.fs.removeAsync('prisma.config.cjs'),
+        ctx.fs.removeAsync('prisma.config.mts'),
+        ctx.fs.removeAsync('prisma.config.cts'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.json'))
+      expect(error).toMatchObject({
+        _tag: 'TypeScriptImportFailed',
+        error: {
+          message: expect.stringContaining('Unsupported Prisma config file extension: .json'),
+        },
+      })
+      expect(config).toBeUndefined()
+    })
+
+    // Note: As of c12@3.1.0, it tries loading `.jsonc` even when such extension is excluded
+    // from `jiti` or `jitiOptions.extensions`.
+    // This is because there's currently no way to exclude confbox options.
+    // See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L44-L49.
+    it('prisma.config.jsonc is 8th choice', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+        ctx.fs.removeAsync('prisma.config.cjs'),
+        ctx.fs.removeAsync('prisma.config.mts'),
+        ctx.fs.removeAsync('prisma.config.cts'),
+        ctx.fs.removeAsync('prisma.config.json'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.jsonc'))
+      expect(error).toMatchObject({
+        _tag: 'TypeScriptImportFailed',
+        error: {
+          message: expect.stringContaining('Unsupported Prisma config file extension: .jsonc'),
+        },
+      })
+      expect(config).toBeUndefined()
+    })
+
+    it('.config/prisma.js is chosen when no other `prisma.config.*` exists', async () => {
+      ctx.fixture('loadConfigFromFile/precedence')
+      await Promise.all([
+        ctx.fs.removeAsync('prisma.config.js'),
+        ctx.fs.removeAsync('prisma.config.ts'),
+        ctx.fs.removeAsync('prisma.config.mjs'),
+        ctx.fs.removeAsync('prisma.config.cjs'),
+        ctx.fs.removeAsync('prisma.config.mts'),
+        ctx.fs.removeAsync('prisma.config.cts'),
+        ctx.fs.removeAsync('prisma.config.json'),
+        ctx.fs.removeAsync('prisma.config.jsonc'),
+      ])
+
+      const { config, error, resolvedPath } = await loadConfigFromFile({})
+      expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), '.config', 'prisma.js'))
+      expect(error).toBeUndefined()
+      expect(config).toMatchObject({
+        earlyAccess: true,
+        loadedFromFile: resolvedPath,
+      })
+    })
+  })
+
   describe('default-location', () => {
     describe.each(SUPPORTED_EXTENSIONS)(`extension: %s`, (extension) => {
       it('succeeds when the Prisma config file exists and is in a valid format', async () => {

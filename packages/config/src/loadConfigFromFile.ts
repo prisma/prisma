@@ -4,7 +4,6 @@ import process from 'node:process'
 import { Debug } from '@prisma/driver-adapter-utils'
 import { loadConfig as loadConfigWithC12 } from 'c12'
 import { deepmerge } from 'deepmerge-ts'
-import { createJiti } from 'jiti'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -12,7 +11,17 @@ import { parseDefaultExport } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
-export const SUPPORTED_EXTENSIONS = ['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs'] as const satisfies string[]
+// Note: as of c12@3.1.0, config extensions are tried in the following order, regardless of how we pass them
+// to `jiti` or to `jitiOptions.extensions`.
+// See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L35-L42
+export const SUPPORTED_EXTENSIONS = [
+  ".js",
+  ".ts",
+  ".mjs",
+  ".cjs",
+  ".mts",
+  ".cts",
+] as const satisfies string[]
 
 type LoadConfigFromFileInput = {
   /**
@@ -155,11 +164,11 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
       // @ts-expect-error: this is a type-error in `c12` itself
       merger: deepmerge,
 
-      jiti: createJiti(path.join(configRoot, 'prisma.config'), {
+      jitiOptions: {
         interopDefault: true,
         moduleCache: true,
         extensions: SUPPORTED_EXTENSIONS,
-      }),
+      },
     })
 
     const doesConfigFileExist = resolvedPath !== undefined && meta !== undefined
