@@ -134,13 +134,11 @@ function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
   }
 }
 
-const LOCK_TAG = Symbol()
-
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
   // The PlanetScale connection objects are not meant to be used concurrently,
   // so we override the `performIO` method to synchronize access to it with a mutex.
   // See: https://github.com/mattrobenolt/ps-http-sim/issues/7
-  [LOCK_TAG] = new Mutex()
+  #mutex = new Mutex()
 
   constructor(
     tx: planetScale.Transaction,
@@ -152,7 +150,7 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 
   async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
-    const release = await this[LOCK_TAG].acquire()
+    const release = await this.#mutex.acquire()
     try {
       return await super.performIO(query)
     } catch (e) {
