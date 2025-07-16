@@ -22,7 +22,7 @@ const MAX_CLOSED_TRANSACTIONS = 100
 
 type TransactionWrapper = {
   id: string
-  status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out'
+  status: 'waiting' | 'running' | 'closing' | 'committed' | 'rolled_back' | 'timed_out'
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
@@ -114,6 +114,7 @@ export class TransactionManager {
         // Start timeout to wait for transaction to be finished.
         transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
         return { id: transaction.id }
+      case 'closing':
       case 'timed_out':
       case 'running':
       case 'committed':
@@ -154,6 +155,7 @@ export class TransactionManager {
       if (closedTransaction) {
         debug('Transaction already closed.', { transactionId, status: closedTransaction.status })
         switch (closedTransaction.status) {
+          case 'closing':
           case 'waiting':
           case 'running':
             throw new TransactionInternalConsistencyError('Active transaction found in closed transactions list.')
@@ -205,6 +207,8 @@ export class TransactionManager {
 
   private async closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out') {
     debug('Closing transaction.', { transactionId: tx.id, status })
+
+    tx.status = 'closing'
 
     try {
       if (tx.transaction && status === 'committed') {
