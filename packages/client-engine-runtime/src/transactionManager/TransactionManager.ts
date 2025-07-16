@@ -102,7 +102,7 @@ export class TransactionManager {
 
     clearTimeout(startTimer)
 
-    // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
+    // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
         if (hasTimedOut) {
