@@ -95,7 +95,7 @@ export namespace EngineArgs {
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
     migrationName: string
-    filters?: MigrateTypes.SchemaFilter
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   // The path to a live database taken as input.
@@ -150,14 +150,14 @@ export namespace EngineArgs {
 
   export interface DevDiagnosticInput {
     migrationsList: MigrateTypes.MigrationList
-    filters?: MigrateTypes.SchemaFilter
+    schemaFilter: MigrateTypes.SchemaFilter | null
   }
 
   export interface DiagnoseMigrationHistoryInput {
     migrationsList: MigrateTypes.MigrationList
     /// Whether creating shadow/temporary databases is allowed.
     optInToShadowDatabase: boolean
-    filters?: MigrateTypes.SchemaFilter
+    schemaFilter: MigrateTypes.SchemaFilter | null
   }
 
   export interface EnsureConnectionValidityInput {
@@ -167,7 +167,7 @@ export namespace EngineArgs {
   export interface EvaluateDataLossInput {
     migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
-    filters?: MigrateTypes.SchemaFilter
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface ListMigrationDirectoriesInput {

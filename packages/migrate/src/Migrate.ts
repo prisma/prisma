@@ -81,7 +81,7 @@ export class Migrate {
   }
 
   public async createMigration(
-    params: Omit<EngineArgs.CreateMigrationInput, 'migrationsList'>,
+    params: Omit<EngineArgs.CreateMigrationInput, 'migrationsList' | 'filters'>,
   ): Promise<{ generatedMigrationName: string | undefined }> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
@@ -89,7 +89,7 @@ export class Migrate {
     const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
       ...params,
       migrationsList,
-      filters: this.schemaFilter,
+      filters: this.schemaFilter ?? null,
     })
     const { baseDir, lockfile } = migrationsList
 
@@ -140,7 +140,7 @@ export class Migrate {
     return this.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase,
-      filters: this.schemaFilter,
+      schemaFilter: this.schemaFilter ?? null,
     })
   }
 
@@ -161,7 +161,7 @@ export class Migrate {
 
     return this.engine.devDiagnostic({
       migrationsList,
-      filters: this.schemaFilter,
+      schemaFilter: this.schemaFilter ?? null,
     })
   }
 
@@ -201,7 +201,7 @@ export class Migrate {
     return this.engine.evaluateDataLoss({
       migrationsList,
       schema: schema,
-      filters: this.schemaFilter,
+      filters: this.schemaFilter ?? null,
     })
   }
 
