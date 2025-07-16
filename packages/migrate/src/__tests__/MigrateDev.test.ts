@@ -1203,7 +1203,8 @@ describeMatrix(postgresOnly, 'postgres', () => {
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
-      "`)
+      "
+    `)
   })
 })
 
