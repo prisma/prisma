@@ -22,7 +22,7 @@ const MAX_CLOSED_TRANSACTIONS = 100
 
 type TransactionWrapper = {
   id: string
-  status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out'
+  status: 'waiting' | 'running' | 'closing' | 'committed' | 'rolled_back' | 'timed_out'
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
@@ -95,22 +95,27 @@ export class TransactionManager {
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    const startTimer = setTimeout(() => (transaction.status = 'timed_out'), validatedOptions.maxWait!)
+    let hasTimedOut = false
+    const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
 
     transaction.transaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
 
     clearTimeout(startTimer)
 
-    // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
+    // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
+        if (hasTimedOut) {
+          await this.closeTransaction(transaction, 'timed_out')
+          throw new TransactionStartTimeoutError()
+        }
+
         transaction.status = 'running'
         // Start timeout to wait for transaction to be finished.
         transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
         return { id: transaction.id }
+      case 'closing':
       case 'timed_out':
-        await this.closeTransaction(transaction, 'timed_out')
-        throw new TransactionStartTimeoutError()
       case 'running':
       case 'committed':
       case 'rolled_back':
@@ -150,6 +155,7 @@ export class TransactionManager {
       if (closedTransaction) {
         debug('Transaction already closed.', { transactionId, status: closedTransaction.status })
         switch (closedTransaction.status) {
+          case 'closing':
           case 'waiting':
           case 'running':
             throw new TransactionInternalConsistencyError('Active transaction found in closed transactions list.')
@@ -202,7 +208,7 @@ export class TransactionManager {
   private async closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out') {
     debug('Closing transaction.', { transactionId: tx.id, status })
 
-    tx.status = status
+    tx.status = 'closing'
 
     try {
       if (tx.transaction && status === 'committed') {
@@ -223,6 +229,7 @@ export class TransactionManager {
         }
       }
     } finally {
+      tx.status = status
       clearTimeout(tx.timer)
       tx.timer = undefined
 
