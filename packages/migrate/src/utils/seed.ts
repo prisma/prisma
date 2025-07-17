@@ -16,18 +16,18 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 
   debug({ prismaConfig })
 
-  if (!prismaConfig || !prismaConfig.data?.seed) {
+  if (!prismaConfig || !prismaConfig.config?.seed) {
     return null
   }
 
-  const seedCommandFromPkgJson = prismaConfig.data.seed
+  const seedCommandFromPkgJson = prismaConfig.config.seed
 
   // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` must be of type string`,
     )
   }
@@ -36,7 +36,7 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` cannot be empty`,
     )
   }
