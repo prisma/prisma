@@ -111,6 +111,11 @@ export type Error =
       constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
     }
   | {
+      kind: 'DatabaseNotReachable'
+      host?: string
+      port?: number
+    }
+  | {
       kind: 'DatabaseDoesNotExist'
       db?: string
     }
@@ -121,6 +126,13 @@ export type Error =
   | {
       kind: 'DatabaseAccessDenied'
       db?: string
+    }
+  | {
+      kind: 'ConnectionClosed'
+    }
+  | {
+      kind: 'TlsConnectionError'
+      reason: string
     }
   | {
       kind: 'AuthenticationFailed'
