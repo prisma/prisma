@@ -141,7 +141,7 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
   try {
     const {
       config,
-      configFile: resolvedPath,
+      configFile: _resolvedPath,
       meta,
     } = await loadConfigWithC12({
       cwd: configRoot,
@@ -159,19 +159,19 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
       extend: false,
       // do not load from nearest package.json
       packageJson: false,
-      // specify the default config to use
-      // defaultConfig: defaultConfig(),
 
       // @ts-expect-error: this is a type-error in `c12` itself
       merger: deepmerge,
 
       jitiOptions: {
         interopDefault: true,
-        moduleCache: true,
+        moduleCache: false,
         extensions: SUPPORTED_EXTENSIONS,
       },
     })
 
+    // Note: c12 apparently doesn't normalize paths on Windows, causing issues with Windows tests.
+    const resolvedPath = _resolvedPath ? path.normalize(_resolvedPath) : undefined
     const doesConfigFileExist = resolvedPath !== undefined && meta !== undefined
 
     if (configFile && !doesConfigFileExist) {
