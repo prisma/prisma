@@ -2,8 +2,6 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
-import { loadConfig as loadConfigWithC12 } from 'c12'
-import { deepmerge } from 'deepmerge-ts'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -137,6 +135,9 @@ export async function loadConfigFromFile({
 }
 
 async function loadConfigTsOrJs(configRoot: string, configFile: string | undefined) {
+  const { loadConfig: loadConfigWithC12 } = await import('c12')
+  const { deepmerge } = await import('deepmerge-ts')
+
   try {
     const {
       config,
