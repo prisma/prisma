@@ -16,7 +16,9 @@ export async function loadConfig(configFilePath?: string): Promise<PrismaConfigI
       case 'ConfigFileNotFound':
         return new HelpError(`Config file not found at "${resolvedPath}"`)
       case 'ConfigLoadError':
-        return new HelpError(`Failed to load config file "${resolvedPath}" as a TypeScript/JavaScript module. Error: ${error.error}`)
+        return new HelpError(
+          `Failed to load config file "${resolvedPath}" as a TypeScript/JavaScript module. Error: ${error.error}`,
+        )
       case 'ConfigFileSyntaxError':
         return new HelpError(`Failed to parse syntax of config file at "${resolvedPath}"`)
       case 'UnknownError':
