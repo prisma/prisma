@@ -1,7 +1,7 @@
 import { underline } from 'kleur/colors'
-import terminalLink from 'terminal-link'
 
-export function link(url): string {
+export async function link(url): Promise<string> {
+  const { default: terminalLink } = await import('terminal-link')
   return terminalLink(url, url, {
     fallback: (url) => underline(url),
   })
