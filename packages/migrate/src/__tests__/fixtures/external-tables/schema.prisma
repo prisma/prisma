@@ -7,7 +7,7 @@ datasource db {
   url      = env("TEST_POSTGRES_URI_MIGRATE")
 }
 
-model ExternalTable {
+model User {
   id   Int @id
   name String
 }
