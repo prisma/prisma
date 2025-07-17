@@ -350,10 +350,7 @@ describe('loadConfigFromFile', () => {
 
     it('prisma.config.mjs is 3rd choice', async () => {
       ctx.fixture('loadConfigFromFile/precedence')
-      await Promise.all([
-        ctx.fs.removeAsync('prisma.config.js'),
-        ctx.fs.removeAsync('prisma.config.ts'),
-      ])
+      await Promise.all([ctx.fs.removeAsync('prisma.config.js'), ctx.fs.removeAsync('prisma.config.ts')])
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.mjs'))

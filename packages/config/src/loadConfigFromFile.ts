@@ -14,14 +14,7 @@ const debug = Debug('prisma:config:loadConfigFromFile')
 // Note: as of c12@3.1.0, config extensions are tried in the following order, regardless of how we pass them
 // to `jiti` or to `jitiOptions.extensions`.
 // See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L35-L42
-export const SUPPORTED_EXTENSIONS = [
-  ".js",
-  ".ts",
-  ".mjs",
-  ".cjs",
-  ".mts",
-  ".cts",
-] as const satisfies string[]
+export const SUPPORTED_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts'] as const satisfies string[]
 
 type LoadConfigFromFileInput = {
   /**
@@ -37,9 +30,9 @@ type LoadConfigFromFileInput = {
 
 export type LoadConfigFromFileError =
   | {
-    /**
-     * The config file was not found at the specified path.
-     */
+      /**
+       * The config file was not found at the specified path.
+       */
       _tag: 'ConfigFileNotFound'
     }
   | {
@@ -96,10 +89,10 @@ export async function loadConfigFromFile({
     }
 
     debug(`Config file loaded in %s`, getTime())
-  
+
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
-  
+
       return { resolvedPath: null, config: defaultConfig() }
     }
 
@@ -117,11 +110,11 @@ export async function loadConfigFromFile({
         },
       }
     }
-  
+
     // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(parsedConfig, resolvedPath)
-  
+
     return {
       config: {
         ...prismaConfig,
@@ -145,7 +138,11 @@ export async function loadConfigFromFile({
 
 async function loadConfigTsOrJs(configRoot: string, configFile: string | undefined) {
   try {
-    const { config, configFile: resolvedPath, meta } = await loadConfigWithC12({
+    const {
+      config,
+      configFile: resolvedPath,
+      meta,
+    } = await loadConfigWithC12({
       cwd: configRoot,
       // configuration base name
       name: 'prisma',
@@ -163,7 +160,7 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
       packageJson: false,
       // specify the default config to use
       // defaultConfig: defaultConfig(),
-      
+
       // @ts-expect-error: this is a type-error in `c12` itself
       merger: deepmerge,
 
