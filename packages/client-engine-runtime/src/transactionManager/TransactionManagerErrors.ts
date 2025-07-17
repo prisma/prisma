@@ -22,6 +22,12 @@ export class TransactionClosedError extends TransactionManagerError {
   }
 }
 
+export class TransactionClosingError extends TransactionManagerError {
+  constructor(operation: string) {
+    super(`Transaction is being closed: A ${operation} cannot be executed on a closing transaction.`)
+  }
+}
+
 export class TransactionRolledBackError extends TransactionManagerError {
   constructor(operation: string) {
     super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back.`)

@@ -1,4 +1,5 @@
 import { bindMigrationAwareSqlAdapterFactory, mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
+import { describe, expect, test } from 'vitest'
 
 import { defaultConfig } from '../defaultConfig'
 import { defaultTestConfig } from '../defaultTestConfig'
@@ -10,7 +11,7 @@ describe('defineConfig', () => {
     earlyAccess: true,
   } satisfies PrismaConfig
 
-  describe('defaultConfig', () => {
+  test('defaultConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
@@ -21,7 +22,7 @@ describe('defineConfig', () => {
     expect(typeof config.__brand).toEqual('symbol')
   })
 
-  describe('defaultTestConfig', () => {
+  test('defaultTestConfig', () => {
     const config = defaultTestConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {

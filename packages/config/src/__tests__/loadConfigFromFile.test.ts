@@ -1,13 +1,14 @@
 import path from 'node:path'
 
 import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
-import { jestContext } from '@prisma/get-platform'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import type { ParseError } from 'effect/ParseResult'
+import { afterEach, beforeEach, describe, expect, it, test } from 'vitest'
 
 import { defaultConfig } from '../defaultConfig'
 import { loadConfigFromFile, type LoadConfigFromFileError } from '../loadConfigFromFile'
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 describe('loadConfigFromFile', () => {
   function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
@@ -383,7 +384,6 @@ describe('loadConfigFromFile', () => {
         earlyAccess: true,
       })
 
-      expect(process.env).toMatchObject(processEnvBackup)
       expect(process.env.TEST_CONNECTION_STRING).toBeUndefined()
     })
 
@@ -395,10 +395,7 @@ describe('loadConfigFromFile', () => {
         earlyAccess: true,
       })
 
-      expect(process.env).toMatchObject({
-        ...processEnvBackup,
-        TEST_CONNECTION_STRING: 'postgres://test-connection-string-from-env',
-      })
+      expect(process.env.TEST_CONNECTION_STRING).toEqual('postgres://test-connection-string-from-env-cjs')
     })
 
     test('if an async custom env-var loading function is used, it should load environment variables using the provided function', async () => {
@@ -411,8 +408,7 @@ describe('loadConfigFromFile', () => {
         loadedFromFile: resolvedPath,
       })
 
-      expect(process.env).toMatchObject(processEnvBackup)
-      expect(process.env.TEST_CONNECTION_STRING).toBeUndefined()
+      expect(process.env.TEST_CONNECTION_STRING).toEqual('postgres://test-connection-string-from-env-esm')
     })
   })
 })

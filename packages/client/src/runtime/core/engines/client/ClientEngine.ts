@@ -516,42 +516,53 @@ export class ClientEngine implements Engine {
     }
 
     try {
-      let txInfo: InteractiveTransactionInfo
+      let txInfo: InteractiveTransactionInfo | undefined
       if (transaction?.kind === 'itx') {
         // If we are already in an interactive transaction we do not nest transactions
         txInfo = transaction.options
-      } else {
-        const txOptions = transaction?.options.isolationLevel
-          ? { ...this.config.transactionOptions, isolationLevel: transaction.options.isolationLevel }
-          : this.config.transactionOptions
-        txInfo = await this.transaction('start', {}, txOptions)
       }
 
       // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
       const placeholderValues = {}
 
-      let results: BatchQueryEngineResult<unknown>[] = []
       switch (batchResponse.type) {
         case 'multi': {
-          results = await Promise.all(
-            batchResponse.plans.map((plan, i) =>
-              executor
-                .execute({
-                  plan: plan as QueryPlanNode,
-                  placeholderValues,
-                  model: queries[i].modelName,
-                  operation: queries[i].action,
-                  batchIndex: i,
-                  transaction: txInfo,
-                  customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
-                })
-                .then(
-                  (rows) => ({ data: { [queries[i].action]: rows } }),
-                  (err) => err,
-                ),
-            ),
-          )
-          break
+          if (transaction?.kind !== 'itx') {
+            const txOptions = transaction?.options.isolationLevel
+              ? { ...this.config.transactionOptions, isolationLevel: transaction.options.isolationLevel }
+              : this.config.transactionOptions
+            txInfo = await this.transaction('start', {}, txOptions)
+          }
+
+          const results: BatchQueryEngineResult<unknown>[] = []
+          let rollback = false
+          for (const [batchIndex, plan] of batchResponse.plans.entries()) {
+            try {
+              const rows = await executor.execute({
+                plan: plan as QueryPlanNode,
+                placeholderValues,
+                model: queries[batchIndex].modelName,
+                operation: queries[batchIndex].action,
+                batchIndex,
+                transaction: txInfo,
+                customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
+              })
+              results.push({ data: { [queries[batchIndex].action]: rows } })
+            } catch (err) {
+              results.push(err as Error)
+              rollback = true
+              break
+            }
+          }
+
+          if (txInfo !== undefined && transaction?.kind !== 'itx') {
+            if (rollback) {
+              await this.transaction('rollback', {}, txInfo)
+            } else {
+              await this.transaction('commit', {}, txInfo)
+            }
+          }
+          return results as BatchQueryEngineResult<T>[]
         }
         case 'compacted': {
           if (!queries.every((q) => q.action === firstAction)) {
@@ -567,16 +578,10 @@ export class ClientEngine implements Engine {
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
           })
-          results = this.#convertCompactedRows(rows as {}[], batchResponse, firstAction)
-          break
+          const results = this.#convertCompactedRows(rows as {}[], batchResponse, firstAction)
+          return results as BatchQueryEngineResult<T>[]
         }
       }
-
-      if (transaction?.kind !== 'itx') {
-        await this.transaction('commit', {}, txInfo)
-      }
-
-      return results as BatchQueryEngineResult<T>[]
     } catch (e: any) {
       throw this.#transformRequestError(e, request)
     }

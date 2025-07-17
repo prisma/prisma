@@ -131,6 +131,25 @@ test('transaction is rolled back', async () => {
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
 })
 
+test('getTransaction works while being rolled back', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  const rollbackPromise = transactionManager.rollbackTransaction(id)
+  expect(() => transactionManager.getTransaction({ id }, 'dummy')).toThrow('Transaction is being closed')
+  await rollbackPromise
+
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+})
+
 test('transactions are rolled back when shutting down', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
