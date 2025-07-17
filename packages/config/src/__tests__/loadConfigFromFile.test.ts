@@ -322,7 +322,7 @@ describe('loadConfigFromFile', () => {
     })
   })
 
-  describe.only('precedence', () => {
+  describe('precedence', () => {
     it('prisma.config.js is 1st choice', async () => {
       ctx.fixture('loadConfigFromFile/precedence')
 
