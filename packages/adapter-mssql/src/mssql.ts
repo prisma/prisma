@@ -67,17 +67,15 @@ class MssqlQueryable implements SqlQueryable {
   }
 }
 
-const LOCK_TAG = Symbol()
-
 class MssqlTransaction extends MssqlQueryable implements Transaction {
-  [LOCK_TAG] = new Mutex()
+  #mutex = new Mutex()
 
   constructor(private transaction: sql.Transaction, readonly options: TransactionOptions) {
     super(transaction)
   }
 
   async performIO(query: SqlQuery): Promise<ArrayModeResult> {
-    const release = await this[LOCK_TAG].acquire()
+    const release = await this.#mutex.acquire()
     try {
       return await super.performIO(query)
     } catch (e) {
