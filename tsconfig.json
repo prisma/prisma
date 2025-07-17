@@ -1,11 +1,6 @@
 {
   "extends": "./tsconfig.utils.typecheck.json",
-  "include": [
-    "./**/*",
-    ".eslintrc.js",
-    "packages/config/src/__tests__/fixtures/loadConfigFromFile/schema/with-config-dir-proposal/single-exists-relative/.config/prisma.config copy.ts",
-    "packages/config/src/__tests__/fixtures/loadConfigFromFile/schema/with-config-dir-proposal/multi-exist/.config/prisma.config.ts"
-  ],
+  "include": ["./**/*", ".eslintrc.js"],
   // same list as in tsconfig.regular.json, minus extra test exclusion and sandbox
   "exclude": [
     "**/dist",
