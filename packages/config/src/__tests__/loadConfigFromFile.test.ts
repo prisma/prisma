@@ -11,18 +11,18 @@ import { loadConfigFromFile, type LoadConfigFromFileError, SUPPORTED_EXTENSIONS 
 const ctx = vitestContext.new().assemble()
 
 describe('loadConfigFromFile', () => {
-  function assertErrorTypeScriptImportFailed(error: LoadConfigFromFileError | undefined): asserts error is {
-    _tag: 'TypeScriptImportFailed'
+  function assertErrorConfigLoadError(error: LoadConfigFromFileError | undefined): asserts error is {
+    _tag: 'ConfigLoadError'
     error: Error
   } {
-    expect(error).toMatchObject({ _tag: 'TypeScriptImportFailed' })
+    expect(error).toMatchObject({ _tag: 'ConfigLoadError' })
   }
 
-  function assertErrorConfigFileParseError(error: LoadConfigFromFileError | undefined): asserts error is {
-    _tag: 'ConfigFileParseError'
+  function assertErrorConfigFileSyntaxError(error: LoadConfigFromFileError | undefined): asserts error is {
+    _tag: 'ConfigFileSyntaxError'
     error: ParseError
   } {
-    expect(error).toMatchObject({ _tag: 'ConfigFileParseError' })
+    expect(error).toMatchObject({ _tag: 'ConfigFileSyntaxError' })
   }
 
   describe('no-define-config', () => {
@@ -251,13 +251,13 @@ describe('loadConfigFromFile', () => {
   })
 
   describe('invalid', () => {
-    it('fails with `TypeScriptImportFailed` when the Prisma config file has a syntax error', async () => {
+    it('fails with `ConfigLoadError` when the Prisma config file has a syntax error', async () => {
       ctx.fixture('loadConfigFromFile/invalid/syntax-error')
 
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(config).toBeUndefined()
-      assertErrorTypeScriptImportFailed(error)
+      assertErrorConfigLoadError(error)
 
       const { message: errorMessage } = error.error
       const { normalisedPath } = (() => {
@@ -278,7 +278,7 @@ describe('loadConfigFromFile', () => {
     // https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L401-L403 to remove
     // `{ default: true }` from `jiti!.import(...)` and explicitly look for `configModule['default']` in `loadConfigFromFile`.
     describe.skip('default-export', () => {
-      it('fails with `ConfigFileParseError` when the Prisma config file has no default export', async () => {
+      it('fails with `ConfigFileSyntaxError` when the Prisma config file has no default export', async () => {
         ctx.fixture('loadConfigFromFile/invalid/no-default-export')
 
         // const { createJiti } = await import('jiti')
@@ -299,20 +299,20 @@ describe('loadConfigFromFile', () => {
         const { config, error, resolvedPath } = await loadConfigFromFile({})
         expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
         expect(config).toBeUndefined()
-        assertErrorConfigFileParseError(error)
+        assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
           `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
         )
       })
 
-      it(`fails with \`ConfigFileParseError\` when the default export in the Prisma config file does
+      it(`fails with \`ConfigFileSyntaxError\` when the default export in the Prisma config file does
           not conform to the expected schema shape`, async () => {
         ctx.fixture('loadConfigFromFile/invalid/no-schema-shape-conformance')
 
         const { config, error, resolvedPath } = await loadConfigFromFile({})
         expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
         expect(config).toBeUndefined()
-        assertErrorConfigFileParseError(error)
+        assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
           "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
           └─ ["thisShouldFail"]
@@ -435,7 +435,7 @@ describe('loadConfigFromFile', () => {
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.json'))
       expect(error).toMatchObject({
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error: {
           message: expect.stringContaining('Unsupported Prisma config file extension: .json'),
         },
@@ -462,7 +462,7 @@ describe('loadConfigFromFile', () => {
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.jsonc'))
       expect(error).toMatchObject({
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error: {
           message: expect.stringContaining('Unsupported Prisma config file extension: .jsonc'),
         },
@@ -555,7 +555,7 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.json'))
       expect(config).toBeUndefined()
       expect(error).toMatchObject({
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error: {
           message: expect.stringContaining('Unsupported Prisma config file extension: .json'),
         },
@@ -569,7 +569,7 @@ describe('loadConfigFromFile', () => {
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.rc'))
       expect(config).toBeUndefined()
       expect(error).toMatchObject({
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error: {
           message: expect.stringContaining('Unknown file extension ".rc"'),
         },

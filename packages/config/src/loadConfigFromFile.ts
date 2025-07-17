@@ -37,14 +37,17 @@ type LoadConfigFromFileInput = {
 
 export type LoadConfigFromFileError =
   | {
+    /**
+     * The config file was not found at the specified path.
+     */
       _tag: 'ConfigFileNotFound'
     }
   | {
-      _tag: 'TypeScriptImportFailed'
+      _tag: 'ConfigLoadError'
       error: Error
     }
   | {
-      _tag: 'ConfigFileParseError'
+      _tag: 'ConfigFileSyntaxError'
       error: Error
     }
   | {
@@ -109,7 +112,7 @@ export async function loadConfigFromFile({
       return {
         resolvedPath,
         error: {
-          _tag: 'ConfigFileParseError',
+          _tag: 'ConfigFileSyntaxError',
           error,
         },
       }
@@ -190,7 +193,7 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
           configModule: config,
           resolvedPath,
           error: {
-            _tag: 'TypeScriptImportFailed',
+            _tag: 'ConfigLoadError',
             error: new Error(`Unsupported Prisma config file extension: ${extension}`),
           } as const,
         } as const
@@ -214,7 +217,7 @@ async function loadConfigTsOrJs(configRoot: string, configFile: string | undefin
 
     return {
       error: {
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error,
       } as const,
       resolvedPath: filenameWithExtension,
