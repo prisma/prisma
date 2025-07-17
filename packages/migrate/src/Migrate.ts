@@ -140,7 +140,7 @@ export class Migrate {
     return this.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase,
-      schemaFilter: this.schemaFilter ?? null,
+      filters: this.schemaFilter ?? null,
     })
   }
 
@@ -161,7 +161,7 @@ export class Migrate {
 
     return this.engine.devDiagnostic({
       migrationsList,
-      schemaFilter: this.schemaFilter ?? null,
+      filters: this.schemaFilter ?? null,
     })
   }
 

@@ -150,14 +150,14 @@ export namespace EngineArgs {
 
   export interface DevDiagnosticInput {
     migrationsList: MigrateTypes.MigrationList
-    schemaFilter: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface DiagnoseMigrationHistoryInput {
     migrationsList: MigrateTypes.MigrationList
     /// Whether creating shadow/temporary databases is allowed.
     optInToShadowDatabase: boolean
-    schemaFilter: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface EnsureConnectionValidityInput {
