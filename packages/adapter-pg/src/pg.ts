@@ -149,6 +149,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 export type PrismaPgOptions = {
   schema?: string
   disposeExternalPool?: boolean
+  onPoolError?: (err: Error) => void
 }
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
@@ -231,11 +232,19 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   async connect(): Promise<SqlDriverAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
 
+    const onIdleClientError = (err: Error) => {
+      debug(`Error from idle pool client: ${err.message} %O`, err)
+      this.options?.onPoolError?.(err)
+    }
+    client.on('error', onIdleClientError)
+
     return new PrismaPgAdapter(client, this.options, async () => {
       if (this.externalPool) {
         if (this.options?.disposeExternalPool) {
           await this.externalPool.end()
           this.externalPool = null
+        } else {
+          this.externalPool.removeListener('error', onIdleClientError)
         }
       } else {
         await client.end()
