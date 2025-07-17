@@ -12,6 +12,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
   protocolToConnectorType,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
@@ -93,8 +94,11 @@ ${bold('Examples')}
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     const adapter = await config.adapter?.()
     printDatasource({ datasourceInfo, adapter })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+    }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
     if (!adapter) {

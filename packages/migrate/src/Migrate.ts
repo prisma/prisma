@@ -77,7 +77,9 @@ export class Migrate {
   }
 
   public reset(): Promise<void> {
-    return this.engine.reset()
+    return this.engine.reset({
+      filters: this.schemaFilter ?? null,
+    })
   }
 
   public async createMigration(
@@ -189,6 +191,7 @@ export class Migrate {
 
     return this.engine.applyMigrations({
       migrationsList,
+      filters: this.schemaFilter ?? null,
     })
   }
 
@@ -211,6 +214,7 @@ export class Migrate {
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,
       schema,
+      filters: this.schemaFilter ?? null,
     })
 
     return {

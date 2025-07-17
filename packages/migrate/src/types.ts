@@ -87,6 +87,7 @@ export namespace EngineArgs {
    */
   export interface ApplyMigrationsInput {
     migrationsList: MigrateTypes.MigrationList
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface CreateMigrationInput {
@@ -214,11 +215,14 @@ export namespace EngineArgs {
     // Change the exit code behavior when diff is not empty
     // Empty: 0, Error: 1, Non empty: 2
     exitCode: boolean | null
+    // The schema filter to apply to the diff.
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface SchemaPushInput {
     schema: MigrateTypes.SchemasContainer
     force: boolean
+    filters: MigrateTypes.SchemaFilter | null
   }
 
   export interface IntrospectSqlParams {
@@ -229,6 +233,10 @@ export namespace EngineArgs {
   export interface SqlQueryInput {
     name: string
     source: string
+  }
+
+  export interface MigrateResetInput {
+    filters: MigrateTypes.SchemaFilter | null
   }
 }
 
