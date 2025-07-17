@@ -1,7 +1,6 @@
 import process from 'node:process'
-import { Schema as Shape } from 'effect'
 
-import { readPackageUp } from 'read-package-up'
+import { Schema as Shape } from 'effect'
 
 /**
  * Example:
@@ -29,6 +28,7 @@ export const PrismaConfigPackageJsonShape = Shape.Struct({
  * @deprecated
  */
 export async function loadConfigFromPackageJson(cwd: string = process.cwd()) {
+  const { readPackageUp } = await import('read-package-up')
   const pkgJson = await readPackageUp({ cwd, normalize: false })
 
   /**
