@@ -53,6 +53,9 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
   })
 }
 
+/**
+ * TODO: rewrite this to load this via `@prisma/config`'s `loadConfigFromFile` function. 
+ */
 async function loadFixtureConfig(ctx: BaseContext) {
   if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
   return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
