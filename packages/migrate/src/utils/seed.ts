@@ -1,13 +1,18 @@
+import { loadConfigFromPackageJson } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { getPrismaConfigFromPackageJson } from '@prisma/internals'
 import execa from 'execa'
 import { bold, italic, red } from 'kleur/colors'
 import path from 'path'
 
 const debug = Debug('prisma:migrate:seed')
 
+/**
+ * User's Prisma configuration should live in `prisma.config.ts` instead of `package.json#prisma`.
+ * See: https://pris.ly/prisma-config.
+ * @deprecated
+ */
 export async function getSeedCommandFromPackageJson(cwd: string) {
-  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  const prismaConfig = await loadConfigFromPackageJson(cwd)
 
   debug({ prismaConfig })
 

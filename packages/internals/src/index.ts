@@ -3,7 +3,6 @@ export { checkUnsupportedSchemaEngineWasm } from './cli/checkUnsupportedSchemaEn
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
-  getPrismaConfigFromPackageJson,
   type GetSchemaOptions,
   getSchemaWithPath,
   getSchemaWithPathOptional,

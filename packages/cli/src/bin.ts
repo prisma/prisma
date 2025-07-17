@@ -3,7 +3,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { arg, handlePanic, HelpError, isRustPanic } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -169,10 +169,19 @@ async function main(): Promise<number> {
   })
 
   const config = await loadConfig(args['--config'])
+
   if (config instanceof HelpError) {
     console.error(config.message)
     return 1
   }
+
+//   if (deprecatedConfig) {
+//     console.warn(
+//       `\n${bold(red('Warning:'))} Configuring Prisma in \`package.json#prisma\` is deprecated and will be removed in a future version. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
+// If both are defined, the Prisma config file takes precedence over \`package.json#prisma\`.
+// For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
+//     )
+//   }
 
   const startCliExec = performance.now()
   // Execute the command

@@ -1,3 +1,5 @@
+import process from 'node:process'
+
 import { Debug } from '@prisma/debug'
 import type {
   GetSchemaResult,
@@ -5,6 +7,7 @@ import type {
   NonFatalLookupError,
   SuccessfulLookupResult,
 } from '@prisma/schema-files-loader'
+import { loadConfigFromPackageJson } from '@prisma/config'
 import { ensureType, loadSchemaFiles } from '@prisma/schema-files-loader'
 import fs from 'fs'
 import { dim, green } from 'kleur/colors'
@@ -229,30 +232,6 @@ function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   return parts.join('\n')
 }
 
-// Example:
-// "prisma": {
-//   "schema": "db/schema.prisma"
-//   "seed": "ts-node db/seed.ts",
-// }
-export type PrismaConfig = {
-  schema?: string
-  seed?: string
-}
-
-export async function getPrismaConfigFromPackageJson(cwd: string) {
-  const pkgJson = await readPackageUp({ cwd, normalize: false })
-  const prismaPropertyFromPkgJson = pkgJson?.packageJson?.prisma as PrismaConfig | undefined
-
-  if (!pkgJson) {
-    return null
-  }
-
-  return {
-    data: prismaPropertyFromPkgJson,
-    packagePath: pkgJson.path,
-  }
-}
-
 async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: string | undefined) {
   if (!schemaPathFromConfig) {
     return {
@@ -274,28 +253,34 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: str
   return schemaResult
 }
 
+/**
+ * TODO: trying to access this function should result in a deprecation warning.
+ * Users should be instructed to use `prisma.config.ts` instead.
+ * See: https://pris.ly/prisma-config.
+ * @deprecated
+ */
 export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJsonLookupResult> {
-  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  const prismaConfig = await loadConfigFromPackageJson(cwd)
   debug('prismaConfig', prismaConfig)
 
-  if (!prismaConfig || !prismaConfig.data?.schema) {
+  if (!prismaConfig || !prismaConfig.config?.schema) {
     return { ok: false, error: { kind: 'PackageJsonNotConfigured' } }
   }
 
-  const schemaPathFromPkgJson = prismaConfig.data.schema
+  const schemaPathFromPkgJson = prismaConfig.config.schema
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
       `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` must be of type string`,
     )
   }
 
   const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
     ? schemaPathFromPkgJson
-    : path.resolve(path.dirname(prismaConfig.packagePath), schemaPathFromPkgJson)
+    : path.resolve(path.dirname(prismaConfig.loadedFromFile), schemaPathFromPkgJson)
 
   const lookupResult = await readSchemaFromFileOrDirectory(absoluteSchemaPath)
 
@@ -306,7 +291,7 @@ export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJson
         absoluteSchemaPath,
       )}\` provided by "prisma.schema" config of \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\`: ${renderLookupError(lookupResult.error)}`,
     )
   }

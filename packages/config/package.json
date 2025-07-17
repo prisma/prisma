@@ -12,7 +12,9 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "jiti": "2.4.2"
+    "jiti": "2.4.2",
+    "read-package-up": "11.0.0",
+    "terminal-link": "4.0.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",

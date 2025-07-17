@@ -8,6 +8,9 @@ import { createJiti } from 'jiti'
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
 import { parseDefaultExport } from './PrismaConfig'
+import { loadConfigFromPackageJson } from './loadConfigFromPackageJson'
+import { warn } from './utils/warn'
+import { link } from './utils/link'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -70,6 +73,14 @@ export async function loadConfigFromFile({
   const start = performance.now()
   const getTime = () => `${(performance.now() - start).toFixed(2)}ms`
 
+  const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
+  if (deprecatedPrismaConfigFromJson) {
+    warn(
+      `The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
+For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
+    )
+  }
+
   let resolvedPath: string | null
 
   if (configFile) {
@@ -124,10 +135,19 @@ export async function loadConfigFromFile({
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
 
+    const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
+
+    if (deprecatedPrismaConfigFromJson) {
+      warn(`The Prisma config file in ${resolvedPath} overrides the deprecated \`package.json#prisma\` property in ${deprecatedPrismaConfigFromJson.loadedFromFile}.
+  For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
+      )
+    }
+
     return {
       config: {
         ...prismaConfig,
         loadedFromFile: resolvedPath,
+        deprecatedPackageJson: deprecatedPrismaConfigFromJson,
       },
       resolvedPath,
     }
