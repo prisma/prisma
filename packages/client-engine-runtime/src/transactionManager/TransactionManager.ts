@@ -10,6 +10,7 @@ import { Options, TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
+  TransactionClosingError,
   TransactionExecutionTimeoutError,
   TransactionInternalConsistencyError,
   TransactionManagerError,
@@ -173,6 +174,10 @@ export class TransactionManager {
         debug(`Transaction not found.`, transactionId)
         throw new TransactionNotFoundError()
       }
+    }
+
+    if (transaction.status === 'closing') {
+      throw new TransactionClosingError(operation)
     }
 
     if (['committed', 'rolled_back', 'timed_out'].includes(transaction.status)) {
