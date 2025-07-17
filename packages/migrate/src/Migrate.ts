@@ -78,7 +78,7 @@ export class Migrate {
 
   public reset(): Promise<void> {
     return this.engine.reset({
-      filters: this.schemaFilter ?? null,
+      filter: this.schemaFilter ?? null,
     })
   }
 

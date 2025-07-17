@@ -243,8 +243,8 @@ export class SchemaEngineCLI implements SchemaEngine {
    * the engine attempts a “best effort reset” by inspecting the contents of the database and dropping them individually.
    * Drop and recreate the database. The migrations will not be applied, as it would overlap with applyMigrations.
    */
-  public reset(): Promise<void> {
-    return this.runCommand(this.getRPCPayload('reset', undefined))
+  reset(args: EngineArgs.MigrateResetInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('reset', args))
   }
 
   /**

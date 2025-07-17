@@ -236,7 +236,7 @@ export namespace EngineArgs {
   }
 
   export interface MigrateResetInput {
-    filters: MigrateTypes.SchemaFilter | null
+    filter: MigrateTypes.SchemaFilter | null
   }
 }
 
