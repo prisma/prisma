@@ -7,5 +7,6 @@ export function defaultTestConfig(): PrismaConfigInternal {
   return makePrismaConfigInternal({
     earlyAccess: true,
     loadedFromFile: null,
+    deprecatedPackageJson: null,
   })
 }
