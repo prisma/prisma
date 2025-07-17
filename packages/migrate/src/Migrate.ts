@@ -33,13 +33,13 @@ interface MigrateOptions {
   engine: SchemaEngine
   schemaContext?: SchemaContext
   migrationsDirPath?: string
-  schemaFilter?: MigrateTypes.SchemaFilter
+  schemaFilter: MigrateTypes.SchemaFilter
 }
 
 export class Migrate {
   public readonly engine: SchemaEngine
   private schemaContext?: SchemaContext
-  private schemaFilter?: MigrateTypes.SchemaFilter
+  private schemaFilter: MigrateTypes.SchemaFilter
   public migrationsDirectoryPath?: string
 
   private constructor({ schemaContext, migrationsDirPath, engine, schemaFilter }: MigrateOptions) {
@@ -52,7 +52,7 @@ export class Migrate {
     this.schemaFilter = schemaFilter
   }
 
-  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
+  static async setup({ adapter, schemaContext, schemaFilter, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const engine = await (async () => {
       if (adapter) {
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
@@ -63,7 +63,9 @@ export class Migrate {
 
     warnDatasourceDriverAdapter(schemaContext, adapter)
 
-    return new Migrate({ engine, schemaContext, ...rest })
+    schemaFilter = schemaFilter ?? { externalTables: [] }
+
+    return new Migrate({ engine, schemaContext, schemaFilter, ...rest })
   }
 
   public async stop(): Promise<void> {
@@ -78,7 +80,7 @@ export class Migrate {
 
   public reset(): Promise<void> {
     return this.engine.reset({
-      filter: this.schemaFilter ?? null,
+      filter: this.schemaFilter,
     })
   }
 
@@ -91,7 +93,7 @@ export class Migrate {
     const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
       ...params,
       migrationsList,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
     const { baseDir, lockfile } = migrationsList
 
@@ -142,7 +144,7 @@ export class Migrate {
     return this.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
   }
 
@@ -163,7 +165,7 @@ export class Migrate {
 
     return this.engine.devDiagnostic({
       migrationsList,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
   }
 
@@ -191,7 +193,7 @@ export class Migrate {
 
     return this.engine.applyMigrations({
       migrationsList,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
   }
 
@@ -204,7 +206,7 @@ export class Migrate {
     return this.engine.evaluateDataLoss({
       migrationsList,
       schema: schema,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
   }
 
@@ -214,7 +216,7 @@ export class Migrate {
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,
       schema,
-      filters: this.schemaFilter ?? null,
+      filters: this.schemaFilter,
     })
 
     return {
