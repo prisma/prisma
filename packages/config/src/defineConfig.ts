@@ -22,6 +22,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   defineAdapterConfig(config, configInput)
   defineStudioConfig(config, configInput)
   defineMigrationsConfig(config, configInput)
+  defineTablesConfig(config, configInput)
   defineTypedSqlConfig(config, configInput)
   defineViewsConfig(config, configInput)
 
@@ -78,6 +79,18 @@ function defineViewsConfig(config: DeepMutable<PrismaConfigInternal>, configInpu
 
   config.views = configInput.views
   debug('[config.views]: %o', config.views)
+}
+
+/**
+ * `configInput.tables` is forwarded to `config.views` as is.
+ */
+function defineTablesConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.tables) {
+    return
+  }
+
+  config.tables = configInput.tables
+  debug('[config.tables]: %o', config.tables)
 }
 
 /**

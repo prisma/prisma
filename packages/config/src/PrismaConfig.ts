@@ -69,6 +69,28 @@ if (false) {
   __testMigrationsConfigShapeValueB satisfies (typeof MigrationsConfigShape)['Type']
 }
 
+export type TablesConfigShape = {
+  /**
+   * List of tables that are externally managed.
+   * Prisma will not modify the structure of these tables and not generate migrations for those tables.
+   * These tables will still be represented in schema.prisma file and be available in the client API.
+   */
+  external?: string[]
+}
+
+const TablesConfigShape = Shape.Struct({
+  external: Shape.optional(Shape.mutable(Shape.Array(Shape.String))),
+})
+
+declare const __testTablesConfigShapeValueA: (typeof TablesConfigShape)['Type']
+declare const __testTablesConfigShapeValueB: TablesConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testTablesConfigShapeValueA satisfies TablesConfigShape
+  __testTablesConfigShapeValueB satisfies (typeof TablesConfigShape)['Type']
+}
+
 export type ViewsConfigShape = {
   /**
    * The path to the directory where Prisma should look for the view definitions, where *.sql files will be loaded.
@@ -148,6 +170,7 @@ const PrismaConfigShape = Shape.Struct({
   studio: Shape.optional(PrismaStudioConfigShape),
   adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
   migrations: Shape.optional(MigrationsConfigShape),
+  tables: Shape.optional(TablesConfigShape),
   views: Shape.optional(ViewsConfigShape),
   typedSql: Shape.optional(TypedSqlConfigShape),
 })
@@ -177,6 +200,10 @@ export type PrismaConfig = {
    * Configuration for Prisma migrations.
    */
   migrations?: Simplify<MigrationsConfigShape>
+  /**
+   * Configuration for the database table entities.
+   */
+  tables?: Simplify<TablesConfigShape>
   /**
    * Configuration for the database view entities.
    */

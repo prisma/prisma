@@ -141,11 +141,9 @@ test('getTransaction works while being rolled back', async () => {
 
   const id = await startTransaction(transactionManager)
 
-  await Promise.all([
-    transactionManager.getTransaction({ id }, 'dummy'),
-    transactionManager.rollbackTransaction(id),
-    transactionManager.getTransaction({ id }, 'dummy'),
-  ])
+  const rollbackPromise = transactionManager.rollbackTransaction(id)
+  expect(() => transactionManager.getTransaction({ id }, 'dummy')).toThrow('Transaction is being closed')
+  await rollbackPromise
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
