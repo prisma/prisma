@@ -218,12 +218,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
-        *** WARNING ***
-
-        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-          - "simpleuser"
-          - "workers"
-
         Run prisma generate to generate Prisma Client.
         Prisma schema loaded from schema.prisma
         Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
@@ -272,12 +266,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
-        *** WARNING ***
-
-        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-          - "simpleuser"
-          - "workers"
-
         Run prisma generate to generate Prisma Client.
         "
       `)
@@ -371,12 +359,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
           - Introspecting based on datasource defined in <schema-location>
           ✔ Introspected 2 models and wrote them into <schema-location> in XXXms
                 
-          *** WARNING ***
-
-          The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-            - "simpleuser"
-            - "workers"
-
           Run prisma generate to generate Prisma Client.
           "
         `)
