@@ -12,6 +12,8 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
+    "read-package-up": "11.0.0",
+    "terminal-link": "4.0.0",
     "c12": "3.1.0",
     "deepmerge-ts": "7.1.5"
   },

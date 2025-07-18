@@ -1,0 +1,11 @@
+{
+  "name": "seed-sqlite-skips-deprecated-package-json",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "18.19.76"
+  },
+  "prisma": {
+    "seed": "node prisma/seed-deprecated.js"
+  }
+}

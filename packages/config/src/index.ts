@@ -1,4 +1,5 @@
 export { defaultTestConfig } from './defaultTestConfig'
 export { defineConfig } from './defineConfig'
 export { type ConfigFromFile, loadConfigFromFile, type LoadConfigFromFileError } from './loadConfigFromFile'
+export { loadConfigFromPackageJson } from './loadConfigFromPackageJson'
 export type { PrismaConfig, PrismaConfigInternal } from './PrismaConfig'

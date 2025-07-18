@@ -5,7 +5,10 @@ import { Debug } from '@prisma/driver-adapter-utils'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
+import { loadConfigFromPackageJson } from './loadConfigFromPackageJson'
 import { parseDefaultExport } from './PrismaConfig'
+import { link } from './utils/link'
+import { warn } from './utils/warn'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
 
@@ -76,6 +79,14 @@ export async function loadConfigFromFile({
   const start = performance.now()
   const getTime = () => `${(performance.now() - start).toFixed(2)}ms`
 
+  const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
+  if (deprecatedPrismaConfigFromJson) {
+    warn(
+      `The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
+For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
+    )
+  }
+
   try {
     const { configModule, resolvedPath, error } = await loadConfigTsOrJs(configRoot, configFile)
 
@@ -113,10 +124,20 @@ export async function loadConfigFromFile({
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
     const prismaConfig = transformPathsInConfigToAbsolute(parsedConfig, resolvedPath)
 
+    const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
+
+    if (deprecatedPrismaConfigFromJson) {
+      warn(`The Prisma config file in ${resolvedPath} overrides the deprecated \`package.json#prisma\` property in ${
+        deprecatedPrismaConfigFromJson.loadedFromFile
+      }.
+  For more information, see: ${await link('https://pris.ly/prisma-config')}\n`)
+    }
+
     return {
       config: {
         ...prismaConfig,
         loadedFromFile: resolvedPath,
+        deprecatedPackageJson: deprecatedPrismaConfigFromJson,
       },
       resolvedPath,
     }

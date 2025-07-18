@@ -1,0 +1,8 @@
+{
+  "name": "seed-sqlite-ts",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "18.19.76"
+  }
+}
