@@ -4,7 +4,7 @@ import { mockMigrationAwareAdapterFactory } from 'test-utils/mock-adapter'
 export default {
   earlyAccess: true,
   migrations: {
-    setupExternalTables: async () => {
+    setupExternalTables: () => {
       return `
         CREATE TABLE "User" (
           "id" SERIAL PRIMARY KEY,

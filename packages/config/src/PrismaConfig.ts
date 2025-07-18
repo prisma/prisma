@@ -38,7 +38,7 @@ const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
 )
 
 const SetupExternalTablesShape = Shape.declare(
-  (input: any): input is () => Promise<string> => {
+  (input: any): input is () => string => {
     return typeof input === 'function'
   },
   {
@@ -57,7 +57,7 @@ export type MigrationsConfigShape = {
    * Provide a function to pass a SQL script that will be used to setup external tables during migration diffing.
    * Also see `tables.external`.
    */
-  setupExternalTables?: () => Promise<string>
+  setupExternalTables?: () => string
 }
 
 const MigrationsConfigShape = Shape.Struct({
