@@ -103,6 +103,19 @@ describe('loadConfigFromFile', () => {
     })
   })
 
+  describe('migrations', () => {
+    it('loads setupExternalTables', async () => {
+      ctx.fixture('loadConfigFromFile/setup-external-tables')
+      const { config, error } = await loadConfigFromFile({})
+      expect(config).toMatchObject({
+        migrations: {
+          setupExternalTables: expect.any(Function),
+        },
+      })
+      expect(error).toBeUndefined()
+    })
+  })
+
   describe('schema', () => {
     describe('single', () => {
       it('succeeds when it points to a single Prisma schema file that exists via an absolute path', async () => {
