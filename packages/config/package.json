@@ -12,7 +12,8 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "jiti": "2.4.2"
+    "c12": "3.1.0",
+    "deepmerge-ts": "7.1.5"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
