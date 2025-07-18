@@ -15,6 +15,21 @@ import * as mariadb from 'mariadb'
 import { name as packageName } from '../package.json'
 import { mapArg, mapColumnType, mapRow, typeCast } from './conversion'
 import { convertDriverError } from './errors'
+import { URL } from 'url'
+
+function parseMySQLConnectionString(connStr: string) {
+  const url = new URL(connStr)
+  return {
+    protocol: url.protocol.replace(':', ''),
+    host: url.hostname,
+    port: url.port ? parseInt(url.port, 10) : undefined,
+    user: url.username,
+    password: url.password,
+    database: url.pathname.replace('/', ''),
+    // Optional: support search params like ?ssl=true
+    ...Object.fromEntries(url.searchParams.entries()),
+  }
+}
 
 const debug = Debug('prisma:driver-adapter:mariadb')
 
@@ -158,6 +173,11 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   #capabilities?: Capabilities
 
   constructor(private readonly config: mariadb.PoolConfig | string, private readonly options?: PrismaMariadbOptions) {}
+
+  static fromUrl(connectionString: string, options?: PrismaMariadbOptions): PrismaMariaDbAdapterFactory {
+    const config = parseMySQLConnectionString(connectionString)
+    return new PrismaMariaDbAdapterFactory(config, options)
+  }
 
   async connect(): Promise<SqlDriverAdapter> {
     const pool = mariadb.createPool(this.config)
