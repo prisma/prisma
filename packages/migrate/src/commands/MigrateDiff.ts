@@ -279,7 +279,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        ...(await listMigrations(args['--from-migrations'])),
+        ...(await listMigrations(args['--from-migrations'], config.migrations?.setupExternalTables ?? '')),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -323,7 +323,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        ...(await listMigrations(args['--to-migrations'])),
+        ...(await listMigrations(args['--to-migrations'], config.migrations?.setupExternalTables ?? '')),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })

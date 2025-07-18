@@ -14,7 +14,7 @@ describe('listMigrations', () => {
       ctx.fixture('schema-only-sqlite')
 
       const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')
-      const migrationsList = await listMigrations(migrationsDirectoryPath)
+      const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
       expect(migrationsList).toMatchObject({
         baseDir: migrationsDirectoryPath,
@@ -30,7 +30,7 @@ describe('listMigrations', () => {
       ctx.fixture('edited-and-draft')
 
       const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')
-      const migrationsList = await listMigrations(migrationsDirectoryPath)
+      const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
       expect(migrationsList).toMatchObject({
         baseDir: migrationsDirectoryPath,
@@ -102,7 +102,7 @@ describe('listMigrations', () => {
       '-- This is an empty migration.',
     )
 
-    const migrationsList = await listMigrations(migrationsDirectoryPath)
+    const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
     expect(migrationsList).toMatchObject({
       baseDir: migrationsDirectoryPath,
