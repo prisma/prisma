@@ -12,6 +12,7 @@ import {
   loadEnvFile,
   loadSchemaContext,
   locateLocalCloudflareD1,
+  MigrateTypes,
   toSchemasContainer,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
@@ -333,7 +334,10 @@ ${bold('Examples')}
     }
 
     const adapter = await config.adapter?.()
-    const migrate = await Migrate.setup({ adapter })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+    }
+    const migrate = await Migrate.setup({ adapter, schemaFilter })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
@@ -351,6 +355,9 @@ ${bold('Examples')}
         script: args['--script'] || false, // default is false
         shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
         exitCode: args['--exit-code'] ?? null,
+        filters: {
+          externalTables: config.tables?.external ?? [],
+        },
       })
     } finally {
       // Stop engine
