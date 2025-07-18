@@ -823,7 +823,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   })
 
   it('legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
     // ctx.fs.remove('prisma/seed.ts')
     ctx.fs.remove('prisma/seed.sh')

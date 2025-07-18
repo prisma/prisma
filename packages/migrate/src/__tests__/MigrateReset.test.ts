@@ -185,7 +185,7 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
@@ -202,7 +202,7 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files - --skip-seed', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse(['--skip-seed'], await ctx.config())
@@ -284,7 +284,7 @@ describe('reset', () => {
   }, 10_000)
 
   it('reset - legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     // ctx.fs.remove('prisma/seed.sh')

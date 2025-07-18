@@ -12,7 +12,10 @@ it('should throw error', async () => {
       throw new Error(message)
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-    "Error: There is a conflict between env var in .env and prisma/.env
+    "prisma:warn The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
+    For more information, see: https://pris.ly/prisma-config
+
+    Error: There is a conflict between env var in .env and prisma/.env
     Conflicting env vars:
       SHOULD_THROW
 
