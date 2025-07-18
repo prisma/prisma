@@ -1,9 +1,7 @@
-import fs from 'node:fs'
 import path from 'node:path'
 import process from 'node:process'
 
 import { Debug } from '@prisma/driver-adapter-utils'
-import { createJiti } from 'jiti'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
@@ -13,6 +11,11 @@ import { link } from './utils/link'
 import { warn } from './utils/warn'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
+
+// Note: as of c12@3.1.0, config extensions are tried in the following order, regardless of how we pass them
+// to `jiti` or to `jitiOptions.extensions`.
+// See: https://github.com/unjs/c12/blob/1efbcbce0e094a8f8a0ba676324affbef4a0ba8b/src/loader.ts#L35-L42
+export const SUPPORTED_EXTENSIONS = ['.js', '.ts', '.mjs', '.cjs', '.mts', '.cts'] as const satisfies string[]
 
 type LoadConfigFromFileInput = {
   /**
@@ -28,14 +31,17 @@ type LoadConfigFromFileInput = {
 
 export type LoadConfigFromFileError =
   | {
+      /**
+       * The config file was not found at the specified path.
+       */
       _tag: 'ConfigFileNotFound'
     }
   | {
-      _tag: 'TypeScriptImportFailed'
+      _tag: 'ConfigLoadError'
       error: Error
     }
   | {
-      _tag: 'ConfigFileParseError'
+      _tag: 'ConfigFileSyntaxError'
       error: Error
     }
   | {
@@ -81,30 +87,8 @@ For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
     )
   }
 
-  let resolvedPath: string | null
-
-  if (configFile) {
-    // The user gave us a specific config file to load. If it doesn't exist, we should raise an error.
-    resolvedPath = path.resolve(configRoot, configFile)
-
-    if (!fs.existsSync(resolvedPath)) {
-      debug(`The given config file was not found at %s`, resolvedPath)
-      return { resolvedPath, error: { _tag: 'ConfigFileNotFound' } }
-    }
-  } else {
-    // We attempt to find a config file in the given directory. If none is found, we should return early, without errors.
-    resolvedPath =
-      ['prisma.config.ts'].map((file) => path.resolve(configRoot, file)).find((file) => fs.existsSync(file)) ?? null
-
-    if (resolvedPath === null) {
-      debug(`No config file found in the current working directory %s`, configRoot)
-
-      return { resolvedPath, config: defaultConfig() }
-    }
-  }
-
   try {
-    const { required, error } = await requireTypeScriptFile(resolvedPath)
+    const { configModule, resolvedPath, error } = await loadConfigTsOrJs(configRoot, configFile)
 
     if (error) {
       return {
@@ -115,17 +99,22 @@ For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
 
     debug(`Config file loaded in %s`, getTime())
 
-    let defaultExport: PrismaConfigInternal | undefined
+    if (resolvedPath === null) {
+      debug(`No config file found in the current working directory %s`, configRoot)
+
+      return { resolvedPath: null, config: defaultConfig() }
+    }
+
+    let parsedConfig: PrismaConfigInternal | undefined
 
     try {
-      // @ts-expect-error
-      defaultExport = parseDefaultExport(required['default'])
+      parsedConfig = parseDefaultExport(configModule)
     } catch (e) {
       const error = e as Error
       return {
         resolvedPath,
         error: {
-          _tag: 'ConfigFileParseError',
+          _tag: 'ConfigFileSyntaxError',
           error,
         },
       }
@@ -133,7 +122,7 @@ For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
 
     // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
     process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
-    const prismaConfig = transformPathsInConfigToAbsolute(defaultExport, resolvedPath)
+    const prismaConfig = transformPathsInConfigToAbsolute(parsedConfig, resolvedPath)
 
     const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
 
@@ -157,7 +146,7 @@ For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
     const error = e as Error
 
     return {
-      resolvedPath,
+      resolvedPath: configRoot,
       error: {
         _tag: 'UnknownError',
         error,
@@ -166,28 +155,92 @@ For more information, see: ${await link('https://pris.ly/prisma-config')}\n`,
   }
 }
 
-async function requireTypeScriptFile(resolvedPath: string) {
+async function loadConfigTsOrJs(configRoot: string, configFile: string | undefined) {
+  const { loadConfig: loadConfigWithC12 } = await import('c12')
+  const { deepmerge } = await import('deepmerge-ts')
+
   try {
-    const jiti = createJiti(__filename, {
-      interopDefault: true,
-      moduleCache: false,
+    const {
+      config,
+      configFile: _resolvedPath,
+      meta,
+    } = await loadConfigWithC12({
+      cwd: configRoot,
+      // configuration base name
+      name: 'prisma',
+      // the config file to load (without file extensions), defaulting to `${cwd}.${name}`
+      configFile,
+      // do not load .env files
+      dotenv: false,
+      // do not load RC config
+      rcFile: false,
+      // do not extend remote config files
+      giget: false,
+      // do not extend the default config
+      extend: false,
+      // do not load from nearest package.json
+      packageJson: false,
+
+      // @ts-expect-error: this is a type-error in `c12` itself
+      merger: deepmerge,
+
+      jitiOptions: {
+        interopDefault: true,
+        moduleCache: false,
+        extensions: SUPPORTED_EXTENSIONS,
+      },
     })
-    const configExport = await jiti.import(resolvedPath)
+
+    // Note: c12 apparently doesn't normalize paths on Windows, causing issues with Windows tests.
+    const resolvedPath = _resolvedPath ? path.normalize(_resolvedPath) : undefined
+    const doesConfigFileExist = resolvedPath !== undefined && meta !== undefined
+
+    if (configFile && !doesConfigFileExist) {
+      debug(`The given config file was not found at %s`, resolvedPath)
+      return {
+        require: null,
+        resolvedPath: path.join(configRoot, configFile),
+        error: { _tag: 'ConfigFileNotFound' } as const,
+      } as const
+    }
+
+    if (doesConfigFileExist) {
+      const extension = path.extname(path.basename(resolvedPath))
+
+      if (!(SUPPORTED_EXTENSIONS as string[]).includes(extension)) {
+        return {
+          configModule: config,
+          resolvedPath,
+          error: {
+            _tag: 'ConfigLoadError',
+            error: new Error(`Unsupported Prisma config file extension: ${extension}`),
+          } as const,
+        } as const
+      }
+    }
 
     return {
-      required: configExport,
+      configModule: config,
+      resolvedPath: doesConfigFileExist ? resolvedPath : null,
       error: null,
-    }
+    } as const
   } catch (e) {
     const error = e as Error
     debug('jiti import failed: %s', error.message)
 
+    // Extract the location of config file that couldn't be read from jiti's wrapped BABEL_PARSE_ERROR message.
+    const configFileMatch = error.message.match(/prisma\.config\.(\w+)/)
+    const extension = configFileMatch?.[1]
+    const filenameWithExtension = path.join(configRoot, extension ? `prisma.config.${extension}` : '')
+    debug('faulty config file: %s', filenameWithExtension)
+
     return {
       error: {
-        _tag: 'TypeScriptImportFailed',
+        _tag: 'ConfigLoadError',
         error,
       } as const,
-    }
+      resolvedPath: filenameWithExtension,
+    } as const
   }
 }
 

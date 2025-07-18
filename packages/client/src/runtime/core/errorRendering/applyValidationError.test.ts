@@ -2155,6 +2155,137 @@ describe('RequiredArgumentMissing', () => {
       "
     `)
   })
+
+  test('dependent argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['orderBy'],
+          dependentArgumentPath: ['take'],
+          selectionPath: ['userView'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserViewOrderByInput',
+              fields: [{ name: 'id', typeNames: ['Int'], required: false }],
+            },
+          ],
+        },
+        {
+          select: {
+            userView: {
+              take: 1,
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          userView: {
+            take: 1,
+            ~~~~
+      +     orderBy: {
+      +       id: Int
+      +     }
+          }
+        }
+      }
+
+      Argument \`orderBy\` is missing.
+      Argument \`orderBy\` is required because argument \`take\` was provided.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          userView: {
+            <red>take</color>: 1,
+            <red>~~~~</color>
+      <green>+</color>     <green>orderBy</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>       <green><dim>id: Int</intensity></color>
+      <green>+</color>     <green>}</color>
+          }
+        }
+      }
+
+      Argument \`<green>orderBy</color>\` is missing.
+      Argument \`<green>orderBy</color>\` is required because argument \`<green>take</color>\` was provided.
+      "
+    `)
+  })
+
+  test('dependent argument when dependency is set to null', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['orderBy'],
+          dependentArgumentPath: ['take'],
+          selectionPath: ['userView'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserViewOrderByInput',
+              fields: [{ name: 'id', typeNames: ['Int'], required: false }],
+            },
+          ],
+        },
+        {
+          select: {
+            userView: {
+              orderBy: null,
+              take: 1,
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          userView: {
+            take: 1,
+            ~~~~
+      +     orderBy: {
+      +       id: Int
+      +     }
+          }
+        }
+      }
+
+      Argument \`orderBy\` must not be null.
+      Argument \`orderBy\` is required because argument \`take\` was provided.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          userView: {
+            <red>take</color>: 1,
+            <red>~~~~</color>
+      <green>+</color>     <green>orderBy</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>       <green><dim>id: Int</intensity></color>
+      <green>+</color>     <green>}</color>
+          }
+        }
+      }
+
+      Argument \`<green>orderBy</color>\` must not be <red>null</color>.
+      Argument \`<green>orderBy</color>\` is required because argument \`<green>take</color>\` was provided.
+      "
+    `)
+  })
 })
 
 describe('InvalidArgumentType', () => {

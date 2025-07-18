@@ -105,6 +105,7 @@ export type UnknownInputFieldError = {
 export type RequiredArgumentMissingError = {
   kind: 'RequiredArgumentMissing'
   argumentPath: string[]
+  dependentArgumentPath?: string[]
   selectionPath: string[]
 
   /**
