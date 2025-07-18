@@ -33,9 +33,30 @@ describe('with .config/prisma.ts', () => {
     const res = inferDirectoryConfig(schemaContext, config.config, cwd)
 
     expect(res).toEqual({
-      migrationsDirPath: path.resolve(FIXTURE_CWD, 'with-config-dir', 'nested-datasource-schema-file', 'prisma', 'datasource', 'migrations'),
-      typedSqlDirPath: path.resolve(FIXTURE_CWD, 'with-config-dir', 'nested-datasource-schema-file', 'prisma', 'datasource', 'sql'),
-      viewsDirPath: path.resolve(FIXTURE_CWD, 'with-config-dir', 'nested-datasource-schema-file', 'prisma', 'datasource', 'views'),
+      migrationsDirPath: path.resolve(
+        FIXTURE_CWD,
+        'with-config-dir',
+        'nested-datasource-schema-file',
+        'prisma',
+        'datasource',
+        'migrations',
+      ),
+      typedSqlDirPath: path.resolve(
+        FIXTURE_CWD,
+        'with-config-dir',
+        'nested-datasource-schema-file',
+        'prisma',
+        'datasource',
+        'sql',
+      ),
+      viewsDirPath: path.resolve(
+        FIXTURE_CWD,
+        'with-config-dir',
+        'nested-datasource-schema-file',
+        'prisma',
+        'datasource',
+        'views',
+      ),
     })
   })
 })
