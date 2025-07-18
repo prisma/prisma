@@ -28,7 +28,7 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/engines-version": "6.13.0-9.84b203620f6c02ebff88ada0ad5cf3263a7af4be",
+    "@prisma/engines-version": "6.13.0-12.c7d0c4bdd449d6679b5551958ac6172062ba2b8f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
