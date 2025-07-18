@@ -59,7 +59,7 @@ it('throws error if schema is not found', async () => {
   expect(res).toMatchInlineSnapshot(`
     [Error: Could not find Prisma Schema that is required for this command.
     You can either provide it with \`--schema\` argument,
-    set it in your Prisma Config file (e.g.,  \`prisma.config.ts\`),
+    set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
     set it as \`prisma.schema\` in your package.json,
     or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
     Checked following paths:
@@ -196,7 +196,7 @@ it('fails with no schema in workspaces', async () => {
   expect(res).toMatchInlineSnapshot(`
     [Error: Could not find Prisma Schema that is required for this command.
     You can either provide it with \`--schema\` argument,
-    set it in your Prisma Config file (e.g.,  \`prisma.config.ts\`),
+    set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
     set it as \`prisma.schema\` in your package.json,
     or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
     Checked following paths:
