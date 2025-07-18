@@ -130,7 +130,13 @@ ${bold('Examples')}
       externalTables: config.tables?.external ?? [],
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+    const migrate = await Migrate.setup({
+      adapter,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      shadowDbInitScript: await config.migrations?.setupExternalTables?.(),
+    })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {

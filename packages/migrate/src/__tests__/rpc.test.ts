@@ -20,7 +20,7 @@ describe('applyMigrations', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
     })
@@ -38,7 +38,7 @@ describe('applyMigrations', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
     })
@@ -158,7 +158,7 @@ describe('devDiagnostic', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
     })
@@ -178,7 +178,7 @@ describe('devDiagnostic', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
     })
@@ -213,7 +213,7 @@ describe('diagnoseMigrationHistory', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: true,
@@ -235,7 +235,7 @@ describe('diagnoseMigrationHistory', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: false,
@@ -335,7 +335,7 @@ describe('evaluateDataLoss', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -357,7 +357,7 @@ describe('evaluateDataLoss', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -458,7 +458,7 @@ describe('markMigrationRolledBack', () => {
     )
 
     try {
-      const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+      const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
       await migrate.engine.applyMigrations({
         migrationsList,
       })
@@ -472,7 +472,7 @@ describe('markMigrationRolledBack', () => {
 
     await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(`{}`)
 
-    const migrationsList1 = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList1 = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
       migrationsList: migrationsList1,
       migrationName: result.generatedMigrationName!,
@@ -480,7 +480,7 @@ describe('markMigrationRolledBack', () => {
 
     await expect(resultMarkAppliedFailed).resolves.toMatchInlineSnapshot(`{}`)
 
-    const migrationsList2 = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList2 = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkApplied = migrate.engine.markMigrationApplied({
       migrationsList: migrationsList2,
       migrationName: result.generatedMigrationName!,
@@ -515,7 +515,7 @@ describe('markMigrationApplied', () => {
       }
     `)
 
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkApplied = migrate.engine.markMigrationApplied({
       migrationsList,
       migrationName: result.generatedMigrationName!,

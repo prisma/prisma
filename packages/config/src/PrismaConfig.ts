@@ -37,15 +37,32 @@ const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   },
 )
 
+const SetupExternalTablesShape = Shape.declare(
+  (input: any): input is () => Promise<string> => {
+    return typeof input === 'function'
+  },
+  {
+    identifier: 'SetupExternalTables',
+    encode: identity,
+    decode: identity,
+  },
+)
+
 export type MigrationsConfigShape = {
   /**
    * The path to the directory where Prisma should store migration files, and look for them.
    */
   path?: string
+  /**
+   * Provide a function to pass a SQL script that will be used to setup external tables during migration diffing.
+   * Also see `tables.external`.
+   */
+  setupExternalTables?: () => Promise<string>
 }
 
 const MigrationsConfigShape = Shape.Struct({
   path: Shape.optional(Shape.String),
+  setupExternalTables: Shape.optional(SetupExternalTablesShape),
 })
 
 // The exported types are re-declared manually instead of using the Shape.Type
