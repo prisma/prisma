@@ -1011,6 +1011,21 @@ describe('migrate diff', () => {
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
+
+    it('should exclude external tables from diff', async () => {
+      ctx.fixture('external-tables')
+
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema-datamodel=./schema.prisma'],
+        await ctx.config(),
+      )
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      // Note the missing warnings about the User table as it is marked as external and won't be modified
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "No difference detected.
+        "
+      `)
+    })
   })
 
   describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {

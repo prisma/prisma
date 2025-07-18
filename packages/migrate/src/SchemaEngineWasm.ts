@@ -277,8 +277,8 @@ export class SchemaEngineWasm implements SchemaEngine {
    * the engine attempts a “best effort reset” by inspecting the contents of the database and dropping them individually.
    * Drop and recreate the database. The migrations will not be applied, as it would overlap with applyMigrations.
    */
-  public async reset() {
-    await this.runCommand('reset', undefined)
+  public async reset(input: SchemaEngineInput<'reset'>) {
+    await this.runCommand('reset', input)
   }
 
   /**

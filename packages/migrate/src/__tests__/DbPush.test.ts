@@ -342,6 +342,21 @@ describeMatrix(postgresOnly, 'postgres', () => {
       "
     `)
   })
+
+  it('should exclude external tables', async () => {
+    ctx.fixture('external-tables')
+
+    const result = DbPush.new().parse([], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    // Note the missing warnings about the User table as it is marked as external and won't be modified
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
 })
 
 describeMatrix(postgresOnly, 'postgres-multischema', () => {

@@ -1192,6 +1192,20 @@ describeMatrix(postgresOnly, 'postgres', () => {
       "
     `)
   })
+
+  it('external tables', async () => {
+    ctx.fixture('external-tables')
+
+    const result = MigrateDev.new().parse([], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
+
+      Already in sync, no schema change or pending migration was found.
+      "
+    `)
+  })
 })
 
 describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
