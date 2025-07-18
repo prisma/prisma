@@ -5,4 +5,14 @@ export default defineConfig({
   tables: {
     external: ['User'],
   },
+  migrations: {
+    setupExternalTables: async () => {
+      return `
+        CREATE TABLE "User" (
+          "id" SERIAL PRIMARY KEY,
+          "name" TEXT NOT NULL
+        );
+      `
+    },
+  },
 })
