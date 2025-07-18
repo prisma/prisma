@@ -30,6 +30,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     view UserInfo {
+      @map("_id")
       id    String
       email String
       name  String

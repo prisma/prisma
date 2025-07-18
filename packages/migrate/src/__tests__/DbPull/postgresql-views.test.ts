@@ -218,8 +218,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
               
-        *** WARNING ***
-
         Run prisma generate to generate Prisma Client.
         Prisma schema loaded from schema.prisma
         Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" <location placeholder>
@@ -267,7 +265,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         - Introspecting based on datasource defined in schema.prisma
         ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-
+              
         Run prisma generate to generate Prisma Client.
         "
       `)
