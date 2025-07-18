@@ -109,7 +109,7 @@ describe('loadConfigFromFile', () => {
       const { config, error } = await loadConfigFromFile({})
       expect(config).toMatchObject({
         migrations: {
-          setupExternalTables: expect.any(Function),
+          setupExternalTables: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,
         },
       })
       expect(error).toBeUndefined()
@@ -327,12 +327,12 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-          `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+          `"Expected { readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly setupExternalTables?: SetupExternalTables | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
         )
       })
 
       it(`fails with \`ConfigFileSyntaxError\` when the default export in the Prisma config file does
-          not conform to the expected schema shape`, async () => {
+            not conform to the expected schema shape`, async () => {
         ctx.fixture('loadConfigFromFile/invalid/no-schema-shape-conformance')
 
         const { config, error, resolvedPath } = await loadConfigFromFile({})
@@ -340,9 +340,9 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-          "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
+          "{ readonly earlyAccess: true; readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly setupExternalTables?: SetupExternalTables | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
           └─ ["thisShouldFail"]
-             └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrations" | "views" | "typedSql" | "adapter" | "loadedFromFile""
+            └─ is unexpected, expected: "earlyAccess" | "schema" | "studio" | "migrations" | "tables" | "views" | "typedSql" | "adapter" | "loadedFromFile""
         `)
       })
     })
