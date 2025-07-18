@@ -90,7 +90,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --url flag to the prisma db pull command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -110,7 +110,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --local-d1 flag to the prisma db pull command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "

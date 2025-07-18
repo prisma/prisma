@@ -10,7 +10,7 @@ import { link } from '..'
  */
 export const forbiddenCmdFlagWithSchemaEngineWasm = ({ cmd, flag }: { cmd: string; flag: string }) => `
 Passing the ${green(`${flag}`)} flag to the ${green(`prisma ${cmd}`)} command is not supported when
-defining a ${green(`migrate.adapter`)} in ${green(`prisma.config.ts`)}.
+defining an ${green(`adapter`)} in Prisma config file (e.g., ${green(`\`prisma.config.ts\``)}).
 
 More information about this limitation: ${link('https://pris.ly/d/schema-engine-limitations')}
 `

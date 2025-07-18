@@ -40,7 +40,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -61,7 +61,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -82,7 +82,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-schema-datasource flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -103,7 +103,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --to-schema-datasource flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -124,7 +124,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --shadow-database-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -145,7 +145,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-local-d1 flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -166,7 +166,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --to-local-d1 flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
