@@ -90,6 +90,19 @@ describe('loadConfigFromFile', () => {
     }, 15_000) // Somehow, this test is flaky on Windows, so we increase the timeout
   })
 
+  describe('tables', () => {
+    it('loads tables config', async () => {
+      ctx.fixture('loadConfigFromFile/tables')
+      const { config, error } = await loadConfigFromFile({})
+      expect(config).toMatchObject({
+        tables: {
+          external: ['table1', 'specific_schema.table2'],
+        },
+      })
+      expect(error).toBeUndefined()
+    })
+  })
+
   describe('schema', () => {
     describe('single', () => {
       it('succeeds when it points to a single Prisma schema file that exists via an absolute path', async () => {

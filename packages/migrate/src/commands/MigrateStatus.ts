@@ -12,6 +12,7 @@ import {
   link,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
@@ -83,7 +84,11 @@ Check the status of your database migrations
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
     if (!adapter) {

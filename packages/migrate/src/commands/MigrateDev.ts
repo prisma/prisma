@@ -14,6 +14,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -125,7 +126,11 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
