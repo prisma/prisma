@@ -34,7 +34,7 @@ interface MigrateOptions {
   engine: SchemaEngine
   schemaContext?: SchemaContext
   migrationsDirPath?: string
-  schemaFilter: MigrateTypes.SchemaFilter
+  schemaFilter?: MigrateTypes.SchemaFilter
   shadowDbInitScript?: string
 }
 
@@ -52,11 +52,11 @@ export class Migrate {
     // like migrate diff and db execute
     this.schemaContext = schemaContext
     this.migrationsDirectoryPath = migrationsDirPath
-    this.schemaFilter = schemaFilter
+    this.schemaFilter = schemaFilter ?? { externalTables: [] }
     this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 
-  static async setup({ adapter, schemaContext, schemaFilter, ...rest }: MigrateSetupInput): Promise<Migrate> {
+  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const engine = await (async () => {
       if (adapter) {
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
@@ -67,9 +67,7 @@ export class Migrate {
 
     warnDatasourceDriverAdapter(schemaContext, adapter)
 
-    schemaFilter = schemaFilter ?? { externalTables: [] }
-
-    return new Migrate({ engine, schemaContext, schemaFilter, ...rest })
+    return new Migrate({ engine, schemaContext, ...rest })
   }
 
   public async stop(): Promise<void> {
