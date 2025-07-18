@@ -34,6 +34,7 @@ module.exports = [
       '**/esm/**',
       '**/build/**',
       '**/fixtures/**',
+      '**/__fixtures__/**',
       '**/generated/**',
       '**/byline.ts',
       '**/prism.ts',
