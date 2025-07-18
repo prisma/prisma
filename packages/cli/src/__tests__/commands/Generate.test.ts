@@ -569,7 +569,7 @@ describe('--schema from project directory', () => {
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g.,  \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
