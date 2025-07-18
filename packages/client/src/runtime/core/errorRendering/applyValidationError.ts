@@ -396,6 +396,16 @@ function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, 
     const typeName = error.inputTypes.map(getInputTypeName).join(' | ')
     parent.addSuggestion(new ObjectFieldSuggestion(argumentName, typeName).makeRequired())
   }
+
+  if (error.dependentArgumentPath) {
+    selection.getDeepField(error.dependentArgumentPath)?.markAsError()
+    const [, dependentArgumentName] = splitPath(error.dependentArgumentPath)
+    args.addErrorMessage((colors) => {
+      return `Argument \`${colors.green(argumentName)}\` is required because argument \`${colors.green(
+        dependentArgumentName,
+      )}\` was provided.`
+    })
+  }
 }
 
 function getInputTypeName(description: InputTypeDescription) {
