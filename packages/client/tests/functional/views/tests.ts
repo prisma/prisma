@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
             },
             {
               $project: {
-                _id: 1,
+                id: '$_id',
                 email: 1,
                 name: 1,
                 bio: '$ProfileData.bio',
@@ -93,14 +93,14 @@ testMatrix.setupTestSuite(
     alterStatementCallback: (provider) => {
       if (provider === Providers.MYSQL) {
         return `
-          CREATE VIEW UserInfo 
+          CREATE VIEW UserInfo
           AS SELECT u.id, email, name, p.bio
           FROM User u
           LEFT JOIN Profile p ON u.id = p.userId
         `
       } else {
         return `
-          CREATE VIEW "UserInfo" 
+          CREATE VIEW "UserInfo"
           AS SELECT u.id, email, name, p.bio
           FROM "User" u
           LEFT JOIN "Profile" p ON u.id = p."userId"
