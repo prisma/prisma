@@ -13,7 +13,7 @@ test('reports correct self-signed certificate message', async () => {
 Invalid \`prisma.user.findMany()\` invocation:
 
 
-self-signed certificate]
+Error opening a TLS connection: self-signed certificate]
 `)
 })
 
