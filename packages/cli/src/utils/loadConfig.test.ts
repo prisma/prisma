@@ -9,11 +9,14 @@ const ctx = jestContext.new().assemble()
 
 describe('loadConfig', () => {
   it('provides default config if no file config is found', async () => {
-    const config = await loadConfig()
+    const result = await loadConfig()
 
-    expect(config).toMatchObject({
-      earlyAccess: true,
-      loadedFromFile: null,
+    expect(result).toMatchObject({
+      config: {
+        earlyAccess: true,
+        loadedFromFile: null,
+      },
+      diagnostics: [],
     })
   })
 
