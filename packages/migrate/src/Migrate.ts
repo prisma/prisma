@@ -27,32 +27,36 @@ interface MigrateSetupInput {
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
   schemaFilter?: MigrateTypes.SchemaFilter
+  shadowDbInitScript?: string
 }
 
 interface MigrateOptions {
   engine: SchemaEngine
   schemaContext?: SchemaContext
   migrationsDirPath?: string
-  schemaFilter: MigrateTypes.SchemaFilter
+  schemaFilter?: MigrateTypes.SchemaFilter
+  shadowDbInitScript?: string
 }
 
 export class Migrate {
   public readonly engine: SchemaEngine
   private schemaContext?: SchemaContext
   private schemaFilter: MigrateTypes.SchemaFilter
+  private shadowDbInitScript: string
   public migrationsDirectoryPath?: string
 
-  private constructor({ schemaContext, migrationsDirPath, engine, schemaFilter }: MigrateOptions) {
+  private constructor({ schemaContext, migrationsDirPath, engine, schemaFilter, shadowDbInitScript }: MigrateOptions) {
     this.engine = engine
 
     // schemaPath and migrationsDirectoryPath are optional for primitives
     // like migrate diff and db execute
     this.schemaContext = schemaContext
     this.migrationsDirectoryPath = migrationsDirPath
-    this.schemaFilter = schemaFilter
+    this.schemaFilter = schemaFilter ?? { externalTables: [] }
+    this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 
-  static async setup({ adapter, schemaContext, schemaFilter, ...rest }: MigrateSetupInput): Promise<Migrate> {
+  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const engine = await (async () => {
       if (adapter) {
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
@@ -63,9 +67,7 @@ export class Migrate {
 
     warnDatasourceDriverAdapter(schemaContext, adapter)
 
-    schemaFilter = schemaFilter ?? { externalTables: [] }
-
-    return new Migrate({ engine, schemaContext, schemaFilter, ...rest })
+    return new Migrate({ engine, schemaContext, ...rest })
   }
 
   public async stop(): Promise<void> {
@@ -89,7 +91,7 @@ export class Migrate {
   ): Promise<{ generatedMigrationName: string | undefined }> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
     const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
       ...params,
       migrationsList,
@@ -139,7 +141,7 @@ export class Migrate {
   }): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return this.engine.diagnoseMigrationHistory({
       migrationsList,
@@ -151,7 +153,7 @@ export class Migrate {
   public async listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return {
       migrations: migrationsList.migrationDirectories.map((dir) => dir.path),
@@ -161,7 +163,7 @@ export class Migrate {
   public async devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return this.engine.devDiagnostic({
       migrationsList,
@@ -172,7 +174,7 @@ export class Migrate {
   public async markMigrationApplied({ migrationId }: { migrationId: string }): Promise<void> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return await this.engine.markMigrationApplied({
       migrationsList,
@@ -189,7 +191,7 @@ export class Migrate {
   public async applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return this.engine.applyMigrations({
       migrationsList,
@@ -200,7 +202,7 @@ export class Migrate {
   public async evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const migrationsList = await listMigrations(this.migrationsDirectoryPath)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
     const schema = this.getPrismaSchema()
 
     return this.engine.evaluateDataLoss({
