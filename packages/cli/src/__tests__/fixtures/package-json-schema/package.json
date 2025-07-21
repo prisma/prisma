@@ -1,0 +1,5 @@
+{
+  "prisma": {
+    "schema": "custom-path/schema.prisma"
+  }
+}

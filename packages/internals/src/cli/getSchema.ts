@@ -13,6 +13,7 @@ import { readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
 import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
+import { warnOnce } from '../warnOnce'
 
 const readFile = promisify(fs.readFile)
 const stat = promisify(fs.stat)
@@ -182,6 +183,11 @@ async function getSchemaWithPathInternal(
   // 3. Use the "prisma"."schema" attribute from the project's package.json
   const pkgJsonResult = await getSchemaFromPackageJson(cwd)
   if (pkgJsonResult.ok) {
+    const message =
+      'The "prisma.schema" property in your package.json is deprecated and will be removed in a future release.\n' +
+      `Please use ${green('prisma.config.ts')} instead.\n` +
+      'For more information on this change, visit: https://www.prisma.io/docs/orm/reference/prisma-config-reference'
+    warnOnce('prisma key in package.json', message)
     return pkgJsonResult
   }
 

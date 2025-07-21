@@ -1,0 +1,7 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`load schema from package.json and generate a deprecation warning 1`] = `
+"prisma:warn The "prisma.schema" property in your package.json is deprecated and will be removed in a future release.
+Please use prisma.config.ts instead.
+For more information on this change, visit: https://www.prisma.io/docs/orm/reference/prisma-config-reference"
+`;
