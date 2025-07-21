@@ -43,7 +43,7 @@ describe('db execute', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --url flag to the prisma db execute command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -106,7 +106,7 @@ describe('db execute', () => {
           await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "
         Passing the --url flag to the prisma db execute command is not supported when
-        defining a migrate.adapter in prisma.config.ts.
+        defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
         More information about this limitation: https://pris.ly/d/schema-engine-limitations
         "
