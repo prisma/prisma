@@ -21,10 +21,9 @@ describe('version', () => {
     testIf(runLibraryTest)('shows query-engine library when queryCompiler is turned off', async () => {
       ctx.fixture('prisma-config-dont-download-schema-engine')
       const data = await ctx.cli('version')
+      expect(data.exitCode).toBe(0)
       expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-        "Loaded Prisma config from "sanitized prisma.config.ts path".
-        Prisma config detected, skipping environment variable loading.
-        Prisma schema loaded from schema.prisma
+        "Prisma schema loaded from schema.prisma
         prisma                  : 0.0.0
         @prisma/client          : 0.0.0
         Computed binaryTarget   : TEST_PLATFORM
@@ -38,6 +37,11 @@ describe('version', () => {
         Schema Engine Adapter   : @prisma/adapter-sqlite-mock
         Default Engines Hash    : ENGINE_VERSION
         Studio                  : STUDIO_VERSION"
+      `)
+      expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
+        "Loaded Prisma config from prisma.config.ts.
+
+        Prisma config detected, skipping environment variable loading."
       `)
     })
 
@@ -60,10 +64,9 @@ describe('version', () => {
       test('does not download query-engine when queryCompiler is turned on', async () => {
         ctx.fixture('prisma-config-dont-download-engines')
         const data = await ctx.cli('version')
+        expect(data.exitCode).toBe(0)
         expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-          "Loaded Prisma config from "sanitized prisma.config.ts path".
-          Prisma config detected, skipping environment variable loading.
-          Prisma schema loaded from schema.prisma
+          "Prisma schema loaded from schema.prisma
           prisma                : 0.0.0
           @prisma/client        : 0.0.0
           Computed binaryTarget : TEST_PLATFORM
@@ -78,6 +81,11 @@ describe('version', () => {
           Default Engines Hash  : ENGINE_VERSION
           Studio                : STUDIO_VERSION
           Preview Features      : queryCompiler"
+        `)
+        expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
+          "Loaded Prisma config from prisma.config.ts.
+
+          Prisma config detected, skipping environment variable loading."
         `)
       })
     })
