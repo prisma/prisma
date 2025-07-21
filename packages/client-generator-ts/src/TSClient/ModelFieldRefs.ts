@@ -1,6 +1,5 @@
+import { getFieldRefsTypeName, getRefAllowedTypeName } from '@prisma/client-generator-common/name-utils'
 import * as DMMF from '@prisma/dmmf'
-
-import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
 
 export class ModelFieldRefs {
   constructor(protected outputType: DMMF.OutputType) {}

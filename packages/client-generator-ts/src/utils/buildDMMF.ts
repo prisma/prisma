@@ -4,9 +4,9 @@ import {
   pruneRuntimeDataModel,
   RuntimeDataModel,
 } from '@prisma/client-common'
+import { escapeJson } from '@prisma/client-generator-common/escapeJson'
 import type * as DMMF from '@prisma/dmmf'
 
-import { escapeJson } from '../TSClient/helpers'
 import { TSClientOptions } from '../TSClient/TSClient'
 
 /**

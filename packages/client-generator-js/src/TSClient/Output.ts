@@ -1,9 +1,9 @@
+import type { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { getPayloadName } from '@prisma/client-generator-common/name-utils'
 import type * as DMMF from '@prisma/dmmf'
 import { hasOwnProperty } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
-import type { DMMFHelper } from '../dmmf'
-import { getPayloadName } from '../utils'
 import { GraphQLScalarToJSTypeTable, needsNamespace } from '../utils/common'
 
 export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {

@@ -26,6 +26,7 @@
   "dependencies": {
     "@antfu/ni": "0.21.12",
     "@prisma/client-common": "workspace:*",
+    "@prisma/client-generator-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
     "@prisma/engines-version": "6.13.0-25.34d052feec28c4ea8c0ecd38bb989f2fa99c0429",

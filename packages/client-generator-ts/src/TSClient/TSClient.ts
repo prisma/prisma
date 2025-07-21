@@ -1,10 +1,10 @@
+import { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { GenericArgsInfo } from '@prisma/client-generator-common/GenericsArgsInfo'
 import type { O } from 'ts-toolbelt'
 
-import { DMMFHelper } from '../dmmf'
 import { generatedFileNameMapper, importFileNameMapper } from '../file-extensions'
 import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { createClassFile } from './file-generators/ClassFile'
 import { createClientFile } from './file-generators/ClientFile'
 import { createCommonInputTypeFiles } from './file-generators/CommonInputTypesFile'

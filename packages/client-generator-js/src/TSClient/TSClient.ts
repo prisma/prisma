@@ -1,4 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
+import { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { GenericArgsInfo } from '@prisma/client-generator-common/GenericsArgsInfo'
 import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
@@ -9,10 +11,7 @@ import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
 
-import { DMMFHelper } from '../dmmf'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import { GenerateClientOptions } from '../generateClient'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'

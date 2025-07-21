@@ -1,12 +1,5 @@
-import { NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
-import type * as DMMF from '@prisma/dmmf'
-import type { DataSource } from '@prisma/generator'
-import { assertNever } from '@prisma/internals'
-import * as ts from '@prisma/ts-builders'
-import indent from 'indent-string'
-
+import { capitalize, NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
 import {
-  capitalize,
   extArgsParam,
   getAggregateName,
   getCountAggregateOutputName,
@@ -14,7 +7,13 @@ import {
   getGroupByName,
   getModelArgName,
   getPayloadName,
-} from '../utils'
+} from '@prisma/client-generator-common/name-utils'
+import type * as DMMF from '@prisma/dmmf'
+import type { DataSource } from '@prisma/generator'
+import { assertNever } from '@prisma/internals'
+import * as ts from '@prisma/ts-builders'
+import indent from 'indent-string'
+
 import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
@@ -48,7 +47,10 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
     modelNames.map((modelName) => {
       const entry = ts.objectType()
       entry.add(
-        ts.property('payload', ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam.toArgument())),
+        ts.property(
+          'payload',
+          ts.namedType(getPayloadName(modelName)).addGenericArgument(extArgsParam(context.tsx).toArgument()),
+        ),
       )
       entry.add(ts.property('fields', ts.namedType(`Prisma.${getFieldRefsTypeName(modelName)}`)))
       const actions = getModelActions(context.dmmf, modelName)
@@ -57,7 +59,9 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
         actions.map((action) => {
           const operationType = ts.objectType()
           const argsType = `Prisma.${getModelArgName(modelName, action)}`
-          operationType.add(ts.property('args', ts.namedType(argsType).addGenericArgument(extArgsParam.toArgument())))
+          operationType.add(
+            ts.property('args', ts.namedType(argsType).addGenericArgument(extArgsParam(context.tsx).toArgument())),
+          )
           operationType.add(ts.property('result', clientTypeMapModelsResultDefinition(modelName, action)))
           return ts.property(action, operationType)
         }),
