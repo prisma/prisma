@@ -11,7 +11,10 @@ import type { MigrateTypes } from '@prisma/internals'
  * @param migrationsDirectoryPath Absolute path to the migrations directory
  * @returns Promise resolving to a sorted list of migrations
  */
-export async function listMigrations(migrationsDirectoryPath: string): Promise<MigrateTypes.MigrationList> {
+export async function listMigrations(
+  migrationsDirectoryPath: string,
+  shadowDbInitScript: string,
+): Promise<MigrateTypes.MigrationList> {
   const baseDir = migrationsDirectoryPath
 
   const lockfileName = 'migration_lock.toml'
@@ -37,6 +40,7 @@ export async function listMigrations(migrationsDirectoryPath: string): Promise<M
         baseDir,
         lockfile,
         migrationDirectories: [],
+        shadowDbInitScript,
       }
     }
 
@@ -70,5 +74,6 @@ export async function listMigrations(migrationsDirectoryPath: string): Promise<M
     baseDir,
     lockfile,
     migrationDirectories: sortedMigrations,
+    shadowDbInitScript,
   }
 }
