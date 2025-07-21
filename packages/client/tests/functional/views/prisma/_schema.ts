@@ -9,12 +9,12 @@ export default testMatrix.setupSchema(({ provider }) => {
       output   = "../generated/prisma/client"
       previewFeatures = ["views"]
     }
-    
+
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
     }
-    
+
     model User {
       id ${idForProvider(provider)}
       email   String   @unique
