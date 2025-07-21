@@ -154,7 +154,17 @@ For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
       value:
         ({ log, dim }) =>
         () =>
-          log(dim(`Prisma config loaded from ${path.relative(process.cwd(), resolvedPath)}.\n`)),
+          log(dim(`Loaded Prisma config from "${configFile ?? path.relative(process.cwd(), resolvedPath)}".\n`)),
+    })
+
+    diagnostics.push({
+      _tag: 'log',
+      value:
+        ({ log, dim }) =>
+        () => {
+          log(`resolvedPath: ${dim(resolvedPath)}`)
+          log(`configFile: ${configFile ?? '<null>'}`)
+        },
     })
 
     const prismaConfig = transformPathsInConfigToAbsolute(parsedConfig, resolvedPath)
@@ -165,10 +175,9 @@ For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
         value:
           ({ warn, link }) =>
           () =>
-            warn(`The Prisma config file in ${path.relative(
-              configRoot,
-              resolvedPath,
-            )} overrides the deprecated \`package.json#prisma\` property in ${path.relative(
+            warn(`The Prisma config file in ${
+              configFile ?? path.relative(configRoot, resolvedPath)
+            } overrides the deprecated \`package.json#prisma\` property in ${path.relative(
               configRoot,
               deprecatedPrismaConfigFromJson.loadedFromFile,
             )}.
