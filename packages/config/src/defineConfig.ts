@@ -1,8 +1,44 @@
 import { bindMigrationAwareSqlAdapterFactory, Debug } from '@prisma/driver-adapter-utils'
+import { Either } from 'effect'
 import type { DeepMutable } from 'effect/Types'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfig, PrismaConfigInternal } from './PrismaConfig'
+
+/**
+ * Validates that experimental features are enabled when using corresponding configuration options.
+ */
+function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
+  const experimental = config.experimental || {}
+
+  // Check adapter configuration
+  if (config.adapter && !experimental.adapter) {
+    return Either.left(new Error('The `adapter` configuration requires `experimental.adapter` to be set to `true`.'))
+  }
+
+  // Check studio configuration
+  if (config.studio && !experimental.studio) {
+    return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
+  }
+
+  // Check external tables configuration
+  if (config.tables?.external && !experimental.externalTables) {
+    return Either.left(
+      new Error('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.'),
+    )
+  }
+
+  // Check migrations setupExternalTables configuration
+  if (config.migrations?.setupExternalTables && !experimental.externalTables) {
+    return Either.left(
+      new Error(
+        'The `migrations.setupExternalTables` configuration requires `experimental.externalTables` to be set to `true`.',
+      ),
+    )
+  }
+
+  return Either.right(config)
+}
 
 export type { PrismaConfigInternal }
 
@@ -12,12 +48,19 @@ const debug = Debug('prisma:config:defineConfig')
  * Define the configuration for the Prisma Development Kit.
  */
 export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
+  // First validate the experimental feature gates
+  const validationResult = validateExperimentalFeatures(configInput)
+  if (validationResult._tag === 'Left') {
+    throw validationResult.left
+  }
+
   /**
    * We temporarily treat config as mutable, to simplify the implementation of this function.
    */
   const config = defaultConfig()
   debug('[default]: %o', config)
 
+  defineExperimentalConfig(config, configInput)
   defineSchemaConfig(config, configInput)
   defineAdapterConfig(config, configInput)
   defineStudioConfig(config, configInput)
@@ -31,6 +74,18 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
    * `Readonly` type
    */
   return config as PrismaConfigInternal
+}
+
+/**
+ * `configInput.experimental` is forwarded to `config.experimental` as is.
+ */
+function defineExperimentalConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.experimental) {
+    return
+  }
+
+  config.experimental = configInput.experimental
+  debug('[config.experimental]: %o', config.experimental)
 }
 
 /**

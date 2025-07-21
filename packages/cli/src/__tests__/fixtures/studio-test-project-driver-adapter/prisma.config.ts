@@ -11,7 +11,9 @@ const env = process.env as Env
 process.env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL = `file:${path.join(__dirname, 'dev_tmp.db')}`
 
 export default defineConfig({
-  earlyAccess: true,
+  experimental: {
+    studio: true,
+  },
   schema: path.join(__dirname, 'schema-c.prisma'),
   studio: {
     adapter: async () => {
