@@ -13,12 +13,13 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
     "c12": "3.1.0",
-    "deepmerge-ts": "7.1.5"
+    "deepmerge-ts": "7.1.5",
+    "effect": "3.16.12",
+    "read-package-up": "11.0.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "effect": "3.16.12",
     "vitest": "3.2.4"
   },
   "scripts": {

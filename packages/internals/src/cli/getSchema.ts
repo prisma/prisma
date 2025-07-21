@@ -93,7 +93,7 @@ export async function getSchemaWithPathOptional(
 }
 
 export function printSchemaLoadedMessage(schemaPath: string) {
-  process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
+  process.stderr.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 }
 
 async function readSchemaFromSingleFile(schemaPath: string): Promise<LookupResult> {
