@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zx": "^7"
+  },
+  "devDependencies": {
+    "@prisma/get-platform": "/tmp/prisma-get-platform-0.0.0.tgz",
+    "@prisma/engines": "/tmp/prisma-engines-0.0.0.tgz",
+    "@types/node": "18.19.76",
+    "prisma": "/tmp/prisma-0.0.0.tgz",
+    "vitest": "^3.2.4"
+  },
+  "prisma": {
+    "schema": "./prisma/schema.prisma"
+  }
+}

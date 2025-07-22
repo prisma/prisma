@@ -5,6 +5,7 @@ import { Debug } from '@prisma/driver-adapter-utils'
 
 import { defaultConfig } from './defaultConfig'
 import type { PrismaConfigInternal } from './defineConfig'
+import { loadConfigFromPackageJson } from './loadConfigFromPackageJson'
 import { parseDefaultExport } from './PrismaConfig'
 
 const debug = Debug('prisma:config:loadConfigFromFile')
@@ -46,21 +47,41 @@ export type LoadConfigFromFileError =
       error: Error
     }
 
+export type InjectFormatters = {
+  dim: (data: string) => string
+  log: (data: string) => void
+  warn: (data: string) => void
+  link: (data: string) => string
+}
+
+export type ConfigDiagnostic =
+  | {
+      _tag: 'log'
+      value: (formatters: InjectFormatters) => () => void
+    }
+  | {
+      _tag: 'warn'
+      value: (formatters: InjectFormatters) => () => void
+    }
+
 export type ConfigFromFile =
   | {
       resolvedPath: string
       config: PrismaConfigInternal
       error?: never
+      diagnostics: ConfigDiagnostic[]
     }
   | {
       resolvedPath: string
       config?: never
       error: LoadConfigFromFileError
+      diagnostics: ConfigDiagnostic[]
     }
   | {
       resolvedPath: null
       config: PrismaConfigInternal
       error?: never
+      diagnostics: ConfigDiagnostic[]
     }
 
 /**
@@ -76,6 +97,22 @@ export async function loadConfigFromFile({
   const start = performance.now()
   const getTime = () => `${(performance.now() - start).toFixed(2)}ms`
 
+  const diagnostics = [] as ConfigDiagnostic[]
+
+  const deprecatedPrismaConfigFromJson = await loadConfigFromPackageJson(configRoot)
+  if (deprecatedPrismaConfigFromJson) {
+    diagnostics.push({
+      _tag: 'warn',
+      value:
+        ({ warn, link }) =>
+        () =>
+          warn(
+            `The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
+For more information, see: ${link('https://pris.ly/prisma-config')}\n`,
+          ),
+    } as const)
+  }
+
   try {
     const { configModule, resolvedPath, error } = await loadConfigTsOrJs(configRoot, configFile)
 
@@ -83,6 +120,7 @@ export async function loadConfigFromFile({
       return {
         resolvedPath,
         error,
+        diagnostics,
       }
     }
 
@@ -91,7 +129,7 @@ export async function loadConfigFromFile({
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
-      return { resolvedPath: null, config: defaultConfig() }
+      return { resolvedPath: null, config: defaultConfig(), diagnostics }
     }
 
     let parsedConfig: PrismaConfigInternal | undefined
@@ -106,12 +144,37 @@ export async function loadConfigFromFile({
           _tag: 'ConfigFileSyntaxError',
           error,
         },
+        diagnostics,
       }
     }
 
-    // TODO: this line causes https://github.com/prisma/prisma/issues/27609.
-    process.stdout.write(`Loaded Prisma config from "${resolvedPath}".\n`)
+    // Note: this line fixes https://github.com/prisma/prisma/issues/27609.
+    diagnostics.push({
+      _tag: 'log',
+      value:
+        ({ log, dim }) =>
+        () =>
+          log(dim(`Loaded Prisma config from ${path.relative(configRoot, resolvedPath)}.\n`)),
+    })
+
     const prismaConfig = transformPathsInConfigToAbsolute(parsedConfig, resolvedPath)
+
+    if (deprecatedPrismaConfigFromJson) {
+      diagnostics.push({
+        _tag: 'warn',
+        value:
+          ({ warn, link }) =>
+          () =>
+            warn(`The Prisma config file in ${path.relative(
+              configRoot,
+              resolvedPath,
+            )} overrides the deprecated \`package.json#prisma\` property in ${path.relative(
+              configRoot,
+              deprecatedPrismaConfigFromJson.loadedFromFile,
+            )}.
+  For more information, see: ${link('https://pris.ly/prisma-config')}\n`),
+      })
+    }
 
     return {
       config: {
@@ -119,6 +182,7 @@ export async function loadConfigFromFile({
         loadedFromFile: resolvedPath,
       },
       resolvedPath,
+      diagnostics,
     }
   } catch (e) {
     // As far as we know, this branch should be unreachable.
@@ -130,6 +194,7 @@ export async function loadConfigFromFile({
         _tag: 'UnknownError',
         error,
       },
+      diagnostics,
     }
   }
 }

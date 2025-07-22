@@ -187,9 +187,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
     ctx.fixture('schema-only-data-proxy')
     const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" <location placeholder>
 
       No migration found in prisma/migrations

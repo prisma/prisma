@@ -232,7 +232,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
 
   test('introspection should load .env file without --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    expect.assertions(4)
+    expect.assertions(5)
 
     try {
       await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], await ctx.config())
@@ -241,9 +241,12 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
     }
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/using-dotenv.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/using-dotenv.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/using-dotenv.prisma
@@ -256,7 +259,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
 
   test('introspection --url with postgresql provider but schema has a sqlite provider should fail', async () => {
     ctx.fixture('schema-only-sqlite')
-    expect.assertions(4)
+    expect.assertions(5)
 
     try {
       await DbPull.new().parse(['--url', setupParams.connectionString], await ctx.config())
@@ -267,6 +270,7 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       )
     }
 
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
@@ -280,9 +284,12 @@ describeMatrix(postgresOnly, 'postgresql', () => {
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql", schema "public" <location placeholder>
 
       - Introspecting based on datasource defined in with-directUrl-env.prisma

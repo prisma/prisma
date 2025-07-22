@@ -1,4 +1,4 @@
-import { loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
+import { type ConfigDiagnostic, loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { assertNever, HelpError } from '@prisma/internals'
 
@@ -7,8 +7,10 @@ const debug = Debug('prisma:cli:loadConfig')
 /**
  * Will try to load the prisma config file from the given path, default path or create a default config.
  */
-export async function loadConfig(configFilePath?: string): Promise<PrismaConfigInternal | HelpError> {
-  const { config, error, resolvedPath } = await loadConfigFromFile({ configFile: configFilePath })
+export async function loadConfig(
+  configFilePath?: string,
+): Promise<{ config: PrismaConfigInternal; diagnostics: ConfigDiagnostic[] } | HelpError> {
+  const { config, error, resolvedPath, diagnostics } = await loadConfigFromFile({ configFile: configFilePath })
 
   if (error) {
     debug('Error loading config file: %o', error)
@@ -28,5 +30,5 @@ export async function loadConfig(configFilePath?: string): Promise<PrismaConfigI
     }
   }
 
-  return config
+  return { config, diagnostics }
 }

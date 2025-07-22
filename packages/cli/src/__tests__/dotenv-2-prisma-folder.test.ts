@@ -9,7 +9,11 @@ it('should read .env file in prisma folder', async () => {
 
   await loadEnvFile({ printMessage: true, config: defaultTestConfig() })
 
-  expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchSnapshot()
+  expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    "Environment variables loaded from prisma/.env
+    "
+  `)
 
   expect(process.env.DOTENV_PRISMA_SHOULD_WORK).toEqual('file:dev.db')
   expect(process.env.DOTENV_ROOT_SHOULD_BE_UNDEFINED).toEqual(undefined)
