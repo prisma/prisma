@@ -38,7 +38,9 @@ COMMANDS.forEach((command) => {
     // Running with --help to not run further actions beyond config loading
     const res = await ctx.cli(...command, '--config=./config/prisma.config.ts', '--help')
     expect(res.exitCode).toBe(0)
-    expect(sanitizeSnapshot(res.stderr)).toContain(`Loaded Prisma config from config/prisma.config.ts.`)
+    expect(sanitizeSnapshot(res.stderr)).toContain(
+      `Loaded Prisma config from "sanitized config/prisma.config.ts path".`,
+    )
   })
 })
 
