@@ -1,9 +1,18 @@
 // @ts-ignore
 import { enginesVersion } from '@prisma/engines'
-import { describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { $ } from 'zx'
 
 describe('diagnostics related to prisma.config.ts should not influence structured output commands', () => {
+  beforeEach(() => {
+    // To hide "Update available 0.0.0 -> x.x.x"
+    vi.stubEnv('PRISMA_HIDE_UPDATE_MESSAGE', 'true')
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   test('prisma migrate diff --script', async () => {
     const { stdout, stderr, exitCode } =
       await $`pnpm prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script`
@@ -38,14 +47,14 @@ describe('diagnostics related to prisma.config.ts should not influence structure
       {
         "prisma": "0.0.0",
         "@prisma/client": "Not found",
-        "computed-binarytarget": "linux-arm64-openssl-3.0.x",
-        "operating-system": "linux",
-        "architecture": "arm64",
+        "computed-binarytarget": "debian-openssl-3.0.x",
+        "operating-system": "OS",
+        "architecture": "ARCHITECTURE",
         "node.js": "NODEJS_VERSION",
         "typescript": "unknown",
-        "query-engine-(node-api)": "libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-linux-arm64-openssl-3.0.x.so.node)",
+        "query-engine-(node-api)": "libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-debian-openssl-3.0.x.so.node)",
         "psl": "@prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION",
-        "schema-engine": "schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-linux-arm64-openssl-3.0.x)",
+        "schema-engine": "schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-debian-openssl-3.0.x)",
         "default-engines-hash": "ENGINE_VERSION",
         "studio": "0.511.0"
       }
@@ -92,11 +101,12 @@ function cleanVersionSnapshot(str: string, versionOverride?: string): string {
   const currentEngineVersion = versionOverride ?? enginesVersion
   str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
-  str = str.replace(new RegExp('(Operating System\\s+:).*', 'g'), '$1 OS')
-  str = str.replace(new RegExp('(Architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
+  str = str.replace(new RegExp('(operating-system\\s+:).*', 'g'), '$1 OS')
+  str = str.replace(new RegExp('(architecture\\s+:).*', 'g'), '$1 ARCHITECTURE')
   str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
   str = str.replace(new RegExp(process.version, 'g'), 'NODEJS_VERSION')
-  str = str.replace(new RegExp(`(TypeScript\\s+:) \\d+\\.\\d+\\.\\d+`, 'g'), '$1 TYPESCRIPT_VERSION')
+  str = str.replace(new RegExp(`(typeScript\\s+:) \\d+\\.\\d+\\.\\d+`, 'g'), '$1 TYPESCRIPT_VERSION')
+  str = str.replace(new RegExp(`(studio\\s+:) \\d+\\.\\d+\\.\\d+`, 'g'), '$1 STUDIO_VERSION')
 
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
