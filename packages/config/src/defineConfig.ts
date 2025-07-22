@@ -66,6 +66,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   defineStudioConfig(config, configInput)
   defineMigrationsConfig(config, configInput)
   defineTablesConfig(config, configInput)
+  defineEnumsConfig(config, configInput)
   defineTypedSqlConfig(config, configInput)
   defineViewsConfig(config, configInput)
 
@@ -137,7 +138,7 @@ function defineViewsConfig(config: DeepMutable<PrismaConfigInternal>, configInpu
 }
 
 /**
- * `configInput.tables` is forwarded to `config.views` as is.
+ * `configInput.tables` is forwarded to `config.tables` as is.
  */
 function defineTablesConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
   if (!configInput.tables) {
@@ -146,6 +147,18 @@ function defineTablesConfig(config: DeepMutable<PrismaConfigInternal>, configInp
 
   config.tables = configInput.tables
   debug('[config.tables]: %o', config.tables)
+}
+
+/**
+ * `configInput.enums` is forwarded to `config.enums` as is.
+ */
+function defineEnumsConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput.enums) {
+    return
+  }
+
+  config.enums = configInput.enums
+  debug('[config.enums]: %o', config.enums)
 }
 
 /**
