@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import { loadConfigFromPackageJson } from '@prisma/config'
 import Debug from '@prisma/debug'
 import execa from 'execa'
@@ -19,7 +21,27 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
     return null
   }
 
-  // Note: The seed command runtime shape is already validated by `@prisma/config`.
+  const seedCommandFromPkgJson = prismaConfig.config.seed
+
+  // Validate if seed command is a string
+  if (typeof seedCommandFromPkgJson !== 'string') {
+    throw new Error(
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
+        cwd,
+        prismaConfig.loadedFromFile,
+      )}\` must be of type string`,
+    )
+  }
+
+  if (!seedCommandFromPkgJson) {
+    throw new Error(
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
+        cwd,
+        prismaConfig.loadedFromFile,
+      )}\` cannot be empty`,
+    )
+  }
+
   return prismaConfig.config.seed
 }
 
