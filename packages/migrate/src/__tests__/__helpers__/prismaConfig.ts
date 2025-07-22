@@ -1,4 +1,4 @@
-import { defineConfig, loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
+import { defineConfig, PrismaConfigInternal } from '@prisma/config'
 import { SqlMigrationAwareDriverAdapterFactoryShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
@@ -56,11 +56,11 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
 }
 
 async function loadFixtureConfig(ctx: BaseContext) {
-  const { config, error } = await loadConfigFromFile({ configRoot: ctx.fs.cwd() })
-
-  if (error) {
-    return undefined
-  }
-
-  return config
+  // Note: This is a workaround to avoid issues with jest's module resolution.
+  // If you used `loadConfigFromFile` directly, you'd observe the following error:
+  // ```
+  // [ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG]: A dynamic import callback was invoked without --experimental-vm-modules
+  // ```
+  if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
+  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
 }
