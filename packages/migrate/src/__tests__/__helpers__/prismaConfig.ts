@@ -48,7 +48,9 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
   }
 
   return defineConfig({
-    earlyAccess: true,
+    experimental: {
+      adapter: adapter !== undefined,
+    },
     adapter,
   })
 }

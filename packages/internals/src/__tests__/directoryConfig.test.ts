@@ -65,7 +65,6 @@ it('it uses custom paths if specified in the config', async () => {
   const res = await testDirectoryConfig({
     fixtureName: 'single-schema-file',
     config: defineConfig({
-      earlyAccess: true,
       migrations: {
         path: path.join(FIXTURE_CWD, 'custom', 'migrations'),
       },

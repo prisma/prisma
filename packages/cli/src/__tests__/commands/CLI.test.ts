@@ -73,7 +73,9 @@ describe('CLI', () => {
     describe('with config.migrate.adapter, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
-        earlyAccess: true,
+        experimental: {
+          adapter: true,
+        },
         // @ts-ignore: we don't need to import an actual adapter
         adapter: async () => {
           return Promise.resolve({})

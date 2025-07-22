@@ -15,7 +15,9 @@ const env = {
 } satisfies Env
 
 export default defineConfig({
-  earlyAccess: true,
+  experimental: {
+    adapter: true,
+  },
   schema: path.join('schema.prisma'),
   async adapter() {
     return new PrismaD1({

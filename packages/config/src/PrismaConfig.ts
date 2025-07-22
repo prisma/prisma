@@ -37,6 +37,36 @@ const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   },
 )
 
+export type ExperimentalConfig = {
+  /**
+   * Enable experimental adapter support.
+   */
+  adapter?: boolean
+  /**
+   * Enable experimental Prisma Studio features.
+   */
+  studio?: boolean
+  /**
+   * Enable experimental external tables support.
+   */
+  externalTables?: boolean
+}
+
+const ExperimentalConfigShape = Shape.Struct({
+  adapter: Shape.optional(Shape.Boolean),
+  studio: Shape.optional(Shape.Boolean),
+  externalTables: Shape.optional(Shape.Boolean),
+})
+
+declare const __testExperimentalConfigShapeValueA: (typeof ExperimentalConfigShape)['Type']
+declare const __testExperimentalConfigShapeValueB: ExperimentalConfig
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testExperimentalConfigShapeValueA satisfies ExperimentalConfig
+  __testExperimentalConfigShapeValueB satisfies (typeof ExperimentalConfigShape)['Type']
+}
+
 export type MigrationsConfigShape = {
   /**
    * The path to the directory where Prisma should store migration files, and look for them.
@@ -164,7 +194,7 @@ if (false) {
 
 // Define the shape for the user-facing `PrismaConfig` type.
 const PrismaConfigShape = Shape.Struct({
-  earlyAccess: Shape.Literal(true),
+  experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
   adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
@@ -180,9 +210,9 @@ const PrismaConfigShape = Shape.Struct({
  */
 export type PrismaConfig = {
   /**
-   * Whether features with an unstable API are enabled.
+   * Experimental feature gates. Each experimental feature must be explicitly enabled.
    */
-  earlyAccess: true
+  experimental?: Simplify<ExperimentalConfig>
   /**
    * The path to the schema file, or path to a folder that shall be recursively searched for *.prisma files.
    */
@@ -222,13 +252,51 @@ if (false) {
 }
 
 /**
+ * Validates that experimental features are enabled when using corresponding configuration options.
+ */
+function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
+  const experimental = config.experimental || {}
+
+  // Check adapter configuration
+  if (config.adapter && !experimental.adapter) {
+    return Either.left(new Error('The `adapter` configuration requires `experimental.adapter` to be set to `true`.'))
+  }
+
+  // Check studio configuration
+  if (config.studio && !experimental.studio) {
+    return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
+  }
+
+  // Check external tables configuration
+  if (config.tables?.external && !experimental.externalTables) {
+    return Either.left(
+      new Error('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.'),
+    )
+  }
+
+  // Check migrations setupExternalTables configuration
+  if (config.migrations?.setupExternalTables && !experimental.externalTables) {
+    return Either.left(
+      new Error(
+        'The `migrations.setupExternalTables` configuration requires `experimental.externalTables` to be set to `true`.',
+      ),
+    )
+  }
+
+  return Either.right(config)
+}
+
+/**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
 function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
-  return Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
-    onExcessProperty: 'error',
-  })
+  return pipe(
+    Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
+      onExcessProperty: 'error',
+    }),
+    Either.flatMap(validateExperimentalFeatures),
+  )
 }
 
 const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')

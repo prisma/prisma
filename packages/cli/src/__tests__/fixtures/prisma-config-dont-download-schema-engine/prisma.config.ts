@@ -1,5 +1,7 @@
 export default {
-  earlyAccess: true,
+  experimental: {
+    adapter: true,
+  },
   // @ts-ignore
   adapter: async () => {
     return Promise.resolve({
