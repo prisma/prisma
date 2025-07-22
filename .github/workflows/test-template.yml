@@ -1058,6 +1058,11 @@ jobs:
       - run: pnpm run test
         name: 'adapter-pg'
         working-directory: packages/adapter-pg
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
   #
   # Run type performance benchmark tests
   #
