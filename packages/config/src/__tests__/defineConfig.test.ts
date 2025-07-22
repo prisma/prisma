@@ -7,15 +7,12 @@ import { defineConfig } from '../defineConfig'
 import type { PrismaConfig, PrismaConfigInternal } from '../PrismaConfig'
 
 describe('defineConfig', () => {
-  const baselineConfig = {
-    earlyAccess: true,
-  } satisfies PrismaConfig
+  const baselineConfig = {} satisfies PrismaConfig
 
   test('defaultConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "earlyAccess": true,
         "loadedFromFile": null,
       }
     `)
@@ -26,17 +23,32 @@ describe('defineConfig', () => {
     const config = defaultTestConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "earlyAccess": true,
         "loadedFromFile": null,
       }
     `)
     expect(typeof config.__brand).toEqual('symbol')
   })
 
-  describe('earlyAccess', () => {
-    test('if `earlyAccess` is set to `true`, it should enable early access features', () => {
+  describe('experimental', () => {
+    test('if `experimental` is not provided, it should be undefined', () => {
       const config = defineConfig(baselineConfig)
-      expect(config.earlyAccess).toBe(true)
+      expect(config.experimental).toBeUndefined()
+      expect(typeof config.__brand).toEqual('symbol')
+    })
+
+    test('if `experimental` features are provided, they should be configured', () => {
+      const config = defineConfig({
+        experimental: {
+          adapter: true,
+          studio: true,
+          externalTables: true,
+        },
+      })
+      expect(config.experimental).toEqual({
+        adapter: true,
+        studio: true,
+        externalTables: true,
+      })
       expect(typeof config.__brand).toEqual('symbol')
     })
   })
@@ -50,7 +62,9 @@ describe('defineConfig', () => {
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
       const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
       const config = defineConfig({
-        earlyAccess: true,
+        experimental: {
+          studio: true,
+        },
         studio: {
           adapter: () => Promise.resolve(expectedAdapter),
         },
@@ -80,7 +94,9 @@ describe('defineConfig', () => {
     test('if an `adapter` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
       const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
       const config = defineConfig({
-        earlyAccess: true,
+        experimental: {
+          adapter: true,
+        },
         adapter: () => Promise.resolve(expectedAdapter),
       })
       expect(config.adapter).toStrictEqual(expect.any(Function))
@@ -94,6 +110,48 @@ describe('defineConfig', () => {
 
       const adapter = await adapterFactory()
       expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
+    })
+  })
+
+  describe('experimental validation', () => {
+    test('should throw error when adapter is used without experimental.adapter', () => {
+      expect(() =>
+        defineConfig({
+          adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
+        }),
+      ).toThrow('The `adapter` configuration requires `experimental.adapter` to be set to `true`.')
+    })
+
+    test('should throw error when studio is used without experimental.studio', () => {
+      expect(() =>
+        defineConfig({
+          studio: {
+            adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
+          },
+        }),
+      ).toThrow('The `studio` configuration requires `experimental.studio` to be set to `true`.')
+    })
+
+    test('should throw error when tables.external is used without experimental.externalTables', () => {
+      expect(() =>
+        defineConfig({
+          tables: {
+            external: ['users'],
+          },
+        }),
+      ).toThrow('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.')
+    })
+
+    test('should throw error when migrations.setupExternalTables is used without experimental.externalTables', () => {
+      expect(() =>
+        defineConfig({
+          migrations: {
+            setupExternalTables: 'CREATE TABLE users();',
+          },
+        }),
+      ).toThrow(
+        'The `migrations.setupExternalTables` configuration requires `experimental.externalTables` to be set to `true`.',
+      )
     })
   })
 })

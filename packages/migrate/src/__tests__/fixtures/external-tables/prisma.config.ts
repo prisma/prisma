@@ -1,7 +1,9 @@
 import { defineConfig } from '@prisma/config'
 
 export default defineConfig({
-  earlyAccess: true,
+  experimental: {
+    externalTables: true,
+  },
   tables: {
     external: ['User'],
   },

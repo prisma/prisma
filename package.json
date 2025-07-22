@@ -105,7 +105,8 @@
   "lint-staged": {
     "*.{md,yml,json}": "prettier --check",
     "*.{js,ts}": [
-      "eslint"
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "size-limit": [

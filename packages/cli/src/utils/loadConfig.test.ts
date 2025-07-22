@@ -13,7 +13,6 @@ describe('loadConfig', () => {
 
     expect(result).toMatchObject({
       config: {
-        earlyAccess: true,
         loadedFromFile: null,
       },
       diagnostics: [],

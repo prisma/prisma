@@ -5,7 +5,6 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
  */
 export function defaultTestConfig(): PrismaConfigInternal {
   return makePrismaConfigInternal({
-    earlyAccess: true,
     loadedFromFile: null,
   })
 }
