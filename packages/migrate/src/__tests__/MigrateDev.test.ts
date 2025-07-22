@@ -907,9 +907,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -929,9 +932,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/shadowdb.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -951,9 +957,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse([], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -974,6 +983,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse(['--name=first'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
@@ -1028,12 +1038,15 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      Environment variables loaded from prisma/.env
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
@@ -1054,9 +1067,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse(['--name=first'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -1129,6 +1145,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     `)
     expect(ctx.recordedExitCode()).toEqual(130)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot()
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/multiSchema.prisma
@@ -1144,9 +1161,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
 
       Already in sync, no schema change or pending migration was found.
@@ -1300,8 +1320,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -1322,8 +1341,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/shadowdb.prisma
+      "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -1344,8 +1362,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
 
@@ -1399,11 +1416,9 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
-      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
@@ -1425,8 +1440,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" <location placeholder>
 
 

@@ -307,9 +307,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--force-reset'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
@@ -326,9 +329,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:

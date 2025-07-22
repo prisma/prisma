@@ -93,6 +93,7 @@ export async function getSchemaWithPathOptional(
 }
 
 export function printSchemaLoadedMessage(schemaPath: string) {
+  // TODO: this causes https://github.com/prisma/prisma/issues/27005
   process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 }
 
