@@ -1,4 +1,4 @@
-import { defineConfig, PrismaConfigInternal } from '@prisma/config'
+import { defineConfig, loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
 import { SqlMigrationAwareDriverAdapterFactoryShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
@@ -56,6 +56,11 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
 }
 
 async function loadFixtureConfig(ctx: BaseContext) {
-  if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
-  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
+  const { config, error } = await loadConfigFromFile({ configRoot: ctx.fs.cwd() })
+
+  if (error) {
+    return undefined
+  }
+
+  return config
 }
