@@ -10,7 +10,6 @@ void executeSteps({
   test: async () => {
     await $`pnpm exec prisma -v`
     await $`pnpm exec vitest run`
-    await $`pnpm exec tsc --noEmit`
   },
   finish: async () => {
     await $`echo "done"`

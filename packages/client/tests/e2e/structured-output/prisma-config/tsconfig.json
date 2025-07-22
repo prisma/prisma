@@ -1,10 +1,4 @@
 {
-  "exclude": ["_steps.cts"],
-  "compilerOptions": {
-    "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "strict": true,
-    "skipLibCheck": false
-  }
+  "extends": "../../tsconfig.base.json",
+  "exclude": ["_steps.ts"]
 }
