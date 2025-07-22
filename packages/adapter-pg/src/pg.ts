@@ -210,6 +210,10 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   async dispose(): Promise<void> {
     return this.release?.()
   }
+
+  underlyingDriver(): pg.Pool {
+    return this.client
+  }
 }
 
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
@@ -228,7 +232,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     }
   }
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaPgAdapter> {
     const client = this.externalPool ?? new pg.Pool(this.config)
 
     return new PrismaPgAdapter(client, this.options, async () => {
@@ -243,7 +247,7 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
     })
   }
 
-  async connectToShadowDb(): Promise<SqlDriverAdapter> {
+  async connectToShadowDb(): Promise<PrismaPgAdapter> {
     const conn = await this.connect()
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)

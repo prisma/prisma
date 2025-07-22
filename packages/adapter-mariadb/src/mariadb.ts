@@ -149,6 +149,10 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
   async dispose(): Promise<void> {
     await this.client.end()
   }
+
+  underlyingDriver(): mariadb.Pool {
+    return this.client
+  }
 }
 
 export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
@@ -159,7 +163,7 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(private readonly config: mariadb.PoolConfig | string, private readonly options?: PrismaMariadbOptions) {}
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaMariaDbAdapter> {
     const pool = mariadb.createPool(this.config)
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
