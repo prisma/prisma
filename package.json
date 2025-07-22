@@ -64,7 +64,7 @@
     "eslint-plugin-import-x": "4.6.1",
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-local-rules": "3.0.2",
-    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-prettier": "4.2.5",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "execa": "5.1.1",
     "format-util": "1.0.5",
