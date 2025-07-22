@@ -210,7 +210,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.js', async () => {
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
@@ -233,7 +233,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.js - error should exit 1', async () => {
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
 
@@ -261,7 +261,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.ts', async () => {
-    ctx.fixture('seed-sqlite-ts')
+    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
