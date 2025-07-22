@@ -1,5 +1,3 @@
 import { defineConfig } from 'src/index'
 
-export default defineConfig({
-  earlyAccess: true,
-})
+export default defineConfig({})

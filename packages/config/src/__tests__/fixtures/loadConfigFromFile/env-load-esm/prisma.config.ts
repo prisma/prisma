@@ -21,6 +21,4 @@ for (const line of env.split('\n')) {
   process.env[key] = value
 }
 
-export default defineConfig({
-  earlyAccess: true,
-})
+export default defineConfig({})

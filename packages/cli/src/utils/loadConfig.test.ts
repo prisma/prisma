@@ -12,7 +12,6 @@ describe('loadConfig', () => {
     const config = await loadConfig()
 
     expect(config).toMatchObject({
-      earlyAccess: true,
       loadedFromFile: null,
     })
   })

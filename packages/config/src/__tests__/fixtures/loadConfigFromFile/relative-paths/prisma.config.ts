@@ -2,7 +2,6 @@ import path from 'node:path'
 import { defineConfig } from 'src/index'
 
 export default defineConfig({
-  earlyAccess: true,
   schema: path.join('custom', 'schema.prisma'),
   views: {
     path: path.join('custom', 'views'),
