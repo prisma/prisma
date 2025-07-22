@@ -57,6 +57,22 @@ export function rmSync() {}
 
 export function unlinkSync() {}
 
+export function watchFile() {}
+
+export function unwatchFile() {}
+
+export function watch() {
+  return {
+    close: () => {},
+    on: () => {},
+    removeAllListeners: () => {},
+  }
+}
+
+export function stat(path: string, callback: (err: Error | null, stats?: any) => void) {
+  callback(null, lstatSync())
+}
+
 export const promises = {}
 
 /**
@@ -65,6 +81,7 @@ export const promises = {}
 const fs = {
   existsSync,
   lstatSync,
+  stat,
   statSync,
   readdirSync,
   readdir,
@@ -76,6 +93,9 @@ const fs = {
   rmdirSync,
   rmSync,
   unlinkSync,
+  watchFile,
+  unwatchFile,
+  watch,
   promises,
 }
 
