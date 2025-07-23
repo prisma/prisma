@@ -231,6 +231,10 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
   }
 
   async dispose(): Promise<void> {}
+
+  underlyingDriver(): planetScale.Client {
+    return this.client
+  }
 }
 
 export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
@@ -249,7 +253,7 @@ export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory 
     }
   }
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaPlanetScaleAdapter> {
     return new PrismaPlanetScaleAdapter(this.#client ?? new planetScale.Client(this.#config))
   }
 }
