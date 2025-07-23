@@ -78,6 +78,33 @@ describe('convertDriverError', () => {
     expect(convertDriverError(error)).toEqual({ kind: 'TooManyConnections', cause: 'too many connections' })
   })
 
+  it.each([
+    ['UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'unable to verify the first certificate'],
+    [
+      'ERR_TLS_CERT_ALTNAME_INVALID',
+      `Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:*.localdev.com`,
+    ],
+    [undefined, 'The server does not support SSL connections'],
+  ])('should handle TLS error code %s', (code, message) => {
+    const error = { code, message }
+    expect(convertDriverError(error)).toEqual({
+      kind: 'TlsConnectionError',
+      reason: message,
+    })
+  })
+
+  it.each([
+    ['ENOTFOUND', 'DatabaseNotReachable', 'getaddrinfo ENOTFOUND locohost'],
+    ['ECONNREFUSED', 'DatabaseNotReachable', `connect ECONNREFUSED 127.0.0.1:6699`],
+    ['ECONNRESET', 'ConnectionClosed', 'read ECONNRESET'],
+    ['ETIMEDOUT', 'SocketTimeout', 'connect ETIMEDOUT 127.0.0.1:9100'],
+  ])('should handle socket error code %s', (code, kind, message) => {
+    const error = { code, message, syscall: 'syscallname', errno: -1 }
+    expect(convertDriverError(error)).toEqual({
+      kind,
+    })
+  })
+
   it('should handle default (unknown code)', () => {
     const error = {
       code: '99999',
@@ -99,6 +126,6 @@ describe('convertDriverError', () => {
   })
 
   it('should throw if not a db error', () => {
-    expect(() => convertDriverError({ message: 'The server does not support SSL connections' })).toThrow()
+    expect(() => convertDriverError({ message: 'Unknown driver message' })).toThrow()
   })
 })
