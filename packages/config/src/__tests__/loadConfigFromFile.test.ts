@@ -104,6 +104,19 @@ describe('loadConfigFromFile', () => {
     })
   })
 
+  describe('enums', () => {
+    it('loads enums config', async () => {
+      ctx.fixture('loadConfigFromFile/enums')
+      const { config, error } = await loadConfigFromFile({})
+      expect(config).toMatchObject({
+        enums: {
+          external: ['some_enum'],
+        },
+      })
+      expect(error).toBeUndefined()
+    })
+  })
+
   describe('migrations', () => {
     it('loads setupExternalTables', async () => {
       ctx.fixture('loadConfigFromFile/setup-external-tables')
