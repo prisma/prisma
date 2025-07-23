@@ -1,4 +1,4 @@
-import { NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
+import { capitalize, NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import type { DataSource } from '@prisma/generator'
 import { assertNever } from '@prisma/internals'
@@ -6,7 +6,6 @@ import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 
 import {
-  capitalize,
   extArgsParam,
   getAggregateName,
   getCountAggregateOutputName,
