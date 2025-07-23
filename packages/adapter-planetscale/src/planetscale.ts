@@ -237,10 +237,20 @@ export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory 
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(private readonly config: planetScale.Config) {}
+  #config: planetScale.Config
+  #client?: planetScale.Client
+
+  constructor(arg: planetScale.Config | planetScale.Client) {
+    if (arg instanceof planetScale.Client) {
+      this.#config = arg.config
+      this.#client = arg
+    } else {
+      this.#config = arg
+    }
+  }
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
+    return new PrismaPlanetScaleAdapter(this.#client ?? new planetScale.Client(this.#config))
   }
 }
 
