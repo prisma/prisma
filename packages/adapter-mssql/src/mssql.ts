@@ -146,6 +146,10 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   async dispose(): Promise<void> {
     await this.pool.close()
   }
+
+  underlyingDriver(): sql.ConnectionPool {
+    return this.pool
+  }
 }
 
 export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
@@ -154,7 +158,7 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaMssqlAdapter> {
     const pool = new sql.ConnectionPool(this.config)
     await pool.connect()
     return new PrismaMssqlAdapter(pool, this.options)
