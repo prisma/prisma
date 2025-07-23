@@ -43,6 +43,8 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
   switch (err.cause.kind) {
     case 'AuthenticationFailed':
       return 'P1000'
+    case 'DatabaseNotReachable':
+      return 'P1001'
     case 'DatabaseDoesNotExist':
       return 'P1003'
     case 'SocketTimeout':
@@ -51,6 +53,10 @@ function getErrorCode(err: DriverAdapterError): string | undefined {
       return 'P1009'
     case 'DatabaseAccessDenied':
       return 'P1010'
+    case 'TlsConnectionError':
+      return 'P1011'
+    case 'ConnectionClosed':
+      return 'P1017'
     case 'TransactionAlreadyClosed':
       return 'P1018'
     case 'LengthMismatch':
@@ -96,6 +102,10 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
       const user = err.cause.user ?? '(not available)'
       return `Authentication failed against the database server, the provided database credentials for \`${user}\` are not valid`
     }
+    case 'DatabaseNotReachable': {
+      const address = err.cause.host && err.cause.port ? `${err.cause.host}:${err.cause.port}` : err.cause.host
+      return `Can't reach database server${address ? ` at ${address}` : ''}`
+    }
     case 'DatabaseDoesNotExist': {
       const db = err.cause.db ?? '(not available)'
       return `Database \`${db}\` does not exist on the database server`
@@ -109,6 +119,12 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
     case 'DatabaseAccessDenied': {
       const db = err.cause.db ?? '(not available)'
       return `User was denied access on the database \`${db}\``
+    }
+    case 'TlsConnectionError': {
+      return `Error opening a TLS connection: ${err.cause.reason}`
+    }
+    case 'ConnectionClosed': {
+      return 'Server has closed the connection.'
     }
     case 'TransactionAlreadyClosed':
       return err.cause.cause
