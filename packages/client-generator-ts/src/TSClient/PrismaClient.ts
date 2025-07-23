@@ -7,7 +7,6 @@ import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { GenerateContext } from './GenerateContext'
 import { TSClientOptions } from './TSClient'
-import * as tsx from './utils/type-builders'
 
 function extendsPropertyDefinition() {
   const extendsDefinition = ts
@@ -42,9 +41,11 @@ function batchingTransactionDefinition(context: GenerateContext) {
         Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
       `,
     )
-    .addGenericParameter(ts.genericParameter('P').extends(ts.array(tsx.prismaPromise(ts.anyType))))
+    .addGenericParameter(ts.genericParameter('P').extends(ts.array(context.tsx.prismaPromise(ts.anyType))))
     .addParameter(ts.parameter('arg', ts.arraySpread(ts.namedType('P'))))
-    .setReturnType(tsx.promise(ts.namedType('runtime.Types.Utils.UnwrapTuple').addGenericArgument(ts.namedType('P'))))
+    .setReturnType(
+      context.tsx.promise(ts.namedType('runtime.Types.Utils.UnwrapTuple').addGenericArgument(ts.namedType('P'))),
+    )
 
   if (context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
     const options = ts
@@ -69,12 +70,12 @@ function interactiveTransactionDefinition(context: GenerateContext) {
     options.add(isolationLevel)
   }
 
-  const returnType = tsx.promise(ts.namedType('R'))
+  const returnType = context.tsx.promise(ts.namedType('R'))
 
   const callbackType = ts
     .functionType()
     .addParameter(
-      ts.parameter('prisma', tsx.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
+      ts.parameter('prisma', context.tsx.omit(ts.namedType('PrismaClient'), ts.namedType('runtime.ITXClientDenyList'))),
     )
     .setReturnType(returnType)
 
@@ -181,7 +182,7 @@ function queryRawTypedDefinition(context: GenerateContext) {
           .addGenericArgument(param.toArgument()),
       ),
     )
-    .setReturnType(tsx.prismaPromise(ts.array(param.toArgument())))
+    .setReturnType(context.tsx.prismaPromise(ts.array(param.toArgument())))
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
@@ -219,7 +220,7 @@ function runCommandRawDefinition(context: GenerateContext) {
   const method = ts
     .method('$runCommandRaw')
     .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
-    .setReturnType(tsx.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+    .setReturnType(context.tsx.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
       Executes a raw MongoDB command and returns the result of it.
       @example
       \`\`\`
@@ -373,7 +374,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
 
     const method = ts
       .method('$applyPendingMigrations')
-      .setReturnType(tsx.promise(ts.voidType))
+      .setReturnType(this.context.tsx.promise(ts.voidType))
       .setDocComment(
         ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
       )

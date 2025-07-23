@@ -1,9 +1,15 @@
+import { getArgFieldJSDoc } from '@prisma/client-generator-common/jsdoc-helpers'
+import {
+  extArgsParam,
+  getIncludeName,
+  getModelArgName,
+  getOmitName,
+  getSelectName,
+} from '@prisma/client-generator-common/name-utils'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
-import { extArgsParam, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
 import { GenerateContext } from './GenerateContext'
-import { getArgFieldJSDoc } from './helpers'
 import { buildInputField } from './Input'
 
 export class ArgsTypeBuilder {
@@ -16,7 +22,9 @@ export class ArgsTypeBuilder {
   ) {
     this.moduleExport = ts
       .moduleExport(
-        ts.typeDeclaration(getModelArgName(type.name, action), ts.objectType()).addGenericParameter(extArgsParam),
+        ts
+          .typeDeclaration(getModelArgName(type.name, action), ts.objectType())
+          .addGenericParameter(extArgsParam(context.tsx)),
       )
       .setDocComment(ts.docComment(`${type.name} ${action ?? 'without action'}`))
   }
@@ -44,7 +52,7 @@ export class ArgsTypeBuilder {
         .property(
           'select',
           ts.unionType([
-            ts.namedType(`Prisma.${selectTypeName}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.namedType(`Prisma.${selectTypeName}`).addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
             ts.nullType,
           ]),
         )
@@ -66,7 +74,7 @@ export class ArgsTypeBuilder {
         .property(
           'include',
           ts.unionType([
-            ts.namedType(`Prisma.${includeTypeName}`).addGenericArgument(extArgsParam.toArgument()),
+            ts.namedType(`Prisma.${includeTypeName}`).addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
             ts.nullType,
           ]),
         )
@@ -83,7 +91,9 @@ export class ArgsTypeBuilder {
         .property(
           'omit',
           ts.unionType([
-            ts.namedType(`Prisma.${getOmitName(this.type.name)}`).addGenericArgument(extArgsParam.toArgument()),
+            ts
+              .namedType(`Prisma.${getOmitName(this.type.name)}`)
+              .addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
             ts.nullType,
           ]),
         )

@@ -6,6 +6,7 @@
       "@prisma/client/runtime/library": ["./packages/client/src/runtime"],
       "@prisma/client-common": ["./packages/client-common/src"],
       "@prisma/client-engine-runtime": ["./packages/client-engine-runtime/src"],
+      "@prisma/client-generator-common/*": ["./packages/client-generator-common/src/*"],
       "@prisma/client-generator-js": ["./packages/client-generator-js/src"],
       "@prisma/client-generator-ts": ["./packages/client-generator-ts/src"],
       "@prisma/client-generator-registry": ["./packages/client-generator-registry/src"],

@@ -1,8 +1,10 @@
+import { capitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import { assertNever } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
-import { GenerateContext } from './TSClient/GenerateContext'
+import { GenerateContext } from './GenerateContext'
+import { TypeBuilders } from './type-builders'
 
 export function getSelectName(modelName: string): string {
   return `${modelName}Select`
@@ -42,6 +44,10 @@ export function getOmitName(modelName: string): string {
 
 export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
+}
+
+export function getCountOutputTypeName(modelName: string): string {
+  return `${capitalize(modelName)}CountOutputType`
 }
 
 export function getGroupByName(modelName: string): string {
@@ -170,12 +176,12 @@ export function getFieldRefsTypeName(name: string): string {
   return `${name}FieldRefs`
 }
 
-export function getType(name: string, isList: boolean, isOptional?: boolean): string {
-  return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
+export function getFluentWrapperName(modelName: string) {
+  return `Prisma__${modelName}Client`
 }
 
-export function capitalize(str: string): string {
-  return str[0].toUpperCase() + str.slice(1)
+export function getType(name: string, isList: boolean, isOptional?: boolean): string {
+  return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
 }
 
 export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
@@ -189,12 +195,13 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
 export function appendSkipType(context: GenerateContext, type: ts.TypeBuilder) {
   if (context.isPreviewFeatureOn('strictUndefinedChecks')) {
-    return ts.unionType([type, ts.namedType('$Types.Skip')])
+    return ts.unionType([type, context.tsx.importedType('Skip')])
   }
   return type
 }
 
-export const extArgsParam = ts
-  .genericParameter('ExtArgs')
-  .extends(ts.namedType('$Extensions.InternalArgs'))
-  .default(ts.namedType('$Extensions.DefaultArgs'))
+export const extArgsParam = (tsx: TypeBuilders) =>
+  ts
+    .genericParameter('ExtArgs')
+    .extends(tsx.importedExtensionsType('InternalArgs'))
+    .default(tsx.importedExtensionsType('DefaultArgs'))

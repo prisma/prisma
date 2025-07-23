@@ -1,7 +1,13 @@
+import {
+  extArgsParam,
+  getIncludeName,
+  getModelArgName,
+  getOmitName,
+  getSelectName,
+} from '@prisma/client-generator-common/name-utils'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
-import { extArgsParam, getIncludeName, getModelArgName, getOmitName, getSelectName } from '../utils'
 import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { buildInputField } from './Input'
@@ -18,7 +24,9 @@ export class ArgsTypeBuilder {
   ) {
     this.moduleExport = ts
       .moduleExport(
-        ts.typeDeclaration(getModelArgName(type.name, action), ts.objectType()).addGenericParameter(extArgsParam),
+        ts
+          .typeDeclaration(getModelArgName(type.name, action), ts.objectType())
+          .addGenericParameter(extArgsParam(context.tsx)),
       )
       .setDocComment(ts.docComment(`${type.name} ${action ?? 'without action'}`))
   }
@@ -45,7 +53,10 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'select',
-          ts.unionType([ts.namedType(selectTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
+          ts.unionType([
+            ts.namedType(selectTypeName).addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
+            ts.nullType,
+          ]),
         )
         .optional()
         .setDocComment(ts.docComment(`Select specific fields to fetch from the ${this.type.name}`)),
@@ -64,7 +75,10 @@ export class ArgsTypeBuilder {
       ts
         .property(
           'include',
-          ts.unionType([ts.namedType(includeTypeName).addGenericArgument(extArgsParam.toArgument()), ts.nullType]),
+          ts.unionType([
+            ts.namedType(includeTypeName).addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
+            ts.nullType,
+          ]),
         )
         .optional()
         .setDocComment(ts.docComment('Choose, which related nodes to fetch as well')),
@@ -79,7 +93,7 @@ export class ArgsTypeBuilder {
         .property(
           'omit',
           ts.unionType([
-            ts.namedType(getOmitName(this.type.name)).addGenericArgument(extArgsParam.toArgument()),
+            ts.namedType(getOmitName(this.type.name)).addGenericArgument(extArgsParam(this.context.tsx).toArgument()),
             ts.nullType,
           ]),
         )

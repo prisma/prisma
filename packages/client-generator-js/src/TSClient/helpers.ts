@@ -1,9 +1,7 @@
 import { capitalize, uncapitalize } from '@prisma/client-common'
+import { type JSDocMethodBodyCtx, JSDocs } from '@prisma/client-generator-common/jsdoc'
 import * as DMMF from '@prisma/dmmf'
 import pluralize from 'pluralize'
-
-import type { JSDocMethodBodyCtx } from './jsdoc'
-import { JSDocs } from './jsdoc'
 
 export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {

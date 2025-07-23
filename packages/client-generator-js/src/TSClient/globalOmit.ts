@@ -1,8 +1,7 @@
 import { uncapitalize } from '@prisma/client-common'
+import { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { getOmitName } from '@prisma/client-generator-common/name-utils'
 import * as ts from '@prisma/ts-builders'
-
-import { DMMFHelper } from '../dmmf'
-import { getOmitName } from '../utils'
 
 export function globalOmitConfig(dmmf: DMMFHelper) {
   const objectType = ts.objectType().addMultiple(

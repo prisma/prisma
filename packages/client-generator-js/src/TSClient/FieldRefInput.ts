@@ -1,6 +1,6 @@
+import { getRefAllowedTypeName } from '@prisma/client-generator-common/name-utils'
 import type * as DMMF from '@prisma/dmmf'
 
-import { getRefAllowedTypeName } from '../utils'
 import type { Generable } from './Generable'
 
 export class FieldRefInput implements Generable {

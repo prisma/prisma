@@ -1,7 +1,7 @@
 import { capitalize, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 
-import { getGroupByArgsName, getModelArgName } from '../utils'
+import { getGroupByArgsName, getModelArgName } from './name-utils'
 
 export interface JSDocMethodBodyCtx {
   singular: string

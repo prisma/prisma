@@ -1,8 +1,10 @@
+import { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { GenerateContext as BaseGenerateContext } from '@prisma/client-generator-common/GenerateContext'
+import { GenericArgsInfo } from '@prisma/client-generator-common/GenericsArgsInfo'
+import { TypeBuilders } from '@prisma/client-generator-common/type-builders'
 import { GeneratorConfig } from '@prisma/generator'
 
-import { DMMFHelper } from '../dmmf'
 import { FileNameMapper } from '../file-extensions'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
 
 export interface GenerateContextOptions {
   dmmf: DMMFHelper
@@ -13,13 +15,23 @@ export interface GenerateContextOptions {
   generator?: GeneratorConfig
 }
 
-export class GenerateContext implements GenerateContextOptions {
+export class GenerateContext implements GenerateContextOptions, BaseGenerateContext {
   dmmf: DMMFHelper
   genericArgsInfo: GenericArgsInfo
   runtimeImport: string
   outputFileName: FileNameMapper
   importFileName: FileNameMapper
   generator?: GeneratorConfig
+
+  tsx = new TypeBuilders({
+    Prisma: 'Prisma',
+    Types: {
+      self: 'runtime.Types',
+      Extensions: 'runtime.Types.Extensions',
+      Result: 'runtime.Types.Result',
+      Utils: 'runtime.Types.Utils',
+    },
+  })
 
   constructor({
     dmmf,

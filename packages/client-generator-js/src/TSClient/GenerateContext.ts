@@ -1,7 +1,8 @@
+import { DMMFHelper } from '@prisma/client-generator-common/dmmf'
+import { GenerateContext as BaseGenerateContext } from '@prisma/client-generator-common/GenerateContext'
+import { GenericArgsInfo } from '@prisma/client-generator-common/GenericsArgsInfo'
+import { TypeBuilders } from '@prisma/client-generator-common/type-builders'
 import { GeneratorConfig } from '@prisma/generator'
-
-import { DMMFHelper } from '../dmmf'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
 
 export interface GenerateContextOptions {
   dmmf: DMMFHelper
@@ -9,10 +10,20 @@ export interface GenerateContextOptions {
   generator?: GeneratorConfig
 }
 
-export class GenerateContext implements GenerateContextOptions {
+export class GenerateContext implements GenerateContextOptions, BaseGenerateContext {
   dmmf: DMMFHelper
   genericArgsInfo: GenericArgsInfo
   generator?: GeneratorConfig
+
+  tsx = new TypeBuilders({
+    Prisma: 'Prisma',
+    Types: {
+      self: '$Types',
+      Extensions: '$Extensions',
+      Result: '$Result',
+      Utils: '$Utils',
+    },
+  })
 
   constructor({ dmmf, genericArgsInfo, generator }: GenerateContextOptions) {
     this.dmmf = dmmf

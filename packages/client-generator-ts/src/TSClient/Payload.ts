@@ -1,8 +1,8 @@
 import { uncapitalize } from '@prisma/client-common'
+import { extArgsParam, getPayloadName } from '@prisma/client-generator-common/name-utils'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
-import { extArgsParam, getPayloadName } from '../utils'
 import { GenerateContext } from './GenerateContext'
 import { buildModelOutputProperty } from './Output'
 
@@ -43,7 +43,7 @@ export function buildModelPayload(model: DMMF.Model, context: GenerateContext) {
   )
 
   if (!isComposite) {
-    payloadTypeDeclaration.addGenericParameter(extArgsParam)
+    payloadTypeDeclaration.addGenericParameter(extArgsParam(context.tsx))
   }
 
   return ts.moduleExport(payloadTypeDeclaration)

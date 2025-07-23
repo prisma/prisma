@@ -1,10 +1,10 @@
 import { uniqueBy } from '@prisma/client-common'
+import { GenericArgsInfo } from '@prisma/client-generator-common/GenericsArgsInfo'
+import { appendSkipType } from '@prisma/client-generator-common/name-utils'
 import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 
-import { GenericArgsInfo } from '../GenericsArgsInfo'
-import { appendSkipType } from '../utils'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'
