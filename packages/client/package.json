@@ -163,8 +163,11 @@
   "homepage": "https://www.prisma.io",
   "repository": {
     "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
+    "url": "https://github.com/vetching-corporation/prisma.git",
     "directory": "packages/client"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "bugs": "https://github.com/prisma/prisma/issues",
@@ -238,7 +241,6 @@
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/client-generator-js": "workspace:*",
     "@prisma/client-generator-ts": "workspace:*",
-    "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
@@ -266,6 +268,7 @@
     "@types/mssql": "9.1.5",
     "@types/node": "18.19.76",
     "@types/pg": "8.11.11",
+    "@vetching-corporation/prisma-config": "workspace:*",
     "@vetching-corporation/prisma-query-compiler-wasm": "6.12.0-1.560efae839da7586eb55cfb7190c040b888bc8b6",
     "arg": "5.0.2",
     "benchmark": "2.1.4",

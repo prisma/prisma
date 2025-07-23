@@ -1,9 +1,9 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { ensureNeededBinariesExist } from '@prisma/engines'
 import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 import { match } from 'ts-pattern'
 

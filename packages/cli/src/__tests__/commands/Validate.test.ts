@@ -1,8 +1,8 @@
 /* eslint-disable jest/no-identical-title */
 
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { serializeQueryEngineName } from '@prisma/internals'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 import { Validate } from '../../Validate'
 

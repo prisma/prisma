@@ -1,4 +1,3 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
 import {
   arg,
@@ -11,6 +10,7 @@ import {
   link,
   loadEnvFile,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'

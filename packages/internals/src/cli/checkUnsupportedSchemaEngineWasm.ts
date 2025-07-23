@@ -1,4 +1,4 @@
-import { PrismaConfigInternal } from '@prisma/config'
+import { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { green } from 'kleur/colors'
 
 import { link } from '..'

@@ -1,6 +1,5 @@
 import path from 'node:path'
 
-import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -16,6 +15,7 @@ import {
   loadSchemaContext,
   validate,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 

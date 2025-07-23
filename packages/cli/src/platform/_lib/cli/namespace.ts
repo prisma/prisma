@@ -1,5 +1,5 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import { Command, Commands } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 import { dispatchToSubCommand } from './dispatchToSubCommand'
 

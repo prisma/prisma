@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { defineConfig } from '@prisma/config'
+import { defineConfig } from '@vetching-corporation/prisma-config'
 
 type Env = {
   DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL: 'string'

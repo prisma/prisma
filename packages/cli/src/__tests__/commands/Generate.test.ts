@@ -1,8 +1,8 @@
 import path from 'node:path'
 
-import { defaultTestConfig } from '@prisma/config'
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 import { Generate } from '../../Generate'
 import { promotions, renderPromotion } from '../../utils/handlePromotions'

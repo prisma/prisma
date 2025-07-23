@@ -1,6 +1,6 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestContext, jestStdoutContext } from '@prisma/get-platform'
 import { loadEnvFile } from '@prisma/internals'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 const ctx = jestContext.new().add(jestStdoutContext()).assemble()
 

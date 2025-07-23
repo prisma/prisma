@@ -1,4 +1,3 @@
-/* eslint-disable import/no-duplicates */
 import { neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'

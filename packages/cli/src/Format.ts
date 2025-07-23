@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
@@ -13,6 +12,7 @@ import {
   printSchemaLoadedMessage,
   validate,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**

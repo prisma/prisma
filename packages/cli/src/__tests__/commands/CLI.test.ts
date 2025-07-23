@@ -1,6 +1,6 @@
-import { defaultTestConfig, defineConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { DbPull } from '@prisma/migrate'
+import { defaultTestConfig, defineConfig } from '@vetching-corporation/prisma-config'
 
 import { CLI } from '../../CLI'
 import { Validate } from '../../Validate'

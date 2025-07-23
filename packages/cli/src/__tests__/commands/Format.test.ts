@@ -1,8 +1,8 @@
 /* eslint-disable jest/no-identical-title */
 
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 import fs from 'fs-jetpack'
 
 import { Format } from '../../Format'

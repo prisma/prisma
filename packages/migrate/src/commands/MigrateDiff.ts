@@ -1,4 +1,3 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -15,6 +14,7 @@ import {
   toSchemasContainer,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import fs from 'fs-jetpack'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'

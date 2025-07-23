@@ -10,7 +10,6 @@ import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'

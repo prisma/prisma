@@ -1,6 +1,5 @@
 import streamConsumer from 'node:stream/consumers'
 
-import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
@@ -14,6 +13,7 @@ import {
   loadSchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import fs from 'fs'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'

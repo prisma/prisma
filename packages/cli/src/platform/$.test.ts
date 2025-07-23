@@ -1,5 +1,5 @@
-import { defaultTestConfig } from '@prisma/config'
 import { isError } from '@prisma/internals'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 import { $ as platform } from './$'
 

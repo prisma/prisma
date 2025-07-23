@@ -1,4 +1,4 @@
-import type { PrismaConfigInternal } from '@prisma/config'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 /**
  * Command interface

@@ -1,4 +1,4 @@
-import type { PrismaConfigInternal } from '@prisma/config'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 import { getEnvPaths } from './getEnvPaths'
 import { tryLoadEnvs } from './tryLoadEnvs'

@@ -1,5 +1,5 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import { Command } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 import { argOrThrow, getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
 import { messages } from '../_lib/messages'

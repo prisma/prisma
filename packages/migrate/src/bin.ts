@@ -1,9 +1,9 @@
 #!/usr/bin/env tsx
 
-import { loadConfigFromFile } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { arg, handlePanic, HelpError, isError } from '@prisma/internals'
+import { loadConfigFromFile } from '@vetching-corporation/prisma-config'
 import { bold, red } from 'kleur/colors'
 
 import { version as packageVersion } from '../package.json'

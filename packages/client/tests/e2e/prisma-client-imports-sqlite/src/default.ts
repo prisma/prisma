@@ -1,4 +1,3 @@
-/* eslint-disable import/no-duplicates */
 import { D1Database } from '@cloudflare/workers-types'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaClient } from '@prisma/client'

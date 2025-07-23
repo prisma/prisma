@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import * as runtime from '@vetching-corporation/prisma-client/runtime/library'
 
 /**

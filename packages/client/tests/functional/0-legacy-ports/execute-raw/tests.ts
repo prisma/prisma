@@ -85,7 +85,6 @@ testMatrix.setupTestSuite(
       let affected: number
 
       if (usesAnonymousParams) {
-        // eslint-disable-next-line prettier/prettier
         affected = await prisma.$executeRawUnsafe(`UPDATE User SET age = ? WHERE age >= ? AND age <= ?`, 65, 45, 60)
       } else if (provider === Providers.SQLSERVER) {
         affected = await prisma.$executeRawUnsafe(

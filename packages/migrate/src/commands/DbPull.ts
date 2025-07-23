@@ -1,4 +1,3 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -22,6 +21,7 @@ import {
   toSchemasContainer,
 } from '@prisma/internals'
 import { MigrateTypes } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'

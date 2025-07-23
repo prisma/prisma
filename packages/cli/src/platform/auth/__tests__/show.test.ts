@@ -1,4 +1,4 @@
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 import { requestOrThrow } from '../../_lib/pdp'
 import { getTokenOrThrow } from '../../_lib/utils'

@@ -1,6 +1,6 @@
-import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import * as miniProxy from '@prisma/mini-proxy'
+import { defaultTestConfig, PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'

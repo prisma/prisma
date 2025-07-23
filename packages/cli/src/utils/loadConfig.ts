@@ -1,6 +1,6 @@
-import { loadConfigFromFile, type PrismaConfigInternal } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import { assertNever, HelpError } from '@prisma/internals'
+import { loadConfigFromFile, type PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 const debug = Debug('prisma:cli:loadConfig')
 

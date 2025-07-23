@@ -1,13 +1,16 @@
 {
-  "name": "@prisma/config",
+  "name": "@vetching-corporation/prisma-config",
   "version": "0.0.0",
   "description": "Internal package used to define and read Prisma configuration files",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
+    "url": "https://github.com/vetching-corporation/prisma.git",
     "directory": "packages/config"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",

@@ -44,16 +44,15 @@ async function _getClientVersion(host: string, config: EngineConfig) {
 
     if (!res.ok) {
       throw new Error(
-        `Failed to fetch stable Prisma version, unpkg.com status ${res.status} ${
-          res.statusText
-          // eslint-disable-next-line @typescript-eslint/await-thenable
-        }, response body: ${(await res.text()) || '<empty body>'}`,
+        `Failed to fetch stable Prisma version, unpkg.com status ${res.status} ${res.statusText}, response body: ${
+          (await res.text()) || '<empty body>'
+        }`,
       )
     }
 
     // we need to await for edge workers
     // because it's using the global "fetch"
-    // eslint-disable-next-line @typescript-eslint/await-thenable
+
     const bodyAsText = await res.text()
     debug('length of body fetched from unpkg.com', bodyAsText.length)
 

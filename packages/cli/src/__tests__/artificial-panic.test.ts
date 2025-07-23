@@ -1,8 +1,8 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { getDMMF, isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'

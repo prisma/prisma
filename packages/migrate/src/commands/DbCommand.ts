@@ -1,6 +1,6 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, red } from 'kleur/colors'
 
 export class DbCommand implements Command {

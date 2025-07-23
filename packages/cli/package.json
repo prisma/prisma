@@ -30,8 +30,11 @@
   "main": "build/index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
+    "url": "https://github.com/vetching-corporation/prisma.git",
     "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "homepage": "https://www.prisma.io",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -174,8 +177,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/config": "workspace:*",
-    "@prisma/engines": "workspace:*"
+    "@prisma/engines": "workspace:*",
+    "@vetching-corporation/prisma-config": "workspace:*"
   },
   "peerDependencies": {
     "typescript": ">=5.1.0"

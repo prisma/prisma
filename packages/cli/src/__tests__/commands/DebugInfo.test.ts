@@ -1,5 +1,5 @@
-import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { defaultTestConfig } from '@vetching-corporation/prisma-config'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 

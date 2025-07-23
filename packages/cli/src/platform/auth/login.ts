@@ -1,7 +1,7 @@
 import { select } from '@inquirer/prompts'
-import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { arg, Command, getCommandWithExecutor, isError, link } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import listen from 'async-listen'
 import http from 'http'
 import { green } from 'kleur/colors'

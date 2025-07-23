@@ -1,5 +1,5 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 

@@ -1,4 +1,3 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -11,6 +10,7 @@ import {
   loadEnvFile,
   loadSchemaContext,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 

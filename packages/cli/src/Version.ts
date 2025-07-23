@@ -1,4 +1,3 @@
-import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
@@ -16,6 +15,7 @@ import {
   resolveEngine,
   wasm,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
 import { match } from 'ts-pattern'

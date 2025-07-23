@@ -1,5 +1,4 @@
 import { defaultRegistry } from '@prisma/client-generator-registry'
-import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
 import { SqlQueryOutput } from '@prisma/generator'
 import {
@@ -22,6 +21,7 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
 } from '@prisma/internals'
+import type { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'

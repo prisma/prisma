@@ -6,7 +6,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const ctx = jestContext.new().assemble()
 
 describeIf(process.platform === 'linux')('computeLibSSLSpecificPaths', () => {
-  // eslint-disable-next-line jest/no-identical-title
   it('should not return an error', () => {
     const arch = 'x64'
     const archFromUname = 'x86_64'

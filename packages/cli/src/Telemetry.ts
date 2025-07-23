@@ -1,5 +1,5 @@
-import { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, getCLIPathHash, getProjectHash, HelpError, isError } from '@prisma/internals'
+import { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 import * as checkpoint from 'checkpoint-client'
 
 /**

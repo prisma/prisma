@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { PrismaConfigInternal } from '@prisma/config'
+import { PrismaConfigInternal } from '@vetching-corporation/prisma-config'
 
 import { SchemaContext } from './schemaContext'
 

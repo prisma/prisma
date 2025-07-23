@@ -1,4 +1,3 @@
-/* eslint-disable import/no-duplicates */
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available

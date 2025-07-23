@@ -1,1 +1,1 @@
-export { defineConfig, type PrismaConfig, type PrismaConfigInternal } from '@prisma/config'
+export { defineConfig, type PrismaConfig, type PrismaConfigInternal } from '@vetching-corporation/prisma-config'

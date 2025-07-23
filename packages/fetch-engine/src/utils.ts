@@ -74,7 +74,6 @@ export function getDownloadUrl({
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   if (binaryName === BinaryType.QueryEngineLibrary) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     binaryName = getNodeAPIName(binaryTarget, 'url')
   }
 
