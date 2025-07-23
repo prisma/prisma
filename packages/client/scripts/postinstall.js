@@ -39,7 +39,7 @@ function findPackageRoot(startPath, limit = 10) {
         if (pkg.name && !['@vetching-corporation/prisma-cli'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {}
+      } catch {} // eslint-disable-line no-empty
     }
     currentPath = path.join(currentPath, '../')
   }
@@ -115,7 +115,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('@vetching-corporation/prisma-cli')
     }
-  } catch (e) {}
+  } catch (e) {} // eslint-disable-line no-empty
 
   return null
 }
