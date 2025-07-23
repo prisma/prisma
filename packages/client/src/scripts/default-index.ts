@@ -4,7 +4,9 @@ import { clientVersion } from '../runtime/utils/clientVersion'
 
 export class PrismaClient {
   constructor() {
-    throw new Error('@prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.')
+    throw new Error(
+      '@vetching-corporation/prisma-client did not initialize yet. Please run "prisma generate" and try to import it again.',
+    )
   }
 }
 

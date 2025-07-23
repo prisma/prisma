@@ -7,6 +7,7 @@ import { capitalize } from '../utils'
 import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { GenerateContext } from './GenerateContext'
+import { RequestContext } from './RequestContext'
 import { TSClientOptions } from './TSClient'
 import * as tsx from './utils/type-builders'
 
@@ -167,7 +168,7 @@ function queryRawTypedDefinition(context: GenerateContext) {
         Executes a typed SQL query and returns a typed result
         @example
         \`\`\`
-        import { myQuery } from '@prisma/client/sql'
+        import { myQuery } from '@vetching-corporation/prisma-client/sql'
 
         const result = await prisma.$queryRawTyped(myQuery())
         \`\`\`
@@ -287,6 +288,8 @@ export class PrismaClientClass {
     const { dmmf } = this.context
 
     return `\
+${new RequestContext().toTS()}
+
 export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
   'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never
 
@@ -324,7 +327,13 @@ export interface PrismaClient<
    * @deprecated since 4.16.0. For new code, prefer client extensions instead.
    * @see https://pris.ly/d/extensions
    */
-  $use(cb: Prisma.Middleware): void
+  $use(cb: Prisma.Middleware): void;
+
+  /**
+   * Returns the request context (AsyncLocalStorage)
+   * @returns RequestContext
+   */
+  $context(): RequestContext;
 
 ${[
   executeRawDefinition(this.context),

@@ -4,7 +4,7 @@ import * as ts from '@prisma/ts-builders'
 // Adding `@prisma/client` as a dev dependency leads to circular dependency issues.
 // TODO: figure out if we can reuse the runtime types without moving all of them to the common package.
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-type RuntimeExport = keyof typeof import('@prisma/client/runtime/library') & string
+type RuntimeExport = keyof typeof import('@vetching-corporation/prisma-client/runtime/library') & string
 
 /**
  * Helps to ensure that when we want to refer to a type or value, imported from runtime Module

@@ -19,9 +19,9 @@ export async function resolvePrismaClient(baseDir: string): Promise<string> {
 
   if (!prismaClientDir) {
     throw new Error(
-      `Could not resolve @prisma/client.
+      `Could not resolve @vetching-corporation/prisma-client.
 Please try to install it with ${bold(
-        green(await getPackageCmd(baseDir, 'install', '@prisma/client')),
+        green(await getPackageCmd(baseDir, 'install', '@vetching-corporation/prisma-client')),
       )} and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
     )
   }
@@ -85,12 +85,12 @@ export async function resolveOrInstallPrismaClient(baseDir: string, version: str
 
     throw new Error(
       `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
-        '@prisma/client',
+        '@vetching-corporation/prisma-client',
       )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
         `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
-      )}${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
-        await getPackageCmd(baseDir, 'execute', 'prisma generate'),
-      )} 🙏.`,
+      )}${bold(
+        green(`${await getPackageCmd(baseDir, 'add', '@vetching-corporation/prisma-client')}`),
+      )}, and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
     )
   }
 
@@ -98,36 +98,38 @@ export async function resolveOrInstallPrismaClient(baseDir: string, version: str
     await runPackageCmd(projectRoot, 'add', `prisma@${version}`, '-D', '--silent')
   }
 
-  await runPackageCmd(projectRoot, 'add', `@prisma/client@${version}`, '--silent')
+  await runPackageCmd(projectRoot, 'add', `@vetching-corporation/prisma-client@${version}`, '--silent')
 
   // resolvePkg has caching, so we trick it not to do it 👇
   prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))
 
   if (!prismaClientDir) {
     throw new Error(
-      `Could not resolve @prisma/client despite the installation that we just tried.
+      `Could not resolve @vetching-corporation/prisma-client despite the installation that we just tried.
 Please try to install it by hand with ${bold(
-        green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`),
+        green(`${await getPackageCmd(baseDir, 'add', '@vetching-corporation/prisma-client')}`),
       )} and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
     )
   }
 
   console.info(
-    `\n✔ Installed the ${bold(green('@prisma/client'))} and ${bold(green('prisma'))} packages in your project`,
+    `\n✔ Installed the ${bold(green('@vetching-corporation/prisma-client'))} and ${bold(
+      green('prisma'),
+    )} packages in your project`,
   )
 
   return prismaClientDir
 }
 
 /**
- * Tries to find a `@prisma/client` that is next to the `prisma` CLI
+ * Tries to find a `@vetching-corporation/prisma-client` that is next to the `prisma` CLI
  * @param baseDir from where to start looking from
- * @returns `@prisma/client` location
+ * @returns `@vetching-corporation/prisma-client` location
  */
 async function findPrismaClientDir(baseDir: string) {
   const resolveOpts = { basedir: baseDir, preserveSymlinks: true }
   const cliDir = await resolvePkg('prisma', resolveOpts)
-  const clientDir = await resolvePkg('@prisma/client', resolveOpts)
+  const clientDir = await resolvePkg('@vetching-corporation/prisma-client', resolveOpts)
   const resolvedClientDir = clientDir && (await fs.realpath(clientDir))
 
   debug('prismaCliDir', cliDir)

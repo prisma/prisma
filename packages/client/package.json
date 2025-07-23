@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/client",
+  "name": "@vetching-corporation/prisma-client",
   "version": "0.0.0",
   "description": "Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports PostgreSQL, CockroachDB, MySQL, MariaDB, SQL Server, SQLite & MongoDB databases.",
   "keywords": [
@@ -252,7 +252,6 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/query-compiler-wasm": "6.12.0-15.8047c96bbd92db98a2abc7c9323ce77c02c89dbc",
     "@prisma/query-engine-wasm": "6.12.0-15.8047c96bbd92db98a2abc7c9323ce77c02c89dbc",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",
@@ -267,6 +266,7 @@
     "@types/mssql": "9.1.5",
     "@types/node": "18.19.76",
     "@types/pg": "8.11.11",
+    "@vetching-corporation/prisma-query-compiler-wasm": "6.12.0-1.560efae839da7586eb55cfb7190c040b888bc8b6",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "cookie-es": "2.0.0",
@@ -311,11 +311,11 @@
     "zx": "8.4.1"
   },
   "peerDependencies": {
-    "prisma": "*",
+    "@vetching-corporation/prisma-cli": "*",
     "typescript": ">=5.1.0"
   },
   "peerDependenciesMeta": {
-    "prisma": {
+    "@vetching-corporation/prisma-cli": {
       "optional": true
     },
     "typescript": {

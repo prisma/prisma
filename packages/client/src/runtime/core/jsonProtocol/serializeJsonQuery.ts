@@ -6,6 +6,7 @@ import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import {
+  DynamicSchema,
   JsonArgumentValue,
   JsonFieldSelection,
   JsonQuery,
@@ -75,6 +76,7 @@ export type SerializeParams = {
   errorFormat: ErrorFormat
   previewFeatures: string[]
   globalOmit?: GlobalOmitOptions
+  dynamicSchemas?: DynamicSchema[]
 }
 
 const STRICT_UNDEFINED_ERROR_MESSAGE = 'explicitly `undefined` values are not allowed'
@@ -91,6 +93,7 @@ export function serializeJsonQuery({
   clientVersion,
   previewFeatures,
   globalOmit,
+  dynamicSchemas,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -111,6 +114,9 @@ export function serializeJsonQuery({
     modelName,
     action: jsActionToProtocolAction[action],
     query: serializeFieldSelection(args, context),
+    dynamicSchemas: dynamicSchemas
+      ? Object.fromEntries(dynamicSchemas?.map((schema) => [schema.from, schema.to]))
+      : undefined,
   }
 }
 

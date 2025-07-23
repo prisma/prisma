@@ -141,9 +141,6 @@ ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
 ${formatEnvValue('PRISMA_MIGRATE_SKIP_GENERATE')}
 ${formatEnvValue('PRISMA_MIGRATE_SKIP_SEED')}
 
-For Prisma Studio
-${formatEnvValue('BROWSER')}
-
 ${underline('-- Terminal is interactive? --')}
 ${isInteractive()}
 

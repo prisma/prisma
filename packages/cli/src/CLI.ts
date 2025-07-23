@@ -184,7 +184,6 @@ Learn more at ${link('https://pris.ly/cli/pdp')}`
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
              migrate   Migrate your database
-              studio   Browse your data with Prisma Studio
             validate   Validate your Prisma schema
               format   Format your Prisma schema
              version   Displays Prisma version info
@@ -208,9 +207,6 @@ ${this.boxedTryPdpMessage}
 
       Generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma generate
-
-      Browse your data
-      ${dim('$')} prisma studio
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
       ${dim('$')} prisma migrate dev

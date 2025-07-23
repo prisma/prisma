@@ -9,4 +9,4 @@ export const GLOBAL_VERSIONED_INSTRUMENTATION_ACCESSOR_KEY = `V${majorVersion}_P
 
 export const NAME = packageJson.name
 
-export const MODULE_NAME = '@prisma/client'
+export const MODULE_NAME = '@vetching-corporation/prisma-client'

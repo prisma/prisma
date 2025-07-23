@@ -36,10 +36,10 @@ function findPackageRoot(startPath, limit = 10) {
     if (fs.existsSync(pkgPath)) {
       try {
         const pkg = require(pkgPath)
-        if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
+        if (pkg.name && !['@vetching-corporation/prisma-cli'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {} // eslint-disable-line no-empty
+      } catch { } // eslint-disable-line no-empty
     }
     currentPath = path.join(currentPath, '../')
   }
@@ -89,7 +89,7 @@ async function main() {
       return
     }
     if (installedGlobally) {
-      await run('prisma', ['generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
+      await run('@vetching-corporation/prisma-cli', ['generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
       return
     }
   } catch (e) {
@@ -104,38 +104,30 @@ async function main() {
     console.error(
       `${c.yellow(
         'warning',
-      )} In order to use "@prisma/client", please install Prisma CLI. You can install it with "npm add -D prisma".`,
+      )} In order to use "@vetching-corporation/prisma-client", please install Prisma CLI. You can install it with "npm add -D @vetching-corporation/prisma-cli".`,
     )
   }
 }
 
 function getLocalPackagePath() {
   try {
-    const packagePath = require.resolve('prisma/package.json')
+    const packagePath = require.resolve('@vetching-corporation/prisma-cli/package.json')
     if (packagePath) {
-      return require.resolve('prisma')
+      return require.resolve('@vetching-corporation/prisma-cli')
     }
-  } catch (e) {} // eslint-disable-line no-empty
-
-  // TODO: consider removing this
-  try {
-    const packagePath = require.resolve('@prisma/cli/package.json')
-    if (packagePath) {
-      return require.resolve('@prisma/cli')
-    }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (e) { } // eslint-disable-line no-empty
 
   return null
 }
 
 async function isInstalledGlobally() {
   try {
-    const result = await exec('prisma -v')
-    if (result.stdout.includes('@prisma/client')) {
+    const result = await exec('@vetching-corporation/prisma-cli -v')
+    if (result.stdout.includes('@vetching-corporation/prisma-client')) {
       return true
     } else {
-      console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
-Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green('yarn global remove prisma')}.`)
+      console.error(`${c.yellow('warning')} You still have the ${c.bold('@vetching-corporation/prisma-cli')} cli (Prisma 1) installed globally.
+Please uninstall it with either ${c.green('npm remove -g @vetching-corporation/prisma-cli')} or ${c.green('yarn global remove @vetching-corporation/prisma-cli')}.`)
     }
   } catch (e) {
     return false
@@ -148,12 +140,12 @@ if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
       if (e.stderr) {
         if (e.stderr.includes(`Can't find schema.prisma`)) {
           console.error(
-            `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
+            `${c.yellow('warning')} @vetching-corporation/prisma-client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma init')}.
         Once you created it, run ${c.bold('prisma generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
-          './prisma',
-        )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
+              './prisma',
+            )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
           )
         } else {
           console.error(e.stderr)

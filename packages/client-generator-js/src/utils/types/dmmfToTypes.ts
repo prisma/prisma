@@ -14,7 +14,7 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     datasources: [],
     clientVersion: '',
     engineVersion: '',
-    runtimeBase: '@prisma/client',
+    runtimeBase: '@vetching-corporation/prisma-client',
     runtimeNameJs: 'library',
     runtimeNameTs: 'library',
     runtimeSourcePath: path.join(__dirname, '../../../runtime'),

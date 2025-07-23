@@ -27,7 +27,7 @@ async function main() {
   // Update `@prisma/query-engine-wasm` version in all package.json
   await run(path.join(__dirname, '..'), `pnpm update -r @prisma/query-engine-wasm@${version}`)
   // Update `@prisma/query-compiler-wasm` version in all package.json
-  await run(path.join(__dirname, '..'), `pnpm update -r @prisma/query-compiler-wasm@${version}`)
+  await run(path.join(__dirname, '..'), `pnpm update -r @vetching-corporation/prisma-query-compiler-wasm@${version}`)
 
   await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines dev`)
   await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines postinstall`)

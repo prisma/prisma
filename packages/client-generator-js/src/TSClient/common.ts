@@ -12,6 +12,7 @@ export const commonCodeJS = ({
   generator,
 }: TSClientOptions): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
+import { AsyncLocalStorage } from 'async_hooks'
 ${
   browser
     ? `

@@ -7,7 +7,7 @@ export async function copyPrismaClient() {
   const clientCopyPath = path.join(__dirname, '..', 'prisma-client')
 
   // we resolve where the client is located via our own dependencies
-  const clientPath = path.dirname(require.resolve('@prisma/client/package.json'))
+  const clientPath = path.dirname(require.resolve('@vetching-corporation/prisma-client/package.json'))
 
   const clientFiles = await packlist({ path: clientPath })
 

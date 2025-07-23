@@ -258,7 +258,7 @@ async function getCurrentPatchForPatchVersions(patchMajorMinor: { major: number;
   // npm can have some hiccups
   const remoteVersionsString = await pRetry(
     async () => {
-      return await runResult('.', 'npm view @prisma/client@* version --json')
+      return await runResult('.', 'npm view @vetching-corporation/prisma-client@* version --json')
     },
     {
       retries: 6,

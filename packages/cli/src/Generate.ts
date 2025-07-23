@@ -271,7 +271,7 @@ ${breakingChangesMessage}`
         const versionsWarning =
           versionsOutOfSync && logger.should.warn()
             ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
-                `@prisma/client@${clientGeneratorVersion}`,
+                `@vetching-corporation/prisma-client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`

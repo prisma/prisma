@@ -1,6 +1,6 @@
 {
   "version": "0.0.0",
-  "name": "prisma",
+  "name": "@vetching-corporation/prisma-cli",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
     "CLI",
@@ -109,7 +109,6 @@
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.13.2",
     "@prisma/adapter-libsql": "workspace:*",
-    "@prisma/client": "workspace:*",
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
@@ -119,8 +118,6 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/studio": "0.511.0",
-    "@prisma/studio-server": "0.511.0",
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "@types/debug": "4.1.12",
@@ -128,6 +125,7 @@
     "@types/jest": "29.5.14",
     "@types/node": "18.19.76",
     "@types/rimraf": "4.0.5",
+    "@vetching-corporation/prisma-client": "workspace:*",
     "async-listen": "3.1.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",

@@ -63,7 +63,7 @@ export async function generateInFolder({
   const previewFeatures = extractPreviewFeatures(config.generators)
   const clientEngineType = getClientEngineType(config.generators[0])
 
-  const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
+  const outputDir = path.join(projectDir, 'node_modules/@vetching-corporation/prisma-client')
 
   await rimraf(outputDir)
 
@@ -76,7 +76,7 @@ export async function generateInFolder({
       overwrite: true,
     })
   } else {
-    await getPackedPackage('@prisma/client', outputDir)
+    await getPackedPackage('@vetching-corporation/prisma-client', outputDir)
   }
 
   const binaryTarget = await getBinaryTargetForCurrentPlatform()

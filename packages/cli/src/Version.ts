@@ -145,7 +145,7 @@ export class Version implements Command {
 
     const rows = [
       [packageJson.name, packageJson.version],
-      ['@prisma/client', prismaClientVersion ?? 'Not found'],
+      ['@vetching-corporation/prisma-client', prismaClientVersion ?? 'Not found'],
       ['Computed binaryTarget', binaryTarget],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
@@ -156,7 +156,6 @@ export class Version implements Command {
       ...schemaEngineRows,
 
       ['Default Engines Hash', enginesVersion],
-      ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
     /**

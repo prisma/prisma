@@ -33,7 +33,7 @@ const unusedIgnore = [
 ]
 
 // packages that aren't missing but are detected
-const missingIgnore = ['.prisma', '@prisma/client', 'ts-toolbelt']
+const missingIgnore = ['.prisma', '@vetching-corporation/prisma-client', 'ts-toolbelt']
 
 /**
  * Checks for unused and missing dependencies.

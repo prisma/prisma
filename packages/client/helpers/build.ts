@@ -10,7 +10,9 @@ import { nodeProtocolPlugin } from '../../../helpers/compile/plugins/nodeProtoco
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const wasmQueryEngineDir = path.dirname(require.resolve('@prisma/query-engine-wasm/package.json'))
-const wasmQueryCompilerDir = path.dirname(require.resolve('@prisma/query-compiler-wasm/package.json'))
+const wasmQueryCompilerDir = path.dirname(
+  require.resolve('@vetching-corporation/prisma-query-compiler-wasm/package.json'),
+)
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
@@ -73,10 +75,13 @@ function wasmBindgenRuntimeConfig(
   provider: DriverAdapterSupportedProvider,
   format: ModuleFormat,
 ): BuildOptions {
+  const wasmPackage =
+    type === 'compiler' ? '@vetching-corporation/prisma-query-compiler-wasm' : '@prisma/query-engine-wasm'
+
   return {
     format,
     name: `query_${type}_bg.${provider}`,
-    entryPoints: [`@prisma/query-${type}-wasm/${provider}/query_${type}_bg.js`],
+    entryPoints: [`${wasmPackage}/${provider}/query_${type}_bg.js`],
     outfile: `runtime/query_${type}_bg.${provider}`,
     outExtension: getOutExtension(format),
     minify: shouldMinify,

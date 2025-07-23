@@ -458,6 +458,7 @@ export class ClientEngine implements Engine {
   ): Promise<{ data: T }> {
     debug(`sending request`)
     const queryStr = JSON.stringify(query)
+    const dynamicSchemaStr = JSON.stringify(query.dynamicSchemas ?? {})
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, queryStr)
@@ -465,7 +466,10 @@ export class ClientEngine implements Engine {
 
     let queryPlan: QueryPlanNode
     try {
-      queryPlan = this.#withLocalPanicHandler(() => queryCompiler.compile(queryStr), queryStr) as QueryPlanNode
+      queryPlan = this.#withLocalPanicHandler(
+        () => queryCompiler.compile(queryStr, dynamicSchemaStr),
+        queryStr,
+      ) as QueryPlanNode
     } catch (error) {
       throw this.#transformCompileError(error)
     }
@@ -503,6 +507,7 @@ export class ClientEngine implements Engine {
     const firstAction = queries[0].action
 
     const request = JSON.stringify(getBatchRequestPayload(queries, transaction))
+    const dynamicSchemaStr = JSON.stringify(queries[0].dynamicSchemas ?? {})
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, request)
@@ -510,7 +515,7 @@ export class ClientEngine implements Engine {
 
     let batchResponse: BatchResponse
     try {
-      batchResponse = queryCompiler.compileBatch(request)
+      batchResponse = queryCompiler.compileBatch(request, dynamicSchemaStr)
     } catch (err) {
       throw this.#transformCompileError(err)
     }

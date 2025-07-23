@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "author": "Pierre-Antoine Mills <mills@prisma.io>",
   "devDependencies": {
-    "@prisma/client": "workspace:*"
+    "@vetching-corporation/prisma-client": "workspace:*"
   },
   "dependencies": {},
   "scripts": {

@@ -241,7 +241,7 @@ Set composite types introspection depth to 2 levels
             const validationWarning = `Without the ${bold(
               'driverAdapters',
             )} preview feature, the schema introspected via the ${bold('--local-d1')} flag will not work with ${bold(
-              '@prisma/client',
+              '@vetching-corporation/prisma-client',
             )}.`
 
             if (hasDriverAdaptersPreviewFeature) {

@@ -17,7 +17,7 @@ export function printUpdateMessage(checkResult: Check.Result | 0 | void): void {
   const latestVersionAvailable = checkResult.data.current_version
 
   const prismaCLICommand = makeInstallCommand(checkResult.data.package, checkResult.data.release_tag)
-  const prismaClientCommand = makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
+  const prismaClientCommand = makeInstallCommand('@vetching-corporation/prisma-client', checkResult.data.release_tag, {
     canBeGlobal: false,
     canBeDev: false,
   })

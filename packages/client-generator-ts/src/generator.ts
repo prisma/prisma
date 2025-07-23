@@ -87,7 +87,7 @@ export class PrismaClientTsGenerator implements Generator {
       datasources: options.datasources,
       envPaths: options.envPaths,
       outputDir,
-      runtimeBase: '@prisma/client/runtime',
+      runtimeBase: '@vetching-corporation/prisma-client/runtime',
       dmmf: options.dmmf,
       generator: options.generator,
       engineVersion: options.version,
