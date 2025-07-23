@@ -177,6 +177,7 @@ export type SchemaArg = ReadonlyDeep<{
   isNullable: boolean
   isRequired: boolean
   inputTypes: InputTypeRef[]
+  requiresOtherFields?: string[]
   deprecation?: Deprecation
 }>
 
