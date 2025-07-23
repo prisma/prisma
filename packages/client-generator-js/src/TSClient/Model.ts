@@ -1,3 +1,4 @@
+import { capitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
@@ -611,22 +612,38 @@ ${ts.stringify(buildFluentWrapperDefinition(name, this.outputType, this.context)
 function buildModelDelegateMethod(modelName: string, actionName: DMMF.ModelAction, context: GenerateContext) {
   const mapping = context.dmmf.mappingsMap[modelName] ?? { model: modelName, plural: `${modelName}s` }
   const modelOrType = context.dmmf.typeAndModelMap[modelName]
+  const dependencyValidators = getNonAggregateMethodDependencyValidations(mapping, actionName, context)
 
   const method = ts
     .method(actionName)
     .setDocComment(ts.docComment(getMethodJSDocBody(actionName, mapping, modelOrType)))
-    .addParameter(getNonAggregateMethodArgs(modelName, actionName))
+    .addParameter(getNonAggregateMethodArgs(modelName, actionName, dependencyValidators))
     .setReturnType(getReturnType({ modelName, actionName }))
 
   const generic = getNonAggregateMethodGenericParam(modelName, actionName)
   if (generic) {
     method.addGenericParameter(generic)
   }
+
+  for (const validator of dependencyValidators) {
+    method.addGenericParameter(validator)
+  }
+
   return method
 }
 
-function getNonAggregateMethodArgs(modelName: string, actionName: DMMF.ModelAction) {
-  const makeParameter = (type: ts.TypeBuilder) => ts.parameter('args', type)
+function getNonAggregateMethodArgs(
+  modelName: string,
+  actionName: DMMF.ModelAction,
+  dependencyValidators: ts.GenericParameter[],
+) {
+  const makeParameter = (type: ts.TypeBuilder) => {
+    if (dependencyValidators.length > 0) {
+      type = ts.intersectionType([type, ...dependencyValidators.map((validator) => ts.namedType(validator.name))])
+    }
+    return ts.parameter('args', type)
+  }
+
   if (actionName === DMMF.ModelAction.count) {
     const type = ts.omit(
       ts.namedType(getModelArgName(modelName, DMMF.ModelAction.findMany)),
@@ -676,6 +693,54 @@ function getNonAggregateMethodGenericParam(modelName: string, actionName: DMMF.M
     return arg.extends(ts.namedType(getAggregateArgsName(modelName)))
   }
   return arg.extends(ts.namedType(getModelArgName(modelName, actionName)))
+}
+
+function getNonAggregateMethodDependencyValidations(
+  modelMapping: DMMF.ModelMapping,
+  actionName: DMMF.ModelAction,
+  context: GenerateContext,
+): ts.GenericParameter[] {
+  const outputFieldName = modelMapping[actionName]
+  if (!outputFieldName) {
+    throw new Error(`Missing mapping for ${modelMapping.model}.${actionName}`)
+  }
+
+  const outputField =
+    context.dmmf.outputTypeMap.prisma['Query'].fields.find((f) => f.name === outputFieldName) ??
+    context.dmmf.outputTypeMap.prisma['Mutation'].fields.find((f) => f.name === outputFieldName)
+
+  if (!outputField) {
+    throw new Error(`Can't find output field ${outputFieldName} in the schema`)
+  }
+
+  const validators: ts.GenericParameter[] = []
+
+  for (const args of outputField.args) {
+    if (args.requiresOtherFields === undefined) {
+      continue
+    }
+
+    const objectType = ts.objectType()
+
+    for (const reqArg of args.requiresOtherFields) {
+      objectType.add(ts.property(reqArg, ts.objectType()))
+    }
+
+    validators.push(
+      ts
+        .genericParameter(`${capitalize(args.name)}DependenciesValidator`)
+        .extends(
+          ts
+            .conditionalType()
+            .check(ts.stringLiteral(args.name))
+            .extends(ts.namedType('Prisma.Keys<T>'))
+            .then(objectType)
+            .else(ts.objectType()),
+        ),
+    )
+  }
+
+  return validators
 }
 
 type GetReturnTypeOptions = {
