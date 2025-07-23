@@ -38,14 +38,16 @@ COMMANDS.forEach((command) => {
     // Running with --help to not run further actions beyond config loading
     const res = await ctx.cli(...command, '--config=./config/prisma.config.ts', '--help')
     expect(res.exitCode).toBe(0)
-    expect(sanitizeSnapshot(res.stderr)).toContain(`Loaded Prisma config from config/prisma.config.ts.`)
+    expect(sanitizeSnapshot(res.stderr)).toContain(
+      `Loaded Prisma config from "sanitized config/prisma.config.ts path".`,
+    )
   })
 })
 
 function sanitizeSnapshot(str: string): string {
   // Sanitize the Prisma config path to not break on Windows.
   str = str.replace(
-    /Loaded Prisma config from "(.*)(\/|\\)prisma\.config\.ts"/g,
+    /Loaded Prisma config from "?(.*)(\/|\\)prisma\.config\.ts"?/g,
     'Loaded Prisma config from "sanitized $1/prisma.config.ts path"',
   )
 
