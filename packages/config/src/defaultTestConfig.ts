@@ -6,5 +6,6 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
 export function defaultTestConfig(): PrismaConfigInternal {
   return makePrismaConfigInternal({
     loadedFromFile: null,
+    deprecatedPackageJson: null,
   })
 }

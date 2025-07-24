@@ -7,6 +7,7 @@ import { Either, identity, Schema as Shape, Struct } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
+import { PrismaConfigPackageJson, PrismaConfigPackageJsonShape } from './loadConfigFromPackageJson'
 import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
@@ -77,11 +78,16 @@ export type MigrationsConfigShape = {
    * Also see `tables.external`.
    */
   setupExternalTables?: string
+  /**
+   * The command to run to seed the database after schema migrations are applied.
+   */
+  seed?: string
 }
 
 const MigrationsConfigShape = Shape.Struct({
   path: Shape.optional(Shape.String),
   setupExternalTables: Shape.optional(Shape.String),
+  seed: Shape.optional(Shape.NonEmptyString),
 })
 
 // The exported types are re-declared manually instead of using the Shape.Type
@@ -206,7 +212,10 @@ if (false) {
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
 declare const __testPrismaConfig: keyof (typeof PrismaConfigShape)['Type']
-declare const __testPrismaConfigInternal: keyof Omit<(typeof PrismaConfigInternalShape)['Type'], 'loadedFromFile'>
+declare const __testPrismaConfigInternal: keyof Omit<
+  (typeof PrismaConfigInternalShape)['Type'],
+  'loadedFromFile' | 'deprecatedPackageJson'
+>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
@@ -341,6 +350,12 @@ const PrismaConfigInternalShape = Shape.Struct({
   ...Struct.omit(PrismaConfigShape.fields, 'adapter'),
   adapter: Shape.optional(ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape),
   loadedFromFile: Shape.NullOr(Shape.String),
+  deprecatedPackageJson: Shape.NullOr(
+    Shape.Struct({
+      config: PrismaConfigPackageJsonShape,
+      loadedFromFile: Shape.String,
+    }),
+  ),
 })
 
 type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
@@ -353,6 +368,26 @@ type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
    * It's set to `null` if no config file was found and only default config is applied.
    */
   loadedFromFile: string | null
+  /**
+   * The deprecated Prisma configuration from `package.json#prisma`.
+   * This is set to `null` if no `package.json#prisma` config was found.
+   * The configuration read from the Prisma config file (e.g., `prisma.config.ts`) takes precedence over
+   * this `package.json#prisma` config.
+   * @deprecated
+   */
+  deprecatedPackageJson: {
+    /**
+     * The Prisma configuration from `package.json#prisma`.
+     * @deprecated
+     */
+    config: PrismaConfigPackageJson
+
+    /**
+     * The path from where the `package.json` config was loaded.
+     * @deprecated
+     */
+    loadedFromFile: string
+  } | null
 }
 
 declare const __testPrismaConfigInternalValueA: (typeof PrismaConfigInternalShape)['Type']

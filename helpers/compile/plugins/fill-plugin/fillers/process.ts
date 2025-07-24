@@ -11,3 +11,6 @@ export const process: Partial<NodeJS.Process> = {
   argv: ['/bin/node'],
   pid: 10000,
 }
+
+export const { cwd } = process
+export default process

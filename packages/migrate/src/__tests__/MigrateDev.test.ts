@@ -737,7 +737,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   })
 
   test('one seed.ts file', async () => {
-    ctx.fixture('seed-sqlite-ts')
+    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
 
     prompt.inject(['y'])
 
@@ -766,7 +766,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   })
 
   it('one seed file --skip-seed', async () => {
-    ctx.fixture('seed-sqlite-ts')
+    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
 
     prompt.inject(['y'])
 
@@ -791,7 +791,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   })
 
   it('one broken seed.js file', async () => {
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
     prompt.inject(['y'])
@@ -823,7 +823,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   })
 
   it('legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
     // ctx.fs.remove('prisma/seed.ts')
     ctx.fs.remove('prisma/seed.sh')

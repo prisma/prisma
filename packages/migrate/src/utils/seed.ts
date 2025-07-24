@@ -1,28 +1,34 @@
+import path from 'node:path'
+
+import { loadConfigFromPackageJson } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { getPrismaConfigFromPackageJson } from '@prisma/internals'
 import execa from 'execa'
 import { bold, italic, red } from 'kleur/colors'
-import path from 'path'
 
 const debug = Debug('prisma:migrate:seed')
 
+/**
+ * User's Prisma configuration should live in `prisma.config.ts` instead of `package.json#prisma`.
+ * See: https://pris.ly/prisma-config.
+ * @deprecated
+ */
 export async function getSeedCommandFromPackageJson(cwd: string) {
-  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  const prismaConfig = await loadConfigFromPackageJson(cwd)
 
   debug({ prismaConfig })
 
-  if (!prismaConfig || !prismaConfig.data?.seed) {
+  if (!prismaConfig?.config?.seed) {
     return null
   }
 
-  const seedCommandFromPkgJson = prismaConfig.data.seed
+  const seedCommandFromPkgJson = prismaConfig.config.seed
 
   // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` must be of type string`,
     )
   }
@@ -31,12 +37,12 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` cannot be empty`,
     )
   }
 
-  return seedCommandFromPkgJson
+  return prismaConfig.config.seed
 }
 
 export async function executeSeedCommand({
