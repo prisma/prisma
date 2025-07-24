@@ -88,6 +88,120 @@ testMatrix.setupTestSuite(
 
       expect(user?.bio).toEqual(fakeProfile.bio)
     })
+
+    test('should require orderBy when take is provided in non-aggregation method', async () => {
+      await expect(
+        // @ts-expect-error
+        prisma.userInfo.findMany({
+          take: 1,
+        }),
+      ).rejects.toMatchPrismaErrorInlineSnapshot(`
+        "
+        Invalid \`prisma.userInfo.findMany()\` invocation in
+        /client/tests/functional/views/tests.ts:0:0
+
+          XX test('should require orderBy when take is provided in non-aggregation method', async () => {
+          XX   await expect(
+          XX     // @ts-expect-error
+        → XX     prisma.userInfo.findMany({
+                   take: 1,
+                   ~~~~
+                 + orderBy: UserInfoOrderByWithRelationInput[] | UserInfoOrderByWithRelationInput
+                 })
+
+        Argument \`orderBy\` is missing.
+        Argument \`orderBy\` is required because argument \`take\` was provided."
+      `)
+    })
+
+    test('should require orderBy when skip is provided in non-aggregation method', async () => {
+      await expect(
+        // @ts-expect-error
+        prisma.userInfo.findMany({
+          skip: 1,
+        }),
+      ).rejects.toMatchPrismaErrorInlineSnapshot(`
+        "
+        Invalid \`prisma.userInfo.findMany()\` invocation in
+        /client/tests/functional/views/tests.ts:0:0
+
+          XX test('should require orderBy when skip is provided in non-aggregation method', async () => {
+          XX   await expect(
+          XX     // @ts-expect-error
+        → XX     prisma.userInfo.findMany({
+                    skip: 1,
+                    ~~~~
+                  + orderBy: UserInfoOrderByWithRelationInput[] | UserInfoOrderByWithRelationInput
+                  })
+
+        Argument \`orderBy\` is missing.
+        Argument \`orderBy\` is required because argument \`skip\` was provided."
+      `)
+    })
+
+    test('should require orderBy when take is provided in groupBy', async () => {
+      await expect(
+        // @ts-expect-error
+        prisma.userInfo.groupBy({
+          by: ['name'],
+          take: 1,
+        }),
+      ).rejects.toMatchInlineSnapshot(`
+        "
+        Invalid \`prisma.userInfo.groupBy()\` invocation in
+        /client/tests/functional/views/tests.ts:0:0
+
+          142 test('should require orderBy when take is provided in groupBy', async () => {
+          143   await expect(
+          144     // @ts-expect-error
+        → 145     prisma.userInfo.groupBy({
+                    select: {
+                      name: true
+                    },
+                    by: [
+                      "name"
+                    ],
+                    take: 1,
+                    ~~~~
+                  + orderBy: UserInfoOrderByWithAggregationInput[] | UserInfoOrderByWithAggregationInput
+                  })
+
+        Argument \`orderBy\` is missing.
+        Argument \`orderBy\` is required because argument \`take\` was provided."
+      `)
+    })
+
+    test('should require orderBy when skip is provided in groupBy', async () => {
+      await expect(
+        // @ts-expect-error
+        prisma.userInfo.groupBy({
+          by: ['name'],
+          skip: 1,
+        }),
+      ).rejects.toMatchInlineSnapshot(`
+        "
+        Invalid \`prisma.userInfo.groupBy()\` invocation in
+        /client/tests/functional/views/tests.ts:0:0
+
+          174 test('should require orderBy when skip is provided in groupBy', async () => {
+          175   await expect(
+          176     // @ts-expect-error
+        → 177     prisma.userInfo.groupBy({
+                    select: {
+                      name: true
+                    },
+                    by: [
+                      "name"
+                    ],
+                    skip: 1,
+                    ~~~~
+                  + orderBy: UserInfoOrderByWithAggregationInput[] | UserInfoOrderByWithAggregationInput
+                  })
+
+        Argument \`orderBy\` is missing.
+        Argument \`orderBy\` is required because argument \`skip\` was provided."
+      `)
+    })
   },
   {
     alterStatementCallback: (provider) => {
