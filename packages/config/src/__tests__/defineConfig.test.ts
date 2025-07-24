@@ -13,6 +13,7 @@ describe('defineConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
+        "deprecatedPackageJson": null,
         "loadedFromFile": null,
       }
     `)
@@ -23,6 +24,7 @@ describe('defineConfig', () => {
     const config = defaultTestConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
+        "deprecatedPackageJson": null,
         "loadedFromFile": null,
       }
     `)
@@ -110,6 +112,17 @@ describe('defineConfig', () => {
 
       const adapter = await adapterFactory()
       expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
+    })
+  })
+
+  describe('migrations', () => {
+    test('if `seed` is provided, it should be included in the migrations config', () => {
+      const config = defineConfig({
+        migrations: {
+          seed: 'tsx seed.ts',
+        },
+      })
+      expect(config.migrations?.seed).toStrictEqual('tsx seed.ts')
     })
   })
 

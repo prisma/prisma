@@ -56,9 +56,12 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
+    const seedCommandFromPrismaConfig = config.migrations?.seed
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
-    if (!seedCommandFromPkgJson) return ``
+    const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+
+    if (!seedCommand) return ``
 
     // We pass the extra params after a -- separator
     // Example: db seed -- --custom-param
@@ -67,7 +70,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
 
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {

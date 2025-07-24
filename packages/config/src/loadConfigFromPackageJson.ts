@@ -47,14 +47,28 @@ export async function loadConfigFromPackageJson(cwd: string = process.cwd()): Pr
    * and the old way of configuring Prisma in `package.json#prisma` is more permissive that our parser allows.
    * In practice, we duck-type it to preserve backwards compatibility.
    */
-  const prismaPropertyFromPkgJson = pkgJson.packageJson['prisma'] as PrismaConfigPackageJson | undefined
+  const deprecatedConfig = pkgJson.packageJson['prisma'] as PrismaConfigPackageJson | undefined
 
-  if (prismaPropertyFromPkgJson === undefined) {
+  // No `prisma` property in `package.json`
+  if (deprecatedConfig === undefined) {
+    return null
+  }
+
+  // We avoid accidentally emitting deprecation warnings when the `prisma` property in package.json is
+  // ```json
+  // {
+  //   "prisma": {
+  //     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
+  //   }
+  // }
+  // ```
+  // which is the case in `packages/cli/package.json` only.
+  if (Object.keys(deprecatedConfig).length === 1 && deprecatedConfig['prismaCommit'] !== undefined) {
     return null
   }
 
   return {
-    config: prismaPropertyFromPkgJson,
+    config: deprecatedConfig,
     loadedFromFile: pkgJson.path as string,
   }
 }
