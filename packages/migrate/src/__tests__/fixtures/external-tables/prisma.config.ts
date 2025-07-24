@@ -5,7 +5,7 @@ export default defineConfig({
     externalTables: true,
   },
   tables: {
-    external: ['User'],
+    external: ['public.User'],
   },
   migrations: {
     setupExternalTables: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,

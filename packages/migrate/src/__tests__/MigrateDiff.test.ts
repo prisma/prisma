@@ -882,7 +882,7 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
-        CREATE TABLE "Blog" (
+        CREATE TABLE "public"."Blog" (
             "id" INT4 NOT NULL,
             "viewCount20" INT4 NOT NULL,
 
@@ -957,7 +957,7 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
-        CREATE TABLE "Blog" (
+        CREATE TABLE "public"."Blog" (
             "id" INTEGER NOT NULL,
             "viewCount20" INTEGER NOT NULL,
 
