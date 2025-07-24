@@ -87,7 +87,7 @@ export namespace EngineArgs {
    */
   export interface ApplyMigrationsInput {
     migrationsList: MigrateTypes.MigrationList
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface CreateMigrationInput {
@@ -96,7 +96,7 @@ export namespace EngineArgs {
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
     migrationName: string
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   // The path to a live database taken as input.
@@ -151,14 +151,14 @@ export namespace EngineArgs {
 
   export interface DevDiagnosticInput {
     migrationsList: MigrateTypes.MigrationList
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface DiagnoseMigrationHistoryInput {
     migrationsList: MigrateTypes.MigrationList
     /// Whether creating shadow/temporary databases is allowed.
     optInToShadowDatabase: boolean
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface EnsureConnectionValidityInput {
@@ -168,7 +168,7 @@ export namespace EngineArgs {
   export interface EvaluateDataLossInput {
     migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface ListMigrationDirectoriesInput {
@@ -216,13 +216,13 @@ export namespace EngineArgs {
     // Empty: 0, Error: 1, Non empty: 2
     exitCode: boolean | null
     // The schema filter to apply to the diff.
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface SchemaPushInput {
     schema: MigrateTypes.SchemasContainer
     force: boolean
-    filters: MigrateTypes.SchemaFilter | null
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface IntrospectSqlParams {
@@ -236,7 +236,7 @@ export namespace EngineArgs {
   }
 
   export interface MigrateResetInput {
-    filter: MigrateTypes.SchemaFilter | null
+    filter: MigrateTypes.SchemaFilter
   }
 }
 
