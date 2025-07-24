@@ -63,7 +63,7 @@ export async function loadConfigFromPackageJson(cwd: string = process.cwd()): Pr
   // }
   // ```
   // which is the case in `packages/cli/package.json` only.
-  if (Object.keys(deprecatedConfig).length === 1 && deprecatedConfig['prismaCommit']) {
+  if (Object.keys(deprecatedConfig).length === 1 && deprecatedConfig['prismaCommit'] !== undefined) {
     return null
   }
 
