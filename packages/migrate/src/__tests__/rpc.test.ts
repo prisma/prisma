@@ -23,6 +23,10 @@ describe('applyMigrations', () => {
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -41,6 +45,10 @@ describe('applyMigrations', () => {
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -161,6 +169,10 @@ describe('devDiagnostic', () => {
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
@@ -181,6 +193,10 @@ describe('devDiagnostic', () => {
     const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
@@ -217,6 +233,10 @@ describe('diagnoseMigrationHistory', () => {
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: true,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -239,6 +259,10 @@ describe('diagnoseMigrationHistory', () => {
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: false,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -339,6 +363,10 @@ describe('evaluateDataLoss', () => {
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -361,6 +389,10 @@ describe('evaluateDataLoss', () => {
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -461,6 +493,10 @@ describe('markMigrationRolledBack', () => {
       const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
       await migrate.engine.applyMigrations({
         migrationsList,
+        filters: {
+          externalTables: [],
+          externalEnums: [],
+        },
       })
     } catch (e) {
       expect(e.message).toContain('no such column: SOMETHING_THAT_DOES_NOT_WORK')
@@ -538,6 +574,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -558,6 +598,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -578,6 +622,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(replaceInSchemas(schemaContext.schemaFiles, 'Blog', 'Something')),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -600,6 +648,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: true,
       schema: toSchemasContainer(replaceInSchemas(schemaContext.schemaFiles, 'Blog', 'Something')),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
