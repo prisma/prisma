@@ -4,6 +4,7 @@ import { Writer } from './Writer'
 export class UnionType<VariantType extends TypeBuilder = TypeBuilder> extends TypeBuilder {
   needsParenthesisWhenIndexed = true
   needsParenthesisInKeyof = true
+  needsParenthesisInIntersection = true
   readonly variants: VariantType[]
 
   constructor(firstType: VariantType) {

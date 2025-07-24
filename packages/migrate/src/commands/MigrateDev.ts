@@ -128,6 +128,7 @@ ${bold('Examples')}
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({

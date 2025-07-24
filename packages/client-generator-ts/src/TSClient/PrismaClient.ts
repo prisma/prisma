@@ -1,9 +1,8 @@
-import { uncapitalize } from '@prisma/client-common'
+import { capitalize, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 
-import { capitalize } from '../utils'
 import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { GenerateContext } from './GenerateContext'

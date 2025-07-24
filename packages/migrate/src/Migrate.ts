@@ -52,7 +52,7 @@ export class Migrate {
     // like migrate diff and db execute
     this.schemaContext = schemaContext
     this.migrationsDirectoryPath = migrationsDirPath
-    this.schemaFilter = schemaFilter ?? { externalTables: [] }
+    this.schemaFilter = schemaFilter ?? { externalTables: [], externalEnums: [] }
     this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 

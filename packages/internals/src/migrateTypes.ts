@@ -87,6 +87,7 @@ export namespace MigrateTypes {
 
   export type SchemaFilter = {
     externalTables: string[]
+    externalEnums: string[]
   }
 
   export type UrlContainer = {

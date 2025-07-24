@@ -336,6 +336,7 @@ ${bold('Examples')}
     const adapter = await config.adapter?.()
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
     }
     const migrate = await Migrate.setup({ adapter, schemaFilter })
 
@@ -357,6 +358,7 @@ ${bold('Examples')}
         exitCode: args['--exit-code'] ?? null,
         filters: {
           externalTables: config.tables?.external ?? [],
+          externalEnums: config.enums?.external ?? [],
         },
       })
     } finally {

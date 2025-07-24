@@ -126,6 +126,28 @@ if (false) {
   __testTablesConfigShapeValueB satisfies (typeof TablesConfigShape)['Type']
 }
 
+export type EnumsConfigShape = {
+  /**
+   * List of enums that are externally managed.
+   * Prisma will not modify the structure of these enums and not generate migrations for those enums.
+   * These enums will still be represented in schema.prisma file and be available in the client API.
+   */
+  external?: string[]
+}
+
+const EnumsConfigShape = Shape.Struct({
+  external: Shape.optional(Shape.mutable(Shape.Array(Shape.String))),
+})
+
+declare const __testEnumsConfigShapeValueA: (typeof EnumsConfigShape)['Type']
+declare const __testEnumsConfigShapeValueB: EnumsConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testEnumsConfigShapeValueA satisfies EnumsConfigShape
+  __testEnumsConfigShapeValueB satisfies (typeof EnumsConfigShape)['Type']
+}
+
 export type ViewsConfigShape = {
   /**
    * The path to the directory where Prisma should look for the view definitions, where *.sql files will be loaded.
@@ -209,6 +231,7 @@ const PrismaConfigShape = Shape.Struct({
   adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
   migrations: Shape.optional(MigrationsConfigShape),
   tables: Shape.optional(TablesConfigShape),
+  enums: Shape.optional(EnumsConfigShape),
   views: Shape.optional(ViewsConfigShape),
   typedSql: Shape.optional(TypedSqlConfigShape),
 })
@@ -242,6 +265,10 @@ export type PrismaConfig = {
    * Configuration for the database table entities.
    */
   tables?: Simplify<TablesConfigShape>
+  /**
+   * Configuration for the database enum entities.
+   */
+  enums?: Simplify<EnumsConfigShape>
   /**
    * Configuration for the database view entities.
    */
@@ -280,6 +307,13 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
   if (config.tables?.external && !experimental.externalTables) {
     return Either.left(
       new Error('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.'),
+    )
+  }
+
+  // Check external enums configuration
+  if (config.enums?.external && !experimental.externalTables) {
+    return Either.left(
+      new Error('The `enums.external` configuration requires `experimental.externalTables` to be set to `true`.'),
     )
   }
 

@@ -8,6 +8,7 @@ export class FunctionType extends TypeBuilder {
   needsParenthesisWhenIndexed = true
   needsParenthesisInKeyof = true
   needsParenthesisInUnion = true
+  needsParenthesisInIntersection = true
   private returnType: TypeBuilder = voidType
   private parameters: Parameter[] = []
   private genericParameters: GenericParameter[] = []
