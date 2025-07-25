@@ -32,7 +32,7 @@ export type DatasourceInfo = {
   dbLocation?: string // host without credentials
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
-  schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
+  schemas?: string[] // database schemas from the datasource (multiSchema feature)
   configDir?: string
 }
 

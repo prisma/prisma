@@ -240,8 +240,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -292,8 +291,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
+        provider = "prisma-client-js"
       }
 
       datasource db {
