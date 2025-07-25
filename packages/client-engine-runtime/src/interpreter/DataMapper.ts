@@ -219,6 +219,15 @@ function mapValue(
     }
 
     case 'Array': {
+      // The pg adapter returns enum arrays as a string like "{a,b,c}" when the enum array is the result of a join.
+      // This is because pg can't parse the oid at the driver level without additional queries.
+      // We have the info from the schema to do it here without queriing the pg_type table.
+      if (resultType.inner.type === 'Enum') {
+        if (typeof value === 'string' && value.startsWith('{') && value.endsWith('}')) {
+          return mapEnumArray(value, resultType.inner.inner, enums)
+        }
+      }
+
       const values = value as unknown[]
       return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner, enums))
     }
@@ -245,20 +254,24 @@ function mapValue(
     }
 
     case 'Enum': {
-      const enumDef = enums[resultType.inner]
-      if (enumDef === undefined) {
-        throw new DataMapperError(`Unknown enum '${resultType.inner}'`)
-      }
-      const enumValue = enumDef[`${value}`]
-      if (enumValue === undefined) {
-        throw new DataMapperError(`Unknown enum value '${value}' for enum '${resultType.inner}'`)
-      }
-      return enumValue
+      return mapEnum(value, resultType.inner, enums)
     }
 
     default:
       assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
   }
+}
+
+function mapEnum(value: unknown, enumName: string, enums: Record<string, Record<string, string>>): string {
+  const enumDef = enums[enumName]
+  if (enumDef === undefined) {
+    throw new DataMapperError(`Unknown enum '${enumName}'`)
+  }
+  const enumValue = enumDef[`${value}`]
+  if (enumValue === undefined) {
+    throw new DataMapperError(`Unknown enum value '${value}' for enum '${enumName}'`)
+  }
+  return enumValue
 }
 
 // The negative lookahead is to avoid a false positive on a date string like "2023-10-01".
@@ -281,4 +294,20 @@ function ensureTimezoneInIsoString(dt: string): string {
   } else {
     return dt
   }
+}
+
+// The pg adapter returns enum arrays as a string like "{a,b,c}" when the enum array is the result of a join.
+// In our case we are only parsing enums out of an array
+// See the lib pg uses for parsing:
+// https://github.com/bendrucker/postgres-array/blob/master/index.js
+function mapEnumArray(value: string, columnName: string, enums: Record<string, Record<string, string>>): string[] {
+  let cleanValue = value
+  if (cleanValue.startsWith('{')) {
+    cleanValue = cleanValue.slice(1)
+  }
+  if (cleanValue.endsWith('}')) {
+    cleanValue = cleanValue.slice(0, -1)
+  }
+  const values = cleanValue.split(',')
+  return values.map((v) => mapEnum(v, columnName, enums))
 }
