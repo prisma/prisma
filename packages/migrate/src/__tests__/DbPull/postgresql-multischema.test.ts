@@ -92,7 +92,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -180,7 +179,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -240,7 +238,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -270,28 +267,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
         @@schema("base")
       }
 
-      "
-    `)
-
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('--url with --schemas=base without preview feature should error', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
-    ctx.fs.remove(`./schema.prisma`)
-
-    const introspect = new DbPull()
-    const result = introspect.parse(
-      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
-      await ctx.config(),
-    )
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
-
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "
       "
     `)
 
@@ -337,7 +312,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -385,7 +359,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -474,7 +447,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
@@ -522,7 +494,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["multiSchema"]
       }
 
       datasource db {
