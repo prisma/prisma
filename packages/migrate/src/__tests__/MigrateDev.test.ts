@@ -1238,7 +1238,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     )
 
     // Create migration based of updated schema that has a relation towards the external table.
-    // `setupExternalTables` from prisma.config.ts is used to create the external table in the shadow database for diffing.
+    // `initShadowDb` from prisma.config.ts is used to create the external table in the shadow database for diffing.
     const result2 = MigrateDev.new().parse(['--schema=schema_relation.prisma', '--name=first'], await ctx.config())
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`

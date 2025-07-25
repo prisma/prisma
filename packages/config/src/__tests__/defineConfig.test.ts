@@ -155,15 +155,15 @@ describe('defineConfig', () => {
       ).toThrow('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.')
     })
 
-    test('should throw error when migrations.setupExternalTables is used without experimental.externalTables', () => {
+    test('should throw error when migrations.initShadowDb is used without experimental.externalTables', () => {
       expect(() =>
         defineConfig({
           migrations: {
-            setupExternalTables: 'CREATE TABLE users();',
+            initShadowDb: 'CREATE TABLE users();',
           },
         }),
       ).toThrow(
-        'The `migrations.setupExternalTables` configuration requires `experimental.externalTables` to be set to `true`.',
+        'The `migrations.initShadowDb` configuration requires `experimental.externalTables` to be set to `true`.',
       )
     })
   })

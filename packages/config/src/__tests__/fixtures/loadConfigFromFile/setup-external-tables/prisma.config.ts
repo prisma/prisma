@@ -6,6 +6,6 @@ export default {
     externalTables: true,
   },
   migrations: {
-    setupExternalTables: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,
+    initShadowDb: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,
   },
 } satisfies PrismaConfig
