@@ -74,8 +74,8 @@ export type MigrationsConfigShape = {
    */
   path?: string
   /**
-   * Provide a function to pass a SQL script that will be used to setup external tables during migration diffing.
-   * Also see `tables.external`.
+   * Provide a SQL script that will be used to setup external tables and enums during migration diffing.
+   * Also see `tables.external` and `enums.external`.
    */
   setupExternalTables?: string
   /**
