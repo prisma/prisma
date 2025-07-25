@@ -74,10 +74,10 @@ export type MigrationsConfigShape = {
    */
   path?: string
   /**
-   * Provide a function to pass a SQL script that will be used to setup external tables during migration diffing.
-   * Also see `tables.external`.
+   * Provide a SQL script that will be used to setup external tables and enums during migration diffing.
+   * Also see `tables.external` and `enums.external`.
    */
-  setupExternalTables?: string
+  initShadowDb?: string
   /**
    * The command to run to seed the database after schema migrations are applied.
    */
@@ -86,7 +86,7 @@ export type MigrationsConfigShape = {
 
 const MigrationsConfigShape = Shape.Struct({
   path: Shape.optional(Shape.String),
-  setupExternalTables: Shape.optional(Shape.String),
+  initShadowDb: Shape.optional(Shape.String),
   seed: Shape.optional(Shape.NonEmptyString),
 })
 
@@ -317,11 +317,11 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
     )
   }
 
-  // Check migrations setupExternalTables configuration
-  if (config.migrations?.setupExternalTables && !experimental.externalTables) {
+  // Check migrations initShadowDb configuration
+  if (config.migrations?.initShadowDb && !experimental.externalTables) {
     return Either.left(
       new Error(
-        'The `migrations.setupExternalTables` configuration requires `experimental.externalTables` to be set to `true`.',
+        'The `migrations.initShadowDb` configuration requires `experimental.externalTables` to be set to `true`.',
       ),
     )
   }

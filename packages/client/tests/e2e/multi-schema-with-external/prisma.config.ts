@@ -12,6 +12,6 @@ export default defineConfig({
     external: ['invoicing.InvoiceStatus'],
   },
   migrations: {
-    setupExternalTables: fs.readFileSync('./src/init.sql', 'utf-8'),
+    initShadowDb: fs.readFileSync('./src/init.sql', 'utf-8'),
   },
 })

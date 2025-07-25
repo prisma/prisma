@@ -136,7 +136,7 @@ ${bold('Examples')}
       migrationsDirPath,
       schemaContext,
       schemaFilter,
-      shadowDbInitScript: config.migrations?.setupExternalTables,
+      shadowDbInitScript: config.migrations?.initShadowDb,
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
