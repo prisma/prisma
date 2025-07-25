@@ -91,7 +91,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -178,7 +178,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -237,7 +237,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -311,7 +311,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -358,7 +358,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -446,7 +446,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -493,7 +493,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
+        provider = "prisma-client-js"
       }
 
       datasource db {
