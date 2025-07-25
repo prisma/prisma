@@ -4,5 +4,5 @@ datasource my_db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
