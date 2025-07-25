@@ -118,12 +118,12 @@ describe('loadConfigFromFile', () => {
   })
 
   describe('migrations', () => {
-    it('loads setupExternalTables', async () => {
+    it('loads initShadowDb', async () => {
       ctx.fixture('loadConfigFromFile/setup-external-tables')
       const { config, error } = await loadConfigFromFile({})
       expect(config).toMatchObject({
         migrations: {
-          setupExternalTables: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,
+          initShadowDb: `CREATE TABLE "User" ("id" SERIAL PRIMARY KEY, "name" TEXT NOT NULL);`,
         },
       })
       expect(error).toBeUndefined()
@@ -330,7 +330,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(
-          `"Expected { readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly setupExternalTables?: SetupExternalTables | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
+          `"Expected { readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: initShadowDb | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }, actual undefined"`,
         )
       })
 
@@ -343,7 +343,7 @@ describe('loadConfigFromFile', () => {
         expect(config).toBeUndefined()
         assertErrorConfigFileSyntaxError(error)
         expect(error.error.message.replaceAll(resolvedPath!, '<prisma-config>.ts')).toMatchInlineSnapshot(`
-          "{ readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly setupExternalTables?: SetupExternalTables | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
+          "{ readonly schema?: string | undefined; readonly studio?: { readonly adapter: SqlMigrationAwareDriverAdapterFactory } | undefined; readonly migrations?: { readonly path?: string | undefined; readonly initShadowDb?: initShadowDb | undefined } | undefined; readonly tables?: { readonly external?: ReadonlyArray<string> | undefined } | undefined; readonly views?: { readonly path?: string | undefined } | undefined; readonly typedSql?: { readonly path?: string | undefined } | undefined; readonly adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory | undefined; readonly loadedFromFile: string | null }
           └─ ["thisShouldFail"]
             └─ is unexpected, expected: "schema" | "studio" | "migrations" | "tables" | "views" | "typedSql" | "adapter" | "loadedFromFile""
         `)
