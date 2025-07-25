@@ -219,6 +219,17 @@ function mapValue(
     }
 
     case 'Array': {
+      if (resultType.inner.type === 'Enum') {
+        const enumDef = enums[resultType.inner.inner]
+        if (enumDef === undefined) {
+          throw new DataMapperError(`Unknown enum '${resultType.inner.inner}'`)
+        }
+        if (typeof value !== 'string') {
+          throw new DataMapperError(`Expected a string for column '${columnName}', got ${typeof value}: ${value}`)
+        }
+        return mapEnumArray(value, columnName, enumDef)
+      }
+
       const values = value as unknown[]
       return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner, enums))
     }
@@ -281,4 +292,23 @@ function ensureTimezoneInIsoString(dt: string): string {
   } else {
     return dt
   }
+}
+
+// Postgres enum arrays return as a string like "{a,b,c}"
+function mapEnumArray(value: string, columnName: string, enumDef: Record<string, string>): string[] {
+  let cleanValue = value
+  if (cleanValue.startsWith('{')) {
+    cleanValue = cleanValue.slice(1)
+  }
+  if (cleanValue.endsWith('}')) {
+    cleanValue = cleanValue.slice(0, -1)
+  }
+  const values = cleanValue.split(',')
+  return values.map((v) => {
+    const enumValue = enumDef[`${v}`]
+    if (enumValue === undefined) {
+      throw new DataMapperError(`Unknown enum value '${v}' for enum '${columnName}'`)
+    }
+    return enumValue
+  })
 }
