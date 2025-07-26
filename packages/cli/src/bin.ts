@@ -9,6 +9,7 @@ import {
   DbCommand,
   DbExecute,
   DbPull,
+  DbPullTypeScript,
   DbPush,
   // DbDrop,
   DbSeed,
@@ -138,6 +139,7 @@ async function main(): Promise<number> {
       db: DbCommand.new({
         execute: DbExecute.new(),
         pull: DbPull.new(),
+        'pull-ts': DbPullTypeScript.new(),
         push: DbPush.new(),
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
