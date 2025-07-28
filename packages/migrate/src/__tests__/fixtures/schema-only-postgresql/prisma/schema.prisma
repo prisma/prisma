@@ -1,9 +1,0 @@
-datasource my_db {
-  provider = "postgresql"
-  url      = env("TEST_POSTGRES_URI_MIGRATE")
-}
-
-model Blog {
-  id          Int @id
-  viewCount20 Int
-}

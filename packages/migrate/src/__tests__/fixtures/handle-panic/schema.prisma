@@ -1,8 +1,0 @@
-datasource my_db {
-    provider = "sqlite"
-    url = "file:./dev.db"
-}
-
-model User {
-    id Int @id
-}

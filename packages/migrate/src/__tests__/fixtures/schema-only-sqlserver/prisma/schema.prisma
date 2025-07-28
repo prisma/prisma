@@ -1,9 +1,0 @@
-datasource my_db {
-  provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-}
-
-model Blog {
-  id          Int @id
-  viewCount20 Int
-}

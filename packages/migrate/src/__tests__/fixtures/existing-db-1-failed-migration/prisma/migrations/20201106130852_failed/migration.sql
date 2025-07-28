@@ -1,2 +1,0 @@
--- CreateTable
-CREATE BROKEN SCRIPT
