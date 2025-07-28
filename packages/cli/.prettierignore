@@ -1,8 +1,0 @@
-node_modules
-build
-dist
-__snapshots__
-preinstall
-prisma-client
-runtime
-install

@@ -1,4 +1,0 @@
-generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["nativeTypes", "does-not-exists"]
-}

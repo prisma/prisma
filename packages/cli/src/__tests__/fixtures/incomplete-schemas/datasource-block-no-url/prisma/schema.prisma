@@ -1,5 +1,0 @@
-// the schema has a `datasource db` block with no url field
-
-datasource db {
-  provider = "postgresql"
-}
