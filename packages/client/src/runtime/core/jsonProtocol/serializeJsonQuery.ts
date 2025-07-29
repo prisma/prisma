@@ -135,20 +135,18 @@ function serializeDynamicSchema(
   requestSchemas?: DynamicSchema[],
   forceSchema?: string,
 ): Record<string, string> | undefined {
-  const dynamicSchemas = requestSchemas ?? []
+  const dynamicSchemas: DynamicSchema[] = requestSchemas?.map((schema) => ({ ...schema })) ?? []
+  const serializedSchemas = Object.fromEntries(dynamicSchemas.map((schema) => [schema.from, schema.to]))
 
   if (forceSchema && /^hospital([1-9]{1})([0-9]+)?$/.test(forceSchema)) {
-    dynamicSchemas.push({
-      from: 'hospital_template',
-      to: forceSchema,
-    })
+    serializedSchemas['hospital_template'] = forceSchema
   }
 
-  if (dynamicSchemas.length === 0) {
+  if (Object.keys(serializedSchemas).length === 0) {
     return undefined
   }
 
-  return Object.fromEntries(dynamicSchemas.map((schema) => [schema.from, schema.to]))
+  return serializedSchemas
 }
 
 function serializeSelectionSet(
