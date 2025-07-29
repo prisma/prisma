@@ -44,7 +44,7 @@ test('@<version>', async () => {
             "--help",
           ],
           {
-            "earlyAccess": true,
+            "deprecatedPackageJson": null,
             "loadedFromFile": null,
           },
           {
@@ -77,7 +77,7 @@ test('@latest', async () => {
             "--help",
           ],
           {
-            "earlyAccess": true,
+            "deprecatedPackageJson": null,
             "loadedFromFile": null,
           },
           {
@@ -113,7 +113,7 @@ test('autoinstall', async () => {
             "--help",
           ],
           {
-            "earlyAccess": true,
+            "deprecatedPackageJson": null,
             "loadedFromFile": null,
           },
           {

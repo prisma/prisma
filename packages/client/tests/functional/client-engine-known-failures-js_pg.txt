@@ -1,17 +1,12 @@
-blog-update (provider=postgresql, js_pg) should create a user and post and connect them together
-blog-update (provider=postgresql, js_pg) should create a user and post and disconnect them
 filter-count-relations (provider=postgresql, js_pg) nested relation
 fulltext-search (provider=postgresql, js_pg) bad query
-globalOmit.test (provider=postgresql, js_pg) updateMany does not crash
 interactive-transactions (provider=postgresql, js_pg) batching raw rollback
 interactive-transactions (provider=postgresql, js_pg) timeout default
 interactive-transactions (provider=postgresql, js_pg) timeout override
 interactive-transactions (provider=postgresql, js_pg) timeout override by PrismaClient
-issues.13097-group-by-enum (provider=postgresql, js_pg) groupBy on enumArray field
 issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
 issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
 issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
-issues.22947-sqlite-conccurrent-upsert (provider=postgresql, js_pg) concurrent upserts should succeed
 methods.findFirstOrThrow (provider=postgresql, js_pg) works with transactions
 methods.findUniqueOrThrow (provider=postgresql, js_pg) works with transactions
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in json format

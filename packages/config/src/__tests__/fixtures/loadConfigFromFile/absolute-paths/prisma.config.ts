@@ -5,15 +5,14 @@ import { defineConfig } from 'src/index'
 const cwd = process.cwd()
 
 export default defineConfig({
-  earlyAccess: true,
-  schema: path.join(cwd, './custom/schema.prisma'),
+  schema: path.join(cwd, 'custom', 'schema.prisma'),
   views: {
-    path: path.join(cwd, './custom/views'),
+    path: path.join(cwd, 'custom', 'views'),
   },
   typedSql: {
-    path: path.join(cwd, './custom/typedSql'),
+    path: path.join(cwd, 'custom', 'typedSql'),
   },
   migrations: {
-    path: path.join(cwd, './custom/migrations'),
+    path: path.join(cwd, 'custom', 'migrations'),
   },
 })

@@ -788,6 +788,8 @@ async function publishPackages(
       if (pkgName === 'prisma') {
         const latestCommitHash = await getLatestCommitHash('.')
         await writeToPkgJson(pkgDir, (pkg) => {
+          // Note: this is the only non-deprecated usage of `prisma` config in `package.json`.
+          // It's for internal usage only.
           pkg.prisma.prismaCommit = latestCommitHash
         })
       }

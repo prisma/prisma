@@ -1,3 +1,4 @@
+import { loadConfigFromPackageJson } from '@prisma/config'
 import { Debug } from '@prisma/debug'
 import type {
   GetSchemaResult,
@@ -9,7 +10,6 @@ import { ensureType, loadSchemaFiles } from '@prisma/schema-files-loader'
 import fs from 'fs'
 import { dim, green } from 'kleur/colors'
 import path from 'path'
-import { readPackageUp } from 'read-package-up'
 import { promisify } from 'util'
 
 import type { MultipleSchemaTuple } from '../utils/schemaFileInput'
@@ -93,6 +93,7 @@ export async function getSchemaWithPathOptional(
 }
 
 export function printSchemaLoadedMessage(schemaPath: string) {
+  // TODO: this causes https://github.com/prisma/prisma/issues/27005
   process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
 }
 
@@ -212,7 +213,7 @@ function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   const parts: string[] = [
     `Could not find Prisma Schema that is required for this command.`,
     `You can either provide it with ${green('`--schema`')} argument,`,
-    `set it in your ${green('`prisma.config.ts`')},`,
+    `set it in your Prisma Config file (e.g., ${green('`prisma.config.ts`')}),`,
     `set it as ${green('`prisma.schema`')} in your ${green('package.json')},`,
     `or put it into the default location (${green('`./prisma/schema.prisma`')}, or ${green('`./schema.prisma`')}.`,
     'Checked following paths:\n',
@@ -227,30 +228,6 @@ function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   }
   parts.push('\nSee also https://pris.ly/d/prisma-schema-location')
   return parts.join('\n')
-}
-
-// Example:
-// "prisma": {
-//   "schema": "db/schema.prisma"
-//   "seed": "ts-node db/seed.ts",
-// }
-export type PrismaConfig = {
-  schema?: string
-  seed?: string
-}
-
-export async function getPrismaConfigFromPackageJson(cwd: string) {
-  const pkgJson = await readPackageUp({ cwd, normalize: false })
-  const prismaPropertyFromPkgJson = pkgJson?.packageJson?.prisma as PrismaConfig | undefined
-
-  if (!pkgJson) {
-    return null
-  }
-
-  return {
-    data: prismaPropertyFromPkgJson,
-    packagePath: pkgJson.path,
-  }
 }
 
 async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: string | undefined) {
@@ -274,28 +251,34 @@ async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: str
   return schemaResult
 }
 
+/**
+ * Trying to access this function results in a deprecation warning.
+ * Users should be instructed to use the Prisma config file instead.
+ * See: https://pris.ly/prisma-config.
+ * @deprecated
+ */
 export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJsonLookupResult> {
-  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+  const prismaConfig = await loadConfigFromPackageJson(cwd)
   debug('prismaConfig', prismaConfig)
 
-  if (!prismaConfig || !prismaConfig.data?.schema) {
+  if (!prismaConfig || !prismaConfig.config?.schema) {
     return { ok: false, error: { kind: 'PackageJsonNotConfigured' } }
   }
 
-  const schemaPathFromPkgJson = prismaConfig.data.schema
+  const schemaPathFromPkgJson = prismaConfig.config.schema
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
       `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\` must be of type string`,
     )
   }
 
   const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
     ? schemaPathFromPkgJson
-    : path.resolve(path.dirname(prismaConfig.packagePath), schemaPathFromPkgJson)
+    : path.resolve(path.dirname(prismaConfig.loadedFromFile), schemaPathFromPkgJson)
 
   const lookupResult = await readSchemaFromFileOrDirectory(absoluteSchemaPath)
 
@@ -306,7 +289,7 @@ export async function getSchemaFromPackageJson(cwd: string): Promise<PackageJson
         absoluteSchemaPath,
       )}\` provided by "prisma.schema" config of \`${path.relative(
         cwd,
-        prismaConfig.packagePath,
+        prismaConfig.loadedFromFile,
       )}\`: ${renderLookupError(lookupResult.error)}`,
     )
   }

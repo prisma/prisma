@@ -59,6 +59,13 @@ export namespace MigrateTypes {
     lockfile: MigrationLockfile
 
     /**
+     * An init script that will be run on the shadow database before the migrations are applied.
+     * Useful in combination with external tables. Can be empty.
+     * Set via `migrations.initShadowDb` in `prisma.config.ts`.
+     */
+    shadowDbInitScript: string
+
+    /**
      * Description of the migration directories.
      */
     migrationDirectories: Array<MigrationDirectory>
@@ -76,6 +83,11 @@ export namespace MigrateTypes {
   export type SchemasWithConfigDir = {
     files: SchemaContainer[]
     configDir: string
+  }
+
+  export type SchemaFilter = {
+    externalTables: string[]
+    externalEnums: string[]
   }
 
   export type UrlContainer = {

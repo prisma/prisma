@@ -7,7 +7,7 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
  */
 export function defaultConfig(): PrismaConfigInternal {
   return makePrismaConfigInternal({
-    earlyAccess: true,
     loadedFromFile: null,
+    deprecatedPackageJson: null,
   })
 }

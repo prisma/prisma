@@ -67,17 +67,15 @@ class MssqlQueryable implements SqlQueryable {
   }
 }
 
-const LOCK_TAG = Symbol()
-
 class MssqlTransaction extends MssqlQueryable implements Transaction {
-  [LOCK_TAG] = new Mutex()
+  #mutex = new Mutex()
 
   constructor(private transaction: sql.Transaction, readonly options: TransactionOptions) {
     super(transaction)
   }
 
   async performIO(query: SqlQuery): Promise<ArrayModeResult> {
-    const release = await this[LOCK_TAG].acquire()
+    const release = await this.#mutex.acquire()
     try {
       return await super.performIO(query)
     } catch (e) {
@@ -148,6 +146,10 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
   async dispose(): Promise<void> {
     await this.pool.close()
   }
+
+  underlyingDriver(): sql.ConnectionPool {
+    return this.pool
+  }
 }
 
 export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
@@ -156,7 +158,7 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaMssqlAdapter> {
     const pool = new sql.ConnectionPool(this.config)
     await pool.connect()
     return new PrismaMssqlAdapter(pool, this.options)

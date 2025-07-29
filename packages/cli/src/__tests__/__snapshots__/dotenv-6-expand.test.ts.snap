@@ -1,6 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`should read expanded env vars 1`] = `
-"Environment variables loaded from expand/.env
-"
-`;

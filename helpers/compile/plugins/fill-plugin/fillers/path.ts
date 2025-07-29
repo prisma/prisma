@@ -24,6 +24,24 @@ export function dirname(path: string) {
 }
 
 export const sep = '/'
+export const delimiter = ':'
+
+export function normalize(path: string) {
+  // Simple normalization - remove duplicate slashes and resolve . and ..
+  const parts = path.split('/').filter((part) => part !== '' && part !== '.')
+  const normalized: string[] = []
+
+  for (const part of parts) {
+    if (part === '..') {
+      normalized.pop()
+    } else {
+      normalized.push(part)
+    }
+  }
+
+  const result = normalized.join('/')
+  return path.startsWith('/') ? '/' + result : result
+}
 
 export const posix = {
   sep,
@@ -34,8 +52,10 @@ export const posix = {
  */
 const path = {
   basename,
+  delimiter,
   dirname,
   join,
+  normalize,
   parse,
   posix,
   resolve,

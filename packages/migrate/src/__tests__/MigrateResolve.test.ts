@@ -14,7 +14,7 @@ describe('common', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -205,9 +205,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/invalid-url.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
       "
     `)
@@ -228,9 +231,12 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       Please make sure your database server is running at \`something.cockroachlabs.cloud:26257\`."
     `)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/invalid-url.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" <location placeholder>
       "
     `)

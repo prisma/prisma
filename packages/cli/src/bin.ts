@@ -1,9 +1,10 @@
 #!/usr/bin/env tsx
 
+import { InjectFormatters } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { arg, handlePanic, HelpError, isRustPanic } from '@prisma/internals'
+import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -20,14 +21,14 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { bold, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
-import { Mcp } from './MCP'
+import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
@@ -168,10 +169,31 @@ async function main(): Promise<number> {
     debug(`Failed to initialize the command state: ${err}`)
   })
 
-  const config = await loadConfig(args['--config'])
-  if (config instanceof HelpError) {
-    console.error(config.message)
+  const configEither = await loadConfig(args['--config'])
+
+  if (configEither instanceof HelpError) {
+    console.error(configEither.message)
     return 1
+  }
+
+  const { config, diagnostics: configDiagnostics } = configEither
+
+  // Diagnostics like informational logs and warnings are logged to stderr, to not interfere with structured output
+  // in some of the commands consuming the Prisma config.
+  // See: https://www.gnu.org/software/libc/manual/html_node/Standard-Streams.html
+  const configDiagnosticFormatters: InjectFormatters = {
+    // This fixes https://github.com/prisma/prisma/issues/27609.
+    log: (data) => process.stderr.write(data + '\n'),
+    warn: (data) => console.warn(`${yellow(bold('warn'))} ${data}`),
+    dim: (data) => dim(data),
+
+    // `terminal-link` is not easily installable in `@prisma/config` without introducing ESM/CJS incompatibility issues, or
+    //  circular dependencies (requiring yet another `@prisma` package),
+    link: (data) => link(data),
+  }
+
+  for (const configDiagnostic of configDiagnostics) {
+    configDiagnostic.value(configDiagnosticFormatters)()
   }
 
   const startCliExec = performance.now()

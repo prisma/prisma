@@ -48,12 +48,19 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
   }
 
   return defineConfig({
-    earlyAccess: true,
+    experimental: {
+      adapter: adapter !== undefined,
+    },
     adapter,
   })
 }
 
 async function loadFixtureConfig(ctx: BaseContext) {
+  // Note: This is a workaround to avoid issues with jest's module resolution.
+  // If you used `loadConfigFromFile` directly, you'd observe the following error:
+  // ```
+  // [ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG]: A dynamic import callback was invoked without --experimental-vm-modules
+  // ```
   if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
   return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
 }

@@ -12,6 +12,7 @@ import {
   loadEnvFile,
   loadSchemaContext,
   locateLocalCloudflareD1,
+  MigrateTypes,
   toSchemasContainer,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
@@ -278,7 +279,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        ...(await listMigrations(args['--from-migrations'])),
+        ...(await listMigrations(args['--from-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -322,7 +323,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        ...(await listMigrations(args['--to-migrations'])),
+        ...(await listMigrations(args['--to-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })
@@ -333,7 +334,11 @@ ${bold('Examples')}
     }
 
     const adapter = await config.adapter?.()
-    const migrate = await Migrate.setup({ adapter })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+    const migrate = await Migrate.setup({ adapter, schemaFilter })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
@@ -351,6 +356,10 @@ ${bold('Examples')}
         script: args['--script'] || false, // default is false
         shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
         exitCode: args['--exit-code'] ?? null,
+        filters: {
+          externalTables: config.tables?.external ?? [],
+          externalEnums: config.enums?.external ?? [],
+        },
       })
     } finally {
       // Stop engine

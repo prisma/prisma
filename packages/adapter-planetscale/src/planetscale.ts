@@ -134,13 +134,11 @@ function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
   }
 }
 
-const LOCK_TAG = Symbol()
-
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
   // The PlanetScale connection objects are not meant to be used concurrently,
   // so we override the `performIO` method to synchronize access to it with a mutex.
   // See: https://github.com/mattrobenolt/ps-http-sim/issues/7
-  [LOCK_TAG] = new Mutex()
+  #mutex = new Mutex()
 
   constructor(
     tx: planetScale.Transaction,
@@ -152,7 +150,7 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
   }
 
   async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
-    const release = await this[LOCK_TAG].acquire()
+    const release = await this.#mutex.acquire()
     try {
       return await super.performIO(query)
     } catch (e) {
@@ -233,16 +231,30 @@ export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.C
   }
 
   async dispose(): Promise<void> {}
+
+  underlyingDriver(): planetScale.Client {
+    return this.client
+  }
 }
 
 export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
-  constructor(private readonly config: planetScale.Config) {}
+  #config: planetScale.Config
+  #client?: planetScale.Client
 
-  async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPlanetScaleAdapter(new planetScale.Client(this.config))
+  constructor(arg: planetScale.Config | planetScale.Client) {
+    if (arg instanceof planetScale.Client) {
+      this.#config = arg.config
+      this.#client = arg
+    } else {
+      this.#config = arg
+    }
+  }
+
+  async connect(): Promise<PrismaPlanetScaleAdapter> {
+    return new PrismaPlanetScaleAdapter(this.#client ?? new planetScale.Client(this.#config))
   }
 }
 

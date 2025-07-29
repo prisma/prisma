@@ -1055,6 +1055,14 @@ jobs:
         name: 'adapter-d1'
         working-directory: packages/adapter-d1
 
+      - run: pnpm run test
+        name: 'adapter-pg'
+        working-directory: packages/adapter-pg
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
   #
   # Run type performance benchmark tests
   #

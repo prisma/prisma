@@ -59,7 +59,11 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     case '28000':
       return {
         kind: 'DatabaseAccessDenied',
-        db: error.message.split(' ').at(5)?.split('"').at(1),
+        db: error.message
+          .split(',')
+          .find((s) => s.startsWith(' database'))
+          ?.split('"')
+          .at(1),
       }
     case '28P01':
       return {

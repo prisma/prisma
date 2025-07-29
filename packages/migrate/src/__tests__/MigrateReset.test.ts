@@ -32,7 +32,7 @@ describe('common', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -185,7 +185,7 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
@@ -202,7 +202,7 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files - --skip-seed', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse(['--skip-seed'], await ctx.config())
@@ -210,7 +210,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.js', async () => {
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
@@ -233,7 +233,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.js - error should exit 1', async () => {
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
 
@@ -261,7 +261,7 @@ describe('reset', () => {
   })
 
   test('reset - seed.ts', async () => {
-    ctx.fixture('seed-sqlite-ts')
+    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([], await ctx.config())
@@ -284,7 +284,7 @@ describe('reset', () => {
   }, 10_000)
 
   it('reset - legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     // ctx.fs.remove('prisma/seed.sh')

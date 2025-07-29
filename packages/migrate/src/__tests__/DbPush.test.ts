@@ -21,7 +21,7 @@ describe('push', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -307,9 +307,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--force-reset'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
@@ -326,9 +329,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       ⚠️  There might be data loss when applying the changes:
@@ -337,6 +343,21 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
 
 
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
+  it('should exclude external tables', async () => {
+    ctx.fixture('external-tables')
+
+    const result = DbPush.new().parse([], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    // Note the missing warnings about the User table as it is marked as external and won't be modified
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "

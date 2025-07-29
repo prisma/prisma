@@ -12,23 +12,21 @@
   "license": "Apache-2.0",
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "dependencies": {
-    "jiti": "2.4.2"
+    "c12": "3.1.0",
+    "deepmerge-ts": "7.1.5",
+    "effect": "3.16.12",
+    "read-package-up": "11.0.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "cross-env": "7.0.3",
-    "effect": "3.16.12",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0"
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest"
+    "test": "vitest run"
   },
   "files": [
     "dist"

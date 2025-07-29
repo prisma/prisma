@@ -1,15 +1,15 @@
+import path from 'node:path'
 import { defineConfig } from 'src/index'
 
 export default defineConfig({
-  earlyAccess: true,
-  schema: './custom/schema.prisma',
+  schema: path.join('custom', 'schema.prisma'),
   views: {
-    path: './custom/views',
+    path: path.join('custom', 'views'),
   },
   typedSql: {
-    path: './custom/typedSql',
+    path: path.join('custom', 'typedSql'),
   },
   migrations: {
-    path: './custom/migrations',
+    path: path.join('custom', 'migrations'),
   },
 })

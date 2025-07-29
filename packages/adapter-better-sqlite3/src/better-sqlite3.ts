@@ -39,8 +39,6 @@ type BetterSQLite3Meta = {
   lastInsertRowid: number | bigint
 }
 
-const LOCK_TAG = Symbol()
-
 class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
@@ -152,7 +150,7 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
 }
 
 export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
-  [LOCK_TAG] = new Mutex()
+  #mutex = new Mutex()
 
   constructor(client: StdClient) {
     super(client)
@@ -183,7 +181,7 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
     debug('%s options: %O', tag, options)
 
     try {
-      const release = await this[LOCK_TAG].acquire()
+      const release = await this.#mutex.acquire()
 
       this.client.prepare('BEGIN').run()
 

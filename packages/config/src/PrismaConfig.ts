@@ -7,6 +7,7 @@ import { Either, identity, Schema as Shape, Struct } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
+import { PrismaConfigPackageJson, PrismaConfigPackageJsonShape } from './loadConfigFromPackageJson'
 import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
@@ -37,15 +38,56 @@ const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   },
 )
 
+export type ExperimentalConfig = {
+  /**
+   * Enable experimental adapter support.
+   */
+  adapter?: boolean
+  /**
+   * Enable experimental Prisma Studio features.
+   */
+  studio?: boolean
+  /**
+   * Enable experimental external tables support.
+   */
+  externalTables?: boolean
+}
+
+const ExperimentalConfigShape = Shape.Struct({
+  adapter: Shape.optional(Shape.Boolean),
+  studio: Shape.optional(Shape.Boolean),
+  externalTables: Shape.optional(Shape.Boolean),
+})
+
+declare const __testExperimentalConfigShapeValueA: (typeof ExperimentalConfigShape)['Type']
+declare const __testExperimentalConfigShapeValueB: ExperimentalConfig
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testExperimentalConfigShapeValueA satisfies ExperimentalConfig
+  __testExperimentalConfigShapeValueB satisfies (typeof ExperimentalConfigShape)['Type']
+}
+
 export type MigrationsConfigShape = {
   /**
    * The path to the directory where Prisma should store migration files, and look for them.
    */
   path?: string
+  /**
+   * Provide a SQL script that will be used to setup external tables and enums during migration diffing.
+   * Also see `tables.external` and `enums.external`.
+   */
+  initShadowDb?: string
+  /**
+   * The command to run to seed the database after schema migrations are applied.
+   */
+  seed?: string
 }
 
 const MigrationsConfigShape = Shape.Struct({
   path: Shape.optional(Shape.String),
+  initShadowDb: Shape.optional(Shape.String),
+  seed: Shape.optional(Shape.NonEmptyString),
 })
 
 // The exported types are re-declared manually instead of using the Shape.Type
@@ -60,6 +102,50 @@ declare const __testMigrationsConfigShapeValueB: MigrationsConfigShape
 if (false) {
   __testMigrationsConfigShapeValueA satisfies MigrationsConfigShape
   __testMigrationsConfigShapeValueB satisfies (typeof MigrationsConfigShape)['Type']
+}
+
+export type TablesConfigShape = {
+  /**
+   * List of tables that are externally managed.
+   * Prisma will not modify the structure of these tables and not generate migrations for those tables.
+   * These tables will still be represented in schema.prisma file and be available in the client API.
+   */
+  external?: string[]
+}
+
+const TablesConfigShape = Shape.Struct({
+  external: Shape.optional(Shape.mutable(Shape.Array(Shape.String))),
+})
+
+declare const __testTablesConfigShapeValueA: (typeof TablesConfigShape)['Type']
+declare const __testTablesConfigShapeValueB: TablesConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testTablesConfigShapeValueA satisfies TablesConfigShape
+  __testTablesConfigShapeValueB satisfies (typeof TablesConfigShape)['Type']
+}
+
+export type EnumsConfigShape = {
+  /**
+   * List of enums that are externally managed.
+   * Prisma will not modify the structure of these enums and not generate migrations for those enums.
+   * These enums will still be represented in schema.prisma file and be available in the client API.
+   */
+  external?: string[]
+}
+
+const EnumsConfigShape = Shape.Struct({
+  external: Shape.optional(Shape.mutable(Shape.Array(Shape.String))),
+})
+
+declare const __testEnumsConfigShapeValueA: (typeof EnumsConfigShape)['Type']
+declare const __testEnumsConfigShapeValueB: EnumsConfigShape
+
+// eslint-disable-next-line no-constant-condition
+if (false) {
+  __testEnumsConfigShapeValueA satisfies EnumsConfigShape
+  __testEnumsConfigShapeValueB satisfies (typeof EnumsConfigShape)['Type']
 }
 
 export type ViewsConfigShape = {
@@ -126,7 +212,10 @@ if (false) {
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
 declare const __testPrismaConfig: keyof (typeof PrismaConfigShape)['Type']
-declare const __testPrismaConfigInternal: keyof Omit<(typeof PrismaConfigInternalShape)['Type'], 'loadedFromFile'>
+declare const __testPrismaConfigInternal: keyof Omit<
+  (typeof PrismaConfigInternalShape)['Type'],
+  'loadedFromFile' | 'deprecatedPackageJson'
+>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
@@ -136,11 +225,13 @@ if (false) {
 
 // Define the shape for the user-facing `PrismaConfig` type.
 const PrismaConfigShape = Shape.Struct({
-  earlyAccess: Shape.Literal(true),
+  experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
   adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
   migrations: Shape.optional(MigrationsConfigShape),
+  tables: Shape.optional(TablesConfigShape),
+  enums: Shape.optional(EnumsConfigShape),
   views: Shape.optional(ViewsConfigShape),
   typedSql: Shape.optional(TypedSqlConfigShape),
 })
@@ -151,9 +242,9 @@ const PrismaConfigShape = Shape.Struct({
  */
 export type PrismaConfig = {
   /**
-   * Whether features with an unstable API are enabled.
+   * Experimental feature gates. Each experimental feature must be explicitly enabled.
    */
-  earlyAccess: true
+  experimental?: Simplify<ExperimentalConfig>
   /**
    * The path to the schema file, or path to a folder that shall be recursively searched for *.prisma files.
    */
@@ -170,6 +261,14 @@ export type PrismaConfig = {
    * Configuration for Prisma migrations.
    */
   migrations?: Simplify<MigrationsConfigShape>
+  /**
+   * Configuration for the database table entities.
+   */
+  tables?: Simplify<TablesConfigShape>
+  /**
+   * Configuration for the database enum entities.
+   */
+  enums?: Simplify<EnumsConfigShape>
   /**
    * Configuration for the database view entities.
    */
@@ -189,13 +288,58 @@ if (false) {
 }
 
 /**
+ * Validates that experimental features are enabled when using corresponding configuration options.
+ */
+function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
+  const experimental = config.experimental || {}
+
+  // Check adapter configuration
+  if (config.adapter && !experimental.adapter) {
+    return Either.left(new Error('The `adapter` configuration requires `experimental.adapter` to be set to `true`.'))
+  }
+
+  // Check studio configuration
+  if (config.studio && !experimental.studio) {
+    return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
+  }
+
+  // Check external tables configuration
+  if (config.tables?.external && !experimental.externalTables) {
+    return Either.left(
+      new Error('The `tables.external` configuration requires `experimental.externalTables` to be set to `true`.'),
+    )
+  }
+
+  // Check external enums configuration
+  if (config.enums?.external && !experimental.externalTables) {
+    return Either.left(
+      new Error('The `enums.external` configuration requires `experimental.externalTables` to be set to `true`.'),
+    )
+  }
+
+  // Check migrations initShadowDb configuration
+  if (config.migrations?.initShadowDb && !experimental.externalTables) {
+    return Either.left(
+      new Error(
+        'The `migrations.initShadowDb` configuration requires `experimental.externalTables` to be set to `true`.',
+      ),
+    )
+  }
+
+  return Either.right(config)
+}
+
+/**
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
 function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
-  return Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
-    onExcessProperty: 'error',
-  })
+  return pipe(
+    Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
+      onExcessProperty: 'error',
+    }),
+    Either.flatMap(validateExperimentalFeatures),
+  )
 }
 
 const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
@@ -206,6 +350,12 @@ const PrismaConfigInternalShape = Shape.Struct({
   ...Struct.omit(PrismaConfigShape.fields, 'adapter'),
   adapter: Shape.optional(ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape),
   loadedFromFile: Shape.NullOr(Shape.String),
+  deprecatedPackageJson: Shape.NullOr(
+    Shape.Struct({
+      config: PrismaConfigPackageJsonShape,
+      loadedFromFile: Shape.String,
+    }),
+  ),
 })
 
 type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
@@ -218,6 +368,26 @@ type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
    * It's set to `null` if no config file was found and only default config is applied.
    */
   loadedFromFile: string | null
+  /**
+   * The deprecated Prisma configuration from `package.json#prisma`.
+   * This is set to `null` if no `package.json#prisma` config was found.
+   * The configuration read from the Prisma config file (e.g., `prisma.config.ts`) takes precedence over
+   * this `package.json#prisma` config.
+   * @deprecated
+   */
+  deprecatedPackageJson: {
+    /**
+     * The Prisma configuration from `package.json#prisma`.
+     * @deprecated
+     */
+    config: PrismaConfigPackageJson
+
+    /**
+     * The path from where the `package.json` config was loaded.
+     * @deprecated
+     */
+    loadedFromFile: string
+  } | null
 }
 
 declare const __testPrismaConfigInternalValueA: (typeof PrismaConfigInternalShape)['Type']

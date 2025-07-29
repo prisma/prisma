@@ -40,7 +40,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -61,7 +61,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -82,7 +82,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-schema-datasource flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -103,7 +103,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --to-schema-datasource flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -124,7 +124,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --shadow-database-url flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -145,7 +145,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --from-local-d1 flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -166,7 +166,7 @@ describe('migrate diff', () => {
         expect(e.message).toMatchInlineSnapshot(`
           "
           Passing the --to-local-d1 flag to the prisma migrate diff command is not supported when
-          defining a migrate.adapter in prisma.config.ts.
+          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
 
           More information about this limitation: https://pris.ly/d/schema-engine-limitations
           "
@@ -882,7 +882,7 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
-        CREATE TABLE "Blog" (
+        CREATE TABLE "public"."Blog" (
             "id" INT4 NOT NULL,
             "viewCount20" INT4 NOT NULL,
 
@@ -957,7 +957,7 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(`""`)
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
         "-- CreateTable
-        CREATE TABLE "Blog" (
+        CREATE TABLE "public"."Blog" (
             "id" INTEGER NOT NULL,
             "viewCount20" INTEGER NOT NULL,
 
@@ -1010,6 +1010,21 @@ describe('migrate diff', () => {
         "
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('should exclude external tables from diff', async () => {
+      ctx.fixture('external-tables')
+
+      const result = MigrateDiff.new().parse(
+        ['--from-empty', '--to-schema-datamodel=./schema.prisma'],
+        await ctx.config(),
+      )
+      await expect(result).resolves.toMatchInlineSnapshot(`""`)
+      // Note the missing warnings about the User table as it is marked as external and won't be modified
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "No difference detected.
+        "
+      `)
     })
   })
 

@@ -1,8 +1,9 @@
+import { capitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 
-import { capitalize, getFieldArgName, getSelectName } from '../utils'
+import { getFieldArgName, getSelectName } from '../utils'
 import { ArgsTypeBuilder } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generable } from './Generable'

@@ -234,7 +234,10 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['library', 'client'].includes(options.runtimeName) && context.isPreviewFeatureOn('driverAdapters')) {
+  if (
+    ['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName) &&
+    context.isPreviewFeatureOn('driverAdapters')
+  ) {
     clientOptions.add(
       ts
         .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))

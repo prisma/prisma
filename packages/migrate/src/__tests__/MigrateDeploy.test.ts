@@ -15,7 +15,7 @@ describe('common', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -187,9 +187,12 @@ describeMatrix(postgresOnly, 'postgres', () => {
     ctx.fixture('schema-only-data-proxy')
     const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from .env
-      Prisma schema loaded from with-directUrl-env.prisma
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" <location placeholder>
 
       No migration found in prisma/migrations

@@ -8,6 +8,7 @@ export abstract class TypeBuilder implements BasicBuilder {
   needsParenthesisWhenIndexed = false
   needsParenthesisInKeyof = false
   needsParenthesisInUnion = false
+  needsParenthesisInIntersection = false
 
   abstract write(writer: Writer): void
 
