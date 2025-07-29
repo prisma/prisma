@@ -13,7 +13,6 @@ import {
   loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
-  protocolToConnectorType,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
@@ -42,7 +41,7 @@ ${bold('Options')}
              --config   Custom path to your Prisma config file
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
-        --force-reset   Force a reset of the database before push 
+        --force-reset   Force a reset of the database before push
       --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${bold('Examples')}
@@ -228,8 +227,8 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // this is safe, as if the protocol was unknown, we would have already exited the program with an error
-      const provider = protocolToConnectorType(`${datasourceInfo.url?.split(':')[0]}:`)
+      // Favor the adapter if any, fallback to the provider defined in the schema
+      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${
