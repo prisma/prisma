@@ -464,7 +464,7 @@ export class PrismaClientClass implements Generable {
     return `${this.jsDoc}
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  const U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -548,10 +548,15 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
+export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+export type GetLogType<T> = CheckIsLogLevel<
+  T extends LogDefinition ? T['level'] : T
+>;
+
+export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+  ? GetLogType<T[number]>
+  : never;
 
 export type QueryEvent = {
   timestamp: Date
@@ -647,16 +652,24 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           .setDocComment(ts.docComment`
              @example
              \`\`\`
-             // Defaults to stdout
+             // Shorthand for \`emit: 'stdout'\`
              log: ['query', 'info', 'warn', 'error']
 
-             // Emit as events
+             // Emit as events only
              log: [
-               { emit: 'stdout', level: 'query' },
-               { emit: 'stdout', level: 'info' },
-               { emit: 'stdout', level: 'warn' }
-               { emit: 'stdout', level: 'error' }
+               { emit: 'event', level: 'query' },
+               { emit: 'event', level: 'info' },
+               { emit: 'event', level: 'warn' }
+               { emit: 'event', level: 'error' }
              ]
+
+            // Emit as events and log to stdout
+            log: [
+              { emit: 'stdout', level: 'query' },
+              { emit: 'stdout', level: 'info' },
+              { emit: 'stdout', level: 'warn' }
+              { emit: 'stdout', level: 'error' }
+            ]
              \`\`\`
              Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
           `),

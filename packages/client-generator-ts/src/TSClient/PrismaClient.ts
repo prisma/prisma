@@ -293,7 +293,7 @@ export interface PrismaClientConstructor {
   ${indent(this.jsDoc, TAB_SIZE)}
   new <
     ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-    U = LogOptions<ClientOptions>,
+    const U = LogOptions<ClientOptions>,
     ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
   >(options?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>): PrismaClient<ClientOptions, U, ExtArgs>
 }
