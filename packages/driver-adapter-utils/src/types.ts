@@ -3,7 +3,7 @@ import { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
-export interface ResultSet {
+export interface SqlResultSet {
   /**
    * List of column types appearing in a database query, in the same order as `columnNames`.
    * They are used within the Query Engine to convert values from JS to Quaint values.
@@ -70,8 +70,12 @@ export type ArgType =
   | 'Date'
   // A time value.
   | 'Time'
+  // An unknown type, should be passed to the driver as is.
+  | 'Unknown'
 
-export type Query = {
+export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SNAPSHOT' | 'SERIALIZABLE'
+
+export type SqlQuery = {
   sql: string
   args: Array<unknown>
   argTypes: Array<ArgType>
@@ -87,7 +91,88 @@ export type Error =
       type: string
     }
   | {
-      kind: 'Postgres'
+      kind: 'InvalidIsolationLevel'
+      level: string
+    }
+  | {
+      kind: 'LengthMismatch'
+      column?: string
+    }
+  | {
+      kind: 'UniqueConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'NullConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'ForeignKeyConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'DatabaseNotReachable'
+      host?: string
+      port?: number
+    }
+  | {
+      kind: 'DatabaseDoesNotExist'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAlreadyExists'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAccessDenied'
+      db?: string
+    }
+  | {
+      kind: 'ConnectionClosed'
+    }
+  | {
+      kind: 'TlsConnectionError'
+      reason: string
+    }
+  | {
+      kind: 'AuthenticationFailed'
+      user?: string
+    }
+  | {
+      kind: 'TransactionWriteConflict'
+    }
+  | {
+      kind: 'TableDoesNotExist'
+      table?: string
+    }
+  | {
+      kind: 'ColumnNotFound'
+      column?: string
+    }
+  | {
+      kind: 'TooManyConnections'
+      cause: string
+    }
+  | {
+      kind: 'ValueOutOfRange'
+      cause: string
+    }
+  | {
+      kind: 'MissingFullTextSearchIndex'
+    }
+  | {
+      kind: 'SocketTimeout'
+    }
+  | {
+      kind: 'InconsistentColumnData'
+      cause: string
+    }
+  | {
+      kind: 'TransactionAlreadyClosed'
+      cause: string
+    }
+  | {
+      kind: 'postgres'
       code: string
       severity: string
       message: string
@@ -96,83 +181,113 @@ export type Error =
       hint: string | undefined
     }
   | {
-      kind: 'Mysql'
+      kind: 'mysql'
       code: number
       message: string
       state: string
     }
   | {
-      kind: 'Sqlite'
+      kind: 'sqlite'
       /**
        * Sqlite extended error code: https://www.sqlite.org/rescode.html
        */
       extendedCode: number
       message: string
     }
+  | {
+      kind: 'mssql'
+      code: number
+      message: string
+    }
 
 export type ConnectionInfo = {
   schemaName?: string
   maxBindValues?: number
+  supportsRelationJoins: boolean
 }
+
+export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
-// It's only used for auto-completion.
+// It's only used for auto-completion and tests.
 const officialPrismaAdapters = [
   '@prisma/adapter-planetscale',
   '@prisma/adapter-neon',
   '@prisma/adapter-libsql',
+  '@prisma/adapter-better-sqlite3',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',
-  '@prisma/adapter-pg-worker',
+  '@prisma/adapter-mssql',
+  '@prisma/adapter-mariadb',
 ] as const
 
-export interface Queryable {
-  readonly provider: 'mysql' | 'postgres' | 'sqlite'
-  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
+export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]
 
+/**
+ * A generic driver adapter factory that allows the user to instantiate a
+ * driver adapter. The query and result types are specific to the adapter.
+ */
+export interface DriverAdapterFactory<Query, Result> extends AdapterInfo {
   /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the type-aware result set of the query.
-   *
-   * This is the preferred way of executing `SELECT` queries.
+   * Instantiate a driver adapter.
    */
-  queryRaw(params: Query): Promise<Result<ResultSet>>
-
-  /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the number of affected rows.
-   *
-   * This is the preferred way of executing `INSERT`, `UPDATE`, `DELETE` queries,
-   * as well as transactional queries.
-   */
-  executeRaw(params: Query): Promise<Result<number>>
+  connect(): Promise<Queryable<Query, Result>>
 }
 
-export interface TransactionContext extends Queryable {
-  /**
-   * Starts new transaction.
-   */
-  startTransaction(): Promise<Result<Transaction>>
+export interface SqlDriverAdapterFactory extends DriverAdapterFactory<SqlQuery, SqlResultSet> {
+  connect(): Promise<SqlDriverAdapter>
 }
 
-export interface DriverAdapter extends Queryable {
+/**
+ * An SQL migration adapter that is aware of the notion of a shadow database
+ * and can create a connection to it.
+ */
+export interface SqlMigrationAwareDriverAdapterFactory extends SqlDriverAdapterFactory {
+  connectToShadowDb(): Promise<SqlDriverAdapter>
+}
+
+export interface Queryable<Query, Result> extends AdapterInfo {
   /**
-   * Starts new transaction.
+   * Execute a query and return its result.
    */
-  transactionContext(): Promise<Result<TransactionContext>>
+  queryRaw(params: Query): Promise<Result>
+
+  /**
+   * Execute a query and return the number of affected rows.
+   */
+  executeRaw(params: Query): Promise<number>
+}
+
+export interface SqlQueryable extends Queryable<SqlQuery, SqlResultSet> {}
+
+export interface SqlDriverAdapter extends SqlQueryable {
+  /**
+   * Execute multiple SQL statements separated by semicolon.
+   */
+  executeScript(script: string): Promise<void>
+
+  /**
+   * Start new transaction.
+   */
+  startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction>
 
   /**
    * Optional method that returns extra connection info
    */
-  getConnectionInfo?(): Result<ConnectionInfo>
+  getConnectionInfo?(): ConnectionInfo
+
+  /**
+   * Dispose of the connection and release any resources.
+   */
+  dispose(): Promise<void>
 }
 
 export type TransactionOptions = {
   usePhantomQuery: boolean
 }
 
-export interface Transaction extends Queryable {
+export interface Transaction extends AdapterInfo, SqlQueryable {
   /**
    * Transaction options.
    */
@@ -180,16 +295,48 @@ export interface Transaction extends Queryable {
   /**
    * Commit the transaction.
    */
-  commit(): Promise<Result<void>>
+  commit(): Promise<void>
   /**
-   * Rolls back the transaction.
+   * Roll back the transaction.
    */
-  rollback(): Promise<Result<void>>
+  rollback(): Promise<void>
 }
 
-export interface ErrorCapturingDriverAdapter extends DriverAdapter {
+/**
+ * An interface that exposes some basic information about the
+ * adapter like its name and provider type.
+ */
+export interface AdapterInfo {
+  readonly provider: Provider
+  readonly adapterName: (typeof officialPrismaAdapters)[number] | (string & {})
+}
+
+type ErrorCapturingFunction<T> = T extends (...args: infer A) => Promise<infer R>
+  ? (...args: A) => Promise<Result<ErrorCapturingInterface<R>>>
+  : T extends (...args: infer A) => infer R
+  ? (...args: A) => Result<ErrorCapturingInterface<R>>
+  : T
+
+type ErrorCapturingInterface<T> = {
+  [K in keyof T]: ErrorCapturingFunction<T[K]>
+}
+
+export interface ErrorCapturingSqlDriverAdapter extends ErrorCapturingInterface<SqlDriverAdapter> {
   readonly errorRegistry: ErrorRegistry
 }
+
+export interface ErrorCapturingSqlDriverAdapterFactory extends ErrorCapturingInterface<SqlDriverAdapterFactory> {
+  readonly errorRegistry: ErrorRegistry
+}
+
+export interface ErrorCapturingSqlMigrationAwareDriverAdapterFactory
+  extends ErrorCapturingInterface<SqlMigrationAwareDriverAdapterFactory> {
+  readonly errorRegistry: ErrorRegistry
+}
+
+export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
+
+export type ErrorCapturingSqlQueryable = ErrorCapturingInterface<SqlQueryable>
 
 export interface ErrorRegistry {
   consumeError(id: number): ErrorRecord | undefined

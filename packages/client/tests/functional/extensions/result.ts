@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
+import { AdapterProviders } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
+import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -418,6 +419,10 @@ testMatrix.setupTestSuite(
         suiteConfig.previewFeatures?.includes('relationJoins') === true,
         'https://github.com/prisma/prisma/issues/22971',
       )
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

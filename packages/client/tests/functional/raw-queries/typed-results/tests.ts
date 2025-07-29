@@ -1,7 +1,7 @@
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -112,7 +112,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm-engine-edge') {
         expect(result![0].bInt === 9007199254740991).toBe(true)
       } else {
         expect(result![0].bInt === BigInt('9007199254740991')).toBe(true)
@@ -128,7 +128,7 @@ testMatrix.setupTestSuite(
 
       const result = await getAllEntries()
 
-      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm') {
+      if (driverAdapter === 'js_d1' && clientRuntime !== 'wasm-engine-edge') {
         // It's a number
         expect(result![0].bInt === -9007199254740991).toBe(true)
       } else {
@@ -180,16 +180,16 @@ testMatrix.setupTestSuite(
         testIf(isBigIntNativelySupported)('BigInt is natively supported', async () => {
           const create = createBigIntMinSafeIntPlusMinSafeInt(prisma)
 
-          if (clientRuntime !== 'wasm') {
+          if (clientRuntime !== 'wasm-engine-edge') {
             if (driverAdapter === 'js_libsql') {
               await expect(create).rejects.toThrow(
                 `bigint is too large to be represented as a 64-bit integer and passed as argument`,
               )
-            } else if (driverAdapter === 'js_neon' || driverAdapter === 'js_pg') {
+            } else if (driverAdapter && ['js_neon', 'js_pg', 'js_pg_cockroachdb'].includes(driverAdapter)) {
               // PostgresError { code: \"22003\", message: \"value \\\"-18428729675200069634\\\" is out of range for type bigint\", severity: \"ERROR\", detail: None, column: None, hint: None }
               await expect(create).rejects.toThrow(`is out of range for type bigint`)
             } else if (driverAdapter === 'js_planetscale') {
-              await expect(create).rejects.toThrow(`Value out of range for the type.`)
+              await expect(create).rejects.toThrow(`Value out of range for the type`)
               await expect(create).rejects.toThrow(
                 `rpc error: code = FailedPrecondition desc = Out of range value for column 'bInt' at row 1`,
               )

@@ -1,7 +1,7 @@
 import { yellow } from 'kleur/colors'
 
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
-import { debugMultipleSchemaPaths, type MultipleSchemas } from '../utils/schemaFileInput'
+import { type MultipleSchemas } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 
 type LintSchemaParams = { schemas: MultipleSchemas }
@@ -27,7 +27,7 @@ export function lintSchema({ schemas }: LintSchemaParams): LintDiagnostic[] {
   return lintDiagnostics
 }
 
-export function handleLintPanic<T>(tryCb: () => T, { schemas }: LintSchemaParams) {
+export function handleLintPanic<T>(tryCb: () => T) {
   try {
     return tryCb()
   } catch (e: unknown) {
@@ -38,8 +38,6 @@ export function handleLintPanic<T>(tryCb: () => T, { schemas }: LintSchemaParams
       /* rustStack */ stack,
       /* request */ '@prisma/prisma-schema-wasm lint',
       ErrorArea.FMT_CLI,
-      /* schemaPath */ debugMultipleSchemaPaths(schemas),
-      /* schema */ schemas,
     )
 
     throw panic

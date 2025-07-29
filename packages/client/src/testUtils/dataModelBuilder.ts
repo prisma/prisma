@@ -1,6 +1,5 @@
-import { DMMF } from '@prisma/generator-helper'
-
-import { dmmfToRuntimeDataModel, RuntimeDataModel } from '../runtime/core/runtimeDataModel'
+import { dmmfToRuntimeDataModel, RuntimeDataModel } from '@prisma/client-common'
+import type * as DMMF from '@prisma/dmmf'
 
 export function field(kind: DMMF.FieldKind, name: string, type: string, extra?: Partial<DMMF.Field>): DMMF.Field {
   return {

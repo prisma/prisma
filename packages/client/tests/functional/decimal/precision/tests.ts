@@ -2,7 +2,7 @@ import { fc, test } from '@fast-check/jest'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -61,6 +61,10 @@ testMatrix.setupTestSuite(
         sqlite - decimals are floating point and not arbitrary precision
         mongo - decimals are not supported
     `,
+    },
+    skipDriverAdapter: {
+      from: ['js_mssql'],
+      reason: `The mssql driver appears to be losing precision even when receiving a stringified decimal`,
     },
   },
 )

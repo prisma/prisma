@@ -1,12 +1,11 @@
+import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
-import { lowerCase } from '../../utils/lowerCase'
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
-import { RuntimeDataModel, RuntimeModel } from '../core/runtimeDataModel'
-import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
+import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
 const knownProperties = [
   'datasources',
@@ -84,6 +83,12 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     }
   },
   adapter: (adapter, config) => {
+    if (!adapter && getClientEngineType(config.generator) === ClientEngineType.Client) {
+      throw new PrismaClientConstructorValidationError(
+        `Using engine type "client" requires a driver adapter to be provided to PrismaClient constructor.`,
+      )
+    }
+
     if (adapter === null) {
       return
     }
@@ -100,7 +105,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       )
     }
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
+    if (getClientEngineType(config.generator) === ClientEngineType.Binary) {
       throw new PrismaClientConstructorValidationError(
         `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
       )
@@ -322,7 +327,7 @@ function getModelOrTypeByKey(modelKey: string, runtimeDataModel: RuntimeDataMode
 }
 
 function findByKey<T>(map: Record<string, T>, key: string): T | undefined {
-  const foundKey = Object.keys(map).find((mapKey) => lowerCase(mapKey) === key)
+  const foundKey = Object.keys(map).find((mapKey) => uncapitalize(mapKey) === key)
   if (foundKey) {
     return map[foundKey]
   }

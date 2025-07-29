@@ -20,3 +20,22 @@ export const adapterConfig: BuildOptions[] = [
     emitTypes: true,
   },
 ]
+
+export const unbundledConfig: BuildOptions[] = [
+  {
+    name: 'cjs',
+    format: 'cjs',
+    entryPoints: ['src/**/*.ts'],
+    outdir: 'dist',
+    outExtension: { '.js': '.js' },
+    emitTypes: true,
+  },
+  {
+    name: 'esm',
+    format: 'esm',
+    entryPoints: ['src/**/*.ts'],
+    outdir: 'dist',
+    outExtension: { '.js': '.mjs' },
+    emitTypes: true,
+  },
+]

@@ -1,7 +1,7 @@
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
+            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\`"`,
           )
         },
       )
@@ -65,7 +65,7 @@ testMatrix.setupTestSuite(
 
           // proof that the correct engine is used
           await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
-            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`"`,
+            `"Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\`"`,
           )
         },
       )

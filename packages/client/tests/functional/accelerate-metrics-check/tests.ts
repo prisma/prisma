@@ -1,7 +1,7 @@
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
     skipDefaultClientInstance: true,
     skip(when, { clientRuntime }) {
       when(
-        clientRuntime === 'wasm',
+        clientRuntime === 'wasm-engine-edge',
         `EEXIST: file already exists, symlink '/home/millsp/Work/prisma/packages/client/runtime/query-engine.wasm'
         This is a wider issue pointed out before (by @millsp) that matrixes do not always yield unique paths, can lead to many issues.
         Additionally, the test is missing an expect.assertions(1) or expect.assertions(0) depending on the case.`,

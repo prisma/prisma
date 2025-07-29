@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   canPrompt,
@@ -9,14 +10,14 @@ import {
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
-import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
@@ -40,6 +41,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
    -h, --help   Display this help message
+     --config   Custom path to your Prisma config file
      --schema   Custom path to your Prisma schema
   -f, --force   Skip the confirmation prompt
 
@@ -55,7 +57,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db drop --preview-feature --force
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -63,14 +65,13 @@ ${bold('Examples')}
       '--force': Boolean,
       '-f': '--force',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
     if (isError(args)) {
       return this.help(args.message)
     }
-
-    await checkUnsupportedDataProxy('db drop', args, true)
 
     if (args['--help']) {
       return this.help()
@@ -80,11 +81,16 @@ ${bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = await getSchemaPathAndPrint(args['--schema'])
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
+    checkUnsupportedDataProxy({ cmd: 'db drop', schemaContext })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
@@ -112,7 +118,7 @@ ${bold('Examples')}
       }
     }
 
-    // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
+    // Url exists because we set `ignoreEnvVarErrors: false` when calling `loadSchemaContext`
     if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName

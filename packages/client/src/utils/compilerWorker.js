@@ -1,6 +1,7 @@
-const { createCompilerHost, createProgram, convertCompilerOptionsFromJson } = require('typescript')
 const ts = require('typescript')
 const tsconfig = require('../../../../tsconfig.build.regular.json')
+
+const { createCompilerHost, createProgram, convertCompilerOptionsFromJson } = ts
 
 function compileFile(filePath) {
   const options = {
@@ -21,4 +22,8 @@ function compileFile(filePath) {
   }
 }
 
-compileFile(process.argv[2])
+module.exports = compileFile
+
+if (require.main === module) {
+  compileFile(process.argv[2])
+}

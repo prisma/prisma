@@ -1,3 +1,4 @@
+import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
@@ -14,14 +15,11 @@ import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import rimraf from 'rimraf'
-import { promisify } from 'util'
+import { rimraf } from 'rimraf'
 
-import { generateClient } from '../generation/generateClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
 const debug = Debug('prisma:generateInFolder')
-const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
   projectDir: string
@@ -46,7 +44,7 @@ export async function generateInFolder({
   const schemaNotFoundError = new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 
   try {
-    schemaPathResult = await getSchemaWithPath(undefined, { cwd: projectDir })
+    schemaPathResult = await getSchemaWithPath(undefined, undefined, { cwd: projectDir })
   } catch (e) {
     debug('Error in getSchemaPath', e)
   }
@@ -62,12 +60,12 @@ export async function generateInFolder({
   }
 
   const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
-  const previewFeatures = extractPreviewFeatures(config)
+  const previewFeatures = extractPreviewFeatures(config.generators)
   const clientEngineType = getClientEngineType(config.generators[0])
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
-  await del(outputDir)
+  await rimraf(outputDir)
 
   if (packageSource) {
     await copy({
@@ -122,6 +120,7 @@ export async function generateInFolder({
     schemaPath,
     testMode: true,
     copyRuntime: false,
+    runtimeSourcePath: path.join(__dirname, '../../runtime'),
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',

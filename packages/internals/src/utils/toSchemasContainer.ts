@@ -1,7 +1,5 @@
-import { GetSchemaResult } from '../cli/getSchema'
-import { ConfigMetaFormat } from '../engine-commands'
+import { SchemaContext } from '../cli/schemaContext'
 import { MigrateTypes } from '../migrateTypes'
-import { getMigrateConfigDir } from './getMigrateConfigDir'
 import { MultipleSchemas } from './schemaFileInput'
 
 export function toSchemasContainer(schemas: MultipleSchemas): MigrateTypes.SchemasContainer {
@@ -10,13 +8,10 @@ export function toSchemasContainer(schemas: MultipleSchemas): MigrateTypes.Schem
   }
 }
 
-export function toSchemasWithConfigDir(
-  getSchemaResult: GetSchemaResult,
-  config: ConfigMetaFormat,
-): MigrateTypes.SchemasWithConfigDir {
+export function toSchemasWithConfigDir(schemaContext: SchemaContext): MigrateTypes.SchemasWithConfigDir {
   return {
-    files: multipleSchemasToSchemaContainers(getSchemaResult.schemas),
-    configDir: getMigrateConfigDir(config, getSchemaResult.schemaPath),
+    files: multipleSchemasToSchemaContainers(schemaContext.schemaFiles),
+    configDir: schemaContext.primaryDatasourceDirectory,
   }
 }
 

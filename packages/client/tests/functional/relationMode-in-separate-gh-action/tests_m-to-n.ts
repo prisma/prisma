@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 // @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -201,17 +201,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `postId`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`postId`)',
                       [Providers.SQLSERVER]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
@@ -363,17 +363,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `postId`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`postId`)',
                       [Providers.SQLSERVER]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
@@ -456,17 +456,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `categoryId`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`categoryId`)',
                       [Providers.SQLSERVER]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
@@ -656,17 +656,17 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `postId`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`postId`)',
                       [Providers.SQLSERVER]:
                         onUpdate === 'Restrict'
                           ? // Restrict
-                            'Foreign key constraint violated: `postId`'
+                            'Foreign key constraint violated on the fields: (`postId`)'
                           : // NoAction
-                            'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                            'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
@@ -705,17 +705,17 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `categoryId`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`categoryId`)',
                       [Providers.SQLSERVER]:
                         onUpdate === 'Restrict'
                           ? // Restrict
-                            'Foreign key constraint violated: `postId`'
+                            'Foreign key constraint violated on the fields: (`postId`)'
                           : // NoAction
-                            'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                            'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
@@ -908,13 +908,13 @@ testMatrix.setupTestSuite(
                   : conditionalError.snapshot({
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                         [Providers.COCKROACHDB]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                        [Providers.MYSQL]: 'Foreign key constraint violated: `postId`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                        [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`postId`)',
                         [Providers.SQLSERVER]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                        [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                        [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                         [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       },
                       prisma:
@@ -948,13 +948,13 @@ testMatrix.setupTestSuite(
                   : conditionalError.snapshot({
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
                         [Providers.COCKROACHDB]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                        [Providers.MYSQL]: 'Foreign key constraint violated: `categoryId`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                        [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`categoryId`)',
                         [Providers.SQLSERVER]:
-                          'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                        [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                          'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                        [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                         [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       },
                       prisma:
@@ -994,14 +994,14 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `postId`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`postId`)',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       [Providers.SQLSERVER]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_postId_fkey`',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
@@ -1034,14 +1034,14 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `categoryId`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`categoryId`)',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                       [Providers.SQLSERVER]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
                       [Providers.COCKROACHDB]:
-                        'Foreign key constraint violated: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        'Foreign key constraint violated on the constraint: `CategoriesOnPostsManyToMany_categoryId_fkey`',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",

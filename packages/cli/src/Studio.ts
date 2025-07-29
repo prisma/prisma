@@ -1,18 +1,18 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
   format,
-  getConfig,
   getDirectUrl,
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
   mergeSchemas,
   resolveUrl,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
@@ -24,7 +24,7 @@ import path from 'path'
 // See packages/client/tests/e2e/issues/studio-1128-spawn-enoent/_steps.ts
 const debug = Debug('prisma:cli:studio')
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json')
 
 export class Studio implements Command {
   public instance?: StudioServer
@@ -46,6 +46,7 @@ ${bold('Options')}
   -p, --port        Port to start Studio on
   -b, --browser     Browser to open Studio in
   -n, --hostname    Hostname to bind the Express server to
+  --config          Custom path to your Prisma config file
   --schema          Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -66,17 +67,22 @@ ${bold('Examples')}
 
   Specify a schema
     ${dim('$')} prisma studio --schema=./schema.prisma
+    
+  Specify a custom prisma config file
+    ${dim('$')} prisma studio --config=./prisma.config.ts
 `)
 
   /**
    * Parses arguments passed to this command, and starts Studio
    *
    * @param argv Array of all arguments
+   * @param config The loaded Prisma config
    */
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--port': Number,
       '-p': '--port',
       '--browser': String,
@@ -95,9 +101,13 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+      ignoreEnvVarErrors: true,
+    })
 
     const hostname = args['--hostname']
     const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
@@ -106,14 +116,17 @@ ${bold('Examples')}
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const mergedSchema = mergeSchemas({
-      schemas,
+      schemas: schemaContext.schemaFiles,
     })
 
-    const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const adapter = await config.studio?.adapter()
+
+    if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
-      schemaPath,
+      schemaPath: schemaContext.schemaPath,
+      adapter,
       schemaText: mergedSchema,
       hostname,
       port,
@@ -122,7 +135,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: resolveUrl(getDirectUrl(config.datasources[0])),
+        directUrl: resolveUrl(getDirectUrl(schemaContext.primaryDatasource)),
       },
       versions: {
         prisma: packageJson.version,

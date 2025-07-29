@@ -1,6 +1,8 @@
+import { EventEmitter } from 'node:events'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
-import { EventEmitter } from 'events'
-import path from 'path'
 
 import { BinaryEngine } from '../runtime/core/engines'
 import { disabledTracingHelper } from '../runtime/core/tracing/TracingHelper'
@@ -17,7 +19,6 @@ describe('BinaryEngine', () => {
       const engine = new BinaryEngine({
         dirname: __dirname,
         flags: ['--flag-that-does-not-exist'],
-        datamodelPath: path.join(__dirname, './runtime-tests/blog/schema.prisma'),
         tracingHelper: disabledTracingHelper,
         env: {},
         cwd: process.cwd(),
@@ -25,9 +26,10 @@ describe('BinaryEngine', () => {
         clientVersion: '0.0.0',
         engineVersion: '0000000000000000000000000000000000000000',
         inlineDatasources: {},
-        inlineSchema: '',
+        inlineSchema: await fs.readFile(path.join(__dirname, 'runtime-tests/blog/schema.prisma'), 'utf8'),
         inlineSchemaHash: '',
         overrideDatasources: {},
+        transactionOptions: {},
       })
       await engine.start()
     } catch (e) {

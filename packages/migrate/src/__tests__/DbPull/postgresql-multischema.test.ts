@@ -1,40 +1,18 @@
-// describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
-describe('postgresql-multischema', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix(postgresOnly, 'postgresql-multischema', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-multischema-postgresql',
@@ -57,15 +35,12 @@ describe('postgresql-multischema', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -74,7 +49,7 @@ describe('postgresql-multischema', () => {
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -83,7 +58,10 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
@@ -106,9 +84,76 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgres"
+        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        schemas  = ["base", "transactional"]
+      }
+
+      model User {
+        id    String @id
+        email String
+        Post  Post[]
+
+        @@schema("base")
+      }
+
+      model base_some_table {
+        id         String                     @id(map: "User_pkey2")
+        email      String
+        some_table transactional_some_table[]
+
+        @@map("some_table")
+        @@schema("base")
+      }
+
+      model Post {
+        id       String @id
+        title    String
+        authorId String
+        User     User   @relation(fields: [authorId], references: [id])
+
+        @@schema("transactional")
+      }
+
+      model transactional_some_table {
+        id         String          @id(map: "Post_pkey2")
+        title      String
+        authorId   String
+        some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+
+        @@map("some_table")
+        @@schema("transactional")
+      }
+
+      enum base_status {
+        ON
+        OFF
+
+        @@map("status")
+        @@schema("base")
+      }
+
+      enum transactional_status {
+        ON
+        OFF
+
+        @@map("status")
+        @@schema("transactional")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
@@ -126,9 +171,45 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgres"
+        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        schemas  = ["base"]
+      }
+
+      model User {
+        id    String @id
+        email String
+
+        @@schema("base")
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+
+        @@schema("base")
+      }
+
+      enum status {
+        ON
+        OFF
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -136,9 +217,12 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).rejects.toThrow(`P4001`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -146,29 +230,45 @@ describe('postgresql-multischema', () => {
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
     ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--schema',
-      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
-    ])
+    const result = introspect.parse(
+      ['--print', '--schema', 'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
 
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
+      datasource db {
+        provider = "postgres"
+        url      = env("TEST_POSTGRES_URI_MIGRATE")
+        schemas  = ["base", "does-not-exist"]
+      }
 
-  test('--url with --schemas=base without preview feature should error', async () => {
-    ctx.fixture('introspection/postgresql-multischema')
-    ctx.fs.remove(`./schema.prisma`)
+      model User {
+        id    String @id
+        email String
 
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      "The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
+        @@schema("base")
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+
+        @@schema("base")
+      }
+
+      enum status {
+        ON
+        OFF
+
+        @@schema("base")
+      }
 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -177,7 +277,10 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'],
+      await ctx.config(),
+    )
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P4001 The introspected database was empty:
@@ -192,7 +295,7 @@ describe('postgresql-multischema', () => {
       Then you can run prisma db pull again. 
       "
     `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -201,9 +304,45 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        schemas  = ["base"]
+      }
+
+      model User {
+        id    String @id
+        email String
+
+        @@schema("base")
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+
+        @@schema("base")
+      }
+
+      enum status {
+        ON
+        OFF
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -212,15 +351,76 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--url',
-      setupParams.connectionString,
-      '--schemas',
-      'base,transactional',
-    ])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base,transactional'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        schemas  = ["base", "transactional"]
+      }
+
+      model User {
+        id    String @id
+        email String
+        Post  Post[]
+
+        @@schema("base")
+      }
+
+      model base_some_table {
+        id         String                     @id(map: "User_pkey2")
+        email      String
+        some_table transactional_some_table[]
+
+        @@map("some_table")
+        @@schema("base")
+      }
+
+      model Post {
+        id       String @id
+        title    String
+        authorId String
+        User     User   @relation(fields: [authorId], references: [id])
+
+        @@schema("transactional")
+      }
+
+      model transactional_some_table {
+        id         String          @id(map: "Post_pkey2")
+        title      String
+        authorId   String
+        some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+
+        @@map("some_table")
+        @@schema("transactional")
+      }
+
+      enum base_status {
+        ON
+        OFF
+
+        @@map("status")
+        @@schema("base")
+      }
+
+      enum transactional_status {
+        ON
+        OFF
+
+        @@map("status")
+        @@schema("transactional")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
@@ -239,15 +439,45 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse([
-      '--print',
-      '--url',
-      setupParams.connectionString,
-      '--schemas',
-      'base,does-not-exist',
-    ])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base,does-not-exist'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        schemas  = ["base", "does-not-exist"]
+      }
+
+      model User {
+        id    String @id
+        email String
+
+        @@schema("base")
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+
+        @@schema("base")
+      }
+
+      enum status {
+        ON
+        OFF
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -256,9 +486,45 @@ describe('postgresql-multischema', () => {
     ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    const result = introspect.parse(
+      ['--print', '--url', setupParams.connectionString, '--schemas', 'base'],
+      await ctx.config(),
+    )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql"
+        schemas  = ["base"]
+      }
+
+      model User {
+        id    String @id
+        email String
+
+        @@schema("base")
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+
+        @@schema("base")
+      }
+
+      enum status {
+        ON
+        OFF
+
+        @@schema("base")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -266,9 +532,9 @@ describe('postgresql-multischema', () => {
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -276,9 +542,31 @@ describe('postgresql-multischema', () => {
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
     const connectionString = `${setupParams.connectionString}?schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString])
+    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql?schema=base"
+      }
+
+      model User {
+        id    String @id
+        email String
+      }
+
+      model some_table {
+        id    String @id(map: "User_pkey2")
+        email String
+      }
+
+      enum status {
+        ON
+        OFF
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

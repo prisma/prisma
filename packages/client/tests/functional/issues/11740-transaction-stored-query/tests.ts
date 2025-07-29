@@ -1,6 +1,7 @@
+import { AdapterProviders } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -55,6 +56,10 @@ testMatrix.setupTestSuite(
     skipDataProxy: {
       runtimes: ['edge'],
       reason: 'Skipped because of the error snapshots on edge client',
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
     },
   },
 )

@@ -1,7 +1,7 @@
-import { Providers } from '../../_utils/providers'
+import { AdapterProviders, Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -161,6 +161,10 @@ testMatrix.setupTestSuite(
     optOut: {
       from: [Providers.MONGODB],
       reason: "MongoDB doesn't support raw queries",
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

@@ -1,10 +1,9 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
-import { EngineProtocol } from '../Engine'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
-import * as Transaction from './Transaction'
+import { IsolationLevel } from './Transaction'
 
 // Events
 export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent
@@ -34,22 +33,6 @@ export type QueryEnginePanicEvent = {
   file: string
   line: string
   column: string
-}
-
-// Configuration
-export type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-
-export type QueryEngineConfig = {
-  // TODO rename datamodel here and other places
-  datamodel: string
-  configDir: string
-  logQueries: boolean
-  ignoreEnvVarErrors: boolean
-  datasourceOverrides: Record<string, string>
-  env: Record<string, string | undefined>
-  logLevel: QueryEngineLogLevel
-  engineProtocol: EngineProtocol
-  enableTracing: boolean
 }
 
 export type QueryEngineTelemetry = {
@@ -94,7 +77,7 @@ export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatch
 export type QueryEngineBatchGraphQLRequest = {
   batch: QueryEngineRequest[]
   transaction?: boolean
-  isolationLevel?: Transaction.IsolationLevel
+  isolationLevel?: IsolationLevel
 }
 
 export type GetConfigOptions = {

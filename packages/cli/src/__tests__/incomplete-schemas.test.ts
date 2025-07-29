@@ -1,6 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
+import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
@@ -37,14 +38,14 @@ describe('[wasm] incomplete-schemas', () => {
     })
 
     it('format', async () => {
-      const result = await Format.new().parse([])
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      const result = await Format.new().parse([], defaultTestConfig())
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
 
     it('validate', async () => {
       expect.assertions(1)
       try {
-        await Validate.new().parse([])
+        await Validate.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchSnapshot()
       }
@@ -53,7 +54,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([])
+        await DbPush.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchSnapshot()
       }
@@ -62,7 +63,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([])
+        await DbPull.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -87,7 +88,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'])
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -110,7 +111,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([])
+        await MigrateReset.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -133,7 +134,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([])
+        await MigrateDev.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -162,7 +163,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('validate', async () => {
       expect.assertions(1)
       try {
-        await Validate.new().parse([])
+        await Validate.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -185,7 +186,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([])
+        await DbPush.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -208,7 +209,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([])
+        await DbPull.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -233,7 +234,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'])
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -256,7 +257,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([])
+        await MigrateReset.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -279,7 +280,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([])
+        await MigrateDev.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -306,8 +307,8 @@ describe('[wasm] incomplete-schemas', () => {
     })
 
     it('format', async () => {
-      const result = await Format.new().parse([])
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      const result = await Format.new().parse([], defaultTestConfig())
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
   })
 
@@ -319,7 +320,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('validate', async () => {
       expect.assertions(1)
       try {
-        await Validate.new().parse([])
+        await Validate.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -345,7 +346,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await Format.new().parse([])
+        await Format.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
@@ -374,12 +375,12 @@ describe('[wasm] incomplete-schemas', () => {
     })
 
     it('format', async () => {
-      const result = await Format.new().parse([])
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      const result = await Format.new().parse([], defaultTestConfig())
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
 
     it('validate', async () => {
-      const result = await Validate.new().parse([])
+      const result = await Validate.new().parse([], defaultTestConfig())
       expect(result).toMatch(/^The schema at (.*) is valid 🚀$/)
     })
   })
@@ -392,7 +393,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([])
+        await DbPush.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -417,7 +418,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([])
+        await DbPull.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -444,7 +445,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'])
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -469,7 +470,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([])
+        await MigrateReset.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -494,7 +495,7 @@ describe('[wasm] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([])
+        await MigrateDev.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -527,7 +528,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('db push', async () => {
       expect.assertions(1)
       try {
-        await DbPush.new().parse([])
+        await DbPush.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
           `"A datasource block is missing in the Prisma schema file."`,
@@ -538,7 +539,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('db pull', async () => {
       expect.assertions(1)
       try {
-        await DbPull.new().parse([])
+        await DbPull.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "There is no datasource in the schema.
@@ -553,7 +554,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'])
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "There is no datasource in the schema.
@@ -566,7 +567,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('migrate reset', async () => {
       expect.assertions(1)
       try {
-        await MigrateReset.new().parse([])
+        await MigrateReset.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
           `"A datasource block is missing in the Prisma schema file."`,
@@ -577,7 +578,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     it('migrate dev', async () => {
       expect.assertions(1)
       try {
-        await MigrateDev.new().parse([])
+        await MigrateDev.new().parse([], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
           `"A datasource block is missing in the Prisma schema file."`,

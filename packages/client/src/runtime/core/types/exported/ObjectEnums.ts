@@ -1,9 +1,4 @@
 /**
- * List of Prisma enums that must use unique objects instead of strings as their values.
- */
-export const objectEnumNames = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
-
-/**
  * Module-private symbol used to distinguish between instances of
  * `ObjectEnumValue` created inside and outside this module.
  */
@@ -48,13 +43,25 @@ class NullTypesEnumValue extends ObjectEnumValue {
   }
 }
 
-class DbNull extends NullTypesEnumValue {}
+class DbNull extends NullTypesEnumValue {
+  // Phantom private property to prevent structural type equality
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_DbNull!: void
+}
 setClassName(DbNull, 'DbNull')
 
-class JsonNull extends NullTypesEnumValue {}
+class JsonNull extends NullTypesEnumValue {
+  // Phantom private property to prevent structural type equality
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_JsonNull!: void
+}
 setClassName(JsonNull, 'JsonNull')
 
-class AnyNull extends NullTypesEnumValue {}
+class AnyNull extends NullTypesEnumValue {
+  // Phantom private property to prevent structural type equality
+  // eslint-disable-next-line no-unused-private-class-members
+  readonly #_brand_AnyNull!: void
+}
 setClassName(AnyNull, 'AnyNull')
 
 export const objectEnumValues = {

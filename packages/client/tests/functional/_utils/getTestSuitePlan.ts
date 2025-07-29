@@ -41,6 +41,7 @@ export function getTestSuitePlan(
     config.matrixOptions.engineType ??= testCliMeta.engineType
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
     config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
+    config.matrixOptions.generatorType ??= testCliMeta.generatorType
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
@@ -203,6 +204,10 @@ const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_PLANETSCALE: AdapterProviders.JS_PLANETSCALE,
   TEST_SKIP_LIBSQL: AdapterProviders.JS_LIBSQL,
   TEST_SKIP_D1: AdapterProviders.JS_D1,
+  TEST_SKIP_BETTER_SQLITE3: AdapterProviders.JS_BETTER_SQLITE3,
+  TEST_SKIP_MSSQL: AdapterProviders.JS_MSSQL,
+  TEST_SKIP_MARIADB: AdapterProviders.JS_MARIADB,
+  TEST_SKIP_PG_COCKROACHDB: AdapterProviders.JS_PG_COCKROACHDB,
 }
 
 function getExclusionsFromEnv(exclusionMap: Record<string, string>) {

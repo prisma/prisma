@@ -35,10 +35,9 @@ npx prisma generate
 
 ### 2. Install the dependencies
 
-Next, install the `pg` package and Prisma ORM's driver adapter:
+Next, install the Prisma ORM's driver adapter for pg:
 
 ```
-npm install pg
 npm install @prisma/adapter-pg
 ```
 
@@ -47,14 +46,12 @@ npm install @prisma/adapter-pg
 Finally, when you instantiate Prisma Client, you need to pass an instance of Prisma ORM's driver adapter to the `PrismaClient` constructor:
 
 ```ts
-import { Pool } from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
 const connectionString = `${process.env.DATABASE_URL}`
 
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
+const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 ```
 

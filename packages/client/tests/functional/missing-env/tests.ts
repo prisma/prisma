@@ -3,7 +3,7 @@ import stripAnsi from 'strip-ansi'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
@@ -63,7 +63,8 @@ testMatrix.setupTestSuite(
       testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
         'PrismaClientInitializationError for missing env on edge on cloudflare',
         async () => {
-          globalThis.navigator = { userAgent: 'Cloudflare-Workers' }
+          const originalNavigator = globalThis.navigator
+          globalThis.navigator = { ...originalNavigator, userAgent: 'Cloudflare-Workers' }
 
           const prisma = newPrismaClient()
 
@@ -81,7 +82,8 @@ testMatrix.setupTestSuite(
           }
 
           expect.hasAssertions()
-          delete globalThis.navigator
+
+          globalThis.navigator = { ...originalNavigator }
         },
       )
 

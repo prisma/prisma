@@ -1,6 +1,6 @@
+import { Cache } from '@prisma/client-common'
 import { mapObjectValues } from '@prisma/internals'
 
-import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { ExtensionArgs, ResultArg, ResultArgsFieldCompute } from '../types/exported/ExtensionArgs'
 import { Omission, Selection } from '../types/exported/JsApi'

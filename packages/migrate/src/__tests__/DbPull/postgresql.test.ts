@@ -1,40 +1,18 @@
-// describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
-describe('postgresql', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix(postgresOnly, 'postgresql', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-postgresql',
@@ -57,15 +35,11 @@ describe('postgresql', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -74,39 +48,171 @@ describe('postgresql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgres"
+        url      = env("TEST_POSTGRES_URI_MIGRATE")
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection --url + empty schema', async () => {
     ctx.fixture('empty-schema')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('basic introspection --url + schema with no linebreak after generator block', async () => {
     ctx.fixture('generator-only')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "generator client {
+        provider = "prisma-client-js"
+      }
+
+      datasource db {
+        provider = "postgresql"
+        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+      }
+
+      model Post {
+        id        String    @id
+        createdAt DateTime  @default(now())
+        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+        published Boolean   @default(false)
+        title     String
+        content   String?
+        authorId  String?
+        jsonData  Json?
+        coinflips Boolean[]
+        User      User?     @relation(fields: [authorId], references: [id])
+      }
+
+      model User {
+        id    String  @id
+        email String  @unique(map: "User.email")
+        name  String?
+        Post  Post[]
+      }
+
+      enum Role {
+        USER
+        ADMIN
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -115,7 +221,7 @@ describe('postgresql', () => {
     expect.assertions(3)
 
     try {
-      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
@@ -126,28 +232,25 @@ describe('postgresql', () => {
 
   test('introspection should load .env file without --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    expect.assertions(4)
+    expect.assertions(5)
 
     try {
-      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'])
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual('P1001')
       expect(e.message).toContain(`fromdotenvdoesnotexist`)
     }
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Environment variables loaded from prisma/.env
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/using-dotenv.prisma
-
-      Environment variables loaded from prisma/.env
-
-      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "fromdotenvdoesnotexist:5432"
-
-
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/using-dotenv.prisma
-
       ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
-
 
       "
     `)
@@ -156,10 +259,10 @@ describe('postgresql', () => {
 
   test('introspection --url with postgresql provider but schema has a sqlite provider should fail', async () => {
     ctx.fixture('schema-only-sqlite')
-    expect.assertions(4)
+    expect.assertions(5)
 
     try {
-      await DbPull.new().parse(['--url', setupParams.connectionString])
+      await DbPull.new().parse(['--url', setupParams.connectionString], await ctx.config())
     } catch (e) {
       expect(e.code).toEqual(undefined)
       expect(e.message).toMatchInlineSnapshot(
@@ -167,10 +270,10 @@ describe('postgresql', () => {
       )
     }
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -178,20 +281,18 @@ describe('postgresql', () => {
 
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
+      "Environment variables loaded from .env
+      "
+    `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from with-directUrl-env.prisma
-
-      Environment variables loaded from .env
-
-      Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql", schema "public" at "localhost:5432"
-
-
+      Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql", schema "public" <location placeholder>
 
       - Introspecting based on datasource defined in with-directUrl-env.prisma
-
       ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
