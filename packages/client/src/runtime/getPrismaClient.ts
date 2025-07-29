@@ -473,6 +473,25 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return this._requestContext
     }
 
+    /**
+     * Set the global schema for the client.
+     * @param schema - The schema to set (eg. `hospital2`)
+     * @param cb - Express middleware function (eg. `next()`)
+     */
+    $setGlobalSchema<R>(schema: string, cb: () => R): R {
+      return this._requestContext.run(
+        {
+          dynamicSchemas: [
+            {
+              from: 'hospital_template',
+              to: schema,
+            },
+          ],
+        },
+        cb,
+      )
+    }
+
     $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)

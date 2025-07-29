@@ -55,6 +55,16 @@ export class ArgsTypeBuilder {
     return this
   }
 
+  addDynamicSchemaArg(): this {
+    this.addProperty(
+      ts
+        .property('schema', ts.stringType)
+        .optional()
+        .setDocComment(ts.docComment(`The schema to use for the query. ('hospital_template' -> '{schema}')`)),
+    )
+    return this
+  }
+
   addIncludeArgIfHasRelations(includeTypeName = getIncludeName(this.type.name), type = this.type): this {
     const hasRelationField = type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
     if (!hasRelationField) {

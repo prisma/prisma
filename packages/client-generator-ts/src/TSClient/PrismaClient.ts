@@ -335,6 +335,13 @@ export interface PrismaClient<
    */
   $context(): RequestContext;
 
+  /**
+   * Set the global schema for the client.
+   * @param schema - The schema to set (eg. \`hospital2\`)
+   * @param cb - Express middleware function (eg. \`next()\`)
+   */
+  $setGlobalSchema<R>(schema: string, cb: () => R): R;
+
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),

@@ -110,13 +110,12 @@ export function serializeJsonQuery({
     previewFeatures,
     globalOmit,
   })
+  const { schema, ...extractedArgs } = args ?? {}
   return {
     modelName,
     action: jsActionToProtocolAction[action],
-    query: serializeFieldSelection(args, context),
-    dynamicSchemas: dynamicSchemas
-      ? Object.fromEntries(dynamicSchemas?.map((schema) => [schema.from, schema.to]))
-      : undefined,
+    query: serializeFieldSelection(extractedArgs, context),
+    dynamicSchemas: serializeDynamicSchema(dynamicSchemas, schema),
   }
 }
 
@@ -130,6 +129,26 @@ function serializeFieldSelection(
     arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
   }
+}
+
+function serializeDynamicSchema(
+  requestSchemas?: DynamicSchema[],
+  forceSchema?: string,
+): Record<string, string> | undefined {
+  const dynamicSchemas = requestSchemas ?? []
+
+  if (forceSchema && /^hospital([1-9]{1})([0-9]+)?$/.test(forceSchema)) {
+    dynamicSchemas.push({
+      from: 'hospital_template',
+      to: forceSchema,
+    })
+  }
+
+  if (dynamicSchemas.length === 0) {
+    return undefined
+  }
+
+  return Object.fromEntries(dynamicSchemas.map((schema) => [schema.from, schema.to]))
 }
 
 function serializeSelectionSet(

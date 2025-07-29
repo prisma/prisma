@@ -125,7 +125,6 @@ const __dirname = '/'
   }
 
   let preamble = `\
-import { AsyncLocalStorage } from 'async_hooks'
 import * as process from 'node:process'
 import * as path from 'node:path'
 `

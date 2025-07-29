@@ -26,6 +26,7 @@ const jsDocHeader = `/**
 
 export function createClassFile(context: GenerateContext, options: TSClientOptions): string {
   const imports: ts.BasicBuilder[] = [
+    ts.moduleImport(context.importFileName('async_hooks')).named('AsyncLocalStorage'),
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`./prismaNamespace`)).asNamespace('Prisma').typeOnly(),
   ]
