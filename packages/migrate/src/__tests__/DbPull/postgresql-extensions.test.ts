@@ -1,40 +1,18 @@
-// describeIf is making eslint unhappy about the test names
-/* eslint-disable jest/no-identical-title */
-
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { describeMatrix, postgresOnly } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
-describe('postgresql-extensions', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix(postgresOnly, 'postgresql-extensions', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-extensions-postgresql',
@@ -57,15 +35,11 @@ describe('postgresql-extensions', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -74,9 +48,9 @@ describe('postgresql-extensions', () => {
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'schema.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    const introspectedSchema = captureStdout.getCapturedText().join('\n')
+    const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"
@@ -124,9 +98,9 @@ describe('postgresql-extensions', () => {
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'])
+    const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    const introspectedSchema = captureStdout.getCapturedText().join('\n')
+    const introspectedSchema = ctx.normalizedCapturedStdout()
     expect(introspectedSchema).toMatchInlineSnapshot(`
       "generator client {
         provider        = "prisma-client-js"

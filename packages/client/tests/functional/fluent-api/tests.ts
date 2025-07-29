@@ -4,7 +4,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { House, Post, PrismaClient, Property } from './node_modules/@prisma/client'
+import type { House, Post, PrismaClient, Property } from './generated/prisma/client'
 
 const email = faker.internet.email()
 const title = faker.lorem.sentence()

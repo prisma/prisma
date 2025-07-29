@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('attempt to use $metrics a run-time error', () => {
-    expect(() => (prisma as any).$metrics).toThrowErrorMatchingInlineSnapshot(
+    expect(() => (prisma as any).$metrics.json()).toThrowErrorMatchingInlineSnapshot(
       `"\`metrics\` preview feature must be enabled in order to access metrics API"`,
     )
   })

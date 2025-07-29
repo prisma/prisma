@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 // @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -115,14 +115,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
-                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.COCKROACHDB]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                   }),
@@ -499,14 +502,17 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @map/@@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
-                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.COCKROACHDB]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
@@ -582,11 +588,11 @@ testMatrix.setupTestSuite(
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['Restrict', 'NoAction'].includes(onUpdate)
                         ? // Restrict / NoAction
-                          'Foreign key constraint violated: `userId`'
+                          'Foreign key constraint violated on the fields: (`userId`)'
                         : // DEFAULT / SetNull
                           /*
                       Error occurred during query execution:
-                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { 
+                      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError {
                         code: 1761,
                         message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                         key 'ProfileOneToOne_userId_key'\",
@@ -869,16 +875,19 @@ testMatrix.setupTestSuite(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
-                  `Foreign key constraint violated:`
+                  `Foreign key constraint violated`
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.MONGODB]:
                         "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                      [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                      [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.COCKROACHDB]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                      [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                       [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                     },
                     prisma:
@@ -935,14 +944,17 @@ testMatrix.setupTestSuite(
             isSchemaUsingMap && isRelationMode_foreignKeys
               ? // The snaphsot changes when using @map/@@map, though only the name of the table/field is different
                 // So we can be less specific here
-                `Foreign key constraint violated:`
+                `Foreign key constraint violated`
               : conditionalError.snapshot({
                   foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.MYSQL]: 'Foreign key constraint violated: `userId`',
-                    [Providers.SQLSERVER]: 'Foreign key constraint violated: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint violated: `foreign key`',
+                    [Providers.POSTGRESQL]:
+                      'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                    [Providers.COCKROACHDB]:
+                      'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                    [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                    [Providers.SQLSERVER]:
+                      'Foreign key constraint violated on the constraint: `ProfileOneToOne_userId_fkey`',
+                    [Providers.SQLITE]: 'Foreign key constraint violated on the foreign key',
                     [AdapterProviders.JS_D1]: 'D1_ERROR: FOREIGN KEY constraint failed',
                   },
                   prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683 ',

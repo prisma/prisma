@@ -1,5 +1,5 @@
 import { context } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
@@ -14,7 +14,7 @@ import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -22,7 +22,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 let inMemorySpanExporter: InMemorySpanExporter
 
 beforeAll(() => {
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
   context.setGlobalContextManager(contextManager)
 
   inMemorySpanExporter = new InMemorySpanExporter()

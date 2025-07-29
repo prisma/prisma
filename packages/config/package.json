@@ -1,0 +1,35 @@
+{
+  "name": "@prisma/config",
+  "version": "0.0.0",
+  "description": "Internal package used to define and read Prisma configuration files",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/config"
+  },
+  "license": "Apache-2.0",
+  "author": "Alberto Schiabel <schiabel@prisma.io>",
+  "dependencies": {
+    "c12": "3.1.0",
+    "deepmerge-ts": "7.1.5",
+    "effect": "3.16.12",
+    "read-package-up": "11.0.0"
+  },
+  "devDependencies": {
+    "@prisma/driver-adapter-utils": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
+    "vitest": "3.2.4"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false
+}

@@ -28,6 +28,15 @@ nvm install 18
 npm install --global pnpm@9 ts-node
 ```
 
+### For Windows Users
+
+The Prisma repository is configured for Unix-like environments (Linux/macOS). Commands, scripts, and configurations in this repo assume a POSIX-compliant shell and filesystem, meaning that Windows environments are not natively supported. If you’re developing on Windows, you’ll need to configure your environment accordingly, as commands and tooling may not work as expected without adjustments.
+
+We recommend one of the following approaches:
+
+1. [Windows Subsystem for Linux (WSL)](https://learn.microsoft.com/en-us/windows/wsl/install): WSL allows you to run a Linux distribution alongside your Windows installation, providing a native-like development environment
+2. [Visual Studio Code with Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers): Utilizing Visual Studio Code’s Dev Containers feature allows you to develop inside a Docker container, ensuring a consistent environment across different systems
+
 ## General Setup
 
 To set up and build all the packages, follow these steps:
@@ -312,10 +321,14 @@ List of types:
 
 List of directories in the monorepo:
 
+- adapter-better-sqlite3
+- adapter-d1
 - adapter-libsql
+- adapter-mssql
 - adapter-neon
 - adapter-pg
 - adapter-planetscale
+- adapter-mariadb
 - cli
 - client
 - debug

@@ -1,14 +1,13 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { join, resolve } from 'path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
 
 import { ErrorArea, RustPanic } from '..'
-import * as sendPanicUtils from '../sendPanic'
-import * as githubUtils from '../utils/getGitHubIssueUrl'
+import { sendPanic } from '../sendPanic'
+import { wouldYouLikeToCreateANewIssue } from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
 
 const keys = {
@@ -30,6 +29,18 @@ const testRootDir = tempy.directory()
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const oldProcessCwd = process.cwd
 
+const sendPanicTag = 'send-panic-failed'
+
+jest.mock('../sendPanic', () => ({
+  ...jest.requireActual('../sendPanic'),
+  sendPanic: jest.fn().mockImplementation(() => Promise.reject(new Error(sendPanicTag))),
+}))
+
+jest.mock('../utils/getGitHubIssueUrl', () => ({
+  ...jest.requireActual('../utils/getGitHubIssueUrl'),
+  wouldYouLikeToCreateANewIssue: jest.fn().mockImplementation(() => Promise.resolve()),
+}))
+
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('handlePanic', () => {
@@ -41,10 +52,14 @@ describe('handlePanic', () => {
 
   beforeEach(async () => {
     jest.resetModules() // most important - it clears the cache
+    jest.clearAllMocks()
+
     process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
     process.cwd = () => testRootDir
+
     await ensureDir(testRootDir)
   })
+
   afterEach(() => {
     process.cwd = oldProcessCwd
     // await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
@@ -56,13 +71,7 @@ describe('handlePanic', () => {
     io.restore()
   })
 
-  const error = new RustPanic(
-    'Some error message!',
-    '',
-    undefined,
-    ErrorArea.LIFT_CLI,
-    resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  )
+  const error = new RustPanic('Some error message!', '', undefined, ErrorArea.LIFT_CLI)
   const packageJsonVersion = '0.0.0'
   const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
@@ -86,7 +95,6 @@ describe('handlePanic', () => {
         getDatabaseVersionSafe,
       })
     } catch (e) {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
 
@@ -107,7 +115,7 @@ describe('handlePanic', () => {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`[RustPanic: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{"__typename":"RustPanic","name":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}"`,
+        `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","name":"RustPanic","schemaPath":"Some Schema Path"}"`,
       )
     }
   })
@@ -117,27 +125,14 @@ describe('handlePanic', () => {
     const enginesVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
     const command = 'test-command'
-    const sendPanicTag = 'send-panic-failed'
 
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
-
-    const spySendPanic = jest
-      .spyOn(sendPanicUtils, 'sendPanic')
-      .mockImplementation(() => Promise.reject(new Error(sendPanicTag)))
-      .mockName('mock-sendPanic')
-
-    const spyWouldYouLikeToCreateANewIssue = jest
-      .spyOn(githubUtils, 'wouldYouLikeToCreateANewIssue')
-      .mockImplementation(() => Promise.resolve())
-      .mockName('mock-wouldYouLikeToCreateANewIssue')
 
     const rustPanic = new RustPanic(
       'test-message',
       rustStackTrace,
       'test-request',
       ErrorArea.LIFT_CLI, // area
-      undefined, // schemaPath
-      undefined, // schema
       undefined, // introspectionUrl
     )
 
@@ -150,13 +145,12 @@ describe('handlePanic', () => {
       getDatabaseVersionSafe,
     })
 
-    expect(spySendPanic).toHaveBeenCalledTimes(1)
-    expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
+    expect(sendPanic).toHaveBeenCalledTimes(1)
+    expect(wouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
     expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
     expect(mockExit).toHaveBeenCalledWith(1)
-    spySendPanic.mockRestore()
   })
 })

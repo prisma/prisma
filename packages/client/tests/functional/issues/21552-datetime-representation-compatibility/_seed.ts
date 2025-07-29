@@ -1,4 +1,4 @@
-import { PrismaClient } from './node_modules/@prisma/client'
+import { PrismaClient } from './generated/prisma/client'
 
 async function main() {
   const prisma = new PrismaClient()

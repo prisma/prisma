@@ -54,6 +54,7 @@ jobs:
         with:
           repository: prisma/prisma-engines
           ref: ${{ needs.parseCommand.outputs.branchName }}
+
       - name: Get current engine hash
         id: engine-hash
         shell: bash
@@ -71,6 +72,10 @@ jobs:
             target/release/libquery_engine.so
             target/release/libquery_engine.dylib
             target/release/query_engine.dll
+            target/prisma-schema-wasm
+            query-engine/query-engine-wasm/pkg
+            query-compiler/query-compiler-wasm/pkg
+            schema-engine/schema-engine-wasm/pkg
           key: ${{ runner.os }}-engine-${{ steps.engine-hash.outputs.engineHash }}-${{ github.event.number }}
 
       - uses: dtolnay/rust-toolchain@stable
@@ -88,7 +93,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build custom engines with cargo
+      - name: Build native engines with cargo
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
@@ -96,3 +101,73 @@ jobs:
             -p query-engine \
             -p query-engine-node-api \
             -p schema-engine-cli
+
+      - uses: cargo-bins/cargo-binstall@main
+
+      - name: Extract wasm-bindgen version and install matching CLI
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          REQUESTED_WASM_BINDGEN_VERSION=$(grep -A 2 '^\[\[package\]\]$' Cargo.lock | grep 'name = "wasm-bindgen"' -A 1 | grep 'version' | sed 's/.*"\(.*\)".*/\1/')
+          if [ -n "$REQUESTED_WASM_BINDGEN_VERSION" ]; then
+            echo "Found wasm-bindgen version in Cargo.lock: $REQUESTED_WASM_BINDGEN_VERSION"
+            if which wasm-bindgen; then
+              INSTALLED_WASM_BINDGEN_VERSION=$(wasm-bindgen --version | cut -d' ' -f2)
+              if [ "$INSTALLED_WASM_BINDGEN_VERSION" == "$REQUESTED_WASM_BINDGEN_VERSION" ]; then
+                echo "Skipping wasm-bindgen CLI installation, version $INSTALLED_WASM_BINDGEN_VERSION has already been installed"
+              else
+                echo "ERROR: wasm-bindgen CLI $INSTALLED_WASM_BINDGEN_VERSION has already been installed, but the required version is $REQUESTED_WASM_BINDGEN_VERSION"
+                exit 1
+              fi
+            else
+              echo "Installing wasm-bindgen CLI $REQUESTED_WASM_BINDGEN_VERSION"
+              cargo binstall wasm-bindgen-cli --version "$REQUESTED_WASM_BINDGEN_VERSION"
+            fi
+          else
+            echo "ERROR: Could not find wasm-bindgen version in Cargo.lock"
+            exit 1
+          fi
+
+      - name: Install Binaryen (includes wasm-opt)
+        uses: jaxxstorm/action-install-gh-release@v1.14.0
+        with:
+          repo: WebAssembly/binaryen
+          tag: version_122
+          binaries-location: binaryen-version_122/bin
+          platform: ${{ runner.os == 'macOS' && 'macos' || runner.os == 'Windows' && 'windows' || 'linux' }}
+          cache: true
+
+      - name: Install coreutils on macOS (includes numfmt)
+        if: runner.os == 'macOS'
+        run: brew install coreutils
+
+      - name: Add coreutils to PATH on Windows (includes numfmt)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          echo "C:/msys64/usr/bin" >> "$GITHUB_PATH"
+          echo "C:/msys64/mingw64/bin" >> "$GITHUB_PATH"
+
+      - name: Build prisma-schema-wasm
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          make PROFILE=release build-schema-wasm
+
+      - name: Build query-engine-wasm
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          make WASM_BUILD_PROFILE=release build-qe-wasm
+
+      - name: Build query-compiler-wasm
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          make WASM_BUILD_PROFILE=release build-qc-wasm
+
+      - name: Build schema-engine-wasm
+        if: steps.artifacts-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          make WASM_BUILD_PROFILE=release build-se-wasm

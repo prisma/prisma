@@ -1,11 +1,20 @@
 import { $ } from 'zx'
 
 void (async () => {
-  const postgresProjects = ['da-workers-neon', 'da-workers-pg', 'da-workers-pg-worker']
-  const sqliteProjects = ['da-workers-libsql', 'da-workers-d1']
-  const mysqlProjects = ['da-workers-planetscale']
+  const postgresProjects = ['da-workers-neon', 'da-workers-pg']
+  const sqliteProjects = ['da-workers-libsql', 'da-workers-libsql-web', 'da-workers-d1']
+  const mysqlProjects = ['da-workers-planetscale', 'da-workers-mariadb']
+  const mssqlProjects = ['da-workers-mssql']
 
-  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects]
+  const nodeCompatProjects = new Set([
+    'da-workers-pg',
+    'da-workers-d1',
+    'da-workers-planetscale',
+    'da-workers-mssql',
+    'da-workers-mariadb',
+  ])
+
+  const projects = [...postgresProjects, ...sqliteProjects, ...mysqlProjects, ...mssqlProjects]
 
   const getSchemaFile = (project: string) => {
     if (postgresProjects.includes(project)) {
@@ -13,6 +22,9 @@ void (async () => {
     }
     if (mysqlProjects.includes(project)) {
       return `${__dirname}/schema.mysql.prisma`
+    }
+    if (mssqlProjects.includes(project)) {
+      return `${__dirname}/schema.mssql.prisma`
     }
     return `${__dirname}/schema.sqlite.prisma`
   }
@@ -22,14 +34,18 @@ void (async () => {
   await $`pnpm list -r --depth -2` // print the versions of the dependencies installed
 
   for (const project of projects) {
-    // `nodejs_compat` is only needed when using `pg`
-    const compatFlags = project === 'da-workers-pg-worker' ? 'nodejs_compat' : ''
-    const nodeCompat = project === 'da-workers-pg' ? '--node-compat' : ''
+    const compatFlags = nodeCompatProjects.has(project) ? 'nodejs_compat' : ''
     const projectDir = `${__dirname}/${project}`
 
     // Install deps & copy schema & generate Prisma Client
     await $`cp ${getSchemaFile(project)} ${projectDir}/schema.prisma`
-    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`
+    await $`pnpm prisma generate --schema=${projectDir}/schema.prisma`.catch((error) => {
+      const e = error as Error
+      console.error(
+        `Failed to generate Prisma Client from ${getSchemaFile(project)} (copied to ${projectDir}/schema.prisma)`,
+      )
+      throw e
+    })
 
     // Delete existing output (if it exists)
     await $`rm -rf ${projectDir}/output`
@@ -39,8 +55,8 @@ void (async () => {
     await $`pnpm wrangler deploy ${projectDir}/index.js \
       --dry-run \
       --outdir=${projectDir}/output \
-      --compatibility-date 2024-01-26 \
-      --compatibility-flags [${compatFlags}] ${nodeCompat} \
+      --compatibility-date 2024-09-23 \
+      --compatibility-flags "${compatFlags}" \
       --name ${project} \
       --tsconfig ${__dirname}/tsconfig.json`
 

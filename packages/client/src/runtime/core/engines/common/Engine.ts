@@ -1,14 +1,14 @@
-import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
-import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
+import { Datasources } from '../../../getPrismaClient'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
-import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -37,8 +37,6 @@ export type GraphQLQuery = {
   variables: object
 }
 
-export type EngineProtocol = 'graphql' | 'json'
-
 /**
  * Custom fetch function for `DataProxyEngine`.
  *
@@ -66,7 +64,7 @@ export type EngineProtocol = 'graphql' | 'json'
  * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
  * exactly this reason), our definition is never actually used and is completely
  * ignored, so it doesn't matter, and we can just use `unknown` as the type of
- * `fetch` here. 
+ * `fetch` here.
  */
 export type CustomDataProxyFetch = (fetch: unknown) => unknown
 
@@ -129,11 +127,13 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 export interface EngineConfig {
   cwd: string
   dirname: string
-  datamodelPath: string
   enableDebugLogs?: boolean
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   generator?: GeneratorConfig
+  /**
+   * @remarks this field is used internally by Policy, do not rename or remove
+   */
   overrideDatasources: Datasources
   showColors?: boolean
   logQueries?: boolean
@@ -154,17 +154,17 @@ export interface EngineConfig {
    * rather than Prisma's Rust drivers.
    * @remarks only used by LibraryEngine.ts
    */
-  adapter?: ErrorCapturingDriverAdapter
+  adapter?: SqlDriverAdapterFactory
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used by DataProxyEngine.ts
    */
   inlineSchema: string
 
   /**
    * The contents of the datasource url saved in a string
    * @remarks only used by DataProxyEngine.ts
+   * @remarks this field is used internally by Policy, do not rename or remove
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
@@ -190,7 +190,8 @@ export interface EngineConfig {
   /**
    * Web Assembly module loading configuration
    */
-  engineWasm?: WasmLoadingConfig
+  engineWasm?: EngineWasmLoadingConfig
+  compilerWasm?: CompilerWasmLoadingConfig
 
   /**
    * Allows Accelerate to use runtime utilities from the client. These are
@@ -207,24 +208,6 @@ export interface EngineConfig {
     engineVersion: string
     clientVersion: string
   }
-}
-
-export type WasmLoadingConfig = {
-  /**
-   * WASM-bindgen runtime for corresponding module
-   */
-  getRuntime: () => {
-    __wbg_set_wasm(exports: unknown)
-    QueryEngine: QueryEngineConstructor
-  }
-  /**
-   * Loads the raw wasm module for the wasm query engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
-   * @remarks only used by LibraryEngine.ts
-   */
-  getQueryEngineWasmModule: () => Promise<unknown>
 }
 
 export type GetConfigResult = {

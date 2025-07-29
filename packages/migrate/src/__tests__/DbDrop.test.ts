@@ -1,30 +1,15 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
-import { CaptureStdout } from '../utils/captureStdout'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
 describe('drop', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
-    const result = DbDrop.new().parse([])
+    const result = DbDrop.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
       Please provide the --preview-feature flag to use this command."
@@ -34,15 +19,17 @@ describe('drop', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
-    const result = DbDrop.new().parse(['--preview-feature'])
+    const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -50,27 +37,27 @@ describe('drop', () => {
 
   it('with missing db should fail (prompt)', async () => {
     ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
+    ctx.fs.remove('dev.db')
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = DbDrop.new().parse(['--preview-feature'])
+    const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"The database name entered "y" doesn't match "dev.db"."`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   it('with missing db should fail (--force)', async () => {
     ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
+    ctx.fs.remove('dev.db')
 
-    const result = DbDrop.new().parse(['--preview-feature', '--force'])
+    const result = DbDrop.new().parse(['--preview-feature', '--force'], await ctx.config())
     // Schema engine error:
     // Failed to delete SQLite database at \`dev.db\`.
     // On Linux/macOS:
     // No such file or directory (os error 2)
     // On Windows:
     // No such file or directory (os error 2)
-    await expect(result).rejects.toThrow(`Failed to delete SQLite database at \`dev.db\`.`)
+    await expect(result).rejects.toThrow(`Failed to delete SQLite database at \`../dev.db\`.`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
@@ -79,14 +66,13 @@ describe('drop', () => {
 
     prompt.inject(['dev.db']) // simulate user input
 
-    const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
+    await expect(result).resolves.toContain(
+      `The SQLite database "dev.db" from "file:../dev.db" was successfully dropped.`,
+    )
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       "
@@ -97,13 +83,13 @@ describe('drop', () => {
   it('should work (--force)', async () => {
     ctx.fixture('reset')
 
-    const result = DbDrop.new().parse(['--preview-feature', '--force'])
-    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    const result = DbDrop.new().parse(['--preview-feature', '--force'], await ctx.config())
+    await expect(result).resolves.toContain(
+      `The SQLite database "dev.db" from "file:../dev.db" was successfully dropped.`,
+    )
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -112,13 +98,13 @@ describe('drop', () => {
 
   it('should work (-f)', async () => {
     ctx.fixture('reset')
-    const result = DbDrop.new().parse(['--preview-feature', '-f'])
-    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    const result = DbDrop.new().parse(['--preview-feature', '-f'], await ctx.config())
+    await expect(result).resolves.toContain(
+      `The SQLite database "dev.db" from "file:../dev.db" was successfully dropped.`,
+    )
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       "
     `)
@@ -133,15 +119,11 @@ describe('drop', () => {
 
     prompt.inject([new Error()]) // simulate cancel
 
-    const result = DbDrop.new().parse(['--preview-feature'])
+    const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Drop cancelled.
@@ -155,7 +137,7 @@ describe('drop', () => {
     ctx.fixture('reset')
     process.env.GITHUB_ACTIONS = '1'
 
-    const result = DbDrop.new().parse(['--preview-feature'])
+    const result = DbDrop.new().parse(['--preview-feature'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(
       `"Use the --force flag to use the drop command in an unattended environment like prisma db drop --force --preview-feature"`,
     )

@@ -232,7 +232,7 @@ describe('format', () => {
   test('invalid schema', async () => {
     const schema = /* prisma */ `
       generator client {
-        provider        = "prisma-client-js"
+        provider  = "prisma-client-js"
       }
 
       datasource db {

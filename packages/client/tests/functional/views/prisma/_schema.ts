@@ -6,14 +6,15 @@ export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
+      output   = "../generated/prisma/client"
       previewFeatures = ["views"]
     }
-    
+
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
     }
-    
+
     model User {
       id ${idForProvider(provider)}
       email   String   @unique
@@ -29,7 +30,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     view UserInfo {
-      id    ${idForProvider(provider)}
+      id    String
       email String
       name  String
       bio   String

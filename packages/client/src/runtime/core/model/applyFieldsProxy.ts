@@ -1,6 +1,5 @@
-import { keyBy } from '@prisma/internals'
+import { keyBy, RuntimeModel } from '@prisma/client-common'
 
-import { RuntimeModel } from '../runtimeDataModel'
 import { FieldRefImpl } from './FieldRef'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
@@ -10,7 +9,7 @@ export type FieldProxy = {
 
 export function applyFieldsProxy(modelName: string, model: RuntimeModel): FieldProxy {
   const scalarFieldsList = model.fields.filter((field) => !field.relationName)
-  const scalarFields = keyBy(scalarFieldsList, (field) => field.name)
+  const scalarFields = keyBy(scalarFieldsList, 'name')
   return new Proxy(
     {},
     {

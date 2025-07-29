@@ -1,19 +1,21 @@
 import path from 'node:path'
 
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   Command,
   format,
   getConfig,
   getLintWarningsAsText,
+  getSchemaWithPath,
   handleLintPanic,
   HelpError,
   lintSchema,
   loadEnvFile,
   logger,
+  printSchemaLoadedMessage,
   validate,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -34,6 +36,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
 ${bold('Examples')}
@@ -41,16 +44,20 @@ ${bold('Examples')}
   With an existing Prisma schema
     ${dim('$')} prisma validate
 
+  With a Prisma config file
+    ${dim('$')} prisma validate --config=./prisma.config.ts
+
   Or specify a Prisma schema path
     ${dim('$')} prisma validate --schema=./schema.prisma
 
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--schema': String,
+      '--config': String,
       '--telemetry-information': String,
     })
 
@@ -62,18 +69,16 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
+    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    printSchemaLoadedMessage(schemaPath)
 
-    const { lintDiagnostics } = handleLintPanic(
-      () => {
-        // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schemas })
-        return { lintDiagnostics }
-      },
-      { schemas },
-    )
+    const { lintDiagnostics } = handleLintPanic(() => {
+      // the only possible error here is a Rust panic
+      const lintDiagnostics = lintSchema({ schemas })
+      return { lintDiagnostics }
+    })
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
     if (lintWarnings && logger.should.warn()) {

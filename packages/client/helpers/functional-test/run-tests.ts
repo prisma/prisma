@@ -35,6 +35,8 @@ const jestArgs = {
   // Use this flag to show full diffs and errors instead of a patch.
   '--expand': Boolean,
   '-e': '--expand',
+  // Create json test report -a lso see --outputFile.
+  '--json': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
   '--listTests': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
@@ -49,6 +51,8 @@ const jestArgs = {
   '--noStackTrace': Boolean,
   // Activates notifications for test results.
   '--notify': Boolean,
+  // Output file location for json output. Also see --json.
+  '--outputFile': String,
   // Passes the same flag to Jest to shard tests between multiple machines
   '--shard': String,
   // Passes the same flag to Jest to silence the output
@@ -91,6 +95,8 @@ const args = arg(
     '--data-proxy': Boolean,
     // Force using a specific client runtime under the hood
     '--client-runtime': String,
+    // Force using a specific generator type (prisma-client-js or prisma-client-ts)
+    '--generator-type': String,
     // Don't start the Mini-Proxy server and don't override NODE_EXTRA_CA_CERTS. You need to start the Mini-Proxy server
     // externally on the default port and run `eval $(mini-proxy env)` in your shell before starting the tests.
     '--no-mini-proxy-server': Boolean,
@@ -196,6 +202,10 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({ TEST_CLIENT_RUNTIME: args['--client-runtime'] })
   }
 
+  if (args['--generator-type']) {
+    jestCli = jestCli.withEnv({ TEST_GENERATOR_TYPE: args['--generator-type'] })
+  }
+
   if (args['--data-proxy']) {
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
       await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
@@ -203,6 +213,7 @@ async function main(): Promise<number | void> {
 
     jestCli = jestCli.withEnv({
       TEST_DATA_PROXY: 'true',
+      PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION: '0.0.0',
     })
 
     if (!args['--no-mini-proxy-server']) {

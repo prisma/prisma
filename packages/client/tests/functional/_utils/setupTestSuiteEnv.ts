@@ -1,5 +1,6 @@
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
+import { defaultTestConfig } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
@@ -63,10 +64,10 @@ async function copyPreprocessed({
 }): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
-  const newContents = contents
+  let newContents = contents
     .replace(/'\.\.\//g, "'../../../")
     .replace(/'\.\//g, "'../../")
-    .replace(/'\.\.\/\.\.\/node_modules/g, "'./node_modules")
+    .replace(/'\.\.\/\.\.\/generated\/prisma\//g, "'./generated/prisma/")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment({ conditionFromComment: condition, suiteConfig })) {
@@ -74,6 +75,10 @@ async function copyPreprocessed({
       }
       return match
     })
+
+  if (suiteConfig['generatorType'] !== 'prisma-client-ts') {
+    newContents = newContents.replace(/\/generated\/prisma\/sql/g, '/generated/prisma/client/sql')
+  }
 
   await fs.writeFile(to, newContents, 'utf8')
 }
@@ -149,7 +154,7 @@ export async function setupTestSuiteDatabase({
         dbPushParams.push('--force-reset')
       }
 
-      await DbPush.new().parse(dbPushParams)
+      await DbPush.new().parse(dbPushParams, defaultTestConfig())
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -176,12 +181,10 @@ export async function setupTestSuiteDatabase({
         alterStatementCallback(provider),
       )
 
-      await DbExecute.new().parse([
-        '--file',
-        `${prismaDir}/migrations/${timestamp}/migration.sql`,
-        '--schema',
-        `${schemaPath}`,
-      ])
+      await DbExecute.new().parse(
+        ['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`, '--schema', `${schemaPath}`],
+        defaultTestConfig(),
+      )
     }
 
     consoleInfoMock.mockRestore()
@@ -279,7 +282,7 @@ export async function dropTestSuiteDatabase({
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
+    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'], defaultTestConfig())
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)
@@ -408,7 +411,7 @@ function getDbUrl(provider: Providers): string {
     case Providers.SQLSERVER:
       return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
     default:
-      assertNever(provider, `No URL for provider ${provider} configured`)
+      return assertNever(provider, `No URL for provider ${provider} configured`)
   }
 }
 
@@ -428,6 +431,7 @@ function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undef
       .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))
       .with(AdapterProviders.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
       .with(AdapterProviders.JS_LIBSQL, () => requireEnvVariable('TEST_FUNCTIONAL_LIBSQL_FILE_URI'))
+      .with(AdapterProviders.JS_BETTER_SQLITE3, () => requireEnvVariable('TEST_FUNCTIONAL_BETTER_SQLITE3_FILE_URI'))
       .otherwise(() => getDbUrl(provider))
   )
 }

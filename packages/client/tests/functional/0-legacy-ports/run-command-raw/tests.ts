@@ -3,7 +3,7 @@ import { copycat } from '@snaplet/copycat'
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type $ from './node_modules/@prisma/client'
+import type $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
 
@@ -56,10 +56,10 @@ testMatrix.setupTestSuite(
           "cursor": {
             "firstBatch": [
               {
-                "email": "Kyla_Beer587@fraternise-assassination.name",
+                "email": "Kyla_Crist96556@cancollaboration.biz",
               },
               {
-                "email": "Arielle.Reichel85426@hunker-string.org",
+                "email": "Arielle.Oberbrunner94321@fulljuggernaut.org",
               },
             ],
             "id": 0,

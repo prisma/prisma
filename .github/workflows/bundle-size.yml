@@ -11,7 +11,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -34,7 +33,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 18
-          pnpm-version: 9
           skip-tsc: true
           skip-build: true
 

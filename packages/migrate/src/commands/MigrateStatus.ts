@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -6,16 +7,18 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('prisma:migrate:status')
@@ -35,6 +38,7 @@ Check the status of your database migrations
   ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
   ${bold('Examples')}
@@ -46,13 +50,14 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -62,22 +67,34 @@ Check the status of your database migrations
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate status', args, true)
-
     if (args['--help']) {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    // TODO: handle the case where the schemaPath is null
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const adapter = await config.adapter?.()
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
-    const migrate = new Migrate(schemaPath)
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    await ensureCanConnectToDatabase(schemaPath)
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+
+    // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
+    if (!adapter) {
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+    }
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
@@ -98,7 +115,7 @@ Check the status of your database migrations
       listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
       debug({ listMigrationDirectoriesResult })
     } finally {
-      migrate.stop()
+      await migrate.stop()
     }
 
     process.stdout.write('\n') // empty line

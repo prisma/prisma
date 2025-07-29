@@ -7,7 +7,7 @@ import { NewPrismaClient } from '../_utils/types'
 import { providersNotSupportingRelationJoins, providersSupportingRelationJoins, RelationLoadStrategy } from './_common'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -34,7 +34,12 @@ testMatrix.setupTestSuite(
 
         async function expectQueryCountAtLeast(count: Record<RelationLoadStrategy, number>) {
           await waitFor(() => {
-            expect(logs.length).toBeGreaterThanOrEqual(count[suiteConfig.strategy])
+            let expected = count[suiteConfig.strategy]
+            if (suiteConfig.driverAdapter !== undefined) {
+              // Driver adapters do not issue BEGIN through the query engine.
+              expected -= 1
+            }
+            expect(logs.length).toBeGreaterThanOrEqual(expected)
           })
         }
 

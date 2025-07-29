@@ -1,7 +1,7 @@
 import { enginesVersion } from '@prisma/engines'
 import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
@@ -14,13 +14,23 @@ import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
 export async function getBinaryPathsByVersion({
   neededVersions,
-  binaryTarget,
+  detectBinaryTarget,
   version,
   printDownloadProgress,
   skipDownload,
   binaryPathsOverride,
-}: GetBinaryPathsByVersionInput): Promise<Record<string, BinaryPaths>> {
+}: GetBinaryPathsByVersionInput): Promise<{
+  binaryPathsByVersion: Record<string, BinaryPaths>
+  binaryTarget: BinaryTarget
+}> {
   const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
+
+  if (Object.entries(neededVersions).length === 0) {
+    const UNUSED_BINARY_TARGET = 'native' satisfies BinaryTarget
+    return { binaryPathsByVersion, binaryTarget: UNUSED_BINARY_TARGET }
+  }
+
+  const binaryTarget = await detectBinaryTarget()
 
   // make sure, that at least the current platform is being fetched
   for (const currentVersion in neededVersions) {
@@ -119,5 +129,5 @@ export async function getBinaryPathsByVersion({
     }
   }
 
-  return binaryPathsByVersion
+  return { binaryPathsByVersion, binaryTarget }
 }

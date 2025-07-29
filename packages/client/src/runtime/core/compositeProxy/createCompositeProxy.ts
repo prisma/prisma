@@ -112,6 +112,8 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
       overwrittenKeys.add(property)
       return Reflect.defineProperty(target, property, attributes)
     },
+
+    getPrototypeOf: () => Object.prototype,
   })
 
   proxy[customInspect] = function () {

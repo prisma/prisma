@@ -19,7 +19,7 @@ export interface IntrospectionViewDefinition {
 
 type HandleViewsIOParams = {
   views: IntrospectionViewDefinition[]
-  schemaPath: string
+  viewsDirectoryPath: string
 }
 
 /**
@@ -28,17 +28,15 @@ type HandleViewsIOParams = {
  * If some other non ".sql" files or folders exist within the `views` directory, the CLI must preserve them.
  * In case of empty folders, these are deleted silently.
  */
-export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(pathToPosix(schemaPath))
-  const viewsDir = path.posix.join(prismaDir, 'views')
-
+export async function handleViewsIO({ views, viewsDirectoryPath }: HandleViewsIOParams): Promise<void> {
+  const posixViewsDirectoryPath = pathToPosix(viewsDirectoryPath)
   if (views.length === 0) {
-    await cleanLeftoversIO(viewsDir)
+    await cleanLeftoversIO(posixViewsDirectoryPath)
     return
   }
 
-  const { viewFilesToKeep } = await createViewsIO(viewsDir, views)
-  await cleanLeftoversIO(viewsDir, viewFilesToKeep)
+  const { viewFilesToKeep } = await createViewsIO(posixViewsDirectoryPath, views)
+  await cleanLeftoversIO(posixViewsDirectoryPath, viewFilesToKeep)
 }
 
 async function createViewsIO(

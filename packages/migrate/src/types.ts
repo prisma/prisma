@@ -3,7 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
-import type { SqlQueryOutput } from '@prisma/generator-helper'
+import type { ActiveConnectorType, SqlQueryOutput } from '@prisma/generator'
 import type { MigrateTypes } from '@prisma/internals'
 
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
@@ -68,7 +68,7 @@ export type HistoryDiagnostic =
     }
   | {
       diagnostic: 'historiesDiverge'
-      lastCommonMigrationName: string
+      lastCommonMigrationName: string | null
       unpersistedMigrationNames: string[]
       unappliedMigrationNames: string[]
     }
@@ -86,15 +86,17 @@ export namespace EngineArgs {
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
   export interface ApplyMigrationsInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface CreateMigrationInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
-    migrationName?: string
+    migrationName: string
+    filters: MigrateTypes.SchemaFilter
   }
 
   // The path to a live database taken as input.
@@ -123,7 +125,8 @@ export namespace EngineArgs {
   export interface IntrospectParams {
     schema: MigrateTypes.SchemasContainer
     baseDirectoryPath: string
-    force?: Boolean
+    viewsDirectoryPath: string
+    force?: boolean
 
     // Note: this must be a non-negative integer
     compositeTypeDepth?: number
@@ -147,13 +150,15 @@ export namespace EngineArgs {
   }
 
   export interface DevDiagnosticInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface DiagnoseMigrationHistoryInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     /// Whether creating shadow/temporary databases is allowed.
     optInToShadowDatabase: boolean
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface EnsureConnectionValidityInput {
@@ -161,8 +166,9 @@ export namespace EngineArgs {
   }
 
   export interface EvaluateDataLossInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     schema: MigrateTypes.SchemasContainer
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface ListMigrationDirectoriesInput {
@@ -170,7 +176,7 @@ export namespace EngineArgs {
   }
 
   export interface MarkMigrationAppliedInput {
-    migrationsDirectoryPath: string
+    migrationsList: MigrateTypes.MigrationList
     migrationName: string
   }
 
@@ -185,12 +191,10 @@ export namespace EngineArgs {
   }
   type MigrateDiffTargetSchemaDatamodel = MigrateTypes.Tagged<'schemaDatamodel', MigrateTypes.SchemasContainer>
   type MigrateDiffTargetSchemaDatasource = MigrateTypes.Tagged<'schemaDatasource', MigrateTypes.SchemasWithConfigDir>
-  type MigrateDiffTargetMigrations = {
-    // The path to a migrations directory of the shape expected by Prisma Migrate.
-    // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
-    tag: 'migrations'
-    path: string
-  }
+
+  // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
+  type MigrateDiffTargetMigrations = MigrateTypes.Tagged<'migrations', MigrateTypes.MigrationList>
+
   export type MigrateDiffTarget =
     | MigrateDiffTargetUrl
     | MigrateDiffTargetEmpty
@@ -207,15 +211,18 @@ export namespace EngineArgs {
     script: boolean
     // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
     // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
-    shadowDatabaseUrl?: string
+    shadowDatabaseUrl: string | null
     // Change the exit code behavior when diff is not empty
     // Empty: 0, Error: 1, Non empty: 2
-    exitCode?: boolean
+    exitCode: boolean | null
+    // The schema filter to apply to the diff.
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface SchemaPushInput {
     schema: MigrateTypes.SchemasContainer
     force: boolean
+    filters: MigrateTypes.SchemaFilter
   }
 
   export interface IntrospectSqlParams {
@@ -226,6 +233,10 @@ export namespace EngineArgs {
   export interface SqlQueryInput {
     name: string
     source: string
+  }
+
+  export interface MigrateResetInput {
+    filter: MigrateTypes.SchemaFilter
   }
 }
 
@@ -240,11 +251,24 @@ export namespace EngineResults {
   }
 
   export interface CreateMigrationOutput {
-    /// The name of the newly generated migration directory, if any.
-    generatedMigrationName: string | null
+    /// The active connector type used.
+    connectorType: ActiveConnectorType
+
+    /// The generated name of migration directory, which the caller must use to create the new directory.
+    generatedMigrationName: string
+
+    /// The migration script that was generated, if any.
+    /// It will be null if:
+    /// 1. The migration we generate would be empty, **AND**
+    /// 2. the `draft` param was not true, because in that case the engine would still generate an empty
+    ///     migration script.
+    migrationScript: string | null
+
+    /// The file extension for generated migration files.
+    extension: string
   }
 
-  export interface DbExecuteOutput {}
+  export type DbExecuteOutput = null
 
   export interface DevDiagnosticOutput {
     action: DevAction
@@ -272,6 +296,7 @@ export namespace EngineResults {
   }
 
   export interface ListMigrationDirectoriesOutput {
+    /// The names of the migrations in the migration directory. Empty if no migrations are found.
     migrations: string[]
   }
 

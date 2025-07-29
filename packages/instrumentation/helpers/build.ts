@@ -1,13 +1,14 @@
-import { build } from '../../../helpers/compile/build'
-import { esmSplitCodeToCjs } from '../../../helpers/compile/plugins/esmSplitCodeToCjs'
+import { build, BuildOptions } from '../../../helpers/compile/build'
+
+const buildOptions = {
+  name: 'default',
+  bundle: true,
+  outfile: 'dist/index',
+  entryPoints: ['src/index.ts'],
+  external: ['@opentelemetry/instrumentation'],
+} satisfies BuildOptions
 
 void build([
-  {
-    name: 'default',
-    bundle: true,
-    emitTypes: true,
-    splitting: true,
-    format: 'esm',
-    plugins: [esmSplitCodeToCjs],
-  },
+  { ...buildOptions, format: 'cjs', emitTypes: true, outExtension: { '.js': '.js' } },
+  { ...buildOptions, format: 'esm', outExtension: { '.js': '.mjs' } },
 ])

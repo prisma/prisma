@@ -1,6 +1,6 @@
+import { RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
 import { assertNever } from '@prisma/internals'
 
-import { lowerCase } from '../../../utils/lowerCase'
 import { ErrorFormat } from '../../getPrismaClient'
 import { CallSite } from '../../utils/CallSite'
 import { isDate, isValidDate } from '../../utils/date'
@@ -18,7 +18,7 @@ import { throwValidationException } from '../errorRendering/throwValidationExcep
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { computeEngineSideOmissions, computeEngineSideSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
-import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
+import { isParam } from '../model/Param'
 import { isSkip, Skip } from '../types'
 import {
   Action,
@@ -44,6 +44,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   createManyAndReturn: 'createManyAndReturn',
   update: 'updateOne',
   updateMany: 'updateMany',
+  updateManyAndReturn: 'updateManyAndReturn',
   upsert: 'upsertOne',
   delete: 'deleteOne',
   deleteMany: 'deleteMany',
@@ -117,11 +118,8 @@ function serializeFieldSelection(
   { select, include, ...args }: JsArgs = {},
   context: SerializeContext,
 ): JsonFieldSelection {
-  let omit: Omission | undefined
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omit = args.omit
-    delete args.omit
-  }
+  const omit = args.omit
+  delete args.omit
   return {
     arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, omit, context),
@@ -142,7 +140,7 @@ function serializeSelectionSet(
         secondField: 'select',
         selectionPath: context.getSelectionPath(),
       })
-    } else if (omit && context.isPreviewFeatureOn('omitApi')) {
+    } else if (omit) {
       context.throwValidationError({
         kind: 'MutuallyExclusiveFields',
         firstField: 'omit',
@@ -172,9 +170,7 @@ function createImplicitSelection(
     addIncludedRelations(selectionSet, include, context)
   }
 
-  if (context.isPreviewFeatureOn('omitApi')) {
-    omitFields(selectionSet, omit, context)
-  }
+  omitFields(selectionSet, omit, context)
 
   return selectionSet
 }
@@ -297,6 +293,10 @@ function serializeArgumentsValue(
         underlyingError: 'Provided Date object is invalid',
       })
     }
+  }
+
+  if (isParam(jsValue)) {
+    return { $type: 'Param', value: jsValue.name }
   }
 
   if (isFieldRef(jsValue)) {
@@ -517,7 +517,7 @@ class SerializeContext {
 
   getGlobalOmit(): Record<string, boolean> {
     if (this.params.modelName && this.shouldApplyGlobalOmit()) {
-      return this.params.globalOmit?.[lowerCase(this.params.modelName)] ?? {}
+      return this.params.globalOmit?.[uncapitalize(this.params.modelName)] ?? {}
     }
     return {}
   }
@@ -533,6 +533,7 @@ class SerializeContext {
       case 'createManyAndReturn':
       case 'create':
       case 'update':
+      case 'updateManyAndReturn':
       case 'delete':
         return true
       case 'executeRaw':

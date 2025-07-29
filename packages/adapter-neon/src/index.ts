@@ -1,1 +1,1 @@
-export { PrismaNeon, PrismaNeonHTTP } from './neon'
+export { PrismaNeonAdapterFactory as PrismaNeon, PrismaNeonHTTPAdapterFactory as PrismaNeonHTTP } from './neon'

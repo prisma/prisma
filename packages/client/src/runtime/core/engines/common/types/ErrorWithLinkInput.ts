@@ -1,4 +1,4 @@
-import type { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator'
 
 export interface ErrorWithLinkInput {
   version: string

@@ -18,9 +18,11 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/blog">Blog</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://pris.ly/discord">Discord</a>
+  <a href="https://pris.ly/discord?utm_source=github&utm_medium=prisma&utm_content=repo_readme">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://twitter.com/prisma">Twitter</a>
+  <a href="https://pris.ly/x?utm_source=github&utm_medium=prisma&utm_content=repo_readme">Twitter</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://pris.ly/youtube?utm_source=github&utm_medium=prisma&utm_content=repo_readme">Youtube</a>
   <br />
   <hr />
 </div>
@@ -35,14 +37,7 @@ Prisma ORM is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=org-readme).
-
-**Prisma ORM can further be extended with these Prisma products:**
-
-- [Prisma Accelerate](https://prisma.io/docs/data-platform/accelerate?utm_source=github&utm_medium=prisma-readme): Global database cache with scalable connection pooling
-- [Prisma Pulse](https://www.prisma.io/docs/data-platform/pulse?utm_source=github&utm_medium=prisma-readme): Real-time database events with type-safe subscriptions
-- [Prisma Optimize](https://www.prisma.io/docs/optimize?utm_source=github&utm_medium=prisma-readme): AI-powered query optimization and performance insights
-- [Prisma Studio](https://www.prisma.io/docs/orm/tools/prisma-studio?utm_source=github&utm_medium=org-readme): A visual editor for the data in your database
+**If you need a database to use with Prisma ORM, check out [Prisma Postgres](https://www.prisma.io/docs/getting-started/quickstart-prismaPostgres?utm_source=github&utm_medium=prisma-readme) or if you are looking for our MCP Server, head [here](https://github.com/prisma/mcp).**
 
 ## Getting started
 
@@ -55,7 +50,7 @@ The fastest way to get started with Prisma is by following the quickstart guides
 
 ### Bring your own database
 
-If you already have your own database, you can follows these guides:
+If you already have your own database, you can follow these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project/relational-databases-typescript-postgresql)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch/relational-databases-typescript-postgresql)
@@ -177,14 +172,12 @@ Learn more about the available operations in the [Prisma Client docs](https://ww
 ##### Retrieve all `User` records from the database
 
 ```ts
-// Run inside `async` function
 const allUsers = await prisma.user.findMany()
 ```
 
 ##### Include the `posts` relation on each returned `User` object
 
 ```ts
-// Run inside `async` function
 const allUsers = await prisma.user.findMany({
   include: { posts: true },
 })
@@ -193,7 +186,6 @@ const allUsers = await prisma.user.findMany({
 ##### Filter all `Post` records that contain `"prisma"`
 
 ```ts
-// Run inside `async` function
 const filteredPosts = await prisma.post.findMany({
   where: {
     OR: [{ title: { contains: 'prisma' } }, { content: { contains: 'prisma' } }],
@@ -204,7 +196,6 @@ const filteredPosts = await prisma.post.findMany({
 ##### Create a new `User` and a new `Post` record in the same query
 
 ```ts
-// Run inside `async` function
 const user = await prisma.user.create({
   data: {
     name: 'Alice',
@@ -219,7 +210,6 @@ const user = await prisma.user.create({
 ##### Update an existing `Post` record
 
 ```ts
-// Run inside `async` function
 const post = await prisma.post.update({
   where: { id: 42 },
   data: { published: true },
@@ -280,7 +270,7 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mai
 
 ## Tests Status
 
-- Prisma Tests Status:  
+- Prisma Tests Status:
   [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
-- Ecosystem Tests Status:  
+- Ecosystem Tests Status:
   [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)

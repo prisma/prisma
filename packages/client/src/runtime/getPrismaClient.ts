@@ -1,9 +1,8 @@
 import type { Context } from '@opentelemetry/api'
-import Debug, { clearLogs } from '@prisma/debug'
-import { bindAdapter, type DriverAdapter, type ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
+import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import { clearLogs, Debug } from '@prisma/debug'
+import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
-import type { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import type { LoadedEnv } from '@prisma/internals'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -20,7 +19,7 @@ import {
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
 import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
-import { CustomDataProxyFetch, WasmLoadingConfig } from './core/engines/common/Engine'
+import { CustomDataProxyFetch } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
@@ -55,7 +54,6 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
-import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { itxClientDenyList } from './core/types/exported/itxClientDenyList'
@@ -76,7 +74,14 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native'
+  const TARGET_BUILD_TYPE:
+    | 'binary'
+    | 'library'
+    | 'edge'
+    | 'wasm-engine-edge'
+    | 'wasm-compiler-edge'
+    | 'react-native'
+    | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -95,7 +100,7 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: DriverAdapter | null
+  adapter?: SqlDriverAdapterFactory | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -218,92 +223,6 @@ type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   ? (event: EngineEvent<E>) => void
   : never
 
-/**
- * Config that is stored into the generated client. When the generated client is
- * loaded, this same config is passed to {@link getPrismaClient} which creates a
- * closure with that config around a non-instantiated [[PrismaClient]].
- */
-export type GetPrismaClientConfig = {
-  // Case for normal client (with both protocols) or data proxy
-  // client (with json protocol): only runtime datamodel is provided,
-  // full DMMF document is not
-  runtimeDataModel: RuntimeDataModel
-  generator?: GeneratorConfig
-  relativeEnvPaths: {
-    rootEnvPath?: string | null
-    schemaEnvPath?: string | null
-  }
-  relativePath: string
-  dirname: string
-  filename?: string
-  clientVersion: string
-  engineVersion: string
-  datasourceNames: string[]
-  activeProvider: ActiveConnectorType
-
-  /**
-   * The contents of the schema encoded into a string
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineSchema: string
-
-  /**
-   * A special env object just for the data proxy edge runtime.
-   * Allows bundlers to inject their own env variables (Vercel).
-   * Allows platforms to declare global variables as env (Workers).
-   * @remarks only used for the purpose of data proxy
-   */
-  injectableEdgeEnv?: () => LoadedEnv
-
-  /**
-   * The contents of the datasource url saved in a string.
-   * This can either be an env var name or connection string.
-   * It is needed by the client to connect to the Data Proxy.
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineDatasources: { [name in string]: { url: EnvValue } }
-
-  /**
-   * The string hash that was produced for a given schema
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineSchemaHash: string
-
-  /**
-   * A marker to indicate that the client was not generated via `prisma
-   * generate` but was generated via `generate --postinstall` script instead.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  postinstall?: boolean
-
-  /**
-   * Information about the CI where the Prisma Client has been generated. The
-   * name of the CI environment is stored at generation time because CI
-   * information is not always available at runtime. Moreover, the edge client
-   * has no notion of environment variables, so this works around that.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  ciName?: string
-
-  /**
-   * Information about whether we have not found a schema.prisma file in the
-   * default location, and that we fell back to finding the schema.prisma file
-   * in the current working directory. This usually means it has been bundled.
-   */
-  isBundled?: boolean
-
-  /**
-   * A boolean that is `false` when the client was generated with --no-engine. At
-   * runtime, this means the client will be bound to be using the Data Proxy.
-   */
-  copyEngine?: boolean
-
-  /**
-   * Optional wasm loading configuration
-   */
-  engineWasm?: WasmLoadingConfig
-}
-
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 const BatchTxIdCounter = {
@@ -327,12 +246,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
     _extensions: MergedExtensionsList
+    /**
+     * @remarks This is used internally by Policy, do not rename or remove
+     */
     _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
@@ -359,7 +280,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
-      const envPaths = {
+      const envPaths = config.relativeEnvPaths && {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
@@ -370,9 +291,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        * Initialise and validate the Driver Adapter, if provided.
        */
 
-      let adapter: ErrorCapturingDriverAdapter | undefined
+      let adapter: SqlDriverAdapterFactory | undefined
       if (optionsArg?.adapter) {
-        adapter = bindAdapter(optionsArg.adapter)
+        adapter = optionsArg.adapter
 
         // Note:
         // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
@@ -381,11 +302,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
         //
         // TODO: Normalize these provider names once and for all in Prisma 6.
-        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+        const expectedDriverAdapterProvider =
+          config.activeProvider === 'postgresql'
+            ? 'postgres'
+            : // CockroachDB is only accessible through Postgres driver adapters
+            config.activeProvider === 'cockroachdb'
+            ? 'postgres'
+            : config.activeProvider
 
-        if (adapter.provider !== normalizedActiveProvider) {
+        if (adapter.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(
-            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }
@@ -399,7 +326,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && !adapter && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
+        (NODE_CLIENT && !adapter && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
+        config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -440,7 +368,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
@@ -456,6 +383,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           env: loadedEnv?.parsed ?? {},
           flags: [],
           engineWasm: config.engineWasm,
+          compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
@@ -506,8 +434,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -518,6 +444,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return (this._appliedParent = applyModelsAndClientExtensions(this))
       // this applied client is also a custom constructor return value
     }
+
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
@@ -530,12 +457,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
       if (eventType === 'beforeExit') {
         this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
       } else if (eventType) {
         this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel>)
       }
+      return this
     }
 
     $connect() {
@@ -816,13 +744,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
-      return applyModelsAndClientExtensions(
-        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
-          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
-          addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
-          addProperty(TX_ID, () => transaction.id),
-          removeProperties(itxClientDenyList),
-        ]),
+      return createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
+            addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
+            addProperty(TX_ID, () => transaction.id),
+          ]),
+        ),
+        [removeProperties(itxClientDenyList)],
       )
     }
 
@@ -1027,15 +957,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    get $metrics(): MetricsClient {
-      if (!this._hasPreviewFlag('metrics')) {
-        throw new PrismaClientValidationError(
-          '`metrics` preview feature must be enabled in order to access metrics API',
-          { clientVersion: this._clientVersion },
-        )
-      }
-      return this._metrics
-    }
+    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag

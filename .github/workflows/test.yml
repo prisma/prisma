@@ -14,7 +14,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -31,7 +30,6 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -159,7 +157,7 @@ jobs:
           exit 1
 
   run_tests:
-    name: Tests
+    name: 🧪
     needs:
       - detect_jobs_to_run
       - build_custom_engine

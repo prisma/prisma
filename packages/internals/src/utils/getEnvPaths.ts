@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
-import { EnvPaths } from '@prisma/generator-helper'
-import findUp from 'find-up'
+import { EnvPaths } from '@prisma/generator'
+import { findUpSync, Options as FindUpOptions, pathExistsSync } from 'find-up'
 import fs from 'fs'
 import path from 'path'
 
@@ -25,6 +25,8 @@ export async function getEnvPaths(
 ): Promise<EnvPaths> {
   const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
+  // NOTE: We intentionally do NOT check based on the schema path from `prisma.config.ts` as having a
+  // `prisma.config.ts` file disables automatic env loading anyway.
   const schemaEnvPathFromPkgJson = schemaPathToEnvPath(await readSchemaPathFromPkgJson())
   const schemaEnvPaths = [
     schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
@@ -48,10 +50,10 @@ async function readSchemaPathFromPkgJson(): Promise<string | null> {
   }
 }
 
-function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null {
-  const pkgJsonPath = findUp.sync((dir) => {
+function getProjectRootEnvPath(opts: FindUpOptions | undefined): string | null {
+  const pkgJsonPath = findUpSync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
-    if (findUp.sync.exists(pkgPath)) {
+    if (pathExistsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
         if (pkg['name'] !== '.prisma/client') {

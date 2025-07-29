@@ -1,3 +1,4 @@
+export * from './_lib/utils'
 export * from './$'
 export * from './accelerate/_Accelerate'
 export * from './auth/_Auth'

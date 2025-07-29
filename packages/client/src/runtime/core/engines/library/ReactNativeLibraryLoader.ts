@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/require-await */
 
+import { QueryEngineConfig, QueryEngineInstance } from '@prisma/client-common'
+
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { QueryEngineConfig } from '../common/types/QueryEngine'
-import { LibraryLoader, QueryEngineInstance } from './types/Library'
+import { LibraryLoader } from './types/Library'
 
 type PrismaCreateOptions = {
   datamodel: string
@@ -61,6 +62,10 @@ class ReactNativeQueryEngine implements QueryEngineInstance {
 
   query(requestStr: string, headersStr: string, transactionId: string | undefined, requestId: string): Promise<string> {
     return __PrismaProxy.execute(this.engineObject, requestStr, headersStr, transactionId, requestId)
+  }
+
+  compile(): Promise<string> {
+    throw new Error('not implemented')
   }
 
   sdlSchema(): Promise<string> {

@@ -5,7 +5,7 @@ import path from 'path'
 import { DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare const prisma: PrismaClient
 declare const datasourceInfo: DatasourceInfo
@@ -48,6 +48,10 @@ testMatrix.setupTestSuite(
     })
   },
   {
+    skipEngine: {
+      from: ['client'],
+      reason: 'Client engine cannot be used with native drivers but requires driver adapters / wasm.',
+    },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: `

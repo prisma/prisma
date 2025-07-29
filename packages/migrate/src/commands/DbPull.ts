@@ -1,21 +1,25 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
+  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   formatms,
   getCommandWithExecutor,
   getConfig,
-  getSchema,
-  getSchemaWithPathOptional,
   HelpError,
+  inferDirectoryConfig,
   link,
   loadEnvFile,
+  loadSchemaContext,
   locateLocalCloudflareD1,
   type MultipleSchemas,
+  printSchemaLoadedMessage,
   protocolToConnectorType,
   relativizePathInPSLError,
+  SchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
 import { MigrateTypes } from '@prisma/internals'
@@ -23,10 +27,10 @@ import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { SchemaEngine } from '../SchemaEngine'
+import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
 import { countModelsAndTypes } from '../utils/countModelsAndTypes'
-import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { isSchemaEmpty } from '../utils/isSchemaEmpty'
 import { printDatasource } from '../utils/printDatasource'
@@ -60,6 +64,7 @@ ${bold('Flags')}
 
 ${bold('Options')}
 
+                --config   Custom path to your Prisma config file
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
@@ -96,13 +101,14 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--config': String,
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
@@ -115,62 +121,73 @@ Set composite types introspection depth to 2 levels
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db pull', args, !args['--url'])
-
     if (args['--help']) {
       return this.help()
     }
 
     const url: string | undefined = args['--url']
-    const schemaPathResult = await getSchemaWithPathOptional(args['--schema'])
-    let schemaPath = schemaPathResult?.schemaPath ?? null
-    const rootDir = schemaPathResult?.schemaRootDir ?? process.cwd()
-    debug('schemaPathResult', schemaPathResult)
+
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
+
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+      printLoadMessage: false,
+      allowNull: true,
+    })
+
+    const cmd = 'db pull'
+
+    checkUnsupportedDataProxy({
+      cmd,
+      schemaContext: schemaContext && !url ? schemaContext : undefined,
+      urls: [url],
+    })
+
+    checkUnsupportedSchemaEngineWasm({
+      cmd,
+      config,
+      args,
+      flags: ['--url', '--local-d1'],
+    })
+
+    const adapter = await config.adapter?.()
 
     // Print to console if --print is not passed to only have the schema in stdout
-    if (schemaPath && !args['--print']) {
-      process.stdout.write(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`) + '\n')
+    if (schemaContext && !args['--print']) {
+      printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      // Load and print where the .env was loaded (if loaded)
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
-
-      printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
-    } else {
-      // Load .env but don't print
-      await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
     }
 
     const fromD1 = Boolean(args['--local-d1'])
 
-    if (!url && !schemaPath && !fromD1) {
+    if (!url && !schemaContext && !fromD1) {
       throw new NoSchemaFoundError()
     }
 
     /**
-     * When `schemaPath` is set:
-     * - read the schema file from disk
+     * When a schema already exists:
+     * - read the schema files from disk
      * - in case `url` is also set, embed the URL to the schema's datasource without overriding the provider.
      *   This is especially useful to distinguish CockroachDB from Postgres datasources.
      *
-     * When `url` is set, and `schemaPath` isn't:
+     * When `url` is set, and no schema exists:
      * - create a minimal schema with a datasource block from the given URL.
      *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
      * Note: this schema is persisted to `./schema.prisma`, rather than the canonical `./prisma/schema.prisma`.
      *
      * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
      */
-    const { firstDatasource, schema, validationWarning } = await match({ url, schemaPath, fromD1 })
+    const { firstDatasource, schema, validationWarning } = await match({ url, schemaContext, fromD1 })
       .when(
-        (input): input is { url: string | undefined; schemaPath: string; fromD1: boolean } => input.schemaPath !== null,
+        (input): input is { url: string | undefined; schemaContext: SchemaContext; fromD1: boolean } =>
+          input.schemaContext !== null,
         async (input) => {
-          const rawSchema = await getSchema(input.schemaPath)
-          const config = await getConfig({
-            datamodel: rawSchema,
-            ignoreEnvVarErrors: true,
-          })
-
-          const previewFeatures = config.generators.find(({ name }) => name === 'client')?.previewFeatures
-          const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
+          const previewFeatures = input.schemaContext.generators.find(({ name }) => name === 'client')?.previewFeatures
+          const firstDatasource = input.schemaContext.primaryDatasource
+            ? input.schemaContext.primaryDatasource
+            : undefined
 
           if (input.url) {
             let providerFromSchema = firstDatasource?.provider
@@ -184,7 +201,10 @@ Set composite types introspection depth to 2 levels
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = replaceOrAddDatasource(this.urlToDatasource(input.url, providerFromSchema), rawSchema)
+            const schema = replaceOrAddDatasource(
+              this.urlToDatasource(input.url, providerFromSchema),
+              input.schemaContext.schemaFiles,
+            )
 
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
@@ -205,7 +225,7 @@ Set composite types introspection depth to 2 levels
             return { firstDatasource, schema, validationWarning: undefined }
           } else if (input.fromD1) {
             const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-            const pathToSQLiteFile = path.relative(path.dirname(input.schemaPath), d1Database)
+            const pathToSQLiteFile = path.relative(input.schemaContext.schemaRootDir, d1Database)
 
             const schema: MultipleSchemas = [
               ['schema.prisma', this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')],
@@ -233,16 +253,16 @@ Set composite types introspection depth to 2 levels
             // Use getConfig with ignoreEnvVarErrors
             // It will  throw an error if the env var is not set or if it is invalid
             await getConfig({
-              datamodel: rawSchema,
+              datamodel: input.schemaContext.schemaFiles,
               ignoreEnvVarErrors: false,
             })
           }
 
-          return { firstDatasource, schema: rawSchema, validationWarning: undefined } as const
+          return { firstDatasource, schema: input.schemaContext.schemaFiles, validationWarning: undefined } as const
         },
       )
       .when(
-        (input): input is { url: undefined; schemaPath: null; fromD1: true } => input.fromD1 === true,
+        (input): input is { url: undefined; schemaContext: null; fromD1: true } => input.fromD1 === true,
         async (_) => {
           const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
           const pathToSQLiteFile = path.relative(process.cwd(), d1Database)
@@ -264,7 +284,7 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
         },
       )
       .when(
-        (input): input is { url: string; schemaPath: null; fromD1: false } => input.url !== undefined,
+        (input): input is { url: string; schemaContext: null; fromD1: false } => input.url !== undefined,
         async (input) => {
           // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
           // TODO: better error handling with better error message
@@ -280,12 +300,10 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
       )
       .run()
 
-    if (schemaPath) {
-      const schemas = await getSchema(args['--schema'])
-
+    if (schemaContext) {
       // Re-Introspection is not supported on MongoDB
       const modelRegex = /\s*model\s*(\w+)\s*{/
-      const isReintrospection = schemas.some(([_, schema]) => !!modelRegex.exec(schema as string))
+      const isReintrospection = schemaContext.schemaFiles.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
@@ -298,13 +316,12 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new SchemaEngine({
-      schemaPath: schemaPath ?? undefined,
-    })
+    const migrate = await Migrate.setup({ adapter, schemaContext: schemaContext ?? undefined })
 
+    const engine = migrate.engine
     const basedOn =
-      !args['--url'] && schemaPath
-        ? ` based on datasource defined in ${underline(path.relative(process.cwd(), schemaPath))}`
+      !args['--url'] && schemaContext?.primaryDatasource
+        ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
         : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
@@ -312,9 +329,11 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionSchema: MigrateTypes.SchemasContainer | undefined = undefined
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
+      const directoryConfig = inferDirectoryConfig(schemaContext, config)
       const introspectionResult = await engine.introspect({
         schema: toSchemasContainer(schema),
-        baseDirectoryPath: rootDir,
+        baseDirectoryPath: schemaContext?.schemaRootDir ?? process.cwd(),
+        viewsDirectoryPath: directoryConfig.viewsDirPath,
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
         namespaces: args['--schemas']?.split(','),
@@ -403,7 +422,6 @@ Or run this command with the ${green(
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
-      schemaPath = schemaPath || 'schema.prisma'
       if (args['--force']) {
         await removeSchemaFiles(schema)
       }
@@ -426,8 +444,9 @@ Or run this command with the ${green(
 
       const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
 
+      const introspectedSchemaPath = schemaContext?.loadedFromPathForLogMessages || introspectionSchema.files[0].path
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
-        path.relative(process.cwd(), schemaPath),
+        path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
 ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}${renderValidationWarning}`)
