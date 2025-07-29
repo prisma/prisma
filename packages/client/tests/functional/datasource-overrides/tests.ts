@@ -1,10 +1,9 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -63,11 +62,9 @@ testMatrix.setupTestSuite(
     })
 
     describeIf(driverAdapter === 'js_pg')('custom datasource should not be used with driver adapter', () => {
-      const pool = new Pool({
+      const adapter = new PrismaPg({
         connectionString: dbURL,
       })
-
-      const adapter = new PrismaPg(pool)
 
       test('throws when both `datasourceUrl` and `adapter` are used at the same time', () => {
         expect(() => {
@@ -97,7 +94,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDriverAdapter: {
-      from: ['js_planetscale', 'js_neon', 'js_d1', 'js_libsql'],
+      from: ['js_planetscale', 'js_neon', 'js_d1', 'js_libsql', 'js_better_sqlite3'],
       reason: 'We only need to check a single driver adapter. We can skip the rest.',
     },
     skipDataProxy: {

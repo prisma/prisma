@@ -1,5 +1,6 @@
-import Debug from '@prisma/debug'
-import { ErrorRecord } from '@prisma/driver-adapter-utils'
+import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
+import { Debug } from '@prisma/debug'
+import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -17,7 +18,6 @@ import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
-  QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   RustRequestError,
@@ -30,7 +30,7 @@ import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../co
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
 import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
-import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import type { Library, LibraryLoader } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
 const DRIVER_ADAPTER_EXTERNAL_ERROR = 'P2036'
@@ -82,6 +82,7 @@ export class LibraryEngine implements Engine<undefined> {
   lastQuery?: string
   loggerRustPanic?: any
   tracingHelper: TracingHelper
+  adapterPromise: Promise<ErrorCapturingSqlDriverAdapter> | undefined
 
   versionInfo?: {
     commit: string
@@ -98,7 +99,7 @@ export class LibraryEngine implements Engine<undefined> {
       if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
-    } else if (TARGET_BUILD_TYPE === 'wasm') {
+    } else if (TARGET_BUILD_TYPE === 'wasm-engine-edge') {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
@@ -138,6 +139,7 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
+      free: engine.free?.bind(engine),
     }
   }
 
@@ -186,6 +188,7 @@ export class LibraryEngine implements Engine<undefined> {
   ): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
+    const adapter = await this.adapterPromise
 
     const headerStr = JSON.stringify(headers)
 
@@ -207,7 +210,7 @@ export class LibraryEngine implements Engine<undefined> {
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
     if (isUserFacingError(response)) {
-      const externalError = this.getExternalAdapterError(response)
+      const externalError = this.getExternalAdapterError(response, adapter?.errorRegistry)
       if (externalError) {
         throw externalError.error
       }
@@ -295,7 +298,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // same time, `this.engine` field will prevent native instance from
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
-      const { adapter } = this.config
+
+      if (!this.adapterPromise) {
+        this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+      }
+      const adapter = await this.adapterPromise
 
       if (adapter) {
         debug('Using driver adapter: %O', adapter)
@@ -344,7 +351,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
+    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         getErrorMessageWithLink(
@@ -389,6 +396,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async start(): Promise<void> {
+    if (!this.libraryInstantiationPromise) {
+      this.libraryInstantiationPromise = this.instantiateLibrary()
+    }
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
 
@@ -413,6 +423,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.libraryStarted = true
 
+        if (!this.adapterPromise) {
+          this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+        }
+        await this.adapterPromise
+
         debug('library started')
       } catch (err) {
         const error = this.parseInitError(err.message as string)
@@ -435,6 +450,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async stop(): Promise<void> {
+    await this.libraryInstantiationPromise
     await this.libraryStartingPromise
     await this.executingQueryPromise
 
@@ -444,11 +460,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     if (!this.libraryStarted) {
+      await (await this.adapterPromise)?.dispose()
+      this.adapterPromise = undefined
       return
     }
 
     const stopFn = async () => {
-      await new Promise((r) => setTimeout(r, 5))
+      await new Promise((r) => setImmediate(r)) // defer to next tick
 
       debug('library stopping')
 
@@ -457,9 +475,19 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
+      // Only the WASM engine has a free method that we need to call to ensure the engine is freed upon disconnect.
+      // Otherwise it causes memory leaks as the WASM engine instance still references this LibraryEngine.
+      if (this.engine?.free) {
+        this.engine.free()
+      }
+      this.engine = undefined
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
+      this.libraryInstantiationPromise = undefined
+
+      await (await this.adapterPromise)?.dispose()
+      this.adapterPromise = undefined
 
       debug('library stopped')
     }
@@ -490,6 +518,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
+      const adapter = await this.adapterPromise
 
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
@@ -498,7 +527,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.buildQueryError(data.errors[0])
+          throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
@@ -512,7 +541,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
         throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
@@ -533,10 +562,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     debug('requestBatch')
     const request = getBatchRequestPayload(queries, transaction)
     await this.start()
+    const adapter = await this.adapterPromise
 
     this.lastQuery = JSON.stringify(request)
 
-    this.executingQueryPromise = this.engine!.query(
+    this.executingQueryPromise = this.engine?.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
@@ -547,7 +577,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw this.buildQueryError(data.errors[0])
+        throw this.buildQueryError(data.errors[0], adapter?.errorRegistry)
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
@@ -559,7 +589,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
         if (result.errors && result.errors.length > 0) {
-          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0])
+          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0], adapter?.errorRegistry)
         }
         return {
           data: result,
@@ -573,26 +603,29 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private buildQueryError(error: RequestError) {
-    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
+  private buildQueryError(error: RequestError, registry?: ErrorRegistry) {
+    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
       return new PrismaClientRustPanicError(
         getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,
       )
     }
 
-    const externalError = this.getExternalAdapterError(error.user_facing_error)
+    const externalError = this.getExternalAdapterError(error.user_facing_error, registry)
 
     return externalError
       ? externalError.error
       : prismaGraphQLToJSError(error, this.config.clientVersion!, this.config.activeProvider!)
   }
 
-  private getExternalAdapterError(error: RequestError['user_facing_error']): ErrorRecord | undefined {
-    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && this.config.adapter) {
+  private getExternalAdapterError(
+    error: RequestError['user_facing_error'],
+    registry?: ErrorRegistry,
+  ): ErrorRecord | undefined {
+    if (error.error_code === DRIVER_ADAPTER_EXTERNAL_ERROR && registry) {
       const id = error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
+      const errorRecord = registry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
       return errorRecord
     }

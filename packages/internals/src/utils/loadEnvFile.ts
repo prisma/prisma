@@ -1,10 +1,7 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import Debug from '@prisma/debug'
 
 import { getEnvPaths } from './getEnvPaths'
 import { tryLoadEnvs } from './tryLoadEnvs'
-
-const debug = Debug('prisma:cli:loadEnvFile')
 
 /**
  * Read .env file only if next to schema.prisma
@@ -20,7 +17,7 @@ export async function loadEnvFile({
   config: PrismaConfigInternal
 }) {
   if (config.loadedFromFile) {
-    debug(`Prisma config detected, skipping environment variable loading`)
+    process.stderr.write(`Prisma config detected, skipping environment variable loading.\n`)
     return
   }
 
@@ -28,6 +25,6 @@ export async function loadEnvFile({
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
 
   if (printMessage && envData && envData.message) {
-    process.stdout.write(envData.message + '\n')
+    process.stderr.write(envData.message + '\n')
   }
 }

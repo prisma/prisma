@@ -1,4 +1,4 @@
-import { watch as createWatcher } from 'chokidar'
+import { ChokidarOptions, watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
 import { BuildContext } from 'esbuild'
 import { writeFileSync } from 'fs'
@@ -28,7 +28,7 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  target: 'ES2021',
+  target: 'ES2022',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   metafile: true,
@@ -138,10 +138,6 @@ async function executeEsBuild(options: BuildOptions) {
 async function dependencyCheck(options: BuildOptions) {
   // we only check our dependencies for a full build
   if (process.env.DEV === 'true') return undefined
-  // Only run on test and publish pipelines on Buildkite
-  // Meaning we skip on GitHub Actions
-  // Because it's slow and runs for each job, during setup, making each job slower
-  if (process.env.CI && !process.env.BUILDKITE) return undefined
 
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
@@ -172,8 +168,16 @@ export async function build(options: BuildOptions[]) {
 
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild),
+    pipe.async(computeOptions, logStartBuild, addExtensionFormat, addDefaultOutDir, executeEsBuild),
   )
+}
+
+/**
+ * Prints a message every time a new bundle is built
+ */
+function logStartBuild(options: BuildOptions): BuildOptions {
+  console.log(`Building ${options.name} as ${options.format ?? 'cjs'}...`)
+  return options
 }
 
 /**
@@ -184,10 +188,13 @@ const watch = (context: BuildContext, options: BuildOptions) => {
   if (process.env.WATCH !== 'true') return context
 
   // common chokidar options for the watchers
-  const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
+  const config = {
+    ignoreInitial: true,
+    ignored: [/$src\/__tests__\//, 'package.json'],
+  } satisfies ChokidarOptions
 
   // prepare the incremental builds watcher
-  const changeWatcher = createWatcher(['./src/**/*'], config)
+  const changeWatcher = createWatcher(['./src'], config)
 
   // triggers quick rebuild on file change
   const fastRebuild = debounce(async () => {

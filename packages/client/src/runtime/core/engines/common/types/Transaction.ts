@@ -1,16 +1,15 @@
-export enum IsolationLevel {
-  ReadUncommitted = 'ReadUncommitted',
-  ReadCommitted = 'ReadCommitted',
-  RepeatableRead = 'RepeatableRead',
-  Snapshot = 'Snapshot',
-  Serializable = 'Serializable',
-}
-
 export type Options = {
+  /** Timeout for starting the transaction */
   maxWait?: number
+
+  /** Timeout for the transaction body */
   timeout?: number
+
+  /** Transaction isolation level */
   isolationLevel?: IsolationLevel
 }
+
+export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**

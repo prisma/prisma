@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
 
 import { waitFor } from '../../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 

@@ -1,19 +1,20 @@
+import { generateClient } from '@prisma/client-generator-js'
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import fs from 'fs/promises'
 import path from 'path'
 
-import { generateClient } from '../../../src/generation/generateClient'
 import { MemoryTestDir } from './MemoryTestDir'
 
 export async function generateMemoryTestClient(testDir: MemoryTestDir) {
   const schema = await fs.readFile(testDir.schemaFilePath, 'utf8')
-  const dmmf = await getDMMF({ datamodel: schema, datamodelPath: testDir.schemaFilePath })
+  const dmmf = await getDMMF({ datamodel: schema })
   const config = await getConfig({
     datamodel: [[testDir.schemaFilePath, schema]],
-    datamodelPath: testDir.schemaFilePath,
     ignoreEnvVarErrors: false,
   })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')!
+
+  const runtimePath = path.join(__dirname, '../../../runtime')
 
   await generateClient({
     datamodel: schema,
@@ -28,6 +29,7 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
     clientVersion: '0.0.0',
     testMode: true,
     activeProvider: config.datasources[0].activeProvider,
-    runtimeBase: path.join(__dirname, '..', '..', '..', 'runtime'),
+    runtimeBase: runtimePath,
+    runtimeSourcePath: runtimePath,
   })
 }

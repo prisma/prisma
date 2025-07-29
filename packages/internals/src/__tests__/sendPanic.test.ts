@@ -1,28 +1,25 @@
 import { enginesVersion } from '@prisma/engines'
-import fs from 'fs'
 
-import * as errorReportingUtils from '../errorReporting'
+import { createErrorReport } from '../errorReporting'
 import { ErrorArea, RustPanic } from '../panic'
 import { sendPanic } from '../sendPanic'
 
+const createErrorReportTag = 'error-report-creation-failed'
+
+jest.mock('../errorReporting', () => ({
+  ...jest.requireActual('../errorReporting'),
+  createErrorReport: jest.fn().mockImplementation(() => Promise.reject(new Error(createErrorReportTag))),
+}))
+
 describe('sendPanic should fail when the error report creation fails', () => {
-  const createErrorReportTag = 'error-report-creation-failed'
   const cliVersion = 'test-cli-version'
   const rustStackTrace = 'test-rustStack'
-
-  let spyCreateErrorReport: jest.SpyInstance<Promise<string>, [data: errorReportingUtils.CreateErrorReportInput]>
 
   // mock for retrieving the database version
   const getDatabaseVersionSafe = () => Promise.resolve(undefined)
 
   beforeEach(() => {
-    spyCreateErrorReport = jest
-      .spyOn(errorReportingUtils, 'createErrorReport')
-      .mockImplementation(() => Promise.reject(new Error(createErrorReportTag)))
-  })
-
-  afterEach(() => {
-    spyCreateErrorReport.mockRestore()
+    jest.clearAllMocks()
   })
 
   test("shouldn't mask any schema if no valid schema appears in RustPanic", async () => {
@@ -31,8 +28,6 @@ describe('sendPanic should fail when the error report creation fails', () => {
       rustStackTrace,
       'test-request',
       ErrorArea.LIFT_CLI, // area
-      undefined, // schemaPath
-      undefined, // schema
       undefined, // introspectionUrl
     )
 
@@ -44,81 +39,12 @@ describe('sendPanic should fail when the error report creation fails', () => {
         getDatabaseVersionSafe,
       }),
     ).rejects.toThrow(createErrorReportTag)
-    expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
-    expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: undefined,
-      rustStackTrace,
-      cliVersion,
-    })
-  })
-
-  test('should mask the schema if a valid schemaPath appears in RustPanic', async () => {
-    const schemaPath = 'src/__tests__/__fixtures__/blog.prisma'
-    const expectedMaskedSchema = fs.readFileSync('src/__tests__/__fixtures__/blog-masked.prisma', 'utf-8')
-
-    const rustPanic = new RustPanic(
-      'test-message',
-      rustStackTrace,
-      'test-request',
-      ErrorArea.LIFT_CLI, // area
-      schemaPath,
-      undefined, // schema
-      undefined, // introspectionUrl
-    )
-
-    await expect(
-      sendPanic({
-        error: rustPanic,
+    expect(createErrorReport).toHaveBeenCalledTimes(1)
+    expect(createErrorReport).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rustStackTrace,
         cliVersion,
-        enginesVersion,
-        getDatabaseVersionSafe,
       }),
-    ).rejects.toThrow(createErrorReportTag)
-    expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
-    expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: expect.stringContaining(expectedMaskedSchema),
-      rustStackTrace,
-      cliVersion,
-    })
-  })
-
-  test('should mask the schema if a valid schema appears in RustPanic', async () => {
-    const schema = `
-datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
-}
-    `
-    const maskedSchema = `
-datasource db {
-  provider = "sqlite"
-  url = "***"
-}
-    `
-
-    const rustPanic = new RustPanic(
-      'test-message',
-      rustStackTrace,
-      'test-request',
-      ErrorArea.LIFT_CLI, // area
-      undefined, // schemaPath
-      [['schema.prisma', schema]],
-      undefined, // introspectionUrl
     )
-
-    await expect(
-      sendPanic({
-        error: rustPanic,
-        cliVersion,
-        enginesVersion,
-        getDatabaseVersionSafe,
-      }),
-    ).rejects.toThrow(createErrorReportTag)
-    expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
-    expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: expect.stringContaining(maskedSchema),
-      rustStackTrace,
-      cliVersion,
-    })
   })
 })

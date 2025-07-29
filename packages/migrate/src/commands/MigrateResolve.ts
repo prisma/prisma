@@ -6,15 +6,16 @@ import {
   format,
   getCommandWithExecutor,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
-import { ensureCanConnectToDatabase, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 
 export class MigrateResolve implements Command {
@@ -65,6 +66,7 @@ ${bold('Examples')}
         '--applied': String,
         '--rolled-back': String,
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -74,17 +76,22 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate resolve', args, true)
-
     if (args['--help']) {
       return this.help()
     }
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const adapter = await config.adapter?.()
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
@@ -108,15 +115,20 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
+      // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+      if (!adapter) {
+        await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
+      }
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+
       try {
         await migrate.markMigrationApplied({
           migrationId: args['--applied'],
         })
       } finally {
-        migrate.stop()
+        await migrate.stop()
       }
 
       process.stdout.write(`\nMigration ${args['--applied']} marked as applied.\n`)
@@ -130,15 +142,16 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         )
       }
 
-      await ensureCanConnectToDatabase(schemaPath)
+      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = new Migrate(schemaPath)
+      const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
+
       try {
         await migrate.markMigrationRolledBack({
           migrationId: args['--rolled-back'],
         })
       } finally {
-        migrate.stop()
+        await migrate.stop()
       }
 
       process.stdout.write(`\nMigration ${args['--rolled-back']} marked as rolled back.\n`)

@@ -1,6 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
@@ -14,12 +14,12 @@ import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType } from '@prisma/internals'
 
-import { Providers, RelationModes } from '../_utils/providers'
+import { AdapterProviders, Providers, RelationModes } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 type Tree = {
   name: string
@@ -31,13 +31,29 @@ type Tree = {
 function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
   const childrenSpans = spans
     .sort((a, b) => {
+      const normalizeNameForComparison = (name: string) => {
+        // Replace client engine specific spans with their classic names as sort keys
+        // to ensure stable order regardless of the engine type.
+        if (
+          [
+            'prisma:client:db_query',
+            'prisma:client:start_transaction',
+            'prisma:client:commit_transaction',
+            'prisma:client:rollback_transaction',
+          ].includes(name)
+        ) {
+          return 'prisma:engine:' + name.slice('prisma:client:'.length)
+        }
+        return name
+      }
       // Ensures fixed order of children spans regardless of the
       // actual timings. Why use name instead of start time? Sometimes
       // things happen in parallel/different order and startTime does not
       // provide stable ordering guarantee.
-      return a.name.localeCompare(b.name)
+      return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
     })
     .filter((span) => span.parentSpanId === rootSpan.spanContext().spanId)
+
   const tree: Tree = {
     name: rootSpan.name,
   }
@@ -64,7 +80,7 @@ let inMemorySpanExporter: InMemorySpanExporter
 let processor: SpanProcessor
 
 beforeAll(() => {
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
   context.setGlobalContextManager(contextManager)
 
   inMemorySpanExporter = new InMemorySpanExporter()
@@ -96,7 +112,7 @@ testMatrix.setupTestSuite(
     const isSqlServer = provider === Providers.SQLSERVER
 
     const usesSyntheticTxQueries =
-      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale'].includes(driverAdapter)
+      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -111,9 +127,9 @@ testMatrix.setupTestSuite(
         const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
         if (Array.isArray(expectedTree)) {
-          expect(expectedTree).toEqual(trees)
+          expect(trees).toEqual(expectedTree)
         } else {
-          expect(expectedTree).toEqual(trees[0])
+          expect(trees[0]).toEqual(expectedTree)
         }
       })
     }
@@ -130,8 +146,15 @@ testMatrix.setupTestSuite(
         kind: 'CLIENT',
         attributes: {
           'db.query.text': statement,
-          'db.system': dbSystemExpectation(),
         },
+      }
+
+      if (engineType === ClientEngineType.Client) {
+        span.name = 'prisma:client:db_query'
+        // Client engine implements a newer version of OTel Semantic Conventions
+        span.attributes['db.system.name'] = dbSystemExpectation()
+      } else {
+        span.attributes['db.system'] = dbSystemExpectation()
       }
 
       if (provider === Providers.MONGODB) {
@@ -139,7 +162,11 @@ testMatrix.setupTestSuite(
       }
 
       // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
-      if (clientMeta.driverAdapter && driverAdapterChildSpans !== AdapterQueryChildSpans.None) {
+      if (
+        clientMeta.driverAdapter &&
+        driverAdapterChildSpans !== AdapterQueryChildSpans.None &&
+        engineType !== ClientEngineType.Client
+      ) {
         const children = [] as Tree[]
 
         children.push({
@@ -225,10 +252,15 @@ testMatrix.setupTestSuite(
     }
 
     function engine(children: Tree[]) {
-      return {
-        name: 'prisma:engine:query',
-        children,
+      if (engineType === ClientEngineType.Client) {
+        return children
       }
+      return [
+        {
+          name: 'prisma:engine:query',
+          children,
+        },
+      ]
     }
 
     function clientSerialize() {
@@ -236,18 +268,21 @@ testMatrix.setupTestSuite(
     }
 
     function engineSerializeQueryResult() {
-      return { name: 'prisma:engine:serialize' }
+      if (engineType === ClientEngineType.Client) {
+        return []
+      }
+      return [{ name: 'prisma:engine:serialize' }]
     }
 
     function engineSerializeFinalResponse() {
-      if (clientMeta.dataProxy || engineType === ClientEngineType.Binary) {
+      if (clientMeta.dataProxy || engineType === ClientEngineType.Binary || engineType === ClientEngineType.Client) {
         return []
       }
       return [{ name: 'prisma:engine:response_json_serialization' }]
     }
 
     function engineSerialize() {
-      return [...engineSerializeFinalResponse(), engineSerializeQueryResult()]
+      return [...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]
     }
 
     function dbSystemExpectation() {
@@ -255,42 +290,58 @@ testMatrix.setupTestSuite(
         if (provider === Providers.SQLSERVER) {
           return dbSystem === 'mssql'
         }
-
+        if (driverAdapter === 'js_pg_cockroachdb' && engineType !== ClientEngineType.Client) {
+          return dbSystem === 'postgresql'
+        }
         return dbSystem === provider
       })
     }
 
     function engineConnection() {
-      return {
-        name: 'prisma:engine:connection',
-        attributes: {
-          'db.system': dbSystemExpectation(),
-        },
+      if (engineType === ClientEngineType.Client) {
+        return []
       }
+
+      return [
+        {
+          name: 'prisma:engine:connection',
+          attributes: {
+            'db.system': dbSystemExpectation(),
+          },
+        },
+      ]
     }
 
     function engineConnect() {
-      const connectSpan = { name: 'prisma:engine:connect', children: [engineConnection()] }
-
-      if (engineType !== 'binary') {
-        return connectSpan
+      if (engineType === ClientEngineType.Client) {
+        return undefined
       }
 
-      return { name: 'prisma:client:start_engine', children: [connectSpan] }
+      const connectSpan = { name: 'prisma:engine:connect', children: engineConnection() }
+
+      if (engineType === 'binary') {
+        return [{ name: 'prisma:client:start_engine', children: [connectSpan] }]
+      }
+
+      return [connectSpan]
     }
 
     function detectPlatform() {
-      if (clientRuntime === 'wasm') {
+      if (
+        clientRuntime === 'wasm-engine-edge' ||
+        clientRuntime === 'wasm-compiler-edge' ||
+        engineType === ClientEngineType.Client
+      ) {
         return []
       }
       return [{ name: 'prisma:client:detect_platform' }]
     }
 
     function loadEngine() {
-      if (engineType === 'binary') {
-        return []
+      if (engineType === ClientEngineType.Library) {
+        return [{ name: 'prisma:client:load_engine' }]
       }
-      return [{ name: 'prisma:client:load_engine' }]
+      return []
     }
 
     function findManyDbQuery() {
@@ -313,10 +364,13 @@ testMatrix.setupTestSuite(
 
       const dbQueries: Tree[] = []
       if (tx) {
-        if (isSqlServer) {
+        if (isSqlServer && driverAdapter === undefined) {
           dbQueries.push(txSetIsolationLevel())
         }
-        dbQueries.push(txBegin())
+        if (driverAdapter === undefined) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          dbQueries.push(txBegin())
+        }
       }
 
       dbQueries.push(dbQuery(expect.stringContaining('INSERT')), dbQuery(expect.stringContaining('SELECT')))
@@ -325,6 +379,34 @@ testMatrix.setupTestSuite(
         dbQueries.push(txCommit())
       }
       return dbQueries
+    }
+
+    function itxOperation(operation: 'start' | 'commit' | 'rollback'): Tree {
+      const prefix = engineType === ClientEngineType.Client ? 'prisma:client:' : 'prisma:engine:'
+      const name = `${prefix}${operation}_transaction`
+
+      let children: Tree[] | undefined
+
+      if (operation === 'start') {
+        children = isMongoDb
+          ? engineConnection()
+          : isSqlServer && driverAdapter === undefined
+          ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
+          : driverAdapter === undefined
+          ? [...engineConnection(), txBegin()]
+          : engineType === ClientEngineType.Client
+          ? undefined
+          : engineConnection()
+      } else if (operation === 'commit') {
+        children = isMongoDb ? undefined : [txCommit()]
+      } else if (operation === 'rollback') {
+        children = isMongoDb ? undefined : [txRollback()]
+      }
+
+      return {
+        name,
+        children,
+      }
     }
 
     describe('tracing on crud methods', () => {
@@ -340,7 +422,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'create', [
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         )
       })
@@ -355,7 +437,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'findMany', [
             clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+            ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
         )
       })
@@ -386,13 +468,16 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [dbQuery(expect.stringContaining('UPDATE'))]
         } else {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
             dbQuery(expect.stringContaining('SELECT')),
             txCommit(),
           ]
-          if (isSqlServer) {
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         }
@@ -400,7 +485,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'update', [
             clientSerialize(),
-            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -418,12 +503,15 @@ testMatrix.setupTestSuite(
           expectedDbQueries = [dbQuery(expect.stringContaining('db.User.findAndModify'))]
         } else if (isMySql || isSqlServer) {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
-          if (isSqlServer) {
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         } else {
@@ -432,7 +520,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'delete', [
             clientSerialize(),
-            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -458,12 +546,15 @@ testMatrix.setupTestSuite(
           ]
         } else if (relationMode === RelationModes.PRISMA) {
           expectedDbQueries = [
-            txBegin(),
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
             txCommit(),
           ]
-          if (isSqlServer) {
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         } else {
@@ -473,7 +564,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'deleteMany', [
             clientSerialize(),
-            engine([engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
         )
       })
@@ -488,8 +579,8 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'count', [
             clientSerialize(),
-            engine([
-              engineConnection(),
+            ...engine([
+              ...engineConnection(),
               isMongoDb
                 ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT COUNT')),
@@ -512,8 +603,8 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation('User', 'aggregate', [
             clientSerialize(),
-            engine([
-              engineConnection(),
+            ...engine([
+              ...engineConnection(),
               isMongoDb
                 ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT MAX')),
@@ -546,8 +637,12 @@ testMatrix.setupTestSuite(
         if (isMongoDb) {
           expectedDbQueries = [...createDbQueries(false), findManyDbQuery()]
         } else {
-          expectedDbQueries = [txBegin(), ...createDbQueries(false), findManyDbQuery(), txCommit()]
-          if (isSqlServer) {
+          expectedDbQueries = [...createDbQueries(false), findManyDbQuery(), txCommit()]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectedDbQueries.unshift(txBegin())
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         }
@@ -560,12 +655,12 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([
-                engineConnection(),
+              ...engine([
+                ...engineConnection(),
                 ...expectedDbQueries,
                 ...engineSerializeFinalResponse(),
-                engineSerializeQueryResult(),
-                engineSerializeQueryResult(),
+                ...engineSerializeQueryResult(),
+                ...engineSerializeQueryResult(),
               ]),
             ]),
             operation('User', 'findMany', [clientSerialize()]),
@@ -597,24 +692,18 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
+              ...engine([
+                ...createDbQueries(false),
+                ...engineSerializeFinalResponse(),
+                ...engineSerializeQueryResult(),
+              ]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
+              ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
-            {
-              name: 'prisma:engine:commit_transaction',
-              children: isMongoDb ? undefined : [txCommit()],
-            },
-            {
-              name: 'prisma:engine:start_transaction',
-              children: isMongoDb
-                ? [engineConnection()]
-                : isSqlServer
-                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
-            },
+            itxOperation('commit'),
+            itxOperation('start'),
           ],
         })
       })
@@ -646,24 +735,18 @@ testMatrix.setupTestSuite(
           children: [
             operation('User', 'create', [
               clientSerialize(),
-              engine([...createDbQueries(false), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
+              ...engine([
+                ...createDbQueries(false),
+                ...engineSerializeFinalResponse(),
+                ...engineSerializeQueryResult(),
+              ]),
             ]),
             operation('User', 'findMany', [
               clientSerialize(),
-              engine([findManyDbQuery(), ...engineSerializeFinalResponse(), engineSerializeQueryResult()]),
+              ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
-            {
-              name: 'prisma:engine:rollback_transaction',
-              children: isMongoDb ? undefined : [txRollback()],
-            },
-            {
-              name: 'prisma:engine:start_transaction',
-              children: isMongoDb
-                ? [engineConnection()]
-                : isSqlServer
-                ? [engineConnection(), txSetIsolationLevel(), txBegin()]
-                : [engineConnection(), txBegin()],
-            },
+            itxOperation('rollback'),
+            itxOperation('start'),
           ],
         })
       })
@@ -676,7 +759,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
             clientSerialize(),
-            engine([engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
+            ...engine([...engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
           ]),
         )
       })
@@ -693,8 +776,8 @@ testMatrix.setupTestSuite(
         await waitForSpanTree(
           operation(undefined, 'executeRaw', [
             clientSerialize(),
-            engine([
-              engineConnection(),
+            ...engine([
+              ...engineConnection(),
               dbQuery('SELECT 1 + 1;', AdapterQueryChildSpans.ArgsOnly),
               ...engineSerialize(),
             ]),
@@ -724,7 +807,7 @@ testMatrix.setupTestSuite(
         children: [
           operation('User', 'create', [
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         ],
       })
@@ -766,7 +849,7 @@ testMatrix.setupTestSuite(
             { name: 'prisma:client:middleware', attributes: { method: '$use' } },
             { name: 'prisma:client:middleware', attributes: { method: '$use' } },
             clientSerialize(),
-            engine([engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         )
       })
@@ -799,10 +882,10 @@ testMatrix.setupTestSuite(
           operation('User', 'findMany', [
             {
               name: 'prisma:client:connect',
-              children: [engineConnect()],
+              children: engineConnect(),
             },
             clientSerialize(),
-            engine([engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+            ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
         ])
       })
@@ -813,7 +896,7 @@ testMatrix.setupTestSuite(
         await waitForSpanTree([
           {
             name: 'prisma:client:connect',
-            children: [engineConnect()],
+            children: engineConnect(),
           },
           ...detectPlatform(),
           ...loadEngine(),
@@ -838,17 +921,17 @@ testMatrix.setupTestSuite(
           // There's no disconnect method in the binary engine, we terminate the process instead.
           // Since we immediately close the pipe, there's no chance to get any spans we could
           // emit from a signal handler.
-          children: engineType === 'binary' ? undefined : [{ name: 'prisma:engine:disconnect' }],
+          children: engineType === ClientEngineType.Library ? [{ name: 'prisma:engine:disconnect' }] : undefined,
         })
       })
     })
   },
-
   {
     skipDriverAdapter: {
-      from: ['js_d1'],
+      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
-        'Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
+        'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659 ; ' +
+        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
     },
   },
 )

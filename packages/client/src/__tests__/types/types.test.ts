@@ -1,14 +1,12 @@
 import { getClientEngineType, getPackedPackage } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
-import rimraf from 'rimraf'
+import { rimraf } from 'rimraf'
 import tsd, { formatter } from 'tsd'
 import { promisify } from 'util'
 
 import { compileFile } from '../../utils/compileFile'
 import { generateInFolder } from '../../utils/generateInFolder'
-
-const del = promisify(rimraf)
 
 jest.setTimeout(300_000)
 
@@ -24,7 +22,7 @@ describe('valid types', () => {
 
     const nodeModules = path.join(dir, 'node_modules')
     if (fs.existsSync(nodeModules)) {
-      await del(nodeModules)
+      await rimraf(nodeModules)
     }
     await generateInFolder({
       projectDir: dir,

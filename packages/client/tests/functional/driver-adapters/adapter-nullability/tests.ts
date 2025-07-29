@@ -2,7 +2,7 @@ import { NewPrismaClient } from '../../_utils/types'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
-import { PrismaClient } from './node_modules/@prisma/client'
+import { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -12,7 +12,9 @@ testMatrix.setupTestSuite(({ clientRuntime, engineType }, _suiteMeta, clientMeta
   })
 
   // TODO: Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`
-  skipTestIf(clientRuntime === 'wasm')('does not throw if adapter is set to null', async () => {
+  skipTestIf(
+    clientRuntime === 'wasm-engine-edge' || clientRuntime === 'wasm-compiler-edge' || clientRuntime === 'client',
+  )('does not throw if adapter is set to null', async () => {
     const prisma = newPrismaClient({ adapter: null })
 
     if (!clientMeta.driverAdapter) {

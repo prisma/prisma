@@ -1,5 +1,5 @@
 // This is copied from prisma-client-js/runtime/utils. It needs to be moved into a separate package
-import type { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator'
 import indent from 'indent-string'
 
 export type { ConnectorType }

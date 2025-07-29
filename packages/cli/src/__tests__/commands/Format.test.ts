@@ -1,7 +1,5 @@
 /* eslint-disable jest/no-identical-title */
 
-import path from 'node:path'
-
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
@@ -22,7 +20,7 @@ describe('format', () => {
     process.env = { ...originalEnv }
   })
 
-  describe('multi-schema-files with `prismaSchemaFolder`', () => {
+  describe('multi-schema-files', () => {
     describe('valid schemas', () => {
       it('should prefer single file to the multi-schema alternatives', async () => {
         ctx.fixture('multi-schema-files/valid')
@@ -63,45 +61,10 @@ describe('format', () => {
           Format.new().parse(['--schema=prisma/custom.prisma'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"Formatted prisma/custom.prisma in XXXms 🚀"`)
 
-        // explicit: multi schema files with `prismaSchemaFolder` enabled
+        // explicit: multi schema files
         await expect(
           Format.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
         ).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
-
-        await ctx.fs.removeAsync('schema.prisma')
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── schema1.prisma
-                  └── schema2.prisma
-              └── custom.prisma
-              └── schema.prisma
-          └── custom.prisma
-          "
-        `)
-
-        // implicit: conflict between folder and file
-        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
-          `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
-        )
-
-        await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── schema1.prisma
-                  └── schema2.prisma
-              └── custom.prisma
-          └── custom.prisma
-          "
-        `)
-
-        // implicit: multi schema files with `prismaSchemaFolder` enabled
-        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/schema in XXXms 🚀"`,
-        )
       })
     })
 
@@ -117,7 +80,8 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
+        await expect(Format.new().parse(['--schema=prisma/schema'], defaultTestConfig())).rejects
+          .toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Argument "value" is missing.
@@ -148,14 +112,15 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
+        await expect(Format.new().parse(['--schema=prisma/schema'], defaultTestConfig())).rejects
+          .toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:12
+            -->  prisma/schema/schema_with_config.prisma:11
              | 
-          11 | model User {
-          12 |   id Int @id @default(now())
+          10 | model User {
+          11 |   id Int @id @default(now())
              | 
 
           Validation Error Count: 1
@@ -179,56 +144,22 @@ describe('format', () => {
           "
         `)
 
-        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(`
-          "Prisma schema validation - (get-config wasm)
+        await expect(Format.new().parse(['--schema=prisma/schema'], defaultTestConfig())).rejects
+          .toThrowErrorMatchingInlineSnapshot(`
+          "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Property not known: "custom".
-            -->  prisma/schema/config.prisma:8
+            -->  prisma/schema/config.prisma:7
              | 
-           7 |   provider = "sqlite"
-           8 |   custom   = "attr"
+           6 |   provider = "sqlite"
+           7 |   custom   = "attr"
              | 
 
           Validation Error Count: 1
-          [Context: getConfig]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
-      })
-
-      it('should throw when both schema file and folder exist (even when invalid)', async () => {
-        ctx.fixture('multi-schema-files/invalid/default_schema_invalid-multi_schema_valid')
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── schema1.prisma
-                  └── schema2.prisma
-                  └── skip.txt
-              └── schema.prisma
-          "
-        `)
-
-        // implicit: single schema file (`prisma/schema.prisma`)
-        await expect(Format.new().parse([], defaultTestConfig())).rejects.toThrowErrorMatchingInlineSnapshot(
-          `"Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one."`,
-        )
-
-        await ctx.fs.removeAsync(path.join('prisma', 'schema.prisma'))
-        expect(ctx.tree()).toMatchInlineSnapshot(`
-          "
-          └── prisma/
-              └── schema/
-                  └── schema1.prisma
-                  └── schema2.prisma
-                  └── skip.txt
-          "
-        `)
-
-        // implicit: multi schema files (`prisma/schema`)
-        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/schema in XXXms 🚀"`,
-        )
       })
 
       it('fixes invalid relations across multiple schema files', async () => {
@@ -246,7 +177,8 @@ describe('format', () => {
           "
         `)
 
-        await expect(Validate.new().parse([], defaultTestConfig())).rejects.toMatchInlineSnapshot(`
+        await expect(Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig())).rejects
+          .toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating field \`user\` in model \`Link\`: The relation field \`user\` on model \`Link\` is missing an opposite relation field on the model \`User\`. Either run \`prisma format\` or add it manually.
@@ -262,21 +194,20 @@ describe('format', () => {
 
           Prisma CLI Version : 0.0.0"
         `)
-        await expect(Format.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
-          `"Formatted prisma/schema in XXXms 🚀"`,
-        )
-        await expect(Validate.new().parse([], defaultTestConfig())).resolves.toMatchInlineSnapshot(
-          `"The schemas at prisma/schema are valid 🚀"`,
-        )
+        await expect(
+          Format.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"Formatted prisma/schema in XXXms 🚀"`)
+        await expect(
+          Validate.new().parse(['--schema=prisma/schema'], defaultTestConfig()),
+        ).resolves.toMatchInlineSnapshot(`"The schemas at prisma/schema are valid 🚀"`)
 
-        const { schemas } = (await getSchemaWithPath())!
+        const { schemas } = (await getSchemaWithPath('prisma/schema'))!
 
         // notice how the `Link` backrelation was added in the first schema file:
         expect(extractSchemaContent(schemas)).toMatchInlineSnapshot(`
           [
             "generator client {
-            provider        = "prisma-client-js"
-            previewFeatures = ["prismaSchemaFolder"]
+            provider = "prisma-client-js"
           }
 
           datasource db {

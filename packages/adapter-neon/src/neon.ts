@@ -4,19 +4,20 @@ import * as neon from '@neondatabase/serverless'
 import type {
   ColumnType,
   ConnectionInfo,
-  DriverAdapter,
-  Query,
-  Queryable,
-  Result,
-  ResultSet,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
 import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:neon')
 
@@ -27,24 +28,18 @@ type PerformIOResult = neon.QueryResult<any> | neon.FullQueryResults<ARRAY_MODE_
 /**
  * Base class for http client, ws client and ws transaction
  */
-abstract class NeonQueryable implements Queryable {
+abstract class NeonQueryable implements SqlQueryable {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const res = await this.performIO(query)
-
-    if (!res.ok) {
-      return err(res.error)
-    }
-
-    const { fields, rows } = res.value
+    const { fields, rows } = await this.performIO(query)
     const columnNames = fields.map((field) => field.name)
     let columnTypes: ColumnType[] = []
 
@@ -52,7 +47,7 @@ abstract class NeonQueryable implements Queryable {
       columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
-        return err({
+        throw new DriverAdapterError({
           kind: 'UnsupportedNativeDataType',
           type: e.type,
         })
@@ -60,11 +55,11 @@ abstract class NeonQueryable implements Queryable {
       throw e
     }
 
-    return ok({
+    return {
       columnNames,
       columnTypes,
       rows,
-    })
+    }
   }
 
   /**
@@ -72,12 +67,12 @@ abstract class NeonQueryable implements Queryable {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
     // Note: `rowsAffected` can sometimes be null (e.g., when executing `"BEGIN"`)
-    return (await this.performIO(query)).map((r) => r.rowCount ?? 0)
+    return (await this.performIO(query)).rowCount ?? 0
   }
 
   /**
@@ -85,7 +80,7 @@ abstract class NeonQueryable implements Queryable {
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  abstract performIO(query: Query): Promise<Result<PerformIOResult>>
+  abstract performIO(query: SqlQuery): Promise<PerformIOResult>
 }
 
 /**
@@ -96,7 +91,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
     super()
   }
 
-  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
+  override async performIO(query: SqlQuery): Promise<PerformIOResult> {
     const { sql, args: values } = query
 
     try {
@@ -130,22 +125,15 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
         fixArrayBufferValues(values),
       )
 
-      return ok(result)
+      return result
     } catch (e) {
-      debug('Error in performIO: %O', e)
-      if (e && typeof e.code === 'string' && typeof e.severity === 'string' && typeof e.message === 'string') {
-        return err({
-          kind: 'postgres',
-          code: e.code,
-          severity: e.severity,
-          message: e.message,
-          detail: e.detail,
-          column: e.column,
-          hint: e.hint,
-        })
-      }
-      throw e
+      this.onError(e)
     }
+  }
+
+  protected onError(e: any): never {
+    debug('Error in onError: %O', e)
+    throw new DriverAdapterError(convertDriverError(e))
   }
 }
 
@@ -154,35 +142,16 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
     super(client)
   }
 
-  async commit(): Promise<Result<void>> {
+  async commit(): Promise<void> {
     debug(`[js::commit]`)
 
     this.client.release()
-    return Promise.resolve(ok(undefined))
   }
 
-  async rollback(): Promise<Result<void>> {
+  async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
     this.client.release()
-    return Promise.resolve(ok(undefined))
-  }
-}
-
-class NeonTransactionContext extends NeonWsQueryable<neon.PoolClient> implements TransactionContext {
-  constructor(readonly conn: neon.PoolClient) {
-    super(conn)
-  }
-
-  async startTransaction(): Promise<Result<Transaction>> {
-    const options: TransactionOptions = {
-      usePhantomQuery: false,
-    }
-
-    const tag = '[js::startTransaction]'
-    debug('%s options: %O', tag, options)
-
-    return ok(new NeonTransaction(this.conn, options))
   }
 }
 
@@ -190,71 +159,129 @@ export type PrismaNeonOptions = {
   schema?: string
 }
 
-export class PrismaNeon extends NeonWsQueryable<neon.Pool> implements DriverAdapter {
+export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
   private isRunning = true
 
   constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
-    if (!(pool instanceof neon.Pool)) {
-      throw new TypeError(`PrismaNeon must be initialized with an instance of Pool:
-import { Pool } from '@neondatabase/serverless'
-const pool = new Pool({ connectionString: url })
-const adapter = new PrismaNeon(pool)
-`)
-    }
     super(pool)
   }
 
-  getConnectionInfo(): Result<ConnectionInfo> {
-    return ok({
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
+  }
+
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
+    const options: TransactionOptions = {
+      usePhantomQuery: false,
+    }
+
+    const tag = '[js::startTransaction]'
+    debug('%s options: %O', tag, options)
+
+    const conn = await this.client.connect().catch((error) => this.onError(error))
+
+    try {
+      const tx = new NeonTransaction(conn, options)
+      await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
+      if (isolationLevel) {
+        await tx.executeRaw({
+          sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
+          args: [],
+          argTypes: [],
+        })
+      }
+      return tx
+    } catch (error) {
+      conn.release(error)
+      this.onError(error)
+    }
+  }
+
+  getConnectionInfo(): ConnectionInfo {
+    return {
       schemaName: this.options?.schema,
-    })
+      supportsRelationJoins: true,
+    }
   }
 
-  async transactionContext(): Promise<Result<TransactionContext>> {
-    const conn = await this.client.connect()
-    return ok(new NeonTransactionContext(conn))
-  }
-
-  async close() {
+  async dispose(): Promise<void> {
     if (this.isRunning) {
       await this.client.end()
       this.isRunning = false
     }
-    return ok(undefined)
+  }
+
+  underlyingDriver(): neon.Pool {
+    return this.client
   }
 }
 
-export class PrismaNeonHTTP extends NeonQueryable implements DriverAdapter {
-  constructor(private client: neon.NeonQueryFunction<any, any>) {
+export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
+
+  async connect(): Promise<PrismaNeonAdapter> {
+    return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
+  }
+}
+
+export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
+  private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
+
+  constructor(client: neon.NeonQueryFunction<any, any>) {
     super()
+    // `client.query` is for @neondatabase/serverless v1.0.0 and up, where the
+    // root query function `client` is only usable as a template function;
+    // `client` is a fallback for earlier versions
+    this.client = (client as any).query ?? (client as any)
   }
 
-  override async performIO(query: Query): Promise<Result<PerformIOResult>> {
-    const { sql, args: values } = query
-    return ok(
-      await this.client(sql, values, {
-        arrayMode: true,
-        fullResults: true,
-        // pass type parsers to neon() HTTP client, same as in WS client above
-        //
-        // requires @neondatabase/serverless >= 0.9.5
-        // - types option added in https://github.com/neondatabase/serverless/pull/92
-        types: {
-          getTypeParser: (oid: number, format?) => {
-            if (format === 'text' && customParsers[oid]) {
-              return customParsers[oid]
-            }
-
-            return neon.types.getTypeParser(oid, format)
-          },
-        },
-        // type `as` cast required until neon types are corrected:
-        // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
-      } as neon.HTTPQueryOptions<true, true>),
-    )
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
   }
 
-  transactionContext(): Promise<Result<TransactionContext>> {
+  async startTransaction(): Promise<Transaction> {
     return Promise.reject(new Error('Transactions are not supported in HTTP mode'))
+  }
+
+  override async performIO(query: SqlQuery): Promise<PerformIOResult> {
+    const { sql, args: values } = query
+    return await this.client(sql, values, {
+      arrayMode: true,
+      fullResults: true,
+      // pass type parsers to neon() HTTP client, same as in WS client above
+      //
+      // requires @neondatabase/serverless >= 0.9.5
+      // - types option added in https://github.com/neondatabase/serverless/pull/92
+      types: {
+        getTypeParser: (oid: number, format?) => {
+          if (format === 'text' && customParsers[oid]) {
+            return customParsers[oid]
+          }
+
+          return neon.types.getTypeParser(oid, format)
+        },
+      },
+      // type `as` cast required until neon types are corrected:
+      // https://github.com/neondatabase/serverless/pull/110#issuecomment-2458992991
+    } as neon.HTTPQueryOptions<true, true>)
+  }
+
+  async dispose(): Promise<void> {}
+}
+
+export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'postgres'
+  readonly adapterName = packageName
+
+  constructor(
+    private readonly connectionString: string,
+    private readonly options: neon.HTTPQueryOptions<boolean, boolean>,
+  ) {}
+
+  async connect(): Promise<SqlDriverAdapter> {
+    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
   }
 }

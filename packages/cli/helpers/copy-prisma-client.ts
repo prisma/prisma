@@ -16,7 +16,7 @@ export async function copyPrismaClient() {
     if (file.includes('wasm') === false) {
       const from = path.join(clientPath, file)
       const to = path.join(clientCopyPath, file)
-      copySync(from, to, { overwrite: true, recursive: true })
+      copySync(from, to, { overwrite: true })
     }
   }
 }

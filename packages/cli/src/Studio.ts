@@ -5,15 +5,14 @@ import {
   arg,
   Command,
   format,
-  getConfig,
   getDirectUrl,
   HelpError,
   isError,
   loadEnvFile,
+  loadSchemaContext,
   mergeSchemas,
   resolveUrl,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
@@ -77,7 +76,7 @@ ${bold('Examples')}
    * Parses arguments passed to this command, and starts Studio
    *
    * @param argv Array of all arguments
-   * @param _config The loaded Prisma config
+   * @param config The loaded Prisma config
    */
   public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
@@ -104,7 +103,11 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'])
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+      ignoreEnvVarErrors: true,
+    })
 
     const hostname = args['--hostname']
     const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
@@ -113,14 +116,17 @@ ${bold('Examples')}
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const mergedSchema = mergeSchemas({
-      schemas,
+      schemas: schemaContext.schemaFiles,
     })
 
-    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    const adapter = await config.studio?.adapter()
+
+    if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
 
     process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
-      schemaPath,
+      schemaPath: schemaContext.schemaPath,
+      adapter,
       schemaText: mergedSchema,
       hostname,
       port,
@@ -129,7 +135,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: resolveUrl(getDirectUrl(engineConfig.datasources[0])),
+        directUrl: resolveUrl(getDirectUrl(schemaContext.primaryDatasource)),
       },
       versions: {
         prisma: packageJson.version,

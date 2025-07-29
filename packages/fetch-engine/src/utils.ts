@@ -90,7 +90,7 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
     await removeFileIfExists(targetPath)
     await fs.promises.copyFile(sourcePath, targetPath)
   } else {
-    let tempPath = `${targetPath}.tmp${process.pid}`
+    const tempPath = `${targetPath}.tmp${process.pid}`
     await fs.promises.copyFile(sourcePath, tempPath)
     await fs.promises.rename(tempPath, targetPath)
   }

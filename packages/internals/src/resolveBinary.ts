@@ -78,9 +78,7 @@ export function safeResolveBinary(name: BinaryType, proposedPath?: string): TE.T
 }
 
 export async function maybeCopyToTmp(file: string): Promise<string> {
-  const dir = eval('__dirname')
-
-  if (dir.match(vercelPkgPathRegex)) {
+  if (__dirname.match(vercelPkgPathRegex)) {
     // In this case, we are in a "pkg" context with a simulated fs.
     // We can't execute a binary from here because it's not a real
     // file system but rather something implemented on JavaScript

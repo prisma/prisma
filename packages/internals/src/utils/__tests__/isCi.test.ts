@@ -15,7 +15,6 @@ describe('isCi', () => {
 
   describe('in non TTY environment', () => {
     beforeEach(() => {
-      delete process.env.BUILDKITE
       delete process.env.GITHUB_ACTIONS
       delete process.env.CI
       process.stdin.isTTY = false
@@ -28,7 +27,6 @@ describe('isCi', () => {
 
   describe('in TTY environment', () => {
     beforeEach(() => {
-      delete process.env.BUILDKITE
       delete process.env.GITHUB_ACTIONS
       delete process.env.CI
       process.stdin.isTTY = true

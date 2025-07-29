@@ -1,4 +1,5 @@
-import { Cache } from '../../../generation/Cache'
+import { Cache } from '@prisma/client-common'
+
 import { CompositeProxyLayer } from './createCompositeProxy'
 
 /**

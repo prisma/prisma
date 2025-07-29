@@ -1,11 +1,11 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 // 1:1 relation
 async function createXItems({ count }) {
@@ -154,6 +154,10 @@ testMatrix.setupTestSuite(
         Providers.SQLITE,
       ],
       reason: 'Only testing xyz provider(s) so opting out of xxx',
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

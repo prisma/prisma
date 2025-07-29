@@ -1,13 +1,10 @@
-// describeIf is making eslint unhappy about the test names
-
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupMysql, tearDownMysql } from '../../utils/setupMysql'
 import { SetupParams } from '../../utils/setupPostgres'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { allDriverAdapters, describeMatrix } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -16,28 +13,9 @@ if (isMacOrWindowsCI) {
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-const originalEnv = { ...process.env }
-
-describe('mysql', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI!.replace('tests-migrate', 'tests-migrate-db-pull-mysql')
 
   const setupParams: SetupParams = {
@@ -57,15 +35,12 @@ describe('mysql', () => {
     await setupMysql(setupParams).catch((e) => {
       console.error(e)
     })
-    // Back to original env vars
-    process.env = { ...originalEnv }
+
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    // Back to original env vars
-    process.env = { ...originalEnv }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
@@ -74,9 +49,49 @@ describe('mysql', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/mysql')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'], defaultTestConfig())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mysql"
+        url      = env("TEST_MYSQL_URI")
+      }
+
+      model your_log {
+        click_id     Int      @id @default(autoincrement())
+        click_time   DateTime @db.DateTime(0)
+        shorturl     String   @db.VarChar(200)
+        referrer     String   @db.VarChar(200)
+        user_agent   String   @db.VarChar(255)
+        ip_address   String   @db.VarChar(41)
+        country_code String   @db.Char(2)
+
+        @@index([shorturl], map: "shorturl")
+      }
+
+      model your_options {
+        option_id    BigInt @default(autoincrement()) @db.UnsignedBigInt
+        option_name  String @default("") @db.VarChar(64)
+        option_value String @db.LongText
+
+        @@id([option_id, option_name])
+        @@index([option_name], map: "option_name")
+      }
+
+      model your_url {
+        keyword   String   @id @db.VarChar(200)
+        url       String   @db.Text
+        title     String?  @db.Text
+        timestamp DateTime @default(now()) @db.Timestamp(0)
+        ip        String   @db.VarChar(41)
+        clicks    Int      @db.UnsignedInt
+
+        @@index([ip], map: "ip")
+        @@index([timestamp], map: "timestamp")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -86,9 +101,49 @@ describe('mysql', () => {
   // user and set password for MySQL, or sanitize the snapshot.
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mysql"
+        url      = "mysql://root:root@localhost:3306/tests"
+      }
+
+      model your_log {
+        click_id     Int      @id @default(autoincrement())
+        click_time   DateTime @db.DateTime(0)
+        shorturl     String   @db.VarChar(200)
+        referrer     String   @db.VarChar(200)
+        user_agent   String   @db.VarChar(255)
+        ip_address   String   @db.VarChar(41)
+        country_code String   @db.Char(2)
+
+        @@index([shorturl], map: "shorturl")
+      }
+
+      model your_options {
+        option_id    BigInt @default(autoincrement()) @db.UnsignedBigInt
+        option_name  String @default("") @db.VarChar(64)
+        option_value String @db.LongText
+
+        @@id([option_id, option_name])
+        @@index([option_name], map: "option_name")
+      }
+
+      model your_url {
+        keyword   String   @id @db.VarChar(200)
+        url       String   @db.Text
+        title     String?  @db.Text
+        timestamp DateTime @default(now()) @db.Timestamp(0)
+        ip        String   @db.VarChar(41)
+        clicks    Int      @db.UnsignedInt
+
+        @@index([ip], map: "ip")
+        @@index([timestamp], map: "timestamp")
+      }
+
+      "
+    `)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })

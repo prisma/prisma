@@ -1,17 +1,17 @@
 import crypto from 'crypto'
 
 import { getSchemaWithPath } from './getSchema'
-import { arg } from './utils'
 
 /**
  * Get a unique identifier for the project by hashing
  * the directory with `schema.prisma`
  */
-export async function getProjectHash(): Promise<string> {
-  const args = arg(process.argv.slice(3), { '--schema': String })
-
+export async function getProjectHash(
+  schemaPathFromArgs: string | undefined,
+  schemaPathFromConfig: string | undefined,
+): Promise<string> {
   // Default to cwd if the schema couldn't be found
-  const projectPath = (await getSchemaWithPath(args['--schema']))?.schemaPath ?? process.cwd()
+  const projectPath = (await getSchemaWithPath(schemaPathFromArgs, schemaPathFromConfig))?.schemaPath ?? process.cwd()
 
   return crypto.createHash('sha256').update(projectPath).digest('hex').substring(0, 8)
 }

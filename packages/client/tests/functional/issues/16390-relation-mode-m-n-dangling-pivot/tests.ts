@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   ({ provider, relationMode }, suiteMeta) => {
@@ -20,10 +20,6 @@ testMatrix.setupTestSuite(
         } else {
           await prisma.$executeRaw`TRUNCATE TABLE "_CategoryToItem";`
         }
-      })
-
-      afterAll(async () => {
-        await prisma.$disconnect()
       })
 
       test('when deleting an item, the corresponding entry in the implicit pivot table should be deleted', async () => {

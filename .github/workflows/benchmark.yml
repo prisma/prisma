@@ -59,7 +59,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: 9
           skip-tsc: false
 
       - name: Run benchmarks
@@ -88,19 +87,3 @@ jobs:
           token: ${{ secrets.CODSPEED_TOKEN }}
         env:
           CODSPEED_BENCHMARK: true
-
-      - name: 'Set current job url in SLACK_FOOTER env var'
-        if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
-
-      - name: Slack Notification on Failure
-        if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        uses: rtCamp/action-slack-notify@v2.3.2
-        env:
-          SLACK_TITLE: 'Benchmark failed :x:'
-          SLACK_COLOR: '#FF0000'
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_CHANNEL: feed-prisma-failures
-          SLACK_USERNAME: Prismo
-          SLACK_ICON_EMOJI: ':boom:'
-          SLACK_MSG_AUTHOR: prisma-bot

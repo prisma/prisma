@@ -1,8 +1,7 @@
-import { ConfigMetaFormat, link } from '@prisma/internals'
+import { DataSource } from '@prisma/generator'
+import { link } from '@prisma/internals'
 
-export function getHardcodedUrlWarning(config: ConfigMetaFormat) {
-  const datasource = config.datasources?.[0]
-
+export function getHardcodedUrlWarning(datasource: DataSource | undefined) {
   if (
     datasource !== undefined &&
     datasource.provider !== 'sqlite' &&

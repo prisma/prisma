@@ -1,68 +1,52 @@
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { MigrateStatus } from '../commands/MigrateStatus'
-import { CaptureStdout } from '../utils/captureStdout'
+import { describeMatrix, postgresOnly, sqliteOnly } from './__helpers__/conditionalTests'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const captureStdout = new CaptureStdout()
-
-beforeEach(() => {
-  captureStdout.startCapture()
-})
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
+const ctx = createDefaultTestContext()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
   })
 })
 
-describe('sqlite', () => {
+describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], defaultTestConfig())
-    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist at \`dev.db\`."`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
+    await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('existing-db-1-failed-migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
-
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
       "
@@ -84,22 +68,18 @@ describe('sqlite', () => {
       Read more about how to resolve migration issues in a production database:
       https://pris.ly/d/migrate-resolve"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 
   it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
-    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], defaultTestConfig())
+    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/using-file-as-url.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
       "
@@ -110,54 +90,50 @@ describe('sqlite', () => {
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('schema-folder-db-exists', async () => {
     ctx.fixture('schema-folder-sqlite-db-exists')
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse(['--schema=./prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema
-      Datasource "my_db": SQLite database "dev.db" at "file:../dev.db"
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('existing-db-1-migration-conflict', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
       Following migration have not yet been applied:
@@ -168,22 +144,18 @@ describe('sqlite', () => {
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
       "
@@ -194,22 +166,18 @@ describe('sqlite', () => {
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
       "
@@ -220,38 +188,34 @@ describe('sqlite', () => {
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 
   it('reset', async () => {
     ctx.fixture('reset')
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       1 migration found in prisma/migrations
 
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 
   it('existing-db-histories-diverge', async () => {
     ctx.fixture('existing-db-histories-diverge')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
-    const result = MigrateStatus.new().parse([], defaultTestConfig())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       2 migrations found in prisma/migrations
       "
@@ -267,27 +231,28 @@ describe('sqlite', () => {
       The migration from the database are not found locally in prisma/migrations:
       20201231000000_dogage"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
+    expect(ctx.recordedExitCode()).toBe(1)
   })
 })
 
-describe('postgresql', () => {
+describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if cannot connect', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], defaultTestConfig())
+    const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
 
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
-
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/invalid-url.prisma
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
+      "
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot('""')
   })
 })

@@ -1,11 +1,21 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  HelpError,
+  inferDirectoryConfig,
+  isError,
+  loadEnvFile,
+  loadSchemaContext,
+  MigrateTypes,
+} from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
@@ -46,6 +56,7 @@ ${bold('Examples')}
         '--help': Boolean,
         '-h': '--help',
         '--schema': String,
+        '--config': String,
         '--telemetry-information': String,
       },
       false,
@@ -55,30 +66,42 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate deploy', args, true)
-
     if (args['--help']) {
       return this.help()
     }
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema']))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const migrate = new Migrate(schemaPath)
+    const adapter = await config.adapter?.()
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    try {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('apply', schemaPath)
-      if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    if (!adapter) {
+      try {
+        // Automatically create the database if it doesn't exist
+        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+        if (wasDbCreated) {
+          process.stdout.write('\n' + wasDbCreated + '\n')
+        }
+      } catch (e) {
+        process.stdout.write('\n') // empty line
+        throw e
       }
-    } catch (e) {
-      process.stdout.write('\n') // empty line
-
-      throw e
     }
 
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
@@ -101,7 +124,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     process.stdout.write('\n') // empty line

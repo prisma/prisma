@@ -1,6 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`should not load root .env file 1`] = `
-"Environment variables loaded from .env
-"
-`;

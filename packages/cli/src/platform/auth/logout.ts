@@ -19,35 +19,47 @@ export class Logout implements Command {
     if (credentials.token) {
       const jwt = decodeJwt(credentials.token)
       if (!isError(jwt) && jwt.jti) {
-        await requestOrThrow<
-          {
-            managementTokenDelete: {
-              __typename: string
+        try {
+          await requestOrThrow<
+            {
+              managementTokenDelete: {
+                __typename: string
+              }
+            },
+            {
+              id: string
             }
-          },
-          {
-            id: string
-          }
-        >({
-          token: credentials.token,
-          body: {
-            query: /* GraphQL */ `
-              mutation ($input: MutationManagementTokenDeleteInput!) {
-                managementTokenDelete(input: $input) {
-                  __typename
-                  ... on Error {
-                    message
+          >({
+            token: credentials.token,
+            body: {
+              query: /* GraphQL */ `
+                mutation ($input: MutationManagementTokenDeleteInput!) {
+                  managementTokenDelete(input: $input) {
+                    __typename
+                    ... on Error {
+                      message
+                    }
                   }
                 }
-              }
-            `,
-            variables: {
-              input: {
-                id: jwt.jti,
+              `,
+              variables: {
+                input: {
+                  id: jwt.jti,
+                },
               },
             },
-          },
-        })
+          })
+        } catch (e) {
+          if (
+            e instanceof Error &&
+            (e.message.includes('Authentication failed because the access token was expired') ||
+              e.message.includes('Authentication failed because the access token was invalid'))
+          ) {
+            // The token was already deleted on the server or expired => Do not throw but let deletion continue
+          } else {
+            throw e
+          }
+        }
       }
     }
 

@@ -1,6 +1,7 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
+import { BinaryType } from '@prisma/fetch-engine'
 import type { BinaryTarget } from '@prisma/get-platform'
 import path from 'path'
 
@@ -13,38 +14,53 @@ export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrar
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType {
-  const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
-  if (envCliQueryEngineType) {
-    if (envCliQueryEngineType === 'binary') {
-      return BinaryType.QueryEngineBinary
-    }
-    if (envCliQueryEngineType === 'library') {
-      return BinaryType.QueryEngineLibrary
-    }
+export function getCliQueryEngineBinaryType(clientEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE): BinaryType {
+  if (clientEngineType === 'binary') {
+    return BinaryType.QueryEngineBinary
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
 }
-export async function ensureBinariesExist() {
+
+type EnsureSomeBinariesExistInput = {
+  clientEngineType: 'library' | 'binary' | 'client'
+  hasMigrateAdapterInConfig: boolean
+  download: (options: DownloadOptions) => Promise<BinaryPaths>
+}
+
+export async function ensureNeededBinariesExist({
+  clientEngineType,
+  download,
+  hasMigrateAdapterInConfig,
+}: EnsureSomeBinariesExistInput) {
   const binaryDir = path.join(__dirname, '../')
-  let binaryTargets: string[] | undefined
-  if (process.env.PRISMA_CLI_BINARY_TARGETS) {
-    binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS.split(',')
+
+  const binaries = {} as Record<BinaryType, string>
+
+  if (!hasMigrateAdapterInConfig) {
+    binaries[BinaryType.SchemaEngineBinary] = binaryDir
   }
 
-  const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+  // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
+  // QE is enabled explicitly by specifying the engineType generator property.
+  const usesQueryCompiler = clientEngineType === 'client'
 
-  const binaries = {
-    [cliQueryEngineBinaryType]: binaryDir,
-    [BinaryType.SchemaEngineBinary]: binaryDir,
+  if (!usesQueryCompiler) {
+    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType(clientEngineType)
+    binaries[cliQueryEngineBinaryType] = binaryDir
   }
+
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
+
+  const binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS
+    ? (process.env.PRISMA_CLI_BINARY_TARGETS.split(',') as BinaryTarget[])
+    : undefined
+
   await download({
     binaries: binaries,
     showProgress: true,
     version: enginesVersion,
     failSilent: false,
-    binaryTargets: binaryTargets as BinaryTarget[],
+    binaryTargets,
   })
 }
 

@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 // @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

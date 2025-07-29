@@ -8,6 +8,7 @@ tmp
 pnpm-debug.log
 .DS_Store
 
+/target
 query-engine*
 migration-engine*
 schema-engine*
@@ -20,6 +21,7 @@ dist/
 
 *.tsbuildinfo
 .prisma
+.attest
 .pnpm-store
 
 .vscode/*

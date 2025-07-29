@@ -5,7 +5,7 @@ import path from 'path'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
-import { AdapterProviders, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
+import { AdapterProviders, GeneratorTypes, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, ClientRuntime, CliMeta } from './types'
 
@@ -14,6 +14,7 @@ export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string> & {
     provider: Providers
+    generatorType?: GeneratorTypes
     driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
     engineType?: `${ClientEngineType}`
@@ -26,7 +27,7 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
 const allProvidersRegexUnion = Object.values(Providers).join('|')
 const schemaPreviewFeaturesRegex = /previewFeatures\s*=\s*(.*)/
-const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-js"/
+const schemaDefaultGeneratorRegex = /provider\s*=\s*"prisma-client-(j|t)s"/
 const schemaProviderRegex = new RegExp(`provider\\s*=\\s*"(?:${allProvidersRegexUnion})"`, 'g')
 const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
 
@@ -205,6 +206,12 @@ export function getTestSuiteSchema({
     schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
+  // update the generator block to use the correct generator type
+  if (defaultGeneratorMatch !== null && matrixOptions.generatorType !== undefined) {
+    const replacement = `provider = "${matrixOptions.generatorType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
+  }
+
   // if an engine type is specified, append it to the default generator block
   if (engineType !== undefined && defaultGeneratorMatch !== null) {
     const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
@@ -271,12 +278,14 @@ export function getTestSuiteCliMeta(): CliMeta {
   const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
   const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
+  const generatorType = process.env.TEST_GENERATOR_TYPE as GeneratorTypes | undefined
 
   return {
     dataProxy,
     runtime: runtime ?? 'node',
     engineType: engineType ?? ClientEngineType.Library,
     previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
+    generatorType,
   }
 }
 

@@ -1,5 +1,4 @@
 /* eslint-disable import/no-duplicates */
-import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
@@ -28,8 +27,7 @@ void replicaClient.user.findMany()
 export const generators = [G1, G2]
 
 /* Driver Adapters */
-const planetScaleClient = new PlanetScaleClient({ url: connectionString })
 export const planetScalePrismaClient = new PrismaClient({
-  adapter: new PrismaPlanetScale(planetScaleClient),
+  adapter: new PrismaPlanetScale({ url: connectionString }),
 })
 void planetScalePrismaClient.user.findMany()

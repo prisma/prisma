@@ -2,7 +2,7 @@ import { Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -604,7 +604,7 @@ testMatrix.setupTestSuite(
       reason: 'Metrics are not supported with Data Proxy yet',
     },
     skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
+      when(clientRuntime === 'wasm-engine-edge', 'Metrics are not supported with WASM engine yet')
     },
   },
 )

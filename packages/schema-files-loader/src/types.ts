@@ -41,10 +41,6 @@ export type NonFatalLookupError =
       path: string
       expectedTypes: PathType[]
     }
-  | {
-      kind: 'FolderPreviewNotEnabled'
-      path: string
-    }
 
 export type LookupResult =
   | SuccessfulLookupResult

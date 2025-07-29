@@ -1,8 +1,10 @@
 #!/usr/bin/env tsx
 
+import { InjectFormatters } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
-import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
+import { download } from '@prisma/fetch-engine'
+import { arg, handlePanic, HelpError, isRustPanic, link } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -19,14 +21,14 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { bold, red } from 'kleur/colors'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
-import { Init } from './Init'
+import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
@@ -39,10 +41,10 @@ import { Platform } from './platform/_Platform'
 import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
-import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
+import { redactCommandArray } from './utils/checkpoint'
+import { loadOrInitializeCommandState } from './utils/commandState'
 import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
-import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
 
@@ -54,27 +56,25 @@ const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
-// Listen to Ctr + C and exit
 process.once('SIGINT', () => {
-  process.exit(130)
+  process.exitCode = 130
+
+  // no further downstream listeners for SIGINT, exit immediately with the code set above.
+  if (process.listenerCount('SIGINT') === 0) {
+    process.exit()
+  }
+  // otherwise, let the downstream listeners handle it.
 })
 
 // Parse CLI arguments
 const args = arg(
   commandArray,
   {
-    '--schema': String,
     '--config': String,
-    '--telemetry-information': String,
   },
   false,
   true,
 )
-
-// Redact the command options and make it a string
-const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
-
-const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
 /**
  * Main function
@@ -86,10 +86,8 @@ async function main(): Promise<number> {
 
   const cli = CLI.new(
     {
-      init: Init.new(),
+      init: new SubCommand('@prisma/cli-init'),
       platform: Platform.$.new({
-        policy: new SubCommand('@prisma/cli-policy'),
-
         workspace: Platform.Workspace.$.new({
           show: Platform.Workspace.Show.new(),
         }),
@@ -128,6 +126,7 @@ async function main(): Promise<number> {
           show: Platform.ServiceToken.Show.new(true),
         }),
       }),
+      mcp: Mcp.new(),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -154,14 +153,47 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
+      // TODO: add rules subcommand to --help after EA
+      rules: new SubCommand('@prisma/cli-security-rules'),
+      dev: new SubCommand('@prisma/cli-dev'),
+      // TODO: add deploy subcommand to --help after it works.
+      deploy: new SubCommand('@prisma/cli-deploy'),
+      // TODO: add login subcommand to --help after it works.
+      login: new SubCommand('@prisma/cli-login'),
     },
     ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    download,
   )
 
-  const config = await loadConfig(args['--config'])
-  if (config instanceof HelpError) {
-    console.error(config.message)
+  await loadOrInitializeCommandState().catch((err) => {
+    debug(`Failed to initialize the command state: ${err}`)
+  })
+
+  const configEither = await loadConfig(args['--config'])
+
+  if (configEither instanceof HelpError) {
+    console.error(configEither.message)
     return 1
+  }
+
+  const { config, diagnostics: configDiagnostics } = configEither
+
+  // Diagnostics like informational logs and warnings are logged to stderr, to not interfere with structured output
+  // in some of the commands consuming the Prisma config.
+  // See: https://www.gnu.org/software/libc/manual/html_node/Standard-Streams.html
+  const configDiagnosticFormatters: InjectFormatters = {
+    // This fixes https://github.com/prisma/prisma/issues/27609.
+    log: (data) => process.stderr.write(data + '\n'),
+    warn: (data) => console.warn(`${yellow(bold('warn'))} ${data}`),
+    dim: (data) => dim(data),
+
+    // `terminal-link` is not easily installable in `@prisma/config` without introducing ESM/CJS incompatibility issues, or
+    //  circular dependencies (requiring yet another `@prisma` package),
+    link: (data) => link(data),
+  }
+
+  for (const configDiagnostic of configDiagnostics) {
+    configDiagnostic.value(configDiagnosticFormatters)()
   }
 
   const startCliExec = performance.now()
@@ -171,37 +203,13 @@ async function main(): Promise<number> {
   const cliExecElapsedTime = endCliExec - startCliExec
   debug(`Execution time for executing "await cli.parse(commandArray)": ${cliExecElapsedTime} ms`)
 
-  // Did it error?
-  if (result instanceof HelpError) {
-    console.error(result.message)
-    // TODO: We could do like Bash (and other)
-    // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
-    // https://tldp.org/LDP/abs/html/exitcodes.html
-    return 1
-  } else if (isError(result)) {
-    console.error(result)
+  if (result instanceof Error) {
+    console.error(result instanceof HelpError ? result.message : result)
     return 1
   }
 
   // Success
   console.log(result)
-
-  /**
-   * Prepare data and run the Checkpoint Client
-   * See function for more info
-   */
-  const checkResult = await runCheckpointClientCheck({
-    command: redactedCommandAsString,
-    isPrismaInstalledGlobally,
-    schemaPath: args['--schema'],
-    telemetryInformation: args['--telemetry-information'],
-    version: packageJson.version,
-  })
-  // if the result is cached and CLI outdated, show the `Update available` message
-  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
-  if (checkResult && checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
-    printUpdateMessage(checkResult)
-  }
 
   return 0
 }
@@ -234,7 +242,7 @@ function handleIndividualError(error: Error): void {
       error,
       cliVersion: packageJson.version,
       enginesVersion,
-      command: redactedCommandAsString,
+      command: redactCommandArray([...commandArray]).join(' '),
       getDatabaseVersionSafe,
     })
       .catch((e) => {

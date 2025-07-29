@@ -3,14 +3,16 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
+  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
-  getConfig,
   HelpError,
   isError,
   link,
   loadEnvFile,
+  loadSchemaContext,
   locateLocalCloudflareD1,
+  MigrateTypes,
   toSchemasContainer,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
@@ -22,6 +24,7 @@ import { getSchemaWithPath } from '../../../internals/src/cli/getSchema'
 import { Migrate } from '../Migrate'
 import type { EngineArgs, EngineResults } from '../types'
 import { CaptureStdout } from '../utils/captureStdout'
+import { listMigrations } from '../utils/listMigrations'
 
 const debug = Debug('prisma:migrate:diff')
 
@@ -172,6 +175,7 @@ ${bold('Examples')}
         '--script': Boolean,
         '--exit-code': Boolean,
         '--telemetry-information': String,
+        '--config': String,
       },
       false,
     )
@@ -180,7 +184,27 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate diff', args, false)
+    const cmd = 'migrate diff'
+
+    checkUnsupportedDataProxy({
+      cmd,
+      urls: [args['--to-url'], args['--from-url'], args['--shadow-database-url']],
+    })
+
+    checkUnsupportedSchemaEngineWasm({
+      cmd,
+      config,
+      args,
+      flags: [
+        '--from-url',
+        '--to-url',
+        '--from-schema-datasource',
+        '--to-schema-datasource',
+        '--shadow-database-url',
+        '--to-local-d1',
+        '--from-local-d1',
+      ],
+    })
 
     if (args['--help']) {
       return this.help()
@@ -229,16 +253,18 @@ ${bold('Examples')}
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
       await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datasource']), {
-        argumentName: '--from-schema-datasource',
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--from-schema-datasource'],
+        schemaPathArgumentName: '--from-schema-datasource',
+        printLoadMessage: false,
       })
-      const engineConfig = await getConfig({ datamodel: schema.schemas })
+      checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
       from = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, engineConfig),
+        ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--from-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), {
+      const schema = await getSchemaWithPath(path.resolve(args['--from-schema-datamodel']), config.schema, {
         argumentName: '--from-schema-datamodel',
       })
       from = {
@@ -253,7 +279,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        path: path.resolve(args['--from-migrations']),
+        ...(await listMigrations(args['--from-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -271,16 +297,18 @@ ${bold('Examples')}
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
       await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datasource']), {
-        argumentName: '--to-schema-datasource',
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--to-schema-datasource'],
+        schemaPathArgumentName: '--to-schema-datasource',
+        printLoadMessage: false,
       })
-      const engineConfig = await getConfig({ datamodel: schema.schemas })
+      checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
       to = {
         tag: 'schemaDatasource',
-        ...toSchemasWithConfigDir(schema, engineConfig),
+        ...toSchemasWithConfigDir(schemaContext),
       }
     } else if (args['--to-schema-datamodel']) {
-      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), {
+      const schema = await getSchemaWithPath(path.resolve(args['--to-schema-datamodel']), config.schema, {
         argumentName: '--to-schema-datamodel',
       })
       to = {
@@ -295,7 +323,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        path: path.resolve(args['--to-migrations']),
+        ...(await listMigrations(args['--to-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })
@@ -305,7 +333,12 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate()
+    const adapter = await config.adapter?.()
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+    const migrate = await Migrate.setup({ adapter, schemaFilter })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
@@ -321,12 +354,16 @@ ${bold('Examples')}
         from: from!,
         to: to!,
         script: args['--script'] || false, // default is false
-        shadowDatabaseUrl: args['--shadow-database-url'],
-        exitCode: args['--exit-code'],
+        shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
+        exitCode: args['--exit-code'] ?? null,
+        filters: {
+          externalTables: config.tables?.external ?? [],
+          externalEnums: config.enums?.external ?? [],
+        },
       })
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // Write output to file if --output is defined

@@ -67,7 +67,7 @@ describe('using cli', () => {
 
   it('should work with prisma schema folder', async () => {
     ctx.fixture('multi-schema-files/valid-custom-output')
-    const data = await ctx.cli('generate')
+    const data = await ctx.cli('generate', '--schema=./prisma/schema')
     const stdout = sanitiseStdout(data.stdout)
 
     if (getClientEngineType() === ClientEngineType.Binary) {
@@ -316,6 +316,22 @@ describe('using cli', () => {
     `)
   })
 
+  it('should call the survey handler when hints are not disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse([], defaultTestConfig())
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it('should not call the survey handler when hints are disabled', async () => {
+    ctx.fixture('example-project')
+    const handler = jest.fn()
+    const generate = new Generate(handler)
+    await generate.parse(['--no-hints'], defaultTestConfig())
+    expect(handler).not.toHaveBeenCalled()
+  })
+
   it('should warn when `url` is hardcoded', async () => {
     ctx.fixture('hardcoded-url')
     const data = await ctx.cli('generate')
@@ -486,7 +502,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     } else {
@@ -496,7 +512,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     }
@@ -522,7 +538,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     } else {
@@ -532,7 +548,7 @@ describe('--schema from project directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     }
@@ -552,12 +568,14 @@ describe('--schema from project directory', () => {
     const output = Generate.new().parse([], defaultTestConfig())
     await expect(output).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
-      You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+      You can either provide it with \`--schema\` argument,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+      set it as \`prisma.schema\` in your package.json,
+      or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
 
       schema.prisma: file not found
       prisma/schema.prisma: file not found
-      prisma/schema: directory not found
 
       See also https://pris.ly/d/prisma-schema-location"
     `)
@@ -603,7 +621,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     } else {
@@ -613,7 +631,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     }
@@ -641,7 +659,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     } else {
@@ -651,7 +669,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     }
@@ -683,7 +701,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     } else {
@@ -695,7 +713,7 @@ describe('--schema from parent directory', () => {
 
         Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Want real-time updates to your database without manual polling? Discover how with Pulse: https://pris.ly/tip-0-pulse
+        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
         "
       `)
     }

@@ -1,28 +1,7 @@
-import { defaultTestConfig } from '@prisma/config'
-import fs from 'fs'
 import { green } from 'kleur/colors'
-import type { O } from 'ts-toolbelt'
 
-import { getConfig, getEffectiveUrl, getSchemaWithPath, link } from '..'
+import { getEffectiveUrl, link, SchemaContext } from '..'
 import { resolveUrl } from '../engine-commands/getConfig'
-import { loadEnvFile } from '../utils/loadEnvFile'
-
-/**
- * These are the cli args that we check the data proxy for. If in use
- */
-const checkedArgs = {
-  // Directly contain connection string
-  '--url': true,
-  '--to-url': true,
-  '--from-url': true,
-  '--shadow-database-url': true,
-  // Contain path to schema file with connection string (directly or via env var)
-  '--schema': true,
-  '--from-schema-datamodel': true,
-  '--to-schema-datamodel': true,
-}
-
-type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
 
 /**
  * Get the message to display when a command is forbidden with a data proxy flag
@@ -37,44 +16,31 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
 `
 
 /**
- * Check that the data proxy cannot be used through the given args
+ * Check that the data proxy cannot be used through the given urls and schema contexts
  * @param command the cli command (eg. db push)
- * @param args the cli command arguments
- * @param implicitSchema if this command implicitly loads a schema
+ * @param urls list of urls to check
+ * @param schemaContexts list of schema contexts to check
  */
-async function checkUnsupportedDataProxyMessage(command: string, args: Args, implicitSchema: boolean) {
-  // when the schema can be implicit, we use its default location
-  if (implicitSchema === true) {
-    // TODO: Why do we perform this mutation?
-    args['--schema'] = (await getSchemaWithPath(args['--schema']))?.schemaPath ?? undefined
-  }
-
-  const argList = Object.entries(args)
-  for (const [argName, argValue] of argList) {
-    // for all the args that represent an url ensure data proxy isn't used
-    if (argName.includes('url') && argValue.includes('prisma://')) {
-      return forbiddenCmdWithDataProxyFlagMessage(command)
-    }
-
-    // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
-    if (argName.includes('schema')) {
-      await loadEnvFile({ schemaPath: argValue, printMessage: false, config: defaultTestConfig() })
-
-      const datamodel = await fs.promises.readFile(argValue, 'utf-8')
-      const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-      const url = resolveUrl(getEffectiveUrl(config.datasources[0]))
-
-      if (url?.startsWith('prisma://')) {
-        return forbiddenCmdWithDataProxyFlagMessage(command)
-      }
+export function checkUnsupportedDataProxy({
+  cmd,
+  schemaContext = undefined,
+  urls = [],
+}: {
+  cmd: string
+  schemaContext?: SchemaContext
+  urls?: (string | undefined)[]
+}) {
+  for (const url of urls) {
+    if (url && url.includes('prisma://')) {
+      throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
     }
   }
 
-  return undefined
-}
+  if (!schemaContext?.primaryDatasource) return
 
-export async function checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
-  const message = await checkUnsupportedDataProxyMessage(command, args, implicitSchema).catch(() => undefined)
+  const url = resolveUrl(getEffectiveUrl(schemaContext.primaryDatasource))
 
-  if (message) throw new Error(message)
+  if (url?.startsWith('prisma://')) {
+    throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
+  }
 }

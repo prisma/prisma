@@ -1,4 +1,4 @@
-import { Pool, neonConfig } from '@neondatabase/serverless'
+import { neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon } from '@prisma/adapter-neon'
 import { WebSocket } from 'undici'
 import { smokeTest } from './test'
@@ -12,10 +12,9 @@ async function main() {
   const connectionString = `${process.env.JS_NEON_DATABASE_URL as string}`
   console.log('connectionString', connectionString)
 
-  const pool = new Pool({
+  const adapter = new PrismaNeon({
     connectionString,
   })
-  const adapter = new PrismaNeon(pool)
 
   await smokeTest(adapter)
 }

@@ -1,10 +1,10 @@
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
-import rimraf from 'rimraf'
+import * as rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
@@ -676,3 +676,72 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
     expect(res).toMatchSnapshot()
   })
 })
+
+describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+  'studio with driver adapter from prisma.config.ts',
+  () => {
+    jest.setTimeout(20_000)
+
+    afterEach(() => {
+      process.env = { ...originalEnv }
+    })
+
+    beforeAll(async () => {
+      // Before every test, we'd like to reset the DB.
+      // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
+      rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
+      fs.copyFileSync(
+        path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev.db'),
+        path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'),
+      )
+
+      // Clean up Client generation directory
+      rimraf.sync(path.join(__dirname, '../prisma-client'))
+      studio = Studio.new()
+
+      const config = (
+        await import(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/prisma.config.ts'))
+      ).default as PrismaConfigInternal
+
+      await studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], config)
+
+      // Give Studio time to start
+      await new Promise((r) => setTimeout(() => r(null), 2_000))
+    })
+
+    afterAll(() => {
+      studio.instance!.stop()
+    })
+
+    test('starts up correctly', async () => {
+      const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}`)
+      expect(res.status).toEqual(200)
+    })
+
+    test('responds to `findMany` queries', async () => {
+      const res = await sendRequest({
+        requestId: 1,
+        channel: 'prisma',
+        action: 'clientRequest',
+        payload: {
+          data: {
+            modelName: 'with_all_field_types',
+            operation: 'findMany',
+            args: {
+              select: {
+                id: true,
+                string: true,
+                int: true,
+                float: true,
+                relation: true,
+                relation_list: true,
+              },
+            },
+          },
+        },
+      })
+
+      expect(res).toMatchSnapshot()
+    })
+  },
+)
