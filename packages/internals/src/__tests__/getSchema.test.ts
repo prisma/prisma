@@ -1,7 +1,7 @@
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { getSchemaWithPath, type SchemaPathFromConfig } from '../cli/getSchema'
+import { getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 
 if (process.env.CI) {
@@ -25,7 +25,7 @@ async function testSchemaPath({
 }: {
   fixtureName: string
   schemaPathFromArgs?: string
-  schemaPathFromConfig?: SchemaPathFromConfig
+  schemaPathFromConfig?: string
 }) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
@@ -58,12 +58,14 @@ it('throws error if schema is not found', async () => {
 
   expect(res).toMatchInlineSnapshot(`
     [Error: Could not find Prisma Schema that is required for this command.
-    You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+    You can either provide it with \`--schema\` argument,
+    set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+    set it as \`prisma.schema\` in your package.json,
+    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
     Checked following paths:
 
     schema.prisma: file not found
     prisma/schema.prisma: file not found
-    prisma/schema: directory not found
 
     See also https://pris.ly/d/prisma-schema-location]
   `)
@@ -89,14 +91,11 @@ it('throws if schema args path is invalid', async () => {
   )
 })
 
-it('reads from --schema args first even if path in prisma.config.ts is provided', async () => {
+it('reads from --schema args first even if path is provided in Prisma config file (e.g., `prisma.config.ts`)', async () => {
   const res = await testSchemaPath({
     fixtureName: 'unconventional-path',
     schemaPathFromArgs: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
-    schemaPathFromConfig: {
-      kind: 'single',
-      filePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
   })
 
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/unconventional-path/db/schema.prisma"`)
@@ -105,10 +104,7 @@ it('reads from --schema args first even if path in prisma.config.ts is provided'
 it('reads from path provided by prisma.config.ts', async () => {
   const res = await testSchemaPath({
     fixtureName: 'unconventional-path',
-    schemaPathFromConfig: {
-      kind: 'single',
-      filePath: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
   })
 
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/unconventional-path/db/schema.prisma"`)
@@ -117,10 +113,7 @@ it('reads from path provided by prisma.config.ts', async () => {
 it('reads from path provided by prisma.config.ts even if package.json is provided', async () => {
   const res = await testSchemaPath({
     fixtureName: 'pkg-json-with-prisma-config',
-    schemaPathFromConfig: {
-      kind: 'single',
-      filePath: path.resolve(FIXTURE_CWD, 'pkg-json-with-prisma-config', 'config', 'schema.prisma'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'pkg-json-with-prisma-config', 'config', 'schema.prisma'),
   })
 
   expect(res).toMatchInlineSnapshot(
@@ -131,10 +124,7 @@ it('reads from path provided by prisma.config.ts even if package.json is provide
 it('reads from directory provided by prisma.config.ts', async () => {
   const res = await testSchemaPath({
     fixtureName: 'unconventional-path-folder',
-    schemaPathFromConfig: {
-      kind: 'multi',
-      folderPath: path.resolve(FIXTURE_CWD, 'unconventional-path-folder', 'db'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'unconventional-path-folder', 'db'),
   })
 
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/unconventional-path-folder/db"`)
@@ -143,28 +133,22 @@ it('reads from directory provided by prisma.config.ts', async () => {
 it('throws error if prisma.config.ts with single file is used but schema file cannot be found', async () => {
   const res = await testSchemaPath({
     fixtureName: 'no-schema',
-    schemaPathFromConfig: {
-      kind: 'single',
-      filePath: path.resolve(FIXTURE_CWD, 'no-schema', 'db', 'schema.prisma'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'no-schema', 'db', 'schema.prisma'),
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from file \`./__fixtures__/getSchema/no-schema/db/schema.prisma\` provided by "prisma.config.ts"\`: file not found]`,
+    `[Error: Could not load schema from \`./__fixtures__/getSchema/no-schema/db/schema.prisma\` provided by "prisma.config.ts"\`: file or directory not found]`,
   )
 })
 
 it('throws error if prisma.config.ts with folder is used but schema files cannot be found', async () => {
   const res = await testSchemaPath({
     fixtureName: 'no-schema',
-    schemaPathFromConfig: {
-      kind: 'multi',
-      folderPath: path.resolve(FIXTURE_CWD, 'no-schema', 'db'),
-    },
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'no-schema', 'db'),
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from folder \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts"\`: directory not found]`,
+    `[Error: Could not load schema from \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts"\`: file or directory not found]`,
   )
 })
 
@@ -206,52 +190,19 @@ it('finds the conventional prisma/schema path without configuration', async () =
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma"`)
 })
 
-it('throws error if both schema file and folder exist at default locations', async () => {
-  const res = await testSchemaPath({ fixtureName: 'conventional-path-file-dir-conflict' })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Found Prisma Schemas at both \`prisma/schema.prisma\` and \`prisma/schema\`. Please remove one.]`,
-  )
-})
-
-it('throws error if folder schema exists, but preview feature is not on', async () => {
-  const res = await testSchemaPath({ fixtureName: 'no-schema-no-folder-preview' })
-
-  expect(res).toMatchInlineSnapshot(`
-    [Error: Could not find Prisma Schema that is required for this command.
-    You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
-    Checked following paths:
-
-    schema.prisma: file not found
-    prisma/schema.prisma: file not found
-    prisma/schema: "prismaSchemaFolder" preview feature must be enabled
-
-    See also https://pris.ly/d/prisma-schema-location]
-  `)
-})
-
-it('throws error if explicit --schema arg is used and preview feature is not on', async () => {
-  const res = await testSchemaPath({
-    fixtureName: 'no-schema-no-folder-preview',
-    schemaPathFromArgs: './prisma/schema',
-  })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load \`--schema\` from provided path \`prisma/schema\`: "prismaSchemaFolder" preview feature must be enabled]`,
-  )
-})
-
 it('fails with no schema in workspaces', async () => {
   const res = await testSchemaPath({ fixtureName: 'no-schema-workspaces' })
 
   expect(res).toMatchInlineSnapshot(`
     [Error: Could not find Prisma Schema that is required for this command.
-    You can either provide it with \`--schema\` argument, set it as \`prisma.schema\` in your package.json or put it into the default location.
+    You can either provide it with \`--schema\` argument,
+    set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
+    set it as \`prisma.schema\` in your package.json,
+    or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
     Checked following paths:
 
     schema.prisma: file not found
     prisma/schema.prisma: file not found
-    prisma/schema: directory not found
 
     See also https://pris.ly/d/prisma-schema-location]
   `)

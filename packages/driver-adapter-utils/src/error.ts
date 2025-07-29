@@ -10,6 +10,6 @@ export class DriverAdapterError extends Error {
   }
 }
 
-export function isDriverAdapterError(error: {}): error is DriverAdapterError {
+export function isDriverAdapterError(error: any): error is DriverAdapterError {
   return error['name'] === 'DriverAdapterError' && typeof error['cause'] === 'object'
 }

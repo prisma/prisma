@@ -1,11 +1,13 @@
 import { defineConfig } from 'src/index'
 
 export default defineConfig({
-  earlyAccess: true,
+  experimental: {
+    studio: true,
+  },
   studio: {
     adapter: async () => {
-      const { mockAdapter } = await import('test-utils/mock-adapter')
-      return mockAdapter('postgres')
+      const { mockMigrationAwareAdapterFactory } = await import('test-utils/mock-adapter')
+      return mockMigrationAwareAdapterFactory('postgres')
     },
   },
 })

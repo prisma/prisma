@@ -1,12 +1,11 @@
+import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
-import { lowerCase } from '../../utils/lowerCase'
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
-import { RuntimeDataModel, RuntimeModel } from '../core/runtimeDataModel'
-import type { ErrorFormat, GetPrismaClientConfig, LogLevel, PrismaClientOptions } from '../getPrismaClient'
+import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
 const knownProperties = [
   'datasources',
@@ -328,7 +327,7 @@ function getModelOrTypeByKey(modelKey: string, runtimeDataModel: RuntimeDataMode
 }
 
 function findByKey<T>(map: Record<string, T>, key: string): T | undefined {
-  const foundKey = Object.keys(map).find((mapKey) => lowerCase(mapKey) === key)
+  const foundKey = Object.keys(map).find((mapKey) => uncapitalize(mapKey) === key)
   if (foundKey) {
     return map[foundKey]
   }

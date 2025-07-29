@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { chmodPlusX, ClientEngineType } from '@prisma/internals'
@@ -87,12 +87,11 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const searchedLocations: string[] = []
 
-  const dirname = eval('__dirname') as string
   const searchLocations: string[] = [
     config.dirname, // generation directory
-    path.resolve(dirname, '..'), // generation directory one level up
-    config.generator?.output?.value ?? dirname, // custom generator local path
-    path.resolve(dirname, '../../../.prisma/client'), // dot prisma node_modules ???
+    path.resolve(__dirname, '..'), // generation directory one level up
+    config.generator?.output?.value ?? __dirname, // custom generator local path
+    path.resolve(__dirname, '../../../.prisma/client'), // dot prisma node_modules ???
     '/tmp/prisma-engines', // used for netlify
     config.cwd, // cwdPath, not cwd
   ]

@@ -1,12 +1,5 @@
 // https://runtime-keys.proposal.wintercg.org/
-export type RuntimeName =
-  | 'workerd'
-  | 'deno'
-  | 'netlify'
-  | 'node'
-  | 'bun'
-  | 'edge-light'
-  | '' /* unknown */
+export type RuntimeName = 'workerd' | 'deno' | 'netlify' | 'node' | 'bun' | 'edge-light' | '' /* unknown */
 
 /**
  * Indicates if running in Node.js or a Node.js compatible runtime.
@@ -40,7 +33,7 @@ const isEdgeLight = () => typeof globalThis.EdgeRuntime === 'object'
  * See: https://developers.cloudflare.com/workers/runtime-apis/web-standards/#navigatoruseragent
  */
 const isWorkerd = () => globalThis.navigator?.userAgent === 'Cloudflare-Workers'
-  
+
 function detectRuntime(): RuntimeName {
   // Note: we're currently not taking 'fastly' into account. Why?
   const runtimeChecks = [
@@ -52,14 +45,15 @@ function detectRuntime(): RuntimeName {
     [isNode, 'node'],
   ] as const
 
-  const detectedRuntime = runtimeChecks
-    // TODO: Transforming destructuring to the configured target environment ('chrome58', 'edge16', 'firefox57', 'safari11') is not supported yet,
-    // so we can't write the following code yet:
-    // ```
-    // .flatMap(([isCurrentRuntime, runtime]) => isCurrentRuntime() ? [runtime] : [])
-    // ```
-    .flatMap(check => check[0]() ? [check[1]] : [])
-    .at(0) ?? ''
+  const detectedRuntime =
+    runtimeChecks
+      // TODO: Transforming destructuring to the configured target environment ('chrome58', 'edge16', 'firefox57', 'safari11') is not supported yet,
+      // so we can't write the following code yet:
+      // ```
+      // .flatMap(([isCurrentRuntime, runtime]) => isCurrentRuntime() ? [runtime] : [])
+      // ```
+      .flatMap((check) => (check[0]() ? [check[1]] : []))
+      .at(0) ?? ''
 
   return detectedRuntime
 }
@@ -69,7 +63,8 @@ const runtimesPrettyNames = {
   workerd: 'Cloudflare Workers',
   deno: 'Deno and Deno Deploy',
   netlify: 'Netlify Edge Functions',
-  'edge-light': 'Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js (Pages Router) Edge API Routes, Next.js (App Router) Edge Route Handlers or Next.js Middleware)',
+  'edge-light':
+    'Edge Runtime (Vercel Edge Functions, Vercel Edge Middleware, Next.js (Pages Router) Edge API Routes, Next.js (App Router) Edge Route Handlers or Next.js Middleware)',
 } as const
 
 type GetRuntimeOutput = {

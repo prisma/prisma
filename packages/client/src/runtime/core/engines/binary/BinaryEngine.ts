@@ -1,5 +1,5 @@
-import Debug from '@prisma/debug'
-import type { ConnectorType } from '@prisma/generator-helper'
+import { Debug } from '@prisma/debug'
+import type { ConnectorType } from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -10,6 +10,7 @@ import fs from 'fs'
 import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
+import { temporaryFile } from 'tempy'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -75,7 +76,6 @@ export class BinaryEngine implements Engine<undefined> {
   private clientVersion?: string
   private globalKillSignalReceived?: string
   private startCount = 0
-  private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
   private stopPromise?: Promise<void>
@@ -111,16 +111,17 @@ export class BinaryEngine implements Engine<undefined> {
     this.cwd = this.resolveCwd(config.cwd)
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
-    this.datamodelPath = config.datamodelPath
     this.tracingHelper = config.tracingHelper
     this.logEmitter = config.logEmitter
     this.showColors = config.showColors ?? false
     this.logQueries = config.logQueries ?? false
     this.clientVersion = config.clientVersion
     this.flags = config.flags ?? []
-    this.previewFeatures = config.previewFeatures ?? []
     this.activeProvider = config.activeProvider
     this.connection = new Connection()
+
+    this.datamodelPath = temporaryFile({ extension: 'prisma' })
+    fs.writeFileSync(this.datamodelPath, config.inlineSchema)
 
     // compute the datasource override for binary engine
     const dsOverrideName = Object.keys(config.overrideDatasources)[0]
@@ -325,7 +326,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
-        debug({ cwd: this.cwd })
+        debug('cwd:', this.cwd)
 
         const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
@@ -514,7 +515,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
-          } else if (code === 255 && signal === null && this.lastError) {
+          } else if (code === 101 && signal === null && this.lastError) {
             toEmit = this.lastError
           }
 

@@ -17,6 +17,7 @@ import {
 
 export interface PrismaInstrumentationConfig {
   middleware?: boolean
+  ignoreSpanTypes?: (string | RegExp)[]
 }
 
 type Config = PrismaInstrumentationConfig & InstrumentationConfig
@@ -45,6 +46,7 @@ export class PrismaInstrumentation extends InstrumentationBase {
       helper: new ActiveTracingHelper({
         traceMiddleware: config.middleware ?? false,
         tracerProvider: this.tracerProvider ?? trace.getTracerProvider(),
+        ignoreSpanTypes: config.ignoreSpanTypes ?? [],
       }),
     }
 

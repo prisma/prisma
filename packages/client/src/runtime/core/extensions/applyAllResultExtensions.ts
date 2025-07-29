@@ -1,6 +1,7 @@
+import { RuntimeDataModel } from '@prisma/client-common'
+
 import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { RuntimeDataModel } from '../runtimeDataModel'
 import { JsArgs } from '../types/exported/JsApi'
 import { applyResultExtensions } from './applyResultExtensions'
 import { MergedExtensionsList } from './MergedExtensionsList'

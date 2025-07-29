@@ -1,10 +1,10 @@
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
@@ -55,6 +55,11 @@ testMatrix.setupTestSuite(
     optOut: {
       from: [Providers.SQLSERVER, Providers.MYSQL, Providers.POSTGRESQL, Providers.COCKROACHDB, Providers.MONGODB],
       reason: 'Only testing SQLite, as this is just for testing the deprecated property',
+    },
+    skipDriverAdapter: {
+      from: [AdapterProviders.JS_LIBSQL],
+      reason:
+        'js_libsql: SIGABRT crash occurs on having the first transaction with at least two create statements, panic inside `statement.rs` inside libsql',
     },
   },
 )

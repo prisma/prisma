@@ -1,38 +1,15 @@
-// describeIf is making eslint unhappy about the test names
-
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { DbPull } from '../../commands/DbPull'
-import CaptureStdout from '../__helpers__/captureStdout'
+import { describeMatrix, mongodbOnly } from '../__helpers__/conditionalTests'
+import { createDefaultTestContext } from '../__helpers__/context'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const ctx = createDefaultTestContext()
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-
-// To avoid the loading spinner locally
-process.env.CI = 'true'
-
-describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
-  const captureStdout = new CaptureStdout()
-
-  beforeEach(() => {
-    captureStdout.startCapture()
-  })
-
-  afterEach(() => {
-    captureStdout.clearCaptureText()
-  })
-
-  afterAll(() => {
-    captureStdout.stopCapture()
-  })
-
+describeMatrix(mongodbOnly, 'MongoDB', () => {
   const MONGO_URI = process.env.TEST_MONGO_URI_MIGRATE!
 
   if (isMacOrWindowsCI) {
@@ -42,18 +19,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], defaultTestConfig())
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/no-model.prisma
-
-      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
-
-
+      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/no-model.prisma
-
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
             
       *** WARNING ***
@@ -74,18 +47,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], defaultTestConfig())
+    const result = introspect.parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
-
-
+      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
-
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
@@ -106,9 +75,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], defaultTestConfig())
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider = "prisma-client-js"
       }
@@ -165,10 +134,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'],
-      defaultTestConfig(),
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider = "prisma-client-js"
       }
@@ -206,10 +175,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'],
-      defaultTestConfig(),
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider = "prisma-client-js"
       }
@@ -256,18 +225,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force', '--composite-type-depth=-1'], defaultTestConfig())
+    const result = introspect.parse(['--force', '--composite-type-depth=-1'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
-
-
+      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
-
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
@@ -290,10 +255,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(
       ['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'],
-      defaultTestConfig(),
+      await ctx.config(),
     )
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "generator client {
         provider = "prisma-client-js"
       }
@@ -347,10 +312,42 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
 
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', MONGO_URI], defaultTestConfig())
+    const result = introspect.parse(['--print', '--url', MONGO_URI], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchSnapshot()
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = "mongodb"
+        url      = "mongodb://localhost:27017/tests-migrate"
+      }
+
+      type UsersHobbies {
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString2 Json?
+        objects         UsersHobbiesObjects[]
+        tags            String[]
+      }
+
+      type UsersHobbiesObjects {
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString3 Json
+        tags            String[]
+      }
+
+      model users {
+        id              String         @id @default(auto()) @map("_id") @db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         UsersHobbies[]
+        name            String
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+        numberOrString1 Json
+      }
+
+      "
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "
       // *** WARNING ***
@@ -369,17 +366,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('introspection --url - only generator defined', async () => {
     ctx.fixture('schema-only-mongodb/only-generator')
     const introspect = new DbPull()
-    const result = introspect.parse(['--url', MONGO_URI], defaultTestConfig())
+    const result = introspect.parse(['--url', MONGO_URI], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).not.toContain(`Datasource `)
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).not.toContain(`Datasource `)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
 
-
-
       - Introspecting
-
       ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
             
       *** WARNING ***
@@ -400,18 +394,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--force'], defaultTestConfig())
+    const result = introspect.parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
-
-
+      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
-
       ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
@@ -432,17 +422,16 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   test('re-introspection should error (not supported) (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse([], defaultTestConfig())
+    const result = introspect.parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
       You can explicitly ignore and override your current local schema file with prisma db pull --force
       Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info."
     `)
 
-    expect(captureStdout.getCapturedText().join('\n')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-
-      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
+      Datasource "my_db": MongoDB database "tests-migrate" <location placeholder>
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

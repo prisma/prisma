@@ -1,3 +1,5 @@
+import { dmmfToRuntimeDataModel, GetPrismaClientConfig } from '@prisma/client-common'
+import { getDMMF } from '@prisma/client-generator-js'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   ClientEngineType,
@@ -12,9 +14,6 @@ import {
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 
-import { getDMMF } from '../generation/getDMMF'
-import { dmmfToRuntimeDataModel } from '../runtime/core/runtimeDataModel'
-import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
@@ -35,7 +34,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   }
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
-  const previewFeatures = extractPreviewFeatures(config)
+  const previewFeatures = extractPreviewFeatures(config.generators)
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
   ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'

@@ -1,4 +1,5 @@
-import { Writer } from '../../../generation/ts-builders/Writer'
+import { Writer } from '@prisma/ts-builders'
+
 import { JsArgs } from '../types/exported/JsApi'
 import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { inactiveColors } from './base'

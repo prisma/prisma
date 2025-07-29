@@ -9,7 +9,7 @@ import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
+import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let Prisma: typeof PrismaNamespace
@@ -23,7 +23,7 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
 
     beforeEach(async () => {
@@ -479,12 +479,15 @@ testMatrix.setupTestSuite(
         `)
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
-          if (isSqlServer) {
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -524,12 +527,15 @@ testMatrix.setupTestSuite(
         `)
         await waitFor(() => {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
-          if (isSqlServer) {
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -579,24 +585,25 @@ testMatrix.setupTestSuite(
         ]
       `)
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         const expectation = [
-          [{ query: expect.stringContaining('BEGIN') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
         ]
-        if (isSqlServer) {
+        if (driverAdapter === undefined) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+        }
+        if (isSqlServer && driverAdapter === undefined) {
           expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
         }
 
@@ -677,25 +684,27 @@ testMatrix.setupTestSuite(
       `)
 
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(isSqlServer ? 6 : 5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         if (provider !== Providers.MONGODB) {
           const expectation = [
-            [{ query: expect.stringContaining('BEGIN') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
-          if (isSqlServer) {
+
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
 
@@ -829,7 +838,7 @@ testMatrix.setupTestSuite(
               expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
 
-              expectTypeOf(operation).toMatchTypeOf <
+              expectTypeOf(operation).toMatchTypeOf<
                 | 'findFirst'
                 | 'findFirstOrThrow'
                 | 'findUnique'

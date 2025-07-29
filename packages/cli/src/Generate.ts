@@ -1,34 +1,34 @@
+import { defaultRegistry } from '@prisma/client-generator-registry'
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
-import { SqlQueryOutput } from '@prisma/generator-helper'
+import { SqlQueryOutput } from '@prisma/generator'
 import {
   arg,
   Command,
   format,
   Generator,
   getCommandWithExecutor,
-  getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
   GetSchemaResult,
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
+  inferDirectoryConfig,
   isError,
   link,
   loadEnvFile,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  type SchemaPathFromConfig,
 } from '@prisma/internals'
-import { printSchemaLoadedMessage } from '@prisma/migrate'
 import fs from 'fs'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { processSchemaResult } from '../../internals/src/cli/schemaContext'
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
@@ -64,12 +64,13 @@ ${bold('Options')}
           -h, --help   Display this help message
             --config   Custom path to your Prisma config file
             --schema   Custom path to your Prisma schema
+               --sql   Generate typed sql module
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
-         --no-hints    Hides the hint messages but still outputs errors and warnings
-   --allow-no-models   Allow generating a client without models
-   --sql               Generate typed sql module
+          --no-hints   Hides the hint messages but still outputs errors and warnings
+   --allow-no-models   Allow generating a client without models (default)
+    --require-models   Do not allow generating a client without models
 
 ${bold('Examples')}
 
@@ -125,9 +126,20 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
+      // TODO: no longer needed, remove in Prisma 7
       '--allow-no-models': Boolean,
+      '--require-models': Boolean,
       '--sql': Boolean,
     })
+
+    let allowNoModels = true
+
+    if (args['--require-models']) {
+      if (args['--allow-no-models']) {
+        return Error('Cannot use --allow-no-models and --require-models together')
+      }
+      allowNoModels = false
+    }
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
@@ -151,24 +163,23 @@ ${bold('Examples')}
 
     if (!schemaResult) return ''
 
-    const { schemas, schemaPath } = schemaResult
-    printSchemaLoadedMessage(schemaPath)
-    const engineConfig = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+    // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
+    const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+    const directoryConfig = inferDirectoryConfig(schemaContext, config)
 
     // TODO Extract logic from here
-    let hasJsClient
+    let hasJsClient = false
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(schemaPath)
+      typedSql = await introspectSql(directoryConfig, schemaContext)
     }
     try {
       generators = await getGenerators({
-        schemaPath,
+        schemaContext,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
-        cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
         typedSql,
@@ -179,7 +190,8 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
-        allowNoModels: Boolean(args['--allow-no-models']),
+        allowNoModels,
+        registry: defaultRegistry.toInternal(),
       })
 
       if (!generators || generators.length === 0) {
@@ -237,7 +249,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
 Please run \`prisma generate\` manually.`
     }
 
-    const watchingText = `\n${green('Watching...')} ${dim(schemaPath)}\n`
+    const watchingText = `\n${green('Watching...')} ${dim(schemaContext.schemaRootDir)}\n`
 
     const hideHints = args['--no-hints'] ?? false
 
@@ -249,15 +261,6 @@ Please run \`prisma generate\` manually.`
 
       let hint = ''
       if (prismaClientJSGenerator) {
-        const generator = prismaClientJSGenerator.options?.generator
-        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
-        if (isDeno && !generator?.isCustomOutput) {
-          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${bold(
-            generator!.provider.value!,
-          )}.
-When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
-        }
-
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
@@ -275,13 +278,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
+          hint = `${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(engineConfig)}${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
         }
       }
 
@@ -305,26 +308,33 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      const watcher = new Watcher(schemaPath)
+      const watcher = new Watcher(schemaContext.schemaRootDir)
       if (args['--sql']) {
-        watcher.add(sqlDirPath(schemaPath))
+        watcher.add(sqlDirPath(schemaContext.schemaRootDir))
       }
 
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+
+        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+        if (!schemaResult) return ''
+
+        const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+        const directoryConfig = inferDirectoryConfig(schemaContext, config)
+
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            typedSql = await introspectSql(schemaPath)
+            typedSql = await introspectSql(directoryConfig, schemaContext)
           }
 
           generatorsWatch = await getGenerators({
-            schemaPath,
+            schemaContext,
             printDownloadProgress: !watchMode,
             version: enginesVersion,
-            cliVersion: pkg.version,
             generatorNames: args['--generator'],
             typedSql,
+            registry: defaultRegistry.toInternal(),
           })
 
           if (!generatorsWatch || generatorsWatch.length === 0) {
@@ -385,7 +395,7 @@ function getCurrentClientVersion(): string | null {
 
 async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
-  schemaFromConfig: SchemaPathFromConfig | undefined,
+  schemaFromConfig: string | undefined,
   cwd: string,
   isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {

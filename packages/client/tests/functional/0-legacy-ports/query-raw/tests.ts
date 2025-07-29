@@ -3,7 +3,7 @@ import { copycat } from '@snaplet/copycat'
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type $ from './node_modules/@prisma/client'
+import type * as $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
 declare let Prisma: typeof $.Prisma
@@ -143,13 +143,13 @@ testMatrix.setupTestSuite(
         [
           {
             "age": 60,
-            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "email": "Kyla_Crist96556@cancollaboration.biz",
             "id": "a7fe5dac91ab6b0f529430c5",
             "name": null,
           },
           {
             "age": 45,
-            "email": "Sam.Mills50272@oozeastronomy.net",
+            "email": "Sam.Dickinson32909@memorableparticular.org",
             "id": "a85d5d75a3a886cb61eb3a0e",
             "name": null,
           },
@@ -159,7 +159,7 @@ testMatrix.setupTestSuite(
 
     test('select * via queryRawUnsafe with values', async () => {
       let result: any[] = []
-      if (provider === Providers.MYSQL) {
+      if (provider === Providers.MYSQL || driverAdapter === 'js_better_sqlite3') {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM User WHERE age >= ? AND age <= ?`, 45, 60)
       } else if (provider === Providers.SQLSERVER) {
         result = await prisma.$queryRawUnsafe(`SELECT * FROM "User" WHERE age >= @P1 AND age <= @P2`, 45, 60)
@@ -173,13 +173,13 @@ testMatrix.setupTestSuite(
         [
           {
             "age": 60,
-            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "email": "Kyla_Crist96556@cancollaboration.biz",
             "id": "a7fe5dac91ab6b0f529430c5",
             "name": null,
           },
           {
             "age": 45,
-            "email": "Sam.Mills50272@oozeastronomy.net",
+            "email": "Sam.Dickinson32909@memorableparticular.org",
             "id": "a85d5d75a3a886cb61eb3a0e",
             "name": null,
           },
@@ -205,13 +205,13 @@ testMatrix.setupTestSuite(
         [
           {
             "age": 60,
-            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "email": "Kyla_Crist96556@cancollaboration.biz",
             "id": "a7fe5dac91ab6b0f529430c5",
             "name": null,
           },
           {
             "age": 45,
-            "email": "Sam.Mills50272@oozeastronomy.net",
+            "email": "Sam.Dickinson32909@memorableparticular.org",
             "id": "a85d5d75a3a886cb61eb3a0e",
             "name": null,
           },
@@ -246,12 +246,12 @@ testMatrix.setupTestSuite(
         [
           {
             "age": 60,
-            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "email": "Kyla_Crist96556@cancollaboration.biz",
             "id": "a7fe5dac91ab6b0f529430c5",
           },
           {
             "age": 45,
-            "email": "Sam.Mills50272@oozeastronomy.net",
+            "email": "Sam.Dickinson32909@memorableparticular.org",
             "id": "a85d5d75a3a886cb61eb3a0e",
           },
         ]
@@ -285,12 +285,12 @@ testMatrix.setupTestSuite(
         [
           {
             "age": 60,
-            "email": "Kyla_Beer587@fraternise-assassination.name",
+            "email": "Kyla_Crist96556@cancollaboration.biz",
             "id": "a7fe5dac91ab6b0f529430c5",
           },
           {
             "age": 45,
-            "email": "Sam.Mills50272@oozeastronomy.net",
+            "email": "Sam.Dickinson32909@memorableparticular.org",
             "id": "a85d5d75a3a886cb61eb3a0e",
           },
         ]

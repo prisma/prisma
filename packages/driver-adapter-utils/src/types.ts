@@ -70,6 +70,10 @@ export type ArgType =
   | 'Date'
   // A time value.
   | 'Time'
+  // An unknown type, should be passed to the driver as is.
+  | 'Unknown'
+
+export type IsolationLevel = 'READ UNCOMMITTED' | 'READ COMMITTED' | 'REPEATABLE READ' | 'SNAPSHOT' | 'SERIALIZABLE'
 
 export type SqlQuery = {
   sql: string
@@ -85,6 +89,87 @@ export type Error =
   | {
       kind: 'UnsupportedNativeDataType'
       type: string
+    }
+  | {
+      kind: 'InvalidIsolationLevel'
+      level: string
+    }
+  | {
+      kind: 'LengthMismatch'
+      column?: string
+    }
+  | {
+      kind: 'UniqueConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'NullConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'ForeignKeyConstraintViolation'
+      constraint?: { fields: string[] } | { index: string } | { foreignKey: {} }
+    }
+  | {
+      kind: 'DatabaseNotReachable'
+      host?: string
+      port?: number
+    }
+  | {
+      kind: 'DatabaseDoesNotExist'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAlreadyExists'
+      db?: string
+    }
+  | {
+      kind: 'DatabaseAccessDenied'
+      db?: string
+    }
+  | {
+      kind: 'ConnectionClosed'
+    }
+  | {
+      kind: 'TlsConnectionError'
+      reason: string
+    }
+  | {
+      kind: 'AuthenticationFailed'
+      user?: string
+    }
+  | {
+      kind: 'TransactionWriteConflict'
+    }
+  | {
+      kind: 'TableDoesNotExist'
+      table?: string
+    }
+  | {
+      kind: 'ColumnNotFound'
+      column?: string
+    }
+  | {
+      kind: 'TooManyConnections'
+      cause: string
+    }
+  | {
+      kind: 'ValueOutOfRange'
+      cause: string
+    }
+  | {
+      kind: 'MissingFullTextSearchIndex'
+    }
+  | {
+      kind: 'SocketTimeout'
+    }
+  | {
+      kind: 'InconsistentColumnData'
+      cause: string
+    }
+  | {
+      kind: 'TransactionAlreadyClosed'
+      cause: string
     }
   | {
       kind: 'postgres'
@@ -109,47 +194,57 @@ export type Error =
       extendedCode: number
       message: string
     }
+  | {
+      kind: 'mssql'
+      code: number
+      message: string
+    }
 
 export type ConnectionInfo = {
   schemaName?: string
   maxBindValues?: number
+  supportsRelationJoins: boolean
 }
 
-export type Provider = 'mysql' | 'postgres' | 'sqlite'
+export type Provider = 'mysql' | 'postgres' | 'sqlite' | 'sqlserver'
 
 // Current list of official Prisma adapters
 // This list might get outdated over time.
-// It's only used for auto-completion.
+// It's only used for auto-completion and tests.
 const officialPrismaAdapters = [
   '@prisma/adapter-planetscale',
   '@prisma/adapter-neon',
   '@prisma/adapter-libsql',
+  '@prisma/adapter-better-sqlite3',
   '@prisma/adapter-d1',
   '@prisma/adapter-pg',
-  '@prisma/adapter-pg-worker',
+  '@prisma/adapter-mssql',
+  '@prisma/adapter-mariadb',
 ] as const
 
+export type OfficialDriverAdapterName = (typeof officialPrismaAdapters)[number]
+
 /**
- * A generic driver adapter that allows the user to connect to a
- * database. The query and result types are specific to the adapter.
+ * A generic driver adapter factory that allows the user to instantiate a
+ * driver adapter. The query and result types are specific to the adapter.
  */
-export interface DriverAdapter<Query, Result> extends AdapterInfo {
+export interface DriverAdapterFactory<Query, Result> extends AdapterInfo {
   /**
-   * Connect to the database.
+   * Instantiate a driver adapter.
    */
   connect(): Promise<Queryable<Query, Result>>
 }
 
-export interface SqlDriverAdapter extends DriverAdapter<SqlQuery, SqlResultSet> {
-  connect(): Promise<SqlConnection>
+export interface SqlDriverAdapterFactory extends DriverAdapterFactory<SqlQuery, SqlResultSet> {
+  connect(): Promise<SqlDriverAdapter>
 }
 
 /**
  * An SQL migration adapter that is aware of the notion of a shadow database
  * and can create a connection to it.
  */
-export interface SqlMigrationAwareDriverAdapter extends SqlDriverAdapter {
-  connectToShadowDb(): Promise<SqlConnection>
+export interface SqlMigrationAwareDriverAdapterFactory extends SqlDriverAdapterFactory {
+  connectToShadowDb(): Promise<SqlDriverAdapter>
 }
 
 export interface Queryable<Query, Result> extends AdapterInfo {
@@ -166,7 +261,7 @@ export interface Queryable<Query, Result> extends AdapterInfo {
 
 export interface SqlQueryable extends Queryable<SqlQuery, SqlResultSet> {}
 
-export interface SqlConnection extends SqlQueryable {
+export interface SqlDriverAdapter extends SqlQueryable {
   /**
    * Execute multiple SQL statements separated by semicolon.
    */
@@ -175,7 +270,7 @@ export interface SqlConnection extends SqlQueryable {
   /**
    * Start new transaction.
    */
-  transactionContext(): Promise<TransactionContext>
+  startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction>
 
   /**
    * Optional method that returns extra connection info
@@ -186,13 +281,6 @@ export interface SqlConnection extends SqlQueryable {
    * Dispose of the connection and release any resources.
    */
   dispose(): Promise<void>
-}
-
-export interface TransactionContext extends AdapterInfo, SqlQueryable {
-  /**
-   * Start new transaction.
-   */
-  startTransaction(): Promise<Transaction>
 }
 
 export type TransactionOptions = {
@@ -233,11 +321,18 @@ type ErrorCapturingInterface<T> = {
   [K in keyof T]: ErrorCapturingFunction<T[K]>
 }
 
-export interface ErrorCapturingSqlConnection extends ErrorCapturingInterface<SqlConnection> {
+export interface ErrorCapturingSqlDriverAdapter extends ErrorCapturingInterface<SqlDriverAdapter> {
   readonly errorRegistry: ErrorRegistry
 }
 
-export type ErrorCapturingTransactionContext = ErrorCapturingInterface<TransactionContext>
+export interface ErrorCapturingSqlDriverAdapterFactory extends ErrorCapturingInterface<SqlDriverAdapterFactory> {
+  readonly errorRegistry: ErrorRegistry
+}
+
+export interface ErrorCapturingSqlMigrationAwareDriverAdapterFactory
+  extends ErrorCapturingInterface<SqlMigrationAwareDriverAdapterFactory> {
+  readonly errorRegistry: ErrorRegistry
+}
 
 export type ErrorCapturingTransaction = ErrorCapturingInterface<Transaction>
 

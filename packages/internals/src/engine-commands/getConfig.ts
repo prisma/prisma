@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
@@ -7,7 +7,7 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { type SchemaFileInput, toMultipleSchemas } from '../utils/schemaFileInput'
+import { type SchemaFileInput } from '../utils/schemaFileInput'
 import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
@@ -39,10 +39,6 @@ interface GetConfigValidationError {
 
 export type GetConfigOptions = {
   datamodel: SchemaFileInput
-  cwd?: string
-  prismaPath?: string
-  datamodelPath?: string
-  retry?: number
   ignoreEnvVarErrors?: boolean
 }
 
@@ -172,8 +168,6 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           /* rustStack */ stack,
           /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
-          /* schemaPath */ options.prismaPath,
-          /* schema */ toMultipleSchemas(options.datamodel),
         )
         return panic
       }

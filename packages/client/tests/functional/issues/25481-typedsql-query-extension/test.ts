@@ -1,9 +1,8 @@
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
-// @ts-ignore
-import * as Sql from '@prisma/client/sql'
-
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
+// @ts-ignore
+import * as Sql from './generated/prisma/sql'
 
 declare let prisma: PrismaClient
 declare let sql: typeof Sql

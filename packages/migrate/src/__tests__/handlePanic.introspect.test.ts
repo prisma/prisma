@@ -1,23 +1,21 @@
-import { defaultTestConfig } from '@prisma/config'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import { createDefaultTestContext } from './__helpers__/context'
+
+const ctx = createDefaultTestContext()
 
 describe('introspection panic', () => {
   test('force panic', async () => {
     expect.assertions(1)
     process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
-    process.chdir(path.join(__dirname, 'fixtures', 'introspection', 'sqlite'))
+    ctx.fixture(path.join('introspection', 'sqlite'))
 
     const introspect = new DbPull()
     try {
-      await introspect.parse(['--print'], defaultTestConfig())
+      await introspect.parse(['--print'], await ctx.config())
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`
-        "Error in Schema engine.
-        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-        "
-      `)
+      expect(e.message).toContain('This is the debugPanic artificial panic')
     }
   })
 })

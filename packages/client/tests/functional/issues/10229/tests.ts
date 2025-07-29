@@ -1,7 +1,7 @@
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
       reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
     },
     skipDriverAdapter: {
-      from: ['js_neon', 'js_pg', 'js_planetscale'],
+      from: ['js_neon', 'js_pg', 'js_pg_cockroachdb', 'js_planetscale', 'js_mariadb'],
       reason: "driver adapters don't get their url from the schema, so it does not fail",
     },
   },

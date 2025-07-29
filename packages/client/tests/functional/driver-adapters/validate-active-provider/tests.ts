@@ -1,11 +1,9 @@
 import path from 'node:path'
 
 import type { D1Database } from '@cloudflare/workers-types'
-import { Client as PlanetScaleClient } from '@planetscale/database'
 import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
-import { Pool } from 'pg'
 import { getPlatformProxy } from 'wrangler'
 
 import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
@@ -14,7 +12,7 @@ import { type DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let datasourceInfo: DatasourceInfo
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -27,8 +25,7 @@ testMatrix.setupTestSuite(
       () => {
         expect.assertions(2)
 
-        const pool = new Pool({ connectionString: datasourceInfo.databaseUrl })
-        const adapter = new PrismaPg(pool)
+        const adapter = new PrismaPg({ connectionString: datasourceInfo.databaseUrl })
 
         try {
           newPrismaClient({
@@ -49,8 +46,7 @@ testMatrix.setupTestSuite(
       () => {
         expect.assertions(2)
 
-        const planetscale = new PlanetScaleClient({ url: datasourceInfo.databaseUrl, fetch })
-        const adapter = new PrismaPlanetScale(planetscale)
+        const adapter = new PrismaPlanetScale({ url: datasourceInfo.databaseUrl, fetch })
 
         try {
           newPrismaClient({

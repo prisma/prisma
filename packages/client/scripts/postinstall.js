@@ -201,10 +201,8 @@ function run(cmd, params, cwd = process.cwd()) {
 async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
-    const denoPrismaClientDir = path.join(__dirname, '../../../.prisma/client/deno')
 
     await makeDir(dotPrismaClientDir)
-    await makeDir(denoPrismaClientDir)
 
     const defaultFileConfig = {
       js: path.join(__dirname, 'default-index.js'),
@@ -222,10 +220,6 @@ async function createDefaultGeneratedThrowFiles() {
       'index-browser': {
         js: path.join(__dirname, 'default-index.js'),
         ts: undefined,
-      },
-      'deno/edge': {
-        js: undefined,
-        ts: path.join(__dirname, 'default-deno-edge.ts'),
       },
     }
 
@@ -298,7 +292,7 @@ function makeDir(input) {
  */
 function getPostInstallTrigger() {
   /*
-  npm_config_argv` is not officially documented so here are our research notes 
+  npm_config_argv` is not officially documented so here are our research notes
 
   `npm_config_argv` is available to the postinstall script when the containing package has been installed by npm into some project.
 

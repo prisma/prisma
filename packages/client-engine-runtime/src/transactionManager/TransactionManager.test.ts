@@ -1,13 +1,8 @@
-import type {
-  SqlConnection,
-  SqlQuery,
-  SqlResultSet,
-  Transaction,
-  TransactionContext,
-} from '@prisma/driver-adapter-utils'
-import { bindAdapter, ok } from '@prisma/driver-adapter-utils'
+import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
+import { ok } from '@prisma/driver-adapter-utils'
 
-import { IsolationLevel, Options } from './Transaction'
+import { noopTracingHelper } from '../tracing'
+import { Options } from './Transaction'
 import { TransactionManager } from './TransactionManager'
 import {
   InvalidTransactionIsolationLevelError,
@@ -16,7 +11,7 @@ import {
   TransactionManagerError,
   TransactionNotFoundError,
   TransactionRolledBackError,
-  TransactionStartTimoutError,
+  TransactionStartTimeoutError,
 } from './TransactionManagerErrors'
 
 jest.useFakeTimers()
@@ -24,16 +19,22 @@ jest.useFakeTimers()
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
 
-class MockDriverAdapter implements SqlConnection {
+const TRANSACTION_OPTIONS = {
+  timeout: TRANSACTION_EXECUTION_TIMEOUT,
+  maxWait: START_TRANSACTION_TIME * 2,
+  isolationLevel: undefined,
+} as Options
+
+class MockDriverAdapter implements SqlDriverAdapter {
   adapterName = 'mock-adapter'
-  provider: SqlConnection['provider']
+  provider: SqlDriverAdapter['provider']
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
-  constructor({ provider = 'postgres' as SqlConnection['provider'], usePhantomQuery = false } = {}) {
+  constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
   }
@@ -54,36 +55,27 @@ class MockDriverAdapter implements SqlConnection {
     throw new Error('Method not implemented.')
   }
 
-  transactionContext(): Promise<TransactionContext> {
+  startTransaction(): Promise<Transaction> {
     const executeRawMock = this.executeRawMock
     const commitMock = this.commitMock
     const rollbackMock = this.rollbackMock
     const usePhantomQuery = this.usePhantomQuery
 
-    const mockTransactionContext: TransactionContext = {
-      adapterName: this.adapterName,
-      provider: this.provider,
+    const mockTransaction: Transaction = {
+      adapterName: 'mock-adapter',
+      provider: 'postgres',
+      options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
       executeRaw: executeRawMock,
-      startTransaction(): Promise<Transaction> {
-        const mockTransaction: Transaction = {
-          adapterName: 'mock-adapter',
-          provider: 'postgres',
-          options: { usePhantomQuery },
-          queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
-          executeRaw: executeRawMock,
-          commit: commitMock,
-          rollback: rollbackMock,
-        }
-
-        return new Promise((resolve) =>
-          setTimeout(() => {
-            resolve(mockTransaction)
-          }, START_TRANSACTION_TIME),
-        )
-      },
+      commit: commitMock,
+      rollback: rollbackMock,
     }
-    return Promise.resolve(mockTransactionContext)
+
+    return new Promise((resolve) =>
+      setTimeout(() => {
+        resolve(mockTransaction)
+      }, START_TRANSACTION_TIME),
+    )
   }
 }
 
@@ -102,17 +94,17 @@ async function startTransaction(transactionManager: TransactionManager, options:
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   const id = await startTransaction(transactionManager)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('COMMIT')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
@@ -122,40 +114,58 @@ test('transaction executes normally', async () => {
 test('transaction is rolled back', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   const id = await startTransaction(transactionManager)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-
   await transactionManager.rollbackTransaction(id)
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
 })
 
+test('getTransaction works while being rolled back', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  const id = await startTransaction(transactionManager)
+
+  const rollbackPromise = transactionManager.rollbackTransaction(id)
+  expect(() => transactionManager.getTransaction({ id }, 'dummy')).toThrow('Transaction is being closed')
+  await rollbackPromise
+
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+})
+
 test('transactions are rolled back when shutting down', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   const id1 = await startTransaction(transactionManager)
   const id2 = await startTransaction(transactionManager)
 
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
-
   await transactionManager.cancelAllTransactions()
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('ROLLBACK')
-  expect(driverAdapter.executeRawMock.mock.calls[3][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('ROLLBACK')
   expect(driverAdapter.commitMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id1)).rejects.toBeInstanceOf(TransactionRolledBackError)
@@ -167,7 +177,9 @@ test('transactions are rolled back when shutting down', async () => {
 test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   const id = await startTransaction(transactionManager)
@@ -185,75 +197,56 @@ test('when driver adapter requires phantom queries does not execute transaction 
 test('with explicit isolation level', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter),
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
-  const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
-
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('BEGIN')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
+  const id = await startTransaction(transactionManager, { isolationLevel: 'SERIALIZABLE' })
 
   await transactionManager.commitTransaction(id)
 
   expect(driverAdapter.commitMock).toHaveBeenCalled()
-  expect(driverAdapter.executeRawMock.mock.calls[2][0].sql).toEqual('COMMIT')
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('COMMIT')
   expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
 
   await expect(transactionManager.commitTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionClosedError)
 })
 
-test('for MySQL with explicit isolation level requires isolation level set before BEGIN', async () => {
-  const driverAdapter = new MockDriverAdapter({ provider: 'mysql' })
-  const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
-  })
-
-  const id = await startTransaction(transactionManager, { isolationLevel: IsolationLevel.Serializable })
-
-  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('SET TRANSACTION ISOLATION LEVEL SERIALIZABLE')
-  expect(driverAdapter.executeRawMock.mock.calls[1][0].sql).toEqual('BEGIN')
-
-  await transactionManager.commitTransaction(id)
-})
-
-test('for SQLite with unsupported isolation level', async () => {
-  const driverAdapter = new MockDriverAdapter({ provider: 'sqlite' })
-  const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
-  })
-
-  await expect(
-    startTransaction(transactionManager, { isolationLevel: IsolationLevel.RepeatableRead }),
-  ).rejects.toBeInstanceOf(InvalidTransactionIsolationLevelError)
-})
-
 test('with isolation level only supported in MS SQL Server, "snapshot"', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
-  await expect(
-    startTransaction(transactionManager, { isolationLevel: IsolationLevel.Snapshot }),
-  ).rejects.toBeInstanceOf(InvalidTransactionIsolationLevelError)
+  await expect(startTransaction(transactionManager, { isolationLevel: 'SNAPSHOT' })).rejects.toBeInstanceOf(
+    InvalidTransactionIsolationLevelError,
+  )
 })
 
 test('transaction times out during starting', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   await expect(startTransaction(transactionManager, { maxWait: START_TRANSACTION_TIME / 2 })).rejects.toBeInstanceOf(
-    TransactionStartTimoutError,
+    TransactionStartTimeoutError,
   )
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
 })
 
 test('transaction times out during execution', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   const id = await startTransaction(transactionManager)
@@ -267,7 +260,9 @@ test('transaction times out during execution', async () => {
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
-    driverAdapter: bindAdapter(driverAdapter)
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
   })
 
   await expect(transactionManager.commitTransaction('invalid-tx-id')).rejects.toBeInstanceOf(TransactionNotFoundError)

@@ -1,4 +1,5 @@
-import { RuntimeDataModel } from '../runtimeDataModel'
+import { RuntimeDataModel } from '@prisma/client-common'
+
 import { isSkip } from '../types'
 import { JsArgs, Selection } from '../types/exported/JsApi'
 

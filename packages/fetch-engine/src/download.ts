@@ -65,6 +65,11 @@ type BinaryDownloadJob = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  // no need to do anything, if there are no binaries
+  if (!options.binaries || Object.values(options.binaries).length === 0) {
+    return {} // we don't download anything if nothing is provided
+  }
+
   if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
     // if this is true the engines have been fetched before and already cached
     // into .cache/prisma/master/_local_ for us to be able to use this version
@@ -91,11 +96,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
     assertNodeAPISupported()
-  }
-
-  // no need to do anything, if there are no binaries
-  if (!options.binaries || Object.values(options.binaries).length === 0) {
-    return {} // we don't download anything if nothing is provided
   }
 
   // merge options
@@ -186,10 +186,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   const binaryPaths = binaryJobsToBinaryPaths(binaryJobs)
-  const dir = eval('__dirname')
 
   // this is necessary for pkg
-  if (dir.match(vercelPkgPathRegex)) {
+  if (__dirname.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
       const binaryTargets = binaryPaths[engineType]
       for (const binaryTarget in binaryTargets) {
@@ -478,8 +477,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
-  const dir = eval('__dirname')
-  if (dir.match(vercelPkgPathRegex)) {
+  if (__dirname.match(vercelPkgPathRegex)) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))

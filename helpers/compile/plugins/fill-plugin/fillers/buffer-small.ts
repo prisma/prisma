@@ -702,3 +702,5 @@ export const Buffer = new Proxy($Buffer, {
 }) as typeof $Buffer & typeof BufferClass
 
 const c2s = String.fromCodePoint
+
+export default Buffer

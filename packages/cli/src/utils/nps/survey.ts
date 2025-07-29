@@ -6,6 +6,7 @@ import fs from 'fs'
 import path from 'path'
 import readline from 'readline'
 
+import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../commandState'
 import { EventCapture, PosthogEventCapture } from './capture'
 import { NpsStatusLookup, ProdNpsStatusLookup, Timeframe } from './status'
 
@@ -38,6 +39,12 @@ export async function handleNpsSurvey() {
     return
   }
 
+  if ('Deno' in globalThis) {
+    // For some reason merely creating the readline interface on Deno
+    // doesn't allow `prisma generate` to finish until Enter is pressed.
+    return
+  }
+
   const now = new Date()
 
   const rl = readline.promises.createInterface({
@@ -48,11 +55,16 @@ export async function handleNpsSurvey() {
   rl.on('error', (err) => {
     debug(`A readline error occurred while handling NPS survey: ${err}`)
   })
+  rl.on('SIGINT', () => {
+    rl.write('Received SIGINT, closing the survey.\n')
+    rl.close()
+  })
 
   const status = new ProdNpsStatusLookup()
   const eventCapture = new PosthogEventCapture()
 
-  await handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture)
+  await loadOrInitializeCommandState()
+    .then((state) => handleNpsSurveyImpl(now, status, createSafeReadlineProxy(rl), eventCapture, state))
     .catch((err) => {
       // we don't want to propagate NPS survey errors, so we catch them here and log them
       debug(`An error occurred while handling NPS survey: ${err}`)
@@ -82,8 +94,15 @@ export async function handleNpsSurveyImpl(
   statusLookup: NpsStatusLookup,
   rl: ReadlineInterface,
   eventCapture: EventCapture,
+  commandState: CommandState,
 ) {
-  if (isCi() || maybeInGitHook() || isInNpmLifecycleHook() || isInContainer()) {
+  if (
+    isCi() ||
+    maybeInGitHook() ||
+    isInNpmLifecycleHook() ||
+    isInContainer() ||
+    daysSinceFirstCommand(commandState) < 1
+  ) {
     return
   }
 
@@ -111,8 +130,11 @@ export async function handleNpsSurveyImpl(
 
 async function collectFeedback(rl: ReadlineInterface): Promise<NpsSurveyResult> {
   const question = rl.question(
-    'Rate how likely you are to recommend Prisma (0 = "not likely" to 10 = "extremely likely") ' +
-      `and press Enter. This prompt will close in ${promptTimeoutSecs} seconds.\n` +
+    'How likely are you to recommend Prisma?\n\n' +
+      'Enter a number from 0 to 10 (0 = not at all, 10 = extremely likely) and press Enter — ' +
+      'or leave blank to skip and not be asked again.\n\n' +
+      `This prompt closes in ${promptTimeoutSecs}s and can be suppressed with --no-hints. ` +
+      'Learn more: https://pris.ly/why-nps\n\n' +
       'Rating: ',
   )
   const ratingAnswer = await timeout(question, promptTimeoutSecs * 1000)

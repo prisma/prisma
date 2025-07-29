@@ -1,7 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { join, resolve } from 'path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
@@ -72,13 +71,7 @@ describe('handlePanic', () => {
     io.restore()
   })
 
-  const error = new RustPanic(
-    'Some error message!',
-    '',
-    undefined,
-    ErrorArea.LIFT_CLI,
-    resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  )
+  const error = new RustPanic('Some error message!', '', undefined, ErrorArea.LIFT_CLI)
   const packageJsonVersion = '0.0.0'
   const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
@@ -102,7 +95,6 @@ describe('handlePanic', () => {
         getDatabaseVersionSafe,
       })
     } catch (e) {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
 
@@ -123,7 +115,7 @@ describe('handlePanic', () => {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`[RustPanic: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path","name":"RustPanic"}"`,
+        `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","name":"RustPanic","schemaPath":"Some Schema Path"}"`,
       )
     }
   })
@@ -141,8 +133,6 @@ describe('handlePanic', () => {
       rustStackTrace,
       'test-request',
       ErrorArea.LIFT_CLI, // area
-      undefined, // schemaPath
-      undefined, // schema
       undefined, // introspectionUrl
     )
 

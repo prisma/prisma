@@ -1,4 +1,4 @@
-import * as Transaction from './Transaction'
+import type { IsolationLevel } from './Transaction'
 
 export type JsonQuery = {
   modelName?: string
@@ -8,7 +8,7 @@ export type JsonQuery = {
 
 export type JsonBatchQuery = {
   batch: JsonQuery[]
-  transaction?: { isolationLevel?: Transaction.IsolationLevel }
+  transaction?: { isolationLevel?: IsolationLevel }
 }
 
 export type JsonQueryAction =

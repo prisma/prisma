@@ -1,10 +1,16 @@
 export type { QueryEvent } from './events'
-export { QueryInterpreter, type QueryInterpreterOptions } from './interpreter/QueryInterpreter'
-export * from './QueryPlan'
+export { DataMapperError } from './interpreter/DataMapper'
 export {
-  IsolationLevel,
-  type TransactionInfo,
-  type Options as TransactionOptions,
-} from './transactionManager/Transaction'
+  QueryInterpreter,
+  type QueryInterpreterOptions,
+  type QueryInterpreterTransactionManager,
+} from './interpreter/QueryInterpreter'
+export * from './json-protocol'
+export * from './QueryPlan'
+export type { SchemaProvider } from './schema'
+export { noopTracingHelper, type TracingHelper } from './tracing'
+export type { TransactionInfo, Options as TransactionOptions } from './transactionManager/Transaction'
 export { TransactionManager } from './transactionManager/TransactionManager'
 export { TransactionManagerError } from './transactionManager/TransactionManagerErrors'
+export { UserFacingError } from './UserFacingError'
+export { doKeysMatch, isDeepStrictEqual, safeJsonStringify } from './utils'

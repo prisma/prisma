@@ -1,15 +1,20 @@
+import { Debug } from './debug'
 import { isDriverAdapterError } from './error'
 import { err, ok, Result } from './result'
 import type {
-  ErrorCapturingSqlConnection,
+  ErrorCapturingSqlDriverAdapter,
+  ErrorCapturingSqlDriverAdapterFactory,
+  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
   ErrorCapturingTransaction,
-  ErrorCapturingTransactionContext,
   ErrorRecord,
   ErrorRegistry,
-  SqlConnection,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
   Transaction,
-  TransactionContext,
 } from './types'
+
+const debug = Debug('driver-adapter-utils')
 
 class ErrorRegistryInternal implements ErrorRegistry {
   private registeredErrors: ErrorRecord[] = []
@@ -28,14 +33,53 @@ class ErrorRegistryInternal implements ErrorRegistry {
   }
 }
 
-// *.bind(adapter) is required to preserve the `this` context of functions whose
-// execution is delegated to napi.rs.
-export const bindAdapter = (adapter: SqlConnection): ErrorCapturingSqlConnection => {
+export const bindMigrationAwareSqlAdapterFactory = (
+  adapterFactory: SqlMigrationAwareDriverAdapterFactory,
+): ErrorCapturingSqlMigrationAwareDriverAdapterFactory => {
   const errorRegistry = new ErrorRegistryInternal()
 
-  const createTransactionContext = wrapAsync(errorRegistry, adapter.transactionContext.bind(adapter))
+  const boundFactory: ErrorCapturingSqlMigrationAwareDriverAdapterFactory = {
+    adapterName: adapterFactory.adapterName,
+    provider: adapterFactory.provider,
+    errorRegistry,
+    connect: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    },
+    connectToShadowDb: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connectToShadowDb.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    },
+  }
 
-  const boundAdapter: ErrorCapturingSqlConnection = {
+  return boundFactory
+}
+
+export const bindSqlAdapterFactory = (
+  adapterFactory: SqlDriverAdapterFactory,
+): ErrorCapturingSqlDriverAdapterFactory => {
+  const errorRegistry = new ErrorRegistryInternal()
+
+  const boundFactory: ErrorCapturingSqlDriverAdapterFactory = {
+    adapterName: adapterFactory.adapterName,
+    provider: adapterFactory.provider,
+    errorRegistry,
+    connect: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapterFactory.connect.bind(adapterFactory))(...args)
+      return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
+    },
+  }
+
+  return boundFactory
+}
+
+// *.bind(adapter) is required to preserve the `this` context of functions whose
+// execution is delegated to napi.rs.
+export const bindAdapter = (
+  adapter: SqlDriverAdapter,
+  errorRegistry = new ErrorRegistryInternal(),
+): ErrorCapturingSqlDriverAdapter => {
+  const boundAdapter: ErrorCapturingSqlDriverAdapter = {
     adapterName: adapter.adapterName,
     errorRegistry,
     queryRaw: wrapAsync(errorRegistry, adapter.queryRaw.bind(adapter)),
@@ -43,9 +87,9 @@ export const bindAdapter = (adapter: SqlConnection): ErrorCapturingSqlConnection
     executeScript: wrapAsync(errorRegistry, adapter.executeScript.bind(adapter)),
     dispose: wrapAsync(errorRegistry, adapter.dispose.bind(adapter)),
     provider: adapter.provider,
-    transactionContext: async (...args) => {
-      const ctx = await createTransactionContext(...args)
-      return ctx.map((ctx) => bindTransactionContext(errorRegistry, ctx))
+    startTransaction: async (...args) => {
+      const ctx = await wrapAsync(errorRegistry, adapter.startTransaction.bind(adapter))(...args)
+      return ctx.map((ctx) => bindTransaction(errorRegistry, ctx))
     },
   }
 
@@ -54,26 +98,6 @@ export const bindAdapter = (adapter: SqlConnection): ErrorCapturingSqlConnection
   }
 
   return boundAdapter
-}
-
-// *.bind(ctx) is required to preserve the `this` context of functions whose
-// execution is delegated to napi.rs.
-const bindTransactionContext = (
-  errorRegistry: ErrorRegistryInternal,
-  ctx: TransactionContext,
-): ErrorCapturingTransactionContext => {
-  const startTransaction = wrapAsync(errorRegistry, ctx.startTransaction.bind(ctx))
-
-  return {
-    adapterName: ctx.adapterName,
-    provider: ctx.provider,
-    queryRaw: wrapAsync(errorRegistry, ctx.queryRaw.bind(ctx)),
-    executeRaw: wrapAsync(errorRegistry, ctx.executeRaw.bind(ctx)),
-    startTransaction: async (...args) => {
-      const result = await startTransaction(...args)
-      return result.map((tx) => bindTransaction(errorRegistry, tx))
-    },
-  }
 }
 
 // *.bind(transaction) is required to preserve the `this` context of functions whose
@@ -98,6 +122,8 @@ function wrapAsync<A extends unknown[], R>(
     try {
       return ok(await fn(...args))
     } catch (error) {
+      debug('[error@wrapAsync]', error)
+
       // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (isDriverAdapterError(error)) {
         return err(error.cause)
@@ -116,6 +142,8 @@ function wrapSync<A extends unknown[], R>(
     try {
       return ok(fn(...args))
     } catch (error) {
+      debug('[error@wrapSync]', error)
+
       // unwrap the cause of exceptions thrown by driver adapters if there is one
       if (isDriverAdapterError(error)) {
         return err(error.cause)

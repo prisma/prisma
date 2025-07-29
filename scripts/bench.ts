@@ -2,7 +2,7 @@ import execa from 'execa'
 import globby from 'globby'
 
 async function main() {
-  let benchmarks = await globby('./packages/**/*.bench.ts', {
+  let benchmarks = await globby(['./packages/**/*.bench.ts', '!./packages/type-benchmark-tests/**'], {
     gitignore: true,
   })
 

@@ -1,7 +1,16 @@
 import Debug from '@prisma/debug'
-import { getCLIPathHash, getConfig, getProjectHash, getSchema, parseEnvValue, type SchemaPathFromConfig } from '@prisma/internals'
+import {
+  arg,
+  getCLIPathHash,
+  getProjectHash,
+  isCurrentBinInstalledGlobally,
+  loadSchemaContext,
+  parseEnvValue,
+} from '@prisma/internals'
 import type { Check } from 'checkpoint-client'
 import * as checkpoint from 'checkpoint-client'
+
+const packageJson = require('../../package.json')
 
 const debug = Debug('prisma:cli:checkpoint')
 
@@ -15,19 +24,9 @@ const debug = Debug('prisma:cli:checkpoint')
  * https://www.prisma.io/docs/concepts/more/telemetry
  */
 export async function runCheckpointClientCheck({
-  schemaPath,
   schemaPathFromConfig,
-  isPrismaInstalledGlobally,
-  version,
-  command,
-  telemetryInformation,
 }: {
-  isPrismaInstalledGlobally: 'npm' | false
-  version: string
-  command: string
-  telemetryInformation: string
-  schemaPath?: string
-  schemaPathFromConfig?: SchemaPathFromConfig
+  schemaPathFromConfig?: string
 }): Promise<Check.Result | 0> {
   // If the user has disabled telemetry, we can stop here already.
   if (process.env['CHECKPOINT_DISABLE']) {
@@ -35,6 +34,19 @@ export async function runCheckpointClientCheck({
     debug('runCheckpointClientCheck() is disabled by the CHECKPOINT_DISABLE env var.')
     return 0
   }
+
+  const commandArray = process.argv.slice(2)
+  const args = arg(
+    commandArray,
+    {
+      '--schema': String,
+      '--telemetry-information': String,
+    },
+    false,
+    true,
+  )
+
+  const schemaPath = typeof args['--schema'] === 'string' ? args['--schema'] : undefined
 
   try {
     const startGetInfo = performance.now()
@@ -56,7 +68,7 @@ export async function runCheckpointClientCheck({
       // Name of the product
       product: 'prisma',
       // Currently installed version of the CLI
-      version,
+      version: packageJson.version,
       // A unique hash of the path in which the CLI is installed
       cli_path_hash: cliPathHash,
       // A unique hash of the project's path, i.e.. the `schema.prisma`'s path
@@ -68,12 +80,12 @@ export async function runCheckpointClientCheck({
       // Generator providers (e.g. prisma-client-js)
       schema_generators_providers: schemaGeneratorsProviders,
       // Type of CLI install: global or local
-      cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
+      cli_install_type: isCurrentBinInstalledGlobally() ? 'global' : 'local',
       // Command with redacted options
-      command,
+      command: redactCommandArray([...commandArray]).join(' '),
       // Internal: Additional information from `--telemetry-information` option or `PRISMA_TELEMETRY_INFORMATION` env var
       // Default: undefined
-      information: telemetryInformation || process.env.PRISMA_TELEMETRY_INFORMATION,
+      information: args['--telemetry-information'] || process.env.PRISMA_TELEMETRY_INFORMATION,
       // Absolute CLI path
       // Note: This won't be sent to the checkpoint server.
       // TODO: Check if we can remove, probably not needed since cli_path_hash is defined
@@ -99,46 +111,42 @@ export async function runCheckpointClientCheck({
  * Tries to read some data from the Prisma Schema
  * if an error occurs it will silently fail and return undefined values
  */
-export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: SchemaPathFromConfig) {
+export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFromConfig?: string) {
   let schemaProvider: string | undefined
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
 
   try {
-    const schema = await getSchema(schemaPath, schemaPathFromConfig)
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: schemaPath,
+      schemaPathFromConfig,
+      ignoreEnvVarErrors: true,
+      printLoadMessage: false,
+    })
 
-    try {
-      const config = await getConfig({
-        datamodel: schema,
-        ignoreEnvVarErrors: true,
-      })
+    if (schemaContext.datasources.length > 0) {
+      schemaProvider = schemaContext.datasources[0].provider
+    }
 
-      if (config.datasources.length > 0) {
-        schemaProvider = config.datasources[0].provider
-      }
+    // Example 'prisma-client-js'
+    schemaGeneratorsProviders = schemaContext.generators
+      // Check that value is defined
+      .filter((generator) => generator && generator.provider)
+      .map((generator) => parseEnvValue(generator.provider))
 
-      // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators
-        // Check that value is defined
-        .filter((generator) => generator && generator.provider)
-        .map((generator) => parseEnvValue(generator.provider))
-
-      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-      const prismaClientJSGenerator = config.generators.find(
-        (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
-      )
-      if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
-        schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
-      }
-    } catch (e) {
-      debug(
-        'Error from tryToReadDataFromSchema() while processing the schema. This is not a fatal error. It will continue without the processed data.',
-      )
-      debug(e)
+    // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
+    // (this was not scoped to `prisma-client-js` before Prisma 3.0)
+    const prismaClientJSGenerator = schemaContext.generators.find(
+      (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
+    )
+    if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
+      schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
     }
   } catch (e) {
-    // fail silently if schema can't be read
+    debug(
+      'Error from tryToReadDataFromSchema() while processing the schema. This is not a fatal error. It will continue without the processed data.',
+    )
+    debug(e)
   }
 
   return {

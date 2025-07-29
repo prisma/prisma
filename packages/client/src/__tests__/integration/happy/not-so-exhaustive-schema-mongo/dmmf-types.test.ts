@@ -1,7 +1,8 @@
-import fs from 'fs'
-import path from 'path'
+import fs from 'node:fs'
+import path from 'node:path'
 
-import { getDMMF } from '../../../../generation/getDMMF'
+import { getDMMF } from '@prisma/client-generator-js'
+
 import { compileFile } from '../../../../utils/compileFile'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -21,7 +22,7 @@ test('dmmf-types', async () => {
 
   fs.writeFileSync(
     dmmfFile,
-    `import { DMMF } from '@prisma/generator-helper'
+    `import type * as DMMF from '@prisma/dmmf'
 
   const dmmf: DMMF.Document = ${JSON.stringify(dmmf, null, 2)}`,
   )

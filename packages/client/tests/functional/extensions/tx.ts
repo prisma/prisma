@@ -2,9 +2,10 @@ import { faker } from '@faker-js/faker'
 import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
+import { AdapterProviders } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -217,9 +218,10 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: ['js_d1'],
+      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
-        'batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done',
+        'js_d1: batch transaction needs to be implemented. Unskip once https://github.com/prisma/team-orm/issues/997 is done; ' +
+        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

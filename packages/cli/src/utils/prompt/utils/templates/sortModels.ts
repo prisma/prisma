@@ -1,4 +1,4 @@
-import type { DMMF } from '@prisma/generator-helper'
+import type * as DMMF from '@prisma/dmmf'
 
 const modelOrder = ['User', 'Player', 'Customer', 'Product', 'Order', 'Article', 'Post', 'Message']
 

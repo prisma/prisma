@@ -1,3 +1,4 @@
+import os from 'node:os'
 import { finished } from 'node:stream/promises'
 
 import { arg } from '@prisma/internals'
@@ -37,7 +38,7 @@ async function main() {
     process.exit(1)
   }
 
-  args['--maxWorkers'] = args['--maxWorkers'] ?? (process.env.CI === 'true' ? 3 : Infinity)
+  args['--maxWorkers'] = args['--maxWorkers'] ?? os.cpus().length
   args['--runInBand'] = args['--runInBand'] ?? false
   args['--skipPack'] = args['--skipPack'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
@@ -86,7 +87,7 @@ async function main() {
 
   console.log('🐳 Starting tests in docker')
   // tarball was created, ready to send it to docker and begin e2e tests
-  const testStepFiles = await glob('../**/_steps.ts', { cwd: __dirname })
+  const testStepFiles = await glob(['../**/_steps.ts', '../**/_steps.cts'], { cwd: __dirname })
   let e2eTestNames = testStepFiles.map((p) => path.relative('..', path.dirname(p)))
 
   if (args._.length > 0) {
@@ -142,20 +143,17 @@ async function main() {
     console.log('🏃 Running tests in parallel')
 
     const pendingJobResults = [] as Promise<void>[]
-    let availableWorkers = args['--maxWorkers']
-    for (const [i, job] of dockerJobs.entries()) {
-      while (availableWorkers === 0) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
+    const semaphore = new Semaphore(args['--maxWorkers'])
 
-      --availableWorkers // borrow worker
+    for (const [i, job] of dockerJobs.entries()) {
+      await semaphore.acquire()
+
       const pendingJob = (async () => {
         console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
         jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
-        ++availableWorkers // return worker
       })()
 
-      pendingJobResults.push(pendingJob)
+      pendingJobResults.push(pendingJob.finally(() => semaphore.release()))
     }
 
     await Promise.allSettled(pendingJobResults)
@@ -226,6 +224,31 @@ async function isFile(filePath: string) {
       return false
     }
     throw e
+  }
+}
+
+class Semaphore {
+  #permits: number
+  #waiting: Array<() => void> = []
+
+  constructor(permits: number) {
+    this.#permits = permits
+  }
+
+  async acquire(): Promise<void> {
+    if (this.#permits > 0) {
+      this.#permits--
+    } else {
+      await new Promise<void>((resolve) => this.#waiting.push(resolve))
+    }
+  }
+
+  release(): void {
+    if (this.#waiting.length > 0) {
+      this.#waiting.shift()!()
+    } else {
+      this.#permits++
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
-import { EnvPaths } from '@prisma/generator-helper'
-import findUp from 'find-up'
+import { EnvPaths } from '@prisma/generator'
+import { findUpSync, Options as FindUpOptions, pathExistsSync } from 'find-up'
 import fs from 'fs'
 import path from 'path'
 
@@ -50,10 +50,10 @@ async function readSchemaPathFromPkgJson(): Promise<string | null> {
   }
 }
 
-function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null {
-  const pkgJsonPath = findUp.sync((dir) => {
+function getProjectRootEnvPath(opts: FindUpOptions | undefined): string | null {
+  const pkgJsonPath = findUpSync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
-    if (findUp.sync.exists(pkgPath)) {
+    if (pathExistsSync(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
         if (pkg['name'] !== '.prisma/client') {

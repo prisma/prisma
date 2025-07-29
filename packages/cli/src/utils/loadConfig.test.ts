@@ -8,23 +8,14 @@ import { loadConfig } from './loadConfig'
 const ctx = jestContext.new().assemble()
 
 describe('loadConfig', () => {
-  it('loads config from file', async () => {
-    ctx.fixture('prisma-config')
-
-    const config = await loadConfig('./prisma.config.ts')
-
-    expect(config).toMatchObject({
-      earlyAccess: true,
-      loadedFromFile: path.join(ctx.fs.cwd(), 'prisma.config.ts'),
-    })
-  })
-
   it('provides default config if no file config is found', async () => {
-    const config = await loadConfig()
+    const result = await loadConfig()
 
-    expect(config).toMatchObject({
-      earlyAccess: true,
-      loadedFromFile: null,
+    expect(result).toMatchObject({
+      config: {
+        loadedFromFile: null,
+      },
+      diagnostics: [],
     })
   })
 

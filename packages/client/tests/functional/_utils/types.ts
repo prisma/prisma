@@ -2,7 +2,7 @@ import { ClientEngineType } from '@prisma/internals'
 
 import { TestsFactoryFnParams } from './defineMatrix'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { AdapterProviders, Providers } from './providers'
+import { AdapterProviders, GeneratorTypes, Providers } from './providers'
 
 export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   optOut?: {
@@ -40,13 +40,14 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'edge' | 'wasm' | 'client'
+export type ClientRuntime = 'node' | 'edge' | 'wasm-engine-edge' | 'wasm-compiler-edge' | 'client'
 
 export type CliMeta = {
   dataProxy: boolean
   runtime: ClientRuntime
   previewFeatures: string[]
   engineType: `${ClientEngineType}` | undefined
+  generatorType: `${GeneratorTypes}` | undefined
 }
 
 export type ClientMeta = {

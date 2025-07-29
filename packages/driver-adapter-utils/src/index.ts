@@ -1,30 +1,32 @@
-export { bindAdapter } from './binder'
+export { bindAdapter, bindMigrationAwareSqlAdapterFactory, bindSqlAdapterFactory } from './binder'
 export { ColumnTypeEnum } from './const'
 export { Debug } from './debug'
-export { DriverAdapterError } from './error'
+export { DriverAdapterError, isDriverAdapterError } from './error'
+export * from './mock'
 export { err, ok, type Result } from './result'
 export type {
   ArgType,
   ColumnType,
   ConnectionInfo,
-  // exported as DriverAdapter for backward compatibility
-  SqlConnection as DriverAdapter,
+  DriverAdapterFactory,
   Error,
-  // exported as ErrorCapturingDriverAdapter for backward compatibility
-  ErrorCapturingSqlConnection as ErrorCapturingDriverAdapter,
-  ErrorCapturingSqlConnection,
+  ErrorCapturingSqlDriverAdapter,
+  ErrorCapturingSqlDriverAdapterFactory,
+  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
   ErrorCapturingSqlQueryable,
   ErrorCapturingTransaction,
-  ErrorCapturingTransactionContext,
   ErrorRecord,
   ErrorRegistry,
+  IsolationLevel,
+  OfficialDriverAdapterName,
   Provider,
-  SqlConnection,
-  SqlMigrationAwareDriverAdapter,
+  Queryable,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
   SqlQuery,
   SqlQueryable,
   SqlResultSet,
   Transaction,
-  TransactionContext,
   TransactionOptions,
 } from './types'

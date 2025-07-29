@@ -279,7 +279,7 @@ import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 // @ts-ignore at the moment this is necessary for typechecks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./generated/prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {

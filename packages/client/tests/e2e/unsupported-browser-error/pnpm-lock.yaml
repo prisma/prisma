@@ -16,8 +16,8 @@ importers:
         specifier: 29.5.12
         version: 29.5.12
       '@types/node':
-        specifier: 18.19.50
-        version: 18.19.50
+        specifier: 18.19.76
+        version: 18.19.76
       esbuild:
         specifier: 0.21.4
         version: 0.21.4
@@ -495,7 +495,7 @@ packages:
     resolution: {integrity: sha512-3Belt6tdc8bPgAtbcmdtNJlirVoTmEb5e2gC94PnkwEW9jI6CAHUeoG85tjWP5WquqfavoMtMwiG4P926ZKKuQ==}
 
   '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-t1YBa0PPha+ETGs0Hj4/ES0alfFXFdrnfDczCQu2pJqYtI0DHX/bCfq50899fKxCrxQRtLGo/d9oSD7W5nRDQg==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-hGNR1jPTY96piLFloO/yWNR5tyIeFdXVgV3mMMczuMKDRpKXng1orw+++SBX1MspZvMfR2s0t1/hH8qh+oxOtg==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=18.18'}
     peerDependencies:
@@ -507,23 +507,27 @@ packages:
       typescript:
         optional: true
 
-  '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz':
-    resolution: {integrity: sha512-FG7Ub+yCsggS6QfnJw8XVwbi4txy+BgM2qaN10+RCQRHZUsRGyeEga7eruzEaCyRhMLZ2+eU9W/PYBESy/zFpg==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
+  '@prisma/config@file:../../tmp/prisma-config-0.0.0.tgz':
+    resolution: {integrity: sha512-fOvRKk4XBOFA0E4Oa63gr/I9vmKCuQgULThzkIIaEY1AHIncLd3zLvJXmxpZ50Zdc2tBeE7rSIG+obeHYdkz/g==, tarball: file:../../tmp/prisma-config-0.0.0.tgz}
     version: 0.0.0
 
-  '@prisma/engines-version@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d':
-    resolution: {integrity: sha512-Xq54qw55vaCGrGgIJqyDwOq0TtjZPJEWsbQAHugk99hpDf2jcEeQhUcF+yzEsSqegBaDNLA4IC8Nn34sXmkiTQ==}
+  '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz':
+    resolution: {integrity: sha512-FtfD/WYg21KnaiPr7TQ6mh2Cwz/zar4+apN5ZWal10QYLRsUiJUw4HGWq7MHUcSnoOYk/L0vcY96Cm6+uWTLvg==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
+    version: 0.0.0
+
+  '@prisma/engines-version@6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e':
+    resolution: {integrity: sha512-Rkik9lMyHpFNGaLpPF3H5q5TQTkm/aE7DsGM5m92FZTvWQsvmi6Va8On3pWvqLHOt5aPUvFb/FeZTmphI4CPiQ==}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-JrTCyowEk6zfOkW9HJP4S8TM8d5Ik3uHGnpDggHrm5wk7KgGagsjJCJLAJzb+98lB6mqpG7SXhnzK4ACC1VJPQ==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-CCvdVujazarXsAgV2ABC8/sB+PGh2IeMWuNwC+B7gevkLpoBNIxXAsZ+9+nE/tYHyUz7wu4dwSwb8iPeHqgLKg==, tarball: file:../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
-    resolution: {integrity: sha512-UoNVa8k2Yts074fwEX/QEwVH/GX1MhsrOeYAV7uz4/qDm1ZE9kUo5DdMNAuWe4EmLJEiuvPd1TYYi0KIjrfyuQ==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    resolution: {integrity: sha512-taHZL+jtdP0XiqaqLi++KVKdPquIWsys+4LGpuZPdpt0ijPgkb0VaDGPmfC/0ZMuzP0RrB5SSvVkMn+9KTr3sw==, tarball: file:../../tmp/prisma-fetch-engine-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
-    resolution: {integrity: sha512-rJUgEfP/FNCXF9aBz5a35mHErVTb18aC0rTWo/qGsY6y1GtdNkzGNLr9BtpHv68h3BYnLH9yAVfUPecBVJyhaQ==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
+    resolution: {integrity: sha512-QiZ+pkcLfgzFyVt0RgUbW2xIass7uYPQXyNnm3fIu57izOCXlHtZAYNd17/OvqGVeo0eJ4NhcVYeLgNEQjCMrw==, tarball: file:../../tmp/prisma-get-platform-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.27.8':
@@ -541,8 +545,8 @@ packages:
   '@types/jest@29.5.12':
     resolution: {integrity: sha512-eDC8bTvT/QhYdxJAulQikueigY5AsdBRH2yDKW3yveW7svY3+DzN84/2NUgkw10RTiJbWqZrTtoGVdYlvFJdLw==}
 
-  '@types/node@18.19.50':
-    resolution: {integrity: sha512-xonK+NRrMBRtkL1hVCc3G+uXtjh1Al4opBLjqVmipe5ZAaBYWW6cNAiBVZ1BvmkBhep698rP3UM3aRAdSALuhg==}
+  '@types/node@18.19.76':
+    resolution: {integrity: sha512-yvR7Q9LdPz2vGpmpJX5LolrgRdWvB67MJKDPSgIIzpFbaf9a1j/f5DnLp5VDyHGMR0QZHlTr1afsD87QCXFHKw==}
 
   '@types/stack-utils@2.0.1':
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
@@ -626,15 +630,6 @@ packages:
   data-uri-to-buffer@2.0.2:
     resolution: {integrity: sha512-ND9qDTLc6diwj+Xe5cdAgVTbLVdXbtxTJRXRhli8Mowuaan+0EJOtdqJ0QCHNSSPyoXGx9HX2/VMnKeC34AChA==}
 
-  debug@4.3.7:
-    resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   defu@6.1.4:
     resolution: {integrity: sha512-mEQCMmwJu317oSz8CwdIOdwf3xMif1ttiM8LTufzc3g6kR+9Pe236twL8j3IYT1F7GfRgGcW6MWxzZjLIkuHIg==}
 
@@ -645,11 +640,6 @@ packages:
   diff-sequences@29.4.3:
     resolution: {integrity: sha512-ofrBgwpPhCD85kMKtE9RYFFq6OC1A89oW2vvgWZNCwxrUpRUILopY7lsYyMDSjc8g6U6aiO0Qubg6r4Wgt5ZnA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-
-  esbuild-register@3.6.0:
-    resolution: {integrity: sha512-H2/S7Pm8a9CL1uhp9OvjwrBh5Pvx0H8qVOxNu8Wed9Y7qv56MPtq+GGM8RJpq6glYJn9Wspr8uw7l55uyinNeg==}
-    peerDependencies:
-      esbuild: '>=0.12 <1'
 
   esbuild@0.17.19:
     resolution: {integrity: sha512-XQ0jAPFkK/u3LcVRcvVHQcTIqD6E2H1fvZMA5dQPSOWb3suUbWbfbRf94pjc0bNzRYLfIrDRQXr7X+LHIm5oHw==}
@@ -737,6 +727,10 @@ packages:
     resolution: {integrity: sha512-3eX1qb6L88lJNCFlEADKOkjpXJQyZRiavX1INZ4tRnrBVr2COd3RgcTLyUiEXMNBlDU/cgYq6taUS0fExrWW4w==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
+  jiti@2.4.2:
+    resolution: {integrity: sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A==}
+    hasBin: true
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -759,9 +753,6 @@ packages:
 
   mlly@1.7.4:
     resolution: {integrity: sha512-qmdSIPC4bDJXgZTCR7XosJiNKySV7O215tsPtDN9iEO/7q/76b/ijtgRu/+epFXSJhijtTCCGp3DWS549P3xKw==}
-
-  ms@2.1.3:
-    resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
   mustache@4.2.0:
     resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
@@ -794,7 +785,7 @@ packages:
     resolution: {integrity: sha512-dKp+C4iXWK4vVYZmYSd0KBH5F/h1HoZRsbJ82AVKRO3PEo8L4lBS/vLwhVtpwwuYcoIsVY+1JYKR268yn480uQ==}
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-fkqosKBwFSNEav2a6oPn4kp6NwI68vzgN9aSX/+DWqMV7athcWwy3kpnTSan/BV3KBQgOdueaZHOlUC6ed+eNw==, tarball: file:../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-tZmZ19RSyk1SslbSZLkTIzD0ablcHZ1xL1gKecMAovPF5o7yQTtuFVO/Yg2ep2lciGyE3h4qyFG/N20v7lRS4A==, tarball: file:../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=18.18'}
     hasBin: true
@@ -1191,7 +1182,7 @@ snapshots:
       '@jest/schemas': 29.6.0
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 18.19.50
+      '@types/node': 18.19.76
       '@types/yargs': 17.0.24
       chalk: 4.1.2
 
@@ -1208,21 +1199,25 @@ snapshots:
     optionalDependencies:
       prisma: file:../../tmp/prisma-0.0.0.tgz
 
+  '@prisma/config@file:../../tmp/prisma-config-0.0.0.tgz':
+    dependencies:
+      jiti: 2.4.2
+
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz': {}
 
-  '@prisma/engines-version@6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d': {}
+  '@prisma/engines-version@6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e': {}
 
   '@prisma/engines@file:../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d
+      '@prisma/engines-version': 6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e
       '@prisma/fetch-engine': file:../../tmp/prisma-fetch-engine-0.0.0.tgz
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/fetch-engine@file:../../tmp/prisma-fetch-engine-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 6.4.0-29.a9055b89e58b4b5bfb59600785423b1db3d0e75d
+      '@prisma/engines-version': 6.8.0-43.2060c79ba17c6bb9f5823312b6f6b7f4a845738e
       '@prisma/get-platform': file:../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/get-platform@file:../../tmp/prisma-get-platform-0.0.0.tgz':
@@ -1246,7 +1241,7 @@ snapshots:
       expect: 29.6.2
       pretty-format: 29.6.2
 
-  '@types/node@18.19.50':
+  '@types/node@18.19.76':
     dependencies:
       undici-types: 5.26.5
 
@@ -1325,23 +1320,12 @@ snapshots:
 
   data-uri-to-buffer@2.0.2: {}
 
-  debug@4.3.7:
-    dependencies:
-      ms: 2.1.3
-
   defu@6.1.4: {}
 
   detect-libc@2.0.3:
     optional: true
 
   diff-sequences@29.4.3: {}
-
-  esbuild-register@3.6.0(esbuild@0.21.4):
-    dependencies:
-      debug: 4.3.7
-      esbuild: 0.21.4
-    transitivePeerDependencies:
-      - supports-color
 
   esbuild@0.17.19:
     optionalDependencies:
@@ -1407,7 +1391,7 @@ snapshots:
   expect@29.6.2:
     dependencies:
       '@jest/expect-utils': 29.6.2
-      '@types/node': 18.19.50
+      '@types/node': 18.19.76
       jest-get-type: 29.4.3
       jest-matcher-utils: 29.6.2
       jest-message-util: 29.6.2
@@ -1469,11 +1453,13 @@ snapshots:
   jest-util@29.6.2:
     dependencies:
       '@jest/types': 29.6.1
-      '@types/node': 18.19.50
+      '@types/node': 18.19.76
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.11
       picomatch: 2.3.1
+
+  jiti@2.4.2: {}
 
   js-tokens@4.0.0: {}
 
@@ -1512,8 +1498,6 @@ snapshots:
       pkg-types: 1.3.1
       ufo: 1.5.4
 
-  ms@2.1.3: {}
-
   mustache@4.2.0: {}
 
   ohash@1.1.4: {}
@@ -1542,13 +1526,8 @@ snapshots:
 
   prisma@file:../../tmp/prisma-0.0.0.tgz:
     dependencies:
+      '@prisma/config': file:../../tmp/prisma-config-0.0.0.tgz
       '@prisma/engines': file:../../tmp/prisma-engines-0.0.0.tgz
-      esbuild: 0.21.4
-      esbuild-register: 3.6.0(esbuild@0.21.4)
-    optionalDependencies:
-      fsevents: 2.3.3
-    transitivePeerDependencies:
-      - supports-color
 
   react-is@18.2.0: {}
 

@@ -1,47 +1,47 @@
-import crypto from 'node:crypto'
+import { Debug } from '@prisma/debug'
+import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
 
-import Debug from '@prisma/debug'
-import { ErrorCapturingSqlConnection, ErrorCapturingTransaction, SqlQuery } from '@prisma/driver-adapter-utils'
-
+import { randomUUID } from '../crypto'
+import { QueryEvent } from '../events'
+import type { SchemaProvider } from '../schema'
+import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { assertNever } from '../utils'
-import { IsolationLevel, Options, TransactionInfo } from './Transaction'
+import { Options, TransactionInfo } from './Transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
-  TransactionDriverAdapterError,
+  TransactionClosingError,
   TransactionExecutionTimeoutError,
   TransactionInternalConsistencyError,
   TransactionManagerError,
   TransactionNotFoundError,
   TransactionRolledBackError,
-  TransactionStartTimoutError,
+  TransactionStartTimeoutError,
 } from './TransactionManagerErrors'
 
 const MAX_CLOSED_TRANSACTIONS = 100
 
-const isolationLevelMap = {
-  ReadUncommitted: 'READ UNCOMMITTED',
-  ReadCommitted: 'READ COMMITTED',
-  RepeatableRead: 'REPEATABLE READ',
-  Snapshot: 'SNAPSHOT',
-  Serializable: 'SERIALIZABLE',
-}
-
 type TransactionWrapper = {
   id: string
-  status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out'
+  status: 'waiting' | 'running' | 'closing' | 'committed' | 'rolled_back' | 'timed_out'
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
-  transaction?: ErrorCapturingTransaction
+  transaction?: Transaction
 }
 
 const debug = Debug('prisma:client:transactionManager')
 
 const COMMIT_QUERY = (): SqlQuery => ({ sql: 'COMMIT', args: [], argTypes: [] })
 const ROLLBACK_QUERY = (): SqlQuery => ({ sql: 'ROLLBACK', args: [], argTypes: [] })
-const ISOLATION_LEVEL_QUERY = (isolationLevel: IsolationLevel): SqlQuery => ({
-  sql: 'SET TRANSACTION ISOLATION LEVEL ' + isolationLevelMap[isolationLevel],
+
+const PHANTOM_COMMIT_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "COMMIT" query via underlying driver',
+  args: [],
+  argTypes: [],
+})
+const PHANTOM_ROLLBACK_QUERY = (): SqlQuery => ({
+  sql: '-- Implicit "ROLLBACK" query via underlying driver',
   args: [],
   argTypes: [],
 })
@@ -52,66 +52,71 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: ErrorCapturingSqlConnection
+  private readonly driverAdapter: SqlDriverAdapter
+  private readonly transactionOptions: Options
+  private readonly tracingHelper: TracingHelper
+  readonly #onQuery?: (event: QueryEvent) => void
+  readonly #provider?: SchemaProvider
 
-  constructor({ driverAdapter }: { driverAdapter: ErrorCapturingSqlConnection }) {
+  constructor({
+    driverAdapter,
+    transactionOptions,
+    tracingHelper,
+    onQuery,
+    provider,
+  }: {
+    driverAdapter: SqlDriverAdapter
+    transactionOptions: Options
+    tracingHelper: TracingHelper
+    onQuery?: (event: QueryEvent) => void
+    provider?: SchemaProvider
+  }) {
     this.driverAdapter = driverAdapter
+    this.transactionOptions = transactionOptions
+    this.tracingHelper = tracingHelper
+    this.#onQuery = onQuery
+    this.#provider = provider
   }
 
-  async startTransaction(options: Options): Promise<TransactionInfo> {
-    const validatedOptions = this.validateOptions(options)
+  async startTransaction(options?: Options): Promise<TransactionInfo> {
+    return await this.tracingHelper.runInChildSpan('start_transaction', () => this.#startTransactionImpl(options))
+  }
+
+  async #startTransactionImpl(options?: Options): Promise<TransactionInfo> {
+    const validatedOptions = options !== undefined ? this.validateOptions(options) : this.transactionOptions
 
     const transaction: TransactionWrapper = {
-      id: crypto.randomUUID(),
+      id: await randomUUID(),
       status: 'waiting',
       timer: undefined,
-      timeout: validatedOptions.timeout,
+      timeout: validatedOptions.timeout!,
       startedAt: Date.now(),
       transaction: undefined,
     }
     this.transactions.set(transaction.id, transaction)
 
     // Start timeout to wait for transaction to be started.
-    transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.maxWait)
+    let hasTimedOut = false
+    const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
 
-    const txContext = await this.driverAdapter.transactionContext()
-    if (!txContext.ok)
-      throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: txContext.error,
-      })
+    transaction.transaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
 
-    if (this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-      await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
-    }
+    clearTimeout(startTimer)
 
-    const startedTransaction = await txContext.value.startTransaction()
-    if (!startedTransaction.ok)
-      throw new TransactionDriverAdapterError('Failed to start transaction.', {
-        driverAdapterError: startedTransaction.error,
-      })
-
-    if (!startedTransaction.value.options.usePhantomQuery) {
-      await startedTransaction.value.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
-
-      if (!this.requiresSettingIsolationLevelFirst() && validatedOptions.isolationLevel) {
-        await txContext.value.executeRaw(ISOLATION_LEVEL_QUERY(validatedOptions.isolationLevel))
-      }
-    }
-
-    // Transaction status might have changed to timed_out while waiting for transaction to start. => Check for it!
+    // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
       case 'waiting':
-        transaction.transaction = startedTransaction.value
-        clearTimeout(transaction.timer)
-        transaction.timer = undefined
+        if (hasTimedOut) {
+          await this.closeTransaction(transaction, 'timed_out')
+          throw new TransactionStartTimeoutError()
+        }
+
         transaction.status = 'running'
-
         // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout)
-
+        transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
         return { id: transaction.id }
+      case 'closing':
       case 'timed_out':
-        throw new TransactionStartTimoutError()
       case 'running':
       case 'committed':
       case 'rolled_back':
@@ -124,16 +129,20 @@ export class TransactionManager {
   }
 
   async commitTransaction(transactionId: string): Promise<void> {
-    const txw = this.getActiveTransaction(transactionId, 'commit')
-    await this.closeTransaction(txw, 'committed')
+    return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
+      const txw = this.getActiveTransaction(transactionId, 'commit')
+      await this.closeTransaction(txw, 'committed')
+    })
   }
 
   async rollbackTransaction(transactionId: string): Promise<void> {
-    const txw = this.getActiveTransaction(transactionId, 'rollback')
-    await this.closeTransaction(txw, 'rolled_back')
+    return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
+      const txw = this.getActiveTransaction(transactionId, 'rollback')
+      await this.closeTransaction(txw, 'rolled_back')
+    })
   }
 
-  getTransaction(txInfo: TransactionInfo, operation: string): ErrorCapturingTransaction {
+  getTransaction(txInfo: TransactionInfo, operation: string): Transaction {
     const tx = this.getActiveTransaction(txInfo.id, operation)
     if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
@@ -147,6 +156,7 @@ export class TransactionManager {
       if (closedTransaction) {
         debug('Transaction already closed.', { transactionId, status: closedTransaction.status })
         switch (closedTransaction.status) {
+          case 'closing':
           case 'waiting':
           case 'running':
             throw new TransactionInternalConsistencyError('Active transaction found in closed transactions list.')
@@ -164,6 +174,10 @@ export class TransactionManager {
         debug(`Transaction not found.`, transactionId)
         throw new TransactionNotFoundError()
       }
+    }
+
+    if (transaction.status === 'closing') {
+      throw new TransactionClosingError(operation)
     }
 
     if (['committed', 'rolled_back', 'timed_out'].includes(transaction.status)) {
@@ -199,36 +213,37 @@ export class TransactionManager {
   private async closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out') {
     debug('Closing transaction.', { transactionId: tx.id, status })
 
-    tx.status = status
+    tx.status = 'closing'
 
-    if (tx.transaction && status === 'committed') {
-      const result = await tx.transaction.commit()
-      if (!result.ok)
-        throw new TransactionDriverAdapterError('Failed to commit transaction.', {
-          driverAdapterError: result.error,
-        })
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(COMMIT_QUERY())
+    try {
+      if (tx.transaction && status === 'committed') {
+        if (tx.transaction.options.usePhantomQuery) {
+          await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
+        } else {
+          const query = COMMIT_QUERY()
+          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+          await tx.transaction.commit()
+        }
+      } else if (tx.transaction) {
+        if (tx.transaction.options.usePhantomQuery) {
+          await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
+        } else {
+          const query = ROLLBACK_QUERY()
+          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+          await tx.transaction.rollback()
+        }
       }
-    } else if (tx.transaction) {
-      const result = await tx.transaction.rollback()
-      if (!result.ok)
-        throw new TransactionDriverAdapterError('Failed to rollback transaction.', {
-          driverAdapterError: result.error,
-        })
-      if (!tx.transaction.options.usePhantomQuery) {
-        await tx.transaction.executeRaw(ROLLBACK_QUERY())
+    } finally {
+      tx.status = status
+      clearTimeout(tx.timer)
+      tx.timer = undefined
+
+      this.transactions.delete(tx.id)
+
+      this.closedTransactions.push(tx)
+      if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
+        this.closedTransactions.shift()
       }
-    }
-
-    clearTimeout(tx.timer)
-    tx.timer = undefined
-
-    this.transactions.delete(tx.id)
-
-    this.closedTransactions.push(tx)
-    if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
-      this.closedTransactions.shift()
     }
   }
 
@@ -238,16 +253,7 @@ export class TransactionManager {
     if (!options.maxWait) throw new TransactionManagerError('maxWait is required')
 
     // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
-    if (options.isolationLevel === IsolationLevel.Snapshot)
-      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
-
-    // SQLite only has serializable isolation level.
-    if (
-      this.driverAdapter.provider === 'sqlite' &&
-      options.isolationLevel &&
-      options.isolationLevel !== IsolationLevel.Serializable
-    )
-      throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
+    if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
 
     return {
       ...options,
@@ -256,7 +262,13 @@ export class TransactionManager {
     }
   }
 
-  private requiresSettingIsolationLevelFirst() {
-    return this.driverAdapter.provider === 'mysql'
+  #withQuerySpanAndEvent<T>(query: SqlQuery, queryable: SqlQueryable, execute: () => Promise<T>): Promise<T> {
+    return withQuerySpanAndEvent({
+      query,
+      execute,
+      provider: this.#provider ?? queryable.provider,
+      tracingHelper: this.tracingHelper,
+      onQuery: this.#onQuery,
+    })
   }
 }

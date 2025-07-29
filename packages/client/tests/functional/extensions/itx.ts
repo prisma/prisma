@@ -2,10 +2,10 @@ import { faker } from '@faker-js/faker'
 import { copycat } from '@snaplet/copycat'
 import { expectTypeOf } from 'expect-type'
 
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -361,9 +361,10 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: ['js_d1'],
+      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
-        'iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733',
+        'js_d1: iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733; ' +
+        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
   },
 )

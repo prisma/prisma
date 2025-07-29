@@ -14,11 +14,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@prisma/client": "../../packages/client",
-    "@prisma/config": "../../packages/config"
+    "@prisma/adapter-d1": "../../packages/adapter-d1",
+    "@prisma/client": "../../packages/client"
   },
   "devDependencies": {
     "@types/node": "18.19.76",
+    "dotenv": "^16.4.7",
     "prisma": "../../packages/cli",
     "ts-node": "10.9.1",
     "typescript": "5.7.3"

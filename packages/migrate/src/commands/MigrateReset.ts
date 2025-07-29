@@ -5,21 +5,22 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
-  getSchemaWithPath,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
+  loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -71,22 +72,32 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate reset', args, config.schema, true)
-
     if (args['--help']) {
       return this.help()
     }
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath } = (await getSchemaPathAndPrint(args['--schema'], config.schema))!
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
-    printDatasource({ datasourceInfo })
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const adapter = await config.adapter?.()
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
-    if (wasDbCreated) {
-      process.stdout.write('\n' + wasDbCreated + '\n')
+    printDatasource({ datasourceInfo, adapter })
+
+    checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
+
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+    if (!adapter) {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write('\n' + wasDbCreated + '\n')
+      }
     }
 
     process.stdout.write('\n')
@@ -110,7 +121,12 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = new Migrate(schemaPath)
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     let migrationIds: string[]
     try {
@@ -120,7 +136,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     if (migrationIds.length === 0) {
@@ -153,12 +169,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
         } else {
           process.exit(1)
         }
-      } else {
-        // Only used to help users to set up their seeds from old way to new package.json config
-        const { schemaPath } = (await getSchemaWithPath(args['--schema'], config.schema))!
-        // we don't want to output the returned warning message
-        // but we still want to run it for `legacyTsNodeScriptWarning()`
-        await verifySeedConfigAndReturnMessage(schemaPath)
       }
     }
 

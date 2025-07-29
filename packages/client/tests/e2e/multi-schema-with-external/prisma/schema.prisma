@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_E2E_POSTGRES_URI")
+  schemas  = ["base", "shop", "invoicing"]
+}
+
+model User {
+  id     Int     @id
+  orders Order[]
+
+  @@schema("base")
+}
+
+model Order {
+  id      Int  @id
+  user    User @relation(fields: [userId], references: [id])
+  userId  Int
+  invoice Invoice?
+
+  @@schema("shop")
+}
+
+enum Size {
+  Small
+  Medium
+  Large
+
+  @@schema("shop")
+}
+
+model Invoice {
+  id      Int   @id
+  order   Order @relation(fields: [orderId], references: [id])
+  orderId Int   @unique
+
+  amount Float
+
+  @@schema("invoicing")
+}
+
+enum InvoiceStatus {
+  Paid
+  Unpaid
+
+  @@schema("invoicing")
+}

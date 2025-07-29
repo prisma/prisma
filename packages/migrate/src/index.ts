@@ -12,11 +12,11 @@ export { MigrateReset } from './commands/MigrateReset'
 export { MigrateResolve } from './commands/MigrateResolve'
 export { MigrateStatus } from './commands/MigrateStatus'
 export { Migrate } from './Migrate'
-export { SchemaEngine } from './SchemaEngine'
+export { SchemaEngineCLI } from './SchemaEngineCLI'
+export { SchemaEngineWasm } from './SchemaEngineWasm'
 export * from './types'
 export { default as byline } from './utils/byline'
 export { getDatabaseVersionSafe } from './utils/getDatabaseVersionSafe'
-export { getSchemaPathAndPrint, printSchemaLoadedMessage } from './utils/getSchemaPathAndPrint'
 export {
   introspectSql,
   type IntrospectSqlError,

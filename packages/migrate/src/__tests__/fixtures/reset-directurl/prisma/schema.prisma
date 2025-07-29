@@ -1,7 +1,7 @@
 datasource my_db {
   provider  = "sqlite"
   url       = "file:invalidfile.db"
-  directUrl = "file:dev.db"
+  directUrl = "file:../dev.db"
 }
 
 generator client {

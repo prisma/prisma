@@ -39,7 +39,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
 
     it('validate', async () => {
@@ -88,7 +88,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'], defaultTestConfig())
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -234,7 +234,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'], defaultTestConfig())
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -308,7 +308,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
   })
 
@@ -376,7 +376,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
     })
 
     it('validate', async () => {
@@ -445,7 +445,7 @@ describe('[wasm] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'], defaultTestConfig())
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-config wasm)
@@ -554,7 +554,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       expect.assertions(1)
 
       try {
-        await DbExecute.new().parse(['--file=./script.sql'], defaultTestConfig())
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./schema.prisma'], defaultTestConfig())
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
           "There is no datasource in the schema.

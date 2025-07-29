@@ -1,98 +1,183 @@
+import { defaultRegistry } from '@prisma/client-generator-registry'
+import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
   getGeneratorSuccessMessage,
-  type GetSchemaResult,
-  getSchemaWithPath,
   isPrismaPostgres,
+  MigrateTypes,
+  SchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
-import path from 'path'
 
-import { SchemaEngine } from './SchemaEngine'
+import type { SchemaEngine } from './SchemaEngine'
+import { SchemaEngineCLI } from './SchemaEngineCLI'
+import { SchemaEngineWasm } from './SchemaEngineWasm'
 import type { EngineArgs, EngineResults } from './types'
+import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
 import { DatasourceInfo } from './utils/ensureDatabaseExists'
+import { listMigrations } from './utils/listMigrations'
+import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
-// TODO: `eval` is used so that the `version` field in package.json (resolved at compile-time) doesn't yield `0.0.0`.
-// We should mark this bit as `external` during the build, so that we can get rid of `eval` and still import the JSON we need at runtime.
-const packageJson = eval(`require('../package.json')`)
+interface MigrateSetupInput {
+  adapter?: ErrorCapturingSqlDriverAdapterFactory
+  migrationsDirPath?: string
+  enabledPreviewFeatures?: string[]
+  schemaContext?: SchemaContext
+  schemaFilter?: MigrateTypes.SchemaFilter
+  shadowDbInitScript?: string
+}
+
+interface MigrateOptions {
+  engine: SchemaEngine
+  schemaContext?: SchemaContext
+  migrationsDirPath?: string
+  schemaFilter?: MigrateTypes.SchemaFilter
+  shadowDbInitScript?: string
+}
 
 export class Migrate {
-  public engine: SchemaEngine
-  private schemaPath?: string
+  public readonly engine: SchemaEngine
+  private schemaContext?: SchemaContext
+  private schemaFilter: MigrateTypes.SchemaFilter
+  private shadowDbInitScript: string
   public migrationsDirectoryPath?: string
 
-  constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
-    // schemaPath and migrationsDirectoryPath is optional for primitives
+  private constructor({ schemaContext, migrationsDirPath, engine, schemaFilter, shadowDbInitScript }: MigrateOptions) {
+    this.engine = engine
+
+    // schemaPath and migrationsDirectoryPath are optional for primitives
     // like migrate diff and db execute
-    if (schemaPath) {
-      this.schemaPath = path.resolve(process.cwd(), schemaPath)
-      this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
-      this.engine = new SchemaEngine({
-        schemaPath: this.schemaPath,
-        enabledPreviewFeatures,
-      })
-    } else {
-      this.engine = new SchemaEngine({
-        enabledPreviewFeatures,
-      })
-    }
+    this.schemaContext = schemaContext
+    this.migrationsDirectoryPath = migrationsDirPath
+    this.schemaFilter = schemaFilter ?? { externalTables: [], externalEnums: [] }
+    this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 
-  public stop(): void {
-    this.engine.stop()
+  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
+    const engine = await (async () => {
+      if (adapter) {
+        return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
+      } else {
+        return await SchemaEngineCLI.setup({ schemaContext, ...rest })
+      }
+    })()
+
+    warnDatasourceDriverAdapter(schemaContext, adapter)
+
+    return new Migrate({ engine, schemaContext, ...rest })
   }
 
-  public getPrismaSchema(): Promise<GetSchemaResult> {
-    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+  public async stop(): Promise<void> {
+    await this.engine.stop()
+  }
 
-    return getSchemaWithPath(this.schemaPath)
+  public getPrismaSchema(): MigrateTypes.SchemasContainer {
+    if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
+
+    return toSchemasContainer(this.schemaContext.schemaFiles)
   }
 
   public reset(): Promise<void> {
-    return this.engine.reset()
+    return this.engine.reset({
+      filter: this.schemaFilter,
+    })
   }
 
-  public createMigration(params: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
-    return this.engine.createMigration(params)
+  public async createMigration(
+    params: Omit<EngineArgs.CreateMigrationInput, 'migrationsList' | 'filters'>,
+  ): Promise<{ generatedMigrationName: string | undefined }> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+    const { connectorType, generatedMigrationName, extension, migrationScript } = await this.engine.createMigration({
+      ...params,
+      migrationsList,
+      filters: this.schemaFilter,
+    })
+    const { baseDir, lockfile } = migrationsList
+
+    if (migrationScript === null) {
+      return {
+        generatedMigrationName: undefined,
+      }
+    }
+
+    const directoryPath = await createMigration({
+      baseDir,
+      generatedMigrationName,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to create a new migration directory: ${e.message}`)
+    })
+
+    await writeMigrationScript({
+      baseDir,
+      extension,
+      migrationName: generatedMigrationName,
+      script: migrationScript,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to write migration script to ${directoryPath}: ${e.message}`)
+    })
+
+    await writeMigrationLockfile({
+      baseDir,
+      connectorType,
+      lockfile,
+    }).catch((e: Error) => {
+      throw new Error(`Failed to write the migration lock file to ${baseDir}: ${e.message}`)
+    })
+
+    return {
+      generatedMigrationName,
+    }
   }
 
-  public diagnoseMigrationHistory({
+  public async diagnoseMigrationHistory({
     optInToShadowDatabase,
   }: {
     optInToShadowDatabase: boolean
   }): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+
     return this.engine.diagnoseMigrationHistory({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
       optInToShadowDatabase,
+      filters: this.schemaFilter,
     })
   }
 
-  public listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+  public async listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    return this.engine.listMigrationDirectories({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-    })
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+
+    return {
+      migrations: migrationsList.migrationDirectories.map((dir) => dir.path),
+    }
   }
 
-  public devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
+  public async devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
 
     return this.engine.devDiagnostic({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
+      filters: this.schemaFilter,
     })
   }
 
   public async markMigrationApplied({ migrationId }: { migrationId: string }): Promise<void> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+
     return await this.engine.markMigrationApplied({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
       migrationName: migrationId,
     })
   }
@@ -103,31 +188,37 @@ export class Migrate {
     })
   }
 
-  public applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
+  public async applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+
     return this.engine.applyMigrations({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
+      filters: this.schemaFilter,
     })
   }
 
   public async evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
+    const migrationsList = await listMigrations(this.migrationsDirectoryPath, this.shadowDbInitScript)
+    const schema = this.getPrismaSchema()
 
     return this.engine.evaluateDataLoss({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationsList,
       schema: schema,
+      filters: this.schemaFilter,
     })
   }
 
   public async push({ force = false }: { force?: boolean }): Promise<EngineResults.SchemaPush> {
-    const schema = toSchemasContainer((await this.getPrismaSchema()).schemas)
+    const schema = this.getPrismaSchema()
 
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,
       schema,
+      filters: this.schemaFilter,
     })
 
     return {
@@ -138,7 +229,7 @@ export class Migrate {
   }
 
   public async tryToRunGenerate(datasourceInfo: DatasourceInfo): Promise<void> {
-    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+    if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
 
     // Auto-append the `--no-engine` flag to the `prisma generate` command when a Prisma Postgres URL is used.
     const skipEngines = isPrismaPostgres(datasourceInfo.url)
@@ -149,11 +240,11 @@ export class Migrate {
     logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({
-      schemaPath: this.schemaPath,
+      schemaContext: this.schemaContext,
       printDownloadProgress: true,
       version: enginesVersion,
-      cliVersion: packageJson.version,
       noEngine: skipEngines,
+      registry: defaultRegistry.toInternal(),
     })
 
     for (const generator of generators) {

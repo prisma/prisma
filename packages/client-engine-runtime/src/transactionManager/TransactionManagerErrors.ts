@@ -1,17 +1,10 @@
-import { Error as DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { UserFacingError } from '../UserFacingError'
 
-export class TransactionManagerError extends Error {
-  code = 'P2028'
+export class TransactionManagerError extends UserFacingError {
+  name = 'TransactionManagerError'
 
-  constructor(message: string, public meta?: Record<string, unknown>) {
-    super('Transaction API error: ' + message)
-  }
-}
-
-export class TransactionDriverAdapterError extends TransactionManagerError {
-  constructor(message: string, errorParams: { driverAdapterError: DriverAdapterError }) {
-    // TODO: map all known non-transaction manager specific database based error codes properly - currently full mapping only exists in rust engine
-    super(`Error from Driver Adapter: ${message}`, { ...errorParams.driverAdapterError })
+  constructor(message: string, meta?: Record<string, unknown>) {
+    super('Transaction API error: ' + message, 'P2028', meta)
   }
 }
 
@@ -25,17 +18,23 @@ export class TransactionNotFoundError extends TransactionManagerError {
 
 export class TransactionClosedError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction.`)
+  }
+}
+
+export class TransactionClosingError extends TransactionManagerError {
+  constructor(operation: string) {
+    super(`Transaction is being closed: A ${operation} cannot be executed on a closing transaction.`)
   }
 }
 
 export class TransactionRolledBackError extends TransactionManagerError {
   constructor(operation: string) {
-    super(`Transaction already closed: A ${operation} cannot be executed on a committed transaction`)
+    super(`Transaction already closed: A ${operation} cannot be executed on a transaction that was rolled back.`)
   }
 }
 
-export class TransactionStartTimoutError extends TransactionManagerError {
+export class TransactionStartTimeoutError extends TransactionManagerError {
   constructor() {
     super('Unable to start a transaction in the given time.')
   }

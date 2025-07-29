@@ -1,11 +1,11 @@
 import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
-import { Providers } from '../_utils/providers'
+import { AdapterProviders, Providers } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -29,8 +29,9 @@ testMatrix.setupTestSuite(
       expect.assertions(1)
 
       await prisma
-        // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
-        .$transaction(/* note how there's no `async` here */ (tx) => {
+        .$transaction(
+          // @ts-expect-error: Type 'void' is not assignable to type 'Promise<unknown>'
+          /* note how there's no `async` here */ (tx) => {
             console.log('1')
             console.log(tx)
             console.log('2')
@@ -788,22 +789,18 @@ testMatrix.setupTestSuite(
         })
       }
 
-      testIsolationLevel(
-        'read committed',
-        provider !== Providers.SQLITE && provider !== Providers.COCKROACHDB,
-        async () => {
-          await prisma.$transaction(
-            async (tx) => {
-              await tx.user.create({ data: { email: 'user@example.com' } })
-            },
-            {
-              // @ts-test-if: !['mongodb', 'sqlite', 'cockroachdb'].includes(provider)
-              isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
-            },
-          )
-          await expect(prisma.user.findMany()).resolves.toHaveLength(1)
-        },
-      )
+      testIsolationLevel('read committed', provider !== Providers.SQLITE, async () => {
+        await prisma.$transaction(
+          async (tx) => {
+            await tx.user.create({ data: { email: 'user@example.com' } })
+          },
+          {
+            // @ts-test-if: !['mongodb', 'sqlite'].includes(provider)
+            isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+          },
+        )
+        await expect(prisma.user.findMany()).resolves.toHaveLength(1)
+      })
 
       testIsolationLevel(
         'read uncommitted',
@@ -912,9 +909,10 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: ['js_d1'],
+      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
       reason:
-        'iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733',
+        'js_d1: iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733; ' +
+        'js_libsql: SIGABRT crash occurs on having the first transaction with at least two create statements, panic inside `statement.rs` inside libsql',
     },
   },
 )

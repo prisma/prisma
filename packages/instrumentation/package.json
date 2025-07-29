@@ -3,7 +3,20 @@
   "version": "0.0.0",
   "description": "OpenTelemetry compliant instrumentation for Prisma Client",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
   "license": "Apache-2.0",
   "homepage": "https://www.prisma.io",
   "repository": {

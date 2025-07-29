@@ -7,14 +7,15 @@ import {
   format,
   getConfig,
   getLintWarningsAsText,
+  getSchemaWithPath,
   handleLintPanic,
   HelpError,
   lintSchema,
   loadEnvFile,
   logger,
+  printSchemaLoadedMessage,
   validate,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
@@ -70,16 +71,14 @@ ${bold('Examples')}
 
     await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = await getSchemaPathAndPrint(args['--schema'], config.schema)
+    const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
+    printSchemaLoadedMessage(schemaPath)
 
-    const { lintDiagnostics } = handleLintPanic(
-      () => {
-        // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schemas })
-        return { lintDiagnostics }
-      },
-      { schemas },
-    )
+    const { lintDiagnostics } = handleLintPanic(() => {
+      // the only possible error here is a Rust panic
+      const lintDiagnostics = lintSchema({ schemas })
+      return { lintDiagnostics }
+    })
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
     if (lintWarnings && logger.should.warn()) {
