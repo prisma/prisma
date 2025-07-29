@@ -5,8 +5,8 @@ import { Command, link } from '@prisma/internals'
 import execa from 'execa'
 import { z } from 'zod'
 
-import { version } from '../package.json'
-import { createHelp } from './platform/_lib/help'
+import { version } from '../../package.json'
+import { createHelp } from '../platform/_lib/help'
 
 // Only apply console redirection when running in MCP mode
 // This prevents stdout pollution that breaks MCP's JSON-RPC protocol
@@ -105,43 +105,6 @@ export class Mcp implements Command {
       { projectCWD: z.string() },
       async ({ projectCWD }) => {
         return await runCommand({ cwd: projectCWD, args: ['migrate', 'reset', '--force'] })
-      },
-    )
-
-    server.tool(
-      'Prisma-Postgres-account-status',
-      `Prisma Platform Auth Show provides information about the currently logged in user. If the user is not logged in, you should instruct them to do so by running \`npx prisma platform auth login --early-access\` and then re-running this command to verify.`,
-      { projectCWD: z.string() },
-      async ({ projectCWD }) => {
-        return await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'show', '--early-access'] })
-      },
-    )
-
-    server.tool(
-      'Create-Prisma-Postgres-Database',
-      `Create a new online Prisma Postgres database.
-      Specify a name that makes sense to the user - maybe the name of the project they are working on.
-      Specify a region that makes sense for the user. Pick between these three options: us-east-1, eu-west-3, ap-northeast-1. If you are unsure, pick us-east-1.
-      Provide the current working directory of the users project. This should be the top level directory of the project.
-      If the response idicates that you have reached the workspace plan limit, you should instruct the user to do one of these things:
-      - If they want to connect to an existing database, they should go to console.prisma.io and copy the connection string
-      - If they want to upgrade their plan, they should go to console.prisma.io and upgrade their plan in order to be able to create more databases
-      - If they want to delete a database they no longer need, they should go to console.prisma.io and delete the database project`,
-      { name: z.string(), region: z.string(), projectCWD: z.string() },
-      async ({ name, region, projectCWD }) => {
-        return await runCommand({
-          cwd: projectCWD,
-          args: ['init', '--db', '--name', name, '--region', region, '--non-interactive'],
-        })
-      },
-    )
-
-    server.tool(
-      'Prisma-Login',
-      `Login or create an account in order to be able to use Prisma Postgres.`,
-      { projectCWD: z.string() },
-      async ({ projectCWD }) => {
-        return await runCommand({ cwd: projectCWD, args: ['platform', 'auth', 'login', '--early-access'] })
       },
     )
 

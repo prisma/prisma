@@ -28,7 +28,7 @@ import { CLI } from './CLI'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
-import { Mcp } from './MCP'
+import { Mcp } from './mcp/MCP'
 import { Platform } from './platform/_Platform'
 /*
   When running bin.ts with ts-node with DEBUG="*"
