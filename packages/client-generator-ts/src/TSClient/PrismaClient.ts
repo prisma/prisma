@@ -301,7 +301,7 @@ export interface PrismaClientConstructor {
 ${this.jsDoc}
 export interface PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  const U = LogOptions<ClientOptions>,
+  U = LogOptions<ClientOptions>,
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
