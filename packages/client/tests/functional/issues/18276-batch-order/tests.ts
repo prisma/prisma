@@ -3,12 +3,14 @@ import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider, driverAdapter }) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -38,15 +40,16 @@ testMatrix.setupTestSuite(
 
       await xprisma.$queryRawUnsafe('SELECT 2')
 
-      await waitFor(() =>
-        expect(queries).toEqual([
-          expect.stringContaining('BEGIN'),
-          'SELECT 1',
-          'SELECT 2',
-          'SELECT 3',
-          expect.stringContaining('COMMIT'),
-        ]),
-      )
+      const expectation = ['SELECT 1', 'SELECT 2', 'SELECT 3', expect.stringContaining('COMMIT')]
+      if (driverAdapter === undefined) {
+        // Driver adapters do not issue BEGIN through the query engine.
+        expectation.unshift(expect.stringContaining('BEGIN'))
+      }
+      if (isSqlServer && driverAdapter === undefined) {
+        expectation.unshift(expect.stringContaining('SET TRANSACTION'))
+      }
+
+      await waitFor(() => expect(queries).toEqual(expectation))
     })
 
     test('executes batch in right order when using delayed middleware', async () => {
@@ -69,15 +72,16 @@ testMatrix.setupTestSuite(
         prisma.$queryRawUnsafe('SELECT 3'),
       ])
 
-      await waitFor(() =>
-        expect(queries).toEqual([
-          expect.stringContaining('BEGIN'),
-          'SELECT 1',
-          'SELECT 2',
-          'SELECT 3',
-          expect.stringContaining('COMMIT'),
-        ]),
-      )
+      const expectation = ['SELECT 1', 'SELECT 2', 'SELECT 3', expect.stringContaining('COMMIT')]
+      if (driverAdapter === undefined) {
+        // Driver adapters do not issue BEGIN through the query engine.
+        expectation.unshift(expect.stringContaining('BEGIN'))
+      }
+      if (isSqlServer && driverAdapter === undefined) {
+        expectation.unshift(expect.stringContaining('SET TRANSACTION'))
+      }
+
+      await waitFor(() => expect(queries).toEqual(expectation))
     })
   },
   {

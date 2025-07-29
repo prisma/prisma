@@ -3,15 +3,14 @@ name: Bundle size
 on:
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for
-      # all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      # Any update here needs to be done for all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -34,7 +33,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 18
-          pnpm-version: 8.15.5
           skip-tsc: true
           skip-build: true
 

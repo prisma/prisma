@@ -27,7 +27,7 @@ if (!process.env.CODSPEED_BENCHMARK) {
   suite = suite.add('typescript compilation ~50 Models', {
     defer: true,
     fn: function (deferred) {
-      compileFile(path.join(__dirname, './compile.ts'))
+      compileFile(path.join(__dirname, './compile.ts'), { isolateCompiler: false })
         .then(() => {
           deferred.resolve()
         })
@@ -52,7 +52,7 @@ suite
     printSize('./node_modules/.prisma/client/index.js')
     // For GitHub CI
     if (process.env.CI) {
-      printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node')
+      printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node')
     }
     execa.sync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
       stdout: 'pipe',

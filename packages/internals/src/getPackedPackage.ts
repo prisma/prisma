@@ -4,7 +4,7 @@ import path from 'path'
 import { readPackageUpSync } from 'read-package-up'
 import tempy from 'tempy'
 
-import { resolvePkg } from './get-generators/generatorResolvers/prisma-client-js/check-dependencies/resolve'
+import { resolvePkg } from './resolvePkg'
 
 export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | void> {
   packageDir =

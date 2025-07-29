@@ -1,19 +1,18 @@
-import type { ErrorCapturingDriverAdapter } from '@prisma/driver-adapter-utils'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
-import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
+import { Datasources } from '../../../getPrismaClient'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
-import { Fetch } from '../data-proxy/utils/request'
-import { QueryEngineConstructor } from '../library/types/Library'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
-import type { QueryEngineResult } from './types/QueryEngine'
+import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
@@ -38,7 +37,36 @@ export type GraphQLQuery = {
   variables: object
 }
 
-export type EngineProtocol = 'graphql' | 'json'
+/**
+ * Custom fetch function for `DataProxyEngine`.
+ *
+ * We can't use the actual type of `globalThis.fetch` because this will result
+ * in API Extractor referencing Node.js type definitions in the `.d.ts` bundle
+ * for the client runtime. We can only use such types in internal types that
+ * don't end up exported anywhere.
+
+ * It's also not possible to write a definition of `fetch` that would accept the
+ * actual `fetch` function from different environments such as Node.js and
+ * Cloudflare Workers (with their extensions to `RequestInit` and `Response`).
+ * `fetch` is used in both covariant and contravariant positions in
+ * `CustomDataProxyFetch`, making it invariant, so we need the exact same type.
+ * Even if we removed the argument and left `fetch` in covariant position only,
+ * then for an extension-supplied function to be assignable to `customDataProxyFetch`,
+ * the platform-specific (or custom) `fetch` function needs to be assignable
+ * to our `fetch` definition. This, in turn, requires the third-party `Response`
+ * to be a subtype of our `Response` (which is not a problem, we could declare
+ * a minimal `Response` type that only includes what we use) *and* requires the
+ * third-party `RequestInit` to be a supertype of our `RequestInit` (i.e. we
+ * have to declare all properties any `RequestInit` implementation in existence
+ * could possibly have), which is not possible.
+ *
+ * Since `@prisma/extension-accelerate` redefines the type of
+ * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
+ * exactly this reason), our definition is never actually used and is completely
+ * ignored, so it doesn't matter, and we can just use `unknown` as the type of
+ * `fetch` here.
+ */
+export type CustomDataProxyFetch = (fetch: unknown) => unknown
 
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
@@ -46,7 +74,7 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
 export type RequestBatchOptions<InteractiveTransactionPayload> = {
@@ -55,10 +83,10 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   numTry?: number
   containsWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: CustomDataProxyFetch
 }
 
-export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
+export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
 
 export interface Engine<InteractiveTransactionPayload = unknown> {
   /** The name of the engine. This is meant to be consumed externally */
@@ -67,7 +95,10 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   start(): Promise<void>
   stop(): Promise<void>
   version(forceRun?: boolean): Promise<string> | string
-  request<T>(query: JsonQuery, options: RequestOptions<InteractiveTransactionPayload>): Promise<QueryEngineResult<T>>
+  request<T>(
+    query: JsonQuery,
+    options: RequestOptions<InteractiveTransactionPayload>,
+  ): Promise<QueryEngineResultData<T>>
   requestBatch<T>(
     queries: JsonQuery[],
     options: RequestBatchOptions<InteractiveTransactionPayload>,
@@ -96,11 +127,13 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 export interface EngineConfig {
   cwd: string
   dirname: string
-  datamodelPath: string
   enableDebugLogs?: boolean
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   generator?: GeneratorConfig
+  /**
+   * @remarks this field is used internally by Policy, do not rename or remove
+   */
   overrideDatasources: Datasources
   showColors?: boolean
   logQueries?: boolean
@@ -121,17 +154,17 @@ export interface EngineConfig {
    * rather than Prisma's Rust drivers.
    * @remarks only used by LibraryEngine.ts
    */
-  adapter?: ErrorCapturingDriverAdapter
+  adapter?: SqlDriverAdapterFactory
 
   /**
    * The contents of the schema encoded into a string
-   * @remarks only used by DataProxyEngine.ts
    */
   inlineSchema: string
 
   /**
    * The contents of the datasource url saved in a string
    * @remarks only used by DataProxyEngine.ts
+   * @remarks this field is used internally by Policy, do not rename or remove
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
@@ -157,7 +190,8 @@ export interface EngineConfig {
   /**
    * Web Assembly module loading configuration
    */
-  engineWasm?: WasmLoadingConfig
+  engineWasm?: EngineWasmLoadingConfig
+  compilerWasm?: CompilerWasmLoadingConfig
 
   /**
    * Allows Accelerate to use runtime utilities from the client. These are
@@ -174,24 +208,6 @@ export interface EngineConfig {
     engineVersion: string
     clientVersion: string
   }
-}
-
-export type WasmLoadingConfig = {
-  /**
-   * WASM-bindgen runtime for corresponding module
-   */
-  getRuntime: () => {
-    __wbg_set_wasm(exports: unknown)
-    QueryEngine: QueryEngineConstructor
-  }
-  /**
-   * Loads the raw wasm module for the wasm query engine. This configuration is
-   * generated specifically for each type of client, eg. Node.js client and Edge
-   * clients will have different implementations.
-   * @remarks this is a callback on purpose, we only load the wasm if needed.
-   * @remarks only used by LibraryEngine.ts
-   */
-  getQueryEngineWasmModule: () => Promise<unknown>
 }
 
 export type GetConfigResult = {

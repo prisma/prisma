@@ -1,6 +1,5 @@
 import { PrismaClientInitializationError } from '../../../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../../../errors/PrismaClientKnownRequestError'
-import type { RequestResponse } from '../../utils/request'
 import { BAD_REQUEST_DEFAULT_MESSAGE, BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
 import { HealthcheckTimeoutError } from '../EngineHealthcheckTimeoutError'
@@ -43,7 +42,7 @@ type ResponseErrorBody =
   | { type: 'UnknownTextError'; body: string }
   | { type: 'EmptyError' }
 
-async function getResponseErrorBody(response: RequestResponse): Promise<ResponseErrorBody> {
+async function getResponseErrorBody(response: Response): Promise<ResponseErrorBody> {
   let text: string
 
   try {
@@ -84,10 +83,7 @@ async function getResponseErrorBody(response: RequestResponse): Promise<Response
   }
 }
 
-export async function responseToError(
-  response: RequestResponse,
-  clientVersion: string,
-): Promise<DataProxyError | undefined> {
+export async function responseToError(response: Response, clientVersion: string): Promise<DataProxyError | undefined> {
   if (response.ok) return undefined
 
   const info = { clientVersion, response }

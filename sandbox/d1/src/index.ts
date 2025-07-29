@@ -8,26 +8,26 @@
  * Learn more at https://developers.cloudflare.com/workers/
  */
 
-import { PrismaClient } from 'db'
-import { PrismaD1 } from '@prisma/adapter-d1'
+import { PrismaClient } from 'db';
+import { PrismaD1 } from '@prisma/adapter-d1';
 
 export interface Env {
 	MY_DATABASE: D1Database;
 }
 
 declare global {
-  var DEBUG: undefined | string
+	var DEBUG: undefined | string;
 }
 
-globalThis.DEBUG = '*'
+globalThis.DEBUG = '*';
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const adapter = new PrismaD1(env.MY_DATABASE)
-		const prisma = new PrismaClient({ adapter })
+		const adapter = new PrismaD1(env.MY_DATABASE);
+		const prisma = new PrismaClient({ adapter });
 
-		let tenc = new TextEncoder()
-		let buffer = tenc.encode("Hello")
+		let tenc = new TextEncoder();
+		let buffer = tenc.encode('Hello');
 
 		// let buffer = Uint8Array.from(['H', 'e', 'l', 'l', 'o'])
 
@@ -36,8 +36,8 @@ export default {
 			("boolean", "blob")
 			VALUES (true, ${buffer})
 			RETURNING *
-		`
-		console.log({qr});
+		`;
+		console.log({ qr });
 
 		console.log('--------');
 
@@ -85,7 +85,7 @@ export default {
 		// 		// id: 1,
 		// 		text: "Test name",
 		// 		boolean: true,
-		// 		blob: new Uint8Array([1, 2, 3]) as Buffer,
+		// 		blob: new Uint8Array([1, 2, 3]),
 		// 		int: 9,
 		// 		real: 9.9,
 		// 	}
@@ -99,17 +99,17 @@ export default {
 		// 			}
 		// 		})
 
-    // const result = await prisma.user.create({
-    // 	data: {
-    // 		posts: {
-    // 			create: [
-    // 				{ title: "The fire living beneath your curtains" },
-    // 				{ title: "The ocean breeze beneath your feet" },
-    // 				{ title: "The starlight beaming afore your eyes" },
-    // 			]
-    // 		}
-    // 	}
-    // })
+		// const result = await prisma.user.create({
+		// 	data: {
+		// 		posts: {
+		// 			create: [
+		// 				{ title: "The fire living beneath your curtains" },
+		// 				{ title: "The ocean breeze beneath your feet" },
+		// 				{ title: "The starlight beaming afore your eyes" },
+		// 			]
+		// 		}
+		// 	}
+		// })
 
 		// await prisma.$transaction([
 		// 	prisma.customers.create({
@@ -141,4 +141,3 @@ export default {
 		return new Response(`Hello World! Result from Prisma Client from D1!:\n${JSON.stringify(result, null, 2)}`);
 	},
 };
-

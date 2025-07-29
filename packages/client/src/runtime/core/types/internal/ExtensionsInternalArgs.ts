@@ -1,11 +1,8 @@
 import { RequestParams } from '../../../RequestHandler'
-import { IsolationLevel } from '../../engines/common/types/Transaction'
-import { Fetch } from '../../engines/data-proxy/utils/request'
+import { CustomDataProxyFetch, type IsolationLevel } from '../../engines'
 import { QueryOptions } from '../exported/ExtensionArgs'
 import { JsArgs } from '../exported/JsApi'
 import { RawQueryArgs } from '../exported/RawQueryArgs'
-
-export type CustomDataProxyFetch = (fetch: Fetch) => Fetch
 
 export type BatchQueryOptionsCbArgs = {
   args: BatchArgs

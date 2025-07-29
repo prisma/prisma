@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=cockroachdb) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -10,7 +10,9 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -23,6 +25,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -36,6 +39,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -49,6 +53,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -58,6 +63,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -66,7 +72,9 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -79,6 +87,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -92,6 +101,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -105,6 +115,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -118,6 +129,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -131,6 +143,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -140,7 +153,7 @@ exports[`prisma-dot-dmmf (provider=cockroachdb) exports Prisma.dmmf (default) 1`
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=mongodb) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -164,6 +177,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -177,6 +194,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -190,6 +208,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -199,6 +218,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -221,6 +241,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -234,6 +258,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -247,6 +272,10 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": [
+              "ObjectId",
+              [],
+            ],
             "type": "String",
           },
           {
@@ -260,6 +289,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -273,6 +303,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -282,7 +313,7 @@ exports[`prisma-dot-dmmf (provider=mongodb) exports Prisma.dmmf (default) 1`] = 
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=mysql) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -292,7 +323,9 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -305,6 +338,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -318,6 +352,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -331,6 +366,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -340,6 +376,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -348,7 +385,9 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -361,6 +400,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -374,6 +414,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -387,6 +428,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -400,6 +442,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -413,6 +456,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -422,7 +466,7 @@ exports[`prisma-dot-dmmf (provider=mysql) exports Prisma.dmmf (default) 1`] = `
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=postgresql) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -432,7 +476,9 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -445,6 +491,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -458,6 +505,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -471,6 +519,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -480,6 +529,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -488,7 +538,9 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -501,6 +553,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -514,6 +567,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -527,6 +581,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -540,6 +595,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -553,6 +609,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -562,7 +619,7 @@ exports[`prisma-dot-dmmf (provider=mysql, js_planetscale) exports Prisma.dmmf (d
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=sqlite) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -572,7 +629,9 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -585,6 +644,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -598,6 +658,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -611,6 +672,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -620,6 +682,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -628,7 +691,9 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -641,6 +706,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -654,6 +720,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -667,6 +734,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -680,6 +748,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -693,6 +762,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -702,7 +772,7 @@ exports[`prisma-dot-dmmf (provider=postgresql) exports Prisma.dmmf (default) 1`]
 }
 `;
 
-exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (default) 1`] = `
+exports[`prisma-dot-dmmf (provider=sqlserver) Prisma.dmmf in JS client exports Prisma.dmmf (default) 1`] = `
 {
   "datamodel": {
     "enums": [],
@@ -712,7 +782,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -725,6 +797,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -738,6 +811,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -751,6 +825,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -760,6 +835,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -768,7 +844,9 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "fields": [
           {
             "default": {
-              "args": [],
+              "args": [
+                1,
+              ],
               "name": "cuid",
             },
             "hasDefaultValue": true,
@@ -781,6 +859,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -794,6 +873,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -807,6 +887,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -820,6 +901,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -833,706 +915,7 @@ exports[`prisma-dot-dmmf (provider=postgresql, js_neon) exports Prisma.dmmf (def
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-    ],
-    "types": [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=postgresql, js_pg) exports Prisma.dmmf (default) 1`] = `
-{
-  "datamodel": {
-    "enums": [],
-    "models": [
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "name",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": true,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "posts",
-            "relationFromFields": [],
-            "relationName": "PostToUser",
-            "relationToFields": [],
-            "type": "Post",
-          },
-        ],
-        "isGenerated": false,
-        "name": "User",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "title",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": true,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "authorId",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "author",
-            "relationFromFields": [
-              "authorId",
-            ],
-            "relationName": "PostToUser",
-            "relationToFields": [
-              "id",
-            ],
-            "type": "User",
-          },
-        ],
-        "isGenerated": false,
-        "name": "Post",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-    ],
-    "types": [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlite) exports Prisma.dmmf (default) 1`] = `
-{
-  "datamodel": {
-    "enums": [],
-    "models": [
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "name",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": true,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "posts",
-            "relationFromFields": [],
-            "relationName": "PostToUser",
-            "relationToFields": [],
-            "type": "Post",
-          },
-        ],
-        "isGenerated": false,
-        "name": "User",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "title",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": true,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "authorId",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "author",
-            "relationFromFields": [
-              "authorId",
-            ],
-            "relationName": "PostToUser",
-            "relationToFields": [
-              "id",
-            ],
-            "type": "User",
-          },
-        ],
-        "isGenerated": false,
-        "name": "Post",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-    ],
-    "types": [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlite, js_d1) exports Prisma.dmmf (default) 1`] = `
-{
-  "datamodel": {
-    "enums": [],
-    "models": [
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "name",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": true,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "posts",
-            "relationFromFields": [],
-            "relationName": "PostToUser",
-            "relationToFields": [],
-            "type": "Post",
-          },
-        ],
-        "isGenerated": false,
-        "name": "User",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "title",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": true,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "authorId",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "author",
-            "relationFromFields": [
-              "authorId",
-            ],
-            "relationName": "PostToUser",
-            "relationToFields": [
-              "id",
-            ],
-            "type": "User",
-          },
-        ],
-        "isGenerated": false,
-        "name": "Post",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-    ],
-    "types": [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlite, js_libsql) exports Prisma.dmmf (default) 1`] = `
-{
-  "datamodel": {
-    "enums": [],
-    "models": [
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "name",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": true,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "posts",
-            "relationFromFields": [],
-            "relationName": "PostToUser",
-            "relationToFields": [],
-            "type": "Post",
-          },
-        ],
-        "isGenerated": false,
-        "name": "User",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "title",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": true,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "authorId",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "author",
-            "relationFromFields": [
-              "authorId",
-            ],
-            "relationName": "PostToUser",
-            "relationToFields": [
-              "id",
-            ],
-            "type": "User",
-          },
-        ],
-        "isGenerated": false,
-        "name": "Post",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-    ],
-    "types": [],
-  },
-}
-`;
-
-exports[`prisma-dot-dmmf (provider=sqlserver) exports Prisma.dmmf (default) 1`] = `
-{
-  "datamodel": {
-    "enums": [],
-    "models": [
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "name",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": true,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "posts",
-            "relationFromFields": [],
-            "relationName": "PostToUser",
-            "relationToFields": [],
-            "type": "Post",
-          },
-        ],
-        "isGenerated": false,
-        "name": "User",
-        "primaryKey": null,
-        "uniqueFields": [],
-        "uniqueIndexes": [],
-      },
-      {
-        "dbName": null,
-        "fields": [
-          {
-            "default": {
-              "args": [],
-              "name": "cuid",
-            },
-            "hasDefaultValue": true,
-            "isGenerated": false,
-            "isId": true,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "id",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "title",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": true,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "scalar",
-            "name": "authorId",
-            "type": "String",
-          },
-          {
-            "hasDefaultValue": false,
-            "isGenerated": false,
-            "isId": false,
-            "isList": false,
-            "isReadOnly": false,
-            "isRequired": true,
-            "isUnique": false,
-            "isUpdatedAt": false,
-            "kind": "object",
-            "name": "author",
-            "relationFromFields": [
-              "authorId",
-            ],
-            "relationName": "PostToUser",
-            "relationToFields": [
-              "id",
-            ],
-            "type": "User",
-          },
-        ],
-        "isGenerated": false,
-        "name": "Post",
-        "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },

@@ -3,7 +3,7 @@ import { copycat } from '@snaplet/copycat'
 import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type $ from './node_modules/@prisma/client'
+import type * as $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
 
@@ -69,16 +69,16 @@ testMatrix.setupTestSuite(
       expect(result[0]).toHaveProperty('requiredJson')
     })
 
-    testIf(['mysql', 'postgresql', 'cockroachdb'].includes(suiteConfig.provider))(
+    testIf(['mysql', 'postgresql', 'cockroachdb', 'sqlite'].includes(suiteConfig.provider))(
       'select required json with where path',
       async () => {
         let result
 
-        if (suiteConfig.provider === Providers.MYSQL) {
+        if (suiteConfig.provider === Providers.MYSQL || suiteConfig.provider === Providers.SQLITE) {
           result = await prisma.resource.findMany({
             where: {
               requiredJson: {
-                // @ts-test-if: provider === Providers.MYSQL
+                // @ts-test-if: provider === Providers.MYSQL || provider === Providers.SQLITE
                 path: '$.bar.baz',
                 equals: 'qux',
               },
@@ -147,7 +147,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlserver', 'sqlite'],
+      from: ['sqlserver'],
       reason: 'They do not support JSON',
     },
   },

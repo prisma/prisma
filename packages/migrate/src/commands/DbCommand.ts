@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
@@ -17,6 +18,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
 ${bold('Commands')}
@@ -42,11 +44,11 @@ ${bold('Examples')}
 
   private constructor(private readonly cmds: Commands) {}
 
-  /* eslint-disable-next-line @typescript-eslint/require-await */
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--config': String,
       '--preview-feature': Boolean,
       '--telemetry-information': String,
     })
@@ -64,7 +66,7 @@ ${bold('Examples')}
     const cmd = this.cmds[args._[0]]
     if (cmd) {
       const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
-      return cmd.parse(argsForCmd)
+      return cmd.parse(argsForCmd, config)
     }
 
     return unknownCommand(DbCommand.help, args._[0])

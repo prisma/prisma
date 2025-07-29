@@ -2,7 +2,7 @@ import { Providers } from '../../_utils/providers'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -360,7 +360,9 @@ testMatrix.setupTestSuite(
             {
               key: 'prisma_pool_connections_busy',
               labels: {},
-              value: 0,
+              // This is either 0 or 1 at this point. We might want to use `waitFor` to wait for a stable
+              // final state if we know the total number of connections.
+              value: expect.toBeOneOf([0, 1]),
               description: 'The number of pool connections currently executing datasource queries',
             },
             {
@@ -602,7 +604,7 @@ testMatrix.setupTestSuite(
       reason: 'Metrics are not supported with Data Proxy yet',
     },
     skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
+      when(clientRuntime === 'wasm-engine-edge', 'Metrics are not supported with WASM engine yet')
     },
   },
 )

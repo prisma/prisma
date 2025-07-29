@@ -2,11 +2,11 @@
 // wasm-bindgen --browser. --browser is the leanest and most agnostic option
 // that is also easy to integrate with our bundling.
 // import * as wasmBindgenRuntime from '@prisma/query-engine-wasm/query_engine_bg.js'
+import { QueryEngineConstructor } from '@prisma/client-common'
+
 import { getRuntime } from '../../../utils/getRuntime'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { LibraryLoader, QueryEngineConstructor } from './types/Library'
-
-declare const WebAssembly: any // TODO not defined in Node types?
+import { LibraryLoader } from './types/Library'
 
 let loadedWasmInstance: Promise<QueryEngineConstructor>
 export const wasmLibraryLoader: LibraryLoader = {
@@ -29,7 +29,7 @@ export const wasmLibraryLoader: LibraryLoader = {
     // engine is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
       loadedWasmInstance = (async () => {
-        const runtime = engineWasm.getRuntime()
+        const runtime = await engineWasm.getRuntime()
         const wasmModule = await engineWasm.getQueryEngineWasmModule()
 
         if (wasmModule === undefined || wasmModule === null) {
@@ -42,7 +42,9 @@ export const wasmLibraryLoader: LibraryLoader = {
         // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
         const options = { './query_engine_bg.js': runtime }
         const instance = new WebAssembly.Instance(wasmModule, options)
+        const wbindgen_start = instance.exports.__wbindgen_start as () => void
         runtime.__wbg_set_wasm(instance.exports)
+        wbindgen_start()
         return runtime.QueryEngine
       })()
     }

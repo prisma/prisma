@@ -1,8 +1,9 @@
-import type { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator'
 import path from 'path'
 import * as NodeURL from 'url'
 
 import type { DatabaseCredentials } from './types'
+import { PRISMA_POSTGRES_PROTOCOL } from './utils/prismaPostgres'
 
 // opposite of uriToCredentials
 // only used for internal tests
@@ -171,6 +172,7 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
+    case PRISMA_POSTGRES_PROTOCOL:
       return 'postgresql'
     case 'mongodb+srv:':
     case 'mongodb:':

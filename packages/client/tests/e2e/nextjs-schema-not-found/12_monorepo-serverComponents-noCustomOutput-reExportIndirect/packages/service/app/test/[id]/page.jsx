@@ -1,5 +1,6 @@
 const { db } = require('db')
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function generateStaticParams() {
   return [{ id: '1' }]
 }
@@ -7,16 +8,10 @@ export async function generateStaticParams() {
 async function doPrismaQuery(params) {
   if (params.id === '1') return JSON.stringify({})
 
-  await db.user.deleteMany()
-  const user = await db.user.create({
-    data: {
-      email: 'test',
-    },
-  })
-
-  return JSON.stringify(user)
+  const result = await db.$queryRaw`SELECT 1`
+  return JSON.stringify(result)
 }
 
 export default async function Page({ params }) {
-  return <div>{`${await doPrismaQuery(params)}`}</div>
+  return <div>{await doPrismaQuery(params)}</div>
 }

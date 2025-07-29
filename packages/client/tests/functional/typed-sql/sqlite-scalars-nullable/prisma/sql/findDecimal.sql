@@ -1,0 +1,1 @@
+SELECT `id` FROM `TestModel` WHERE `decimal` = ?

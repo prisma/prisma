@@ -1,16 +1,15 @@
-import { NodeHeaders, type RequestResponse } from '../../utils/request'
 import { responseToError } from './responseToError'
 
-const response = (body: string, code?: number, requestId?: string): RequestResponse => ({
-  json: () => Promise.resolve(body),
-  text: () => Promise.resolve(body),
-  url: '',
-  ok: false,
-  status: code || 400,
-  headers: new NodeHeaders({
-    'prisma-request-id': requestId,
-  }),
-})
+const response = (body: string, code?: number, requestId?: string) =>
+  new Response(body, {
+    status: code || 400,
+    headers:
+      requestId !== undefined
+        ? {
+            'prisma-request-id': requestId,
+          }
+        : {},
+  })
 
 describe('responseToError', () => {
   test('serialization of 500 with default message', async () => {

@@ -1,9 +1,12 @@
-const { version, name } = require('../package.json')
+import packageJson from '../package.json'
 
-export const GLOBAL_KEY = 'PRISMA_INSTRUMENTATION'
+export const VERSION = packageJson.version
 
-export const VERSION = version as string
+const majorVersion = VERSION.split('.')[0]
 
-export const NAME = name as string
+export const GLOBAL_INSTRUMENTATION_ACCESSOR_KEY = 'PRISMA_INSTRUMENTATION'
+export const GLOBAL_VERSIONED_INSTRUMENTATION_ACCESSOR_KEY = `V${majorVersion}_PRISMA_INSTRUMENTATION`
 
-export const MODULE_NAME = 'prisma'
+export const NAME = packageJson.name
+
+export const MODULE_NAME = '@prisma/client'

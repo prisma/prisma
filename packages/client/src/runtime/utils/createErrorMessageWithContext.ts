@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import * as DMMF from '@prisma/dmmf'
 import indentString from 'indent-string'
 import { bold, dim, gray, red, underline } from 'kleur/colors'
 
@@ -217,7 +217,11 @@ export function createErrorMessageWithContext(args: ErrorArgs): string {
   const colors = args.showColors ? colorsEnabled : colorsDisabled
   let templateParameters: ErrorContextTemplateParameters
 
-  if (TARGET_BUILD_TYPE === 'wasm' || TARGET_BUILD_TYPE === 'edge') {
+  if (
+    TARGET_BUILD_TYPE === 'wasm-engine-edge' ||
+    TARGET_BUILD_TYPE === 'wasm-compiler-edge' ||
+    TARGET_BUILD_TYPE === 'edge'
+  ) {
     if (typeof $getTemplateParameters !== 'undefined') {
       templateParameters = $getTemplateParameters(args, colors)
     } else {

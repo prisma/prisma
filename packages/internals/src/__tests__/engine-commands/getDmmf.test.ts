@@ -1,9 +1,8 @@
-import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { getDMMF, isRustPanic, MultipleSchemas } from '../..'
+import { getDMMF, MultipleSchemas } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
@@ -12,8 +11,6 @@ if (process.env.CI) {
   // 10s is not always enough for the "big schema" test on macOS CI.
   jest.setTimeout(60_000)
 }
-
-const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
@@ -172,40 +169,6 @@ describe('getDMMF', () => {
       }
     })
 
-    testIf(process.platform !== 'win32')(`fails when reading a datamodel path that doesn't exist`, async () => {
-      expect.assertions(2)
-
-      try {
-        await getDMMF({ datamodelPath: './404/it-does-not-exist' })
-      } catch (e) {
-        expect(isRustPanic(e)).toBe(false)
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-          "Error while trying to read the datamodel path
-          Details: ENOENT: no such file or directory, open './404/it-does-not-exist'
-          Datamodel path: "./404/it-does-not-exist"
-          [Context: getDmmf]
-
-          Prisma CLI Version : 0.0.0"
-        `)
-      }
-    })
-
-    test(`panics when the given datamodel isnt' a string`, async () => {
-      expect.assertions(3)
-
-      try {
-        // @ts-expect-error
-        await getDMMF({ datamodel: true })
-      } catch (e) {
-        expect(isRustPanic(e)).toBe(true)
-        expect(serialize(e.message)).toMatchInlineSnapshot(`
-          ""RuntimeError: panicked at prisma-fmt/src/get_dmmf.rs:0:0:
-          Failed to deserialize GetDmmfParams: data did not match any variant of untagged enum SchemaFileInput at line 1 column 20""
-        `)
-        expect(e.rustStack).toBeTruthy()
-      }
-    })
-
     test('validation errors', async () => {
       expect.assertions(1)
       const datamodel = `generator client {
@@ -321,7 +284,7 @@ describe('getDMMF', () => {
         }
       `
 
-      const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
+      const dmmf = await getDMMF({ datamodel })
       expect(dmmf.datamodel).toMatchInlineSnapshot(`
         {
           "enums": [],
@@ -531,7 +494,7 @@ describe('getDMMF', () => {
           url      = env("MY_POSTGRES_DB")
         }
         generator client {
-          provider        = "prisma-client-js"
+          provider = "prisma-client-js"
         }
         
         model User1 {
@@ -574,10 +537,10 @@ describe('getDMMF', () => {
       expect(str.length).toMatchSnapshot()
     })
 
-    test('big schema read via datamodel path', async () => {
-      const datamodelPath = path.join(fixturesPath, 'bigschema.prisma')
+    test('big schema read', async () => {
+      const file = await fs.promises.readFile(path.join(fixturesPath, 'bigschema.prisma'), 'utf-8')
       const dmmf = await getDMMF({
-        datamodelPath,
+        datamodel: file,
       })
       const str = JSON.stringify(dmmf)
       expect(str.length).toMatchSnapshot()

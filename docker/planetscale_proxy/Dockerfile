@@ -1,17 +1,14 @@
-FROM golang:1
+FROM ghcr.io/mattrobenolt/ps-http-sim:v0.0.11 AS planetscale-proxy
 
-RUN apt update && apt install netcat-openbsd -y
+# ps-http-sim provides a barebones image with nothing but the static binary
+# but we also rely on netcat being present. Alpine provides it as part of busybox.
+FROM alpine:latest
 
-# planetscale-proxy below is the name of our git repository 
-# forked from https://github.com/mattrobenolt/ps-http-sim
-RUN cd /go/src && git clone https://github.com/prisma/planetscale-proxy.git
-RUN cd /go/src/planetscale-proxy && go install .
+COPY --from=planetscale-proxy /ps-http-sim /ps-http-sim
 
-# ps-http-sim is the original repository name 
-# and the go module name needed to start the service
-ENTRYPOINT /go/bin/ps-http-sim \
-  -http-addr=0.0.0.0 \
-  -http-port=8085 \
+ENTRYPOINT /ps-http-sim \
+  -listen-addr=0.0.0.0 \
+  -listen-port=8085 \
   -mysql-addr=$MYSQL_HOST \
   -mysql-port=$MYSQL_PORT \
   -mysql-idle-timeout=1200s \

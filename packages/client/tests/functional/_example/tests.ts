@@ -4,7 +4,7 @@ import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
         provider: Providers.SQLITE
         id: 'Int @id @default(autoincrement())',
         randomString: 'foo',
-        previewFeatures: '"tracing"'
+        previewFeatures: '"relationJoins"'
       }
     */
 
@@ -54,6 +54,7 @@ testMatrix.setupTestSuite(
           engineType: 'library',
           runtime: 'node',
           previewFeatures: [],
+          generatorType: 'prisma-client-js',
         },
         suiteMeta,
         matrixOptions: suiteConfig,
@@ -77,9 +78,4 @@ testMatrix.setupTestSuite(
   //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
   //   },
   // },
-  {
-    skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', `Tracing preview feature creates a panic in the wasm engine`)
-    },
-  },
 )

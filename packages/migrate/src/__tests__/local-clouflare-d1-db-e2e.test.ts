@@ -1,12 +1,14 @@
-import { type BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { type BaseContext } from '@prisma/get-platform'
 import execa from 'execa'
 import path from 'path'
 
 import { MigrateDiff } from '../../src'
+import { describeMatrix } from './__helpers__/conditionalTests'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
-describe('d1 local', () => {
+describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {
     return await execa('pnpm', ['wrangler', '--config', path.join(ctx.tmpDir, 'wrangler.toml'), ...args], {
       cwd: __dirname,
@@ -50,14 +52,17 @@ describe('d1 local', () => {
         expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
         // Create `init` SQL migration using `prisma migrate diff`
-        const prismaCreateInitMigration = cliInstance.parse([
-          '--from-empty',
-          '--to-schema-datamodel',
-          './prisma/schema.prisma',
-          '--script',
-          '--output',
-          './migrations/0001_init.sql',
-        ])
+        const prismaCreateInitMigration = cliInstance.parse(
+          [
+            '--from-empty',
+            '--to-schema-datamodel',
+            './prisma/schema.prisma',
+            '--script',
+            '--output',
+            './migrations/0001_init.sql',
+          ],
+          await ctx.config(),
+        )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
         // Print the `init` SQL migration file
@@ -92,14 +97,17 @@ describe('d1 local', () => {
         expect(wrangler2ndMigration.exitCode).toBe(0)
 
         // Create `change_all_referenced_columns` migration SQL using `prisma migrate diff`
-        const prisma2ndMigration = cliInstance.parse([
-          '--from-local-d1',
-          '--to-schema-datamodel',
-          './prisma/schema-0002_change_all_referenced_columns.prisma',
-          '--script',
-          '--output',
-          './migrations/0002_change_all_referenced_columns.sql',
-        ])
+        const prisma2ndMigration = cliInstance.parse(
+          [
+            '--from-local-d1',
+            '--to-schema-datamodel',
+            './prisma/schema-0002_change_all_referenced_columns.prisma',
+            '--script',
+            '--output',
+            './migrations/0002_change_all_referenced_columns.sql',
+          ],
+          await ctx.config(),
+        )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
         // Print the `change_all_referenced_columns` SQL migration file
@@ -148,14 +156,17 @@ describe('d1 local', () => {
       expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
       // Create `init` SQL migration using `prisma migrate diff`
-      const prismaCreateInitMigration = cliInstance.parse([
-        '--from-empty',
-        '--to-schema-datamodel',
-        './prisma/schema.prisma',
-        '--script',
-        '--output',
-        './migrations/0001_init.sql',
-      ])
+      const prismaCreateInitMigration = cliInstance.parse(
+        [
+          '--from-empty',
+          '--to-schema-datamodel',
+          './prisma/schema.prisma',
+          '--script',
+          '--output',
+          './migrations/0001_init.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `init` SQL migration file
@@ -206,14 +217,17 @@ describe('d1 local', () => {
       expect(wrangler2ndMigration.exitCode).toBe(0)
 
       // Create `passport_number_to_string` migration SQL using `prisma migrate diff`
-      const prisma2ndMigration = cliInstance.parse([
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0002_passport_number_to_string.prisma',
-        '--script',
-        '--output',
-        './migrations/0002_passport_number_to_string.sql',
-      ])
+      const prisma2ndMigration = cliInstance.parse(
+        [
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0002_passport_number_to_string.prisma',
+          '--script',
+          '--output',
+          './migrations/0002_passport_number_to_string.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `passport_number_to_string` SQL migration file
@@ -266,14 +280,17 @@ describe('d1 local', () => {
         expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
         // Create `init` SQL migration using `prisma migrate diff`
-        const prismaCreateInitMigration = cliInstance.parse([
-          '--from-empty',
-          '--to-schema-datamodel',
-          './prisma/schema.prisma',
-          '--script',
-          '--output',
-          './migrations/0001_init.sql',
-        ])
+        const prismaCreateInitMigration = cliInstance.parse(
+          [
+            '--from-empty',
+            '--to-schema-datamodel',
+            './prisma/schema.prisma',
+            '--script',
+            '--output',
+            './migrations/0001_init.sql',
+          ],
+          await ctx.config(),
+        )
         await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
         // Print the `init` SQL migration file
@@ -306,14 +323,17 @@ describe('d1 local', () => {
         expect(wrangler2ndMigration.exitCode).toBe(0)
 
         // Create `add_mutual_references` migration SQL using `prisma migrate diff`
-        const prisma2ndMigration = cliInstance.parse([
-          '--from-local-d1',
-          '--to-schema-datamodel',
-          './prisma/schema-0002_add_mutual_references.prisma',
-          '--script',
-          '--output',
-          './migrations/0002_add_mutual_references.sql',
-        ])
+        const prisma2ndMigration = cliInstance.parse(
+          [
+            '--from-local-d1',
+            '--to-schema-datamodel',
+            './prisma/schema-0002_add_mutual_references.prisma',
+            '--script',
+            '--output',
+            './migrations/0002_add_mutual_references.sql',
+          ],
+          await ctx.config(),
+        )
         await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
         // Print the `add_mutual_references` SQL migration file
@@ -368,14 +388,17 @@ describe('d1 local', () => {
       expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
       // Create `init` SQL migration using `prisma migrate diff`
-      const prismaCreateInitMigration = cliInstance.parse([
-        '--from-empty',
-        '--to-schema-datamodel',
-        './prisma/schema.prisma',
-        '--script',
-        '--output',
-        './migrations/0001_init.sql',
-      ])
+      const prismaCreateInitMigration = cliInstance.parse(
+        [
+          '--from-empty',
+          '--to-schema-datamodel',
+          './prisma/schema.prisma',
+          '--script',
+          '--output',
+          './migrations/0001_init.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `init` SQL migration file
@@ -430,14 +453,17 @@ describe('d1 local', () => {
       expect(wrangler2ndMigration.exitCode).toBe(0)
 
       // Create `rename_new_field` migration SQL using `prisma migrate diff`
-      const prisma2ndMigration = cliInstance.parse([
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0002_rename_new_field.prisma',
-        '--script',
-        '--output',
-        './migrations/0002_rename_new_field.sql',
-      ])
+      const prisma2ndMigration = cliInstance.parse(
+        [
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0002_rename_new_field.prisma',
+          '--script',
+          '--output',
+          './migrations/0002_rename_new_field.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `rename_new_field` SQL migration file
@@ -479,14 +505,17 @@ describe('d1 local', () => {
       expect(wranglerCreateInitMigration.exitCode).toBe(0)
 
       // Create `init` SQL migration using `prisma migrate diff`
-      const prismaCreateInitMigration = cliInstance.parse([
-        '--from-empty',
-        '--to-schema-datamodel',
-        './prisma/schema.prisma',
-        '--script',
-        '--output',
-        './migrations/0001_init.sql',
-      ])
+      const prismaCreateInitMigration = cliInstance.parse(
+        [
+          '--from-empty',
+          '--to-schema-datamodel',
+          './prisma/schema.prisma',
+          '--script',
+          '--output',
+          './migrations/0001_init.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prismaCreateInitMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `init` SQL migration file
@@ -527,14 +556,17 @@ describe('d1 local', () => {
       expect(wrangler2ndMigration.exitCode).toBe(0)
 
       // Create `add_count_to_user_table` migration SQL using `prisma migrate diff`
-      const prisma2ndMigration = cliInstance.parse([
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0002_add_count_to_user_table.prisma',
-        '--script',
-        '--output',
-        './migrations/0002_add_count_to_user_table.sql',
-      ])
+      const prisma2ndMigration = cliInstance.parse(
+        [
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0002_add_count_to_user_table.prisma',
+          '--script',
+          '--output',
+          './migrations/0002_add_count_to_user_table.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prisma2ndMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `add_count_to_user_table` SQL migration file
@@ -583,14 +615,17 @@ describe('d1 local', () => {
       expect(wrangler3dMigration.exitCode).toBe(0)
 
       // Create `add_count_to_user_table` migration SQL using `prisma migrate diff`
-      const prisma3dMigration = cliInstance.parse([
-        '--from-local-d1',
-        '--to-schema-datamodel',
-        './prisma/schema-0003_change_user_id_to_count.prisma',
-        '--script',
-        '--output',
-        './migrations/0003_change_user_id_to_count.sql',
-      ])
+      const prisma3dMigration = cliInstance.parse(
+        [
+          '--from-local-d1',
+          '--to-schema-datamodel',
+          './prisma/schema-0003_change_user_id_to_count.prisma',
+          '--script',
+          '--output',
+          './migrations/0003_change_user_id_to_count.sql',
+        ],
+        await ctx.config(),
+      )
       await expect(prisma3dMigration).resolves.toMatchInlineSnapshot(`""`)
 
       // Print the `add_count_to_user_table` SQL migration file.

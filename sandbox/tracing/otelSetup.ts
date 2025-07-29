@@ -1,5 +1,5 @@
 import * as api from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
@@ -7,16 +7,15 @@ import {
   BasicTracerProvider,
   ConsoleSpanExporter,
   SimpleSpanProcessor,
-  TraceIdRatioBasedSampler,
 } from '@opentelemetry/sdk-trace-base'
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 /** SETUP */
 
 export function otelSetup() {
   // a context manager is required to propagate the context
-  const contextManager = new AsyncHooksContextManager().enable()
+  const contextManager = new AsyncLocalStorageContextManager().enable()
 
   // it's for node.js for span nesting and ctx propagation
   api.context.setGlobalContextManager(contextManager)
@@ -32,8 +31,8 @@ export function otelSetup() {
   const provider = new BasicTracerProvider({
     resource: new Resource({
       // we can define some metadata about the trace resource
-      [SEMRESATTRS_SERVICE_NAME]: 'basic-service',
-      [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
+      [ATTR_SERVICE_NAME]: 'basic-service',
+      [ATTR_SERVICE_VERSION]: '1.0.0',
     }),
   })
 

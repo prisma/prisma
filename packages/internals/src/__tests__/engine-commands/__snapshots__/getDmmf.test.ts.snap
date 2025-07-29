@@ -55,6 +55,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -68,6 +69,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -81,6 +83,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -95,6 +98,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
@@ -107,6 +111,7 @@ exports[`getDMMF success @@id model 1`] = `
           ],
           "name": "customName",
         },
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -128,6 +133,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -141,6 +147,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -154,6 +161,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -168,6 +176,7 @@ exports[`getDMMF success @@id model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
@@ -181,6 +190,7 @@ exports[`getDMMF success @@id model 1`] = `
           ],
           "name": null,
         },
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -204,6 +214,7 @@ exports[`getDMMF success @@id model 1`] = `
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
+        "updateManyAndReturn": "updateManyUser1AndReturn",
         "updateOne": "updateOneUser1",
         "upsertOne": "upsertOneUser1",
       },
@@ -222,6 +233,7 @@ exports[`getDMMF success @@id model 1`] = `
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
+        "updateManyAndReturn": "updateManyUser2AndReturn",
         "updateOne": "updateOneUser2",
         "upsertOne": "upsertOneUser2",
       },
@@ -669,6 +681,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1WhereInput",
@@ -732,6 +745,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1OrderByWithRelationInput",
         },
         {
@@ -881,6 +897,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1WhereUniqueInput",
@@ -1009,6 +1026,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1OrderByWithAggregationInput",
         },
         {
@@ -1142,6 +1162,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1ScalarWhereWithAggregatesInput",
@@ -1277,6 +1298,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2WhereInput",
@@ -1340,6 +1362,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2OrderByWithRelationInput",
         },
         {
@@ -1489,6 +1514,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2WhereUniqueInput",
@@ -1617,6 +1643,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2OrderByWithAggregationInput",
         },
         {
@@ -1750,6 +1779,7 @@ exports[`getDMMF success @@id model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2ScalarWhereWithAggregatesInput",
@@ -1809,6 +1839,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CreateInput",
         },
         {
@@ -1866,6 +1899,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedCreateInput",
         },
         {
@@ -1947,6 +1983,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UpdateInput",
         },
         {
@@ -2028,6 +2067,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedUpdateInput",
         },
         {
@@ -2085,6 +2127,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CreateManyInput",
         },
         {
@@ -2166,6 +2211,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UpdateManyMutationInput",
         },
         {
@@ -2247,6 +2295,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedUpdateManyInput",
         },
         {
@@ -2304,6 +2355,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CreateInput",
         },
         {
@@ -2361,6 +2415,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedCreateInput",
         },
         {
@@ -2442,6 +2499,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UpdateInput",
         },
         {
@@ -2523,6 +2583,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedUpdateInput",
         },
         {
@@ -2580,6 +2643,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CreateManyInput",
         },
         {
@@ -2661,6 +2727,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UpdateManyMutationInput",
         },
         {
@@ -2742,6 +2811,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedUpdateManyInput",
         },
         {
@@ -3193,6 +3265,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "lastName",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CustomNameCompoundUniqueInput",
         },
         {
@@ -3254,6 +3329,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CountOrderByAggregateInput",
         },
         {
@@ -3276,6 +3354,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1AvgOrderByAggregateInput",
         },
         {
@@ -3337,6 +3418,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1MaxOrderByAggregateInput",
         },
         {
@@ -3398,6 +3482,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1MinOrderByAggregateInput",
         },
         {
@@ -3420,6 +3507,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1SumOrderByAggregateInput",
         },
         {
@@ -4026,6 +4116,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
         },
         {
@@ -4087,6 +4180,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CountOrderByAggregateInput",
         },
         {
@@ -4109,6 +4205,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2AvgOrderByAggregateInput",
         },
         {
@@ -4170,6 +4269,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2MaxOrderByAggregateInput",
         },
         {
@@ -4231,6 +4333,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2MinOrderByAggregateInput",
         },
         {
@@ -4253,6 +4358,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2SumOrderByAggregateInput",
         },
         {
@@ -4322,6 +4430,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -4343,6 +4454,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -4364,6 +4478,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "BoolFieldUpdateOperationsInput",
         },
         {
@@ -5654,7 +5771,97 @@ exports[`getDMMF success @@id model 1`] = `
               },
             },
           ],
+          "name": "UpdateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
           "name": "CreateManyUser2AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "UpdateManyUser2AndReturnOutputType",
         },
       ],
       "prisma": [
@@ -7010,6 +7217,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1",
@@ -7028,12 +7247,80 @@ exports[`getDMMF success @@id model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -7328,6 +7615,18 @@ exports[`getDMMF success @@id model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2",
@@ -7346,12 +7645,80 @@ exports[`getDMMF success @@id model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User2UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User2WhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser2AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -8161,6 +8528,7 @@ exports[`getDMMF success @@map model 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -8174,12 +8542,14 @@ exports[`getDMMF success @@map model 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "email",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "User",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -8223,6 +8593,7 @@ exports[`getDMMF success @@map model 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -8236,12 +8607,14 @@ exports[`getDMMF success @@map model 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "email",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -8265,6 +8638,7 @@ exports[`getDMMF success @@map model 2`] = `
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
+        "updateManyAndReturn": "updateManyUserAndReturn",
         "updateOne": "updateOneUser",
         "upsertOne": "upsertOneUser",
       },
@@ -8629,6 +9003,7 @@ exports[`getDMMF success @@map model 2`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserWhereInput",
@@ -8666,6 +9041,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserOrderByWithRelationInput",
         },
         {
@@ -8760,6 +9138,7 @@ exports[`getDMMF success @@map model 2`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserWhereUniqueInput",
@@ -8862,6 +9241,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserOrderByWithAggregationInput",
         },
         {
@@ -8959,6 +9341,7 @@ exports[`getDMMF success @@map model 2`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserScalarWhereWithAggregatesInput",
@@ -8994,6 +9377,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateInput",
         },
         {
@@ -9027,6 +9413,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedCreateInput",
         },
         {
@@ -9072,6 +9461,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateInput",
         },
         {
@@ -9117,6 +9509,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedUpdateInput",
         },
         {
@@ -9150,6 +9545,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateManyInput",
         },
         {
@@ -9195,6 +9593,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateManyMutationInput",
         },
         {
@@ -9240,6 +9641,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedUpdateManyInput",
         },
         {
@@ -9648,6 +10052,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCountOrderByAggregateInput",
         },
         {
@@ -9670,6 +10077,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserAvgOrderByAggregateInput",
         },
         {
@@ -9705,6 +10115,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserMaxOrderByAggregateInput",
         },
         {
@@ -9740,6 +10153,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserMinOrderByAggregateInput",
         },
         {
@@ -9762,6 +10178,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserSumOrderByAggregateInput",
         },
         {
@@ -10308,6 +10727,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -10329,6 +10751,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -11362,6 +11787,31 @@ exports[`getDMMF success @@map model 2`] = `
           ],
           "name": "CreateManyUserAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyUserAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -12185,6 +12635,18 @@ exports[`getDMMF success @@map model 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser",
@@ -12203,12 +12665,80 @@ exports[`getDMMF success @@map model 2`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "UserUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "UserWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUserAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -12656,6 +13186,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12669,6 +13200,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "author",
+            "nativeType": null,
             "relationFromFields": [
               "authorId",
             ],
@@ -12689,6 +13221,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "authorId",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12702,6 +13235,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12716,12 +13250,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "published",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "Post",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "authorId",
@@ -12756,6 +13292,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12769,6 +13306,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "email",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12782,6 +13320,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "object",
             "name": "posts",
+            "nativeType": null,
             "relationFromFields": [],
             "relationName": "PostToUser",
             "relationToFields": [],
@@ -12791,6 +13330,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "isGenerated": false,
         "name": "User",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -12812,6 +13352,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12825,6 +13366,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12838,6 +13380,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12852,12 +13395,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "User1",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "firstName",
@@ -12892,6 +13437,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -12905,6 +13451,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "firstName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12918,6 +13465,7 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "lastName",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -12932,12 +13480,14 @@ exports[`getDMMF success @@unique model 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "isAdmin",
+            "nativeType": null,
             "type": "Boolean",
           },
         ],
         "isGenerated": false,
         "name": "User2",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [
           [
             "firstName",
@@ -12976,6 +13526,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByPost",
         "model": "Post",
         "updateMany": "updateManyPost",
+        "updateManyAndReturn": "updateManyPostAndReturn",
         "updateOne": "updateOnePost",
         "upsertOne": "upsertOnePost",
       },
@@ -12994,6 +13545,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
+        "updateManyAndReturn": "updateManyUserAndReturn",
         "updateOne": "updateOneUser",
         "upsertOne": "upsertOneUser",
       },
@@ -13012,6 +13564,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
+        "updateManyAndReturn": "updateManyUser1AndReturn",
         "updateOne": "updateOneUser1",
         "upsertOne": "upsertOneUser1",
       },
@@ -13030,6 +13583,7 @@ exports[`getDMMF success @@unique model 1`] = `
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
+        "updateManyAndReturn": "updateManyUser2AndReturn",
         "updateOne": "updateOneUser2",
         "upsertOne": "upsertOneUser2",
       },
@@ -13497,7 +14051,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -13512,6 +14066,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "Post",
             "source": "Post",
           },
           "name": "PostWhereInput",
@@ -13588,6 +14143,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "author",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostOrderByWithRelationInput",
         },
         {
@@ -13741,7 +14299,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
+                  "type": "UserScalarRelationFilter",
                 },
                 {
                   "isList": false,
@@ -13756,6 +14314,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "Post",
             "source": "Post",
           },
           "name": "PostWhereUniqueInput",
@@ -13884,6 +14443,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostOrderByWithAggregationInput",
         },
         {
@@ -14017,6 +14579,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "Post",
             "source": "Post",
           },
           "name": "PostScalarWhereWithAggregatesInput",
@@ -14129,6 +14692,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserWhereInput",
@@ -14179,6 +14743,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "posts",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserOrderByWithRelationInput",
         },
         {
@@ -14281,6 +14848,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserWhereUniqueInput",
@@ -14383,6 +14951,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserOrderByWithAggregationInput",
         },
         {
@@ -14480,6 +15051,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User",
             "source": "User",
           },
           "name": "UserScalarWhereWithAggregatesInput",
@@ -14615,6 +15187,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1WhereInput",
@@ -14678,6 +15251,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1OrderByWithRelationInput",
         },
         {
@@ -14827,6 +15403,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1WhereUniqueInput",
@@ -14955,6 +15532,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1OrderByWithAggregationInput",
         },
         {
@@ -15088,6 +15668,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User1",
             "source": "User1",
           },
           "name": "User1ScalarWhereWithAggregatesInput",
@@ -15223,6 +15804,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2WhereInput",
@@ -15286,6 +15868,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2OrderByWithRelationInput",
         },
         {
@@ -15435,6 +16020,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2WhereUniqueInput",
@@ -15563,6 +16149,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2OrderByWithAggregationInput",
         },
         {
@@ -15696,6 +16285,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "User2",
             "source": "User2",
           },
           "name": "User2ScalarWhereWithAggregatesInput",
@@ -15756,6 +16346,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "author",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateInput",
         },
         {
@@ -15813,6 +16406,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedCreateInput",
         },
         {
@@ -15889,6 +16485,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "author",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateInput",
         },
         {
@@ -15970,6 +16569,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedUpdateInput",
         },
         {
@@ -16027,6 +16629,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateManyInput",
         },
         {
@@ -16090,6 +16695,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateManyMutationInput",
         },
         {
@@ -16171,6 +16779,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedUpdateManyInput",
         },
         {
@@ -16205,6 +16816,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "posts",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateInput",
         },
         {
@@ -16251,6 +16865,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "posts",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedCreateInput",
         },
         {
@@ -16291,6 +16908,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "posts",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateInput",
         },
         {
@@ -16349,6 +16969,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "posts",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedUpdateInput",
         },
         {
@@ -16382,6 +17005,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateManyInput",
         },
         {
@@ -16409,6 +17035,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateManyMutationInput",
         },
         {
@@ -16454,6 +17083,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedUpdateManyInput",
         },
         {
@@ -16511,6 +17143,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CreateInput",
         },
         {
@@ -16568,6 +17203,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedCreateInput",
         },
         {
@@ -16649,6 +17287,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UpdateInput",
         },
         {
@@ -16730,6 +17371,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedUpdateInput",
         },
         {
@@ -16787,6 +17431,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CreateManyInput",
         },
         {
@@ -16868,6 +17515,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UpdateManyMutationInput",
         },
         {
@@ -16949,6 +17599,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1UncheckedUpdateManyInput",
         },
         {
@@ -17006,6 +17659,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CreateInput",
         },
         {
@@ -17063,6 +17719,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedCreateInput",
         },
         {
@@ -17144,6 +17803,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UpdateInput",
         },
         {
@@ -17225,6 +17887,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedUpdateInput",
         },
         {
@@ -17282,6 +17947,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CreateManyInput",
         },
         {
@@ -17363,6 +18031,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UpdateManyMutationInput",
         },
         {
@@ -17444,6 +18115,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2UncheckedUpdateManyInput",
         },
         {
@@ -17897,7 +18571,10 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isNot",
             },
           ],
-          "name": "UserRelationFilter",
+          "meta": {
+            "grouping": "User",
+          },
+          "name": "UserScalarRelationFilter",
         },
         {
           "constraints": {
@@ -17930,6 +18607,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostAuthorIdTitleCompoundUniqueInput",
         },
         {
@@ -17991,6 +18671,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCountOrderByAggregateInput",
         },
         {
@@ -18026,6 +18709,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "authorId",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostAvgOrderByAggregateInput",
         },
         {
@@ -18087,6 +18773,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostMaxOrderByAggregateInput",
         },
         {
@@ -18148,6 +18837,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostMinOrderByAggregateInput",
         },
         {
@@ -18183,6 +18875,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "authorId",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostSumOrderByAggregateInput",
         },
         {
@@ -18792,6 +19487,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "none",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostListRelationFilter",
         },
         {
@@ -18814,6 +19512,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "_count",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostOrderByRelationAggregateInput",
         },
         {
@@ -18849,6 +19550,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCountOrderByAggregateInput",
         },
         {
@@ -18871,6 +19575,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserAvgOrderByAggregateInput",
         },
         {
@@ -18906,6 +19613,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserMaxOrderByAggregateInput",
         },
         {
@@ -18941,6 +19651,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserMinOrderByAggregateInput",
         },
         {
@@ -18963,6 +19676,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserSumOrderByAggregateInput",
         },
         {
@@ -18996,6 +19712,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "lastName",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1FirstNameLastNameCompoundUniqueInput",
         },
         {
@@ -19057,6 +19776,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1CountOrderByAggregateInput",
         },
         {
@@ -19079,6 +19801,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1AvgOrderByAggregateInput",
         },
         {
@@ -19140,6 +19865,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1MaxOrderByAggregateInput",
         },
         {
@@ -19201,6 +19929,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1MinOrderByAggregateInput",
         },
         {
@@ -19223,6 +19954,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User1",
+          },
           "name": "User1SumOrderByAggregateInput",
         },
         {
@@ -19268,6 +20002,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
         },
         {
@@ -19329,6 +20066,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2CountOrderByAggregateInput",
         },
         {
@@ -19351,6 +20091,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2AvgOrderByAggregateInput",
         },
         {
@@ -19412,6 +20155,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2MaxOrderByAggregateInput",
         },
         {
@@ -19473,6 +20219,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "isAdmin",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2MinOrderByAggregateInput",
         },
         {
@@ -19495,6 +20244,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "User2",
+          },
           "name": "User2SumOrderByAggregateInput",
         },
         {
@@ -19549,6 +20301,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "connect",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateNestedOneWithoutPostsInput",
         },
         {
@@ -19618,6 +20373,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -19639,6 +20397,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -19660,6 +20421,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "BoolFieldUpdateOperationsInput",
         },
         {
@@ -19752,6 +20516,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "update",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateOneRequiredWithoutPostsNestedInput",
         },
         {
@@ -19843,6 +20610,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "connect",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateNestedManyWithoutAuthorInput",
         },
         {
@@ -19934,6 +20704,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "connect",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
         },
         {
@@ -20158,6 +20931,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "deleteMany",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateManyWithoutAuthorNestedInput",
         },
         {
@@ -20382,6 +21158,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "deleteMany",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedUpdateManyWithoutAuthorNestedInput",
         },
         {
@@ -21509,6 +22288,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateWithoutPostsInput",
         },
         {
@@ -21542,6 +22324,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedCreateWithoutPostsInput",
         },
         {
@@ -21583,6 +22368,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "create",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserCreateOrConnectWithoutPostsInput",
         },
         {
@@ -21643,6 +22431,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "where",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpsertWithoutPostsInput",
         },
         {
@@ -21684,6 +22475,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "data",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateToOneWithWhereWithoutPostsInput",
         },
         {
@@ -21711,6 +22505,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUpdateWithoutPostsInput",
         },
         {
@@ -21756,6 +22553,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "grouping": "User",
+          },
           "name": "UserUncheckedUpdateWithoutPostsInput",
         },
         {
@@ -21801,6 +22601,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateWithoutAuthorInput",
         },
         {
@@ -21846,6 +22649,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedCreateWithoutAuthorInput",
         },
         {
@@ -21887,6 +22693,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "create",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateOrConnectWithoutAuthorInput",
         },
         {
@@ -21927,6 +22736,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "skipDuplicates",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateManyAuthorInputEnvelope",
         },
         {
@@ -21987,6 +22799,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "create",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
         },
         {
@@ -22028,6 +22843,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "data",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateWithWhereUniqueWithoutAuthorInput",
         },
         {
@@ -22069,6 +22887,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "data",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateManyWithWhereWithoutAuthorInput",
         },
         {
@@ -22202,6 +23023,7 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "meta": {
+            "grouping": "Post",
             "source": "Post",
           },
           "name": "PostScalarWhereInput",
@@ -22249,6 +23071,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostCreateManyAuthorInput",
         },
         {
@@ -22312,6 +23137,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUpdateWithoutAuthorInput",
         },
         {
@@ -22375,6 +23203,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedUpdateWithoutAuthorInput",
         },
         {
@@ -22438,6 +23269,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
+          "meta": {
+            "grouping": "Post",
+          },
           "name": "PostUncheckedUpdateManyWithoutAuthorInput",
         },
       ],
@@ -22797,6 +23631,62 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "args": [],
               "isNullable": false,
+              "name": "authorId",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "published",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "author",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+          ],
+          "name": "UpdateManyPostAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
               "name": "email",
               "outputType": {
                 "isList": false,
@@ -22806,6 +23696,31 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "CreateManyUserAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "email",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyUserAndReturnOutputType",
         },
         {
           "fields": [
@@ -22895,7 +23810,97 @@ exports[`getDMMF success @@unique model 1`] = `
               },
             },
           ],
+          "name": "UpdateManyUser1AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
           "name": "CreateManyUser2AndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "firstName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "lastName",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "isAdmin",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+          ],
+          "name": "UpdateManyUser2AndReturnOutputType",
         },
       ],
       "prisma": [
@@ -25313,6 +26318,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyPost",
@@ -25331,12 +26348,80 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "PostWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyPostAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyPostAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -25631,6 +26716,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser",
@@ -25649,12 +26746,80 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "UserUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "UserWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUserAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUserAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -25949,6 +27114,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser1",
@@ -25967,12 +27144,80 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser1AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser1AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -26267,6 +27512,18 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyUser2",
@@ -26285,12 +27542,80 @@ exports[`getDMMF success @@unique model 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User2UpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User2WhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyUser2AndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyUser2AndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -27705,9 +29030,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `153813466`;
+exports[`getDMMF success big schema read 1`] = `163930366`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `982134`;
+exports[`getDMMF success chinook introspected schema 1`] = `1011534`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -27868,6 +29193,7 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -27881,12 +29207,14 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -27904,6 +29232,7 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "String",
           },
           {
@@ -27917,12 +29246,14 @@ exports[`getDMMF success multiple files 1`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "title",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "B",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -27946,6 +29277,7 @@ exports[`getDMMF success multiple files 1`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -27964,6 +29296,7 @@ exports[`getDMMF success multiple files 1`] = `
         "groupBy": "groupByB",
         "model": "B",
         "updateMany": "updateManyB",
+        "updateManyAndReturn": "updateManyBAndReturn",
         "updateOne": "updateOneB",
         "upsertOne": "upsertOneB",
       },
@@ -28217,6 +29550,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -28254,6 +29588,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -28348,6 +29685,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -28450,6 +29788,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -28547,6 +29888,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -28646,6 +29988,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "B",
             "source": "B",
           },
           "name": "BWhereInput",
@@ -28683,6 +30026,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BOrderByWithRelationInput",
         },
         {
@@ -28777,6 +30123,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "B",
             "source": "B",
           },
           "name": "BWhereUniqueInput",
@@ -28853,6 +30200,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "_min",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BOrderByWithAggregationInput",
         },
         {
@@ -28950,6 +30300,7 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "meta": {
+            "grouping": "B",
             "source": "B",
           },
           "name": "BScalarWhereWithAggregatesInput",
@@ -28985,6 +30336,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -29018,6 +30372,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -29063,6 +30420,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -29108,6 +30468,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -29141,6 +30504,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -29186,6 +30552,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -29231,6 +30600,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -29264,6 +30636,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BCreateInput",
         },
         {
@@ -29297,6 +30672,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BUncheckedCreateInput",
         },
         {
@@ -29342,6 +30720,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BUpdateInput",
         },
         {
@@ -29387,6 +30768,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BUncheckedUpdateInput",
         },
         {
@@ -29420,6 +30804,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BCreateManyInput",
         },
         {
@@ -29465,6 +30852,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BUpdateManyMutationInput",
         },
         {
@@ -29510,6 +30900,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BUncheckedUpdateManyInput",
         },
         {
@@ -29881,6 +31274,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -29903,6 +31299,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -29938,6 +31337,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -29973,6 +31375,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -29995,6 +31400,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -30470,6 +31878,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BCountOrderByAggregateInput",
         },
         {
@@ -30505,6 +31916,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BMaxOrderByAggregateInput",
         },
         {
@@ -30540,6 +31954,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "title",
             },
           ],
+          "meta": {
+            "grouping": "B",
+          },
           "name": "BMinOrderByAggregateInput",
         },
         {
@@ -30609,6 +32026,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -30630,6 +32050,9 @@ exports[`getDMMF success multiple files 1`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -31637,6 +33060,31 @@ exports[`getDMMF success multiple files 1`] = `
               "outputType": {
                 "isList": false,
                 "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
                 "type": "String",
               },
             },
@@ -31652,6 +33100,31 @@ exports[`getDMMF success multiple files 1`] = `
             },
           ],
           "name": "CreateManyBAndReturnOutputType",
+        },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "title",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyBAndReturnOutputType",
         },
       ],
       "prisma": [
@@ -32983,6 +34456,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -33001,12 +34486,80 @@ exports[`getDMMF success multiple files 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "AWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -33277,6 +34830,18 @@ exports[`getDMMF success multiple files 1`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyB",
@@ -33295,12 +34860,80 @@ exports[`getDMMF success multiple files 1`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "BUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "BWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyBAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyBAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "BWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -33842,7 +35475,7 @@ exports[`getDMMF success multiple files 1`] = `
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `137257967`;
+exports[`getDMMF success odoo introspected schema 1`] = `138518688`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -33875,6 +35508,7 @@ exports[`getDMMF success simple model, mongodb 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -33888,12 +35522,14 @@ exports[`getDMMF success simple model, mongodb 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -33934,6 +35570,7 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -33947,12 +35584,14 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -34331,6 +35970,7 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -34368,6 +36008,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -34462,6 +36105,7 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -34564,6 +36208,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -34661,6 +36308,7 @@ exports[`getDMMF success simple model, mongodb 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -34696,6 +36344,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -34729,6 +36380,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -34756,6 +36410,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -34783,6 +36440,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -34816,6 +36476,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -34843,6 +36506,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -34870,6 +36536,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -35278,6 +36947,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -35300,6 +36972,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -35335,6 +37010,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -35370,6 +37048,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -35392,6 +37073,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -35890,6 +37574,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -37736,6 +39423,18 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -37760,6 +39459,18 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -38103,6 +39814,7 @@ exports[`getDMMF success simple model, mysql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -38116,12 +39828,14 @@ exports[`getDMMF success simple model, mysql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -38161,6 +39875,7 @@ exports[`getDMMF success simple model, mysql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -38174,12 +39889,14 @@ exports[`getDMMF success simple model, mysql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -38238,6 +39955,12 @@ exports[`getDMMF success simple model, mysql 2`] = `
           "values": [
             "asc",
             "desc",
+          ],
+        },
+        {
+          "name": "AOrderByRelevanceFieldEnum",
+          "values": [
+            "name",
           ],
         },
       ],
@@ -38451,6 +40174,7 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -38487,7 +40211,23 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isRequired": false,
               "name": "name",
             },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "_relevance",
+            },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -38582,6 +40322,7 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -38684,6 +40425,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -38781,6 +40525,7 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -38816,6 +40561,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -38849,6 +40597,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -38894,6 +40645,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -38939,6 +40693,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -38972,6 +40729,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -39017,6 +40777,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -39062,6 +40825,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -39386,6 +41152,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -39399,6 +41177,62 @@ exports[`getDMMF success simple model, mysql 2`] = `
             },
           ],
           "name": "StringFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+                {
+                  "isList": true,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "AOrderByRelevanceFieldEnum",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "fields",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "enumTypes",
+                  "namespace": "prisma",
+                  "type": "SortOrder",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "sort",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "search",
+            },
+          ],
+          "meta": {
+            "grouping": "A",
+          },
+          "name": "AOrderByRelevanceInput",
         },
         {
           "constraints": {
@@ -39433,6 +41267,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -39455,6 +41292,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -39490,6 +41330,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -39525,6 +41368,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -39547,6 +41393,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -39936,6 +41785,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
                 {
                   "isList": false,
                   "location": "inputObjectTypes",
@@ -40056,6 +41917,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -40077,6 +41941,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -40393,6 +42260,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
@@ -40935,6 +42814,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "endsWith",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "search",
             },
             {
               "inputTypes": [
@@ -41805,6 +43696,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -41829,6 +43732,18 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -42219,6 +44134,7 @@ exports[`getDMMF success simple model, no datasource 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -42232,12 +44148,14 @@ exports[`getDMMF success simple model, no datasource 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -42277,6 +44195,7 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -42290,12 +44209,14 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -42554,6 +44475,7 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -42591,6 +44513,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -42685,6 +44610,7 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -42787,6 +44713,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -42884,6 +44813,7 @@ exports[`getDMMF success simple model, no datasource 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -42919,6 +44849,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -42952,6 +44885,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -42979,6 +44915,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -43006,6 +44945,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -43033,6 +44975,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -43060,6 +45005,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -43431,6 +45379,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -43453,6 +45404,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -43488,6 +45442,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -43523,6 +45480,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -43545,6 +45505,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -44006,6 +45969,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -45691,6 +47657,18 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -45715,6 +47693,18 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -46035,6 +48025,7 @@ exports[`getDMMF success simple model, postgresql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -46048,12 +48039,14 @@ exports[`getDMMF success simple model, postgresql 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -46093,6 +48086,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -46106,12 +48100,14 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -46135,6 +48131,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -46499,6 +48496,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -46536,6 +48534,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -46630,6 +48631,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -46732,6 +48734,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -46829,6 +48834,7 @@ exports[`getDMMF success simple model, postgresql 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -46864,6 +48870,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -46897,6 +48906,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -46942,6 +48954,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -46987,6 +49002,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -47020,6 +49038,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -47065,6 +49086,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -47110,6 +49134,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -47518,6 +49545,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -47540,6 +49570,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -47575,6 +49608,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -47610,6 +49646,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -47632,6 +49671,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -48178,6 +50220,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -48199,6 +50244,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -49232,6 +51280,31 @@ exports[`getDMMF success simple model, postgresql 2`] = `
           ],
           "name": "CreateManyAAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -50055,6 +52128,18 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -50073,12 +52158,80 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "AWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -50469,6 +52622,7 @@ exports[`getDMMF success simple model, sql server 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -50482,12 +52636,14 @@ exports[`getDMMF success simple model, sql server 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -50527,6 +52683,7 @@ exports[`getDMMF success simple model, sql server 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -50540,12 +52697,14 @@ exports[`getDMMF success simple model, sql server 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -50818,6 +52977,7 @@ exports[`getDMMF success simple model, sql server 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -50855,6 +53015,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -50949,6 +53112,7 @@ exports[`getDMMF success simple model, sql server 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -51051,6 +53215,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -51148,6 +53315,7 @@ exports[`getDMMF success simple model, sql server 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -51183,6 +53351,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -51216,6 +53387,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -51261,6 +53435,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -51306,6 +53483,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -51339,6 +53519,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -51384,6 +53567,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -51429,6 +53615,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -51800,6 +53989,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -51822,6 +54014,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -51857,6 +54052,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -51892,6 +54090,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -51914,6 +54115,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -52423,6 +54627,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -52444,6 +54651,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -54160,6 +56370,18 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -54184,6 +56406,18 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,
@@ -54574,6 +56808,7 @@ exports[`getDMMF success simple model, sqlite 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "id",
+          "nativeType": null,
           "type": "Int",
         },
         {
@@ -54587,12 +56822,14 @@ exports[`getDMMF success simple model, sqlite 1`] = `
           "isUpdatedAt": false,
           "kind": "scalar",
           "name": "name",
+          "nativeType": null,
           "type": "String",
         },
       ],
       "isGenerated": false,
       "name": "A",
       "primaryKey": null,
+      "schema": null,
       "uniqueFields": [],
       "uniqueIndexes": [],
     },
@@ -54632,6 +56869,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "id",
+            "nativeType": null,
             "type": "Int",
           },
           {
@@ -54645,12 +56883,14 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             "isUpdatedAt": false,
             "kind": "scalar",
             "name": "name",
+            "nativeType": null,
             "type": "String",
           },
         ],
         "isGenerated": false,
         "name": "A",
         "primaryKey": null,
+        "schema": null,
         "uniqueFields": [],
         "uniqueIndexes": [],
       },
@@ -54674,6 +56914,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
+        "updateManyAndReturn": "updateManyAAndReturn",
         "updateOne": "updateOneA",
         "upsertOne": "upsertOneA",
       },
@@ -54920,6 +57161,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereInput",
@@ -54957,6 +57199,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithRelationInput",
         },
         {
@@ -55051,6 +57296,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AWhereUniqueInput",
@@ -55153,6 +57399,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "_sum",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AOrderByWithAggregationInput",
         },
         {
@@ -55250,6 +57499,7 @@ exports[`getDMMF success simple model, sqlite 2`] = `
             },
           ],
           "meta": {
+            "grouping": "A",
             "source": "A",
           },
           "name": "AScalarWhereWithAggregatesInput",
@@ -55285,6 +57535,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateInput",
         },
         {
@@ -55318,6 +57571,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedCreateInput",
         },
         {
@@ -55363,6 +57619,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateInput",
         },
         {
@@ -55408,6 +57667,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateInput",
         },
         {
@@ -55441,6 +57703,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACreateManyInput",
         },
         {
@@ -55486,6 +57751,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUpdateManyMutationInput",
         },
         {
@@ -55531,6 +57799,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AUncheckedUpdateManyInput",
         },
         {
@@ -55902,6 +58173,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ACountOrderByAggregateInput",
         },
         {
@@ -55924,6 +58198,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AAvgOrderByAggregateInput",
         },
         {
@@ -55959,6 +58236,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMaxOrderByAggregateInput",
         },
         {
@@ -55994,6 +58274,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "name",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "AMinOrderByAggregateInput",
         },
         {
@@ -56016,6 +58299,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "ASumOrderByAggregateInput",
         },
         {
@@ -56525,6 +58811,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "divide",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "IntFieldUpdateOperationsInput",
         },
         {
@@ -56546,6 +58835,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "set",
             },
           ],
+          "meta": {
+            "grouping": "A",
+          },
           "name": "StringFieldUpdateOperationsInput",
         },
         {
@@ -57519,6 +59811,31 @@ exports[`getDMMF success simple model, sqlite 2`] = `
           ],
           "name": "CreateManyAAndReturnOutputType",
         },
+        {
+          "fields": [
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "id",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "name",
+              "outputType": {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+          ],
+          "name": "UpdateManyAAndReturnOutputType",
+        },
       ],
       "prisma": [
         {
@@ -58318,6 +60635,18 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "isRequired": false,
                   "name": "where",
                 },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
               ],
               "isNullable": false,
               "name": "updateManyA",
@@ -58336,12 +60665,80 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "AUpdateManyMutationInput",
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateManyInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "data",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "AWhereInput",
                     },
                   ],
                   "isNullable": false,
                   "isRequired": false,
                   "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
+                },
+              ],
+              "isNullable": false,
+              "name": "updateManyAAndReturn",
+              "outputType": {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "UpdateManyAAndReturnOutputType",
+              },
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "limit",
                 },
               ],
               "isNullable": false,

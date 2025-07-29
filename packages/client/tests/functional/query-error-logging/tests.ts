@@ -1,10 +1,10 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
 
 import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -31,13 +31,16 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toThrow('No User found')
+      ).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        code: 'P2025',
+      })
 
       expect(errors).toHaveLength(1)
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findUniqueOrThrow')
     })
@@ -49,13 +52,16 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toThrow('No User found')
+      ).rejects.toMatchObject({
+        name: 'PrismaClientKnownRequestError',
+        code: 'P2025',
+      })
 
       expect(errors).toHaveLength(1)
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findFirstOrThrow')
     })

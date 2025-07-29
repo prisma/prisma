@@ -1,6 +1,6 @@
-import Debug from '@prisma/debug'
+import { GetPrismaClientConfig } from '@prisma/client-common'
+import { Debug } from '@prisma/debug'
 
-import type { GetPrismaClientConfig } from '../../getPrismaClient'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 const debug = Debug('prisma:client')

@@ -1,10 +1,9 @@
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
-
 import { NewPrismaClient } from '../../_utils/types'
-import { mockAdapter, mockAdapterErrors } from '../_utils/mock-adapter'
+import { mockAdapterErrors, mockAdapterFactory } from '../_utils/mock-adapter'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -14,7 +13,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({
-        adapter: mockAdapter(provider),
+        adapter: mockAdapterFactory(provider),
       })
     })
     test('correctly forwards error for queryRaw', async () => {

@@ -1,29 +1,15 @@
-import { MultipleSchemas } from './utils/schemaFileInput'
-
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'
   public request: any
   public rustStack: string
   public area: ErrorArea
-  public schemaPath?: string
-  public schema?: MultipleSchemas
   public introspectionUrl?: string
-  constructor(
-    message: string,
-    rustStack: string,
-    request: any,
-    area: ErrorArea,
-    schemaPath?: string,
-    schema?: MultipleSchemas,
-    introspectionUrl?: string,
-  ) {
+  constructor(message: string, rustStack: string, request: any, area: ErrorArea, introspectionUrl?: string) {
     super(message)
     this.name = 'RustPanic'
     this.rustStack = rustStack
     this.request = request
     this.area = area
-    this.schemaPath = schemaPath
-    this.schema = schema
     this.introspectionUrl = introspectionUrl
   }
 }

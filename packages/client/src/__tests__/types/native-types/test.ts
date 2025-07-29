@@ -43,7 +43,7 @@ async function main() {
   const d: null | {
     id: string
     bool: boolean
-    byteA: Buffer
+    byteA: Uint8Array
     xml: string
     json: Prisma.JsonValue
     jsonb: Prisma.JsonValue
@@ -53,7 +53,7 @@ async function main() {
   await prisma.d.findFirst({
     where: {
       byteA: {
-        in: [Buffer.from('data')],
+        in: [Uint8Array.of(1, 2, 3)],
       },
     },
   })

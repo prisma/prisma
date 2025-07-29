@@ -8,14 +8,8 @@ export async function generateStaticParams() {
 async function doPrismaQuery(params) {
   if (params.id === '1') return JSON.stringify({})
 
-  await db.user.deleteMany()
-  const user = await db.user.create({
-    data: {
-      email: 'test',
-    },
-  })
-
-  return JSON.stringify(user)
+  const result = await db.$queryRaw`SELECT 1`
+  return JSON.stringify(result)
 }
 
 export default async function Page({ params }) {

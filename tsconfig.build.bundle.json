@@ -4,8 +4,16 @@
     "paths": {
       "@prisma/client": ["./packages/client/src"],
       "@prisma/client/runtime/library": ["./packages/client/src/runtime"],
+      "@prisma/client-common": ["./packages/client-common/src"],
+      "@prisma/client-engine-runtime": ["./packages/client-engine-runtime/src"],
+      "@prisma/client-generator-js": ["./packages/client-generator-js/src"],
+      "@prisma/client-generator-ts": ["./packages/client-generator-ts/src"],
+      "@prisma/client-generator-registry": ["./packages/client-generator-registry/src"],
+      "@prisma/config": ["./packages/config/src"],
+      "@prisma/dmmf": ["./packages/dmmf/src"],
       "@prisma/internals": ["./packages/internals/src"],
       "@prisma/migrate": ["./packages/migrate/src"],
+      "@prisma/generator": ["./packages/generator/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],
       "@prisma/debug": ["./packages/debug/src"],
       "prisma": ["./packages/cli/src"],
@@ -19,8 +27,7 @@
       "@prisma/adapter-neon": ["./packages/adapter-neon/src"],
       "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
       "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"],
-      "@prisma/adapter-pg-worker": ["./packages/adapter-pg-worker/src"],
-      "@prisma/pg-worker": ["./packages/pg-worker/src"]
+      "@prisma/ts-builders": ["./packages/ts-builders/src"]
     }
   }
 }

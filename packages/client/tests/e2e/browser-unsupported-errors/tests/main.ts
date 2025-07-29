@@ -45,11 +45,6 @@ describe('import from browser bundle should error', () => {
       `PrismaClientValidationError is unable to run in this browser environment, or has been bundled for the browser`,
     )
   })
-  test('Prisma.NotFoundError', () => {
-    expect(Prisma.NotFoundError).toThrow(
-      `NotFoundError is unable to run in this browser environment, or has been bundled for the browser`,
-    )
-  })
 
   test('Prisma.getExtensionContext', () => {
     expect(Prisma.getExtensionContext).toThrow(

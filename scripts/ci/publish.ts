@@ -9,9 +9,7 @@ import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import pRetry from 'p-retry'
 import path from 'path'
-import redis from 'redis'
 import semver from 'semver'
-import { promisify } from 'util'
 
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
@@ -466,8 +464,8 @@ async function publish() {
     '--test': Boolean,
   })
 
-  if (!process.env.BUILDKITE_BRANCH) {
-    throw new Error(`Missing env var BUILDKITE_BRANCH`)
+  if (!process.env.GITHUB_REF_NAME) {
+    throw new Error(`Missing env var GITHUB_REF_NAME`)
   }
 
   if (process.env.DRY_RUN) {
@@ -477,14 +475,13 @@ async function publish() {
 
   const dryRun = args['--dry-run'] ?? false
 
-  // TODO: rename BUILDKITE_TAG
-  if (args['--publish'] && process.env.BUILDKITE_TAG) {
+  if (args['--publish'] && process.env.RELEASE_VERSION) {
     if (args['--release']) {
-      throw new Error(`Can't provide env var BUILDKITE_TAG and --release at the same time`)
+      throw new Error(`Can't provide env var RELEASE_VERSION and --release at the same time`)
     }
 
-    console.log(`Setting --release to BUILDKITE_TAG = ${process.env.BUILDKITE_TAG}`)
-    args['--release'] = process.env.BUILDKITE_TAG // TODO: rename this var to RELEASE_VERSION
+    console.log(`Setting --release to RELEASE_VERSION = ${process.env.RELEASE_VERSION}`)
+    args['--release'] = process.env.RELEASE_VERSION
     // TODO: put this into a global variable VERSION
     // and then replace the args['--release'] with it
   }
@@ -512,140 +509,116 @@ async function publish() {
     args['--publish'] = true
   }
 
-  // makes sure that only have 1 publish job running at a time
-  let unlock: undefined | (() => void)
-  if (process.env.BUILDKITE && args['--publish']) {
-    console.info(`Let's try to acquire a lock before continuing. (to avoid concurrent publishing)`)
-    const before = Math.round(performance.now())
-    // TODO: problem lock might not work for more than 2 jobs
-    unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
-    const after = Math.round(performance.now())
-    console.log(`Acquired lock after ${after - before}ms`)
+  // TODO: does this make more sense to be in our tests? or in the monorepo postinstall?
+  const rawPackages = await getPackages()
+  const packages = getPackageDependencies(rawPackages)
+  const circles = getCircularDependencies(packages)
+  if (circles.length > 0) {
+    // TODO this can be done by esbuild
+    throw new Error(`Oops, there are circular dependencies: ${circles}`)
   }
 
-  try {
-    // TODO: does this make more sense to be in our tests? or in the monorepo postinstall?
-    const rawPackages = await getPackages()
-    const packages = getPackageDependencies(rawPackages)
-    const circles = getCircularDependencies(packages)
-    if (circles.length > 0) {
-      // TODO this can be done by esbuild
-      throw new Error(`Oops, there are circular dependencies: ${circles}`)
-    }
+  let prismaVersion: undefined | string
+  let tag: undefined | string
+  let tagForEcosystemTestsCheck: undefined | string
 
-    let prismaVersion: undefined | string
-    let tag: undefined | string
-    let tagForEcosystemTestsCheck: undefined | string
+  const patchBranch = getPatchBranch()
+  console.log({ patchBranch })
 
-    const patchBranch = getPatchBranch()
-    console.log({ patchBranch })
+  // TODO: can be refactored into one branch utility
+  const branch = await getPrismaBranch()
+  console.log({ branch })
 
-    // TODO: can be refactored into one branch utility
-    const branch = await getPrismaBranch()
-    console.log({ branch })
-
-    // For branches that are named "integration/" we publish to the integration npm tag
-    if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
-      prismaVersion = await getNewIntegrationVersion(packages, branch)
-      tag = 'integration'
-    }
-    // Is it a patch branch? (Like 2.20.x)
-    else if (patchBranch) {
-      prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
-      tag = 'patch-dev'
-      if (args['--release']) {
-        tagForEcosystemTestsCheck = 'patch-dev' //?
-        prismaVersion = args['--release']
-        tag = 'latest'
-      }
-    } else if (args['--release']) {
-      // TODO:Where each patch branch goes
+  // For branches that are named "integration/" we publish to the integration npm tag
+  if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
+    prismaVersion = await getNewIntegrationVersion(packages, branch)
+    tag = 'integration'
+  }
+  // Is it a patch branch? (Like 2.20.x)
+  else if (patchBranch) {
+    prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
+    tag = 'patch-dev'
+    if (args['--release']) {
+      tagForEcosystemTestsCheck = 'patch-dev' //?
       prismaVersion = args['--release']
       tag = 'latest'
-      tagForEcosystemTestsCheck = 'dev'
+    }
+  } else if (args['--release']) {
+    // TODO:Where each patch branch goes
+    prismaVersion = args['--release']
+    tag = 'latest'
+    tagForEcosystemTestsCheck = 'dev'
+  } else {
+    prismaVersion = await getNewDevVersion(packages)
+    tag = 'dev'
+  }
+
+  console.log({
+    patchBranch,
+    tag,
+    tagForEcosystemTestsCheck,
+    prismaVersion,
+  })
+
+  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `tagForEcosystemTestsCheck=${tagForEcosystemTestsCheck}\n`)
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaVersion=${prismaVersion}\n`)
+  }
+
+  if (!dryRun && args['--test']) {
+    if (onlyPackages || skipPackages) {
+      console.log(bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
     } else {
-      prismaVersion = await getNewDevVersion(packages)
-      tag = 'dev'
+      console.log(bold('\nTesting all packages...'))
+      await testPackages(packages, getPublishOrder(packages))
+    }
+  }
+
+  if (args['--publish'] || dryRun) {
+    if (args['--release']) {
+      if (!tagForEcosystemTestsCheck) {
+        throw new Error(`tagForEcosystemTestsCheck missing`)
+      }
+      const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
+      if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
+        throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
+Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
+      }
     }
 
-    console.log({
-      patchBranch,
-      tag,
-      tagForEcosystemTestsCheck,
-      prismaVersion,
-    })
+    const publishOrder = filterPublishOrder(getPublishOrder(packages), ['@prisma/integration-tests'])
+
+    if (!dryRun) {
+      console.log(`Let's first do a dry run!`)
+      await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
+      console.log(`Waiting 5 sec so you can check it out first...`)
+      await new Promise((r) => setTimeout(r, 5_000))
+    }
+
+    await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
+
+    const enginesCommitHash = getEnginesCommitHash()
+    const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
+    const prismaCommitHash = await getLatestCommitHash('.')
+    const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
 
     if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tagForEcosystemTestsCheck=${tagForEcosystemTestsCheck}\n`)
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaVersion=${prismaVersion}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
     }
 
-    if (!dryRun && args['--test']) {
-      if (onlyPackages || skipPackages) {
-        console.log(bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
-      } else {
-        console.log(bold('\nTesting all packages...'))
-        await testPackages(packages, getPublishOrder(packages))
+    if (!args['--dry-run']) {
+      try {
+        await sendSlackMessage({
+          version: prismaVersion,
+          enginesCommitInfo,
+          prismaCommitInfo,
+        })
+      } catch (e) {
+        console.error(e)
       }
-    }
-
-    if (args['--publish'] || dryRun) {
-      if (args['--release']) {
-        if (!tagForEcosystemTestsCheck) {
-          throw new Error(`tagForEcosystemTestsCheck missing`)
-        }
-        const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
-        if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
-          throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
-Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
-        }
-      }
-
-      const publishOrder = filterPublishOrder(getPublishOrder(packages), ['@prisma/integration-tests'])
-
-      if (!dryRun) {
-        console.log(`Let's first do a dry run!`)
-        await publishPackages(packages, publishOrder, true, prismaVersion, tag, args['--release'])
-        console.log(`Waiting 5 sec so you can check it out first...`)
-        await new Promise((r) => setTimeout(r, 5_000))
-      }
-
-      await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
-
-      const enginesCommitHash = getEnginesCommitHash()
-      const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
-      const prismaCommitHash = await getLatestCommitHash('.')
-      const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
-
-      if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
-      }
-
-      if (!args['--dry-run']) {
-        try {
-          await sendSlackMessage({
-            version: prismaVersion,
-            enginesCommitInfo,
-            prismaCommitInfo,
-          })
-        } catch (e) {
-          console.error(e)
-        }
-      }
-    }
-  } catch (e) {
-    if (unlock) {
-      unlock()
-      unlock = undefined
-    }
-    throw e
-  } finally {
-    if (unlock) {
-      unlock()
-      unlock = undefined
     }
   }
 }
@@ -666,19 +639,6 @@ function getEnginesCommitHash(): string {
 async function testPackages(packages: Packages, publishOrder: string[][]): Promise<void> {
   const order = flatten(publishOrder)
 
-  // If parallelism is set in build-kite we split the testing
-  //  Job 0 - Node-API Library
-  //    PRISMA_CLIENT_ENGINE_TYPE="library"
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="library"
-  //  Job 1 - Binary
-  //    PRISMA_CLIENT_ENGINE_TYPE="binary"
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary"
-  if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-    console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API Library')
-  } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-    console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
-  }
-
   console.log(bold(`\nRun ${cyan('tests')}. Testing order:`))
   console.log(order)
 
@@ -686,20 +646,7 @@ async function testPackages(packages: Packages, publishOrder: string[][]): Promi
     const pkg = packages[pkgName]
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${magenta(pkg.name)}`)
-      // Sets ENV to override engines
-      if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-        await run(
-          path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test --silent',
-        )
-      } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-        await run(
-          path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test --silent',
-        )
-      } else {
-        await run(path.dirname(pkg.path), 'pnpm run test')
-      }
+      await run(path.dirname(pkg.path), 'pnpm run test')
     } else {
       console.log(`\nSkipping ${magenta(pkg.name)}, as it doesn't have tests`)
     }
@@ -841,6 +788,8 @@ async function publishPackages(
       if (pkgName === 'prisma') {
         const latestCommitHash = await getLatestCommitHash('.')
         await writeToPkgJson(pkgDir, (pkg) => {
+          // Note: this is the only non-deprecated usage of `prisma` config in `package.json`.
+          // It's for internal usage only.
           pkg.prisma.prismaCommit = latestCommitHash
         })
       }
@@ -872,34 +821,6 @@ function isSkipped(pkgName) {
   return false
 }
 
-async function acquireLock(branch: string): Promise<() => void> {
-  const before = Math.round(performance.now())
-  if (!process.env.REDIS_URL) {
-    console.log(bold(red(`REDIS_URL missing. Setting dummy lock`)))
-    return () => {
-      console.log(`Lock removed after ${Math.round(performance.now()) - before}ms`)
-    }
-  }
-  const client = redis.createClient({
-    url: process.env.REDIS_URL,
-    retry_strategy: () => {
-      return 1000
-    },
-  })
-  const lock = promisify(require('redis-lock')(client))
-
-  // get a lock of max 15 min
-  // the lock is specific to the branch name
-  const cb = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
-  return async () => {
-    cb()
-    const after = Math.round(performance.now())
-    console.log(`Lock removed after ${after - before}ms`)
-    await new Promise((r) => setTimeout(r, 200))
-    client.quit()
-  }
-}
-
 async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
   const pkgJsonPath = path.join(pkgDir, 'package.json')
   const file = await fs.promises.readFile(pkgJsonPath, 'utf-8')
@@ -928,8 +849,8 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
 }
 
 async function getPrismaBranch(): Promise<string | undefined> {
-  if (process.env.BUILDKITE_BRANCH) {
-    return process.env.BUILDKITE_BRANCH
+  if (process.env.GITHUB_REF_NAME) {
+    return process.env.GITHUB_REF_NAME
   }
   try {
     // TODO: this can probably be simplified, we don't publish locally, remove?
@@ -953,12 +874,12 @@ async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
 }
 
 function getPatchBranch() {
-  if (process.env.BUILDKITE_BRANCH) {
-    const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
+  if (process.env.GITHUB_REF_NAME) {
+    const versions = getSemverFromPatchBranch(process.env.GITHUB_REF_NAME)
     console.debug('versions from patch branch:', versions)
 
     if (versions !== undefined) {
-      return process.env.BUILDKITE_BRANCH
+      return process.env.GITHUB_REF_NAME
     }
   }
 

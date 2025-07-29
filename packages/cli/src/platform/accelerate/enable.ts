@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, isError, link } from '@prisma/internals'
 
 import { getOptionalParameter, getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -10,7 +11,7 @@ export class Enable implements Command {
     return new Enable()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       ...platformParameters.environment,
       '--url': String,

@@ -1,11 +1,10 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator'
 
 export enum ClientEngineType {
   Library = 'library',
   Binary = 'binary',
+  Client = 'client',
 }
-
-export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Library
 
 export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEngineType {
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
@@ -14,8 +13,10 @@ export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEn
     return ClientEngineType.Library
   } else if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
+  } else if (generatorConfig?.config.engineType === ClientEngineType.Client) {
+    return ClientEngineType.Client
   } else {
-    return DEFAULT_CLIENT_ENGINE_TYPE
+    return getDefaultEngineType(generatorConfig)
   }
 }
 
@@ -25,7 +26,16 @@ function getEngineTypeFromEnvVar() {
     return ClientEngineType.Library
   } else if (engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
+  } else if (engineType === ClientEngineType.Client) {
+    return ClientEngineType.Client
   } else {
     return undefined
   }
+}
+
+function getDefaultEngineType(generatorConfig?: GeneratorConfig): ClientEngineType {
+  if (generatorConfig?.previewFeatures.includes('queryCompiler')) {
+    return ClientEngineType.Client
+  }
+  return ClientEngineType.Library
 }

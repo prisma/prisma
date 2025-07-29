@@ -292,11 +292,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time
+  return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 function normalize_timestampz(time: string): string {
-  return time.split('+')[0]
+  return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 /*
@@ -310,7 +310,7 @@ function normalize_time(time: string): string {
 function normalize_timez(time: string): string {
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
-  return time.split('+')[0]
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
 }
 
 /******************/
@@ -319,6 +319,13 @@ function normalize_timez(time: string): string {
 
 function normalize_money(money: string): string {
   return money.slice(1)
+}
+
+/******************/
+/* XML handling */
+/******************/
+function normalize_xml(xml: string): string {
+  return xml
 }
 
 /*****************/
@@ -401,6 +408,7 @@ export const customParsers = {
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
   [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
 // https://github.com/brianc/node-postgres/pull/2930

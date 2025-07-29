@@ -4,7 +4,12 @@ import { blue, bold } from 'kleur/colors'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
-export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Response }): void {
+export function printUpdateMessage(checkResult: Check.Result | 0 | void): void {
+  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+  if (!checkResult || checkResult.status !== 'ok' || shouldHide || !checkResult.data.outdated) {
+    return
+  }
+
   let boxHeight = 4
   let majorText = ''
 
@@ -51,22 +56,11 @@ function makeInstallCommand(
     canBeDev: true,
   },
 ): string {
-  // Examples
-  // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
-  // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
-  const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
-
   let command = ''
-  if (isPrismaInstalledGlobally === 'yarn' && options.canBeGlobal) {
-    command = `yarn global add ${packageName}`
-  } else if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
+  if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
     command = `npm i -g ${packageName}`
-  } else if (yarnUsed && options.canBeDev) {
-    command = `yarn add --dev ${packageName}`
   } else if (options.canBeDev) {
     command = `npm i --save-dev ${packageName}`
-  } else if (yarnUsed) {
-    command = `yarn add ${packageName}`
   } else {
     command = `npm i ${packageName}`
   }

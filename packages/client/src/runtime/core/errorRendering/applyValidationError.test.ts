@@ -1,7 +1,7 @@
+import { Writer } from '@prisma/ts-builders'
 import ansiEscapesSerializer from 'jest-serializer-ansi-escapes'
 import { $ as colors } from 'kleur/colors'
 
-import { Writer } from '../../../generation/ts-builders/Writer'
 import { GlobalOmitOptions } from '../jsonProtocol/serializeJsonQuery'
 import { JsArgs } from '../types/exported/JsApi'
 import { ValidationError } from '../types/ValidationError'
@@ -1123,6 +1123,308 @@ describe('UnknownSelectionField', () => {
   })
 })
 
+describe('InvalidSelectionValue', () => {
+  test('top level select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('top level omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          omit: {
+            // @ts-expect-error
+            name: undefined,
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        omit: {
+          name: undefined
+                ~~~~~~~~~
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        omit: {
+          name: <red>undefined</color>
+                <red>~~~~~~~~~</color>
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested select', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              select: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            select: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested include', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'name'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          include: {
+            user: {
+              include: {
+                // @ts-expect-error
+                name: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: undefined
+                    ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`name\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        include: {
+          user: {
+            include: {
+              name: <red>undefined</color>
+                    <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>name</color>\`: Not allowed
+      "
+    `)
+  })
+
+  test('nested omit', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidSelectionValue',
+          selectionPath: ['user', 'password'],
+          underlyingError: 'Not allowed',
+        },
+        {
+          select: {
+            user: {
+              omit: {
+                // @ts-expect-error
+                password: undefined,
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: undefined
+                        ~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`password\`: Not allowed
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          user: {
+            omit: {
+              password: <red>undefined</color>
+                        <red>~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Invalid value for selection field \`<red>password</color>\`: Not allowed
+      "
+    `)
+  })
+})
+
 describe('UnknownArgument', () => {
   test('top level with suggestion', () => {
     expect(
@@ -1850,6 +2152,137 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument \`<green>where</color>\` is missing.
+      "
+    `)
+  })
+
+  test('dependent argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['orderBy'],
+          dependentArgumentPath: ['take'],
+          selectionPath: ['userView'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserViewOrderByInput',
+              fields: [{ name: 'id', typeNames: ['Int'], required: false }],
+            },
+          ],
+        },
+        {
+          select: {
+            userView: {
+              take: 1,
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          userView: {
+            take: 1,
+            ~~~~
+      +     orderBy: {
+      +       id: Int
+      +     }
+          }
+        }
+      }
+
+      Argument \`orderBy\` is missing.
+      Argument \`orderBy\` is required because argument \`take\` was provided.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          userView: {
+            <red>take</color>: 1,
+            <red>~~~~</color>
+      <green>+</color>     <green>orderBy</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>       <green><dim>id: Int</intensity></color>
+      <green>+</color>     <green>}</color>
+          }
+        }
+      }
+
+      Argument \`<green>orderBy</color>\` is missing.
+      Argument \`<green>orderBy</color>\` is required because argument \`<green>take</color>\` was provided.
+      "
+    `)
+  })
+
+  test('dependent argument when dependency is set to null', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['orderBy'],
+          dependentArgumentPath: ['take'],
+          selectionPath: ['userView'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserViewOrderByInput',
+              fields: [{ name: 'id', typeNames: ['Int'], required: false }],
+            },
+          ],
+        },
+        {
+          select: {
+            userView: {
+              orderBy: null,
+              take: 1,
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      "
+      Colorless:
+
+      {
+        select: {
+          userView: {
+            take: 1,
+            ~~~~
+      +     orderBy: {
+      +       id: Int
+      +     }
+          }
+        }
+      }
+
+      Argument \`orderBy\` must not be null.
+      Argument \`orderBy\` is required because argument \`take\` was provided.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        select: {
+          userView: {
+            <red>take</color>: 1,
+            <red>~~~~</color>
+      <green>+</color>     <green>orderBy</color><green>: </color><green>{</color>
+      <green><dim>+</intensity></color>       <green><dim>id: Int</intensity></color>
+      <green>+</color>     <green>}</color>
+          }
+        }
+      }
+
+      Argument \`<green>orderBy</color>\` must not be <red>null</color>.
+      Argument \`<green>orderBy</color>\` is required because argument \`<green>take</color>\` was provided.
       "
     `)
   })

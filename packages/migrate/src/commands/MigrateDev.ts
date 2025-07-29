@@ -1,3 +1,6 @@
+import path from 'node:path'
+
+import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   arg,
@@ -6,12 +9,12 @@ import {
   Command,
   format,
   getCommandWithExecutor,
-  getConfig,
-  getSchemaWithPath,
   HelpError,
+  inferDirectoryConfig,
   isError,
   loadEnvFile,
-  toSchemasContainer,
+  loadSchemaContext,
+  MigrateTypes,
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -20,15 +23,14 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
-import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -49,6 +51,7 @@ ${bold('Usage')}
 ${bold('Options')}
 
        -h, --help   Display this help message
+         --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
@@ -68,7 +71,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -78,6 +81,7 @@ ${bold('Examples')}
       // '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
+      '--config': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,
@@ -87,78 +91,79 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('migrate dev', args, true)
-
     if (args['--help']) {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
-    const { schemaPath, schemas } = (await getSchemaPathAndPrint(args['--schema']))!
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: args['--schema'],
+      schemaPathFromConfig: config.schema,
+    })
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    const datasourceInfo = await getDatasourceInfo({ schemaPath })
-    printDatasource({ datasourceInfo })
+    checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const adapter = await config.adapter?.()
+
+    printDatasource({ datasourceInfo, adapter })
 
     process.stdout.write('\n') // empty line
 
     // Validate schema (same as prisma validate)
-    validate({
-      schemas,
-    })
-    await getConfig({
-      datamodel: schemas,
-      ignoreEnvVarErrors: false,
-    })
+    validate({ schemas: schemaContext.schemaFiles })
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
-    if (wasDbCreated) {
-      process.stdout.write(wasDbCreated + '\n\n')
+    let wasDbCreated: string | undefined
+    // `ensureDatabaseExists` is not compatible with WebAssembly.
+    // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
+    if (!adapter) {
+      // Automatically create the database if it doesn't exist
+      wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write(wasDbCreated + '\n\n')
+      }
     }
 
-    const migrate = new Migrate(schemaPath)
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({
+      adapter,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      shadowDbInitScript: config.migrations?.initShadowDb,
+    })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
       devDiagnostic = await migrate.devDiagnostic()
       debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
     const migrationIdsApplied: string[] = []
 
     if (devDiagnostic.action.tag === 'reset') {
-      if (!args['--force']) {
-        if (!canPrompt()) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
-        }
+      this.logResetReason({
+        datasourceInfo,
+        reason: devDiagnostic.action.reason,
+      })
 
-        const confirmedReset = await this.confirmReset({
-          datasourceInfo,
-          reason: devDiagnostic.action.reason,
-        })
-
-        process.stdout.write('\n') // empty line
-
-        if (!confirmedReset) {
-          process.stdout.write('Reset cancelled.\n')
-          migrate.stop()
-          // Return SIGINT exit code to signal that the process was cancelled.
-          process.exit(130)
-        }
-      }
-
-      try {
-        // Do the reset
-        await migrate.reset()
-      } catch (e) {
-        migrate.stop()
-        throw e
-      }
+      process.stdout.write(
+        '\n' +
+          `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
+          `${bold(red('All data will be lost.'))}\n`,
+      )
+      await migrate.stop()
+      // Return SIGINT exit code to signal that the process was cancelled.
+      process.exit(130)
     }
 
     try {
@@ -178,7 +183,7 @@ ${bold('Examples')}
         )
       }
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -187,7 +192,7 @@ ${bold('Examples')}
       evaluateDataLossResult = await migrate.evaluateDataLoss()
       debug({ evaluateDataLossResult })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -198,7 +203,7 @@ ${bold('Examples')}
       args['--create-only'],
     )
     if (unexecutableStepsError) {
-      migrate.stop()
+      await migrate.stop()
       throw new Error(unexecutableStepsError)
     }
 
@@ -212,7 +217,7 @@ ${bold('Examples')}
 
       if (!args['--force']) {
         if (!canPrompt()) {
-          migrate.stop()
+          await migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
 
@@ -227,7 +232,7 @@ ${bold('Examples')}
 
         if (!confirmation.value) {
           process.stdout.write('Migration cancelled.\n')
-          migrate.stop()
+          await migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
         }
@@ -240,7 +245,7 @@ ${bold('Examples')}
 
       if (getMigrationNameResult.userCancelled) {
         process.stdout.write(getMigrationNameResult.userCancelled + '\n')
-        migrate.stop()
+        await migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else {
@@ -251,15 +256,14 @@ ${bold('Examples')}
     let migrationIds: string[]
     try {
       const createMigrationResult = await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        schema: toSchemasContainer((await migrate.getPrismaSchema()).schemas),
+        schema: migrate.getPrismaSchema(),
       })
       debug({ createMigrationResult })
 
       if (args['--create-only']) {
-        migrate.stop()
+        await migrate.stop()
 
         return `Prisma Migrate created the following migration without applying it ${printMigrationId(
           createMigrationResult.generatedMigrationName!,
@@ -270,7 +274,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // For display only, empty line
@@ -283,9 +287,12 @@ ${bold('Examples')}
         process.stdout.write(`Already in sync, no schema change or pending migration was found.\n`)
       }
     } else {
+      // e.g., "./prisma/custom-migrations"
+      const migrationsDirPathRelative = path.relative(process.cwd(), migrationsDirPath)
+
       process.stdout.write(
         `\nThe following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
-          'migrations',
+          migrationsDirPathRelative,
           migrationIds,
           {
             'migration.sql': '',
@@ -298,18 +305,12 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await migrate.tryToRunGenerate(datasourceInfo)
       process.stdout.write('\n') // empty line
     }
 
-    // If database was created or reset we want to run the seed if not skipped
-    if (
-      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
-      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
-      !args['--skip-seed']
-    ) {
-      // Run seed if 1 or more seed files are present
-      // And catch the error to continue execution
+    // If database was created we want to run the seed if not skipped
+    if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       try {
         const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
@@ -321,12 +322,6 @@ ${green('Your database is now in sync with your schema.')}\n`,
           } else {
             process.exit(1)
           }
-        } else {
-          // Only used to help users to set up their seeds from old way to new package.json config
-          const { schemaPath } = (await getSchemaWithPath(args['--schema']))!
-          // we don't want to output the returned warning message
-          // but we still want to run it for `legacyTsNodeScriptWarning()`
-          await verifySeedConfigAndReturnMessage(schemaPath)
         }
       } catch (e) {
         console.error(e)
@@ -336,50 +331,29 @@ ${green('Your database is now in sync with your schema.')}\n`,
     return ''
   }
 
-  private async confirmReset({
-    datasourceInfo,
-    reason,
-  }: {
-    datasourceInfo: DatasourceInfo
-    reason: string
-  }): Promise<boolean> {
+  private logResetReason({ datasourceInfo, reason }: { datasourceInfo: DatasourceInfo; reason: string }) {
     // Log the reason of why a reset is needed to the user
     process.stdout.write(reason + '\n')
 
-    let messageFirstLine = ''
+    let message: string
 
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
       if (datasourceInfo.schemas?.length) {
-        messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+        message = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
       } else if (datasourceInfo.schema) {
-        messageFirstLine = `We need to reset the "${datasourceInfo.schema}" schema`
+        message = `We need to reset the "${datasourceInfo.schema}" schema`
       } else {
-        messageFirstLine = `We need to reset the database schema`
+        message = `We need to reset the database schema`
       }
     } else {
-      messageFirstLine = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
+      message = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
     }
 
     if (datasourceInfo.dbLocation) {
-      messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
+      message += ` at "${datasourceInfo.dbLocation}"`
     }
 
-    const messageForPrompt = `${messageFirstLine}
-Do you want to continue? ${red('All data will be lost')}.`
-
-    // For testing purposes we log the message
-    // An alternative would be to find a way to capture the prompt message from jest tests
-    // (attempted without success)
-    if (Boolean((prompt as any)._injected?.length) === true) {
-      process.stdout.write(messageForPrompt + '\n')
-    }
-    const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
-      message: messageForPrompt,
-    })
-
-    return confirmation.value
+    process.stdout.write(`${message}\n`)
   }
 
   public help(error?: string): string | HelpError {

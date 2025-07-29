@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { MigrateTypes } from '@prisma/internals'
 
-import { SchemaEngine } from '../SchemaEngine'
+import { Migrate } from '../Migrate'
 
 const debug = Debug('prisma:cli')
 
@@ -12,16 +12,16 @@ const debug = Debug('prisma:cli')
 export async function getDatabaseVersionSafe(
   args: MigrateTypes.GetDatabaseVersionParams | undefined,
 ): Promise<string | undefined> {
-  let engine: SchemaEngine | undefined
+  let migrate: Migrate | undefined
   let dbVersion: string | undefined
   try {
-    engine = new SchemaEngine({})
-    dbVersion = await engine.getDatabaseVersion(args)
+    migrate = await Migrate.setup({})
+    dbVersion = await migrate.engine.getDatabaseVersion(args)
   } catch (e) {
     debug(e)
   } finally {
-    if (engine && engine.isRunning) {
-      engine.stop()
+    if (migrate && migrate.engine.isRunning) {
+      await migrate.stop()
     }
   }
 

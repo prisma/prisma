@@ -1,3 +1,4 @@
+import type { PrismaConfigInternal } from '@prisma/config'
 import { arg, Command, isError } from '@prisma/internals'
 
 import { getRequiredParameterOrThrow } from '../_lib/cli/parameters'
@@ -10,7 +11,7 @@ export class Show implements Command {
     return new Show()
   }
 
-  public async parse(argv: string[]) {
+  public async parse(argv: string[], _config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       ...platformParameters.project,
     })
@@ -62,4 +63,71 @@ export class Show implements Command {
 
     return messages.resourceList(project.environments)
   }
+}
+
+export const getEnvironmentOrThrow = async (input: { token: string; environmentId: string }) => {
+  const { token, environmentId } = input
+
+  const { environment } = await requestOrThrow<
+    {
+      environment: {
+        __typename: string
+        id: string
+        createdAt: string
+        displayName: string
+        ppg: {
+          status: string
+        }
+        accelerate: {
+          status: {
+            enabled: boolean
+          }
+        }
+      }
+    },
+    {
+      id: string
+    }
+  >({
+    token,
+    body: {
+      query: /* GraphQL */ `
+        query ($input: QueryEnvironmentInput!) {
+          environment(input: $input) {
+            __typename
+            ... on Error {
+              message
+            }
+            ... on Environment {
+              __typename
+              id
+              displayName
+              ppg {
+                status
+              }
+              accelerate {
+                status {
+                  ... on AccelerateStatusEnabled {
+                    __typename
+                    enabled
+                  }
+                  ... on AccelerateStatusDisabled {
+                    __typename
+                    enabled
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: {
+        input: {
+          id: environmentId,
+        },
+      },
+    },
+  })
+
+  return environment
 }

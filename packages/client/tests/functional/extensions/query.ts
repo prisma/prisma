@@ -9,7 +9,7 @@ import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
+import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare let Prisma: typeof PrismaNamespace
@@ -23,7 +23,9 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -49,7 +51,6 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -477,13 +478,20 @@ testMatrix.setupTestSuite(
           ]
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
-            [{ query: expect.stringContaining('BEGIN') }],
+          const expectation = [
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -518,13 +526,20 @@ testMatrix.setupTestSuite(
           }
         `)
         await waitFor(() => {
-          expect(fnEmitter).toHaveBeenCalledTimes(4)
-          expect(fnEmitter.mock.calls).toMatchObject([
-            [{ query: expect.stringContaining('BEGIN') }],
+          const expectation = [
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+          expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
+          expect(fnEmitter.mock.calls).toMatchObject(expectation)
         })
       },
     )
@@ -570,23 +585,29 @@ testMatrix.setupTestSuite(
         ]
       `)
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
-        expect(calls).toMatchObject([
-          [{ query: expect.stringContaining('BEGIN') }],
+        const expectation = [
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
-        ])
+        ]
+        if (driverAdapter === undefined) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+        }
+        if (isSqlServer && driverAdapter === undefined) {
+          expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+        }
+
+        expect(calls).toMatchObject(expectation)
       })
     })
 
@@ -663,24 +684,31 @@ testMatrix.setupTestSuite(
       `)
 
       await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
         const calls = [...fnEmitter.mock.calls]
 
         // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
+        if (calls[calls.length - 1][0]['query'].includes('SELECT')) {
           calls.pop()
+        } else {
+          calls.shift()
         }
 
         if (provider !== Providers.MONGODB) {
-          expect(calls).toMatchObject([
-            [{ query: expect.stringContaining('BEGIN') }],
+          const expectation = [
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
-          ])
+          ]
+
+          if (driverAdapter === undefined) {
+            // Driver adapters do not issue BEGIN through the query engine.
+            expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
+          }
+          if (isSqlServer && driverAdapter === undefined) {
+            expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
+          }
+
+          expect(calls).toMatchObject(expectation)
         }
       })
     })
@@ -752,6 +780,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -820,6 +849,7 @@ testMatrix.setupTestSuite(
                 | 'createManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'update'
                 | 'updateMany'
+                | 'updateManyAndReturn' // PostgreSQL, CockroachDB & SQLite only
                 | 'upsert'
                 | 'delete'
                 | 'deleteMany'
@@ -1360,6 +1390,18 @@ testMatrix.setupTestSuite(
 
                 return data
               },
+              async updateManyAndReturn({ args, query, operation }) {
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
+
+                return data
+              },
               async upsert({ args, query, operation }) {
                 const data = await query(args)
 
@@ -1519,6 +1561,20 @@ testMatrix.setupTestSuite(
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1687,6 +1743,20 @@ testMatrix.setupTestSuite(
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                   expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                  return data
+                }
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                if (model === 'User' && operation === 'updateManyAndReturn') {
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  const data = await query(args)
+
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                  // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                  expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                  expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                   return data
                 }
@@ -1880,6 +1950,20 @@ testMatrix.setupTestSuite(
                 expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
                 expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
+
+                return data
+              },
+              async updateManyAndReturn({ args, query, operation, model }) {
+                if (model !== 'User') return query(args)
+
+                const data = await query(args)
+
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(operation).toEqualTypeOf<'updateManyAndReturn'>()
+                // @ts-test-if: provider == Providers.POSTGRESQL || provider === Providers.COCKROACHDB || provider === Providers.SQLITE
+                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyAndReturnArgs>()
+                expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[]>()
+                expectTypeOf(data[0].posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
                 return data
               },

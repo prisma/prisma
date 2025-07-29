@@ -1,48 +1,13 @@
+import type { QueryIntrospectionBuiltinType } from '@prisma/generator'
 import Decimal from 'decimal.js'
-
-// This must remain in sync with the `quaint::ColumnType` enum in the QueryEngine.
-// ./quaint/src/connector/column_type.rs
-type PrismaType =
-  | 'int'
-  | 'bigint'
-  | 'float'
-  | 'double'
-  | 'string'
-  | 'enum'
-  | 'bytes'
-  | 'bool'
-  | 'char'
-  | 'decimal'
-  | 'json'
-  | 'xml'
-  | 'uuid'
-  | 'datetime'
-  | 'date'
-  | 'time'
-  | 'int-array'
-  | 'bigint-array'
-  | 'float-array'
-  | 'double-array'
-  | 'string-array'
-  | 'bytes-array'
-  | 'bool-array'
-  | 'char-array'
-  | 'decimal-array'
-  | 'json-array'
-  | 'xml-array'
-  | 'uuid-array'
-  | 'datetime-array'
-  | 'date-array'
-  | 'time-array'
-  | 'unknown'
 
 export type RawResponse = {
   columns: string[]
-  types: PrismaType[]
+  types: QueryIntrospectionBuiltinType[]
   rows: unknown[][]
 }
 
-function deserializeValue(type: PrismaType, value: unknown): unknown {
+function deserializeValue(type: QueryIntrospectionBuiltinType, value: unknown): unknown {
   if (value === null) {
     return value
   }
@@ -51,8 +16,10 @@ function deserializeValue(type: PrismaType, value: unknown): unknown {
     case 'bigint':
       return BigInt(value as string)
 
-    case 'bytes':
-      return Buffer.from(value as string, 'base64')
+    case 'bytes': {
+      const { buffer, byteOffset, byteLength } = Buffer.from(value as string, 'base64')
+      return new Uint8Array(buffer, byteOffset, byteLength)
+    }
 
     case 'decimal':
       return new Decimal(value as string)

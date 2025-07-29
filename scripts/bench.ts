@@ -2,7 +2,7 @@ import execa from 'execa'
 import globby from 'globby'
 
 async function main() {
-  let benchmarks = await globby('./packages/**/*.bench.ts', {
+  let benchmarks = await globby(['./packages/**/*.bench.ts', '!./packages/type-benchmark-tests/**'], {
     gitignore: true,
   })
 
@@ -23,7 +23,7 @@ async function run(benchmarks: string[]) {
 
   for (const location of benchmarks) {
     try {
-      await execa.command(`pnpm tsx ${location}`, {
+      await execa.command(`node -r esbuild-register ${location}`, {
         stdio: 'inherit',
       })
     } catch (e) {

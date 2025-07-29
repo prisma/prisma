@@ -1,0 +1,2 @@
+dist
+src/__tests__/fixtures/loadConfigFromFile/invalid/syntax-error/prisma.config.ts

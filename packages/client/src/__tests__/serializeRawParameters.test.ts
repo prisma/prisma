@@ -182,7 +182,7 @@ describe('serializeRawParameters', () => {
             array: ['2020-06-22T17:07:16.348Z', '321804719213721'],
           },
         },
-        [123, '321804719213721'],
+        [123, { prisma__type: 'bigint', prisma__value: '321804719213721' }],
       ])
     })
   })

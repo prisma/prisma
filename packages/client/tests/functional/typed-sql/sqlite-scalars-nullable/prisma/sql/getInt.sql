@@ -1,0 +1,1 @@
+SELECT `int` FROM `TestModel` WHERE `id` = ?

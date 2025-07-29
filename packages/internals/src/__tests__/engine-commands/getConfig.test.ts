@@ -1,7 +1,6 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 
-import { getConfig } from '../..'
-import { isRustPanic } from '../../panic'
+import { getConfig, isRustPanic } from '../..'
 
 describe('getConfig', () => {
   test('should raise a Rust panic when given arguments of the wrong type', async () => {

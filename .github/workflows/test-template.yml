@@ -28,10 +28,15 @@ on:
       pnpmVersion:
         description: pnpm package manager version
         type: string
-        default: '8.15.5'
+        default: '9'
       engineHash:
         description: Customly-built engine hash to use
         type: string
+        required: false
+      driverAdapterTestJobTimeout:
+        description: Timeout for driver adapter tests. Default is 60 minutes
+        type: number
+        default: 60
         required: false
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
@@ -46,6 +51,7 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
+  FUNCTIONAL_TEST_OPTIONS: --detectOpenHandles
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -58,7 +64,7 @@ jobs:
   #
   lint:
     name: Lint
-    timeout-minutes: 7
+    timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
     steps:
@@ -68,7 +74,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
@@ -96,18 +101,18 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client func&legacy-notypes
+    name: Client Legacy ${{ matrix.queryEngine }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
-      contains(inputs.jobsToRun, '-all-') || 
+      contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
     strategy:
       fail-fast: false
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
@@ -136,21 +141,20 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
       # Run the functional test suite
-      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
         if: |
-          contains(inputs.jobsToRun, '-all-') || 
+          contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
+      - run: pnpm run test-notypes ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         if: |
-          contains(inputs.jobsToRun, '-all-') || 
+          contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
         working-directory: packages/client
 
@@ -170,7 +174,7 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-miniproxy:
-    name: Client (func/mini-proxy)
+    name: Client Mini-Proxy [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -180,7 +184,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -196,19 +200,18 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - run: pnpm run test:functional --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --data-proxy --client-runtime edge --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -231,8 +234,8 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
-    name: Client (func/adapters)
-    timeout-minutes: ${{ inputs.jobTimeout }}
+    name: DA ${{ matrix.flavor }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
       contains(inputs.jobsToRun, '-all-') ||
@@ -240,11 +243,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clientRuntime: ['node', 'wasm']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1']
+        clientRuntime: ['node', 'wasm-engine-edge']
+        flavor:
+          [
+            'js_pg',
+            'js_neon',
+            'js_libsql',
+            'js_planetscale',
+            'js_d1',
+            'js_better_sqlite3',
+            'js_mssql',
+            'js_mariadb',
+            'js_pg_cockroachdb',
+          ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20] #[16, 18, 20]
-        previewFeatures: ['driverAdapters', 'driverAdapters,relationJoins']
+        node: [20]
+        previewFeatures: ['', ',relationJoins']
     steps:
       - uses: actions/checkout@v4
 
@@ -254,17 +268,16 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql mysql cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features driverAdapters${{ matrix.previewFeatures }} --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -286,10 +299,137 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
+  # CLIENT (functional tests with TS aka ESM client)
+  #
+  client-ts-client:
+    name: TS-Client ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.jobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: ['postgresql'] # TODO: test on all providers once it becomes stable
+        clientRuntime: ['node'] # TODO: test on wasm
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [18] # TODO: test on all node versions once it becomes stable
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional --generator-type=prisma-client-ts --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --runInBand
+        working-directory: packages/client
+        env:
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
+  # CLIENT (functional tests with client engine, query compiler and driver adapters)
+  #
+  client-query-compiler:
+    name: QC ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor:
+          [
+            'js_pg',
+            'js_libsql',
+            'js_d1',
+            'js_better_sqlite3',
+            'js_planetscale',
+            'js_mssql',
+            'js_neon',
+            'js_mariadb',
+            'js_pg_cockroachdb',
+          ]
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [20]
+        previewFeatures: ['driverAdapters,queryCompiler']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql neon_wsproxy mysql cockroachdb
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          JEST_ALWAYS_EXIT_WITH_CODE_ZERO: true # TODO: only needed while we know jest tests are failing and do the checkAgainstKnownFailures step below
+
+      # Checks failed jest tests against known failures => fails build only if non known tests fail
+      - run: pnpm run test:knownQueryCompilerFailures:check ${{ matrix.flavor }}
+        working-directory: packages/client
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
   # CLIENT (memory tests)
   #
   client-memory:
-    name: Client (memory tests)
+    name: Client (memory tests) [v${{ matrix.node }}]
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -299,7 +439,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -315,7 +455,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -384,7 +523,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
-    name: Client (test:e2e)
+    name: Client E2E ${{ matrix.os }} [v${{ matrix.node }}]
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
     if: |
@@ -414,12 +553,11 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:e2e --verbose
+      - run: pnpm run test:e2e --verbose --maxWorkers 3
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -428,7 +566,7 @@ jobs:
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
   #
   client-relationMode:
-    name: Client (func/relationMode)
+    name: Client relationMode:${{ matrix.relationMode }}
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
@@ -439,7 +577,7 @@ jobs:
       matrix:
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
-        node: [16]
+        node: [18]
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -450,7 +588,7 @@ jobs:
       - name: Set RELATION_MODE custom test env var
         run: |
           echo "RELATION_MODE=${{ matrix.relationMode }}"
-          if [ -n "${{ matrix.relationMode }}" ]; 
+          if [ -n "${{ matrix.relationMode }}" ];
             then echo "RELATION_MODE=${{ matrix.relationMode }}" >> "$GITHUB_ENV";
           fi
 
@@ -466,27 +604,26 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: 1 to n
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
-        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
@@ -514,7 +651,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -522,13 +659,60 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
+
+  #
+  # Client internals and generator packages
+  #
+  client-packages:
+    name: Client internals and generators [v${{ matrix.node }}]
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22, 23]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test
+        name: 'client-common'
+        working-directory: packages/client-common
+
+      - run: pnpm run test
+        name: 'client-engine-runtime'
+        working-directory: packages/client-engine-runtime
+
+      - run: pnpm run test
+        name: 'ts-builders'
+        working-directory: packages/ts-builders
+
+      - run: pnpm run test
+        name: 'client-generator-js'
+        working-directory: packages/client-generator-js
+
+      - run: pnpm run test
+        name: 'client-generator-ts'
+        working-directory: packages/client-generator-ts
+
+      - run: pnpm run test
+        name: 'client-generator-registry'
+        working-directory: packages/client-generator-registry
 
   #
   # WORKSPACE-TYPES
@@ -540,7 +724,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -548,7 +732,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
           engine-hash: ${{ inputs.engineHash }}
 
@@ -568,7 +751,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16]
+        node: [18]
     steps:
       - uses: actions/checkout@v4
 
@@ -592,7 +775,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -603,7 +785,7 @@ jobs:
   # `@prisma/internals`
   #
   internals:
-    name: '@prisma/internals'
+    name: '@prisma/internals [v${{ matrix.node }}]'
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -614,7 +796,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -638,7 +820,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -649,7 +830,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    name: Migrate
+    name: Migrate ${{ matrix.driverAdapter }} [v${{ matrix.node }}]
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -660,7 +841,9 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
+        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
+        driverAdapter: ['']
     steps:
       - uses: actions/checkout@v4
 
@@ -684,18 +867,19 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/migrate
+        env:
+          PRISMA_MIGRATE_TEST_ADAPTER: ${{ matrix.driverAdapter }}
 
   #
   # CLI-COMMANDS
   #
   cli-commands:
-    name: CLI commands
+    name: CLI commands [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
@@ -706,7 +890,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -730,7 +914,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -741,7 +924,7 @@ jobs:
   # CLI-PLATFORM-COMMANDS (only)
   #
   cli-platform-commands:
-    name: CLI platform
+    name: CLI platform [${{ matrix.os }}][v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: |
@@ -751,12 +934,12 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
         include:
           - os: windows-latest
-            version: 16
+            version: 18
           - os: macos-latest
-            version: 16
+            version: 18
     steps:
       - uses: actions/checkout@v4
 
@@ -764,7 +947,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -775,7 +957,7 @@ jobs:
   # All the other packages!
   #
   others:
-    name: Others
+    name: Others [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: contains(inputs.jobsToRun, '-all-')
@@ -783,7 +965,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [16, 18, 20]
+        node: [18, 20, 22, 23]
     steps:
       - uses: actions/checkout@v4
 
@@ -791,7 +973,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: true
 
@@ -816,23 +997,95 @@ jobs:
         working-directory: packages/engines
 
       - run: pnpm run test
-        name: 'adapter-planetscale'
-        working-directory: packages/adapter-planetscale
-
-      - run: pnpm run test
-        name: 'adapter-neon'
-        working-directory: packages/adapter-neon
-
-      - run: pnpm run test
-        name: 'adapter-pg'
-        working-directory: packages/adapter-pg
-      - run: pnpm run test
         name: 'instrumentation'
         working-directory: packages/instrumentation
 
       - run: pnpm run test
         name: 'schema-files-loader'
         working-directory: packages/schema-files-loader
+
+      - run: pnpm run test
+        name: 'config'
+        working-directory: packages/config
+
+      - run: pnpm run test
+        name: 'dmmf'
+        working-directory: packages/dmmf
+
+      - run: pnpm run test
+        name: 'generator'
+        working-directory: packages/generator
+
+      - run: pnpm run test
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
+
+  #
+  # Driver Adapter Unit Tests
+  #
+  driver-adapter-unit-tests:
+    name: DA Unit Tests [v${{ matrix.node }}]
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: contains(inputs.jobsToRun, '-all-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [18, 23]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'adapter-libsql'
+        working-directory: packages/adapter-libsql
+
+      - run: pnpm run test
+        name: 'adapter-mariadb'
+        working-directory: packages/adapter-mariadb
+
+      - run: pnpm run test
+        name: 'adapter-d1'
+        working-directory: packages/adapter-d1
+
+      - run: pnpm run test
+        name: 'adapter-pg'
+        working-directory: packages/adapter-pg
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
+
+  #
+  # Run type performance benchmark tests
+  #
+  type-benchmark-tests:
+    name: Type performance benchmarks
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    if: contains(inputs.jobsToRun, '-all-')
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: 22
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'type-benchmark-tests'
+        working-directory: packages/type-benchmark-tests
 
   #
   # Run all tests on macOS and Windows.
@@ -854,7 +1107,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
@@ -867,12 +1120,12 @@ jobs:
         shell: bash
         run: |
           {
-            echo "TEST_SKIP_MSSQL=true" 
-            echo "TEST_SKIP_MONGODB=true" 
+            echo "TEST_SKIP_MSSQL=true"
+            echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_SKIP_VITESS=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" 
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" 
+            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
+            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -886,11 +1139,10 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           engine-hash: ${{ inputs.engineHash }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
@@ -913,7 +1165,7 @@ jobs:
 
   no-docker:
     name: All pkgs (win+mac)
-    timeout-minutes: 40
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
     if: |
       contains(inputs.jobsToRun, '-all-') ||
@@ -925,7 +1177,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [16]
+        node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4
@@ -934,11 +1186,11 @@ jobs:
         shell: bash
         run: |
           {
-            echo "TEST_SKIP_MSSQL=true" 
-            echo "TEST_SKIP_MONGODB=true" 
+            echo "TEST_SKIP_MSSQL=true"
+            echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" 
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" 
+            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
+            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -951,7 +1203,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
           engine-hash: ${{ inputs.engineHash }}
           # Fails if set to true
           skip-tsc: false
@@ -1041,6 +1292,62 @@ jobs:
         env:
           JEST_JUNIT_SUITE_NAME: 'schema-files-loader'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Test packages/config
+        if: contains(inputs.jobsToRun, '-all-')
+        run: pnpm run test
+        working-directory: packages/config
+        env:
+          JEST_JUNIT_SUITE_NAME: 'config'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Test packages/client-engine-runtime
+        if: contains(inputs.jobsToRun, '-all-')
+        run: pnpm run test
+        working-directory: packages/client-engine-runtime
+        env:
+          JEST_JUNIT_SUITE_NAME: 'client-engine-runtime'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'dmmf'
+        working-directory: packages/dmmf
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'generator'
+        working-directory: packages/generator
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'client-common'
+        working-directory: packages/client-common
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'ts-builders'
+        working-directory: packages/ts-builders
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'client-generator-js'
+        working-directory: packages/client-generator-js
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'client-generator-ts'
+        working-directory: packages/client-generator-ts
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'client-generator-registry'
+        working-directory: packages/client-generator-registry
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

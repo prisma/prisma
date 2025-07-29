@@ -1,0 +1,1 @@
+SELECT `json` FROM `TestModel` WHERE id = ?

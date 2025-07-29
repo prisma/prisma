@@ -1,10 +1,10 @@
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
+import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
 const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
-import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 /**
  * PostgreSQL array column types (not defined in ScalarColumnType).
@@ -33,6 +33,7 @@ const ArrayColumnType = {
   OID_ARRAY: 1028,
   TEXT_ARRAY: 1009,
   TIMESTAMP_ARRAY: 1115,
+  TIMESTAMPTZ_ARRAY: 1185,
   TIME_ARRAY: 1183,
   UUID_ARRAY: 2951,
   VARBIT_ARRAY: 1563,
@@ -242,6 +243,8 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       return ColumnTypeEnum.TimeArray
     case ArrayColumnType.TIMESTAMP_ARRAY:
       return ColumnTypeEnum.DateTimeArray
+    case ArrayColumnType.TIMESTAMPTZ_ARRAY:
+      return ColumnTypeEnum.DateTimeArray
     case ArrayColumnType.JSON_ARRAY:
     case ArrayColumnType.JSONB_ARRAY:
       return ColumnTypeEnum.JsonArray
@@ -294,11 +297,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time
+  return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 function normalize_timestampz(time: string): string {
-  return time.split('+')[0]
+  return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 /*
@@ -312,7 +315,7 @@ function normalize_time(time: string): string {
 function normalize_timez(time: string): string {
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
-  return time.split('+')[0]
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
 }
 
 /******************/
@@ -321,6 +324,13 @@ function normalize_timez(time: string): string {
 
 function normalize_money(money: string): string {
   return money.slice(1)
+}
+
+/******************/
+/* XML handling */
+/******************/
+function normalize_xml(xml: string): string {
+  return xml
 }
 
 /*****************/
@@ -395,6 +405,7 @@ export const customParsers = {
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
   [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
   [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
+  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestampz),
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
@@ -403,6 +414,7 @@ export const customParsers = {
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),
   [ArrayColumnType.VARBIT_ARRAY]: normalize_array(normalizeBit),
+  [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
 // https://github.com/brianc/node-postgres/pull/2930

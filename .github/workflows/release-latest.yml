@@ -30,14 +30,20 @@ env:
 jobs:
   release:
     timeout-minutes: 45
-    # environment: 'npm-latest'
     runs-on: ubuntu-latest
+
+    concurrency:
+      group: ${{ github.workflow }}
+      cancel-in-progress: false
+
     permissions:
       # required for publishing to npm with --provenance
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
+
     outputs:
       prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
+
     steps:
       - name: Print input
         env:
@@ -50,25 +56,22 @@ jobs:
       - uses: ./.github/actions/setup
         with:
           node-version: 18
-          pnpm-version: 8.15.5
           skip-tsc: false
 
       - name: Publish all packages to npm
         id: publish
         run: |
-          echo "BUILDKITE_TAG $BUILDKITE_TAG"
+          echo "RELEASE_VERSION $RELEASE_VERSION"
           echo "SKIP_ECOSYSTEMTESTS_CHECK $SKIP_ECOSYSTEMTESTS_CHECK"
           pnpm run publish-all
         env:
           # Inputs
-          BUILDKITE_TAG: ${{ github.event.inputs.targetVersion }}
+          RELEASE_VERSION: ${{ github.event.inputs.targetVersion }}
           SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks }}
           ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
           SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
           DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
           # Other
-          BUILDKITE: true
-          BUILDKITE_BRANCH: ${{ github.ref_name }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
           # https://docs.npmjs.com/generating-provenance-statements
           NPM_CONFIG_PROVENANCE: true
@@ -128,7 +131,7 @@ jobs:
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Success
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'prisma/prisma Release ${{ needs.release.outputs.prismaVersion }} succeeded :white_check_mark:'
           SLACK_COLOR: '#55ff55'
@@ -146,7 +149,7 @@ jobs:
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
 
       - name: Slack Notification on Failure
-        uses: rtCamp/action-slack-notify@v2.3.0
+        uses: rtCamp/action-slack-notify@v2.3.2
         env:
           SLACK_TITLE: 'prisma/prisma Release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag failed :x:'
           SLACK_COLOR: '#FF0000'

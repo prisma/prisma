@@ -65,7 +65,7 @@ describe('deserializeRawResult', () => {
   test('bytes', () => {
     expect(deserializeRawResult({ columns: ['a'], types: ['bytes'], rows: [['Ynl0ZXM=']] })).toEqual([
       {
-        a: Buffer.from('bytes'),
+        a: new Uint8Array(Buffer.from('bytes')),
       },
     ])
   })
@@ -166,7 +166,7 @@ describe('deserializeRawResult', () => {
     ).toEqual([
       {
         bigints: [BigInt(1234), BigInt(123456789)],
-        bytes: [Buffer.from('bytes'), Buffer.from('bonjour')],
+        bytes: [new Uint8Array(Buffer.from('bytes')), new Uint8Array(Buffer.from('bonjour'))],
         decimals: [new Decimal('1.2345678'), new Decimal('9999999.456789')],
         datetimes: [new Date('2022-01-01T00:00:00.000Z'), new Date('2022-05-04T00:00:00.000Z')],
         dates: [new Date('2022-05-04T00:00:00.000Z'), new Date('2022-01-01T00:00:00.000Z')],

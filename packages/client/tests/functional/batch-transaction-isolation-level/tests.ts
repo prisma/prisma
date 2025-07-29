@@ -1,14 +1,18 @@
+import { Providers } from '../_utils/providers'
 import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (_suiteConfig, _suiteMeta, _clientMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
+    const isSqlServer = provider === Providers.SQLSERVER
+    const isCockroachDb = provider === Providers.COCKROACHDB
+
     const queries: string[] = []
     let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
 
@@ -33,9 +37,14 @@ testMatrix.setupTestSuite(
 
     const testIsolationLevel = (
       name: string,
-      { level, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; expectSql: string },
+      {
+        level,
+        onlyIf,
+        expectSql,
+      }: { level: () => PrismaNamespace.TransactionIsolationLevel; onlyIf?: () => boolean; expectSql: string },
     ) => {
-      test(name, async () => {
+      // Driver adapters do not issue SET TRANSACTION ISOLATION LEVEL through the query engine.
+      testIf(driverAdapter === undefined && (onlyIf ? onlyIf() : true))(name, async () => {
         await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
           isolationLevel: level(),
         })
@@ -47,7 +56,9 @@ testMatrix.setupTestSuite(
     }
 
     testIsolationLevel('ReadUncommitted', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.ReadUncommitted,
+      onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
     })
 
@@ -57,7 +68,9 @@ testMatrix.setupTestSuite(
     })
 
     testIsolationLevel('RepeatableRead', {
+      // @ts-test-if: !['cockroachdb'].includes(provider)
       level: () => Prisma.TransactionIsolationLevel.RepeatableRead,
+      onlyIf: () => !isCockroachDb,
       expectSql: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
     })
 
@@ -66,10 +79,15 @@ testMatrix.setupTestSuite(
       expectSql: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
     })
 
-    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements', async () => {
+    test('default value generates no SET TRANSACTION ISOLATION LEVEL statements (unless running MSSQL)', async () => {
       await prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})])
 
-      expect(queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))).toBeUndefined()
+      const match = queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))
+      if (isSqlServer && driverAdapter === undefined) {
+        expect(match).toBeDefined()
+      } else {
+        expect(match).toBeUndefined()
+      }
     })
 
     test('invalid level generates run- and compile- time error', async () => {
@@ -93,7 +111,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'sqlite', 'cockroachdb'],
+      from: ['mongodb', 'sqlite'],
       reason: `
         mongo - Not supported
         sqlite, cockroach - Support only serializable level, never generate sql for setting isolation level

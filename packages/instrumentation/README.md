@@ -29,7 +29,6 @@ Don't forget to set `previewFeatures`:
 ```prisma
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 ```
 
@@ -39,7 +38,7 @@ Exporting traces to [Jaeger Tracing](https://jaegertracing.io).
 
 ```ts
 import { context } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
@@ -49,7 +48,7 @@ import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 import { PrismaClient } from '.prisma/client'
 
-const contextManager = new AsyncHooksContextManager().enable()
+const contextManager = new AsyncLocalStorageContextManager().enable()
 
 context.setGlobalContextManager(contextManager)
 

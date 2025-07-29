@@ -6,6 +6,7 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
+import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { copyPrismaClient } from './copy-prisma-client'
 
 /**
@@ -20,7 +21,6 @@ const cliLifecyclePlugin: esbuild.Plugin = {
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
       await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
-        recursive: true,
         overwrite: true,
       })
 
@@ -36,7 +36,6 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       // as a convention, we install all Prisma's Wasm modules in the internals package
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
 
-      // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
       const prismaWasmFile = path.join(
         wasmResolveDir,
         '@prisma',
@@ -46,6 +45,16 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       )
       await fs.promises.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
 
+      const prismaSchemaEngineWasmFile = path.join(
+        wasmResolveDir,
+        '@prisma',
+        'schema-engine-wasm',
+        'schema_engine_bg.wasm',
+      )
+      await fs.promises.copyFile(prismaSchemaEngineWasmFile, './build/schema_engine_bg.wasm')
+
+      await copyClientWasmRuntime()
+
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
       chmodX('./build/index.js')
@@ -53,18 +62,65 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
-// we define the config for cli
+async function copyClientWasmRuntime() {
+  const clientRuntimePath = path.join(__dirname, '..', '..', 'client', 'runtime')
+
+  for (const component of ['compiler', 'engine']) {
+    for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
+      const baseName = `query_${component}_bg.${provider}`
+      for (const file of [`${baseName}.mjs`, `${baseName}.wasm`]) {
+        await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
+      }
+    }
+  }
+}
+
+/**
+ * Setup `import type { ... } from 'prisma'`.
+ */
+const cliTypesBuildConfig: BuildOptions = {
+  name: 'cliTypes',
+  entryPoints: ['src/types.ts'],
+  outdir: 'dist',
+  bundle: false,
+  emitTypes: true,
+  minify: false,
+}
+
+/**
+ * Setup `import { ... } from 'prisma/config'`.
+ */
+const cliConfigBuildConfig: BuildOptions = {
+  name: 'cliConfig',
+  entryPoints: ['src/config.ts'],
+
+  /**
+   * We store `./config.js` and `./config.d.ts` in the root of the package to avoid TypeScript
+   * errors for:
+   * - users with default `"moduleResolution"` settings in their `tsconfig.json`
+   * - users with old and inconsistent bundlers, like `webpack`
+   */
+  outdir: '.',
+  plugins: [copyFilePlugin([{ from: 'dist/cli/src/config.d.ts', to: './config.d.ts' }])],
+
+  bundle: false,
+  emitTypes: true,
+  minify: false,
+}
+
+// Setup build config for the cli
 const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   plugins: [cliLifecyclePlugin],
   bundle: true,
+  external: ['esbuild'],
   emitTypes: false,
   minify: true,
 }
 
-// we define the config for preinstall
+// Setup preinstall
 const preinstallBuildConfig: BuildOptions = {
   name: 'preinstall',
   entryPoints: ['scripts/preinstall.ts'],
@@ -74,7 +130,12 @@ const preinstallBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliBuildConfig, preinstallBuildConfig])
+const optionalPlugins = process.env.DEV === 'true' ? [] : [cliTypesBuildConfig, cliConfigBuildConfig]
+
+build([...optionalPlugins, cliBuildConfig, preinstallBuildConfig]).catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

@@ -15,5 +15,8 @@ export default defineMatrix(() => [
     {
       provider: Providers.COCKROACHDB,
     },
+    {
+      provider: Providers.SQLITE,
+    },
   ],
 ])

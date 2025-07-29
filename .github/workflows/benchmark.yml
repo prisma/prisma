@@ -6,15 +6,14 @@ on:
       - main
       - '*.*.x'
     paths-ignore:
-      # Any update here needs to be done for `pull_request`, see below
-      # and all files (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml)
+      # Any update here needs to be done for `pull_request` (see below) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -23,15 +22,14 @@ on:
       - 'sandbox/**'
   pull_request:
     paths-ignore:
-      # Any update here needs to be done for `push`, see above
-      # and all files (test.yml, benchmark.yml, release-ci.yml)
+      # Any update here needs to be done for `branches` (see above) and all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       # - '*.bench.ts' -> should not be ignored in this workflow
       - 'LICENSE'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - '.github/CODEOWNERS'
-      - '.github/renovate.json'
       - '.github/ISSUE_TEMPLATE/**'
       - '.github/DISCUSSION_TEMPLATE/**'
       - '.devcontainer/**'
@@ -61,7 +59,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 20
-          pnpm-version: 8.15.5
           skip-tsc: false
 
       - name: Run benchmarks
@@ -84,25 +81,9 @@ jobs:
           alert-comment-cc-users: '@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: Run benchmarks for Codspeed
-        uses: CodSpeedHQ/action@v2
+        uses: CodSpeedHQ/action@v3
         with:
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
         env:
           CODSPEED_BENCHMARK: true
-
-      - name: 'Set current job url in SLACK_FOOTER env var'
-        if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
-
-      - name: Slack Notification on Failure
-        if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        uses: rtCamp/action-slack-notify@v2.3.0
-        env:
-          SLACK_TITLE: 'Benchmark failed :x:'
-          SLACK_COLOR: '#FF0000'
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_CHANNEL: feed-prisma-failures
-          SLACK_USERNAME: Prismo
-          SLACK_ICON_EMOJI: ':boom:'
-          SLACK_MSG_AUTHOR: prisma-bot

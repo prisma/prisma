@@ -1,0 +1,1 @@
+SELECT "id" FROM "public"."TestModel" WHERE "real" = $1::real[]

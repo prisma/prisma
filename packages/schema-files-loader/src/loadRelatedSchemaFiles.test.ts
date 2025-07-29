@@ -1,14 +1,9 @@
 import { loadRelatedSchemaFiles } from './loadRelatedSchemaFiles'
 import { fixturePath, loadedFile } from './testUtils'
 
-test('without feature enabled', async () => {
-  const files = await loadRelatedSchemaFiles(fixturePath('related-no-feature', 'a.prisma'))
-  expect(files).toEqual([loadedFile('related-no-feature', 'a.prisma')])
-})
-
-test('with feature enabled', async () => {
-  const files = await loadRelatedSchemaFiles(fixturePath('related-feature', 'a.prisma'))
-  expect(files).toEqual([loadedFile('related-feature', 'a.prisma'), loadedFile('related-feature', 'b.prisma')])
+test('with multiple schema files', async () => {
+  const files = await loadRelatedSchemaFiles(fixturePath('multi-file', 'a.prisma'))
+  expect(files).toEqual([loadedFile('multi-file', 'a.prisma'), loadedFile('multi-file', 'b.prisma')])
 })
 
 test('subfolder, starting from top level', async () => {
@@ -22,15 +17,15 @@ test('subfolder, starting from nested level', async () => {
 })
 
 test('with feature enabled, starting from a file with no generator block', async () => {
-  const files = await loadRelatedSchemaFiles(fixturePath('related-feature', 'b.prisma'))
-  expect(files).toEqual([loadedFile('related-feature', 'a.prisma'), loadedFile('related-feature', 'b.prisma')])
+  const files = await loadRelatedSchemaFiles(fixturePath('multi-file', 'b.prisma'))
+  expect(files).toEqual([loadedFile('multi-file', 'a.prisma'), loadedFile('multi-file', 'b.prisma')])
 })
 
 test('invalid schema and feature enabled', async () => {
-  const files = await loadRelatedSchemaFiles(fixturePath('related-feature-invalid-schema', 'a.prisma'))
+  const files = await loadRelatedSchemaFiles(fixturePath('multi-file-invalid-schema', 'a.prisma'))
   expect(files).toEqual([
-    loadedFile('related-feature-invalid-schema', 'a.prisma'),
-    loadedFile('related-feature-invalid-schema', 'b.prisma'),
+    loadedFile('multi-file-invalid-schema', 'a.prisma'),
+    loadedFile('multi-file-invalid-schema', 'b.prisma'),
   ])
 })
 

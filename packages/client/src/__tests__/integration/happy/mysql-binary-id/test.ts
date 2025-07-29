@@ -16,25 +16,27 @@ test('find by binary id', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
 
+  const binaryString = (str: string) => new Uint8Array(Buffer.from(str))
+
   await prisma.entry.deleteMany()
 
   const a = await prisma.entry.create({
     data: {
-      id: Buffer.from('aaaa'),
+      id: binaryString('aaaa'),
       name: 'a',
     },
   })
 
   const b = await prisma.entry.create({
     data: {
-      id: Buffer.from('bbbb'),
+      id: binaryString('bbbb'),
       name: 'b',
     },
   })
 
   const c = await prisma.entry.create({
     data: {
-      id: Buffer.from('cccc'),
+      id: binaryString('cccc'),
       name: 'c',
     },
   })
@@ -42,7 +44,7 @@ test('find by binary id', async () => {
   expect(
     await prisma.entry.findFirst({
       where: {
-        id: Buffer.from('aaaa'),
+        id: binaryString('aaaa'),
       },
     }),
   ).toEqual(a)
@@ -51,7 +53,7 @@ test('find by binary id', async () => {
     await prisma.entry.findMany({
       where: {
         id: {
-          in: [Buffer.from('bbbb'), Buffer.from('cccc')],
+          in: [binaryString('bbbb'), binaryString('cccc')],
         },
       },
     }),

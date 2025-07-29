@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -31,8 +31,8 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                ?   OR?: UserWhereInput[],
                ?   NOT?: UserWhereInput | UserWhereInput[],
                ?   posts?: PostListRelationFilter,
-               ?   profile?: ProfileNullableRelationFilter | ProfileWhereInput | Null,
-               ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
+               ?   profile?: ProfileNullableScalarRelationFilter | ProfileWhereInput | Null,
+               ?   payment?: PaymentNullableScalarRelationFilter | PaymentWhereInput | Null
                  }
                })
 
@@ -66,7 +66,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
              ?   OR?: UserWhereInput[],
              ?   NOT?: UserWhereInput | UserWhereInput[],
              ?   posts?: PostListRelationFilter,
-             ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
+             ?   payment?: PaymentNullableScalarRelationFilter | PaymentWhereInput | Null
                }
              })
 

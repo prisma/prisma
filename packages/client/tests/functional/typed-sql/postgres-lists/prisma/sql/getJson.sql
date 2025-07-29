@@ -1,0 +1,1 @@
+SELECT "json" FROM "public"."TestModel" WHERE id = $1

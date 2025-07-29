@@ -1,0 +1,35 @@
+name: CI for auxiliary files
+
+on:
+  pull_request:
+    paths:
+      # Any update here needs to be done for all files
+      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      - '*.md'
+      - '*.bench.ts'
+      - 'LICENSE'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - '.github/CODEOWNERS'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'graphs/**'
+      - 'sandbox/**'
+  workflow_dispatch:
+
+jobs:
+  # A job named "Detect jobs to run" is a required check for merging PRs. Without this workflow,
+  # which only runs for the files ignored by `test.yml` workflow and contains a stub job with this name,
+  # no PRs that only contain changes in these files could be merged. It exists to ensure the required
+  # check still exists when the files ignored by `test.yml` are updated, even though it does nothing.
+  #
+  # In the future, this workflow can be extended to actually do something useful for these files
+  # (e.g., run type checking and linting for the code in `sandbox/` and `scripts/`, check spelling in
+  # markdown files, etc.).
+  detect-jobs-to-run:
+    name: Detect jobs to run
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Nothing to do."

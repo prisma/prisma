@@ -37,17 +37,14 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.2"
+    "postgres-array": "3.0.4",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
-    "@swc/core": "1.6.13",
-    "@swc/jest": "0.2.36",
-    "@types/pg": "8.11.6",
+    "@swc/core": "1.11.5",
+    "@swc/jest": "0.2.37",
+    "@types/pg": "8.11.11",
     "jest": "29.7.0",
-    "jest-junit": "16.0.0",
-    "pg": "8.11.5"
-  },
-  "peerDependencies": {
-    "pg": "^8.11.3"
+    "jest-junit": "16.0.0"
   }
 }

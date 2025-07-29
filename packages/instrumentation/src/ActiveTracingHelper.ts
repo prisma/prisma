@@ -1,15 +1,15 @@
 import {
+  Attributes,
   Context,
   context as _context,
-  ROOT_CONTEXT,
   Span,
-  SpanContext,
   SpanKind,
+  SpanOptions,
   trace,
-  TraceFlags,
+  Tracer,
+  TracerProvider,
 } from '@opentelemetry/api'
-import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
-import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { EngineSpan, EngineSpanKind, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -21,12 +21,29 @@ const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
   traceMiddleware: boolean
+  tracerProvider: TracerProvider
+  ignoreSpanTypes: (string | RegExp)[]
+}
+
+function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind {
+  switch (engineSpanKind) {
+    case 'client':
+      return SpanKind.CLIENT
+    case 'internal':
+    default: // Other span kinds aren't currently supported
+      return SpanKind.INTERNAL
+  }
 }
 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
-  constructor({ traceMiddleware }: Options) {
+  private tracerProvider: TracerProvider
+  private ignoreSpanTypes: (string | RegExp)[]
+
+  constructor({ traceMiddleware, tracerProvider, ignoreSpanTypes }: Options) {
     this.traceMiddleware = traceMiddleware
+    this.tracerProvider = tracerProvider
+    this.ignoreSpanTypes = ignoreSpanTypes
   }
 
   isEnabled(): boolean {
@@ -41,43 +58,14 @@ export class ActiveTracingHelper implements TracingHelper {
     return nonSampledTraceParent
   }
 
-  createEngineSpan(engineSpanEvent: EngineSpanEvent) {
-    const tracer = trace.getTracer('prisma') as Tracer
+  dispatchEngineSpans(spans: EngineSpan[]): void {
+    const tracer = this.tracerProvider.getTracer('prisma')
+    const linkIds = new Map<string, string>()
+    const roots = spans.filter((span) => span.parentId === null)
 
-    engineSpanEvent.spans.forEach((engineSpan) => {
-      const spanContext: SpanContext = {
-        traceId: engineSpan.trace_id,
-        spanId: engineSpan.span_id,
-        traceFlags: TraceFlags.SAMPLED,
-      }
-
-      const links = engineSpan.links?.map((link) => {
-        return {
-          context: {
-            traceId: link.trace_id,
-            spanId: link.span_id,
-            traceFlags: TraceFlags.SAMPLED,
-          },
-        }
-      })
-
-      const span = new SpanConstructor(
-        tracer,
-        ROOT_CONTEXT,
-        engineSpan.name,
-        spanContext,
-        SpanKind.INTERNAL,
-        engineSpan.parent_span_id,
-        links,
-        engineSpan.start_time,
-      )
-
-      if (engineSpan.attributes) {
-        span.setAttributes(engineSpan.attributes)
-      }
-
-      span.end(engineSpan.end_time)
-    })
+    for (const root of roots) {
+      dispatchEngineSpan(tracer, root, spans, linkIds, this.ignoreSpanTypes)
+    }
   }
 
   getActiveContext(): Context | undefined {
@@ -97,9 +85,14 @@ export class ActiveTracingHelper implements TracingHelper {
       return callback()
     }
 
-    const tracer = trace.getTracer('prisma')
+    const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
+
+    if (shouldIgnoreSpan(name, this.ignoreSpanTypes)) {
+      return callback()
+    }
+
     // these spans will not be nested by default even in recursive calls
     // it's useful for showing middleware sequentially instead of nested
     if (options.active === false) {
@@ -111,6 +104,51 @@ export class ActiveTracingHelper implements TracingHelper {
     // nested calls, which is useful for representing most of the calls
     return tracer.startActiveSpan(name, options, (span) => endSpan(span, callback(span, context)))
   }
+}
+
+function dispatchEngineSpan(
+  tracer: Tracer,
+  engineSpan: EngineSpan,
+  allSpans: EngineSpan[],
+  linkIds: Map<string, string>,
+  ignoreSpanTypes: (string | RegExp)[],
+) {
+  if (shouldIgnoreSpan(engineSpan.name, ignoreSpanTypes)) return
+
+  const spanOptions = {
+    attributes: engineSpan.attributes as Attributes,
+    kind: engineSpanKindToOtelSpanKind(engineSpan.kind),
+    startTime: engineSpan.startTime,
+  } satisfies SpanOptions
+
+  tracer.startActiveSpan(engineSpan.name, spanOptions, (span) => {
+    linkIds.set(engineSpan.id, span.spanContext().spanId)
+
+    if (engineSpan.links) {
+      span.addLinks(
+        engineSpan.links.flatMap((link) => {
+          const linkedId = linkIds.get(link)
+          if (!linkedId) {
+            return []
+          }
+          return {
+            context: {
+              spanId: linkedId,
+              traceId: span.spanContext().traceId,
+              traceFlags: span.spanContext().traceFlags,
+            },
+          }
+        }),
+      )
+    }
+
+    const children = allSpans.filter((s) => s.parentId === engineSpan.id)
+    for (const child of children) {
+      dispatchEngineSpan(tracer, child, allSpans, linkIds, ignoreSpanTypes)
+    }
+
+    span.end(engineSpan.endTime)
+  })
 }
 
 function endSpan<T>(span: Span, result: T): T {
@@ -132,4 +170,10 @@ function endSpan<T>(span: Span, result: T): T {
 
 function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return value != null && typeof value['then'] === 'function'
+}
+
+function shouldIgnoreSpan(spanName: string, ignoreSpanTypes: (string | RegExp)[]): boolean {
+  return ignoreSpanTypes.some((pattern) =>
+    typeof pattern === 'string' ? pattern === spanName : pattern.test(spanName),
+  )
 }

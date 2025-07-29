@@ -1,13 +1,12 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { EngineSpanEvent } from '@prisma/internals'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
+import { EngineSpan, EngineTraceEvent } from '@prisma/internals'
 
-import { EngineProtocol } from '../Engine'
 import { JsonBatchQuery } from './JsonProtocol'
 import { RequestError } from './RequestError'
-import * as Transaction from './Transaction'
+import { IsolationLevel } from './Transaction'
 
 // Events
-export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent | EngineSpanEvent
+export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent
 
 export type QueryEngineLogEvent = {
   level: string
@@ -36,22 +35,6 @@ export type QueryEnginePanicEvent = {
   column: string
 }
 
-// Configuration
-export type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-
-export type QueryEngineConfig = {
-  // TODO rename datamodel here and other places
-  datamodel: string
-  configDir: string
-  logQueries: boolean
-  ignoreEnvVarErrors: boolean
-  datasourceOverrides: Record<string, string>
-  env: Record<string, string | undefined>
-  logLevel: QueryEngineLogLevel
-  telemetry?: QueryEngineTelemetry
-  engineProtocol: EngineProtocol
-}
-
 export type QueryEngineTelemetry = {
   enabled: Boolean
   endpoint: string
@@ -62,26 +45,39 @@ export type QueryEngineRequest = {
   variables: Object
 }
 
-export type QueryEngineResult<T> = {
-  data: T
-  elapsed: number
+export type WithResultExtensions<T> = T & {
+  extensions?: QueryEngineResultExtensions
 }
 
-export type QueryEngineResultBatchQueryResult<T> =
-  | {
-      data: T
-      elapsed: number
-    }
+type WithErrors<T> =
+  | T
   | {
       errors: RequestError[]
     }
+
+type WithErrorsAndResultExtensions<T> = WithResultExtensions<WithErrors<T>>
+
+export type QueryEngineResultData<T> = {
+  data: T
+}
+
+export type QueryEngineResult<T> = WithErrorsAndResultExtensions<QueryEngineResultData<T>>
+
+export type QueryEngineBatchResult<T> = WithErrorsAndResultExtensions<{
+  batchResult: QueryEngineResult<T>[]
+}>
+
+export type QueryEngineResultExtensions = {
+  logs?: EngineTraceEvent[]
+  traces?: EngineSpan[]
+}
 
 export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery
 
 export type QueryEngineBatchGraphQLRequest = {
   batch: QueryEngineRequest[]
   transaction?: boolean
-  isolationLevel?: Transaction.IsolationLevel
+  isolationLevel?: IsolationLevel
 }
 
 export type GetConfigOptions = {

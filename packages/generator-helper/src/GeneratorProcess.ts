@@ -1,12 +1,13 @@
-import Debug from '@prisma/debug'
-import type { ChildProcessByStdio } from 'child_process'
-import { fork } from 'child_process'
+import { type ChildProcessByStdio, fork } from 'node:child_process'
+
+import { Debug } from '@prisma/debug'
+import type { GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
 import { Readable, Writable } from 'stream'
 
 import byline from './byline'
-import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
+import * as JsonRpc from './json-rpc'
 
 const debug = Debug('prisma:GeneratorProcess')
 
@@ -14,10 +15,6 @@ let globalMessageId = 1
 
 type GeneratorProcessOptions = {
   isNode?: boolean
-  /**
-   * Time to wait before we consider generator successfully started, ms
-   */
-  initWaitTime?: number
 }
 
 export class GeneratorError extends Error {
@@ -119,7 +116,7 @@ export class GeneratorProcess {
 
       byline(this.child.stderr).on('data', (line: Buffer) => {
         const response = String(line)
-        let data: JsonRPC.Response | undefined
+        let data: JsonRpc.Response | undefined
         try {
           data = JSON.parse(response)
         } catch (e) {
@@ -142,13 +139,13 @@ export class GeneratorProcess {
     }
   }
 
-  private handleResponse(data: JsonRPC.Response): void {
+  private handleResponse(data: JsonRpc.Response): void {
     if (data.jsonrpc && data.id) {
       if (typeof data.id !== 'number') {
         throw new Error(`message.id has to be a number. Found value ${data.id}`)
       }
       if (this.handlers[data.id]) {
-        if (isErrorResponse(data)) {
+        if (JsonRpc.isErrorResponse(data)) {
           const error = new GeneratorError(data.error.message, data.error.code, data.error.data)
           this.handlers[data.id].reject(error)
         } else {
@@ -159,7 +156,7 @@ export class GeneratorProcess {
     }
   }
 
-  private sendMessage(message: JsonRPC.Request, callback: (error?: Error) => void): void {
+  private sendMessage(message: JsonRpc.Request, callback: (error?: Error) => void): void {
     if (!this.child) {
       callback(new GeneratorError('Generator process has not started yet'))
       return
@@ -266,8 +263,4 @@ export class GeneratorProcess {
   )
 
   generate = this.rpcMethod<GeneratorOptions, void>('generate')
-}
-
-function isErrorResponse(response: JsonRPC.Response): response is JsonRPC.ErrorResponse {
-  return (response as JsonRPC.ErrorResponse).error !== undefined
 }

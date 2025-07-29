@@ -1,18 +1,20 @@
+import streamConsumer from 'node:stream/consumers'
+
+import type { PrismaConfigInternal } from '@prisma/config'
 import {
   arg,
   checkUnsupportedDataProxy,
+  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   getCommandWithExecutor,
-  getConfig,
-  getSchemaWithPath,
   HelpError,
   isError,
   loadEnvFile,
-  toSchemasWithConfigDir,
+  loadSchemaContext,
+  toSchemasContainer,
 } from '@prisma/internals'
 import fs from 'fs'
-import getStdin from 'get-stdin'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
 
@@ -27,6 +29,7 @@ ${dim('$')} prisma db execute [options]
 ${bold('Options')}
 
 -h, --help            Display this help message
+--config              Custom path to your Prisma config file
 
 ${italic('Datasource input, only 1 must be provided:')}
 --url                 URL of the datasource to run the command on
@@ -45,6 +48,9 @@ export class DbExecute implements Command {
     return new DbExecute()
   }
 
+  // TODO: This command needs to get proper support for `prisma.config.ts` eventually. Not just taking the schema path
+  //  from prisma.config.ts but likely to support driver adapters, too?
+  //  See https://linear.app/prisma-company/issue/ORM-639/prisma-db-execute-support-prismaconfigts-and-driver-adapters
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
@@ -81,12 +87,13 @@ ${bold('Examples')}
     --url="mysql://root:root@localhost/mydb"
 `)
 
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
+        '--config': String,
         '--stdin': Boolean,
         '--file': String,
         '--schema': String,
@@ -100,13 +107,20 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('db execute', args, !args['--url'])
-
     if (args['--help']) {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false })
+    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
+
+    const cmd = 'db execute'
+
+    checkUnsupportedSchemaEngineWasm({
+      cmd,
+      config,
+      args,
+      flags: ['--url'],
+    })
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
@@ -150,13 +164,15 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     }
     // Read stdin
     if (args['--stdin']) {
-      script = await getStdin()
+      script = await streamConsumer.text(process.stdin)
     }
 
     let datasourceType: EngineArgs.DbExecuteDatasourceType
 
     // Execute command(s) to url passed
     if (args['--url']) {
+      checkUnsupportedDataProxy({ cmd, urls: [args['--url']] })
+
       datasourceType = {
         tag: 'url',
         url: args['--url'],
@@ -166,17 +182,24 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     else {
       // validate that schema file exists
       // throws an error if it doesn't
-      const schemaWithPath = (await getSchemaWithPath(args['--schema']))!
-      const config = await getConfig({ datamodel: schemaWithPath.schemas })
+      const schemaContext = await loadSchemaContext({
+        schemaPathFromArg: args['--schema'],
+        schemaPathFromConfig: config.schema,
+        printLoadMessage: false,
+      })
+
+      checkUnsupportedDataProxy({ cmd, schemaContext })
 
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        ...toSchemasWithConfigDir(schemaWithPath, config),
+        ...toSchemasContainer(schemaContext.schemaFiles),
+        configDir: schemaContext.primaryDatasourceDirectory,
       }
     }
 
-    const migrate = new Migrate()
+    const adapter = await config.adapter?.()
+    const migrate = await Migrate.setup({ adapter })
 
     try {
       await migrate.engine.dbExecute({
@@ -184,7 +207,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
         datasourceType,
       })
     } finally {
-      migrate.stop()
+      await migrate.stop()
     }
 
     return `Script executed successfully.`

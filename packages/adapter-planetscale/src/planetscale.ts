@@ -1,22 +1,26 @@
 /* eslint-disable @typescript-eslint/require-await */
+
 // default import does not work correctly for JS values inside,
 // i.e. client
 import * as planetScale from '@planetscale/database'
 import type {
   ConnectionInfo,
-  DriverAdapter,
-  Query,
-  Queryable,
-  Result,
-  ResultSet,
+  IsolationLevel,
+  SqlDriverAdapter,
+  SqlDriverAdapterFactory,
+  SqlQuery,
+  SqlQueryable,
+  SqlResultSet,
   Transaction,
   TransactionOptions,
 } from '@prisma/driver-adapter-utils'
-import { Debug, err, ok } from '@prisma/driver-adapter-utils'
+import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
+import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
 import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
+import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:planetscale')
 
@@ -31,7 +35,9 @@ class RollbackError extends Error {
   }
 }
 
-class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction> implements Queryable {
+class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Transaction | planetScale.Connection>
+  implements SqlQueryable
+{
   readonly provider = 'mysql'
   readonly adapterName = packageName
 
@@ -40,20 +46,18 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: Query): Promise<Result<ResultSet>> {
+  async queryRaw(query: SqlQuery): Promise<SqlResultSet> {
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const ioResult = await this.performIO(query)
-    return ioResult.map(({ fields, insertId: lastInsertId, rows }) => {
-      const columns = fields.map((field) => field.name)
-      return {
-        columnNames: columns,
-        columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
-        rows: rows as ResultSet['rows'],
-        lastInsertId,
-      }
-    })
+    const { fields, insertId: lastInsertId, rows } = await this.performIO(query)
+    const columns = fields.map((field) => field.name)
+    return {
+      columnNames: columns,
+      columnTypes: fields.map((field) => fieldToColumnType(field.type as PlanetScaleColumnType)),
+      rows: rows as SqlResultSet['rows'],
+      lastInsertId,
+    }
   }
 
   /**
@@ -61,11 +65,11 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: Query): Promise<Result<number>> {
+  async executeRaw(query: SqlQuery): Promise<number> {
     const tag = '[js::execute_raw]'
     debug(`${tag} %O`, query)
 
-    return (await this.performIO(query)).map(({ rowsAffected }) => rowsAffected)
+    return (await this.performIO(query)).rowsAffected
   }
 
   /**
@@ -73,7 +77,7 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: Query): Promise<Result<planetScale.ExecutedQuery>> {
+  protected async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
     const { sql, args: values } = query
 
     try {
@@ -81,29 +85,42 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
         as: 'array',
         cast,
       })
-      return ok(result)
+      return result
     } catch (e) {
       const error = e as Error
-      if (error.name === 'DatabaseError') {
-        const parsed = parseErrorMessage(error.message)
-        if (parsed) {
-          return err({
-            kind: 'Mysql',
-            ...parsed,
-          })
-        }
-      }
-      debug('Error in performIO: %O', error)
-      throw error
+      onError(error)
     }
   }
 }
 
-function parseErrorMessage(message: string) {
-  const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
-  const match = message.match(regex)
+function onError(error: Error): never {
+  if (error.name === 'DatabaseError') {
+    const parsed = parseErrorMessage(error.message)
+    if (parsed) {
+      throw new DriverAdapterError(convertDriverError(parsed))
+    }
+  }
+  debug('Error in performIO: %O', error)
+  throw error
+}
 
-  if (match) {
+function parseErrorMessage(error: string): ParsedDatabaseError | undefined {
+  const regex = /^(.*) \(errno (\d+)\) \(sqlstate ([A-Z0-9]+)\)/
+  let match: RegExpMatchArray | null = null
+
+  while (true) {
+    const result = error.match(regex)
+    if (result === null) {
+      break
+    }
+
+    // Try again with the rest of the error message. The driver can return multiple
+    // concatenated error messages.
+    match = result
+    error = match[1]
+  }
+
+  if (match !== null) {
     const [, message, codeAsString, sqlstate] = match
     const code = Number.parseInt(codeAsString, 10)
 
@@ -118,6 +135,11 @@ function parseErrorMessage(message: string) {
 }
 
 class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transaction> implements Transaction {
+  // The PlanetScale connection objects are not meant to be used concurrently,
+  // so we override the `performIO` method to synchronize access to it with a mutex.
+  // See: https://github.com/mattrobenolt/ps-http-sim/issues/7
+  #mutex = new Mutex()
+
   constructor(
     tx: planetScale.Transaction,
     readonly options: TransactionOptions,
@@ -127,58 +149,73 @@ class PlanetScaleTransaction extends PlanetScaleQueryable<planetScale.Transactio
     super(tx)
   }
 
-  async commit(): Promise<Result<void>> {
+  async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
+    const release = await this.#mutex.acquire()
+    try {
+      return await super.performIO(query)
+    } catch (e) {
+      onError(e as Error)
+    } finally {
+      release()
+    }
+  }
+
+  async commit(): Promise<void> {
     debug(`[js::commit]`)
 
     this.txDeferred.resolve()
-    return Promise.resolve(ok(await this.txResultPromise))
+    return await this.txResultPromise
   }
 
-  async rollback(): Promise<Result<void>> {
+  async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
     this.txDeferred.reject(new RollbackError())
-    return Promise.resolve(ok(await this.txResultPromise))
+    return await this.txResultPromise
   }
 }
 
-export class PrismaPlanetScale extends PlanetScaleQueryable<planetScale.Client> implements DriverAdapter {
+export class PrismaPlanetScaleAdapter extends PlanetScaleQueryable<planetScale.Client> implements SqlDriverAdapter {
   constructor(client: planetScale.Client) {
-    // this used to be a check for constructor name at same point (more reliable when having multiple copies
-    // of @planetscale/database), but that did not work with minifiers, so we reverted back to `instanceof`
-    if (!(client instanceof planetScale.Client)) {
-      throw new TypeError(`PrismaPlanetScale must be initialized with an instance of Client:
-import { Client } from '@planetscale/database'
-const client = new Client({ url })
-const adapter = new PrismaPlanetScale(client)
-`)
-    }
     super(client)
   }
 
-  getConnectionInfo(): Result<ConnectionInfo> {
-    const url = this.client.connection()['url'] as string
-    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
-    return ok({
-      schemaName: dbName,
-    })
+  executeScript(_script: string): Promise<void> {
+    throw new Error('Not implemented yet')
   }
 
-  async startTransaction() {
+  getConnectionInfo(): ConnectionInfo {
+    const url = this.client.connection()['url'] as string
+    const dbName = new URL(url).pathname.slice(1) /* slice out forward slash */
+    return {
+      schemaName: dbName || undefined, // If `dbName` is an empty string, do not set a schema name
+      supportsRelationJoins: true,
+    }
+  }
+
+  async startTransaction(isolationLevel?: IsolationLevel): Promise<Transaction> {
     const options: TransactionOptions = {
       usePhantomQuery: true,
     }
 
     const tag = '[js::startTransaction]'
-    debug(`${tag} options: %O`, options)
+    debug('%s options: %O', tag, options)
 
-    return new Promise<Result<Transaction>>((resolve, reject) => {
-      const txResultPromise = this.client
+    const conn = this.client.connection()
+    if (isolationLevel) {
+      await conn.execute(`SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`).catch((error) => onError(error))
+    }
+    return this.startTransactionInner(conn, options)
+  }
+
+  async startTransactionInner(conn: planetScale.Connection, options: TransactionOptions): Promise<Transaction> {
+    return new Promise<Transaction>((resolve, reject) => {
+      const txResultPromise = conn
         .transaction(async (tx) => {
           const [txDeferred, deferredPromise] = createDeferred<void>()
           const txWrapper = new PlanetScaleTransaction(tx, options, txDeferred, txResultPromise)
 
-          resolve(ok(txWrapper))
+          resolve(txWrapper)
           return deferredPromise
         })
         .catch((error) => {
@@ -192,4 +229,37 @@ const adapter = new PrismaPlanetScale(client)
         })
     })
   }
+
+  async dispose(): Promise<void> {}
+
+  underlyingDriver(): planetScale.Client {
+    return this.client
+  }
+}
+
+export class PrismaPlanetScaleAdapterFactory implements SqlDriverAdapterFactory {
+  readonly provider = 'mysql'
+  readonly adapterName = packageName
+
+  #config: planetScale.Config
+  #client?: planetScale.Client
+
+  constructor(arg: planetScale.Config | planetScale.Client) {
+    if (arg instanceof planetScale.Client) {
+      this.#config = arg.config
+      this.#client = arg
+    } else {
+      this.#config = arg
+    }
+  }
+
+  async connect(): Promise<PrismaPlanetScaleAdapter> {
+    return new PrismaPlanetScaleAdapter(this.#client ?? new planetScale.Client(this.#config))
+  }
+}
+
+export type ParsedDatabaseError = {
+  message: string
+  code: number
+  state: string
 }

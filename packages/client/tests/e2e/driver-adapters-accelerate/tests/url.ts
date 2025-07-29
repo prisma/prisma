@@ -1,4 +1,4 @@
-import { mockAdapter } from '../../_utils/mock-adapter'
+import { mockAdapterFactory } from '../../_utils/mock-adapter'
 
 describe('driver adapters cannot be used with accelerate', () => {
   let dbURL: string | undefined
@@ -18,7 +18,7 @@ describe('driver adapters cannot be used with accelerate', () => {
 
       const newClient = () =>
         new PrismaClient({
-          adapter: mockAdapter('postgres'),
+          adapter: mockAdapterFactory('postgres'),
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`
@@ -34,7 +34,7 @@ describe('driver adapters cannot be used with accelerate', () => {
 
       const newClient = () =>
         new PrismaClient({
-          adapter: mockAdapter('postgres'),
+          adapter: mockAdapterFactory('postgres'),
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`

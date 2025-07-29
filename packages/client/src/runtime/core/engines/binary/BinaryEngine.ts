@@ -1,15 +1,16 @@
-import Debug from '@prisma/debug'
-import type { ConnectorType } from '@prisma/generator-helper'
+import { Debug } from '@prisma/debug'
+import type { ConnectorType } from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { byline, ClientEngineType, EngineSpanEvent, TracingHelper } from '@prisma/internals'
+import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, green, red } from 'kleur/colors'
+import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
 import type { Readable } from 'stream'
+import { temporaryFile } from 'tempy'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -23,7 +24,11 @@ import { resolveEnginePath } from '../common/resolveEnginePath'
 import type { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineResult } from '../common/types/QueryEngine'
+import type {
+  QueryEngineResultData,
+  QueryEngineResultExtensions,
+  WithResultExtensions,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -71,7 +76,6 @@ export class BinaryEngine implements Engine<undefined> {
   private clientVersion?: string
   private globalKillSignalReceived?: string
   private startCount = 0
-  private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
   private stopPromise?: Promise<void>
@@ -107,16 +111,17 @@ export class BinaryEngine implements Engine<undefined> {
     this.cwd = this.resolveCwd(config.cwd)
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
-    this.datamodelPath = config.datamodelPath
     this.tracingHelper = config.tracingHelper
     this.logEmitter = config.logEmitter
     this.showColors = config.showColors ?? false
     this.logQueries = config.logQueries ?? false
     this.clientVersion = config.clientVersion
     this.flags = config.flags ?? []
-    this.previewFeatures = config.previewFeatures ?? []
     this.activeProvider = config.activeProvider
     this.connection = new Connection()
+
+    this.datamodelPath = temporaryFile({ extension: 'prisma' })
+    fs.writeFileSync(this.datamodelPath, config.inlineSchema)
 
     // compute the datasource override for binary engine
     const dsOverrideName = Object.keys(config.overrideDatasources)[0]
@@ -127,36 +132,6 @@ export class BinaryEngine implements Engine<undefined> {
 
     initHooks()
 
-    // See also warnOnDeprecatedFeatureFlag at
-    // https://github.com/prisma/prisma/blob/9e5cc5bfb9ef0eb8251ab85a56302e835f607711/packages/sdk/src/engine-commands/getDmmf.ts#L179
-    const removedFlags = [
-      'middlewares',
-      'aggregateApi',
-      'distinct',
-      'aggregations',
-      'insensitiveFilters',
-      'atomicNumberOperations',
-      'transactionApi',
-      'transaction',
-      'connectOrCreate',
-      'uncheckedScalarInputs',
-      'nativeTypes',
-      'createMany',
-      'groupBy',
-      'referentialActions',
-      'microsoftSqlServer',
-    ]
-    const removedFlagsUsed = this.previewFeatures.filter((e) => removedFlags.includes(e))
-
-    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-      console.log(
-        `${blue(bold('info'))} The preview flags \`${removedFlagsUsed.join(
-          '`, `',
-        )}\` were removed, you can now safely remove them from your schema.prisma.`,
-      )
-    }
-
-    this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
 
     if (this.binaryTarget) {
@@ -226,7 +201,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       return this.binaryTargetPromise
     }
 
-    this.binaryTargetPromise = getBinaryTargetForCurrentPlatform()
+    this.binaryTargetPromise = this.tracingHelper.runInChildSpan('detect_platform', () =>
+      getBinaryTargetForCurrentPlatform(),
+    )
 
     return this.binaryTargetPromise
   }
@@ -251,7 +228,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     const retries = { times: 10 }
     const retryInternalStart = async () => {
       try {
-        await this.internalStart()
+        await this.tracingHelper.runInChildSpan('start_engine', () => this.startAndFetchBootSpans())
       } catch (e) {
         if (e.retryable === true && retries.times > 0) {
           retries.times--
@@ -285,7 +262,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private getEngineEnvVars() {
-    const env: any = {
+    const env: Record<string, string> = {
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
@@ -309,6 +286,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
       RUST_LOG: process.env.RUST_LOG ?? 'info',
     }
+  }
+
+  private async startAndFetchBootSpans(): Promise<void> {
+    await this.internalStart()
+
+    const trace = await Connection.onHttpError(this.connection.get<EngineTrace>('/boot_trace'), (result) =>
+      this.httpErrorHandler(result),
+    )
+
+    this.tracingHelper.dispatchEngineSpans(trace.data.spans)
   }
 
   private internalStart(): Promise<void> {
@@ -339,7 +326,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
-        debug({ cwd: this.cwd })
+        debug('cwd:', this.cwd)
 
         const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
@@ -423,12 +410,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
-              if (json.span === true) {
-                this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
-
-                return
-              }
-
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
@@ -534,7 +515,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
-          } else if (code === 255 && signal === null && this.lastError) {
+          } else if (code === 101 && signal === null && this.lastError) {
             toEmit = this.lastError
           }
 
@@ -661,7 +642,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async request<T>(
     query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
-  ): Promise<QueryEngineResult<T>> {
+  ): Promise<QueryEngineResultData<T>> {
     await this.start()
     const headers: Record<string, string> = {}
     if (traceparent) {
@@ -679,7 +660,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.lastQuery = queryStr
 
     try {
-      const { data, headers } = await this.currentRequestPromise
+      const { data } = await this.currentRequestPromise
+
+      if (data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(data.extensions.traces)
+      }
 
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -689,16 +674,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
-      // Rust engine returns time in microseconds and we want it in milliseconds
-      const elapsed = parseInt(headers['x-elapsed']) / 1000
-
       // reset restart count after successful request
       if (this.startCount > 0) {
         this.startCount = 0
       }
 
       this.currentRequestPromise = undefined
-      return { data, elapsed } as any
+      return { data }
     } catch (e: any) {
       logger('req - e', e)
 
@@ -738,18 +720,25 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     )
 
     return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in milliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
+      .then(({ data }) => {
+        if (data.extensions?.traces) {
+          this.tracingHelper.dispatchEngineSpans(data.extensions.traces)
+        }
+
         const { batchResult } = data
+
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
+            if (result.extensions?.traces) {
+              this.tracingHelper.dispatchEngineSpans(result.extensions.traces)
+            }
+
             if (result.errors && result.errors.length > 0) {
               return prismaGraphQLToJSError(result.errors[0], this.clientVersion!, this.config.activeProvider!)
             }
+
             return {
               data: result,
-              elapsed,
             }
           })
         } else {
@@ -807,19 +796,37 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.InteractiveTransactionInfo<undefined>>('/transaction/start', jsonOptions, headers),
+        this.connection.post<WithResultExtensions<Tx.InteractiveTransactionInfo<undefined>>>(
+          '/transaction/start',
+          jsonOptions,
+          headers,
+        ),
         (result) => this.httpErrorHandler(result),
       )
 
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
+
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
-        this.httpErrorHandler(result),
+      const result = await Connection.onHttpError(
+        this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/commit`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
+
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
-        this.httpErrorHandler(result),
+      const result = await Connection.onHttpError(
+        this.connection.post<WithResultExtensions<{}>>(`/transaction/${arg.id}/rollback`, undefined, headers),
+        (result) => this.httpErrorHandler(result),
       )
+
+      if (result.data.extensions?.traces) {
+        this.tracingHelper.dispatchEngineSpans(result.data.extensions.traces)
+      }
     }
 
     return undefined
@@ -955,6 +962,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    */
   httpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
+
+    const traces = (response.extensions as QueryEngineResultExtensions | undefined)?.traces
+    if (traces) {
+      this.tracingHelper.dispatchEngineSpans(traces)
+    }
+
     throw new PrismaClientKnownRequestError(response.message as string, {
       code: response.error_code as string,
       clientVersion: this.clientVersion as string,

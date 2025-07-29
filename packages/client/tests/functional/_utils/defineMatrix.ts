@@ -1,4 +1,4 @@
-import { U } from 'ts-toolbelt'
+import type { U } from 'ts-toolbelt'
 
 import { NamedTestSuiteConfig, TestSuiteMatrix } from './getTestSuiteInfo'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'

@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
-import fs from 'fs-extra'
 import path from 'path'
 
 import type { Client } from '../../../src/runtime/getPrismaClient'
@@ -108,7 +107,8 @@ function setupTestSuiteMatrix(
           cfWorkerBindings = env
         }
 
-        globalThis['loaded'] = await setupTestSuiteClient({
+        const [clientModule, sqlModule] = await setupTestSuiteClient({
+          generatorType: suiteConfig.matrixOptions.generatorType || 'prisma-client-js',
           cliMeta,
           suiteMeta,
           suiteConfig,
@@ -119,6 +119,8 @@ function setupTestSuiteMatrix(
           cfWorkerBindings,
         })
 
+        globalThis['loaded'] = clientModule
+
         const newDriverAdapter = () =>
           setupTestSuiteClientDriverAdapter({
             suiteConfig,
@@ -128,7 +130,7 @@ function setupTestSuiteMatrix(
           })
 
         globalThis['newPrismaClient'] = (args: any) => {
-          const { PrismaClient, Prisma } = globalThis['loaded']
+          const { PrismaClient, Prisma } = clientModule
 
           const options = { ...newDriverAdapter(), ...args }
           const client = new PrismaClient(options)
@@ -143,7 +145,9 @@ function setupTestSuiteMatrix(
           globalThis['prisma'] = globalThis['newPrismaClient']() as Client
         }
 
-        globalThis['Prisma'] = (await global['loaded'])['Prisma']
+        globalThis['Prisma'] = clientModule['Prisma']
+
+        globalThis['sql'] = sqlModule
 
         globalThis['db'] = {
           setupDb: () =>
@@ -155,25 +159,6 @@ function setupTestSuiteMatrix(
             }),
           dropDb: () => dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings }).catch(() => {}),
         }
-      })
-
-      // for better type dx, copy a client into the test suite root node_modules
-      // this is so that we can have intellisense for the client in the test suite
-      beforeAll(() => {
-        if (process.env.CI === 'true') return // don't copy in CI (it's slow)
-
-        const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
-
-        // reserve the node_modules so that parallel tests suites don't conflict
-        fs.mkdir(rootNodeModuleFolderPath, async (error) => {
-          if (error !== null && error.code !== 'EEXIST') throw error // unknown error
-          if (error !== null && error.code === 'EEXIST') return // already reserved
-
-          const suiteFolderPath = getTestSuiteFolderPath({ suiteMeta, suiteConfig })
-          const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
-
-          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
-        })
       })
 
       afterAll(async () => {
@@ -208,6 +193,7 @@ function setupTestSuiteMatrix(
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
+        delete globalThis['sql']
         delete globalThis['newPrismaClient']
       }, 180_000)
 
