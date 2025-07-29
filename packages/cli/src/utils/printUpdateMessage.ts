@@ -16,7 +16,7 @@ export function printUpdateMessage(checkResult: Check.Result | 0 | void): void {
   const currentVersionInstalled = checkResult.data.previous_version
   const latestVersionAvailable = checkResult.data.current_version
 
-  const prismaCLICommand = makeInstallCommand(checkResult.data.package, checkResult.data.release_tag)
+  const prismaCLICommand = makeInstallCommand('@vetching-corporation/prisma-cli', checkResult.data.release_tag)
   const prismaClientCommand = makeInstallCommand('@vetching-corporation/prisma-client', checkResult.data.release_tag, {
     canBeGlobal: false,
     canBeDev: false,
@@ -58,11 +58,11 @@ function makeInstallCommand(
 ): string {
   let command = ''
   if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
-    command = `npm i -g ${packageName}`
+    command = `pnpm add -g ${packageName}`
   } else if (options.canBeDev) {
-    command = `npm i --save-dev ${packageName}`
+    command = `pnpm add -D ${packageName}`
   } else {
-    command = `npm i ${packageName}`
+    command = `pnpm add ${packageName}`
   }
 
   // always output tag (so major upgrades work)
