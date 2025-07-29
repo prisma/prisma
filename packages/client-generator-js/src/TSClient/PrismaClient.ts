@@ -652,16 +652,24 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           .setDocComment(ts.docComment`
              @example
              \`\`\`
-             // Defaults to stdout
+             // Shorthand for \`emit: 'stdout'\`
              log: ['query', 'info', 'warn', 'error']
 
-             // Emit as events
+             // Emit as events only
              log: [
-               { emit: 'stdout', level: 'query' },
-               { emit: 'stdout', level: 'info' },
-               { emit: 'stdout', level: 'warn' }
-               { emit: 'stdout', level: 'error' }
+               { emit: 'event', level: 'query' },
+               { emit: 'event', level: 'info' },
+               { emit: 'event', level: 'warn' }
+               { emit: 'event', level: 'error' }
              ]
+
+            // Emit as events and log to stdout
+            log: [
+              { emit: 'stdout', level: 'query' },
+              { emit: 'stdout', level: 'info' },
+              { emit: 'stdout', level: 'warn' }
+              { emit: 'stdout', level: 'error' }
+            ]
              \`\`\`
              Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
           `),
