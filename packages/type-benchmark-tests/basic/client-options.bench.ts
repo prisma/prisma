@@ -76,7 +76,6 @@ bench('global omit applied', () => {
     return prisma
   }
 
-  // @ts-expect-error - actually the "omitted client" is not assignable to the original `PrismaClient` as the user.name attributes are missing.
   return passClientAround(client)
 }).types([91192, 'instantiations']) // TODO: we want to get this number down
 
