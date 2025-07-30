@@ -205,8 +205,13 @@ const watch = (context: BuildContext, options: BuildOptions) => {
       return context.rebuild()
     })
 
+    // Handle unexpected internal errors
     if (rebuildResult instanceof Error) {
-      console.error(rebuildResult.message)
+      console.error(rebuildResult)
+    // Handle build errors (e.g., syntax errors)
+    } else if (rebuildResult.errors.length > 0) { 
+      // Log the detailed error object from esbuild for better debugging.
+      console.error(rebuildResult.errors)
     }
 
     console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
