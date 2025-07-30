@@ -39,7 +39,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+(\.\d+)?m?s 🚀$/)
     })
 
     it('validate', async () => {
@@ -308,7 +308,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+(\.\d+)?m?s 🚀$/)
     })
   })
 
@@ -376,7 +376,7 @@ describe('[wasm] incomplete-schemas', () => {
 
     it('format', async () => {
       const result = await Format.new().parse([], defaultTestConfig())
-      expect(result).toMatch(/^Formatted (.*) in \d+m?s 🚀$/)
+      expect(result).toMatch(/^Formatted (.*) in \d+(\.\d+)?m?s 🚀$/)
     })
 
     it('validate', async () => {
