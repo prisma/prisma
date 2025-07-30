@@ -89,6 +89,7 @@ export type QueryPlanDbQuery =
       fragments: Fragment[]
       placeholderFormat: PlaceholderFormat
       params: PrismaValue[]
+      chunkable: boolean
     }
 
 export type Fragment =
