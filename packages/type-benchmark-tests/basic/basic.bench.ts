@@ -3,6 +3,7 @@
 
 import { bench } from '@ark/attest'
 
+// @ts-ignore
 import type { PrismaClient } from './generated/client'
 
 declare const prisma: PrismaClient
