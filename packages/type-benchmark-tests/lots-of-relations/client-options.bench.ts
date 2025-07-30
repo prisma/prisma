@@ -109,7 +109,7 @@ bench('fully extended', () => {
   }).$extends({
     model: {
       $allModels: {
-        async exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
+        exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
           console.log('exists', where)
           return Promise.resolve(true)
         },
@@ -117,7 +117,7 @@ bench('fully extended', () => {
     },
     query: {
       $allModels: {
-        async findMany({ model, operation, args, query }) {
+        findMany({ model, operation, args, query }) {
           console.log('findMany', model, operation, args)
           return query(args)
         },
@@ -149,7 +149,7 @@ bench('fully extended without client options', () => {
   const client = new PrismaClientConstructor().$extends({
     model: {
       $allModels: {
-        async exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
+        exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
           console.log('exists', where)
           return Promise.resolve(true)
         },
@@ -157,7 +157,7 @@ bench('fully extended without client options', () => {
     },
     query: {
       $allModels: {
-        async findMany({ model, operation, args, query }) {
+        findMany({ model, operation, args, query }) {
           console.log('findMany', model, operation, args)
           return query(args)
         },
@@ -266,7 +266,7 @@ bench('using typeof - fully extended', () => {
     return prisma.$extends({
       model: {
         $allModels: {
-          async exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
+          exists<T>(this: T, where: Prisma.Args<T, 'findFirst'>['where']): Promise<boolean> {
             console.log('exists', where)
             return Promise.resolve(true)
           },
@@ -274,7 +274,7 @@ bench('using typeof - fully extended', () => {
       },
       query: {
         $allModels: {
-          async findMany({ model, operation, args, query }) {
+          findMany({ model, operation, args, query }) {
             console.log('findMany', model, operation, args)
             return query(args)
           },

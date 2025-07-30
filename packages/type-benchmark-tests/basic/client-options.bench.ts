@@ -123,7 +123,7 @@ bench('fully extended', () => {
       },
       query: {
         $allModels: {
-          async findMany({ model, operation, args, query }) {
+          findMany({ model, operation, args, query }) {
             console.log('findMany', model, operation, args)
             return query(args)
           },
@@ -163,7 +163,7 @@ bench('fully extended without client options', () => {
       },
       query: {
         $allModels: {
-          async findMany({ model, operation, args, query }) {
+          findMany({ model, operation, args, query }) {
             console.log('findMany', model, operation, args)
             return query(args)
           },
