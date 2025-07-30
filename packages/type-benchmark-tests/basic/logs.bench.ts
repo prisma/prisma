@@ -1,7 +1,6 @@
 import { bench } from '@ark/attest'
 
-// @ts-ignore
-import type { PrismaClient } from './generated/index.js'
+import type { PrismaClient } from './generated/client'
 
 declare const PrismaClientConstructor: typeof PrismaClient
 
