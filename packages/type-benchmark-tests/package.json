@@ -10,6 +10,7 @@
   },
   "license": "Apache-2.0",
   "scripts": {
+    "dev": "tsx test.ts -- --onlyGenerate",
     "test": "tsx test.ts",
     "test:update": "tsx test.ts -- --updateSnapshots"
   },
