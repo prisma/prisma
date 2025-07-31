@@ -4,9 +4,9 @@ import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './generated/prisma/client'
+import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
+let prisma: PrismaClient<'event' | 'error', Prisma.PrismaClientOptions['omit']>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const email = faker.internet.email()
