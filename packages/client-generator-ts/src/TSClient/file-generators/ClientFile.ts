@@ -53,7 +53,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
             .extends(
               ts.namedType('Partial').addGenericArgument(ts.namedType('Prisma.PrismaClientOptions').subKey('omit')),
             )
-            .default(ts.objectType()),
+            .default(ts.namedType('Prisma.PrismaClientOptions').subKey('omit')),
         )
         .addGenericParameter(
           ts
