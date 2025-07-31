@@ -157,6 +157,13 @@ export interface EngineConfig {
   adapter?: SqlDriverAdapterFactory
 
   /**
+   * Instance of a Read Only Driver Adapter, e.g., like one provided by `@prisma/adapter-pg`.
+   * If set, this is only used in the LocalExecutor, and all queries would be performed through it,
+   * @remarks only used by LocalExecutor.ts
+   */
+  adapterRO?: SqlDriverAdapterFactory
+
+  /**
    * The contents of the schema encoded into a string
    */
   inlineSchema: string

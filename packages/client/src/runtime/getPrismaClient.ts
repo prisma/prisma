@@ -105,7 +105,10 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: SqlDriverAdapterFactory | null
+  adapter?: {
+    primary: SqlDriverAdapterFactory
+    replica?: SqlDriverAdapterFactory | null
+  }
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -300,8 +303,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        */
 
       let adapter: SqlDriverAdapterFactory | undefined
+      let adapterRO: SqlDriverAdapterFactory | undefined
       if (optionsArg?.adapter) {
-        adapter = optionsArg.adapter
+        adapter = optionsArg.adapter.primary
+        adapterRO = optionsArg.adapter.replica ?? undefined
 
         // Note:
         // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
@@ -321,6 +326,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (adapter.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(
             `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
+            this._clientVersion,
+          )
+        } else if (adapterRO && adapterRO.provider !== adapter.provider) {
+          throw new PrismaClientInitializationError(
+            `The Read Only Driver Adapter \`${adapterRO.adapterName}\`, based on \`${adapterRO.provider}\`, is not compatible with the provider \`${adapter.provider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }
@@ -409,6 +419,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           isBundled: config.isBundled,
           adapter,
+          adapterRO,
         }
 
         this._accelerateEngineConfig = {

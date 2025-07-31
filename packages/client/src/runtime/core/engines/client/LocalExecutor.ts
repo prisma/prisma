@@ -13,29 +13,53 @@ import type { ExecutePlanParams, Executor, ProviderAndConnectionInfo } from './E
 
 export interface LocalExecutorOptions {
   driverAdapterFactory: SqlDriverAdapterFactory
+  driverAdapterROFactory?: SqlDriverAdapterFactory
   transactionOptions: TransactionOptions
   tracingHelper: TracingHelper
   onQuery?: (event: QueryEvent) => void
   provider?: SchemaProvider
 }
 
+const readOperations = [
+  'findFirst',
+  'findFirstOrThrow',
+  'findMany',
+  'findUnique',
+  'findUniqueOrThrow',
+  'groupBy',
+  'aggregate',
+  'count',
+  'findRaw',
+  'aggregateRaw',
+]
+
 export class LocalExecutor implements Executor {
   readonly #options: LocalExecutorOptions
   readonly #driverAdapter: SqlDriverAdapter
+  readonly #driverAdapterRO?: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
 
-  constructor(options: LocalExecutorOptions, driverAdapter: SqlDriverAdapter, transactionManager: TransactionManager) {
+  constructor(
+    options: LocalExecutorOptions,
+    driverAdapter: SqlDriverAdapter,
+    driverAdapterRO: SqlDriverAdapter | undefined,
+    transactionManager: TransactionManager,
+  ) {
     this.#options = options
     this.#driverAdapter = driverAdapter
+    this.#driverAdapterRO = driverAdapterRO
     this.#transactionManager = transactionManager
   }
 
   static async connect(options: LocalExecutorOptions): Promise<LocalExecutor> {
     let driverAdapter: SqlDriverAdapter | undefined = undefined
+    let driverAdapterRO: SqlDriverAdapter | undefined = undefined
     let transactionManager: TransactionManager | undefined = undefined
 
     try {
       driverAdapter = await options.driverAdapterFactory.connect()
+      driverAdapterRO = await options?.driverAdapterROFactory?.connect()
+
       transactionManager = new TransactionManager({
         driverAdapter,
         transactionOptions: options.transactionOptions,
@@ -45,10 +69,11 @@ export class LocalExecutor implements Executor {
       })
     } catch (error) {
       await driverAdapter?.dispose()
+      await driverAdapterRO?.dispose()
       throw error
     }
 
-    return new LocalExecutor(options, driverAdapter, transactionManager)
+    return new LocalExecutor(options, driverAdapter, driverAdapterRO, transactionManager)
   }
 
   getConnectionInfo(): Promise<ProviderAndConnectionInfo> {
@@ -56,9 +81,11 @@ export class LocalExecutor implements Executor {
     return Promise.resolve({ provider: this.#driverAdapter.provider, connectionInfo })
   }
 
-  async execute({ plan, placeholderValues, transaction, batchIndex }: ExecutePlanParams): Promise<unknown> {
+  async execute({ plan, placeholderValues, transaction, batchIndex, operation }: ExecutePlanParams): Promise<unknown> {
     const queryable = transaction
       ? this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
+      : this.#driverAdapterRO !== undefined && readOperations.includes(operation)
+      ? this.#driverAdapterRO
       : this.#driverAdapter
 
     const interpreter = QueryInterpreter.forSql({
@@ -89,6 +116,7 @@ export class LocalExecutor implements Executor {
       await this.#transactionManager.cancelAllTransactions()
     } finally {
       await this.#driverAdapter.dispose()
+      await this.#driverAdapterRO?.dispose()
     }
   }
 }
