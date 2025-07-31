@@ -376,7 +376,7 @@ bench('client extensions(0)- 5 ops', () => {
     where: { email: 'op5_findUnique_user@example.com' },
     select: { name: true },
   })
-}).types([1145, 'instantiations'])
+}).types([1140, 'instantiations'])
 
 bench('client extensions(1)- 5 ops', () => {
   const xprisma1 = getXprisma1()
