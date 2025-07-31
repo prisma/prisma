@@ -55,7 +55,7 @@ bench('log config applied', () => {
   // @ts-expect-error - client with different log config is a different type
   passClientAround(client)
   passToAnyClientAround(client)
-}).types([800, 'instantiations']) // TODO: we want to get this number down
+}).types([800, 'instantiations'])
 
 bench('datasourceUrl applied', () => {
   const client = new PrismaClientConstructor({
@@ -67,7 +67,7 @@ bench('datasourceUrl applied', () => {
   }
 
   return passClientAround(client)
-}).types([437, 'instantiations']) // TODO: we want to get this number down
+}).types([437, 'instantiations'])
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
@@ -83,7 +83,7 @@ bench('adapter applied', () => {
   }
 
   return passClientAround(client)
-}).types([623, 'instantiations']) // TODO: we want to get this number down
+}).types([623, 'instantiations'])
 
 bench('global omit applied', async () => {
   const client = new PrismaClientConstructor({
@@ -104,7 +104,7 @@ bench('global omit applied', async () => {
 
   // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
-}).types([65278, 'instantiations']) // TODO: we want to get this number down
+}).types([65278, 'instantiations'])
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
@@ -131,7 +131,7 @@ bench('passed around client then extend', () => {
 
   return passClientAround(client)
   // Apparently passing the client around and then extending it is way slower.
-}).types([2103, 'instantiations']) // TODO: we want to get this number down
+}).types([2103, 'instantiations'])
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
