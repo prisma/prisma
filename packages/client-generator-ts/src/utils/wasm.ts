@@ -68,6 +68,7 @@ export function buildGetWasmModule({
 
   const buildEdgeLoader = usesEdgeWasmRuntime(component, runtimeName)
 
+  let wasmPathBase: string
   let wasmBindingsPath: string
   let wasmModulePath: string
 
@@ -88,16 +89,17 @@ export function buildGetWasmModule({
   // don't apply in this case because we are not *importing* them, we're just
   // reading a file on disk.
   if (buildEdgeLoader) {
-    const wasmPathBase = `./query_${component}_bg`
+    wasmPathBase = `./query_${component}_bg`
     wasmBindingsPath = `${wasmPathBase}.js`
     wasmModulePath = `${wasmPathBase}.wasm`
   } else {
-    const wasmPathBase = `${runtimeBase}/query_${component}_bg.${activeProvider}`
+    wasmPathBase = `${runtimeBase}/query_${component}_bg.${activeProvider}`
     wasmBindingsPath = `${wasmPathBase}.mjs`
     wasmModulePath = `${wasmPathBase}.wasm`
   }
 
   if (buildNodeJsLoader) {
+    wasmModulePath = `${wasmPathBase}.wasm-base64.js`
     return `
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
