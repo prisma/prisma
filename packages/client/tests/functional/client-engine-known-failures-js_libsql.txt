@@ -11,6 +11,4 @@ metrics.enabled (provider=sqlite, js_libsql) before a query SQL Providers: shoul
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_libsql) multiple instances does not share metrics between 2 different instances of client
-typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_libsql) DateTime - input
-typed-sql.sqlite-scalars.test (provider=sqlite, js_libsql) DateTime - input
 unsupported-action (provider=sqlite, js_libsql) unsupported method

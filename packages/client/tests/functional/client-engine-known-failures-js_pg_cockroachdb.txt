@@ -20,7 +20,4 @@ metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) multiple instances doe
 reconnect (provider=cockroachdb, js_pg_cockroachdb) can disconnect and reconnect
 tracing (provider=cockroachdb, js_pg_cockroachdb) tracing connect should trace the implicit $connect call
 tracing (provider=cockroachdb, js_pg_cockroachdb) tracing on transactions $transaction
-typed-sql.postgres-lists.test (provider=cockroachdb, js_pg_cockroachdb) Time - input
-typed-sql.postgres-scalars-nullable.test (provider=cockroachdb, js_pg_cockroachdb) Time - input
-typed-sql.postgres-scalars.test (provider=cockroachdb, js_pg_cockroachdb) Time - input
 unsupported-action (provider=cockroachdb, js_pg_cockroachdb) unsupported method
