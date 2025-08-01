@@ -203,21 +203,19 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
               const wasmFilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`)
 
               const extToModuleFormatMap = {
-                esm: ['mjs', 'ts'],
-                cjs: ['cjs'],
-              } satisfies Record<ModuleFormat, string[]>
+                esm: 'mjs',
+                cjs: 'cjs',
+              } satisfies Record<ModuleFormat, string>
 
-              for (const [moduleFormat, extensions] of Object.entries(extToModuleFormatMap)) {
-                for (const extension of extensions) {
-                  const base64FilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm-base64.${extension}`)
+              for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
+                const base64FilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm-base64.${extension}`)
 
-                  try {
-                    const wasmBuffer = fs.readFileSync(wasmFilePath)
-                    const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
-                    fs.writeFileSync(base64FilePath, base64Content)
-                  } catch (error) {
-                    throw new Error(`Failed to create base64 encoded WASM file for ${provider}:`, error as Error)
-                  }
+                try {
+                  const wasmBuffer = fs.readFileSync(wasmFilePath)
+                  const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
+                  fs.writeFileSync(base64FilePath, base64Content)
+                } catch (error) {
+                  throw new Error(`Failed to create base64 encoded WASM file for ${provider}:`, error as Error)
                 }
               }
             }
