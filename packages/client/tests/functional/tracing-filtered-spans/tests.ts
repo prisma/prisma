@@ -35,7 +35,6 @@ beforeAll(() => {
   registerInstrumentations({
     instrumentations: [
       new PrismaInstrumentation({
-        middleware: true,
         ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/, 'prisma:client:db_query'],
       }),
     ],

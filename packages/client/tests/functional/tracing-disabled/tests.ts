@@ -30,7 +30,7 @@ beforeAll(() => {
 
   /* new PrismaInstrumentation is not enabled so spans should not be generated */
   // registerInstrumentations({
-  //   instrumentations: [new PrismaInstrumentation({ middleware: true })],
+  //   instrumentations: [new PrismaInstrumentation()],
   // })
 })
 

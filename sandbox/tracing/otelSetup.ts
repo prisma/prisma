@@ -38,7 +38,7 @@ export function otelSetup() {
 
   registerInstrumentations({
     // @ts-ignore
-    instrumentations: [new PrismaInstrumentation({ middleware: true })],
+    instrumentations: [new PrismaInstrumentation()],
   })
 
   // a provider combines multiple exporters to send the data

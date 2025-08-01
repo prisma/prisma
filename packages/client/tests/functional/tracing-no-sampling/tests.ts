@@ -39,7 +39,7 @@ beforeAll(() => {
   basicTracerProvider.register()
 
   registerInstrumentations({
-    instrumentations: [new PrismaInstrumentation({ middleware: true })],
+    instrumentations: [new PrismaInstrumentation()],
   })
 })
 

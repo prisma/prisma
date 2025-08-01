@@ -20,11 +20,6 @@ testMatrix.setupTestSuite(
 
       prisma.$on('query', ({ query }) => queries.push(query))
 
-      prisma.$use(async (params, next) => {
-        await Promise.resolve()
-        return next(params)
-      })
-
       const xprisma = prisma.$extends({
         query: {
           async $queryRawUnsafe({ args, query }) {
@@ -60,11 +55,6 @@ testMatrix.setupTestSuite(
       const queries: string[] = []
 
       prisma.$on('query', ({ query }) => queries.push(query))
-
-      prisma.$use(async (params, next) => {
-        await new Promise((r) => setTimeout(r, Math.random() * 1_000))
-        return next(params)
-      })
 
       await prisma.$transaction([
         prisma.$queryRawUnsafe('SELECT 1'),

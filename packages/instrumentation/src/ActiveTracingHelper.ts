@@ -20,7 +20,6 @@ const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
 const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
-  traceMiddleware: boolean
   tracerProvider: TracerProvider
   ignoreSpanTypes: (string | RegExp)[]
 }
@@ -36,12 +35,10 @@ function engineSpanKindToOtelSpanKind(engineSpanKind: EngineSpanKind): SpanKind 
 }
 
 export class ActiveTracingHelper implements TracingHelper {
-  private traceMiddleware: boolean
   private tracerProvider: TracerProvider
   private ignoreSpanTypes: (string | RegExp)[]
 
-  constructor({ traceMiddleware, tracerProvider, ignoreSpanTypes }: Options) {
-    this.traceMiddleware = traceMiddleware
+  constructor({ tracerProvider, ignoreSpanTypes }: Options) {
     this.tracerProvider = tracerProvider
     this.ignoreSpanTypes = ignoreSpanTypes
   }
@@ -81,10 +78,6 @@ export class ActiveTracingHelper implements TracingHelper {
       return callback()
     }
 
-    if (options.middleware && !this.traceMiddleware) {
-      return callback()
-    }
-
     const tracer = this.tracerProvider.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
@@ -94,7 +87,7 @@ export class ActiveTracingHelper implements TracingHelper {
     }
 
     // these spans will not be nested by default even in recursive calls
-    // it's useful for showing middleware sequentially instead of nested
+    // it used to be useful for showing middleware sequentially instead of nested
     if (options.active === false) {
       const span = tracer.startSpan(name, options, context)
       return endSpan(span, callback(span, context))

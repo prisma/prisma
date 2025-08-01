@@ -7,8 +7,6 @@ export type ExtendedSpanOptions = SpanOptions & {
   name: string
   /* Internal spans are not shown unless PRISMA_SHOW_ALL_TRACES=true env var is set */
   internal?: boolean
-  /* Middleware spans are not shown unless `middleware` options is set for PrismaInstrumentation constructor */
-  middleware?: boolean
   /** Whether it propagates context (?=true) */
   active?: boolean
   /** The context to append the span to */
