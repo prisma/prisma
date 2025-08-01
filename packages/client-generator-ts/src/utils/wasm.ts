@@ -99,7 +99,12 @@ export function buildGetWasmModule({
   }
 
   if (buildNodeJsLoader) {
-    wasmModulePath = `${wasmPathBase}.wasm-base64.js`
+    const extension = match(moduleFormat)
+      .with('esm', () => 'mjs')
+      .with('cjs', () => 'cjs')
+      .exhaustive()
+
+    wasmModulePath = `${wasmPathBase}.wasm-base64.${extension}`
     return `
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
