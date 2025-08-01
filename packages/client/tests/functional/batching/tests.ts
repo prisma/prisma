@@ -19,7 +19,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   () => {
-    let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+    let prisma: PrismaClient<'event' | 'query'>
     let queriesExecuted = 0
 
     beforeAll(async () => {

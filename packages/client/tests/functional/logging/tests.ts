@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
   const isSqlServer = provider === Providers.SQLSERVER
 
-  let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
+  let client: PrismaClient<'query', Prisma.PrismaClientOptions['omit']>
 
   test('should log queries on a method call', async () => {
     client = newPrismaClient({

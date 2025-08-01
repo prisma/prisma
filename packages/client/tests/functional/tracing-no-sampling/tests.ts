@@ -16,7 +16,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+let prisma: PrismaClient<'event' | 'query'>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter

@@ -29,11 +29,33 @@ bench('log config applied', () => {
   })
 
   const passClientAround = (prisma: PrismaClient) => {
+    // Would be cool if this could be a type error:
+    prisma.$on('foobarbaz', (event) => {
+      console.log(event)
+    })
     return prisma
   }
 
-  return passClientAround(client)
-}).types([46866, 'instantiations']) // TODO: we want to get this number down
+  const passToAnyClientAround = (prisma: PrismaClient<any>) => {
+    prisma.$on('info', (event) => {
+      console.log(event)
+    })
+    return prisma
+  }
+
+  client.$on('query', (event) => {
+    console.log(event)
+  })
+
+  // @ts-expect-error - info is not a valid event type because we do not pass it in the client options
+  client.$on('info', (event) => {
+    console.log(event)
+  })
+
+  // @ts-expect-error - client with different log config is a different type
+  passClientAround(client)
+  passToAnyClientAround(client)
+}).types([800, 'instantiations'])
 
 bench('datasourceUrl applied', () => {
   const client = new PrismaClientConstructor({
@@ -45,7 +67,7 @@ bench('datasourceUrl applied', () => {
   }
 
   return passClientAround(client)
-}).types([46755, 'instantiations']) // TODO: we want to get this number down
+}).types([437, 'instantiations'])
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
@@ -61,9 +83,9 @@ bench('adapter applied', () => {
   }
 
   return passClientAround(client)
-}).types([46834, 'instantiations']) // TODO: we want to get this number down
+}).types([623, 'instantiations'])
 
-bench('global omit applied', () => {
+bench('global omit applied', async () => {
   const client = new PrismaClientConstructor({
     omit: {
       user: {
@@ -76,8 +98,13 @@ bench('global omit applied', () => {
     return prisma
   }
 
+  const res = await client.user.findFirst({})
+  // @ts-expect-error - name should not be available as it is globally omitted
+  console.log(res?.name)
+
+  // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
-}).types([91192, 'instantiations']) // TODO: we want to get this number down
+}).types([65278, 'instantiations'])
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
@@ -88,9 +115,10 @@ bench('extended client then pass around', () => {
     return prisma
   }
 
+  // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
   // Apparently extending the client and then passing it around is way faster.
-}).types([2036, 'instantiations'])
+}).types([2263, 'instantiations'])
 
 bench('passed around client then extend', () => {
   const client = new PrismaClientConstructor({
@@ -103,7 +131,7 @@ bench('passed around client then extend', () => {
 
   return passClientAround(client)
   // Apparently passing the client around and then extending it is way slower.
-}).types([48156, 'instantiations']) // TODO: we want to get this number down
+}).types([2103, 'instantiations'])
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
@@ -145,7 +173,7 @@ bench('fully extended', () => {
   }
 
   return passClientAround(client)
-}).types([53782, 'instantiations'])
+}).types([8307, 'instantiations'])
 
 bench('fully extended without client options', () => {
   const client = new PrismaClientConstructor()
@@ -185,7 +213,7 @@ bench('fully extended without client options', () => {
   }
 
   return passClientAround(client)
-}).types([7875, 'instantiations'])
+}).types([8309, 'instantiations'])
 
 // ------------------------------------------------------------
 // Workaround solutions using typeof operator
@@ -207,7 +235,7 @@ bench('using typeof', () => {
   }
 
   passClientAround(client)
-}).types([273, 'instantiations'])
+}).types([515, 'instantiations'])
 
 // ------------------------------------------------------------
 // Suggestion from David Blass - to be verified
@@ -237,4 +265,4 @@ bench('Any PrismaClient', () => {
 
   passClientAround(client)
   // with the suggested variance annotations, this value goes down to 247 instantiations
-}).types([34056, 'instantiations'])
+}).types([519, 'instantiations'])

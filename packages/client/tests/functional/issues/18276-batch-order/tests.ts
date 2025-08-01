@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
+      }) as PrismaClient<'query' | 'event'>
 
       const queries: string[] = []
 
@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
     test('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
+      }) as PrismaClient<'query' | 'event'>
 
       const queries: string[] = []
 

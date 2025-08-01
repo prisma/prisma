@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     const isCockroachDb = provider === Providers.COCKROACHDB
 
     const queries: string[] = []
-    let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
+    let prisma: PrismaClient<'query'>
 
     beforeAll(() => {
       prisma = newPrismaClient({

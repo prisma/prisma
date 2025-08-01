@@ -8,7 +8,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let prisma: PrismaClient<'event' | 'query'>
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
