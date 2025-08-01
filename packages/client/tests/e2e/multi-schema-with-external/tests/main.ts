@@ -1,3 +1,6 @@
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
 import { InvoiceStatus, PrismaClient } from '@prisma/client'
 
 describe('Prisma External Tables and Enums', () => {
@@ -113,6 +116,46 @@ describe('Prisma External Tables and Enums', () => {
       amount: 149.99,
       order: { id: 1, userId: 1 },
     })
+  })
+
+  test('created correct migration without external table', async () => {
+    const migrations = await fs.readdir(path.join(__dirname, '..', 'prisma', 'migrations'))
+
+    expect(migrations.length).toBe(2) // 1 initial migration + 1 migration_lock.toml
+    const createRelationshipMigration = await fs.readFile(
+      path.join(__dirname, '..', 'prisma', 'migrations', migrations[0], 'migration.sql'),
+      'utf-8',
+    )
+    expect(createRelationshipMigration).not.toContain('CREATE TABLE invoicing."Invoice"')
+    expect(createRelationshipMigration).toMatchInlineSnapshot(`
+"-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "base";
+
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "shop";
+
+-- CreateEnum
+CREATE TYPE "shop"."Size" AS ENUM ('Small', 'Medium', 'Large');
+
+-- CreateTable
+CREATE TABLE "base"."User" (
+    "id" INTEGER NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "shop"."Order" (
+    "id" INTEGER NOT NULL,
+    "userId" INTEGER NOT NULL,
+
+    CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
+);
+
+-- AddForeignKey
+ALTER TABLE "shop"."Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "base"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+"
+`)
   })
 })
 
