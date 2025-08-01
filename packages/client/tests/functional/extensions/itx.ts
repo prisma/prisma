@@ -229,51 +229,6 @@ testMatrix.setupTestSuite(
       ).resolves.not.toThrow()
     })
 
-    // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
-    // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
-    // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
-    // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
-    testIf(provider !== Providers.SQLITE)(
-      'middleware exclude from transaction also works with extended client',
-      async () => {
-        const xprisma = prisma.$extends({})
-
-        prisma.$use((params, next) => {
-          return next({ ...params, runInTransaction: false })
-        })
-
-        const usersBefore = await xprisma.user.findMany()
-
-        await xprisma
-          .$transaction(async (prisma) => {
-            await prisma.user.create({
-              data: {
-                email: 'jane@smith.com',
-                firstName: 'Jane',
-                lastName: 'Smith',
-              },
-            })
-
-            await prisma.user.create({
-              data: {
-                email: 'jane@smith.com',
-                firstName: 'Jane',
-                lastName: 'Smith',
-              },
-            })
-          })
-          .catch((err) => {
-            if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
-              throw err
-            }
-          })
-
-        const usersAfter = await xprisma.user.findMany()
-
-        expect(usersAfter).toHaveLength(usersBefore.length + 1)
-      },
-    )
-
     test('client component is available within itx callback', async () => {
       const helper = jest.fn()
       const xprisma = prisma.$extends({
