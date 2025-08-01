@@ -1,4 +1,3 @@
-filter-count-relations (provider=cockroachdb, js_pg_cockroachdb) nested relation
 fulltext-search (provider=cockroachdb, js_pg_cockroachdb) bad query
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batching raw rollback
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout default

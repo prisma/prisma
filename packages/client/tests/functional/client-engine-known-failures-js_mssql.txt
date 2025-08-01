@@ -1,6 +1,5 @@
 extensions.tx (provider=sqlserver, js_mssql) extended client in tx can rollback via custom call
 extensions.tx (provider=sqlserver, js_mssql) extended client in tx can rollback via normal call
-filter-count-relations (provider=sqlserver, js_mssql) nested relation
 interactive-transactions (provider=sqlserver, js_mssql) batching raw rollback
 interactive-transactions (provider=sqlserver, js_mssql) batching rollback
 interactive-transactions (provider=sqlserver, js_mssql) timeout default

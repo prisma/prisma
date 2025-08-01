@@ -1,6 +1,5 @@
 extensions.tx (provider=mysql, js_planetscale) extended client in tx can rollback via custom call
 extensions.tx (provider=mysql, js_planetscale) extended client in tx can rollback via normal call
-filter-count-relations (provider=mysql, js_planetscale) nested relation
 fulltext-search (provider=mysql, js_planetscale) bad query
 interactive-transactions (provider=mysql, js_planetscale) batching raw rollback
 interactive-transactions (provider=mysql, js_planetscale) batching rollback

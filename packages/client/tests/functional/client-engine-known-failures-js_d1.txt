@@ -1,5 +1,4 @@
 enums (provider=sqlite, js_d1) fails at runtime when an invalid entry is entered manually in SQLite
-filter-count-relations (provider=sqlite, js_d1) nested relation
 invalid-sqlite-isolation-level (provider=sqlite, js_d1) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_d1) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_d1) should return a descriptive error
