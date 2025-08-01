@@ -160,6 +160,12 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   ],
 }
 
+function wasmFileToBase64(wasmBuffer: Buffer): string {
+  const base64 = wasmBuffer.toString('base64')
+  const encodedWasmContent = `export const wasm = "data:application/wasm;base64,${base64}";\n`
+  return encodedWasmContent
+}
+
 // we define the config for wasm
 function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, name: string): BuildOptions {
   return {
@@ -188,6 +194,25 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
           to: path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`),
         })),
       ),
+      {
+        name: 'wasm-base64-encoder',
+        setup(build) {
+          build.onEnd(() => {
+            for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
+              const wasmFilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`)
+              const base64FilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm-base64.js`)
+
+              try {
+                const wasmBuffer = fs.readFileSync(wasmFilePath)
+                const base64Content = wasmFileToBase64(wasmBuffer)
+                fs.writeFileSync(base64FilePath, base64Content)
+              } catch (error) {
+                throw new Error(`Failed to create base64 encoded WASM file for ${provider}:`, error as Error)
+              }
+            }
+          })
+        },
+      },
     ],
   }
 }
