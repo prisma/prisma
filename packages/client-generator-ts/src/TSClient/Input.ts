@@ -8,6 +8,7 @@ import { appendSkipType } from '../utils'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import { GenerateContext } from './GenerateContext'
+import { InputTypeOptimizer } from './optimizers/InputTypeOptimizer'
 
 export class InputField {
   constructor(
@@ -133,6 +134,10 @@ export class InputType {
 
   public toTS(): string {
     const { type } = this
+
+    const optimizedType = new InputTypeOptimizer(this.context).optimize(this.type)
+    if (optimizedType) return ts.stringify(optimizedType)
+
     const source = type.meta?.source
 
     const fields = uniqueBy(type.fields, (f) => f.name)

@@ -2,6 +2,7 @@ import * as ts from '@prisma/ts-builders'
 
 import { GenerateContext } from '../GenerateContext'
 import { InputType } from '../Input'
+import { InputTypeOptimizer } from '../optimizers/InputTypeOptimizer'
 
 const jsDocHeader = `/**
  * This file exports various common sort, input & filter types that are not directly linked to a particular model.
@@ -24,6 +25,8 @@ export function createCommonInputTypeFiles(context: GenerateContext) {
 
   return `${jsDocHeader}
 ${imports.join('\n')}
+
+${InputTypeOptimizer.sharedUtilityTypes()}
 
 ${genericInputTypes.join('\n')}
 

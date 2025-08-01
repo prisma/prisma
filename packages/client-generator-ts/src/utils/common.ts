@@ -1,4 +1,4 @@
-export const GraphQLScalarToJSTypeTable = {
+export const GraphQLScalarToJSTypeTable: Record<string, string | string[] | undefined> = {
   String: 'string',
   Int: 'number',
   Float: 'number',
