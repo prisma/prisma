@@ -1,6 +1,4 @@
 enums (provider=sqlite, js_better_sqlite3) fails at runtime when an invalid entry is entered manually in SQLite
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via custom call
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via normal call
 filter-count-relations (provider=sqlite, js_better_sqlite3) nested relation
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching raw rollback
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback

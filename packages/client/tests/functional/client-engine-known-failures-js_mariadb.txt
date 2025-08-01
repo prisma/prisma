@@ -1,6 +1,4 @@
 extensions.itx (provider=mysql, js_mariadb) middleware exclude from transaction also works with extended client
-extensions.tx (provider=mysql, js_mariadb) extended client in tx can rollback via custom call
-extensions.tx (provider=mysql, js_mariadb) extended client in tx can rollback via normal call
 filter-count-relations (provider=mysql, js_mariadb) nested relation
 fulltext-search (provider=mysql, js_mariadb) bad query
 interactive-transactions (provider=mysql, js_mariadb) batching raw rollback
