@@ -17,7 +17,6 @@ metrics.enabled (provider=postgresql, js_pg) before a query SQL Providers: shoul
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) multiple instances does not share metrics between 2 different instances of client
-tracing (provider=postgresql, js_pg) tracing on transactions $transaction
 typed-sql.postgres-lists.test (provider=postgresql, js_pg) Time - input
 typed-sql.postgres-scalars-nullable.test (provider=postgresql, js_pg) Time - input
 typed-sql.postgres-scalars.test (provider=postgresql, js_pg) Time - input
