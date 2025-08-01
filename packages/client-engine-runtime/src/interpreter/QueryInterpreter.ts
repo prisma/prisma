@@ -1,4 +1,4 @@
-import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
 import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
@@ -24,6 +24,7 @@ export type QueryInterpreterOptions = {
   serializer: (results: SqlResultSet) => Value
   rawSerializer?: (results: SqlResultSet) => Value
   provider?: SchemaProvider
+  connectionInfo?: ConnectionInfo
 }
 
 export class QueryInterpreter {
@@ -35,6 +36,7 @@ export class QueryInterpreter {
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
+  readonly #connectioInfo?: ConnectionInfo
 
   constructor({
     transactionManager,
@@ -44,6 +46,7 @@ export class QueryInterpreter {
     serializer,
     rawSerializer,
     provider,
+    connectionInfo,
   }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
@@ -52,6 +55,7 @@ export class QueryInterpreter {
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
+    this.#connectioInfo = connectionInfo
   }
 
   static forSql(options: {
@@ -60,6 +64,7 @@ export class QueryInterpreter {
     onQuery?: (event: QueryEvent) => void
     tracingHelper: TracingHelper
     provider?: SchemaProvider
+    connectionInfo?: ConnectionInfo
   }): QueryInterpreter {
     return new QueryInterpreter({
       transactionManager: options.transactionManager,
@@ -69,6 +74,7 @@ export class QueryInterpreter {
       serializer: serializeSql,
       rawSerializer: serializeRawSql,
       provider: options.provider,
+      connectionInfo: options.connectionInfo,
     })
   }
 
@@ -144,22 +150,34 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const query = renderQuery(node.args, scope, generators)
-        return this.#withQuerySpanAndEvent(query, queryable, async () => {
-          return { value: await queryable.executeRaw(query) }
-        })
+        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+
+        let sum = 0
+        for (const query of queries) {
+          sum += await this.#withQuerySpanAndEvent(query, queryable, () => queryable.executeRaw(query))
+        }
+
+        return { value: sum }
       }
 
       case 'query': {
-        const query = renderQuery(node.args, scope, generators)
-        return this.#withQuerySpanAndEvent(query, queryable, async () => {
-          const result = await queryable.queryRaw(query)
-          if (node.args.type === 'rawSql') {
-            return { value: this.#rawSerializer(result), lastInsertId: result.lastInsertId }
+        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+
+        let results: SqlResultSet | undefined
+        for (const query of queries) {
+          const result = await this.#withQuerySpanAndEvent(query, queryable, () => queryable.queryRaw(query))
+          if (results === undefined) {
+            results = result
           } else {
-            return { value: this.#serializer(result), lastInsertId: result.lastInsertId }
+            results.rows.push(...result.rows)
+            results.lastInsertId = result.lastInsertId
           }
-        })
+        }
+
+        return {
+          value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
+          lastInsertId: results?.lastInsertId,
+        }
       }
 
       case 'reverse': {
@@ -321,6 +339,36 @@ export class QueryInterpreter {
 
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
+    }
+  }
+
+  #maxChunkSize(): number | undefined {
+    if (this.#connectioInfo?.maxBindValues !== undefined) {
+      return this.#connectioInfo.maxBindValues
+    }
+    return this.#providerMaxChunkSize()
+  }
+
+  #providerMaxChunkSize(): number | undefined {
+    if (this.#provider === undefined) {
+      return undefined
+    }
+    switch (this.#provider) {
+      case 'cockroachdb':
+      case 'postgres':
+      case 'postgresql':
+      case 'prisma+postgres':
+        return 32766
+      case 'mysql':
+        return 65535
+      case 'sqlite':
+        return 999
+      case 'sqlserver':
+        return 2098
+      case 'mongodb':
+        return undefined
+      default:
+        assertNever(this.#provider, `Unexpected provider: ${this.#provider}`)
     }
   }
 

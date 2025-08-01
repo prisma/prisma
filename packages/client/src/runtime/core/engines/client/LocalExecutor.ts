@@ -6,7 +6,7 @@ import {
   TransactionManager,
   type TransactionOptions,
 } from '@prisma/client-engine-runtime'
-import type { SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { ConnectionInfo, SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
 import type { ExecutePlanParams, Executor, ProviderAndConnectionInfo } from './Executor'
@@ -23,11 +23,13 @@ export class LocalExecutor implements Executor {
   readonly #options: LocalExecutorOptions
   readonly #driverAdapter: SqlDriverAdapter
   readonly #transactionManager: TransactionManager
+  readonly #connectionInfo?: ConnectionInfo
 
   constructor(options: LocalExecutorOptions, driverAdapter: SqlDriverAdapter, transactionManager: TransactionManager) {
     this.#options = options
     this.#driverAdapter = driverAdapter
     this.#transactionManager = transactionManager
+    this.#connectionInfo = driverAdapter.getConnectionInfo?.()
   }
 
   static async connect(options: LocalExecutorOptions): Promise<LocalExecutor> {
@@ -52,7 +54,7 @@ export class LocalExecutor implements Executor {
   }
 
   getConnectionInfo(): Promise<ProviderAndConnectionInfo> {
-    const connectionInfo = this.#driverAdapter.getConnectionInfo?.() ?? { supportsRelationJoins: false }
+    const connectionInfo = this.#connectionInfo ?? { supportsRelationJoins: false }
     return Promise.resolve({ provider: this.#driverAdapter.provider, connectionInfo })
   }
 
@@ -67,6 +69,7 @@ export class LocalExecutor implements Executor {
       onQuery: this.#options.onQuery,
       tracingHelper: this.#options.tracingHelper,
       provider: this.#options.provider,
+      connectionInfo: this.#connectionInfo,
     })
 
     return await interpreter.run(plan, queryable)
