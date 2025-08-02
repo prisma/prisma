@@ -29,6 +29,7 @@ export function assertTypeScriptIsValid({ files, moduleFormat }: AssertTypeScrip
   const compilerOptions = {
     ...configFromModuleFormat,
     lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'],
+    types: ['@types/node'],
     target: ts.ScriptTarget.ES2022,
     strict: true,
     esModuleInterop: true,

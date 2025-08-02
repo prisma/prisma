@@ -51,6 +51,11 @@ const registry = {
 } satisfies GeneratorRegistry
 
 describe('getGenerators', () => {
+  afterEach(() => {
+    // Clean up environment variables set by tests
+    delete process.env.BINARY_TARGETS_ENV_VAR_TEST
+  })
+
   test('basic', async () => {
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),
@@ -841,6 +846,8 @@ describe('getGenerators', () => {
       allowNoModels: true,
     })
 
+    generators.forEach((g) => g.stop())
+
     return expect(generators.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -866,5 +873,7 @@ describe('getGenerators', () => {
     })
 
     expect(generators.length).toBeGreaterThanOrEqual(1)
+
+    generators.forEach((g) => g.stop())
   })
 })
