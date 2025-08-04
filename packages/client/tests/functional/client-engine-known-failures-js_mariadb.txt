@@ -20,6 +20,4 @@ metrics.enabled (provider=mysql, js_mariadb) before a query SQL Providers: shoul
 metrics.enabled (provider=mysql, js_mariadb) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=mysql, js_mariadb) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=mysql, js_mariadb) multiple instances does not share metrics between 2 different instances of client
-typed-sql.mysql-scalars-nullable.test (provider=mysql, js_mariadb) Time - input
-typed-sql.mysql-scalars.test (provider=mysql, js_mariadb) Time - input
 unsupported-action (provider=mysql, js_mariadb) unsupported method
