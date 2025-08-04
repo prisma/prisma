@@ -736,7 +736,36 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     expect(ctx.recordedExitCode()).toEqual(130)
   })
 
-  test('one seed.ts file', async () => {
+  test('one seed.ts file in prisma.config.ts', async () => {
+    ctx.fixture('seed-from-prisma-config/seed-sqlite-ts')
+
+    prompt.inject(['y'])
+
+    const result = MigrateDev.new().parse([], await ctx.config())
+
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+      Enter a name for the new migration:
+
+      The following migration(s) have been created and applied from new schema changes:
+
+      prisma/migrations/
+        └─ 20201231000000_y/
+          └─ migration.sql
+
+      Your database is now in sync with your schema.
+
+      Running seed command \`ts-node prisma/seed.ts\` ...
+
+      The seed command has been executed.
+      "
+    `)
+  })
+
+  test('one seed.ts file in package.json', async () => {
     ctx.fixture('seed-from-package-json/seed-sqlite-ts')
 
     prompt.inject(['y'])
@@ -765,7 +794,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
   })
 
-  it('one seed file --skip-seed', async () => {
+  it('one seed file in package.json --skip-seed ', async () => {
     ctx.fixture('seed-from-package-json/seed-sqlite-ts')
 
     prompt.inject(['y'])
@@ -790,7 +819,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
   })
 
-  it('one broken seed.js file', async () => {
+  it('one broken seed.js file in package.json', async () => {
     ctx.fixture('seed-from-package-json/seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 

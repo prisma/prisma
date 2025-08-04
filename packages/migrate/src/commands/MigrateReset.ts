@@ -159,11 +159,14 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
+      const seedCommandFromPrismaConfig = config.migrations?.seed
       const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
-      if (seedCommandFromPkgJson) {
+      const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+
+      if (seedCommand) {
         process.stdout.write('\n') // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
+        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
         if (successfulSeeding) {
           process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
         } else {
