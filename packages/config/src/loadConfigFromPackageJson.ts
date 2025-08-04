@@ -1,6 +1,8 @@
+import { readFile } from 'node:fs/promises'
 import process from 'node:process'
 
 import { Schema as Shape } from 'effect'
+import { up } from 'empathic/package'
 
 /**
  * Example:
@@ -34,12 +36,13 @@ export async function loadConfigFromPackageJson(cwd: string = process.cwd()): Pr
   config: PrismaConfigPackageJson
   loadedFromFile: string
 } | null> {
-  const { readPackageUp } = await import('read-package-up')
-  const pkgJson = await readPackageUp({ cwd, normalize: false })
+  const pkgPath = up({ cwd })
 
-  if (pkgJson === undefined) {
+  if (pkgPath === undefined) {
     return null
   }
+
+  const pkgJson = await readFile(pkgPath, { encoding: 'utf-8' }).then((p) => JSON.parse(p))
 
   /**
    * We're purposedly avoiding parsing `package.json#prisma` as `PrismaConfigPackageJsonShape` here,
@@ -47,7 +50,7 @@ export async function loadConfigFromPackageJson(cwd: string = process.cwd()): Pr
    * and the old way of configuring Prisma in `package.json#prisma` is more permissive that our parser allows.
    * In practice, we duck-type it to preserve backwards compatibility.
    */
-  const deprecatedConfig = pkgJson.packageJson['prisma'] as PrismaConfigPackageJson | undefined
+  const deprecatedConfig = pkgJson['prisma'] as PrismaConfigPackageJson | undefined
 
   // No `prisma` property in `package.json`
   if (deprecatedConfig === undefined) {
@@ -69,6 +72,6 @@ export async function loadConfigFromPackageJson(cwd: string = process.cwd()): Pr
 
   return {
     config: deprecatedConfig,
-    loadedFromFile: pkgJson.path as string,
+    loadedFromFile: pkgPath,
   }
 }
