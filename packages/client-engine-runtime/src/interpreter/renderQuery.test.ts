@@ -3,7 +3,7 @@ import { GeneratorRegistry } from './generators'
 import { renderQuery } from './renderQuery'
 import { ScopeBindings } from './scope'
 
-const TEXT_MAX_CHUNK_SIZE = 10
+const TEST_MAX_CHUNK_SIZE = 10
 
 test('no template', () => {
   expect(
@@ -278,7 +278,7 @@ test('chunking an INSERT with a large parameterTupleList', () => {
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
-      TEXT_MAX_CHUNK_SIZE,
+      TEST_MAX_CHUNK_SIZE,
     ),
   ).toMatchObject([
     {
@@ -330,7 +330,7 @@ test('chunking a UNION ALL with a large parameterTupleList', () => {
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
-      TEXT_MAX_CHUNK_SIZE,
+      TEST_MAX_CHUNK_SIZE,
     ),
   ).toMatchObject([
     {
@@ -372,7 +372,7 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
-      TEXT_MAX_CHUNK_SIZE,
+      TEST_MAX_CHUNK_SIZE,
     ),
   ).toMatchObject([
     {
@@ -414,7 +414,7 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
-      TEXT_MAX_CHUNK_SIZE,
+      TEST_MAX_CHUNK_SIZE,
     ),
   ).toMatchObject([
     {
@@ -456,7 +456,7 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
-      TEXT_MAX_CHUNK_SIZE,
+      TEST_MAX_CHUNK_SIZE,
     ),
   ).toMatchObject([
     {
