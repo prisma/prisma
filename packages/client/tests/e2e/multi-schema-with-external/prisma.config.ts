@@ -1,5 +1,5 @@
+import { defineConfig } from '@prisma/config'
 import fs from 'fs'
-import { defineConfig } from 'prisma/config'
 
 export default defineConfig({
   experimental: {
