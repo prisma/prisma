@@ -54,7 +54,7 @@ bench('log config applied', () => {
 
   passClientAround(client)
   passToAnyClientAround(client)
-}).types([800, 'instantiations'])
+}).types([655, 'instantiations'])
 
 bench('datasourceUrl applied', () => {
   const client = new PrismaClientConstructor({
@@ -66,7 +66,7 @@ bench('datasourceUrl applied', () => {
   }
 
   return passClientAround(client)
-}).types([437, 'instantiations'])
+}).types([486, 'instantiations'])
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
@@ -82,7 +82,7 @@ bench('adapter applied', () => {
   }
 
   return passClientAround(client)
-}).types([623, 'instantiations'])
+}).types([672, 'instantiations'])
 
 bench('global omit applied', async () => {
   const client = new PrismaClientConstructor({
@@ -103,7 +103,7 @@ bench('global omit applied', async () => {
 
   // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
-}).types([65278, 'instantiations'])
+}).types([65306, 'instantiations'])
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
@@ -117,7 +117,7 @@ bench('extended client then pass around', () => {
   // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
   // Apparently extending the client and then passing it around is way faster.
-}).types([2263, 'instantiations'])
+}).types([2312, 'instantiations'])
 
 bench('passed around client then extend', () => {
   const client = new PrismaClientConstructor({
@@ -130,7 +130,7 @@ bench('passed around client then extend', () => {
 
   return passClientAround(client)
   // Apparently passing the client around and then extending it is way slower.
-}).types([2103, 'instantiations'])
+}).types([2152, 'instantiations'])
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
@@ -172,7 +172,7 @@ bench('fully extended', () => {
   }
 
   return passClientAround(client)
-}).types([8307, 'instantiations'])
+}).types([8356, 'instantiations'])
 
 bench('fully extended without client options', () => {
   const client = new PrismaClientConstructor()
@@ -217,7 +217,7 @@ bench('fully extended without client options', () => {
   //  Type 'undefined' is not assignable to type 'GlobalOmitConfig'.
   // @ts-expect-error
   return passClientAround(client)
-}).types([8309, 'instantiations'])
+}).types([166686, 'instantiations'])
 
 // ------------------------------------------------------------
 // Workaround solutions using typeof operator
@@ -239,7 +239,7 @@ bench('using typeof', () => {
   }
 
   passClientAround(client)
-}).types([515, 'instantiations'])
+}).types([564, 'instantiations'])
 
 // ------------------------------------------------------------
 // Suggestion from David Blass - to be verified
@@ -269,4 +269,4 @@ bench('Any PrismaClient', () => {
 
   passClientAround(client)
   // with the suggested variance annotations, this value goes down to 247 instantiations
-}).types([519, 'instantiations'])
+}).types([568, 'instantiations'])
