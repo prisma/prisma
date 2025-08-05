@@ -5,12 +5,17 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
+// @only-ts-generator
+type LogPrismaClient = PrismaClient<'query' | 'info'>
+// @only-js-generator
+type LogPrismaClient = PrismaClient<{ log: [{ emit: 'event'; level: 'query' | 'info' }] }>
+
+declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, clientMeta) => {
     test('check that query and info logs match their declared types', async () => {
-      const prisma = newPrismaClient({
+      const prisma: LogPrismaClient = newPrismaClient({
         log: [
           {
             emit: 'event',
@@ -21,7 +26,7 @@ testMatrix.setupTestSuite(
             level: 'info',
           },
         ],
-      }) as PrismaClient<'query' | 'info'> // TODO: fix for cross generator compatibility
+      })
 
       const queryLogs: Prisma.QueryEvent[] = []
       prisma.$on('query', (event) => queryLogs.push(event))

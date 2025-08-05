@@ -12,13 +12,8 @@ declare const prisma: PrismaClient
 // wrapper around newPrismaClient to correctly infer generic arguments.
 // `newPrismaClient` by itself is not smart enough for that and I don't think
 // we can make it smarter in a generic way, without having `PrismaClient` on hands.
-function clientWithOmit<
-  Options extends Prisma.PrismaClientOptions,
-  OmitOpts extends Partial<Prisma.PrismaClientOptions['omit']> = Options extends { omit?: infer U }
-    ? U
-    : Prisma.PrismaClientOptions['omit'],
->(options: Options): PrismaClient<never, OmitOpts> {
-  return newPrismaClient(options) as unknown as PrismaClient<never, OmitOpts>
+function clientWithOmit<O extends Prisma.PrismaClientOptions>(options: O): PrismaClient<O> {
+  return newPrismaClient(options) as unknown as PrismaClient<O>
 }
 
 testMatrix.setupTestSuite(({ provider }) => {
@@ -177,7 +172,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     await expect(() => client.user.findFirstOrThrow()).rejects.toMatchPrismaErrorInlineSnapshot(`
       "
       Invalid \`client.user.findFirstOrThrow()\` invocation in
-      /client/tests/functional/globalOmit/test.ts:0:0
+      /client/tests/functional/globalOmitJSGenerator/test.ts:0:0
 
         XX     },
         XX   },
