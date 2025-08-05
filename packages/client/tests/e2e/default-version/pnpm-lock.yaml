@@ -10,7 +10,7 @@ importers:
     dependencies:
       '@prisma/client':
         specifier: /tmp/prisma-client-0.0.0.tgz
-        version: file:../../tmp/prisma-client-0.0.0.tgz
+        version: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz
     devDependencies:
       '@types/jest':
         specifier: 29.5.12
@@ -18,6 +18,9 @@ importers:
       '@types/node':
         specifier: 18.19.50
         version: 18.19.50
+      typescript:
+        specifier: 5.4.5
+        version: 5.4.5
 
 packages:
 
@@ -45,14 +48,17 @@ packages:
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz':
-    resolution: {integrity: sha512-/ditdbDQy6K/DgcVcQfU/anYv0d6UFTKrX7UYhyL5n/3UPKlkFraFxgjD+ZFItLVZn6M5JqsZjdI7zY7Ux+gfQ==, tarball: file:../../tmp/prisma-client-0.0.0.tgz}
+  '@prisma/client@file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz':
+    resolution: {integrity: sha512-pd/aXZBxSDEi0nPj9ZO3qwqZtm1KaJd/SqEMk5qfhhpack17hSy7mq1E33qJ8ZmT96xTfLVtRk4ss6w5zrPBkg==, tarball: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz}
     version: 0.0.0
     engines: {node: '>=18.18'}
     peerDependencies:
       prisma: '*'
+      typescript: '>=5.1.0'
     peerDependenciesMeta:
       prisma:
+        optional: true
+      typescript:
         optional: true
 
   '@sinclair/typebox@0.27.8':
@@ -219,6 +225,11 @@ packages:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
 
+  typescript@5.4.5:
+    resolution: {integrity: sha512-vcI4UpRgg81oIRUFwR0WSIHKt11nJ7SAVlYNIu+QpqeyXP+gpQJy/Z4+F0aGxSE4MqwjyXvW/TzgkLAx2AGHwQ==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
@@ -255,7 +266,7 @@ snapshots:
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
-  '@prisma/client@file:../../tmp/prisma-client-0.0.0.tgz': {}
+  '@prisma/client@file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz': {}
 
   '@sinclair/typebox@0.27.8': {}
 
@@ -424,5 +435,7 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  typescript@5.4.5: {}
 
   undici-types@5.26.5: {}

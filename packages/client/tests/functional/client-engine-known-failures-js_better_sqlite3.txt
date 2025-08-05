@@ -1,7 +1,4 @@
 enums (provider=sqlite, js_better_sqlite3) fails at runtime when an invalid entry is entered manually in SQLite
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via custom call
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via normal call
-filter-count-relations (provider=sqlite, js_better_sqlite3) nested relation
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching raw rollback
 interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback
 interactive-transactions (provider=sqlite, js_better_sqlite3) timeout default
@@ -26,7 +23,4 @@ metrics.enabled (provider=sqlite, js_better_sqlite3) before a query SQL Provider
 metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_better_sqlite3) multiple instances does not share metrics between 2 different instances of client
-tracing (provider=sqlite, js_better_sqlite3) tracing on transactions $transaction
-typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_better_sqlite3) DateTime - input
-typed-sql.sqlite-scalars.test (provider=sqlite, js_better_sqlite3) DateTime - input
 unsupported-action (provider=sqlite, js_better_sqlite3) unsupported method

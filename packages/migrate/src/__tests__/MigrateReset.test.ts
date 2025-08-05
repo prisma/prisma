@@ -209,6 +209,29 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
   })
 
+  test('reset - seed.js in prisma.config.ts', async () => {
+    ctx.fixture('seed-from-prisma-config/seed-sqlite-js')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
+
+
+      Database reset successful
+
+
+      Running seed command \`node prisma/seed.js\` ...
+
+      The seed command has been executed.
+      "
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
   test('reset - seed.js', async () => {
     ctx.fixture('seed-from-package-json/seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
