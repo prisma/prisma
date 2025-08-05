@@ -22,7 +22,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    }) as PrismaClient<'query'>
+    }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
 
     const queryLogPromise = new Promise<Prisma.QueryEvent>((resolve) => {
       client.$on('query', (data) => {
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    }) as PrismaClient<'query'>
+    }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []
@@ -138,7 +138,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    }) as PrismaClient<'query'>
+    }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []
@@ -205,7 +205,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    }) as PrismaClient<'query'>
+    }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []

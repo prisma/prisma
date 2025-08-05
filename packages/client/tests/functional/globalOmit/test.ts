@@ -12,6 +12,7 @@ declare const prisma: PrismaClient
 // wrapper around newPrismaClient to correctly infer generic arguments.
 // `newPrismaClient` by itself is not smart enough for that and I don't think
 // we can make it smarter in a generic way, without having `PrismaClient` on hands.
+// TODO: fix for cross generator compatibility
 function clientWithOmit<
   Options extends Prisma.PrismaClientOptions,
   OmitOpts extends Partial<Prisma.PrismaClientOptions['omit']> = Options extends { omit?: infer U }

@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<'query'>
+      }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
 
       if ((await prisma.user.findFirst()) === null) {
         await prisma.user.create({

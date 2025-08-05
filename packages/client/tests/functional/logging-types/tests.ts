@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
             level: 'info',
           },
         ],
-      }) as PrismaClient<'query' | 'info'>
+      }) as PrismaClient<'query' | 'info'> // TODO: fix for cross generator compatibility
 
       const queryLogs: Prisma.QueryEvent[] = []
       prisma.$on('query', (event) => queryLogs.push(event))

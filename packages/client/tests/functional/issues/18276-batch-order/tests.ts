@@ -14,10 +14,11 @@ testMatrix.setupTestSuite(
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<'query'>
+      })
 
       const queries: string[] = []
 
+      // @ts-expect-error - client not typed for log opts
       prisma.$on('query', ({ query }) => queries.push(query))
 
       prisma.$use(async (params, next) => {
@@ -55,10 +56,11 @@ testMatrix.setupTestSuite(
     test('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<'query'>
+      })
 
       const queries: string[] = []
 
+      // @ts-expect-error - client not typed for log opts
       prisma.$on('query', ({ query }) => queries.push(query))
 
       prisma.$use(async (params, next) => {
