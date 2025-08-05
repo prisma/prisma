@@ -224,8 +224,15 @@ function mapValue(
     }
 
     case 'Object': {
-      const jsonValue = typeof value === 'string' ? value : safeJsonStringify(value)
+      const jsonValue = safeJsonStringify(value)
       return { $type: 'Json', value: jsonValue }
+    }
+
+    case 'Json': {
+      if (typeof value !== 'string') {
+        throw new DataMapperError(`Expected a JSON string in column '${columnName}', got ${typeof value}: ${value}`)
+      }
+      return { $type: 'Json', value }
     }
 
     case 'Bytes': {
