@@ -46,7 +46,9 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
             .addGenericArgument(ts.namedType('OmitOpts'))
             .addGenericArgument(ts.namedType('ExtArgs')),
         )
-        .addGenericParameter(ts.genericParameter('LogOpts').default(ts.objectType()))
+        .addGenericParameter(
+          ts.genericParameter('LogOpts').extends(ts.namedType('Prisma.LogLevel')).default(ts.neverType),
+        )
         .addGenericParameter(
           ts
             .genericParameter('OmitOpts')

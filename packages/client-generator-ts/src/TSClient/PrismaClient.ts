@@ -295,7 +295,7 @@ export class PrismaClientClass {
 
     return `\
 export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
-  'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : {} : {}
+  'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never
 
 export interface PrismaClientConstructor {
   ${indent(this.jsDoc, TAB_SIZE)}
@@ -309,7 +309,7 @@ export interface PrismaClientConstructor {
 
 ${this.jsDoc}
 export interface PrismaClient<
-  in LogOpts = {},
+  in LogOpts extends Prisma.LogLevel = never,
   in out OmitOpts extends Partial<Prisma.PrismaClientOptions['omit']> = Prisma.PrismaClientOptions['omit'],
   in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
