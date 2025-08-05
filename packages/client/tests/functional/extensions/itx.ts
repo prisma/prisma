@@ -261,10 +261,7 @@ testMatrix.setupTestSuite(
             expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
             // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
             expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
-            expectTypeOf(ctx).not.toHaveProperty('$use')
             expectTypeOf(ctx).not.toHaveProperty('$on')
-
-            expect(ctx['$use']).toBeUndefined()
             expect(ctx['$on']).toBeUndefined()
 
             if (isTransaction) {

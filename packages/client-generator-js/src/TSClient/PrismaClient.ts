@@ -590,25 +590,6 @@ export type PrismaAction =
   | 'findRaw'
   | 'groupBy'
 
-/**
- * These options are being passed into the middleware as "params"
- */
-export type MiddlewareParams = {
-  model?: ModelName
-  action: PrismaAction
-  args: any
-  dataPath: string[]
-  runInTransaction: boolean
-}
-
-/**
- * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
-) => $Utils.JsPromise<T>
-
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
