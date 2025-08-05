@@ -29,7 +29,7 @@ bench('log config applied', () => {
   })
 
   const passClientAround = (prisma: PrismaClient) => {
-    // Would be cool if this could be a type error:
+    // @ts-expect-error - using a non-existent event type is a type error
     prisma.$on('foobarbaz', (event) => {
       console.log(event)
     })
