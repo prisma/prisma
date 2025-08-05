@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      })
+      }) as PrismaClient<'query'>
 
       if ((await prisma.user.findFirst()) === null) {
         await prisma.user.create({

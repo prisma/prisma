@@ -16,7 +16,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<'query'>
+let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter
@@ -62,6 +62,7 @@ testMatrix.setupTestSuite(
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
 
+      // @ts-expect-error - client not typed for log opts
       prisma.$on('query', (e) => queries.push(e.query))
     })
 

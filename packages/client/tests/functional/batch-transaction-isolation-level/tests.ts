@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     const isCockroachDb = provider === Providers.COCKROACHDB
 
     const queries: string[] = []
-    let prisma: PrismaClient<'query'>
+    let prisma: PrismaClient
 
     beforeAll(() => {
       prisma = newPrismaClient({
@@ -26,7 +26,8 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      prisma.$on('query', (event) => {
+      // @ts-expect-error - client not typed for log opts
+      prisma.$on('query', (event: Prisma.QueryEvent) => {
         queries.push(event.query)
       })
     })

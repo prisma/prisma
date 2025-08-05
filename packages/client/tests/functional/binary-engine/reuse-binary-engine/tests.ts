@@ -26,7 +26,8 @@ testMatrix.setupTestSuite(
 
       const internalURL = await ((): Promise<string> =>
         new Promise((resolve, reject) => {
-          prismaClient1.$on('info', (data) => {
+          // @ts-expect-error - client not typed for log opts
+          prismaClient1.$on('info', (data: Prisma.LogEvent) => {
             if (/Started query engine/.test(data.message as string)) {
               const port = data.message.split(':').pop()
               resolve(`http://127.0.0.1:${port}`)

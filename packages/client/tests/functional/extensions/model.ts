@@ -10,7 +10,7 @@ import testMatrix from './_matrix'
 import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let Prisma: typeof PrismaNamespace
-let prisma: PrismaClient<'query'>
+let prisma: PrismaClient
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
@@ -50,6 +50,7 @@ testMatrix.setupTestSuite(
       const xprisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       })
+        // @ts-expect-error - client not typed for log opts
         .$on('query', fnEmitter)
         .$extends({
           model: {
@@ -378,7 +379,7 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error
+        // @ts-expect-error - client not typed for log opts
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma.$extends({
@@ -425,6 +426,7 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
+        // @ts-expect-error - client not typed for log opts
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma

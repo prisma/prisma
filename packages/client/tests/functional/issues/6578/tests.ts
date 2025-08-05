@@ -33,6 +33,7 @@ testMatrix.setupTestSuite(
       const date = new Date()
 
       let paramsString = ''
+      // @ts-expect-error - client not typed for log opts
       _prisma.$on('query', (e) => {
         const event = e as unknown as QueryEvent
         if (event.query.includes('INSERT')) {

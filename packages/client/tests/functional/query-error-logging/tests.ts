@@ -4,9 +4,9 @@ import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma, PrismaClient } from './generated/prisma/client'
+import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<'error', Prisma.PrismaClientOptions['omit']>
+let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const email = faker.internet.email()
@@ -17,6 +17,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'error' }] })
+      // @ts-expect-error - client not typed for log opts
       prisma.$on('error', (e) => errors.push(e))
     })
 

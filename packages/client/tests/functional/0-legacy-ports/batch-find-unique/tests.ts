@@ -8,7 +8,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare let prisma: PrismaClient<'query'>
+declare let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
@@ -61,7 +61,8 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta,
 
     expect.assertions(2)
 
-    prisma.$on('query', ({ query }) => {
+    // @ts-expect-error - client not typed for log opts
+    prisma.$on('query', ({ query }: Prisma.QueryEvent) => {
       // TODO(query compiler): compacted batches don't need to be wrapped in transactions
       if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
         return

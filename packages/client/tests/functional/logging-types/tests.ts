@@ -10,7 +10,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, clientMeta) => {
     test('check that query and info logs match their declared types', async () => {
-      const prisma: PrismaClient<'query' | 'info', Prisma.PrismaClientOptions['omit']> = newPrismaClient({
+      const prisma = newPrismaClient({
         log: [
           {
             emit: 'event',
@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
             level: 'info',
           },
         ],
-      })
+      }) as PrismaClient<'query' | 'info'>
 
       const queryLogs: Prisma.QueryEvent[] = []
       prisma.$on('query', (event) => queryLogs.push(event))

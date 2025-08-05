@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
   const isSqlServer = provider === Providers.SQLSERVER
 
-  let client: PrismaClient<'query', Prisma.PrismaClientOptions['omit']>
+  let client: PrismaClient<'query'>
 
   test('should log queries on a method call', async () => {
     client = newPrismaClient({
@@ -22,7 +22,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    })
+    }) as PrismaClient<'query'>
 
     const queryLogPromise = new Promise<Prisma.QueryEvent>((resolve) => {
       client.$on('query', (data) => {
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    })
+    }) as PrismaClient<'query'>
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []
@@ -138,7 +138,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    })
+    }) as PrismaClient<'query'>
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []
@@ -205,7 +205,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    })
+    }) as PrismaClient<'query'>
 
     const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
       const logs: Prisma.QueryEvent[] = []

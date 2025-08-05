@@ -17,7 +17,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     const usesRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
-    let prisma: PrismaClient<'query'>
+    let prisma: PrismaClient
     let queriesExecuted = 0
 
     beforeAll(async () => {
@@ -28,7 +28,8 @@ testMatrix.setupTestSuite(
       await prisma.artist.create({ data: { name: artist1, albums: { create: { title: album1 } } } })
       await prisma.artist.create({ data: { name: artist2, albums: { create: { title: album2 } } } })
 
-      prisma.$on('query', ({ query }) => {
+      // @ts-expect-error - client not typed for log opts
+      prisma.$on('query', ({ query }: Prisma.QueryEvent) => {
         // TODO(query compiler): compacted batches don't need to be wrapped in transactions
         if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
           return

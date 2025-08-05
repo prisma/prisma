@@ -17,8 +17,8 @@ function clientWithOmit<
   OmitOpts extends Partial<Prisma.PrismaClientOptions['omit']> = Options extends { omit?: infer U }
     ? U
     : Prisma.PrismaClientOptions['omit'],
->(options: Options): PrismaClient<{}, OmitOpts> {
-  return newPrismaClient(options) as unknown as PrismaClient<{}, OmitOpts>
+>(options: Options): PrismaClient<never, OmitOpts> {
+  return newPrismaClient(options) as unknown as PrismaClient<never, OmitOpts>
 }
 
 testMatrix.setupTestSuite(({ provider }) => {
