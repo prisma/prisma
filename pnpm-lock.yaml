@@ -207,7 +207,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       better-sqlite3:
-        specifier: '>= ^11.9.0 < 12'
+        specifier: ^11.9.0
         version: 11.10.0
     devDependencies:
       '@types/better-sqlite3':
@@ -10908,7 +10908,7 @@ snapshots:
       lazystream: 1.0.1
       lodash: 4.17.21
       normalize-path: 3.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   archiver@6.0.2:
     dependencies:
@@ -11359,7 +11359,7 @@ snapshots:
       crc-32: 1.2.2
       crc32-stream: 5.0.0
       normalize-path: 3.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   concat-map@0.0.1: {}
 
@@ -11411,7 +11411,7 @@ snapshots:
   crc32-stream@5.0.0:
     dependencies:
       crc-32: 1.2.2
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   create-jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)):
     dependencies:
@@ -14889,7 +14889,7 @@ snapshots:
       end-of-stream: 1.4.4
       fs-constants: 1.0.0
       inherits: 2.0.4
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   tar-stream@3.1.6:
     dependencies:
@@ -15873,7 +15873,7 @@ snapshots:
     dependencies:
       archiver-utils: 4.0.1
       compress-commons: 5.0.1
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   zod-to-json-schema@3.24.5(zod@3.24.2):
     dependencies:
