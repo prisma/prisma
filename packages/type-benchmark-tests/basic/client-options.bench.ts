@@ -52,7 +52,6 @@ bench('log config applied', () => {
     console.log(event)
   })
 
-  // @ts-expect-error - client with different log config is a different type
   passClientAround(client)
   passToAnyClientAround(client)
 }).types([800, 'instantiations'])
