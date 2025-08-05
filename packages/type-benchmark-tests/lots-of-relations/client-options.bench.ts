@@ -54,7 +54,7 @@ bench('log config applied', () => {
 
   passClientAround(client)
   passToAnyClientAround(client)
-}).types([2726, 'instantiations'])
+}).types([615, 'instantiations'])
 
 bench('datasourceUrl applied', () => {
   const client = new PrismaClientConstructor({
@@ -66,7 +66,7 @@ bench('datasourceUrl applied', () => {
   }
 
   return passClientAround(client)
-}).types([2557, 'instantiations'])
+}).types([446, 'instantiations'])
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
@@ -82,7 +82,7 @@ bench('adapter applied', () => {
   }
 
   return passClientAround(client)
-}).types([2743, 'instantiations'])
+}).types([632, 'instantiations'])
 
 bench('global omit applied', async () => {
   const client = new PrismaClientConstructor({
@@ -103,7 +103,7 @@ bench('global omit applied', async () => {
 
   // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
-}).types([88863, 'instantiations'])
+}).types([88851, 'instantiations'])
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
@@ -117,7 +117,7 @@ bench('extended client then pass around', () => {
   // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
   // Apparently extending the client and then passing it around is way faster.
-}).types([5265, 'instantiations'])
+}).types([3154, 'instantiations'])
 
 bench('passed around client then extend', () => {
   const client = new PrismaClientConstructor({
@@ -130,7 +130,7 @@ bench('passed around client then extend', () => {
 
   return passClientAround(client)
   // Apparently passing the client around and then extending it is way slower.
-}).types([5105, 'instantiations'])
+}).types([2994, 'instantiations'])
 
 bench('fully extended', () => {
   const client = new PrismaClientConstructor({
@@ -173,7 +173,7 @@ bench('fully extended', () => {
 
   // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
-}).types([28978, 'instantiations'])
+}).types([26867, 'instantiations'])
 
 bench('fully extended without client options', () => {
   const client = new PrismaClientConstructor().$extends({
@@ -214,7 +214,7 @@ bench('fully extended without client options', () => {
 
   // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
-}).types([28977, 'instantiations'])
+}).types([26866, 'instantiations'])
 
 // ------------------------------------------------------------
 // Workaround solutions using typeof operator
@@ -236,7 +236,7 @@ bench('using typeof - log config applied', () => {
   }
 
   passClientAround(client)
-}).types([2635, 'instantiations'])
+}).types([524, 'instantiations'])
 
 bench('using typeof - datasourceUrl applied', () => {
   const client = new PrismaClientConstructor({
@@ -250,7 +250,7 @@ bench('using typeof - datasourceUrl applied', () => {
   }
 
   return passClientAround(client)
-}).types([2553, 'instantiations'])
+}).types([442, 'instantiations'])
 
 bench('using typeof - adapter applied', () => {
   const client = new PrismaClientConstructor({
@@ -268,7 +268,7 @@ bench('using typeof - adapter applied', () => {
   }
 
   return passClientAround(client)
-}).types([2739, 'instantiations'])
+}).types([628, 'instantiations'])
 
 bench('using typeof - global omit applied', () => {
   const client = new PrismaClientConstructor({
@@ -284,7 +284,7 @@ bench('using typeof - global omit applied', () => {
   }
 
   return passClientAround(client)
-}).types([487, 'instantiations'])
+}).types([475, 'instantiations'])
 
 bench('using typeof - fully extended', () => {
   const client = new PrismaClientConstructor({
@@ -328,4 +328,4 @@ bench('using typeof - fully extended', () => {
   }
 
   return passClientAround(client)
-}).types([28732, 'instantiations'])
+}).types([26621, 'instantiations'])
