@@ -11,7 +11,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+let prisma: PrismaClient<'query'>
 declare let Prisma: typeof PrismaNamespace
 
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>

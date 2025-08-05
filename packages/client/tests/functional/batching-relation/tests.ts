@@ -17,7 +17,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
     const usesRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
-    let prisma: PrismaClient<'event' | 'query'>
+    let prisma: PrismaClient<'query'>
     let queriesExecuted = 0
 
     beforeAll(async () => {

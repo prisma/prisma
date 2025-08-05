@@ -10,7 +10,7 @@ import testMatrix from './_matrix'
 import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
 declare let Prisma: typeof PrismaNamespace
-let prisma: PrismaClient
+let prisma: PrismaClient<'query'>
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
@@ -425,7 +425,6 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma

@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type * as $ from './generated/prisma/client'
 
-declare let prisma: $.PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let prisma: $.PrismaClient<'query'>
 declare let newPrismaClient: NewPrismaClient<typeof $.PrismaClient>
 
 // ported from: blog
