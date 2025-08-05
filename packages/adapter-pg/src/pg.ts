@@ -122,7 +122,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     }
   }
 
-  protected onError(error: any): never {
+  protected onError(error: unknown): never {
     debug('Error in performIO: %O', error)
     throw new DriverAdapterError(convertDriverError(error))
   }

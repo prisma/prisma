@@ -1,10 +1,18 @@
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
 export function convertDriverError(error: unknown): DriverAdapterErrorObject {
-  if (!isDbError(error)) {
-    throw error
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.errno.toString(),
+      originalMessage: error.sqlMessage ?? 'N/A',
+      ...convertDriverError(error),
+    }
   }
 
+  throw error
+}
+
+export function mapDriverError(error: DriverError): MappedError {
   switch (error.errno) {
     case 1062: {
       const index = error.sqlMessage?.split(' ').pop()?.split("'").at(1)?.split('.').pop()
@@ -132,7 +140,13 @@ export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is { errno: number; sqlMessage: string | null; sqlState: string | null } {
+type DriverError = {
+  errno: number
+  sqlMessage: string | null
+  sqlState: string | null
+}
+
+function isDriverError(error: any): error is DriverError {
   return (
     typeof error.errno === 'number' &&
     (typeof error.sqlMessage === 'string' || error.sqlMessage === null) &&

@@ -1,10 +1,18 @@
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
-  if (!isDbError(error)) {
-    throw error
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.code,
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+export function mapDriverError(error: DriverError): MappedError {
   // See https://learn.microsoft.com/en-us/sql/relational-databases/errors-events/database-engine-events-and-errors
   switch (error.number) {
     case 3902:
@@ -175,6 +183,12 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is { message: string; code: string; number: number } {
+type DriverError = {
+  message: string
+  code: string
+  number: number
+}
+
+function isDriverError(error: any): error is DriverError {
   return typeof error.message === 'string' && typeof error.code === 'string' && typeof error.number === 'number'
 }

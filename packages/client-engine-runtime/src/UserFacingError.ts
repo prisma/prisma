@@ -39,6 +39,20 @@ export function rethrowAsUserFacing(error: any): never {
   throw new UserFacingError(message, code, { driverAdapterError: error })
 }
 
+export function rethrowAsUserFacingRawError(error: any): never {
+  if (!isDriverAdapterError(error)) {
+    throw error
+  }
+
+  throw new UserFacingError(
+    `Raw query failed. Code: ${error.cause.originalCode ?? 'N/A'}. Message: ${
+      error.cause.originalMessage ?? renderErrorMessage(error)
+    }`,
+    'P2010',
+    { driverAdapterError: error },
+  )
+}
+
 function getErrorCode(err: DriverAdapterError): string | undefined {
   switch (err.cause.kind) {
     case 'AuthenticationFailed':
