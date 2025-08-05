@@ -211,6 +211,11 @@ bench('fully extended without client options', () => {
     })
   }
 
+  // TODO: not sure if this type error is expected or not?
+  // Argument of type 'PrismaClient<never, GlobalOmitConfig, DefaultArgs>' is not assignable to parameter of type 'PrismaClient'.
+  // Type 'GlobalOmitConfig | undefined' is not assignable to type 'GlobalOmitConfig'.
+  //  Type 'undefined' is not assignable to type 'GlobalOmitConfig'.
+  // @ts-expect-error
   return passClientAround(client)
 }).types([8309, 'instantiations'])
 
