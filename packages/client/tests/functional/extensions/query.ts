@@ -14,7 +14,7 @@ import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './gene
 let prisma: PrismaClient<'query'>
 declare let Prisma: typeof PrismaNamespace
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const randomId1 = randomBytes(12).toString('hex')
 const randomId2 = randomBytes(12).toString('hex')

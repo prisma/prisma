@@ -15,7 +15,7 @@ const user2 = {
   email: copycat.email(2),
 }
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   () => {

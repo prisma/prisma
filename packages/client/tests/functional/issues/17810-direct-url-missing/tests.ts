@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './generated/prisma/client'
 
 let prisma: PrismaClient
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 /**
  * Regression test for https://github.com/prisma/prisma/issues/17810

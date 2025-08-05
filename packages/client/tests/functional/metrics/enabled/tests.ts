@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const executeOneQuery = async () => {
   const email = 'user@example.com'

@@ -7,7 +7,7 @@ import testMatrix from './_matrix'
 import type * as $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
-declare let newPrismaClient: NewPrismaClient<typeof $.PrismaClient>
+declare let newPrismaClient: NewPrismaClient<$.PrismaClient, typeof $.PrismaClient>
 
 // ported from: blog
 testMatrix.setupTestSuite(

@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 declare const prisma: PrismaClient
 
 // wrapper around newPrismaClient to correctly infer generic arguments.

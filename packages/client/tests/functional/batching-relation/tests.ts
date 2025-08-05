@@ -12,7 +12,7 @@ const artist2 = copycat.fullName(2)
 const album1 = copycat.streetName(1)
 const album2 = copycat.streetName(2)
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   (_suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {

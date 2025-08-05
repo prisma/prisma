@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
@@ -22,7 +22,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
           level: 'query',
         },
       ],
-    }) as PrismaClient<'query'> // TODO: fix for cross generator compatibility
+    })
 
     const queryLogPromise = new Promise<Prisma.QueryEvent>((resolve) => {
       client.$on('query', (data) => {

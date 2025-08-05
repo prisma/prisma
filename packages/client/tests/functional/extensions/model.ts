@@ -11,7 +11,7 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma
 
 declare let Prisma: typeof PrismaNamespace
 let prisma: PrismaClient
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
