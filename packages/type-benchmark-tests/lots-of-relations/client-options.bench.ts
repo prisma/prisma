@@ -103,7 +103,7 @@ bench('global omit applied', async () => {
 
   // @ts-expect-error - client with omitted fields is not equal to a client without any config as the omitted fields are missing
   return passClientAround(client)
-}).types([88864, 'instantiations'])
+}).types([88863, 'instantiations'])
 
 bench('extended client then pass around', () => {
   const client = new PrismaClientConstructor({
@@ -214,7 +214,7 @@ bench('fully extended without client options', () => {
 
   // @ts-expect-error - once a client is extended, it is no longer assignable to the base client type
   return passClientAround(client)
-}).types([28980, 'instantiations'])
+}).types([28977, 'instantiations'])
 
 // ------------------------------------------------------------
 // Workaround solutions using typeof operator
@@ -284,7 +284,7 @@ bench('using typeof - global omit applied', () => {
   }
 
   return passClientAround(client)
-}).types([488, 'instantiations'])
+}).types([487, 'instantiations'])
 
 bench('using typeof - fully extended', () => {
   const client = new PrismaClientConstructor({
