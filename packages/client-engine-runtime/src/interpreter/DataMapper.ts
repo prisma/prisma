@@ -224,15 +224,14 @@ function mapValue(
     }
 
     case 'Object': {
-      const jsonValue = safeJsonStringify(value)
-      return { $type: 'Json', value: jsonValue }
+      return { $type: 'Json', value: safeJsonStringify(value) }
     }
 
     case 'Json': {
-      if (typeof value !== 'string') {
-        throw new DataMapperError(`Expected a JSON string in column '${columnName}', got ${typeof value}: ${value}`)
-      }
-      return { $type: 'Json', value }
+      // The value received here should normally be a string, but we cannot guarantee that,
+      // because of SQLite databases like D1, which can return JSON scalars directly. We therefore
+      // convert the value we receive to a string.
+      return { $type: 'Json', value: `${value}` }
     }
 
     case 'Bytes': {
@@ -258,7 +257,7 @@ function mapValue(
       }
       const enumValue = enumDef[`${value}`]
       if (enumValue === undefined) {
-        throw new DataMapperError(`Unknown enum value '${value}' for enum '${resultType.inner}'`)
+        throw new DataMapperError(`Value '${value}' not found in enum '${resultType.inner}'`)
       }
       return enumValue
     }
