@@ -29,9 +29,9 @@ function makeTypeScriptFiles({ component, output }: MakeTypeScriptFilesInput) {
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
     [`./query_${component}_bg.postgresql.mjs`]: 'export const runtime = ``',
-    [`./query_${component}_bg.postgresql.cjs`]: 'module.exports = { runtime: `` }',
+    [`./query_${component}_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
     [`./query_${component}_bg.js`]: 'export const runtime = ``',
-    [`./query_${component}_bg.postgresql.wasm-base64.cjs`]: 'module.exports = { wasm: `` }\n',
+    [`./query_${component}_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
     [`./query_${component}_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
   } as const
 }

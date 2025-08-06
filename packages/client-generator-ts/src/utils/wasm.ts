@@ -59,7 +59,7 @@ export function buildGetWasmModule({
 
   const extension = match(moduleFormat)
     .with('esm', () => 'mjs')
-    .with('cjs', () => 'cjs')
+    .with('cjs', () => 'js')
     .exhaustive()
 
   const buildNonEdgeLoader = match(runtimeName)
