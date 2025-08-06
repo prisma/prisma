@@ -3,9 +3,6 @@ invalid-sqlite-isolation-level (provider=sqlite, js_d1) invalid level generates 
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_d1) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_d1) should return a descriptive error
 issues.15644-middleware-arg-types (provider=sqlite, js_d1) middleware with updateMany
-issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=sqlite, js_d1) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in json format
 metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in prometheus format
 metrics.enabled (provider=sqlite, js_d1) after a query returns metrics in json format

@@ -1,12 +1,7 @@
-fulltext-search (provider=postgresql, js_pg) bad query
 interactive-transactions (provider=postgresql, js_pg) batching raw rollback
 interactive-transactions (provider=postgresql, js_pg) timeout default
 interactive-transactions (provider=postgresql, js_pg) timeout override
 interactive-transactions (provider=postgresql, js_pg) timeout override by PrismaClient
-issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=postgresql, js_pg) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
-methods.findFirstOrThrow (provider=postgresql, js_pg) works with transactions
 methods.findUniqueOrThrow (provider=postgresql, js_pg) works with transactions
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in json format
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in prometheus format

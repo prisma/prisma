@@ -1,14 +1,10 @@
 extensions.itx (provider=mysql, js_mariadb) middleware exclude from transaction also works with extended client
-fulltext-search (provider=mysql, js_mariadb) bad query
 interactive-transactions (provider=mysql, js_mariadb) batching raw rollback
 interactive-transactions (provider=mysql, js_mariadb) batching rollback
 interactive-transactions (provider=mysql, js_mariadb) middlewares middleware exclude from transaction
 interactive-transactions (provider=mysql, js_mariadb) timeout default
 interactive-transactions (provider=mysql, js_mariadb) timeout override
 interactive-transactions (provider=mysql, js_mariadb) timeout override by PrismaClient
-issues.20724 (provider=mysql, js_mariadb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=mysql, js_mariadb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=mysql, js_mariadb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 methods.findFirstOrThrow (provider=mysql, js_mariadb) works with transactions
 methods.findUniqueOrThrow (provider=mysql, js_mariadb) works with transactions
 metrics.enabled (provider=mysql, js_mariadb) after a query includes global labels in json format

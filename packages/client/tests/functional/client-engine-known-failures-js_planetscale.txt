@@ -1,12 +1,8 @@
-fulltext-search (provider=mysql, js_planetscale) bad query
 interactive-transactions (provider=mysql, js_planetscale) batching raw rollback
 interactive-transactions (provider=mysql, js_planetscale) batching rollback
 interactive-transactions (provider=mysql, js_planetscale) timeout default
 interactive-transactions (provider=mysql, js_planetscale) timeout override
 interactive-transactions (provider=mysql, js_planetscale) timeout override by PrismaClient
-issues.20724 (provider=mysql, js_planetscale) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=mysql, js_planetscale) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=mysql, js_planetscale) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 methods.findFirstOrThrow (provider=mysql, js_planetscale) works with transactions
 methods.findUniqueOrThrow (provider=mysql, js_planetscale) works with transactions
 metrics.enabled (provider=mysql, js_planetscale) after a query includes global labels in json format
