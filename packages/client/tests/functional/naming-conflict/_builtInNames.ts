@@ -51,8 +51,6 @@ export const builtInNames = [
   'QueryEvent',
   'LogEvent',
   'PrismaAction',
-  'MiddlewareParams',
-  'Middleware',
   'SortOrder',
   'TransactionClient',
   'IntFilter',
