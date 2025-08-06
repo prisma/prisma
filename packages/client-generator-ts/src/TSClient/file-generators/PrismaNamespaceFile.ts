@@ -136,25 +136,6 @@ export type PrismaAction =
   | 'groupBy'
 
 /**
- * These options are being passed into the middleware as "params"
- */
-export type MiddlewareParams = {
-  model?: ModelName
-  action: PrismaAction
-  args: any
-  dataPath: string[]
-  runInTransaction: boolean
-}
-
-/**
- * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => runtime.Types.Utils.JsPromise<T>,
-) => runtime.Types.Utils.JsPromise<T>
-
-/**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>

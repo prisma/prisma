@@ -97,7 +97,7 @@ beforeAll(() => {
   basicTracerProvider.register()
 
   registerInstrumentations({
-    instrumentations: [new PrismaInstrumentation({ middleware: true })],
+    instrumentations: [new PrismaInstrumentation()],
   })
 })
 
@@ -840,48 +840,6 @@ testMatrix.setupTestSuite(
             ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
         ],
-      })
-    })
-
-    describe('tracing with middleware', () => {
-      let _prisma: PrismaClient
-
-      beforeAll(async () => {
-        _prisma = newPrismaClient()
-
-        await _prisma.$connect()
-      })
-
-      test('should succeed', async () => {
-        const email = faker.internet.email()
-
-        _prisma.$use(async (params, next) => {
-          // Manipulate params here
-          const result = await next(params)
-          // See results here
-          return result
-        })
-        _prisma.$use(async (params, next) => {
-          // Manipulate params here
-          const result = await next(params)
-          // See results here
-          return result
-        })
-
-        await _prisma.user.create({
-          data: {
-            email: email,
-          },
-        })
-
-        await waitForSpanTree(
-          operation('User', 'create', [
-            { name: 'prisma:client:middleware', attributes: { method: '$use' } },
-            { name: 'prisma:client:middleware', attributes: { method: '$use' } },
-            clientSerialize(),
-            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
-          ]),
-        )
       })
     })
 
