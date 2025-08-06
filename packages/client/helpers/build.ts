@@ -204,7 +204,7 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
 
               const extToModuleFormatMap = {
                 esm: 'mjs',
-                cjs: 'cjs',
+                cjs: 'js',
               } satisfies Record<ModuleFormat, string>
 
               for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
