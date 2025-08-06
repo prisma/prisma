@@ -37,6 +37,10 @@ export function readdir(cb: (err: Error | null, files: string[]) => void) {
   cb(null, [])
 }
 
+export function readFileSync() {
+  return ''
+}
+
 export function readlinkSync() {
   return ''
 }
