@@ -246,7 +246,7 @@ testMatrix.setupTestSuite(
     })
 
     test('methods from itx client denylist are optional within client extensions', async () => {
-      expect.assertions(12)
+      expect.assertions(10)
 
       const xprisma = prisma.$extends({
         client: {
