@@ -66,7 +66,7 @@
     "eslint-plugin-local-rules": "3.0.2",
     "eslint-plugin-prettier": "4.2.5",
     "eslint-plugin-simple-import-sort": "12.1.1",
-    "execa": "5.1.1",
+    "execa": "9.6.0",
     "format-util": "1.0.5",
     "fs-extra": "11.3.0",
     "globals": "16.0.0",
