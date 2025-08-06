@@ -33,7 +33,7 @@ testMatrix.setupTestSuite(
       const date = new Date()
 
       let paramsString = ''
-      // @ts-expect-error - client not typed for log opts
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       _prisma.$on('query', (e) => {
         const event = e as unknown as QueryEvent
         if (event.query.includes('INSERT')) {

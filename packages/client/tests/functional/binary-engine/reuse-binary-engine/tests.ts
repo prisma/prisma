@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
 
       const internalURL = await ((): Promise<string> =>
         new Promise((resolve, reject) => {
-          // @ts-expect-error - client not typed for log opts
+          // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
           prismaClient1.$on('info', (data: Prisma.LogEvent) => {
             if (/Started query engine/.test(data.message as string)) {
               const port = data.message.split(':').pop()

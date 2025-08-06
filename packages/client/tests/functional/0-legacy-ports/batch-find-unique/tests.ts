@@ -61,7 +61,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta,
 
     expect.assertions(2)
 
-    // @ts-expect-error - client not typed for log opts
+    // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
     prisma.$on('query', ({ query }: Prisma.QueryEvent) => {
       // TODO(query compiler): compacted batches don't need to be wrapped in transactions
       if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {

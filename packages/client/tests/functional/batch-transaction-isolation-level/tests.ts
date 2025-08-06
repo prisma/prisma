@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      // @ts-expect-error - client not typed for log opts
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', (event: Prisma.QueryEvent) => {
         queries.push(event.query)
       })

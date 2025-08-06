@@ -62,7 +62,7 @@ testMatrix.setupTestSuite(
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
 
-      // @ts-expect-error - client not typed for log opts
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', (e) => queries.push(e.query))
     })
 

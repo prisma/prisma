@@ -9,6 +9,10 @@ import type { Prisma, PrismaClient } from './generated/prisma/client'
 declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 declare const prisma: PrismaClient
 
+// TODO: Remove this test once we drop the prisma-client-js generator.
+// This test was duplicated from `globOmit` to run only against the prisma-client-js generator.
+// The `clientWithOmit` helper was too complicated to make it work with both generators at the same time.
+
 // wrapper around newPrismaClient to correctly infer generic arguments.
 // `newPrismaClient` by itself is not smart enough for that and I don't think
 // we can make it smarter in a generic way, without having `PrismaClient` on hands.

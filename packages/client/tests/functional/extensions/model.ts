@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
       const xprisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
       })
-        // @ts-expect-error - client not typed for log opts
+        // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
         .$on('query', fnEmitter)
         .$extends({
           model: {
@@ -379,7 +379,7 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error - client not typed for log opts
+        // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma.$extends({
@@ -426,7 +426,7 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error - client not typed for log opts
+        // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma
