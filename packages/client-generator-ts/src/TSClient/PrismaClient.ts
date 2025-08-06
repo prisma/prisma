@@ -13,20 +13,12 @@ function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('runtime.Types.Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
-    .addGenericArgument(
-      ts
-        .namedType('Prisma.TypeMapCb')
-        .addGenericArgument(ts.objectType().add(ts.property('omit', ts.namedType('OmitOpts')))),
-    )
+    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('OmitOpts')))
     .addGenericArgument(ts.namedType('ExtArgs'))
     .addGenericArgument(
       ts
         .namedType('runtime.Types.Utils.Call')
-        .addGenericArgument(
-          ts
-            .namedType('Prisma.TypeMapCb')
-            .addGenericArgument(ts.objectType().add(ts.property('omit', ts.namedType('OmitOpts')))),
-        )
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('OmitOpts')))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
