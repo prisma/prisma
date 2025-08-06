@@ -76,7 +76,10 @@ async function copyPreprocessed({
       return match
     })
 
-  if (suiteConfig['generatorType'] !== 'prisma-client-ts') {
+  if (suiteConfig['generatorType'] === 'prisma-client-ts') {
+    newContents = newContents.replace(/\/\/\s*@only-js-generator.*\n.*/g, '')
+  } else {
+    newContents = newContents.replace(/\/\/\s*@only-ts-generator.*\n.*/g, '')
     newContents = newContents.replace(/\/generated\/prisma\/sql/g, '/generated/prisma/client/sql')
   }
 

@@ -3,7 +3,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import { PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(() => {
   test('can disconnect and reconnect', async () => {

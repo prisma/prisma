@@ -15,11 +15,11 @@ const user2 = {
   email: copycat.email(2),
 }
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   () => {
-    let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+    let prisma: PrismaClient
     let queriesExecuted = 0
 
     beforeAll(async () => {
@@ -30,7 +30,8 @@ testMatrix.setupTestSuite(
       await prisma.user.create({ data: { posts: { create: {} }, ...user1 } })
       await prisma.user.create({ data: user2 })
 
-      prisma.$on('query', ({ query }) => {
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
+      prisma.$on('query', ({ query }: Prisma.QueryEvent) => {
         // TODO(query compiler): compacted batches don't need to be wrapped in transactions
         if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
           return

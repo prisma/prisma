@@ -5,12 +5,17 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+// @only-ts-generator
+type LogPrismaClient = PrismaClient<'query' | 'info'>
+// @only-js-generator
+type LogPrismaClient = PrismaClient<{ log: [{ emit: 'event'; level: 'query' | 'info' }] }>
+
+declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, clientMeta) => {
     test('check that query and info logs match their declared types', async () => {
-      const prisma: PrismaClient<Prisma.PrismaClientOptions, 'query' | 'info'> = newPrismaClient({
+      const prisma: LogPrismaClient = newPrismaClient({
         log: [
           {
             emit: 'event',

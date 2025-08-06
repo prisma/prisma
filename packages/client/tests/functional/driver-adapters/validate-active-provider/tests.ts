@@ -15,7 +15,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './generated/prisma/client'
 
 declare let datasourceInfo: DatasourceInfo
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/21864
 testMatrix.setupTestSuite(

@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     const isCockroachDb = provider === Providers.COCKROACHDB
 
     const queries: string[] = []
-    let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
+    let prisma: PrismaClient
 
     beforeAll(() => {
       prisma = newPrismaClient({
@@ -26,7 +26,8 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      prisma.$on('query', (event) => {
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
+      prisma.$on('query', (event: Prisma.QueryEvent) => {
         queries.push(event.query)
       })
     })

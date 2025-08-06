@@ -74,7 +74,7 @@ function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
 }
 
 declare let prisma: PrismaClient
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter
 let processor: SpanProcessor

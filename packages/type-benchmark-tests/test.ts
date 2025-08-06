@@ -11,6 +11,7 @@ const directoryBlockList = ['node_modules']
 async function main() {
   const directories = getTestDirectories()
   const updateSnapshots = shouldUpdateSnapshots()
+  const { shouldOnlyGenerate, shouldSkipGenerate } = getGenerateOptions()
   const testFilter = getTestFilter()
 
   const results: {
@@ -26,7 +27,10 @@ async function main() {
     console.log(`\nProcessing directory: ${dir}`)
 
     try {
-      await runGenerate(dir, cwd)
+      if (!shouldSkipGenerate) {
+        await runGenerate(dir, cwd)
+      }
+      if (shouldOnlyGenerate) continue
 
       const benchFiles = getBenchmarkFiles(dir)
       for (const benchFile of benchFiles) {
@@ -68,6 +72,21 @@ function shouldUpdateSnapshots() {
     console.log('ℹ️ 🎥 Updating snapshots...')
   }
   return updateSnapshots
+}
+
+function getGenerateOptions() {
+  const args = process.argv.slice(2)
+  const shouldOnlyGenerate = args.includes('--onlyGenerate')
+  const shouldSkipGenerate = args.includes('--skipGenerate')
+
+  if (shouldOnlyGenerate && shouldSkipGenerate) {
+    throw new Error('Cannot run generate and skip generate at the same time')
+  }
+
+  return {
+    shouldOnlyGenerate,
+    shouldSkipGenerate,
+  }
 }
 
 function getTestFilter() {

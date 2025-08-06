@@ -9,7 +9,7 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
