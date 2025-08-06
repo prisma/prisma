@@ -2,7 +2,6 @@ interactive-transactions (provider=postgresql, js_pg) batching raw rollback
 interactive-transactions (provider=postgresql, js_pg) timeout default
 interactive-transactions (provider=postgresql, js_pg) timeout override
 interactive-transactions (provider=postgresql, js_pg) timeout override by PrismaClient
-methods.findUniqueOrThrow (provider=postgresql, js_pg) works with transactions
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in json format
 metrics.enabled (provider=postgresql, js_pg) after a query includes global labels in prometheus format
 metrics.enabled (provider=postgresql, js_pg) after a query returns metrics in json format
