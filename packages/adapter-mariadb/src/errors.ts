@@ -5,7 +5,7 @@ export function convertDriverError(error: unknown): DriverAdapterErrorObject {
     return {
       originalCode: error.errno.toString(),
       originalMessage: error.sqlMessage ?? 'N/A',
-      ...convertDriverError(error),
+      ...mapDriverError(error),
     }
   }
 
