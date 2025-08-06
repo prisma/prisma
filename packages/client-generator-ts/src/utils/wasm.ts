@@ -57,6 +57,11 @@ export function buildGetWasmModule({
 }: BuildWasmModuleOptions) {
   const capitalizedComponent = capitalize(component)
 
+  const extension = match(moduleFormat)
+    .with('esm', () => 'mjs')
+    .with('cjs', () => 'js')
+    .exhaustive()
+
   const buildNonEdgeLoader = match(runtimeName)
     .with('library', () => component === 'engine' && !!process.env.PRISMA_CLIENT_FORCE_WASM)
     .with('client', () => component === 'compiler')
@@ -99,11 +104,7 @@ export function buildGetWasmModule({
   }
 
   if (buildNodeJsLoader) {
-    const extension = match(moduleFormat)
-      .with('esm', () => 'mjs')
-      .with('cjs', () => 'cjs')
-      .exhaustive()
-
+    wasmBindingsPath = `${wasmPathBase}.${extension}`
     wasmModulePath = `${wasmPathBase}.wasm-base64.${extension}`
     return `
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {

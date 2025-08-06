@@ -68,7 +68,7 @@ async function copyClientWasmRuntime() {
   for (const component of ['compiler', 'engine']) {
     for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
       const baseName = `query_${component}_bg.${provider}`
-      for (const file of [`${baseName}.mjs`, `${baseName}.wasm`]) {
+      for (const file of [`${baseName}.js`, `${baseName}.mjs`, `${baseName}.wasm`]) {
         await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
       }
     }
