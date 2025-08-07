@@ -1,14 +1,15 @@
 import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
+import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { type SchemaProvider } from '../schema'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
 import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../UserFacingError'
-import { assertNever, doKeysMatch } from '../utils'
+import { assertNever } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
+import { getRecordKey, processRecords } from './in-memory-processing'
 import { evaluateParam, renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serializeSql'
@@ -288,45 +289,9 @@ export class QueryInterpreter {
         return { value: asList(from).filter((item) => !toSet.has(item)) }
       }
 
-      case 'distinctBy': {
+      case 'process': {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        const seen = new Set()
-        const result: Value[] = []
-        for (const item of asList(value)) {
-          const key = getRecordKey(item!, node.args.fields)
-          if (!seen.has(key)) {
-            seen.add(key)
-            result.push(item)
-          }
-        }
-        return { value: result, lastInsertId }
-      }
-
-      case 'paginate': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        const list = asList(value)
-
-        const linkingFields = node.args.pagination.linkingFields
-        if (linkingFields !== null) {
-          const groupedByParent = new Map<string, Value[]>()
-          for (const item of list) {
-            const parentKey = getRecordKey(item!, linkingFields)
-            if (!groupedByParent.has(parentKey)) {
-              groupedByParent.set(parentKey, [])
-            }
-            groupedByParent.get(parentKey)!.push(item)
-          }
-
-          const groupList = Array.from(groupedByParent.entries())
-          groupList.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
-
-          return {
-            value: groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination)),
-            lastInsertId,
-          }
-        }
-
-        return { value: paginate(list as {}[], node.args.pagination), lastInsertId }
+        return { value: processRecords(value, node.args.operations), lastInsertId }
       }
 
       case 'initializeRecord': {
@@ -482,24 +447,6 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
   }
 
   return parentRecords
-}
-
-function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
-  const cursorIndex = cursor !== null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
-  if (cursorIndex === -1) {
-    return []
-  }
-  const start = cursorIndex + (skip ?? 0)
-  const end = take !== null ? start + take : list.length
-
-  return list.slice(start, end)
-}
-
-/*
- * Generate a key string for a record based on the values of the specified fields.
- */
-function getRecordKey(record: {}, fields: string[]): string {
-  return JSON.stringify(fields.map((field) => record[field]))
 }
 
 function evalFieldInitializer(
