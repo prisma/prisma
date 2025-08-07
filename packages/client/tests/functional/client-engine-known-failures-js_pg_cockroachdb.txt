@@ -1,13 +1,7 @@
-fulltext-search (provider=cockroachdb, js_pg_cockroachdb) bad query
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batching raw rollback
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout default
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override
 interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override by PrismaClient
-issues.20724 (provider=cockroachdb, js_pg_cockroachdb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=cockroachdb, js_pg_cockroachdb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=cockroachdb, js_pg_cockroachdb) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
-methods.findFirstOrThrow (provider=cockroachdb, js_pg_cockroachdb) works with transactions
-methods.findUniqueOrThrow (provider=cockroachdb, js_pg_cockroachdb) works with transactions
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query includes global labels in json format
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query includes global labels in prometheus format
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query returns metrics in json format

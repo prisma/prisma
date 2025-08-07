@@ -3,22 +3,42 @@ import { convertDriverError } from '../errors'
 describe('convertDriverError', () => {
   it('should handle LengthMismatch (22001)', () => {
     const error = { code: '22001', column: 'foo', message: 'msg', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'LengthMismatch', column: 'foo' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'LengthMismatch',
+      column: 'foo',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle ValueOutOfRange (22003)', () => {
     const error = { code: '22003', message: 'out of range', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'ValueOutOfRange', cause: 'out of range' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ValueOutOfRange',
+      cause: 'out of range',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle UniqueConstraintViolation (23505)', () => {
     const error = { code: '23505', message: 'msg', severity: 'ERROR', detail: 'Key (id)' }
-    expect(convertDriverError(error)).toEqual({ kind: 'UniqueConstraintViolation', constraint: { fields: ['id'] } })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'UniqueConstraintViolation',
+      constraint: { fields: ['id'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle NullConstraintViolation (23502)', () => {
     const error = { code: '23502', message: 'msg', severity: 'ERROR', detail: 'Key (foo)' }
-    expect(convertDriverError(error)).toEqual({ kind: 'NullConstraintViolation', constraint: { fields: ['foo'] } })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'NullConstraintViolation',
+      constraint: { fields: ['foo'] },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle ForeignKeyConstraintViolation (23503) with column', () => {
@@ -26,17 +46,29 @@ describe('convertDriverError', () => {
     expect(convertDriverError(error)).toEqual({
       kind: 'ForeignKeyConstraintViolation',
       constraint: { fields: ['bar'] },
+      originalCode: error.code,
+      originalMessage: error.message,
     })
   })
 
   it('should handle ForeignKeyConstraintViolation (23503) with constraint', () => {
     const error = { code: '23503', message: 'msg', severity: 'ERROR', constraint: 'baz' }
-    expect(convertDriverError(error)).toEqual({ kind: 'ForeignKeyConstraintViolation', constraint: { index: 'baz' } })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ForeignKeyConstraintViolation',
+      constraint: { index: 'baz' },
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle DatabaseDoesNotExist (3D000)', () => {
     const error = { code: '3D000', message: 'database "mydb" does not exist', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'DatabaseDoesNotExist', db: 'mydb' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'DatabaseDoesNotExist',
+      db: 'mydb',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle DatabaseAccessDenied (28000)', () => {
@@ -45,37 +77,71 @@ describe('convertDriverError', () => {
       message: 'no pg_hba.conf entry for host "172.20.20.2", user "db_user", database "prisma_db", no encryption',
       severity: 'FATAL',
     }
-    expect(convertDriverError(error)).toEqual({ kind: 'DatabaseAccessDenied', db: 'prisma_db' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'DatabaseAccessDenied',
+      db: 'prisma_db',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle AuthenticationFailed (28P01)', () => {
     const error = { code: '28P01', message: 'password authentication failed for user "root"', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'AuthenticationFailed', user: 'root' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'AuthenticationFailed',
+      user: 'root',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle TransactionWriteConflict (40001)', () => {
     const error = { code: '40001', message: 'msg', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'TransactionWriteConflict' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'TransactionWriteConflict',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle TableDoesNotExist (42P01)', () => {
     const error = { code: '42P01', message: 'relation "mytable" does not exist', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'TableDoesNotExist', table: 'mytable' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'TableDoesNotExist',
+      table: 'mytable',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle ColumnNotFound (42703)', () => {
     const error = { code: '42703', message: 'column "foo" does not exist', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'ColumnNotFound', column: 'foo' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'ColumnNotFound',
+      column: 'foo',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle DatabaseAlreadyExists (42P04)', () => {
     const error = { code: '42P04', message: 'database "mydb" already exists', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'DatabaseAlreadyExists', db: 'mydb' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'DatabaseAlreadyExists',
+      db: 'mydb',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it('should handle TooManyConnections (53300)', () => {
     const error = { code: '53300', message: 'too many connections', severity: 'ERROR' }
-    expect(convertDriverError(error)).toEqual({ kind: 'TooManyConnections', cause: 'too many connections' })
+    expect(convertDriverError(error)).toEqual({
+      kind: 'TooManyConnections',
+      cause: 'too many connections',
+      originalCode: error.code,
+      originalMessage: error.message,
+    })
   })
 
   it.each([
@@ -122,6 +188,8 @@ describe('convertDriverError', () => {
       detail: 'details',
       column: 'col',
       hint: 'hint',
+      originalCode: error.code,
+      originalMessage: error.message,
     })
   })
 

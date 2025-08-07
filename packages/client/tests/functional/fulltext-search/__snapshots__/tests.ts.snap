@@ -1,79 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`fulltext-search (provider=mysql) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
+exports[`fulltext-search (provider=mysql) bad query 1`] = `"syntax error, unexpected '-'"`;
 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })"
-`;
+exports[`fulltext-search (provider=mysql, js_mariadb) bad query 1`] = `"syntax error, unexpected '-'"`;
 
-exports[`fulltext-search (provider=mysql, js_mariadb) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
+exports[`fulltext-search (provider=mysql, js_planetscale) bad query 1`] = `"target: test-0000-00000000.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-'"`;
 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })"
-`;
+exports[`fulltext-search (provider=postgresql) bad query 1`] = `"syntax error in tsquery: "John Smith""`;
 
-exports[`fulltext-search (provider=mysql, js_planetscale) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
+exports[`fulltext-search (provider=postgresql, js_neon) bad query 1`] = `"syntax error in tsquery: "John Smith""`;
 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(MysqlError { code: 1064, message: "target: test-0000-00000000.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-'", state: "42000" })), transient: false })"
-`;
-
-exports[`fulltext-search (provider=postgresql) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
-
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
-`;
-
-exports[`fulltext-search (provider=postgresql, js_neon) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
-
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
-`;
-
-exports[`fulltext-search (provider=postgresql, js_pg) bad query 1`] = `
-"
-Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:0:0
-
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(process.platform !== 'win32')('bad query', async () => {
-  XX   const result = prisma.user
-→ XX     .findMany(
-Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(PostgresError { code: "42601", message: "syntax error in tsquery: \\"John Smith\\"", severity: "ERROR", detail: None, column: None, hint: None }), transient: false })"
-`;
+exports[`fulltext-search (provider=postgresql, js_pg) bad query 1`] = `"syntax error in tsquery: "John Smith""`;
