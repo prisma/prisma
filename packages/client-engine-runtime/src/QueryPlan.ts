@@ -226,20 +226,6 @@ export type QueryPlanNode =
       }
     }
   | {
-      type: 'distinctBy'
-      args: {
-        expr: QueryPlanNode
-        fields: string[]
-      }
-    }
-  | {
-      type: 'paginate'
-      args: {
-        expr: QueryPlanNode
-        pagination: Pagination
-      }
-    }
-  | {
       type: 'initializeRecord'
       args: {
         expr: QueryPlanNode
@@ -251,6 +237,13 @@ export type QueryPlanNode =
       args: {
         expr: QueryPlanNode
         fields: Record<string, FieldOperation>
+      }
+    }
+  | {
+      type: 'process'
+      args: {
+        expr: QueryPlanNode
+        operations: InMemoryOps
       }
     }
 
@@ -267,7 +260,14 @@ export type Pagination = {
   cursor: Record<string, PrismaValue> | null
   take: number | null
   skip: number | null
+}
+
+export type InMemoryOps = {
+  pagination: Pagination | null
+  distinct: string[] | null
+  reverse: boolean
   linkingFields: string[] | null
+  nested: Record<string, InMemoryOps>
 }
 
 export type DataRule =
