@@ -16,4 +16,3 @@ metrics.enabled (provider=sqlite, js_better_sqlite3) before a query SQL Provider
 metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlite, js_better_sqlite3) multiple instances does not share metrics between 2 different instances of client
-unsupported-action (provider=sqlite, js_better_sqlite3) unsupported method
