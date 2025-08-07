@@ -10,4 +10,3 @@ metrics.enabled (provider=postgresql, js_pg) before a query SQL Providers: shoul
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_pg) multiple instances does not share metrics between 2 different instances of client
-unsupported-action (provider=postgresql, js_pg) unsupported method

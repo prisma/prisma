@@ -11,4 +11,3 @@ metrics.enabled (provider=mysql, js_planetscale) before a query SQL Providers: s
 metrics.enabled (provider=mysql, js_planetscale) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=mysql, js_planetscale) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=mysql, js_planetscale) multiple instances does not share metrics between 2 different instances of client
-unsupported-action (provider=mysql, js_planetscale) unsupported method

@@ -10,4 +10,3 @@ metrics.enabled (provider=postgresql, js_neon) before a query SQL Providers: sho
 metrics.enabled (provider=postgresql, js_neon) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_neon) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=postgresql, js_neon) multiple instances does not share metrics between 2 different instances of client
-unsupported-action (provider=postgresql, js_neon) unsupported method

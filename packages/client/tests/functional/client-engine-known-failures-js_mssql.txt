@@ -12,4 +12,3 @@ metrics.enabled (provider=sqlserver, js_mssql) before a query SQL Providers: sho
 metrics.enabled (provider=sqlserver, js_mssql) empty $metrics.json() does not crash before client is connected
 metrics.enabled (provider=sqlserver, js_mssql) empty $metrics.prometheus() does not crash before client is connected
 metrics.enabled (provider=sqlserver, js_mssql) multiple instances does not share metrics between 2 different instances of client
-unsupported-action (provider=sqlserver, js_mssql) unsupported method

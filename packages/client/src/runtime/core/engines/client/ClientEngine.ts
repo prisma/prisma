@@ -323,6 +323,8 @@ export class ClientEngine implements Engine {
         meta: error.meta,
         clientVersion: this.config.clientVersion,
       })
+    } else if (typeof error['message'] === 'string') {
+      return new PrismaClientUnknownRequestError(error['message'], { clientVersion: this.config.clientVersion })
     } else {
       return error
     }
