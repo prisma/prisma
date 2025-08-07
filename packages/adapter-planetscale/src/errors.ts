@@ -1,8 +1,16 @@
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
 import { ParsedDatabaseError } from './planetscale'
 
 export function convertDriverError(error: ParsedDatabaseError): DriverAdapterErrorObject {
+  return {
+    originalCode: `${error.code}`,
+    originalMessage: error.message,
+    ...mapDriverError(error),
+  }
+}
+
+export function mapDriverError(error: ParsedDatabaseError): MappedError {
   switch (error.code) {
     case 1062: {
       const index = error.message.split(' ').pop()?.split("'").at(1)?.split('.').pop()

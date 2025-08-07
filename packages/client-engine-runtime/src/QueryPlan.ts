@@ -54,6 +54,7 @@ export type PrismaValueType =
   | { type: 'Date' }
   | { type: 'Time' }
   | { type: 'Array'; inner: PrismaValueType }
+  | { type: 'Json' }
   | { type: 'Object' }
   | { type: 'Bytes' }
   | { type: 'Enum'; inner: string }

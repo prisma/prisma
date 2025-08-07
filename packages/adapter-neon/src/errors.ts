@@ -1,11 +1,19 @@
 import type { DatabaseError } from '@neondatabase/serverless'
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
-  if (!isDbError(error)) {
-    throw error
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.code,
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+function mapDriverError(error: DatabaseError): MappedError {
   switch (error.code) {
     case '22001':
       return {
@@ -107,7 +115,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is DatabaseError {
+function isDriverError(error: any): error is DatabaseError {
   return (
     typeof error.code === 'string' &&
     typeof error.message === 'string' &&

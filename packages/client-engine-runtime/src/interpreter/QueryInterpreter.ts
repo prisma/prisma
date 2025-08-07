@@ -5,7 +5,7 @@ import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlan
 import { type SchemaProvider } from '../schema'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
-import { rethrowAsUserFacing } from '../UserFacingError'
+import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../UserFacingError'
 import { assertNever, doKeysMatch } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
@@ -154,7 +154,13 @@ export class QueryInterpreter {
 
         let sum = 0
         for (const query of queries) {
-          sum += await this.#withQuerySpanAndEvent(query, queryable, () => queryable.executeRaw(query))
+          sum += await this.#withQuerySpanAndEvent(query, queryable, () =>
+            queryable
+              .executeRaw(query)
+              .catch((err) =>
+                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+              ),
+          )
         }
 
         return { value: sum }
@@ -165,7 +171,13 @@ export class QueryInterpreter {
 
         let results: SqlResultSet | undefined
         for (const query of queries) {
-          const result = await this.#withQuerySpanAndEvent(query, queryable, () => queryable.queryRaw(query))
+          const result = await this.#withQuerySpanAndEvent(query, queryable, () =>
+            queryable
+              .queryRaw(query)
+              .catch((err) =>
+                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+              ),
+          )
           if (results === undefined) {
             results = result
           } else {
