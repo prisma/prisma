@@ -285,8 +285,8 @@ export class QueryInterpreter {
       case 'diff': {
         const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
         const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
-        const toSet = new Set(asList(to))
-        return { value: asList(from).filter((item) => !toSet.has(item)) }
+        const toSet = new Set(asList(to).map((item) => JSON.stringify(item)))
+        return { value: asList(from).filter((item) => !toSet.has(JSON.stringify(item))) }
       }
 
       case 'process': {
