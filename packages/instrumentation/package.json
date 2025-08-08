@@ -36,7 +36,7 @@
     "typescript": "5.4.5"
   },
   "dependencies": {
-    "@opentelemetry/instrumentation": "^0.52.0 || ^0.53.0 || ^0.54.0 || ^0.55.0 || ^0.56.0 || ^0.57.0"
+    "@opentelemetry/instrumentation": "^0.203.0"
   },
   "peerDependencies": {
     "@opentelemetry/api": "^1.8"
