@@ -78,7 +78,9 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toMatchObject({
-        message: expect.stringContaining('Transaction API error: Transaction already closed'),
+        message: expect.stringMatching(
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+        ),
         code: 'P2028',
         clientVersion: '0.0.0',
       })
@@ -108,7 +110,7 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchObject({
         message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
         ),
       })
 
@@ -137,7 +139,7 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchObject({
         message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
         ),
       })
 

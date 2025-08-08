@@ -1,7 +1,3 @@
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batching raw rollback
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout default
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override by PrismaClient
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query includes global labels in json format
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query includes global labels in prometheus format
 metrics.enabled (provider=cockroachdb, js_pg_cockroachdb) after a query returns metrics in json format

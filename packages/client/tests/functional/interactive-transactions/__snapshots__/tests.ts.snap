@@ -349,7 +349,7 @@ exports[`interactive-transactions (provider=postgresql, js_pg) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
+Raw query failed. Code: \`23505\`. Message: \`duplicate key value violates unique constraint "User_pkey"\`"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_pg) batching rollback 1`] = `

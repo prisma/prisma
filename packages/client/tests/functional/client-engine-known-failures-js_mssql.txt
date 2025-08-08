@@ -1,8 +1,3 @@
-interactive-transactions (provider=sqlserver, js_mssql) batching raw rollback
-interactive-transactions (provider=sqlserver, js_mssql) batching rollback
-interactive-transactions (provider=sqlserver, js_mssql) timeout default
-interactive-transactions (provider=sqlserver, js_mssql) timeout override
-interactive-transactions (provider=sqlserver, js_mssql) timeout override by PrismaClient
 issues.9678 (provider=sqlserver, js_mssql) concurrent deleteMany/createMany
 metrics.enabled (provider=sqlserver, js_mssql) after a query includes global labels in json format
 metrics.enabled (provider=sqlserver, js_mssql) after a query includes global labels in prometheus format

@@ -1,9 +1,3 @@
-interactive-transactions (provider=sqlite, js_better_sqlite3) batching raw rollback
-interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout default
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout override
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout override by PrismaClient
-invalid-sqlite-isolation-level (provider=sqlite, js_better_sqlite3) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_better_sqlite3) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_better_sqlite3) should return a descriptive error
 issues.21369-select-null (provider=sqlite, js_better_sqlite3) SELECT NULL works
