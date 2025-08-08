@@ -45,9 +45,9 @@ export function rethrowAsUserFacingRawError(error: any): never {
   }
 
   throw new UserFacingError(
-    `Raw query failed. Code: ${error.cause.originalCode ?? 'N/A'}. Message: ${
+    `Raw query failed. Code: \`${error.cause.originalCode ?? 'N/A'}\`. Message: \`${
       error.cause.originalMessage ?? renderErrorMessage(error)
-    }`,
+    }\``,
     'P2010',
     { driverAdapterError: error },
   )
@@ -165,7 +165,7 @@ function renderErrorMessage(err: DriverAdapterError): string | undefined {
       return `The column \`${column}\` does not exist in the current database.`
     }
     case 'InvalidIsolationLevel':
-      return `Invalid isolation level \`${err.cause.level}\``
+      return `Error in connector: Conversion error: ${err.cause.level}`
     case 'InconsistentColumnData':
       return `Inconsistent column data: ${err.cause.cause}`
     case 'MissingFullTextSearchIndex':

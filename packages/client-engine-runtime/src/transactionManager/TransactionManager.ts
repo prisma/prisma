@@ -5,6 +5,7 @@ import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
 import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
+import { rethrowAsUserFacing } from '../UserFacingError'
 import { assertNever } from '../utils'
 import { Options, TransactionInfo } from './Transaction'
 import {
@@ -99,7 +100,9 @@ export class TransactionManager {
     let hasTimedOut = false
     const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
 
-    transaction.transaction = await this.driverAdapter.startTransaction(validatedOptions.isolationLevel)
+    transaction.transaction = await this.driverAdapter
+      .startTransaction(validatedOptions.isolationLevel)
+      .catch(rethrowAsUserFacing)
 
     clearTimeout(startTimer)
 

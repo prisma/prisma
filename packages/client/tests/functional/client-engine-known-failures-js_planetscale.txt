@@ -1,8 +1,3 @@
-interactive-transactions (provider=mysql, js_planetscale) batching raw rollback
-interactive-transactions (provider=mysql, js_planetscale) batching rollback
-interactive-transactions (provider=mysql, js_planetscale) timeout default
-interactive-transactions (provider=mysql, js_planetscale) timeout override
-interactive-transactions (provider=mysql, js_planetscale) timeout override by PrismaClient
 metrics.enabled (provider=mysql, js_planetscale) after a query includes global labels in json format
 metrics.enabled (provider=mysql, js_planetscale) after a query includes global labels in prometheus format
 metrics.enabled (provider=mysql, js_planetscale) after a query returns metrics in json format

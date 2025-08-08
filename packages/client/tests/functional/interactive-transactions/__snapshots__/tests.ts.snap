@@ -49,7 +49,7 @@ exports[`interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batc
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
+Raw query failed. Code: \`23505\`. Message: \`duplicate key value violates unique constraint "User_pkey"\`"
 `;
 
 exports[`interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batching rollback 1`] = `
@@ -173,7 +173,7 @@ exports[`interactive-transactions (provider=mysql, js_mariadb) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: PRIMARY\`"
+Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'user.PRIMARY'\`"
 `;
 
 exports[`interactive-transactions (provider=mysql, js_mariadb) batching rollback 1`] = `
@@ -217,7 +217,7 @@ exports[`interactive-transactions (provider=mysql, js_planetscale) batching raw 
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: PRIMARY\`"
+Raw query failed. Code: \`1062\`. Message: \`target: test-0000-00000000.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY'\`"
 `;
 
 exports[`interactive-transactions (provider=mysql, js_planetscale) batching rollback 1`] = `
@@ -305,7 +305,7 @@ exports[`interactive-transactions (provider=postgresql, js_neon) batching raw ro
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
+Raw query failed. Code: \`23505\`. Message: \`duplicate key value violates unique constraint "User_pkey"\`"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_neon) batching rollback 1`] = `
@@ -349,7 +349,7 @@ exports[`interactive-transactions (provider=postgresql, js_pg) batching raw roll
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (id)\`"
+Raw query failed. Code: \`23505\`. Message: \`duplicate key value violates unique constraint "User_pkey"\`"
 `;
 
 exports[`interactive-transactions (provider=postgresql, js_pg) batching rollback 1`] = `
@@ -437,7 +437,7 @@ exports[`interactive-transactions (provider=sqlite, js_better_sqlite3) batching 
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: (email)\`"
+Raw query failed. Code: \`SQLITE_CONSTRAINT_UNIQUE\`. Message: \`UNIQUE constraint failed: User.email\`"
 `;
 
 exports[`interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback 1`] = `
@@ -569,7 +569,7 @@ exports[`interactive-transactions (provider=sqlserver, js_mssql) batching raw ro
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-Raw query failed. Code: \`N/A\`. Message: \`Unique constraint failed: dbo.User\`"
+Raw query failed. Code: \`EREQUEST\`. Message: \`Violation of PRIMARY KEY constraint 'User_pkey'. Cannot insert duplicate key in object 'dbo.User'. The duplicate key value is (1).\`"
 `;
 
 exports[`interactive-transactions (provider=sqlserver, js_mssql) batching rollback 1`] = `

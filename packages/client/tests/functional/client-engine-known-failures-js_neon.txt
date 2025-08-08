@@ -1,7 +1,3 @@
-interactive-transactions (provider=postgresql, js_neon) batching raw rollback
-interactive-transactions (provider=postgresql, js_neon) timeout default
-interactive-transactions (provider=postgresql, js_neon) timeout override
-interactive-transactions (provider=postgresql, js_neon) timeout override by PrismaClient
 metrics.enabled (provider=postgresql, js_neon) after a query includes global labels in json format
 metrics.enabled (provider=postgresql, js_neon) after a query includes global labels in prometheus format
 metrics.enabled (provider=postgresql, js_neon) after a query returns metrics in json format

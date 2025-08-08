@@ -46,7 +46,7 @@ export class TransactionExecutionTimeoutError extends TransactionManagerError {
       `A ${operation} cannot be executed on an expired transaction. \
 The timeout for this transaction was ${timeout} ms, however ${timeTaken} ms passed since the start \
 of the transaction. Consider increasing the interactive transaction timeout \
-or doing less work in the transaction`,
+or doing less work in the transaction.`,
       { operation, timeout, timeTaken },
     )
   }
