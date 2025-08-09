@@ -3,13 +3,18 @@ import { Operation } from '@prisma/client-common'
 import { JsonObject } from './Json'
 import { OperationPayload } from './Payload'
 import { Skip } from './Skip'
-import { Compute, Equals, PatchFlat, Select } from './Utils'
+import { Compute, PatchFlat, Select } from './Utils'
 
 export type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
 export type GetFindResult<P extends OperationPayload, A, GlobalOmitOptions> =
-  Equals<A, any> extends 1 ? DefaultSelection<P, A, GlobalOmitOptions> :
+  
+  [A] extends [any] ? ([any] extends [A] ? DefaultSelection<P, A, GlobalOmitOptions> : GetFindResultImpl<P, A, GlobalOmitOptions>) :
+  GetFindResultImpl<P, A, GlobalOmitOptions>
+
+// prettier-ignore
+export type GetFindResultImpl<P extends OperationPayload, A, GlobalOmitOptions> =
   A extends
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>
