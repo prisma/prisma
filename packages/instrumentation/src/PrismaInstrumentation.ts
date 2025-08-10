@@ -16,7 +16,6 @@ import {
 } from './constants'
 
 export interface PrismaInstrumentationConfig {
-  middleware?: boolean
   ignoreSpanTypes?: (string | RegExp)[]
 }
 
@@ -44,7 +43,6 @@ export class PrismaInstrumentation extends InstrumentationBase {
 
     const globalValue: PrismaInstrumentationGlobalValue = {
       helper: new ActiveTracingHelper({
-        traceMiddleware: config.middleware ?? false,
         tracerProvider: this.tracerProvider ?? trace.getTracerProvider(),
         ignoreSpanTypes: config.ignoreSpanTypes ?? [],
       }),

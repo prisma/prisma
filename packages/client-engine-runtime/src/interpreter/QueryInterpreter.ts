@@ -1,14 +1,15 @@
-import { SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
 
 import { QueryEvent } from '../events'
-import { FieldInitializer, FieldOperation, JoinExpression, Pagination, QueryPlanNode } from '../QueryPlan'
+import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../QueryPlan'
 import { type SchemaProvider } from '../schema'
 import { type TracingHelper, withQuerySpanAndEvent } from '../tracing'
 import { type TransactionManager } from '../transactionManager/TransactionManager'
-import { rethrowAsUserFacing } from '../UserFacingError'
-import { assertNever, doKeysMatch } from '../utils'
+import { rethrowAsUserFacing, rethrowAsUserFacingRawError } from '../UserFacingError'
+import { assertNever } from '../utils'
 import { applyDataMap } from './DataMapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
+import { getRecordKey, processRecords } from './in-memory-processing'
 import { evaluateParam, renderQuery } from './renderQuery'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serializeSql'
@@ -24,6 +25,7 @@ export type QueryInterpreterOptions = {
   serializer: (results: SqlResultSet) => Value
   rawSerializer?: (results: SqlResultSet) => Value
   provider?: SchemaProvider
+  connectionInfo?: ConnectionInfo
 }
 
 export class QueryInterpreter {
@@ -35,6 +37,7 @@ export class QueryInterpreter {
   readonly #serializer: (results: SqlResultSet) => Value
   readonly #rawSerializer: (results: SqlResultSet) => Value
   readonly #provider?: SchemaProvider
+  readonly #connectioInfo?: ConnectionInfo
 
   constructor({
     transactionManager,
@@ -44,6 +47,7 @@ export class QueryInterpreter {
     serializer,
     rawSerializer,
     provider,
+    connectionInfo,
   }: QueryInterpreterOptions) {
     this.#transactionManager = transactionManager
     this.#placeholderValues = placeholderValues
@@ -52,6 +56,7 @@ export class QueryInterpreter {
     this.#serializer = serializer
     this.#rawSerializer = rawSerializer ?? serializer
     this.#provider = provider
+    this.#connectioInfo = connectionInfo
   }
 
   static forSql(options: {
@@ -60,6 +65,7 @@ export class QueryInterpreter {
     onQuery?: (event: QueryEvent) => void
     tracingHelper: TracingHelper
     provider?: SchemaProvider
+    connectionInfo?: ConnectionInfo
   }): QueryInterpreter {
     return new QueryInterpreter({
       transactionManager: options.transactionManager,
@@ -69,6 +75,7 @@ export class QueryInterpreter {
       serializer: serializeSql,
       rawSerializer: serializeRawSql,
       provider: options.provider,
+      connectionInfo: options.connectionInfo,
     })
   }
 
@@ -144,22 +151,46 @@ export class QueryInterpreter {
       }
 
       case 'execute': {
-        const query = renderQuery(node.args, scope, generators)
-        return this.#withQuerySpanAndEvent(query, queryable, async () => {
-          return { value: await queryable.executeRaw(query) }
-        })
+        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+
+        let sum = 0
+        for (const query of queries) {
+          sum += await this.#withQuerySpanAndEvent(query, queryable, () =>
+            queryable
+              .executeRaw(query)
+              .catch((err) =>
+                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+              ),
+          )
+        }
+
+        return { value: sum }
       }
 
       case 'query': {
-        const query = renderQuery(node.args, scope, generators)
-        return this.#withQuerySpanAndEvent(query, queryable, async () => {
-          const result = await queryable.queryRaw(query)
-          if (node.args.type === 'rawSql') {
-            return { value: this.#rawSerializer(result), lastInsertId: result.lastInsertId }
+        const queries = renderQuery(node.args, scope, generators, this.#maxChunkSize())
+
+        let results: SqlResultSet | undefined
+        for (const query of queries) {
+          const result = await this.#withQuerySpanAndEvent(query, queryable, () =>
+            queryable
+              .queryRaw(query)
+              .catch((err) =>
+                node.args.type === 'rawSql' ? rethrowAsUserFacingRawError(err) : rethrowAsUserFacing(err),
+              ),
+          )
+          if (results === undefined) {
+            results = result
           } else {
-            return { value: this.#serializer(result), lastInsertId: result.lastInsertId }
+            results.rows.push(...result.rows)
+            results.lastInsertId = result.lastInsertId
           }
-        })
+        }
+
+        return {
+          value: node.args.type === 'rawSql' ? this.#rawSerializer(results!) : this.#serializer(results!),
+          lastInsertId: results?.lastInsertId,
+        }
       }
 
       case 'reverse': {
@@ -254,49 +285,13 @@ export class QueryInterpreter {
       case 'diff': {
         const { value: from } = await this.interpretNode(node.args.from, queryable, scope, generators)
         const { value: to } = await this.interpretNode(node.args.to, queryable, scope, generators)
-        const toSet = new Set(asList(to))
-        return { value: asList(from).filter((item) => !toSet.has(item)) }
+        const toSet = new Set(asList(to).map((item) => JSON.stringify(item)))
+        return { value: asList(from).filter((item) => !toSet.has(JSON.stringify(item))) }
       }
 
-      case 'distinctBy': {
+      case 'process': {
         const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        const seen = new Set()
-        const result: Value[] = []
-        for (const item of asList(value)) {
-          const key = getRecordKey(item!, node.args.fields)
-          if (!seen.has(key)) {
-            seen.add(key)
-            result.push(item)
-          }
-        }
-        return { value: result, lastInsertId }
-      }
-
-      case 'paginate': {
-        const { value, lastInsertId } = await this.interpretNode(node.args.expr, queryable, scope, generators)
-        const list = asList(value)
-
-        const linkingFields = node.args.pagination.linkingFields
-        if (linkingFields !== null) {
-          const groupedByParent = new Map<string, Value[]>()
-          for (const item of list) {
-            const parentKey = getRecordKey(item!, linkingFields)
-            if (!groupedByParent.has(parentKey)) {
-              groupedByParent.set(parentKey, [])
-            }
-            groupedByParent.get(parentKey)!.push(item)
-          }
-
-          const groupList = Array.from(groupedByParent.entries())
-          groupList.sort(([aId], [bId]) => (aId < bId ? -1 : aId > bId ? 1 : 0))
-
-          return {
-            value: groupList.flatMap(([, elems]) => paginate(elems as {}[], node.args.pagination)),
-            lastInsertId,
-          }
-        }
-
-        return { value: paginate(list as {}[], node.args.pagination), lastInsertId }
+        return { value: processRecords(value, node.args.operations), lastInsertId }
       }
 
       case 'initializeRecord': {
@@ -321,6 +316,36 @@ export class QueryInterpreter {
 
       default:
         assertNever(node, `Unexpected node type: ${(node as { type: unknown }).type}`)
+    }
+  }
+
+  #maxChunkSize(): number | undefined {
+    if (this.#connectioInfo?.maxBindValues !== undefined) {
+      return this.#connectioInfo.maxBindValues
+    }
+    return this.#providerMaxChunkSize()
+  }
+
+  #providerMaxChunkSize(): number | undefined {
+    if (this.#provider === undefined) {
+      return undefined
+    }
+    switch (this.#provider) {
+      case 'cockroachdb':
+      case 'postgres':
+      case 'postgresql':
+      case 'prisma+postgres':
+        return 32766
+      case 'mysql':
+        return 65535
+      case 'sqlite':
+        return 999
+      case 'sqlserver':
+        return 2098
+      case 'mongodb':
+        return undefined
+      default:
+        assertNever(this.#provider, `Unexpected provider: ${this.#provider}`)
     }
   }
 
@@ -422,24 +447,6 @@ function attachChildrenToParents(parentRecords: unknown, children: JoinExpressio
   }
 
   return parentRecords
-}
-
-function paginate(list: {}[], { cursor, skip, take }: Pagination): {}[] {
-  const cursorIndex = cursor !== null ? list.findIndex((item) => doKeysMatch(item, cursor)) : 0
-  if (cursorIndex === -1) {
-    return []
-  }
-  const start = cursorIndex + (skip ?? 0)
-  const end = take !== null ? start + take : list.length
-
-  return list.slice(start, end)
-}
-
-/*
- * Generate a key string for a record based on the values of the specified fields.
- */
-function getRecordKey(record: {}, fields: string[]): string {
-  return JSON.stringify(fields.map((field) => record[field]))
 }
 
 function evalFieldInitializer(

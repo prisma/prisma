@@ -36,35 +36,100 @@ export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[]
 }
 
 export function serializeRawSql(resultSet: SqlResultSet): Record<string, unknown> {
-  const types = resultSet.columnTypes.map((type) => serializeColumnType(type))
-
-  const mappers = types.map((type) => {
-    switch (type) {
-      case 'bytes':
-        return (value: unknown) => (Array.isArray(value) ? new Uint8Array(value) : value)
-      case 'int':
-        return (value: unknown) =>
-          value === null ? null : typeof value === 'number' ? value : parseInt(`${value}`, 10)
-      case 'bigint':
-        return (value: unknown) => (value === null ? null : typeof value === 'bigint' ? value : BigInt(`${value}`))
-      case 'json':
-        return (value: unknown) => (typeof value === 'string' ? JSON.parse(value) : value)
-      case 'bool':
-        return (value: unknown) =>
-          typeof value === 'string'
-            ? value === 'true' || value === '1'
-            : typeof value === 'number'
-            ? value === 1
-            : value
-      default:
-        return (value: unknown) => value
-    }
-  })
-
   return {
     columns: resultSet.columnNames,
     types: resultSet.columnTypes.map((type) => serializeColumnType(type)),
-    rows: resultSet.rows.map((row) => row.map((value, index) => mappers[index](value))),
+    rows: resultSet.rows.map((row) =>
+      row.map((value, index) => serializeRawValue(value, resultSet.columnTypes[index])),
+    ),
+  }
+}
+
+function serializeRawValue(value: unknown, type: ColumnType): unknown {
+  if (value === null) {
+    return null
+  }
+
+  switch (type) {
+    case ColumnTypeEnum.Int32:
+      switch (typeof value) {
+        case 'number':
+          return Math.trunc(value)
+        case 'string':
+          return Math.trunc(Number(value))
+        default:
+          throw new Error(`Cannot serialize value of type ${typeof value} as Int32`)
+      }
+
+    case ColumnTypeEnum.Int32Array:
+      if (!Array.isArray(value)) {
+        throw new Error(`Cannot serialize value of type ${typeof value} as Int32Array`)
+      }
+      return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Int32))
+
+    case ColumnTypeEnum.Int64:
+      switch (typeof value) {
+        case 'number':
+          return BigInt(Math.trunc(value))
+        case 'string':
+          return value
+        default:
+          throw new Error(`Cannot serialize value of type ${typeof value} as Int64`)
+      }
+
+    case ColumnTypeEnum.Int64Array:
+      if (!Array.isArray(value)) {
+        throw new Error(`Cannot serialize value of type ${typeof value} as Int64Array`)
+      }
+      return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Int64))
+
+    case ColumnTypeEnum.Json:
+      switch (typeof value) {
+        case 'string':
+          return JSON.parse(value)
+        default:
+          throw new Error(`Cannot serialize value of type ${typeof value} as Json`)
+      }
+
+    case ColumnTypeEnum.JsonArray:
+      if (!Array.isArray(value)) {
+        throw new Error(`Cannot serialize value of type ${typeof value} as JsonArray`)
+      }
+      return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Json))
+
+    case ColumnTypeEnum.Bytes:
+      if (Array.isArray(value)) {
+        return new Uint8Array(value)
+      } else {
+        throw new Error(`Cannot serialize value of type ${typeof value} as Bytes`)
+      }
+
+    case ColumnTypeEnum.BytesArray:
+      if (!Array.isArray(value)) {
+        throw new Error(`Cannot serialize value of type ${typeof value} as BytesArray`)
+      }
+      return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Bytes))
+
+    case ColumnTypeEnum.Boolean:
+      switch (typeof value) {
+        case 'boolean':
+          return value
+        case 'string':
+          return value === 'true' || value === '1'
+        case 'number':
+          return value === 1
+        default:
+          throw new Error(`Cannot serialize value of type ${typeof value} as Boolean`)
+      }
+
+    case ColumnTypeEnum.BooleanArray:
+      if (!Array.isArray(value)) {
+        throw new Error(`Cannot serialize value of type ${typeof value} as BooleanArray`)
+      }
+      return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Boolean))
+
+    default:
+      return value // For all other types, return the value as is
   }
 }
 

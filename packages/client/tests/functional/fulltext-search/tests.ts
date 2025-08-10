@@ -91,12 +91,8 @@ testMatrix.setupTestSuite(
         })
         .catch((e) => {
           const error = e as Error
-          error.message = error.message
-            // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
-            .replace(/line: Some\(\d+\)/, 'line: Some(0)')
-            // Align Rust / Driver Adapters divergences: "t1.[column]" -> "`User`.[column]"
-            .replace(/t0\./g, '`User`.')
-            .replace(' as t0', '')
+          const matches = error.message.match(/code: [^,]+, message: (".*"), (severity|state)/)
+          error.message = matches?.[1] ? JSON.parse(matches[1]) : error.message
           throw error
         })
 

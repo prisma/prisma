@@ -7,6 +7,7 @@ export {
 } from './interpreter/QueryInterpreter'
 export * from './json-protocol'
 export * from './QueryPlan'
+export * from './raw-json-protocol'
 export type { SchemaProvider } from './schema'
 export { noopTracingHelper, type TracingHelper } from './tracing'
 export type { TransactionInfo, Options as TransactionOptions } from './transactionManager/Transaction'

@@ -61,8 +61,7 @@ import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
-import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
-import { MiddlewareHandler } from './MiddlewareHandler'
+import type { QueryMiddlewareParams } from './QueryMiddlewareParams'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
@@ -246,7 +245,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
@@ -447,14 +445,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
-    }
-
-    /**
-     * Hook a middleware into the client
-     * @param middleware to hook
-     */
-    $use(middleware: QueryMiddleware) {
-      this._middlewares.use(middleware)
     }
 
     $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
@@ -810,12 +800,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       // span options for opentelemetry instrumentation
       const spanOptions = {
-        middleware: {
-          name: 'middleware',
-          middleware: true,
-          attributes: { method: '$use' },
-          active: false,
-        } as ExtendedSpanOptions,
         operation: {
           name: 'operation',
           attributes: {
@@ -826,22 +810,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         } as ExtendedSpanOptions,
       }
 
-      let index = -1
       // prepare recursive fn that will pipe params through middlewares
       const consumer = async (changedMiddlewareParams: QueryMiddlewareParams) => {
-        // if this `next` was called and there's some more middlewares
-        const nextMiddleware = this._middlewares.get(++index)
-
-        if (nextMiddleware) {
-          // we pass the modified params down to the next one, & repeat
-          // calling `next` calls the consumer again with the new params
-          return this._tracingHelper.runInChildSpan(spanOptions.middleware, (span) => {
-            // we call `span.end()` _before_ calling the next middleware
-            return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
-          })
-        }
-
-        // no middleware? then we just proceed with request execution
+        // we proceed with request execution
         // before we send the execution request, we use the changed params
         const { runInTransaction, args, ...changedRequestParams } = changedMiddlewareParams
         const requestParams = {

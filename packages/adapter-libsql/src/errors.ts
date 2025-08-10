@@ -1,14 +1,22 @@
 import { type LibsqlError } from '@libsql/client'
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
 const SQLITE_BUSY = 5
 const PRIMARY_ERROR_CODE_MASK = 0xff
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
-  if (!isDbError(error)) {
-    throw error
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.rawCode?.toString(),
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+export function mapDriverError(error: LibsqlError): MappedError {
   const rawCode: number = error.rawCode ?? error.cause?.['rawCode'] ?? 1
   switch (rawCode) {
     case 2067:
@@ -70,7 +78,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is LibsqlError {
+function isDriverError(error: any): error is LibsqlError {
   return (
     typeof error.code === 'string' &&
     typeof error.message === 'string' &&

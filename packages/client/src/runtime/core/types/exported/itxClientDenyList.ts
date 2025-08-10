@@ -1,4 +1,4 @@
-const denylist = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends'] as const
+const denylist = ['$connect', '$disconnect', '$on', '$transaction', '$extends'] as const
 
 export const itxClientDenyList = denylist as ReadonlyArray<string | symbol>
 

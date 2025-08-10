@@ -484,13 +484,6 @@ export class PrismaClient<
    */
   $disconnect(): $Utils.JsPromise<void>;
 
-  /**
-   * Add a middleware
-   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
-   * @see https://pris.ly/d/extensions
-   */
-  $use(cb: Prisma.Middleware): void
-
 ${[
   executeRawDefinition(this.context),
   queryRawDefinition(this.context),
@@ -596,25 +589,6 @@ export type PrismaAction =
   | 'runCommandRaw'
   | 'findRaw'
   | 'groupBy'
-
-/**
- * These options are being passed into the middleware as "params"
- */
-export type MiddlewareParams = {
-  model?: ModelName
-  action: PrismaAction
-  args: any
-  dataPath: string[]
-  runInTransaction: boolean
-}
-
-/**
- * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
-) => $Utils.JsPromise<T>
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;

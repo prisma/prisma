@@ -21,11 +21,6 @@ testMatrix.setupTestSuite(
       // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', ({ query }) => queries.push(query))
 
-      prisma.$use(async (params, next) => {
-        await Promise.resolve()
-        return next(params)
-      })
-
       const xprisma = prisma.$extends({
         query: {
           async $queryRawUnsafe({ args, query }) {
@@ -62,11 +57,6 @@ testMatrix.setupTestSuite(
 
       // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', ({ query }) => queries.push(query))
-
-      prisma.$use(async (params, next) => {
-        await new Promise((r) => setTimeout(r, Math.random() * 1_000))
-        return next(params)
-      })
 
       await prisma.$transaction([
         prisma.$queryRawUnsafe('SELECT 1'),

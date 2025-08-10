@@ -337,7 +337,7 @@ function normalize_xml(xml: string): string {
  * stringified here. This function needs to exist as otherwise
  * the default type parser attempts to deserialise it.
  */
-function toJson(json: string): unknown {
+function toJson(json: string): string {
   return json
 }
 
@@ -403,7 +403,9 @@ export const customParsers = {
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
+  [ArrayColumnType.JSON_ARRAY]: normalize_array(toJson),
   [ScalarColumnType.JSONB]: toJson,
+  [ArrayColumnType.JSONB_ARRAY]: normalize_array(toJson),
   [ScalarColumnType.BYTEA]: convertBytes,
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),

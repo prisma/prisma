@@ -29,7 +29,10 @@ function makeTypeScriptFiles({ component, output }: MakeTypeScriptFilesInput) {
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
     [`./query_${component}_bg.postgresql.mjs`]: 'export const runtime = ``',
+    [`./query_${component}_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
     [`./query_${component}_bg.js`]: 'export const runtime = ``',
+    [`./query_${component}_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
+    [`./query_${component}_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
   } as const
 }
 
@@ -74,7 +77,7 @@ const allCombinations = makeTestCombinations()
 
 describe('buildGetWasmModule', () => {
   it.concurrent.each(allCombinations)(
-    'generates valid TypeScript for: $testName',
+    'generates valid TypeScript',
     ({ testName, component, moduleFormat, runtimeName, target }) => {
       const output = buildGetWasmModule({
         component,
@@ -85,7 +88,7 @@ describe('buildGetWasmModule', () => {
         moduleFormat,
       })
 
-      expect(output).toMatchSnapshot(`buildGetWasmModule-${testName}.ts`)
+      expect(output).toMatchSnapshot(`${testName}.ts`)
 
       assertTypeScriptIsValid({
         moduleFormat,
