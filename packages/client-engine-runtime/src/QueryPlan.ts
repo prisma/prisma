@@ -67,6 +67,7 @@ export type ResultNode =
       type: 'Object'
       fields: Record<string, ResultNode>
       serializedName: string | null
+      skipNulls: boolean
     }
   | {
       type: 'Value'
