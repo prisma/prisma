@@ -17,7 +17,7 @@ export function applyDataMap(data: Value, structure: ResultNode, enums: Record<s
       return { count: data }
 
     case 'Object':
-      return mapArrayOrObject(data, structure.fields, enums)
+      return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls)
 
     case 'Value':
       return mapValue(data, '<result>', structure.resultType, enums)
@@ -31,11 +31,15 @@ function mapArrayOrObject(
   data: Value,
   fields: Record<string, ResultNode>,
   enums: Record<string, Record<string, string>>,
+  skipNulls?: boolean,
 ): PrismaObject | PrismaObject[] | null {
   if (data === null) return null
 
   if (Array.isArray(data)) {
-    const rows = data as PrismaObject[]
+    let rows = data as PrismaObject[]
+    if (skipNulls) {
+      rows = rows.filter((row) => row !== null)
+    }
     return rows.map((row) => mapObject(row, fields, enums))
   }
 
@@ -53,7 +57,7 @@ function mapArrayOrObject(
         cause: error,
       })
     }
-    return mapArrayOrObject(decodedData, fields, enums)
+    return mapArrayOrObject(decodedData, fields, enums, skipNulls)
   }
 
   throw new DataMapperError(`Expected an array or an object, got: ${typeof data}`)
@@ -84,7 +88,7 @@ function mapObject(
         }
 
         const target = node.serializedName !== null ? data[node.serializedName] : data
-        result[name] = mapArrayOrObject(target, node.fields, enums)
+        result[name] = mapArrayOrObject(target, node.fields, enums, node.skipNulls)
         break
       }
 
