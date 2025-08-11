@@ -1,6 +1,6 @@
 import { deserializeJsonResponse } from './json-protocol'
-import { QueryPlanNode } from './QueryPlan'
-import { UserFacingError } from './UserFacingError'
+import { QueryPlanNode } from './query-plan'
+import { UserFacingError } from './user-facing-error'
 import { doKeysMatch } from './utils'
 
 export type BatchResponse = MultiBatchResponse | CompactedBatchResponse
