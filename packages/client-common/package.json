@@ -24,6 +24,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/generator": "workspace:*",

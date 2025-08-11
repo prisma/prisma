@@ -1,4 +1,5 @@
 import { Context } from '@opentelemetry/api'
+import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
@@ -22,7 +23,6 @@ import { throwValidationException } from './core/errorRendering/throwValidationE
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
 import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'

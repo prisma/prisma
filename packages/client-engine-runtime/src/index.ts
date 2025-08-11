@@ -1,3 +1,4 @@
+export * from './batch'
 export type { QueryEvent } from './events'
 export { DataMapperError } from './interpreter/DataMapper'
 export {

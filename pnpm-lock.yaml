@@ -923,6 +923,9 @@ importers:
 
   packages/client-common:
     dependencies:
+      '@prisma/client-engine-runtime':
+        specifier: workspace:*
+        version: link:../client-engine-runtime
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
