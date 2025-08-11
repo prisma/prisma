@@ -1,8 +1,0 @@
-metrics.enabled (provider=mysql, js_planetscale) after a query includes global labels in json format
-metrics.enabled (provider=mysql, js_planetscale) after a query includes global labels in prometheus format
-metrics.enabled (provider=mysql, js_planetscale) after a query returns metrics in json format
-metrics.enabled (provider=mysql, js_planetscale) after a query returns metrics in prometheus format
-metrics.enabled (provider=mysql, js_planetscale) before a query SQL Providers: should have the same keys, before and after a query
-metrics.enabled (provider=mysql, js_planetscale) empty $metrics.json() does not crash before client is connected
-metrics.enabled (provider=mysql, js_planetscale) empty $metrics.prometheus() does not crash before client is connected
-metrics.enabled (provider=mysql, js_planetscale) multiple instances does not share metrics between 2 different instances of client
