@@ -14,7 +14,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, engineType, driverAdapter }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -78,7 +78,9 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toMatchObject({
-        message: expect.stringContaining('Transaction API error: Transaction already closed'),
+        message: expect.stringMatching(
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+        ),
         code: 'P2028',
         clientVersion: '0.0.0',
       })
@@ -108,7 +110,7 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchObject({
         message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
         ),
       })
 
@@ -135,11 +137,18 @@ testMatrix.setupTestSuite(
         await delay(600)
       })
 
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
-        ),
-      })
+      if (driverAdapter === AdapterProviders.JS_NEON) {
+        // Neon sometimes raises 'Unable to start a transaction in the given time.'
+        await expect(result).rejects.toMatchObject({
+          message: expect.stringMatching(/Transaction API error/),
+        })
+      } else {
+        await expect(result).rejects.toMatchObject({
+          message: expect.stringMatching(
+            /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          ),
+        })
+      }
 
       expect(await prisma.user.findMany()).toHaveLength(0)
     })
