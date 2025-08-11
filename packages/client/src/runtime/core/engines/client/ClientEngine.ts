@@ -1,12 +1,7 @@
+import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@prisma/client-common'
 import {
   BatchResponse,
-  CompactedBatchResponse,
-  QueryCompiler,
-  QueryCompilerConstructor,
-  QueryEngineLogLevel,
-} from '@prisma/client-common'
-import {
-  doKeysMatch,
+  convertCompactedRows,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -23,7 +18,6 @@ import { PrismaClientInitializationError } from '../../errors/PrismaClientInitia
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
-import { deserializeJsonResponse } from '../../jsonProtocol/deserializeJsonResponse'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
@@ -580,8 +574,9 @@ export class ClientEngine implements Engine {
             transaction: txInfo,
             customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
           })
-          const results = this.#convertCompactedRows(rows as {}[], batchResponse, firstAction)
-          return results as BatchQueryEngineResult<T>[]
+
+          const results = convertCompactedRows(rows as {}[], batchResponse)
+          return results.map((result) => ({ data: { [firstAction]: result } } as BatchQueryEngineResult<T>))
         }
       }
     } catch (e: any) {
@@ -593,48 +588,6 @@ export class ClientEngine implements Engine {
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
     throw new Error('Method not implemented.')
-  }
-
-  /**
-   * Converts the result of a compacted query back to result objects analogous to what queries
-   * would return when executed individually.
-   */
-  #convertCompactedRows(
-    rows: {}[],
-    response: CompactedBatchResponse,
-    action: string,
-  ): BatchQueryEngineResult<unknown>[] {
-    // a list of objects that contain the keys of every row
-    const keysPerRow = rows.map((item) =>
-      response.keys.reduce((acc, key) => {
-        acc[key] = deserializeJsonResponse(item[key])
-        return acc
-      }, {}),
-    )
-    // the selections inferred from the request, used to filter unwanted columns from the results
-    const selection = new Set(response.nestedSelection)
-
-    return response.arguments.map((args) => {
-      // we find the index of the row that matches the input arguments - this is the row we want
-      // to return minus any extra columns not present in the selection
-      const rowIndex = keysPerRow.findIndex((rowKeys) => doKeysMatch(rowKeys, args))
-      if (rowIndex === -1) {
-        if (response.expectNonEmpty) {
-          return new PrismaClientKnownRequestError(
-            'An operation failed because it depends on one or more records that were required but not found',
-            {
-              code: 'P2025',
-              clientVersion: this.config.clientVersion,
-            },
-          )
-        } else {
-          return { data: { [action]: null } }
-        }
-      } else {
-        const selected = Object.entries(rows[rowIndex]).filter(([k]) => selection.has(k))
-        return { data: { [action]: Object.fromEntries(selected) } }
-      }
-    })
   }
 
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
