@@ -26,6 +26,18 @@ export type JsonOutputTaggedValue =
   | BigIntTaggedValue
   | JsonTaggedValue
 
+export type JsOutputValue =
+  | null
+  | string
+  | number
+  | boolean
+  | bigint
+  | Uint8Array
+  | Date
+  | Decimal
+  | JsOutputValue[]
+  | { [key: string]: JsOutputValue }
+
 export function normalizeJsonProtocolValues(result: unknown): unknown {
   if (result === null) {
     return result
@@ -94,4 +106,48 @@ function mapObjectValues<K extends PropertyKey, T, U>(
   }
 
   return result
+}
+
+export function deserializeJsonResponse(result: unknown): unknown {
+  if (result === null) {
+    return result
+  }
+
+  if (Array.isArray(result)) {
+    return result.map(deserializeJsonResponse)
+  }
+
+  if (typeof result === 'object') {
+    if (isTaggedValue(result)) {
+      return deserializeTaggedValue(result)
+    }
+
+    // avoid mapping class instances
+    if (result.constructor !== null && result.constructor.name !== 'Object') {
+      return result
+    }
+
+    return mapObjectValues(result, deserializeJsonResponse)
+  }
+
+  return result
+}
+
+function deserializeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsOutputValue {
+  switch ($type) {
+    case 'BigInt':
+      return BigInt(value)
+    case 'Bytes': {
+      const { buffer, byteOffset, byteLength } = Buffer.from(value, 'base64')
+      return new Uint8Array(buffer, byteOffset, byteLength)
+    }
+    case 'DateTime':
+      return new Date(value)
+    case 'Decimal':
+      return new Decimal(value)
+    case 'Json':
+      return JSON.parse(value)
+    default:
+      assertNever(value, 'Unknown tagged value')
+  }
 }
