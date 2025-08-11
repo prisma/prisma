@@ -5,9 +5,9 @@ import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
 import type { SchemaProvider } from '../schema'
 import { TracingHelper, withQuerySpanAndEvent } from '../tracing'
-import { rethrowAsUserFacing } from '../UserFacingError'
+import { rethrowAsUserFacing } from '../user-facing-error'
 import { assertNever } from '../utils'
-import { Options, TransactionInfo } from './Transaction'
+import { Options, TransactionInfo } from './transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
@@ -18,7 +18,7 @@ import {
   TransactionNotFoundError,
   TransactionRolledBackError,
   TransactionStartTimeoutError,
-} from './TransactionManagerErrors'
+} from './transaction-manager-error'
 
 const MAX_CLOSED_TRANSACTIONS = 100
 

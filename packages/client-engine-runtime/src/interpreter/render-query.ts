@@ -7,9 +7,14 @@ import type {
   PrismaValueGenerator,
   PrismaValuePlaceholder,
   QueryPlanDbQuery,
-} from '../QueryPlan'
-import { isPrismaValueBigInt, isPrismaValueBytes, isPrismaValueGenerator, isPrismaValuePlaceholder } from '../QueryPlan'
-import { UserFacingError } from '../UserFacingError'
+} from '../query-plan'
+import {
+  isPrismaValueBigInt,
+  isPrismaValueBytes,
+  isPrismaValueGenerator,
+  isPrismaValuePlaceholder,
+} from '../query-plan'
+import { UserFacingError } from '../user-facing-error'
 import { assertNever } from '../utils'
 import { GeneratorRegistrySnapshot } from './generators'
 import { ScopeBindings } from './scope'

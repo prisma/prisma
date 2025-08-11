@@ -2,8 +2,8 @@ import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@pri
 import { ok } from '@prisma/driver-adapter-utils'
 
 import { noopTracingHelper } from '../tracing'
-import { Options } from './Transaction'
-import { TransactionManager } from './TransactionManager'
+import { Options } from './transaction'
+import { TransactionManager } from './transaction-manager'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
@@ -12,7 +12,7 @@ import {
   TransactionNotFoundError,
   TransactionRolledBackError,
   TransactionStartTimeoutError,
-} from './TransactionManagerErrors'
+} from './transaction-manager-error'
 
 jest.useFakeTimers()
 

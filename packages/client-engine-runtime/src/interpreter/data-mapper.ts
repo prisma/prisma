@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { PrismaValueType, ResultNode } from '../QueryPlan'
+import { PrismaValueType, ResultNode } from '../query-plan'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
