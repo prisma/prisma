@@ -1,4 +1,4 @@
-import { UserFacingError } from '../UserFacingError'
+import { UserFacingError } from '../user-facing-error'
 
 export class TransactionManagerError extends UserFacingError {
   name = 'TransactionManagerError'
