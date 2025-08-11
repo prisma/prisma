@@ -1,4 +1,0 @@
-interactive-transactions (provider=postgresql, js_neon) batching raw rollback
-interactive-transactions (provider=postgresql, js_neon) timeout default
-interactive-transactions (provider=postgresql, js_neon) timeout override
-interactive-transactions (provider=postgresql, js_neon) timeout override by PrismaClient
