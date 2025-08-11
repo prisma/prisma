@@ -1,6 +1,6 @@
-import type { PlaceholderFormat, QueryPlanDbQuery } from '../QueryPlan'
+import type { PlaceholderFormat, QueryPlanDbQuery } from '../query-plan'
 import { GeneratorRegistry } from './generators'
-import { renderQuery } from './renderQuery'
+import { renderQuery } from './render-query'
 import { ScopeBindings } from './scope'
 
 const TEST_MAX_CHUNK_SIZE = 10

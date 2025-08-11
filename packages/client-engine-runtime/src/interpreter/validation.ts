@@ -1,5 +1,5 @@
-import { DataRule, ValidationError } from '../QueryPlan'
-import { UserFacingError } from '../UserFacingError'
+import { DataRule, ValidationError } from '../query-plan'
+import { UserFacingError } from '../user-facing-error'
 import { assertNever } from '../utils'
 
 export function performValidation(data: unknown, rules: DataRule[], error: ValidationError) {

@@ -1,4 +1,4 @@
-import { InMemoryOps, Pagination } from '../QueryPlan'
+import { InMemoryOps, Pagination } from '../query-plan'
 import { doKeysMatch } from '../utils'
 
 export function processRecords(value: unknown, ops: InMemoryOps): unknown {
