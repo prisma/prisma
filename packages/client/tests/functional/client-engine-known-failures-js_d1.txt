@@ -1,11 +1,3 @@
 invalid-sqlite-isolation-level (provider=sqlite, js_d1) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_d1) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_d1) should return a descriptive error
-metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in json format
-metrics.enabled (provider=sqlite, js_d1) after a query includes global labels in prometheus format
-metrics.enabled (provider=sqlite, js_d1) after a query returns metrics in json format
-metrics.enabled (provider=sqlite, js_d1) after a query returns metrics in prometheus format
-metrics.enabled (provider=sqlite, js_d1) before a query SQL Providers: should have the same keys, before and after a query
-metrics.enabled (provider=sqlite, js_d1) empty $metrics.json() does not crash before client is connected
-metrics.enabled (provider=sqlite, js_d1) empty $metrics.prometheus() does not crash before client is connected
-metrics.enabled (provider=sqlite, js_d1) multiple instances does not share metrics between 2 different instances of client
