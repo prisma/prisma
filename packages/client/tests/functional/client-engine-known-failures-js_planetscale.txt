@@ -1,5 +1,0 @@
-interactive-transactions (provider=mysql, js_planetscale) batching raw rollback
-interactive-transactions (provider=mysql, js_planetscale) batching rollback
-interactive-transactions (provider=mysql, js_planetscale) timeout default
-interactive-transactions (provider=mysql, js_planetscale) timeout override
-interactive-transactions (provider=mysql, js_planetscale) timeout override by PrismaClient

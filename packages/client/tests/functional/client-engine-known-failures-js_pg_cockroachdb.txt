@@ -1,5 +1,1 @@
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) batching raw rollback
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout default
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override
-interactive-transactions (provider=cockroachdb, js_pg_cockroachdb) timeout override by PrismaClient
 reconnect (provider=cockroachdb, js_pg_cockroachdb) can disconnect and reconnect
