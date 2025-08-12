@@ -8,8 +8,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare let prisma: PrismaClient
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
   beforeAll(async () => {
@@ -61,7 +61,8 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }, _suiteMeta, _clientMeta,
 
     expect.assertions(2)
 
-    prisma.$on('query', ({ query }) => {
+    // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
+    prisma.$on('query', ({ query }: Prisma.QueryEvent) => {
       // TODO(query compiler): compacted batches don't need to be wrapped in transactions
       if (query.includes('BEGIN') || query.includes('COMMIT') || query.includes('ROLLBACK')) {
         return

@@ -18,19 +18,19 @@ bench('findUnique - Link', () => {
   prisma.link.findUnique({
     where: { id: 'some_link_id' },
   })
-}).types([744, 'instantiations'])
+}).types([745, 'instantiations'])
 
 bench('findFirst - Link', () => {
   prisma.link.findFirst({
     where: { url: { contains: 'example.com' } },
   })
-}).types([707, 'instantiations'])
+}).types([708, 'instantiations'])
 
 bench('findMany - Link', () => {
   prisma.link.findMany({
     take: 10,
   })
-}).types([673, 'instantiations'])
+}).types([674, 'instantiations'])
 
 bench('findUnique - User select scalar', () => {
   prisma.user.findUnique({
@@ -69,7 +69,7 @@ bench('findUnique - Link include User (M-1)', () => {
       user: true,
     },
   })
-}).types([1049, 'instantiations'])
+}).types([1050, 'instantiations'])
 
 bench('findUnique - User include Links with select', () => {
   prisma.user.findUnique({
@@ -116,7 +116,7 @@ bench('create - Link simple', () => {
       shortUrl: 'new-lnk',
     },
   })
-}).types([758, 'instantiations'])
+}).types([759, 'instantiations'])
 
 bench('create - User with nested Links (1-M)', () => {
   prisma.user.create({
@@ -142,7 +142,7 @@ bench('create - Link connecting to existing User', () => {
       },
     },
   })
-}).types([764, 'instantiations'])
+}).types([765, 'instantiations'])
 
 bench('update - User simple', () => {
   prisma.user.update({
@@ -208,7 +208,7 @@ bench('delete - Link simple', () => {
   prisma.link.delete({
     where: { id: 'link_to_delete' },
   })
-}).types([741, 'instantiations'])
+}).types([742, 'instantiations'])
 
 bench('deleteMany - Link simple', () => {
   prisma.link.deleteMany({
@@ -287,7 +287,7 @@ bench('transaction scaling(2)', () => {
       },
     }),
   ])
-}).types([3798, 'instantiations'])
+}).types([3799, 'instantiations'])
 
 bench('transaction scaling(10)', () => {
   prisma.$transaction([
@@ -336,7 +336,7 @@ bench('transaction scaling(10)', () => {
       where: { url: { contains: 'temp-link' } },
     }),
   ])
-}).types([8365, 'instantiations'])
+}).types([8366, 'instantiations'])
 
 bench('transaction - interactive User/Link', () => {
   prisma.$transaction(async (tx) => {
@@ -352,4 +352,4 @@ bench('transaction - interactive User/Link', () => {
     })
     return link
   })
-}).types([1228, 'instantiations'])
+}).types([1221, 'instantiations'])
