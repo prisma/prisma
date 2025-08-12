@@ -1,4 +1,4 @@
-const supportedRuntimes = ['nodejs', 'deno', 'deno-deploy', 'bun', 'workerd', 'edge-light', 'react-native'] as const
+const supportedRuntimes = ['nodejs', 'deno', 'bun', 'workerd', 'edge-light', 'react-native'] as const
 
 export type RuntimeTarget = (typeof supportedRuntimes)[number]
 
@@ -8,9 +8,8 @@ export function parseRuntimeTarget(target: string): RuntimeTarget {
     case 'nodejs':
       return 'nodejs'
     case 'deno':
-      return 'deno'
     case 'deno-deploy':
-      return 'deno-deploy'
+      return 'deno'
     case 'bun':
       return 'bun'
     case 'workerd':
@@ -35,4 +34,8 @@ export function parseRuntimeTargetFromUnknown(target: unknown): RuntimeTarget {
     throw new Error(`Invalid target runtime: ${JSON.stringify(target)}. Expected a string.`)
   }
   return parseRuntimeTarget(target)
+}
+
+export function isNodeJsLike(target: RuntimeTarget): boolean {
+  return target === 'nodejs' || target === 'bun' || target === 'deno'
 }
