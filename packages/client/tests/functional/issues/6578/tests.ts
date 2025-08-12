@@ -6,7 +6,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/6578
 testMatrix.setupTestSuite(
@@ -33,6 +33,7 @@ testMatrix.setupTestSuite(
       const date = new Date()
 
       let paramsString = ''
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       _prisma.$on('query', (e) => {
         const event = e as unknown as QueryEvent
         if (event.query.includes('INSERT')) {

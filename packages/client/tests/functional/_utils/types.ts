@@ -31,9 +31,7 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   alterStatementCallback?: AlterStatementCallback
 }
 
-export type NewPrismaClient<T extends new (...args: any) => any> = (
-  ...args: ConstructorParameters<T>
-) => InstanceType<T>
+export type NewPrismaClient<T, C extends new (...args: any) => any> = (...args: ConstructorParameters<C>) => T
 
 export type Db = {
   setupDb: () => Promise<void>

@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/12507
 testMatrix.setupTestSuite(
@@ -26,7 +26,8 @@ testMatrix.setupTestSuite(
 
       const internalURL = await ((): Promise<string> =>
         new Promise((resolve, reject) => {
-          prismaClient1.$on('info', (data) => {
+          // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
+          prismaClient1.$on('info', (data: Prisma.LogEvent) => {
             if (/Started query engine/.test(data.message as string)) {
               const port = data.message.split(':').pop()
               resolve(`http://127.0.0.1:${port}`)

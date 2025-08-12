@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import { PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ clientRuntime, engineType }, _suiteMeta, clientMeta) => {
   test('does not throw without the adapter property', () => {

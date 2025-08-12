@@ -6,8 +6,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+let prisma: PrismaClient
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const email = faker.internet.email()
 
@@ -17,6 +17,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'error' }] })
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('error', (e) => errors.push(e))
     })
 
