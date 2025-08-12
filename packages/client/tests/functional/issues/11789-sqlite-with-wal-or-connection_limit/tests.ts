@@ -3,7 +3,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 // the rest is from npx prisma migrate diff --from-empty --to-schema-datamodel=...
 const sqlDef = `CREATE TABLE "User" (

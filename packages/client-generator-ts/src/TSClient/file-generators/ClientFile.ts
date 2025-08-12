@@ -42,20 +42,18 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
           'PrismaClient',
           ts
             .namedType('$Class.PrismaClient')
-            .addGenericArgument(ts.namedType('ClientOptions'))
-            .addGenericArgument(ts.namedType('Log'))
+            .addGenericArgument(ts.namedType('LogOpts'))
+            .addGenericArgument(ts.namedType('OmitOpts'))
             .addGenericArgument(ts.namedType('ExtArgs')),
         )
         .addGenericParameter(
-          ts
-            .genericParameter('ClientOptions')
-            .extends(ts.namedType('Prisma.PrismaClientOptions'))
-            .default(ts.namedType('Prisma.PrismaClientOptions')),
+          ts.genericParameter('LogOpts').extends(ts.namedType('Prisma.LogLevel')).default(ts.neverType),
         )
         .addGenericParameter(
           ts
-            .genericParameter('Log')
-            .default(ts.namedType('$Class.LogOptions').addGenericArgument(ts.namedType('ClientOptions'))),
+            .genericParameter('OmitOpts')
+            .extends(ts.namedType('Prisma.PrismaClientOptions').subKey('omit'))
+            .default(ts.namedType('Prisma.PrismaClientOptions').subKey('omit')),
         )
         .addGenericParameter(
           ts
