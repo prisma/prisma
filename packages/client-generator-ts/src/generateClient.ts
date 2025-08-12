@@ -421,7 +421,6 @@ function getRuntimeNameForTarget(
 
     case 'workerd':
     case 'edge-light':
-    case 'deno-deploy':
       if (previewFeatures.includes('driverAdapters')) {
         return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
       } else {
