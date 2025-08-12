@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 
 import type { FileMap } from '../generateClient'
 import { ModuleFormat } from '../module-format'
-import { RuntimeTarget } from '../runtime-targets'
+import { isNodeJsLike, RuntimeTarget } from '../runtime-targets'
 import { RuntimeName } from '../TSClient/TSClient'
 
 export type BuildWasmModuleOptions = {
@@ -67,9 +67,7 @@ export function buildGetWasmModule({
     .with('client', () => component === 'compiler')
     .otherwise(() => false)
 
-  const buildNodeJsLoader = match({ runtimeName, target })
-    .with({ target: 'nodejs' }, () => buildNonEdgeLoader)
-    .otherwise(() => false)
+  const buildNodeJsLoader = buildNonEdgeLoader && isNodeJsLike(target)
 
   const buildEdgeLoader = usesEdgeWasmRuntime(component, runtimeName)
 

@@ -68,7 +68,7 @@ export function inferImportFileExtension({
   generatedFileExtension,
   target,
 }: InferImportFileExtensionOptions): ImportFileExtension {
-  if (target === 'deno' || target === 'deno-deploy') {
+  if (target === 'deno') {
     return generatedFileExtension
   }
 
