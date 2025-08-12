@@ -143,12 +143,12 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
   const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
-    
+
 config.compilerWasm = {
   getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
     return await decodeBase64AsWasm(wasm)
   }
 }"
@@ -162,7 +162,7 @@ async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Modul
   const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
-    
+
 config.compilerWasm = {
   getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
 
