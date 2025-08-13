@@ -1,4 +1,4 @@
-import { ColumnType, ColumnTypeEnum, DriverAdapterError, IsolationLevel } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, DriverAdapterError, IsolationLevel } from '@prisma/driver-adapter-utils'
 import sql from 'mssql'
 
 export function mapColumnType(col: sql.IColumn): ColumnType {
@@ -83,16 +83,49 @@ export function mapIsolationLevel(level: IsolationLevel): sql.IIsolationLevel {
   }
 }
 
-export function mapArg(arg: unknown): unknown {
-  if (arg instanceof Uint8Array) {
-    return Buffer.from(arg)
+export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | number | BigInt | string | Uint8Array | A {
+  if (arg === null) {
+    return null
   }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    arg = BigInt(arg)
+  }
+
   if (typeof arg === 'bigint') {
     if (arg >= BigInt(Number.MIN_SAFE_INTEGER) && arg <= BigInt(Number.MAX_SAFE_INTEGER)) {
       return Number(arg)
     }
     return arg.toString()
   }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case 'TIME':
+        return formatTime(arg)
+      case 'DATE':
+        return formatDate(arg)
+      default:
+        return formatDateTime(arg)
+    }
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  if (ArrayBuffer.isView(arg)) {
+    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
+  }
+
   return arg
 }
 
@@ -120,4 +153,41 @@ export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
 
     return value
   })
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    date.getUTCFullYear() +
+    '-' +
+    pad(date.getUTCMonth() + 1) +
+    '-' +
+    pad(date.getUTCDate()) +
+    ' ' +
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }

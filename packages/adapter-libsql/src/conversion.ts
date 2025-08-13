@@ -1,5 +1,5 @@
-import { Row, Value } from '@libsql/client'
-import { ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
+import { InValue, Row, Value } from '@libsql/client'
+import { ArgType, ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:libsql:conversion')
 
@@ -169,4 +169,38 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
   }
 
   return result
+}
+
+export function mapArg(arg: unknown, argType: ArgType): InValue {
+  if (arg === null) {
+    return null
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    return BigInt(arg)
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'decimal') {
+    // This can lose precision, but SQLite does not have a native decimal type.
+    // This is how we have historically handled it.
+    return Number.parseFloat(arg)
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    return arg.toISOString().replace('Z', '+00:00')
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return new Uint8Array(arg)
+  }
+
+  return arg as InValue
 }

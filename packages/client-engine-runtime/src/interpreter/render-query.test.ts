@@ -11,7 +11,8 @@ test('no template', () => {
       {
         type: 'rawSql',
         sql: 'SELECT * FROM users WHERE id = $1',
-        params: [1],
+        args: [1],
+        argTypes: [{ arity: 'scalar', scalarType: 'int' }],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
       {},
@@ -20,7 +21,7 @@ test('no template', () => {
     {
       sql: 'SELECT * FROM users WHERE id = $1',
       args: [1],
-      argTypes: ['Numeric'],
+      argTypes: [{ arity: 'scalar', scalarType: 'int' }],
     },
   ])
 })
@@ -40,7 +41,11 @@ test('no template and scalar list parameter', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [1, [1, 2, 3]],
+        args: [1, [1, 2, 3]],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'list', scalarType: 'int' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -50,7 +55,10 @@ test('no template and scalar list parameter', () => {
     {
       sql: 'SELECT * FROM users WHERE id = $1 AND numbers = $2',
       args: [1, [1, 2, 3]],
-      argTypes: ['Numeric', 'Array'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'int' },
+        { arity: 'list', scalarType: 'int' },
+      ],
     },
   ])
 })
@@ -70,7 +78,11 @@ test('transforms IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1, 2, 3], 0],
+        args: [[1, 2, 3], 0],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'int' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -80,7 +92,7 @@ test('transforms IN template', () => {
     {
       sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) OFFSET $4',
       args: [1, 2, 3, 0],
-      argTypes: ['Numeric', 'Numeric', 'Numeric', 'Numeric'],
+      argTypes: Array.from({ length: 4 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -100,7 +112,11 @@ test('transforms IN template with empty list', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[], 0],
+        args: [[], 0],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'int' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -110,7 +126,7 @@ test('transforms IN template with empty list', () => {
     {
       sql: 'SELECT * FROM users WHERE "userId" IN (NULL) OFFSET $1',
       args: [0],
-      argTypes: ['Numeric'],
+      argTypes: [{ arity: 'scalar', scalarType: 'int' }],
     },
   ])
 })
@@ -130,7 +146,8 @@ test('handles singleton list in IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1], 0],
+        args: [[1], 0],
+        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -140,7 +157,7 @@ test('handles singleton list in IN template', () => {
     {
       sql: 'SELECT * FROM users WHERE "userId" IN ($1) OFFSET $2',
       args: [1, 0],
-      argTypes: ['Numeric', 'Numeric'],
+      argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -160,7 +177,8 @@ test('treats non-array element as a singleton list in IN template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [1, 0],
+        args: [1, 0],
+        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -170,7 +188,7 @@ test('treats non-array element as a singleton list in IN template', () => {
     {
       sql: 'SELECT * FROM users WHERE "userId" IN ($1) OFFSET $2',
       args: [1, 0],
-      argTypes: ['Numeric', 'Numeric'],
+      argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -192,7 +210,12 @@ test("transforms IN template, doesn't touch scalar list", () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [[1, 2, 3], [1, 2, 3], 0],
+        args: [[1, 2, 3], [1, 2, 3], 0],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'list', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'int' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -202,7 +225,11 @@ test("transforms IN template, doesn't touch scalar list", () => {
     {
       sql: 'SELECT * FROM users WHERE "userId" IN ($1,$2,$3) AND numbers = $4 OFFSET $5',
       args: [1, 2, 3, [1, 2, 3], 0],
-      argTypes: ['Numeric', 'Numeric', 'Numeric', 'Array', 'Numeric'],
+      argTypes: [
+        ...Array.from({ length: 3 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'list', scalarType: 'int' },
+        { arity: 'scalar', scalarType: 'int' },
+      ],
     },
   ])
 })
@@ -226,12 +253,13 @@ test('transforms INSERT VALUES template', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [
+        args: [
           [
             [1, 2],
             [3, 4],
           ],
         ],
+        argTypes: Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -241,7 +269,7 @@ test('transforms INSERT VALUES template', () => {
     {
       sql: 'INSERT INTO "public"."_CategoryToPost" ("A", "B") VALUES ($1,$2),($3,$4)',
       args: [1, 2, 3, 4],
-      argTypes: ['Numeric', 'Numeric', 'Numeric', 'Numeric'],
+      argTypes: Array.from({ length: 4 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -265,7 +293,7 @@ test('chunking an INSERT with a large parameterTupleList', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [
+        args: [
           [
             Array.from({ length: 5 }, (_, i) => i + 1),
             Array.from({ length: 5 }, (_, i) => i + 6),
@@ -274,6 +302,7 @@ test('chunking an INSERT with a large parameterTupleList', () => {
             Array.from({ length: 5 }, (_, i) => i + 21),
           ],
         ],
+        argTypes: Array.from({ length: 5 }, () => ({ arity: 'scalar', scalarType: 'int' })),
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -284,17 +313,17 @@ test('chunking an INSERT with a large parameterTupleList', () => {
     {
       sql: expect.stringMatching(/^INSERT INTO "public"\."Table" VALUES (\((\$[0-9]+,?){5}\),?){2}$/),
       args: Array.from({ length: 10 }, (_, i) => i + 1),
-      argTypes: Array.from({ length: 10 }, () => 'Numeric'),
+      argTypes: Array.from({ length: 10 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
     {
       sql: expect.stringMatching(/^INSERT INTO "public"\."Table" VALUES (\((\$[0-9]+,?){5}\),?){2}$/),
       args: Array.from({ length: 10 }, (_, i) => i + 11),
-      argTypes: Array.from({ length: 10 }, () => 'Numeric'),
+      argTypes: Array.from({ length: 10 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
     {
       sql: expect.stringMatching(/^INSERT INTO "public"\."Table" VALUES (\((\$[0-9]+,?){5}\),?){1}$/),
       args: Array.from({ length: 5 }, (_, i) => i + 21),
-      argTypes: Array.from({ length: 5 }, () => 'Numeric'),
+      argTypes: Array.from({ length: 5 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -325,7 +354,13 @@ test('chunking a UNION ALL with a large parameterTupleList', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [false, Array.from({ length: 5 }, (_, i) => [i + 1, i + 2]), 'John Doe', 'Jane Doe'],
+        args: [false, Array.from({ length: 5 }, (_, i) => [i + 1, i + 2]), 'John Doe', 'Jane Doe'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'boolean' },
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'string' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -338,14 +373,24 @@ test('chunking a UNION ALL with a large parameterTupleList', () => {
         /^SELECT \* FROM \[User\] WHERE "banned" = \$1 AND "id" IN \(SELECT ((\$[0-9]+,?){2}( UNION ALL SELECT )?){3}\) AND \("name" = \$8 OR "name" = \$9\)$/,
       ),
       args: [false, ...Array.from({ length: 3 }, (_, i) => [i + 1, i + 2]).flat(), 'John Doe', 'Jane Doe'],
-      argTypes: ['Boolean', ...Array.from({ length: 6 }, () => 'Numeric'), 'Text', 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'boolean' },
+        ...Array.from({ length: 6 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
     },
     {
       sql: expect.stringMatching(
         /^SELECT \* FROM \[User\] WHERE "banned" = \$1 AND "id" IN \(SELECT ((\$[0-9]+,?){2}( UNION ALL SELECT )?){2}\) AND \("name" = \$6 OR "name" = \$7\)$/,
       ),
       args: [false, ...Array.from({ length: 2 }, (_, i) => [i + 4, i + 5]).flat(), 'John Doe', 'Jane Doe'],
-      argTypes: ['Boolean', ...Array.from({ length: 4 }, () => 'Numeric'), 'Text', 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'boolean' },
+        ...Array.from({ length: 4 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'scalar', scalarType: 'string' },
+        { arity: 'scalar', scalarType: 'string' },
+      ],
     },
   ])
 })
@@ -367,7 +412,12 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [false, Array.from({ length: 10 }, (_, i) => i + 1), 'John Doe'],
+        args: [false, Array.from({ length: 10 }, (_, i) => i + 1), 'John Doe'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'boolean' },
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -380,14 +430,22 @@ test('chunking a SELECT..IN with a large parameterTuple', () => {
         /^SELECT FROM "public"\."User" WHERE "banned" = \$1 AND "id" IN \((\$[0-9]+,?){8}\) AND "name" = \$10$/,
       ),
       args: [false, ...Array.from({ length: 8 }, (_, i) => i + 1), 'John Doe'],
-      argTypes: ['Boolean', ...Array.from({ length: 8 }, () => 'Numeric'), 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'boolean' },
+        ...Array.from({ length: 8 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'scalar', scalarType: 'string' },
+      ],
     },
     {
       sql: expect.stringMatching(
         /^SELECT FROM "public"\."User" WHERE "banned" = \$1 AND "id" IN \((\$[0-9]+,?){2}\) AND "name" = \$4/,
       ),
       args: [false, ...Array.from({ length: 2 }, (_, i) => i + 9), 'John Doe'],
-      argTypes: ['Boolean', ...Array.from({ length: 2 }, () => 'Numeric'), 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'boolean' },
+        ...Array.from({ length: 2 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'scalar', scalarType: 'string' },
+      ],
     },
   ])
 })
@@ -409,7 +467,12 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [Array.from({ length: 10 }, (_, i) => i + 1), Array.from({ length: 4 }, (_, i) => i + 1)],
+        args: [Array.from({ length: 10 }, (_, i) => i + 1), Array.from({ length: 4 }, (_, i) => i + 1)],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'int' },
+        ],
         chunkable: true,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -422,14 +485,14 @@ test('chunking a SELECT..IN with multiple parameterTuples', () => {
         /^SELECT FROM "public"\."User" WHERE "id" IN \((\$[0-9]+,?){6}\) AND "age" IN \((\$[0-9]+,?){4}\)$/,
       ),
       args: [...Array.from({ length: 6 }, (_, i) => i + 1), ...Array.from({ length: 4 }, (_, i) => i + 1)],
-      argTypes: Array.from({ length: 10 }, () => 'Numeric'),
+      argTypes: Array.from({ length: 10 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
     {
       sql: expect.stringMatching(
         /^SELECT FROM "public"\."User" WHERE "id" IN \((\$[0-9]+,?){4}\) AND "age" IN \((\$[0-9]+,?){4}\)$/,
       ),
       args: [...Array.from({ length: 4 }, (_, i) => i + 7), ...Array.from({ length: 4 }, (_, i) => i + 1)],
-      argTypes: Array.from({ length: 8 }, () => 'Numeric'),
+      argTypes: Array.from({ length: 8 }, () => ({ arity: 'scalar', scalarType: 'int' })),
     },
   ])
 })
@@ -451,7 +514,12 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
           prefix: '$',
           hasNumbering: true,
         } satisfies PlaceholderFormat,
-        params: [false, Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
+        args: [false, Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'boolean' },
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
         chunkable: false,
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -464,7 +532,11 @@ test('a SELECT..IN with a large parameterTuple that is not chunkable', () => {
         /^SELECT FROM "public"\."User" WHERE "banned" = \$1 AND "id" IN \((\$[0-9]+,?){3000}\) AND "name" = \$3002$/,
       ),
       args: [false, ...Array.from({ length: 3000 }, (_, i) => i + 1), 'John Doe'],
-      argTypes: ['Boolean', ...Array.from({ length: 3000 }, () => 'Numeric'), 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'boolean' },
+        ...Array.from({ length: 3000 }, () => ({ arity: 'scalar', scalarType: 'int' })),
+        { arity: 'scalar', scalarType: 'string' },
+      ],
     },
   ])
 })
@@ -476,9 +548,13 @@ test('executes a generator', () => {
       {
         type: 'rawSql',
         sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
-        params: [
+        args: [
           { prisma__type: 'generatorCall', prisma__value: { name: 'uuid', args: [4] } },
           { prisma__type: 'generatorCall', prisma__value: { name: 'now', args: [] } },
+        ],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'datetime' },
+          { arity: 'scalar', scalarType: 'datetime' },
         ],
       } satisfies QueryPlanDbQuery,
       {} as ScopeBindings,
@@ -488,7 +564,10 @@ test('executes a generator', () => {
     {
       sql: 'INSERT INTO users (id, name) VALUES ($1, $2)',
       args: [expect.any(String), expect.any(String)],
-      argTypes: ['Text', 'Text'],
+      argTypes: [
+        { arity: 'scalar', scalarType: 'datetime' },
+        { arity: 'scalar', scalarType: 'datetime' },
+      ],
     },
   ])
 })

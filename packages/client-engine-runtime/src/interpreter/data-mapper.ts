@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { PrismaValueType, ResultNode } from '../query-plan'
+import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
 import { assertNever, safeJsonStringify } from '../utils'
 import { PrismaObject, Value } from './scope'
 
@@ -10,17 +10,17 @@ export class DataMapperError extends Error {
 
 export function applyDataMap(data: Value, structure: ResultNode, enums: Record<string, Record<string, string>>): Value {
   switch (structure.type) {
-    case 'AffectedRows':
+    case 'affectedRows':
       if (typeof data !== 'number') {
         throw new DataMapperError(`Expected an affected rows count, got: ${typeof data} (${data})`)
       }
       return { count: data }
 
-    case 'Object':
+    case 'object':
       return mapArrayOrObject(data, structure.fields, enums, structure.skipNulls)
 
-    case 'Value':
-      return mapValue(data, '<result>', structure.resultType, enums)
+    case 'field':
+      return mapValue(data, '<result>', structure.fieldType, enums)
 
     default:
       assertNever(structure, `Invalid data mapping type: '${(structure as ResultNode).type}'`)
@@ -76,11 +76,11 @@ function mapObject(
   const result = {}
   for (const [name, node] of Object.entries(fields)) {
     switch (node.type) {
-      case 'AffectedRows': {
+      case 'affectedRows': {
         throw new DataMapperError(`Unexpected 'AffectedRows' node in data mapping for field '${name}'`)
       }
 
-      case 'Object': {
+      case 'object': {
         if (node.serializedName !== null && !Object.hasOwn(data, node.serializedName)) {
           throw new DataMapperError(
             `Missing data field (Object): '${name}'; ` + `node: ${JSON.stringify(node)}; data: ${JSON.stringify(data)}`,
@@ -92,11 +92,11 @@ function mapObject(
         break
       }
 
-      case 'Value':
+      case 'field':
         {
           const dbName = node.dbName
           if (Object.hasOwn(data, dbName)) {
-            result[name] = mapValue(data[dbName], dbName, node.resultType, enums)
+            result[name] = mapField(data[dbName], dbName, node.fieldType, enums)
           } else {
             throw new DataMapperError(
               `Missing data field (Value): '${dbName}'; ` +
@@ -113,28 +113,42 @@ function mapObject(
   return result
 }
 
-function mapValue(
+function mapField(
   value: unknown,
   columnName: string,
-  resultType: PrismaValueType,
+  fieldType: FieldType,
   enums: Record<string, Record<string, string>>,
 ): unknown {
   if (value === null) {
-    return resultType.type === 'Array' ? [] : null
+    return fieldType.arity === 'list' ? [] : null
   }
 
-  switch (resultType.type) {
-    case 'Any':
+  if (fieldType.arity === 'list') {
+    const values = value as unknown[]
+    return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, fieldType, enums))
+  }
+
+  return mapValue(value, columnName, fieldType, enums)
+}
+
+function mapValue(
+  value: unknown,
+  columnName: string,
+  scalarType: FieldScalarType,
+  enums: Record<string, Record<string, string>>,
+): unknown {
+  switch (scalarType.type) {
+    case 'unsupported':
       return value
 
-    case 'String': {
+    case 'string': {
       if (typeof value !== 'string') {
         throw new DataMapperError(`Expected a string in column '${columnName}', got ${typeof value}: ${value}`)
       }
       return value
     }
 
-    case 'Int': {
+    case 'int': {
       switch (typeof value) {
         case 'number': {
           return Math.trunc(value)
@@ -158,14 +172,14 @@ function mapValue(
       }
     }
 
-    case 'BigInt': {
+    case 'bigint': {
       if (typeof value !== 'number' && typeof value !== 'string') {
         throw new DataMapperError(`Expected a bigint in column '${columnName}', got ${typeof value}: ${value}`)
       }
       return { $type: 'BigInt', value }
     }
 
-    case 'Float': {
+    case 'float': {
       if (typeof value === 'number') return value
       if (typeof value === 'string') {
         const parsedValue = Number(value)
@@ -177,7 +191,7 @@ function mapValue(
       throw new DataMapperError(`Expected a float in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
-    case 'Boolean': {
+    case 'boolean': {
       if (typeof value === 'boolean') return value
       if (typeof value === 'number') return value === 1
       if (typeof value === 'string') {
@@ -189,7 +203,7 @@ function mapValue(
           throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
         }
       }
-      if (value instanceof Uint8Array) {
+      if (Array.isArray(value)) {
         for (const byte of value) {
           if (byte !== 0) return true
         }
@@ -198,15 +212,15 @@ function mapValue(
       throw new DataMapperError(`Expected a boolean in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
-    case 'Decimal':
+    case 'decimal':
       if (typeof value !== 'number' && typeof value !== 'string' && !Decimal.isDecimal(value)) {
         throw new DataMapperError(`Expected a decimal in column '${columnName}', got ${typeof value}: ${value}`)
       }
       return { $type: 'Decimal', value }
 
-    case 'Date': {
+    case 'datetime': {
       if (typeof value === 'string') {
-        return { $type: 'DateTime', value: ensureTimezoneInIsoString(value) }
+        return { $type: 'DateTime', value: normalizeDateTime(value) }
       }
       if (typeof value === 'number' || value instanceof Date) {
         return { $type: 'DateTime', value }
@@ -214,31 +228,18 @@ function mapValue(
       throw new DataMapperError(`Expected a date in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
-    case 'Time': {
-      if (typeof value === 'string') {
-        return { $type: 'DateTime', value: `1970-01-01T${ensureTimezoneInIsoString(value)}` }
-      }
-
-      throw new DataMapperError(`Expected a time in column '${columnName}', got ${typeof value}: ${value}`)
-    }
-
-    case 'Array': {
-      const values = value as unknown[]
-      return values.map((v, i) => mapValue(v, `${columnName}[${i}]`, resultType.inner, enums))
-    }
-
-    case 'Object': {
+    case 'object': {
       return { $type: 'Json', value: safeJsonStringify(value) }
     }
 
-    case 'Json': {
+    case 'json': {
       // The value received here should normally be a string, but we cannot guarantee that,
       // because of SQLite databases like D1, which can return JSON scalars directly. We therefore
       // convert the value we receive to a string.
       return { $type: 'Json', value: `${value}` }
     }
 
-    case 'Bytes': {
+    case 'bytes': {
       if (typeof value === 'string' && value.startsWith('\\x')) {
         // Postgres bytea hex format. We have to handle it here and not only in
         // driver adapters in order to support `Bytes` fields in nested records
@@ -254,41 +255,62 @@ function mapValue(
       throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
     }
 
-    case 'Enum': {
-      const enumDef = enums[resultType.inner]
+    case 'enum': {
+      const enumDef = enums[scalarType.name]
       if (enumDef === undefined) {
-        throw new DataMapperError(`Unknown enum '${resultType.inner}'`)
+        throw new DataMapperError(`Unknown enum '${scalarType.name}'`)
       }
       const enumValue = enumDef[`${value}`]
       if (enumValue === undefined) {
-        throw new DataMapperError(`Value '${value}' not found in enum '${resultType.inner}'`)
+        throw new DataMapperError(`Value '${value}' not found in enum '${scalarType.name}'`)
       }
       return enumValue
     }
 
     default:
-      assertNever(resultType, `DataMapper: Unknown result type: ${(resultType as PrismaValueType).type}`)
+      assertNever(scalarType, `DataMapper: Unknown result type: ${scalarType['type']}`)
   }
 }
 
-// The negative lookahead is to avoid a false positive on a date string like "2023-10-01".
-const TIMEZONE_PATTERN = /Z$|(?<!\d{4}-\d{2})[+-]\d{2}(:?\d{2})?$/
+/**
+ * A regular expression that matches a time string with an optional timezone.
+ * It matches formats like:
+ * - `12:34:56`
+ * - `12:34:56.789`
+ * - `12:34:56Z`
+ * - `12:34:56+02`
+ * - `12:34:56-02:30`
+ */
+const TIME_TZ_PATTERN = /\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}(:?\d{2})?)?$/
 
 /**
- * Appends a UTC timezone to a datetime string if there's no timezone specified,
- * to prevent it from being interpreted as local time. Normally this is taken
- * care of by the driver adapters, except when using `relationLoadStrategy: join`
- * and the data to convert is inside a JSON string containing nested records.
+ * Normalizes date time strings received from driver adapters. The returned string is always a
+ * valid input for the Javascript `Date` constructor. This function will add a UTC timezone suffix
+ * if there's no timezone specified, to prevent it from being interpreted as local time.
  */
-function ensureTimezoneInIsoString(dt: string): string {
-  const results = TIMEZONE_PATTERN.exec(dt)
-  if (results === null) {
+function normalizeDateTime(dt: string): string {
+  const matches = TIME_TZ_PATTERN.exec(dt)
+  if (matches === null) {
+    // We found no time part, so we return it as a plain zulu date,
+    // e.g. '2023-10-01Z'.
     return `${dt}Z`
-  } else if (results[0] !== 'Z' && results[1] === undefined) {
-    // If the timezone is specified as +HH or -HH (without minutes), we need to append ":00"
-    // to it to satisfy the JavaScript Date constructor.
-    return `${dt}:00`
-  } else {
-    return dt
   }
+
+  let dtWithTz = dt
+  const [timeTz, tz, tzMinuteOffset] = matches
+  if (tz !== undefined && tz !== 'Z' && tzMinuteOffset === undefined) {
+    // If the timezone is specified as +HH or -HH (without minutes),
+    // we need to suffix it with ':00' to make it a valid Date input.
+    dtWithTz = `${dt}:00`
+  } else if (tz === undefined) {
+    // If the timezone is not specified at all, we suffix it with 'Z'.
+    dtWithTz = `${dt}Z`
+  }
+
+  if (timeTz.length === dt.length) {
+    // If the entire datetime was just the time, we prepend the unix epoch date.
+    return `1970-01-01T${dtWithTz}`
+  }
+
+  return dtWithTz
 }

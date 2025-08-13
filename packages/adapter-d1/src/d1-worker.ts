@@ -18,9 +18,8 @@ import { blue, cyan, red, yellow } from 'kleur/colors'
 
 import { name as packageName } from '../package.json'
 import { MAX_BIND_VALUES } from './constants'
-import { getColumnTypes, mapRow } from './conversion'
+import { getColumnTypes, mapArg, mapRow } from './conversion'
 import { convertDriverError } from './errors'
-import { cleanArg } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1')
 
@@ -90,9 +89,8 @@ class D1WorkerQueryable<ClientT extends StdClient> implements SqlQueryable {
 
   private async performIO(query: SqlQuery, executeRaw = false): Promise<PerformIOResult> {
     try {
-      query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
-
-      const stmt = this.client.prepare(query.sql).bind(...query.args)
+      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      const stmt = this.client.prepare(query.sql).bind(...args)
 
       if (executeRaw) {
         return await stmt.run()
