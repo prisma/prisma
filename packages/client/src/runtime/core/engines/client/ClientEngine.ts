@@ -478,7 +478,7 @@ export class ClientEngine implements Engine {
         placeholderValues,
         transaction: interactiveTransaction,
         batchIndex: undefined,
-        customFetch: customDataProxyFetch as typeof globalThis.fetch | undefined,
+        customFetch: customDataProxyFetch?.(globalThis.fetch) as typeof globalThis.fetch | undefined,
       })
 
       debug(`query plan executed`)
