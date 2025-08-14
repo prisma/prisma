@@ -129,13 +129,30 @@ export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | numb
   return arg
 }
 
-export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
+export function mapRow(row: unknown[], columns?: sql.IColumn[]): unknown[] {
   return row.map((value, i) => {
+    const type = columns?.[i]?.type
     if (value instanceof Date) {
-      if (columns?.[i]?.type === sql.Time) {
+      if (type === sql.Time) {
         return value.toISOString().split('T').at(1)?.replace('Z', '')
       }
       return value.toISOString()
+    }
+
+    if (typeof value === 'number' && type === sql.Real) {
+      // The driver can return float values as doubles that are equal to the original
+      // values when compared with 32-bit precision, but not when 64-bit precision is
+      // used. This leads to comparisons failures with the original value in JavaScript.
+      // We attempt to represent the number accurately as a double by finding a
+      // number with up to 9 decimal places that is equal to the original value.
+      for (let digits = 7; digits <= 9; digits++) {
+        const parsed = Number.parseFloat(value.toPrecision(digits))
+        if (value === new Float32Array([parsed])[0]) {
+          return parsed
+        }
+      }
+      // If no suitable precision is found, return the value as is.
+      return value
     }
 
     if (Buffer.isBuffer(value)) {
@@ -143,11 +160,11 @@ export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
     }
 
     // Using lower case to make it consistent with the driver in prisma-engines.
-    if (typeof value === 'string' && columns?.[i].type === sql.UniqueIdentifier) {
+    if (typeof value === 'string' && type === sql.UniqueIdentifier) {
       return value.toLowerCase()
     }
 
-    if (typeof value === 'boolean' && columns?.[i]?.type === sql.Bit) {
+    if (typeof value === 'boolean' && type === sql.Bit) {
       return value ? 1 : 0
     }
 
