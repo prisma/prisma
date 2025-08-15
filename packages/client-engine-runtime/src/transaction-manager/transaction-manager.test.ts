@@ -1,3 +1,5 @@
+import timers from 'node:timers/promises'
+
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
 
@@ -157,13 +159,7 @@ test('commitTransaction during a rollback caused by a time out raises a Transact
   const timeout = 200
   const rollbackDelay = 200
 
-  driverAdapter.rollbackMock = jest.fn().mockImplementation(() => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(undefined)
-      }, rollbackDelay)
-    })
-  })
+  driverAdapter.rollbackMock = jest.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
 
   const transactionManager = new TransactionManager({
     driverAdapter,
