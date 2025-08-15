@@ -42,7 +42,7 @@
     "empathic": "2.0.0",
     "esbuild": "0.25.5",
     "escape-string-regexp": "5.0.0",
-    "execa": "5.1.1",
+    "execa": "9.6.0",
     "fast-glob": "3.3.3",
     "find-up": "7.0.0",
     "fp-ts": "2.16.9",
