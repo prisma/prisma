@@ -9,12 +9,12 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType }, _suiteMeta, clientMeta) => {
+  ({ provider, engineType, driverAdapter }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -78,7 +78,9 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).rejects.toMatchObject({
-        message: expect.stringContaining('Transaction API error: Transaction already closed'),
+        message: expect.stringMatching(
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 5000 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+        ),
         code: 'P2028',
         clientVersion: '0.0.0',
       })
@@ -108,7 +110,7 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchObject({
         message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
         ),
       })
 
@@ -135,11 +137,18 @@ testMatrix.setupTestSuite(
         await delay(600)
       })
 
-      await expect(result).rejects.toMatchObject({
-        message: expect.stringMatching(
-          /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
-        ),
-      })
+      if (driverAdapter === AdapterProviders.JS_NEON) {
+        // Neon sometimes raises 'Unable to start a transaction in the given time.'
+        await expect(result).rejects.toMatchObject({
+          message: expect.stringMatching(/Transaction API error/),
+        })
+      } else {
+        await expect(result).rejects.toMatchObject({
+          message: expect.stringMatching(
+            /A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+          ),
+        })
+      }
 
       expect(await prisma.user.findMany()).toHaveLength(0)
     })
@@ -216,7 +225,7 @@ testMatrix.setupTestSuite(
      * We don't allow certain methods to be called in a transaction
      */
     test('forbidden', async () => {
-      const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+      const forbidden = ['$connect', '$disconnect', '$on', '$transaction']
       expect.assertions(forbidden.length + 1)
 
       const result = prisma.$transaction((prisma) => {
@@ -421,102 +430,6 @@ testMatrix.setupTestSuite(
         expect(users.length).toBe(1)
       },
     )
-
-    // running this test on isolated prisma instance since
-    // middleware change the return values of model methods
-    // and this would affect subsequent tests if run on a main instance
-    describe('middlewares', () => {
-      /**
-       * Minimal example of a interactive transaction & middleware
-       */
-      test('middleware basic', async () => {
-        const isolatedPrisma = newPrismaClient()
-        let runInTransaction = false
-
-        isolatedPrisma.$use(async (params, next) => {
-          await next(params)
-
-          runInTransaction = params.runInTransaction
-
-          return 'result'
-        })
-
-        const result = await isolatedPrisma.$transaction((prisma) => {
-          return prisma.user.create({
-            data: {
-              email: 'user_1@website.com',
-            },
-          })
-        })
-
-        expect(result).toBe('result')
-        expect(runInTransaction).toBe(true)
-      })
-
-      /**
-       * Middlewares should work normally on batches
-       */
-      test('middlewares batching', async () => {
-        const isolatedPrisma = newPrismaClient()
-        isolatedPrisma.$use(async (params, next) => {
-          const result = await next(params)
-
-          return result
-        })
-
-        await isolatedPrisma.$transaction([
-          prisma.user.create({
-            data: {
-              email: 'user_1@website.com',
-            },
-          }),
-          prisma.user.create({
-            data: {
-              email: 'user_2@website.com',
-            },
-          }),
-        ])
-
-        const users = await prisma.user.findMany()
-
-        expect(users.length).toBe(2)
-      })
-
-      // This test can lead to a deadlock on SQLite because we start a write transaction and a write query outside of it
-      // at the same time, and completing the transaction requires the query to finish. This leads a SQLITE_BUSY error
-      // after 5 seconds if the transaction grabs the lock first. For this test to work on SQLite, we need to expose
-      // SQLite transaction types in transaction options and make this transaction DEFERRED instead of IMMEDIATE.
-      testIf(provider !== Providers.SQLITE)('middleware exclude from transaction', async () => {
-        const isolatedPrisma = newPrismaClient()
-
-        isolatedPrisma.$use((params, next) => {
-          return next({ ...params, runInTransaction: false })
-        })
-
-        await isolatedPrisma
-          .$transaction(async (prisma) => {
-            await prisma.user.create({
-              data: {
-                email: 'user_1@website.com',
-              },
-            })
-
-            await prisma.user.create({
-              data: {
-                email: 'user_1@website.com',
-              },
-            })
-          })
-          .catch((err) => {
-            if ((err as PrismaNamespace.PrismaClientKnownRequestError).code !== 'P2002') {
-              throw err
-            }
-          })
-
-        const users = await isolatedPrisma.user.findMany()
-        expect(users).toHaveLength(1)
-      })
-    })
 
     /**
      * Two concurrent transactions should work

@@ -15,7 +15,7 @@
     "c12": "3.1.0",
     "deepmerge-ts": "7.1.5",
     "effect": "3.16.12",
-    "read-package-up": "11.0.0"
+    "empathic": "2.0.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",

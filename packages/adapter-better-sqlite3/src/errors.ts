@@ -1,10 +1,18 @@
 import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
-  if (typeof error.code !== 'string' || typeof error.message !== 'string') {
-    throw error
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.code,
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+function mapDriverError(error: DriverError): DriverAdapterErrorObject {
   switch (error.code) {
     case 'SQLITE_BUSY':
       return {
@@ -59,4 +67,13 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
 
       throw error
   }
+}
+
+type DriverError = {
+  code: string
+  message: string
+}
+
+function isDriverError(error: any): error is DriverError {
+  return typeof error.code === 'string' && typeof error.message === 'string'
 }

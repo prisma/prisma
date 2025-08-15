@@ -81,7 +81,9 @@ export type SqlQuery = {
   argTypes: Array<ArgType>
 }
 
-export type Error =
+export type Error = MappedError & { originalCode?: string; originalMessage?: string }
+
+export type MappedError =
   | {
       kind: 'GenericJs'
       id: number

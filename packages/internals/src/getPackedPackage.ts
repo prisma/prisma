@@ -1,7 +1,7 @@
-import fs from 'fs'
+import { up } from 'empathic/package'
+import fs, { readFileSync } from 'fs'
 import packlist from 'npm-packlist'
 import path from 'path'
-import { readPackageUpSync } from 'read-package-up'
 import tempy from 'tempy'
 
 import { resolvePkg } from './resolvePkg'
@@ -11,12 +11,12 @@ export async function getPackedPackage(name: string, target?: string, packageDir
     packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
-    const pkg = readPackageUpSync({
-      cwd: target,
-      normalize: false,
-    })
-    if (pkg && pkg.packageJson.name === name) {
-      packageDir = path.dirname(pkg.path)
+    const pkgPath = up({ cwd: target })
+    if (pkgPath) {
+      const pkgJson = JSON.parse(readFileSync(pkgPath, { encoding: 'utf-8' }))
+      if (pkgJson.name === name) {
+        packageDir = path.dirname(pkgPath)
+      }
     }
   }
 

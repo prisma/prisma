@@ -207,7 +207,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       better-sqlite3:
-        specifier: '>= ^11.9.0 < 12'
+        specifier: ^11.9.0
         version: 11.10.0
     devDependencies:
       '@types/better-sqlite3':
@@ -723,8 +723,8 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -750,11 +750,11 @@ importers:
         specifier: 0.9.5
         version: 0.9.5
       '@prisma/query-compiler-wasm':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/query-engine-wasm':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/ts-builders':
         specifier: workspace:*
         version: link:../ts-builders
@@ -923,6 +923,9 @@ importers:
 
   packages/client-common:
     dependencies:
+      '@prisma/client-engine-runtime':
+        specifier: workspace:*
+        version: link:../client-engine-runtime
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
@@ -998,8 +1001,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1081,8 +1084,8 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1144,9 +1147,9 @@ importers:
       effect:
         specifier: 3.16.12
         version: 3.16.12
-      read-package-up:
-        specifier: 11.0.0
-        version: 11.0.0
+      empathic:
+        specifier: 2.0.0
+        version: 2.0.0
     devDependencies:
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
@@ -1216,8 +1219,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -1253,8 +1256,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1602,11 +1605,11 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/schema-engine-wasm':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/schema-files-loader':
         specifier: workspace:*
         version: link:../schema-files-loader
@@ -1653,6 +1656,9 @@ importers:
       dotenv:
         specifier: 16.5.0
         version: 16.5.0
+      empathic:
+        specifier: 2.0.0
+        version: 2.0.0
       esbuild:
         specifier: 0.25.5
         version: 0.25.5
@@ -1722,9 +1728,6 @@ importers:
       p-map:
         specifier: 4.0.0
         version: 4.0.0
-      read-package-up:
-        specifier: 11.0.0
-        version: 11.0.0
       resolve:
         specifier: 1.22.10
         version: 1.22.10
@@ -1780,8 +1783,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -1901,8 +1904,8 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
-        version: 6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a
+        specifier: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
+        version: 6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
@@ -1926,6 +1929,9 @@ importers:
       '@ark/attest':
         specifier: 0.48.2
         version: 0.48.2(typescript@5.8.2)
+      '@prisma/client':
+        specifier: workspace:*
+        version: link:../client
 
 packages:
 
@@ -3313,25 +3319,25 @@ packages:
     peerDependencies:
       prettier: '*'
 
-  '@prisma/engines-version@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a':
-    resolution: {integrity: sha512-kocha47ZGsnLi6io4o2JLR2kU9bX5RttNb/wuxYaZswaY3ZS9M8/9NeXnC9r3HKmpPkxsDkVqg7Nm9RfJGkcSg==}
+  '@prisma/engines-version@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49':
+    resolution: {integrity: sha512-EgN9ODJpiX45yvwcngoStp3uQPJ3l+AEVoQ6dMMO2QvmwIlnxfApzKmJQExzdo7/hqQANrz5txHJdGYHzOnGHA==}
 
   '@prisma/mini-proxy@0.9.5':
     resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
     engines: {node: '>=16'}
     hasBin: true
 
-  '@prisma/prisma-schema-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a':
-    resolution: {integrity: sha512-sqLadiRD+FyFPrRrH9eRKas2XTL44s/I96SzwzbS+I/Tak7SP07Bm4j7wdZTTtZkXZHXIf6F7i5oPbarS93ZIA==}
+  '@prisma/prisma-schema-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49':
+    resolution: {integrity: sha512-yvwBbuiMDAi9xnihGvwnrK8m8l3ikNxoEyUzTXgNtfteGm7C9KDYvuLJV3jUixckNlSAk4pFhBcfhxHYUM7u2A==}
 
-  '@prisma/query-compiler-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a':
-    resolution: {integrity: sha512-3rijaus6y8IeQDePA59Sd2OTrSaj5mpZaHJYaMaUgBeslE5aOlduxBVyVRAC8sxPdM1COjEIkebEdlfJRgCpFQ==}
+  '@prisma/query-compiler-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49':
+    resolution: {integrity: sha512-zHZk+sbMftKVsPcFA5n3E3zodYis4vvgHuSRrQqQ9NtWBmD7GmoEuApIkFdWb/eH2J5nhEDD6CMk/6LLiwWpuw==}
 
-  '@prisma/query-engine-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a':
-    resolution: {integrity: sha512-0zgiMj27Iq8ENYogJPVdlMydphYDbHpNz8oeSU0XA99/ItYMOsiyfT+4Rz1r0viZBt4OMa5nfL481QK90dytOw==}
+  '@prisma/query-engine-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49':
+    resolution: {integrity: sha512-HYbC9fVAUz//pOaU62cmS374OtDw0Z14zGEFpPG0pRloLsWBpY8OePThJUfUs1c5w7ieBLjNvBhmhAVRnpoqtA==}
 
-  '@prisma/schema-engine-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a':
-    resolution: {integrity: sha512-V+JFsql+ZCbqngeaXimBGzNU+ARcitKXqGOemRzmDWbZ8QENoxFqfDOXWWhHIX4TPT8Y7FlpfnGeiNhwS8LNNQ==}
+  '@prisma/schema-engine-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49':
+    resolution: {integrity: sha512-LNwj7dFWn9zGbsqZ/fDeh/AxbbiZ/cEg4lyLK2R1QUNCN1M7+ktpQctXKC3mlqHbrxA5qUFRk696RnUSkkhQUA==}
 
   '@prisma/studio-common@0.511.0':
     resolution: {integrity: sha512-oYpLFPvNVF66F5lgZL7allwCkHe8u0mFSV+yB34uTfJOXZXp+eDFN6Wo8FCX2ztcahCLXNMs0h4IdcMCeXFoxw==}
@@ -4892,6 +4898,10 @@ packages:
   emoji-regex@9.2.2:
     resolution: {integrity: sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==}
 
+  empathic@2.0.0:
+    resolution: {integrity: sha512-i6UzDscO/XfAcNYD75CfICkmfLedpyPDdozrLMmQc5ORaQcdMoc21OnlEylMIqI7U8eniKrPMxxtj8k0vhmJhA==}
+    engines: {node: '>=14'}
+
   encodeurl@1.0.2:
     resolution: {integrity: sha512-TPJXq8JqFaVYm2CWmPvnP2Iyo4ZSM7/QKcSmuMLDObfpH5fi7RUGmd/rTDf+rut/saiDiQEeVTNgAmJEdAOx0w==}
     engines: {node: '>= 0.8'}
@@ -5273,10 +5283,6 @@ packages:
     resolution: {integrity: sha512-OuWNfjfP05JcpAP3JPgAKUhWefjMRfI5iAoSsvE24ANYWJaepAtlSgWECSVEuRgSXpyNEc9DJwG/TZpgcOqyig==}
     engines: {node: '>=16'}
 
-  find-up-simple@1.0.0:
-    resolution: {integrity: sha512-q7Us7kcjj2VMePAa02hDAF6d+MzsdsAWEwYyOpwUtlerRBkOEPBCRZrAV4XfcSN8fHAgaD0hP7miwoay6DCprw==}
-    engines: {node: '>=18'}
-
   find-up@3.0.0:
     resolution: {integrity: sha512-1yD6RmLI1XBfxugvORwlck6f75tYL+iR0jqwsOrOxMZyGYqUuDhJ0l4AXdO1iX/FTs9cBAMEk1gWSEx1kSbylg==}
     engines: {node: '>=6'}
@@ -5544,10 +5550,6 @@ packages:
     resolution: {integrity: sha512-kyCuEOWjJqZuDbRHzL8V93NzQhwIB71oFWSyzVo+KPZI+pnQPPxucdkrOZvkLRnrf5URsQM+IJ09Dw29cRALIA==}
     engines: {node: '>=10'}
 
-  hosted-git-info@7.0.1:
-    resolution: {integrity: sha512-+K84LB1DYwMHoHSgaOY/Jfhw3ucPmSET5v98Ke/HdNSw4a0UktWzyW1mjhjpuxxTqOOsfWT/7iVshHmVZ4IpOA==}
-    engines: {node: ^16.14.0 || >=18.0.0}
-
   html-escaper@2.0.2:
     resolution: {integrity: sha512-H2iMtd0I4Mt5eYiapRdIDjp+XzelXQ0tFE4JS7YFwFevXXMmOp9myNrUvCg0D6ws8iqkRPBfKHgbwig1SmlLfg==}
 
@@ -5656,10 +5658,6 @@ packages:
   indent-string@4.0.0:
     resolution: {integrity: sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==}
     engines: {node: '>=8'}
-
-  index-to-position@0.1.2:
-    resolution: {integrity: sha512-MWDKS3AS1bGCHLBA2VLImJz42f7bJh8wQsTGCzI3j519/CASStoDONUBVz2I/VID0MpiX3SGSnbOD2xUalbE5g==}
-    engines: {node: '>=18'}
 
   infer-owner@1.0.4:
     resolution: {integrity: sha512-IClj+Xz94+d7irH5qRyfJonOdfTzuDaifE6ZPWfx0N0+/ATZCbuTPq2prFl526urkQd90WyUKIh1DfBQ2hMz9A==}
@@ -6607,10 +6605,6 @@ packages:
     resolution: {integrity: sha512-p2W1sgqij3zMMyRC067Dg16bfzVH+w7hyegmpIvZ4JNjqtGOVAIvLmjBx3yP7YTe9vKJgkoNOPjwQGogDoMXFA==}
     engines: {node: '>=10'}
 
-  normalize-package-data@6.0.0:
-    resolution: {integrity: sha512-UL7ELRVxYBHBgYEtZCXjxuD5vPxnmvMGq0jp/dGPKKrN7tfsBh2IY7TlJ15WWwdjRWD3RJbnsygUurTK3xkPkg==}
-    engines: {node: ^16.14.0 || >=18.0.0}
-
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
@@ -6779,10 +6773,6 @@ packages:
   parse-json@5.2.0:
     resolution: {integrity: sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==}
     engines: {node: '>=8'}
-
-  parse-json@8.1.0:
-    resolution: {integrity: sha512-rum1bPifK5SSar35Z6EKZuYPJx85pkNaFrxBK3mwdfSJ1/WKbYrjoW/zTPSjRRamfmVX1ACBIdFAO0VRErW/EA==}
-    engines: {node: '>=18'}
 
   parseurl@1.3.3:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
@@ -7116,10 +7106,6 @@ packages:
   react-is@18.2.0:
     resolution: {integrity: sha512-xWGDIW6x921xtzPkhiULtthJHoJvBbF3q26fzloPCK0hsvxtPVelvftw3zjbHWSkR2km9Z+4uxbDDK/6Zw9B8w==}
 
-  read-package-up@11.0.0:
-    resolution: {integrity: sha512-MbgfoNPANMdb4oRBNg5eqLbB2t2r+o5Ua1pNt8BqGp4I0FJZhuVSOj3PaBPni4azWuSzEdNn2evevzVmEk1ohQ==}
-    engines: {node: '>=18'}
-
   read-pkg-up@7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
     engines: {node: '>=8'}
@@ -7127,10 +7113,6 @@ packages:
   read-pkg@5.2.0:
     resolution: {integrity: sha512-Ug69mNOpfvKDAc2Q8DRpMjjzdtrnv9HcSMX+4VsZxD1aZ6ZzrIE7rlzXBtWTyhULSMKg076AW6WR5iZpD0JiOg==}
     engines: {node: '>=8'}
-
-  read-pkg@9.0.1:
-    resolution: {integrity: sha512-9viLL4/n1BJUCT1NXVTdS1jtm80yDEgR5T4yCelII49Mbj0v1rZdKqj7zCiYdbB0CuCgdrvHcNogAKTFPBocFA==}
-    engines: {node: '>=18'}
 
   readable-stream@2.3.7:
     resolution: {integrity: sha512-Ebho8K4jIbHAxnuxi7o42OrZgF/ZTNcsZj6nRKyUmkhLFq8CHItp/fy6hQZuZmP/n3yZ9VBUbp4zz/mX8hmYPw==}
@@ -7869,10 +7851,6 @@ packages:
   type-fest@2.19.0:
     resolution: {integrity: sha512-RAH822pAdBgcNMAfWnCBU3CFZcfZ/i1eZjwFU/dsLKumyuuP3niueg2UAukXYF0E2AAoc82ZSSf9J0WQBinzHA==}
     engines: {node: '>=12.20'}
-
-  type-fest@4.11.0:
-    resolution: {integrity: sha512-DPsoHKtnCUqqoB5Y4OPyat7ObSLz1XOkhHTmz+gOkz2p1xs+BBneTvHWriTwc313eozfBWh8b45EpaV3ZrrPPQ==}
-    engines: {node: '>=16'}
 
   type-is@1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
@@ -9888,17 +9866,17 @@ snapshots:
       make-synchronized: 0.4.2
       prettier: 3.5.3
 
-  '@prisma/engines-version@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a': {}
+  '@prisma/engines-version@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49': {}
 
   '@prisma/mini-proxy@0.9.5': {}
 
-  '@prisma/prisma-schema-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a': {}
+  '@prisma/prisma-schema-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49': {}
 
-  '@prisma/query-compiler-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a': {}
+  '@prisma/query-compiler-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49': {}
 
-  '@prisma/query-engine-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a': {}
+  '@prisma/query-engine-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49': {}
 
-  '@prisma/schema-engine-wasm@6.14.0-1.b2e5a6c3a6936784f3aefb57ce847e4e7d28986a': {}
+  '@prisma/schema-engine-wasm@6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49': {}
 
   '@prisma/studio-common@0.511.0':
     dependencies:
@@ -10908,7 +10886,7 @@ snapshots:
       lazystream: 1.0.1
       lodash: 4.17.21
       normalize-path: 3.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   archiver@6.0.2:
     dependencies:
@@ -11359,7 +11337,7 @@ snapshots:
       crc-32: 1.2.2
       crc32-stream: 5.0.0
       normalize-path: 3.0.0
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   concat-map@0.0.1: {}
 
@@ -11411,7 +11389,7 @@ snapshots:
   crc32-stream@5.0.0:
     dependencies:
       crc-32: 1.2.2
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   create-jest@29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)):
     dependencies:
@@ -11621,6 +11599,8 @@ snapshots:
   emoji-regex@8.0.0: {}
 
   emoji-regex@9.2.2: {}
+
+  empathic@2.0.0: {}
 
   encodeurl@1.0.2: {}
 
@@ -12136,8 +12116,6 @@ snapshots:
       common-path-prefix: 3.0.0
       pkg-dir: 7.0.0
 
-  find-up-simple@1.0.0: {}
-
   find-up@3.0.0:
     dependencies:
       locate-path: 3.0.0
@@ -12404,10 +12382,6 @@ snapshots:
     dependencies:
       lru-cache: 6.0.0
 
-  hosted-git-info@7.0.1:
-    dependencies:
-      lru-cache: 10.4.3
-
   html-escaper@2.0.2: {}
 
   http-cache-semantics@4.1.1:
@@ -12526,8 +12500,6 @@ snapshots:
   imurmurhash@0.1.4: {}
 
   indent-string@4.0.0: {}
-
-  index-to-position@0.1.2: {}
 
   infer-owner@1.0.4:
     optional: true
@@ -13790,13 +13762,6 @@ snapshots:
       semver: 7.7.0
       validate-npm-package-license: 3.0.4
 
-  normalize-package-data@6.0.0:
-    dependencies:
-      hosted-git-info: 7.0.1
-      is-core-module: 2.16.1
-      semver: 7.7.0
-      validate-npm-package-license: 3.0.4
-
   normalize-path@3.0.0: {}
 
   npm-bundled@2.0.1:
@@ -13988,12 +13953,6 @@ snapshots:
       error-ex: 1.3.2
       json-parse-even-better-errors: 2.3.1
       lines-and-columns: 1.2.4
-
-  parse-json@8.1.0:
-    dependencies:
-      '@babel/code-frame': 7.26.2
-      index-to-position: 0.1.2
-      type-fest: 4.11.0
 
   parseurl@1.3.3: {}
 
@@ -14278,12 +14237,6 @@ snapshots:
 
   react-is@18.2.0: {}
 
-  read-package-up@11.0.0:
-    dependencies:
-      find-up-simple: 1.0.0
-      read-pkg: 9.0.1
-      type-fest: 4.11.0
-
   read-pkg-up@7.0.1:
     dependencies:
       find-up: 4.1.0
@@ -14296,14 +14249,6 @@ snapshots:
       normalize-package-data: 2.5.0
       parse-json: 5.2.0
       type-fest: 0.6.0
-
-  read-pkg@9.0.1:
-    dependencies:
-      '@types/normalize-package-data': 2.4.4
-      normalize-package-data: 6.0.0
-      parse-json: 8.1.0
-      type-fest: 4.11.0
-      unicorn-magic: 0.1.0
 
   readable-stream@2.3.7:
     dependencies:
@@ -14889,7 +14834,7 @@ snapshots:
       end-of-stream: 1.4.4
       fs-constants: 1.0.0
       inherits: 2.0.4
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   tar-stream@3.1.6:
     dependencies:
@@ -15162,8 +15107,6 @@ snapshots:
   type-fest@1.4.0: {}
 
   type-fest@2.19.0: {}
-
-  type-fest@4.11.0: {}
 
   type-is@1.6.18:
     dependencies:
@@ -15873,7 +15816,7 @@ snapshots:
     dependencies:
       archiver-utils: 4.0.1
       compress-commons: 5.0.1
-      readable-stream: 3.6.0
+      readable-stream: 3.6.2
 
   zod-to-json-schema@3.24.5(zod@3.24.2):
     dependencies:

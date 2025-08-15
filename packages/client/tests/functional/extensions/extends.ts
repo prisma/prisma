@@ -10,11 +10,7 @@ testMatrix.setupTestSuite(() => {
   test('extended extension functions normally', async () => {
     const xprisma = prisma.$extends({})
     expect(xprisma).not.toBe(prisma)
-
-    expectTypeOf(xprisma).not.toHaveProperty('$use')
     expectTypeOf(xprisma).not.toHaveProperty('$on')
-
-    expect(xprisma['$use']).toBeUndefined()
     expect(xprisma['$on']).toBeUndefined()
 
     expect(await xprisma.user.findMany()).toEqual([])

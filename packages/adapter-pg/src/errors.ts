@@ -1,4 +1,4 @@
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 import type { DatabaseError } from 'pg'
 
 const TLS_ERRORS = new Set([
@@ -34,25 +34,9 @@ const TLS_ERRORS = new Set([
 
 const SOCKET_ERRORS = new Set(['ENOTFOUND', 'ECONNREFUSED', 'ECONNRESET', 'ETIMEDOUT'])
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
   if (isSocketError(error)) {
-    switch (error.code) {
-      case 'ENOTFOUND':
-      case 'ECONNREFUSED':
-        return {
-          kind: 'DatabaseNotReachable',
-          host: error.address ?? error.hostname,
-          port: error.port,
-        }
-      case 'ECONNRESET':
-        return {
-          kind: 'ConnectionClosed',
-        }
-      case 'ETIMEDOUT':
-        return {
-          kind: 'SocketTimeout',
-        }
-    }
+    return mapSocketError(error)
   }
 
   if (isTlsError(error)) {
@@ -62,10 +46,18 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     }
   }
 
-  if (!isDbError(error)) {
-    throw error
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.code,
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+function mapDriverError(error: DatabaseError): MappedError {
   switch (error.code) {
     case '22001':
       return {
@@ -167,7 +159,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is DatabaseError {
+function isDriverError(error: any): error is DatabaseError {
   return (
     typeof error.code === 'string' &&
     typeof error.message === 'string' &&
@@ -178,8 +170,37 @@ function isDbError(error: any): error is DatabaseError {
   )
 }
 
+type SocketError = Error & {
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
+  syscall: string
+  errno: number
+  address?: string | undefined
+  port?: number | undefined
+  hostname?: string | undefined
+}
+
+function mapSocketError(error: SocketError): MappedError {
+  switch (error.code) {
+    case 'ENOTFOUND':
+    case 'ECONNREFUSED':
+      return {
+        kind: 'DatabaseNotReachable',
+        host: error.address ?? error.hostname,
+        port: error.port,
+      }
+    case 'ECONNRESET':
+      return {
+        kind: 'ConnectionClosed',
+      }
+    case 'ETIMEDOUT':
+      return {
+        kind: 'SocketTimeout',
+      }
+  }
+}
+
 function isSocketError(error: any): error is Error & {
-  code: string
+  code: 'ENOTFOUND' | 'ECONNREFUSED' | 'ECONNRESET' | 'ETIMEDOUT'
   syscall: string
   errno: number
   address?: string

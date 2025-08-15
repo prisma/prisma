@@ -7,6 +7,7 @@ describe('LibSQL error handling', () => {
       kind: 'sqlite',
       message: 'An error occurred',
       extendedCode: 1,
+      originalMessage: 'An error occurred',
     })
   })
 })

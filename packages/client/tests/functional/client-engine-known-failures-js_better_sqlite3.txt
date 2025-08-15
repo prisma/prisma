@@ -1,32 +1,4 @@
-enums (provider=sqlite, js_better_sqlite3) fails at runtime when an invalid entry is entered manually in SQLite
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via custom call
-extensions.tx (provider=sqlite, js_better_sqlite3) extended client in tx can rollback via normal call
-filter-count-relations (provider=sqlite, js_better_sqlite3) nested relation
-interactive-transactions (provider=sqlite, js_better_sqlite3) batching raw rollback
-interactive-transactions (provider=sqlite, js_better_sqlite3) batching rollback
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout default
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout override
-interactive-transactions (provider=sqlite, js_better_sqlite3) timeout override by PrismaClient
-invalid-sqlite-isolation-level (provider=sqlite, js_better_sqlite3) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_better_sqlite3) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_better_sqlite3) should return a descriptive error
-issues.15644-middleware-arg-types (provider=sqlite, js_better_sqlite3) middleware with updateMany
-issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing executeRaw
-issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing queryRaw
-issues.20724 (provider=sqlite, js_better_sqlite3) unique constraint violation modelName is not returned on error.meta should not return modelName when performing transactions with raw queries
 issues.21369-select-null (provider=sqlite, js_better_sqlite3) SELECT NULL works
 issues.22947-sqlite-conccurrent-upsert (provider=sqlite, js_better_sqlite3) concurrent upserts should succeed
-methods.findFirstOrThrow (provider=sqlite, js_better_sqlite3) works with transactions
-methods.findUniqueOrThrow (provider=sqlite, js_better_sqlite3) works with transactions
-metrics.enabled (provider=sqlite, js_better_sqlite3) after a query includes global labels in json format
-metrics.enabled (provider=sqlite, js_better_sqlite3) after a query includes global labels in prometheus format
-metrics.enabled (provider=sqlite, js_better_sqlite3) after a query returns metrics in json format
-metrics.enabled (provider=sqlite, js_better_sqlite3) after a query returns metrics in prometheus format
-metrics.enabled (provider=sqlite, js_better_sqlite3) before a query SQL Providers: should have the same keys, before and after a query
-metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.json() does not crash before client is connected
-metrics.enabled (provider=sqlite, js_better_sqlite3) empty $metrics.prometheus() does not crash before client is connected
-metrics.enabled (provider=sqlite, js_better_sqlite3) multiple instances does not share metrics between 2 different instances of client
-tracing (provider=sqlite, js_better_sqlite3) tracing on transactions $transaction
-typed-sql.sqlite-scalars-nullable.test (provider=sqlite, js_better_sqlite3) DateTime - input
-typed-sql.sqlite-scalars.test (provider=sqlite, js_better_sqlite3) DateTime - input
-unsupported-action (provider=sqlite, js_better_sqlite3) unsupported method

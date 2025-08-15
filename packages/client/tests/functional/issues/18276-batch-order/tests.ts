@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider, driverAdapter }) => {
@@ -14,16 +14,12 @@ testMatrix.setupTestSuite(
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
+      })
 
       const queries: string[] = []
 
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', ({ query }) => queries.push(query))
-
-      prisma.$use(async (params, next) => {
-        await Promise.resolve()
-        return next(params)
-      })
 
       const xprisma = prisma.$extends({
         query: {
@@ -55,16 +51,12 @@ testMatrix.setupTestSuite(
     test('executes batch in right order when using delayed middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
-      }) as PrismaClient<{ log: [{ level: 'query'; emit: 'event' }] }>
+      })
 
       const queries: string[] = []
 
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', ({ query }) => queries.push(query))
-
-      prisma.$use(async (params, next) => {
-        await new Promise((r) => setTimeout(r, Math.random() * 1_000))
-        return next(params)
-      })
 
       await prisma.$transaction([
         prisma.$queryRawUnsafe('SELECT 1'),

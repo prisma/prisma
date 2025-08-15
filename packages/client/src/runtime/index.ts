@@ -12,7 +12,6 @@ export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRe
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
 export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
-export { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 export {
   type Metric,
@@ -41,6 +40,7 @@ export {
   type Operation,
   type RuntimeDataModel,
 } from '@prisma/client-common'
+export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'

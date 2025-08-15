@@ -1,4 +1,5 @@
 import { Context } from '@opentelemetry/api'
+import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
@@ -16,13 +17,12 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { CustomDataProxyFetch } from './core/engines/common/Engine'
+import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
 import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
 import { GlobalOmitOptions } from './core/jsonProtocol/serializeJsonQuery'
@@ -52,7 +52,7 @@ export type RequestParams = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
-  customDataProxyFetch?: CustomDataProxyFetch
+  customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
 export type HandleErrorParams = {

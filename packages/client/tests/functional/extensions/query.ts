@@ -11,10 +11,15 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+// @only-ts-generator
+type LogPrismaClient = PrismaClient<'query'>
+// @only-js-generator
+type LogPrismaClient = PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+
+declare let prisma: LogPrismaClient
 declare let Prisma: typeof PrismaNamespace
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaClient>
 
 const randomId1 = randomBytes(12).toString('hex')
 const randomId2 = randomBytes(12).toString('hex')
