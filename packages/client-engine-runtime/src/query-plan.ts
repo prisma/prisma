@@ -1,3 +1,5 @@
+import { ArgType, Arity } from '@prisma/driver-adapter-utils'
+
 export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
 
 export function isPrismaValuePlaceholder(value: unknown): value is PrismaValuePlaceholder {
@@ -13,24 +15,6 @@ export function isPrismaValueGenerator(value: unknown): value is PrismaValueGene
   return typeof value === 'object' && value !== null && value['prisma__type'] === 'generatorCall'
 }
 
-export type PrismaValueBytes = {
-  prisma__type: 'bytes'
-  prisma__value: string
-}
-
-export function isPrismaValueBytes(value: unknown): value is PrismaValueBytes {
-  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bytes'
-}
-
-export type PrismaValueBigInt = {
-  prisma__type: 'bigint'
-  prisma__value: string
-}
-
-export function isPrismaValueBigInt(value: unknown): value is PrismaValueBigInt {
-  return typeof value === 'object' && value !== null && value['prisma__type'] === 'bigint'
-}
-
 export type PrismaValue =
   | string
   | boolean
@@ -40,39 +24,21 @@ export type PrismaValue =
   | Record<string, unknown>
   | PrismaValuePlaceholder
   | PrismaValueGenerator
-  | PrismaValueBytes
-  | PrismaValueBigInt
-
-export type PrismaValueType =
-  | { type: 'Any' }
-  | { type: 'String' }
-  | { type: 'Int' }
-  | { type: 'BigInt' }
-  | { type: 'Float' }
-  | { type: 'Boolean' }
-  | { type: 'Decimal' }
-  | { type: 'Date' }
-  | { type: 'Time' }
-  | { type: 'Array'; inner: PrismaValueType }
-  | { type: 'Json' }
-  | { type: 'Object' }
-  | { type: 'Bytes' }
-  | { type: 'Enum'; inner: string }
 
 export type ResultNode =
   | {
-      type: 'AffectedRows'
+      type: 'affectedRows'
     }
   | {
-      type: 'Object'
+      type: 'object'
       fields: Record<string, ResultNode>
       serializedName: string | null
       skipNulls: boolean
     }
   | {
-      type: 'Value'
+      type: 'field'
       dbName: string
-      resultType: PrismaValueType
+      fieldType: FieldType
     }
 
 export type QueryPlanBinding = {
@@ -84,15 +50,19 @@ export type QueryPlanDbQuery =
   | {
       type: 'rawSql'
       sql: string
-      params: PrismaValue[]
+      args: PrismaValue[]
+      argTypes: ArgType[]
     }
   | {
       type: 'templateSql'
       fragments: Fragment[]
       placeholderFormat: PlaceholderFormat
-      params: PrismaValue[]
+      args: PrismaValue[]
+      argTypes: DynamicArgType[]
       chunkable: boolean
     }
+
+export type DynamicArgType = ArgType | { arity: 'tuple'; elements: ArgType[] }
 
 export type Fragment =
   | { type: 'stringChunk'; chunk: string }
@@ -335,3 +305,22 @@ export type ValidationError =
         child: string
       }
     }
+
+export type FieldType = { arity: Arity } & FieldScalarType
+
+export type FieldScalarType =
+  | {
+      type:
+        | 'string'
+        | 'int'
+        | 'bigint'
+        | 'float'
+        | 'boolean'
+        | 'json'
+        | 'object'
+        | 'datetime'
+        | 'decimal'
+        | 'bytes'
+        | 'unsupported'
+    }
+  | { type: 'enum'; name: string }

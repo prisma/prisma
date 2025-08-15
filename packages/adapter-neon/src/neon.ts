@@ -16,7 +16,7 @@ import type {
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
-import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:neon')
@@ -92,13 +92,12 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
   }
 
   override async performIO(query: SqlQuery): Promise<PerformIOResult> {
-    const { sql, args: values } = query
+    const { sql, args } = query
 
     try {
       const result = await this.client.query(
         {
           text: sql,
-          values: fixArrayBufferValues(values),
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -122,7 +121,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
             },
           },
         },
-        fixArrayBufferValues(values),
+        args.map((arg, i) => mapArg(arg, query.argTypes[i])),
       )
 
       return result

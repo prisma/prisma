@@ -18,9 +18,8 @@ import ky, { KyInstance, Options as KyOptions } from 'ky'
 
 import { name as packageName } from '../package.json'
 import { GENERIC_SQLITE_ERROR, MAX_BIND_VALUES } from './constants'
-import { getColumnTypes, mapRow } from './conversion'
+import { getColumnTypes, mapArg, mapRow } from './conversion'
 import { convertDriverError } from './errors'
-import { cleanArg } from './utils'
 
 const debug = Debug('prisma:driver-adapter:d1-http')
 
@@ -157,12 +156,10 @@ class D1HTTPQueryable implements SqlQueryable {
     query: SqlQuery,
   ): Promise<{ columnNames: string[]; rows: unknown[][]; affectedRows?: number }> {
     try {
-      query.args = query.args.map((arg, i) => cleanArg(arg, query.argTypes[i]))
-
       const body = {
         json: {
           sql: query.sql,
-          params: query.args,
+          params: query.args.map((arg, i) => mapArg(arg, query.argTypes[i])),
         },
       }
 

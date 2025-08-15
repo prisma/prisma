@@ -10,7 +10,7 @@ import { assertNever } from '../utils'
 import { applyDataMap } from './data-mapper'
 import { GeneratorRegistry, GeneratorRegistrySnapshot } from './generators'
 import { getRecordKey, processRecords } from './in-memory-processing'
-import { evaluateParam, renderQuery } from './render-query'
+import { evaluateArg, renderQuery } from './render-query'
 import { PrismaObject, ScopeBindings, Value } from './scope'
 import { serializeRawSql, serializeSql } from './serialize-sql'
 import { doesSatisfyRule, performValidation } from './validation'
@@ -84,7 +84,7 @@ export class QueryInterpreter {
       queryPlan,
       queryable,
       this.#placeholderValues,
-      this.#generators.snapshot(queryable.provider),
+      this.#generators.snapshot(),
     ).catch((e) => rethrowAsUserFacing(e))
 
     return value
@@ -98,7 +98,7 @@ export class QueryInterpreter {
   ): Promise<IntermediateValue> {
     switch (node.type) {
       case 'value': {
-        return { value: evaluateParam(node.args, scope, generators) }
+        return { value: evaluateArg(node.args, scope, generators) }
       }
 
       case 'seq': {
@@ -457,7 +457,7 @@ function evalFieldInitializer(
 ): Value {
   switch (initializer.type) {
     case 'value':
-      return evaluateParam(initializer.value, scope, generators)
+      return evaluateArg(initializer.value, scope, generators)
     case 'lastInsertId':
       return lastInsertId
     default:
@@ -473,16 +473,16 @@ function evalFieldOperation(
 ): Value {
   switch (op.type) {
     case 'set':
-      return evaluateParam(op.value, scope, generators)
+      return evaluateArg(op.value, scope, generators)
     case 'add':
-      return asNumber(value) + asNumber(evaluateParam(op.value, scope, generators))
+      return asNumber(value) + asNumber(evaluateArg(op.value, scope, generators))
     case 'subtract':
-      return asNumber(value) - asNumber(evaluateParam(op.value, scope, generators))
+      return asNumber(value) - asNumber(evaluateArg(op.value, scope, generators))
     case 'multiply':
-      return asNumber(value) * asNumber(evaluateParam(op.value, scope, generators))
+      return asNumber(value) * asNumber(evaluateArg(op.value, scope, generators))
     case 'divide': {
       const lhs = asNumber(value)
-      const rhs = asNumber(evaluateParam(op.value, scope, generators))
+      const rhs = asNumber(evaluateArg(op.value, scope, generators))
       // SQLite and older versions of MySQL return NULL for division by zero, so we emulate
       // that behavior here.
       // If the database does not permit division by zero, a database error should be raised,

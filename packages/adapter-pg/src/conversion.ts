@@ -1,5 +1,5 @@
 // @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
-import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
@@ -419,21 +419,41 @@ export const customParsers = {
   [ArrayColumnType.XML_ARRAY]: normalize_array(normalize_xml),
 }
 
-// https://github.com/brianc/node-postgres/pull/2930
-export function fixArrayBufferValues(values: unknown[]) {
-  for (let i = 0; i < values.length; i++) {
-    const list = values[i]
-    if (!Array.isArray(list)) {
-      continue
-    }
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | string | Uint8Array | A {
+  if (arg === null) {
+    return null
+  }
 
-    for (let j = 0; j < list.length; j++) {
-      const listItem = list[j]
-      if (ArrayBuffer.isView(listItem)) {
-        list[j] = Buffer.from(listItem.buffer, listItem.byteOffset, listItem.byteLength)
-      }
+  if (Array.isArray(arg) && argType.arity === 'list') {
+    return arg.map((value) => mapArg(value, argType))
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case 'TIME':
+      case 'TIMETZ':
+        return arg.toISOString().split('T')[1]
+      default:
+        return arg.toISOString()
     }
   }
 
-  return values
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  // https://github.com/brianc/node-postgres/pull/2930
+  if (ArrayBuffer.isView(arg)) {
+    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
+  }
+
+  return arg
 }
