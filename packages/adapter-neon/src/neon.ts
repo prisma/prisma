@@ -182,7 +182,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
     conn.on('error', (err) => {
-      debug(`Error from pool connection: ${err.message} %O`, err)
+      debug(`Error from pool connection: %O`, err)
       this.options?.onConnectionError?.(err)
     })
 
@@ -231,7 +231,7 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   async connect(): Promise<PrismaNeonAdapter> {
     const pool = new neon.Pool(this.config)
     pool.on('error', (err) => {
-      debug(`Error from pool client: ${err.message} %O`, err)
+      debug(`Error from pool client: %O`, err)
       this.options?.onPoolError?.(err)
     })
 
