@@ -103,6 +103,42 @@ test('should generate different and valid Nano IDs with custom length', () => {
   expect(nanoid1).toMatch(/^[A-Za-z0-9_-]{7}$/)
 })
 
+test('should generate different and valid KSUIDs', () => {
+  const registry = new GeneratorRegistry()
+  const snapshot = registry.snapshot()
+
+  const ksuid1 = snapshot.ksuid.generate()
+  const ksuid2 = snapshot.ksuid.generate()
+  expect(ksuid1).not.toBe(ksuid2)
+
+  // example: 1eHgG1lY3C0hDslXfoo5Jv2g7Uq
+  expect(ksuid1).toMatch(/^[0-9A-Za-z]{27}$/)
+})
+
+test('should generate different and valid Type IDs', () => {
+  const registry = new GeneratorRegistry()
+  const snapshot = registry.snapshot()
+
+  const typeid1 = snapshot.typeid.generate()
+  const typeid2 = snapshot.typeid.generate()
+  expect(typeid1).not.toBe(typeid2)
+
+  // example: id_00041061050r3gg28a1c60t3gf
+  expect(typeid1).toMatch(/^id_[0-7][0-9a-hjkmnpqrstvwxyz]{25}$/)
+})
+
+test('should generate different and valid Type IDs with custom prefix', () => {
+  const registry = new GeneratorRegistry()
+  const snapshot = registry.snapshot()
+
+  const typeid1 = snapshot.typeid.generate('prisma')
+  const typeid2 = snapshot.typeid.generate('prisma')
+  expect(typeid1).not.toBe(typeid2)
+
+  // example: prisma_00041061050r3gg28a1c60t3gf
+  expect(typeid1).toMatch(/^prisma_[0-7][0-9a-hjkmnpqrstvwxyz]{25}$/)
+})
+
 test('should calculate correct products', () => {
   const registry = new GeneratorRegistry()
   const snapshot = registry.snapshot()

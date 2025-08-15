@@ -31,6 +31,8 @@
     "@prisma/driver-adapter-utils": "workspace:*",
     "decimal.js": "10.5.0",
     "nanoid": "5.1.5",
+    "ksuid": "3.0.0",
+    "typeid-js": "1.2.0",
     "ulid": "3.0.0",
     "uuid": "11.1.0"
   },
