@@ -29,6 +29,7 @@
     "@paralleldrive/cuid2": "2.2.2",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
+    "decimal.js": "10.5.0",
     "nanoid": "5.1.5",
     "ulid": "3.0.0",
     "uuid": "11.1.0"

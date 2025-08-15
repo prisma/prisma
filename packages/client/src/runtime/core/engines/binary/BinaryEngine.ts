@@ -515,7 +515,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
-          } else if (code === 255 && signal === null && this.lastError) {
+          } else if (code === 101 && signal === null && this.lastError) {
             toEmit = this.lastError
           }
 

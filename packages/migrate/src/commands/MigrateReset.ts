@@ -10,6 +10,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
@@ -54,7 +55,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset --force
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -81,9 +82,9 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
 
     printDatasource({ datasourceInfo, adapter })
 
@@ -120,7 +121,12 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     let migrationIds: string[]
     try {
@@ -130,7 +136,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     if (migrationIds.length === 0) {
@@ -153,11 +159,14 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
+      const seedCommandFromPrismaConfig = config.migrations?.seed
       const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
-      if (seedCommandFromPkgJson) {
+      const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+
+      if (seedCommand) {
         process.stdout.write('\n') // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
+        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
         if (successfulSeeding) {
           process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
         } else {

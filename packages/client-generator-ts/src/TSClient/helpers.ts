@@ -1,4 +1,4 @@
-import { capitalize, lowerCase } from '@prisma/client-common'
+import { capitalize, uncapitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import pluralize from 'pluralize'
 
@@ -10,7 +10,7 @@ export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.Model
     singular: capitalize(mapping.model),
     plural: capitalize(mapping.plural),
     firstScalar: model.fields.find((f) => f.kind === 'scalar'),
-    method: `prisma.${lowerCase(mapping.model)}.${action}`,
+    method: `prisma.${uncapitalize(mapping.model)}.${action}`,
     action,
     mapping,
     model,

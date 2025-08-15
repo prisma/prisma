@@ -11,10 +11,15 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+// @only-ts-generator
+type LogPrismaClient = PrismaClient<'query'>
+// @only-js-generator
+type LogPrismaClient = PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+
+declare let prisma: LogPrismaClient
 declare let Prisma: typeof PrismaNamespace
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaClient>
 
 const randomId1 = randomBytes(12).toString('hex')
 const randomId2 = randomBytes(12).toString('hex')
@@ -23,7 +28,7 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }) => {
+  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
 
     beforeEach(async () => {
@@ -487,7 +492,7 @@ testMatrix.setupTestSuite(
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer) {
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -535,7 +540,7 @@ testMatrix.setupTestSuite(
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer) {
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -603,7 +608,7 @@ testMatrix.setupTestSuite(
           // Driver adapters do not issue BEGIN through the query engine.
           expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
         }
-        if (isSqlServer) {
+        if (isSqlServer && driverAdapter === undefined) {
           expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
         }
 
@@ -704,7 +709,7 @@ testMatrix.setupTestSuite(
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer) {
+          if (isSqlServer && driverAdapter === undefined) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
 

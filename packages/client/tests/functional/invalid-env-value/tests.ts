@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }, _suiteMeta, clientMeta) => {
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(
           expect(e.name).toEqual('PrismaClientInitializationError')
           expect(message).toContain('Error validating datasource `db`: the URL must start with the protocol')
         })
-      } else if (['edge', 'node', 'wasm'].includes(clientMeta.runtime)) {
+      } else if (['edge', 'node', 'wasm-engine-edge'].includes(clientMeta.runtime)) {
         await promise.catch((e) => {
           const message = stripAnsi(e.message)
           expect(e.name).toEqual('InvalidDatasourceError')

@@ -10,11 +10,13 @@
   },
   "license": "Apache-2.0",
   "scripts": {
+    "dev": "tsx test.ts -- --onlyGenerate",
     "test": "tsx test.ts",
     "test:update": "tsx test.ts -- --updateSnapshots"
   },
   "dependencies": {
-    "@ark/attest": "0.45.11"
+    "@prisma/client": "workspace:*",
+    "@ark/attest": "0.48.2"
   },
   "sideEffects": false
 }

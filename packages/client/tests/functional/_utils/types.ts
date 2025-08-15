@@ -31,16 +31,14 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
   alterStatementCallback?: AlterStatementCallback
 }
 
-export type NewPrismaClient<T extends new (...args: any) => any> = (
-  ...args: ConstructorParameters<T>
-) => InstanceType<T>
+export type NewPrismaClient<T, C extends new (...args: any) => any> = (...args: ConstructorParameters<C>) => T
 
 export type Db = {
   setupDb: () => Promise<void>
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'edge' | 'wasm' | 'client'
+export type ClientRuntime = 'node' | 'edge' | 'wasm-engine-edge' | 'wasm-compiler-edge' | 'client'
 
 export type CliMeta = {
   dataProxy: boolean

@@ -243,8 +243,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clientRuntime: ['node', 'wasm']
-        flavor: ['js_pg', 'js_neon', 'js_libsql', 'js_planetscale', 'js_d1', 'js_better_sqlite3']
+        clientRuntime: ['node', 'wasm-engine-edge']
+        flavor:
+          [
+            'js_pg',
+            'js_neon',
+            'js_libsql',
+            'js_planetscale',
+            'js_d1',
+            'js_better_sqlite3',
+            'js_mssql',
+            'js_mariadb',
+            'js_pg_cockroachdb',
+          ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
         previewFeatures: ['', ',relationJoins']
@@ -257,7 +268,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres neon_wsproxy planetscale_proxy mssql mysql cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -355,7 +366,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        flavor: ['js_pg', 'js_libsql'] # TODO: add more flavors once we want to target SQLite and MySQL support
+        flavor:
+          [
+            'js_pg',
+            'js_libsql',
+            'js_d1',
+            'js_better_sqlite3',
+            'js_planetscale',
+            'js_mssql',
+            'js_neon',
+            'js_mariadb',
+            'js_pg_cockroachdb',
+          ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
         previewFeatures: ['driverAdapters,queryCompiler']
@@ -368,7 +390,7 @@ jobs:
           timeout_minutes: 10
           max_attempts: 5
           retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql neon_wsproxy mysql cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -535,7 +557,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test:e2e --verbose
+      - run: pnpm run test:e2e --verbose --maxWorkers 3
         working-directory: packages/client
         env:
           NODE_OPTIONS: '--max-old-space-size=8096'
@@ -808,7 +830,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    name: Migrate [v${{ matrix.node }}]
+    name: Migrate ${{ matrix.driverAdapter }} [v${{ matrix.node }}]
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -820,6 +842,8 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [18, 20, 22, 23]
+        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
+        driverAdapter: ['']
     steps:
       - uses: actions/checkout@v4
 
@@ -848,6 +872,8 @@ jobs:
 
       - run: pnpm run test
         working-directory: packages/migrate
+        env:
+          PRISMA_MIGRATE_TEST_ADAPTER: ${{ matrix.driverAdapter }}
 
   #
   # CLI-COMMANDS
@@ -990,6 +1016,10 @@ jobs:
         name: 'generator'
         working-directory: packages/generator
 
+      - run: pnpm run test
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1016,6 +1046,22 @@ jobs:
       - run: pnpm run test
         name: 'adapter-libsql'
         working-directory: packages/adapter-libsql
+
+      - run: pnpm run test
+        name: 'adapter-mariadb'
+        working-directory: packages/adapter-mariadb
+
+      - run: pnpm run test
+        name: 'adapter-d1'
+        working-directory: packages/adapter-d1
+
+      - run: pnpm run test
+        name: 'adapter-pg'
+        working-directory: packages/adapter-pg
+
+      - run: pnpm run test
+        name: 'adapter-planetscale'
+        working-directory: packages/adapter-planetscale
 
   #
   # Run type performance benchmark tests
@@ -1292,6 +1338,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'client-generator-ts'
         working-directory: packages/client-generator-ts
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-')
+        name: 'credentials-store'
+        working-directory: packages/credentials-store
 
       - run: pnpm run test
         if: contains(inputs.jobsToRun, '-all-')

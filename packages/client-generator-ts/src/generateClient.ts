@@ -30,7 +30,8 @@ import { RuntimeTarget } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
-import { addPreambleToTSFiles } from './utils/addPreamble'
+import { addPreambleToSourceFiles } from './utils/addPreamble'
+import { buildWasmFileMap } from './utils/wasm'
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -69,7 +70,7 @@ export interface GenerateClientOptions {
 }
 
 export interface FileMap {
-  [name: string]: string | FileMap
+  [name: string]: string | Buffer | FileMap
 }
 
 export interface BuildClientResult {
@@ -122,7 +123,7 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    edge: (['edge', 'wasm', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    edge: (['edge', 'wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
     generatedFileExtension,
@@ -153,7 +154,18 @@ export function buildClient({
     }
   }
 
-  addPreambleToTSFiles(fileMap, tsNoCheckPreamble)
+  fileMap = {
+    ...fileMap,
+    internal: {
+      ...(fileMap.internal as FileMap),
+      ...buildWasmFileMap({
+        runtimeName,
+        activeProvider,
+      }),
+    },
+  }
+
+  addPreambleToSourceFiles(fileMap, tsNoCheckPreamble)
 
   return {
     fileMap, // a map of file names to their contents
@@ -285,7 +297,7 @@ function writeFileMap(outputDir: string, fileMap: FileMap) {
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       await fs.rm(absolutePath, { recursive: true, force: true })
-      if (typeof content === 'string') {
+      if (typeof content === 'string' || Buffer.isBuffer(content)) {
         // file
         await fs.writeFile(absolutePath, content)
       } else {
@@ -409,9 +421,8 @@ function getRuntimeNameForTarget(
 
     case 'workerd':
     case 'edge-light':
-    case 'deno-deploy':
       if (previewFeatures.includes('driverAdapters')) {
-        return 'wasm'
+        return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
       } else {
         return 'edge'
       }
@@ -448,7 +459,12 @@ async function deleteOutputDir(outputDir: string) {
       return
     }
 
-    if (!files.includes('client.ts') && !files.includes('client.mts') && !files.includes('client.cts')) {
+    if (
+      !files.includes('client.ts') &&
+      !files.includes('client.mts') &&
+      !files.includes('client.cts') &&
+      !files.includes('client.d.ts') // for legacy js client
+    ) {
       // Make sure users don't accidentally wipe their source code or home directory.
       throw new Error(
         `${outputDir} exists and is not empty but doesn't look like a generated Prisma Client. ` +
@@ -458,10 +474,19 @@ async function deleteOutputDir(outputDir: string) {
 
     await Promise.allSettled(
       (
-        await glob([`${outputDir}/**/*.{ts,mts,cts}`, `${outputDir}/*.node`, `${outputDir}/{query,schema}-engine-*`], {
-          followSymbolicLinks: false,
-        })
-      ).map(fs.unlink),
+        await glob(
+          [
+            `${outputDir}/**/*.{js,ts,mts,cts,d.ts}`,
+            `${outputDir}/*.node`,
+            `${outputDir}/{query,schema}-engine-*`,
+            `${outputDir}/package.json`,
+            `${outputDir}/**/*.prisma`,
+          ],
+          {
+            followSymbolicLinks: false,
+          },
+        )
+      ).map((file) => fs.unlink(file)),
     )
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {

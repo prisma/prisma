@@ -12,6 +12,7 @@ import {
   loadEnvFile,
   loadSchemaContext,
   locateLocalCloudflareD1,
+  MigrateTypes,
   toSchemasContainer,
   toSchemasWithConfigDir,
 } from '@prisma/internals'
@@ -147,7 +148,7 @@ ${bold('Examples')}
     --to-[...]
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -278,7 +279,7 @@ ${bold('Examples')}
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        ...(await listMigrations(args['--from-migrations'])),
+        ...(await listMigrations(args['--from-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--from-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
@@ -322,7 +323,7 @@ ${bold('Examples')}
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        ...(await listMigrations(args['--to-migrations'])),
+        ...(await listMigrations(args['--to-migrations'], config.migrations?.initShadowDb ?? '')),
       }
     } else if (args['--to-local-d1']) {
       const d1Database = await locateLocalCloudflareD1({ arg: '--to-local-d1' })
@@ -332,8 +333,12 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = await config.migrate?.adapter(process.env)
-    const migrate = await Migrate.setup({ adapter })
+    const adapter = await config.adapter?.()
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+    const migrate = await Migrate.setup({ adapter, schemaFilter })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
@@ -351,10 +356,14 @@ ${bold('Examples')}
         script: args['--script'] || false, // default is false
         shadowDatabaseUrl: args['--shadow-database-url'] ?? null,
         exitCode: args['--exit-code'] ?? null,
+        filters: {
+          externalTables: config.tables?.external ?? [],
+          externalEnums: config.enums?.external ?? [],
+        },
       })
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // Write output to file if --output is defined

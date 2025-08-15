@@ -1,4 +1,4 @@
-import { GetPrismaClientConfig, lowerCase, RuntimeDataModel, RuntimeModel } from '@prisma/client-common'
+import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
@@ -327,7 +327,7 @@ function getModelOrTypeByKey(modelKey: string, runtimeDataModel: RuntimeDataMode
 }
 
 function findByKey<T>(map: Record<string, T>, key: string): T | undefined {
-  const foundKey = Object.keys(map).find((mapKey) => lowerCase(mapKey) === key)
+  const foundKey = Object.keys(map).find((mapKey) => uncapitalize(mapKey) === key)
   if (foundKey) {
     return map[foundKey]
   }

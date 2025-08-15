@@ -12,6 +12,7 @@ import {
   link,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
@@ -49,7 +50,7 @@ Check the status of your database migrations
   ${dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -76,14 +77,19 @@ Check the status of your database migrations
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
-    const adapter = await config.migrate?.adapter(process.env)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
+    const adapter = await config.adapter?.()
 
     checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
     if (!adapter) {
@@ -109,7 +115,7 @@ Check the status of your database migrations
       listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
       debug({ listMigrationDirectoriesResult })
     } finally {
-      migrate.stop()
+      await migrate.stop()
     }
 
     process.stdout.write('\n') // empty line

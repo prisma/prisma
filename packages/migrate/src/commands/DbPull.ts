@@ -16,6 +16,7 @@ import {
   loadSchemaContext,
   locateLocalCloudflareD1,
   type MultipleSchemas,
+  printSchemaLoadedMessage,
   protocolToConnectorType,
   relativizePathInPSLError,
   SchemaContext,
@@ -100,7 +101,7 @@ Set composite types introspection depth to 2 levels
     ])
   }
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -150,11 +151,11 @@ Set composite types introspection depth to 2 levels
       flags: ['--url', '--local-d1'],
     })
 
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
-      process.stdout.write(dim(`Prisma schema loaded from ${schemaContext.loadedFromPathForLogMessages}`) + '\n')
+      printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
       printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
     }
@@ -328,7 +329,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionSchema: MigrateTypes.SchemasContainer | undefined = undefined
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
-      const directoryConfig = inferDirectoryConfig(schemaContext)
+      const directoryConfig = inferDirectoryConfig(schemaContext, config)
       const introspectionResult = await engine.introspect({
         schema: toSchemasContainer(schema),
         baseDirectoryPath: schemaContext?.schemaRootDir ?? process.cwd(),

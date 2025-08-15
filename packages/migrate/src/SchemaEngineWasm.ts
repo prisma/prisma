@@ -5,6 +5,7 @@ import {
   ErrorArea,
   getWasmError,
   isWasmPanic,
+  relativizePathInPSLError,
   RustPanic,
   SchemaContext,
   wasm,
@@ -13,6 +14,7 @@ import {
 import { bold, red } from 'kleur/colors'
 
 import { SchemaEngine } from './SchemaEngine'
+import { EngineError } from './SchemaEngineCLI'
 import { EngineArgs } from './types'
 import { handleViewsIO } from './views/handleViewsIO'
 
@@ -81,6 +83,8 @@ export class SchemaEngineWasm implements SchemaEngine {
     command: M,
     input: SchemaEngineInput<M>,
   ): Promise<Awaited<SchemaEngineOutput<M>>> {
+    if (process.env.FORCE_PANIC_SCHEMA_ENGINE && command !== 'debugPanic') return this.debugPanic()
+
     this.isRunning = true
 
     debugStdout('[%s] input: %o', command, input)
@@ -102,6 +106,8 @@ export class SchemaEngineWasm implements SchemaEngine {
         const { message, stack } = getWasmError(e)
         // Handle error and displays the interactive dialog to send panic error
         throw new RustPanic(serializePanic(message), stack, command, ErrorArea.LIFT_CLI)
+      } else if ('code' in error) {
+        throw new EngineError(red(`${error.code}\n\n${relativizePathInPSLError(error.message)}\n`), error.code)
       } else {
         assertAlways(
           e.name === 'SchemaConnectorError',
@@ -240,7 +246,7 @@ export class SchemaEngineWasm implements SchemaEngine {
     if (stdout) {
       // Here we print the content from the Schema Engine to stdout directly
       // (it is not returned to the caller)
-      process.stdout.write(stdout + '\n')
+      process.stdout.write(stdout)
     }
 
     return rest
@@ -271,8 +277,8 @@ export class SchemaEngineWasm implements SchemaEngine {
    * the engine attempts a “best effort reset” by inspecting the contents of the database and dropping them individually.
    * Drop and recreate the database. The migrations will not be applied, as it would overlap with applyMigrations.
    */
-  public async reset() {
-    await this.runCommand('reset', undefined)
+  public async reset(input: SchemaEngineInput<'reset'>) {
+    await this.runCommand('reset', input)
   }
 
   /**
@@ -294,9 +300,10 @@ export class SchemaEngineWasm implements SchemaEngine {
   /**
    * Stop the engine.
    */
-  public stop(): void {
+  public stop(): Promise<void> {
     this.isRunning = false
     this.engine.free()
+    return Promise.resolve()
   }
 }
 

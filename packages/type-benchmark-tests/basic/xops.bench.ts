@@ -4,7 +4,7 @@
 import { bench } from '@ark/attest'
 
 // @ts-ignore
-import type { PrismaClient } from './generated/index.js'
+import type { PrismaClient } from './generated/client'
 
 declare const prisma: PrismaClient
 
@@ -376,7 +376,7 @@ bench('client extensions(0)- 5 ops', () => {
     where: { email: 'op5_findUnique_user@example.com' },
     select: { name: true },
   })
-}).types([1145, 'instantiations'])
+}).types([1146, 'instantiations'])
 
 bench('client extensions(1)- 5 ops', () => {
   const xprisma1 = getXprisma1()

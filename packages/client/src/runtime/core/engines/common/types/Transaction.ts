@@ -1,4 +1,15 @@
-export { type TransactionOptions as Options } from '@prisma/client-engine-runtime'
+export type Options = {
+  /** Timeout for starting the transaction */
+  maxWait?: number
+
+  /** Timeout for the transaction body */
+  timeout?: number
+
+  /** Transaction isolation level */
+  isolationLevel?: IsolationLevel
+}
+
+export type IsolationLevel = 'ReadUncommitted' | 'ReadCommitted' | 'RepeatableRead' | 'Snapshot' | 'Serializable'
 
 export type InteractiveTransactionInfo<Payload = unknown> = {
   /**

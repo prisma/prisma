@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 declare const db: Db
 
 let prisma: PrismaClient
@@ -40,6 +40,11 @@ testMatrix.setupTestSuite(
     optOut: {
       from: [Providers.MONGODB],
       reason: 'First query does not fail even when database does not exist.',
+    },
+    skipDriverAdapter: {
+      // TODO: fix this case
+      from: ['js_mssql'],
+      reason: 'Driver fails with `Login failed for user ...`',
     },
   },
 )

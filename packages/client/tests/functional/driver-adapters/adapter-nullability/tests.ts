@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import { PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ clientRuntime, engineType }, _suiteMeta, clientMeta) => {
   test('does not throw without the adapter property', () => {
@@ -12,16 +12,15 @@ testMatrix.setupTestSuite(({ clientRuntime, engineType }, _suiteMeta, clientMeta
   })
 
   // TODO: Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`
-  skipTestIf(clientRuntime === 'wasm' || clientRuntime === 'client')(
-    'does not throw if adapter is set to null',
-    async () => {
-      const prisma = newPrismaClient({ adapter: null })
+  skipTestIf(
+    clientRuntime === 'wasm-engine-edge' || clientRuntime === 'wasm-compiler-edge' || clientRuntime === 'client',
+  )('does not throw if adapter is set to null', async () => {
+    const prisma = newPrismaClient({ adapter: null })
 
-      if (!clientMeta.driverAdapter) {
-        await prisma.user.findMany()
-      }
-    },
-  )
+    if (!clientMeta.driverAdapter) {
+      await prisma.user.findMany()
+    }
+  })
 
   skipTestIf(engineType === 'client')('throws if adapter is explicitly set to undefined', () => {
     expect(() => newPrismaClient({ adapter: undefined })).toThrowErrorMatchingInlineSnapshot(`

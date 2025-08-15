@@ -1,7 +1,6 @@
 import { neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaPg as PrismaPgWorker } from '@prisma/adapter-pg-worker'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
 import { PrismaClient } from 'db'
@@ -43,8 +42,3 @@ export const pgPrismaClient = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 })
 void pgPrismaClient.user.findMany()
-
-export const pgWorkerPrismaClient = new PrismaClient({
-  adapter: new PrismaPgWorker({ connectionString }),
-})
-void pgWorkerPrismaClient.user.findMany()

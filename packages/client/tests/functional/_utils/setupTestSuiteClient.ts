@@ -100,13 +100,14 @@ export async function setupTestSuiteClient({
   } else {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
+  const outputPath = generatorType === 'prisma-client-ts' ? 'generated/prisma' : 'generated/prisma/client'
 
   const clientGenOptions: GenerateClientLegacyOptions & GenerateClientESMOptions = {
     datamodel: schema,
     schemaPath,
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: schemaContext.datasources,
-    outputDir: path.join(suiteFolderPath, 'generated/prisma/client'),
+    outputDir: path.join(suiteFolderPath, outputPath),
     copyRuntime: false,
     dmmf: dmmf,
     generator: generator,
@@ -134,19 +135,23 @@ export async function setupTestSuiteClient({
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
     node: {
       client: 'generated/prisma/client',
-      sql: 'generated/prisma/client/sql',
+      sql: path.join(outputPath, 'sql'),
     },
     edge: {
-      client: 'generated/prisma/client/edge',
-      sql: 'generated/prisma/client/sql/index.edge.js',
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/edge',
+      sql: path.join(outputPath, 'sql', 'index.edge.js'),
     },
-    wasm: {
-      client: 'generated/prisma/client/wasm',
-      sql: 'generated/prisma/client/sql/index.wasm.js',
+    'wasm-engine-edge': {
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
+      sql: path.join(outputPath, 'sql', 'index.wasm-engine-edge.js'),
+    },
+    'wasm-compiler-edge': {
+      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
+      sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
     },
     client: {
       client: 'generated/prisma/client',
-      sql: 'generated/prisma/client/sql',
+      sql: path.join(outputPath, 'sql'),
     },
   }
 
@@ -183,7 +188,7 @@ export function setupTestSuiteClientDriverAdapter({
     throw new Error(`Missing Driver Adapter`)
   }
 
-  if (clientMeta.runtime === 'wasm') {
+  if (clientMeta.runtime === 'wasm-engine-edge') {
     __internal.configOverride = (config) => {
       config.engineWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
@@ -196,7 +201,7 @@ export function setupTestSuiteClientDriverAdapter({
       }
       return config
     }
-  } else if (clientMeta.runtime === 'client') {
+  } else if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
@@ -211,7 +216,7 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
-  if (driverAdapter === AdapterProviders.JS_PG) {
+  if (driverAdapter === AdapterProviders.JS_PG || driverAdapter === AdapterProviders.JS_PG_COCKROACHDB) {
     const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
 
     return {
@@ -284,6 +289,49 @@ export function setupTestSuiteClientDriverAdapter({
         // Error validating datasource `db`: the URL must start with the protocol `file:`
         // ```
         url: datasourceInfo.databaseUrl.replace('file:', ''),
+      }),
+      __internal,
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_MSSQL) {
+    const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
+
+    const [, server, port, database, user, password] =
+      datasourceInfo.databaseUrl.match(
+        /^sqlserver:\/\/([^:;]+):(\d+);database=([^;]+);user=([^;]+);password=([^;]+);/,
+      ) || []
+
+    return {
+      adapter: new PrismaMssql({
+        user,
+        password,
+        database,
+        server,
+        port: Number(port),
+        options: {
+          trustServerCertificate: true,
+        },
+      }),
+      __internal,
+    }
+  }
+
+  if (driverAdapter === 'js_mariadb') {
+    const { PrismaMariaDb } = require('@prisma/adapter-mariadb') as typeof import('@prisma/adapter-mariadb')
+
+    const url = new URL(datasourceInfo.databaseUrl)
+    const { username: user, password, hostname: host, port } = url
+    const database = url.pathname && url.pathname.slice(1)
+
+    return {
+      adapter: new PrismaMariaDb({
+        user,
+        password,
+        database,
+        host,
+        port: Number(port),
+        connectionLimit: 4, // avoid running out of connections, some tests create multiple clients
       }),
       __internal,
     }

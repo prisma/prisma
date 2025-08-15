@@ -2,7 +2,6 @@
 import { neonConfig } from '@neondatabase/serverless'
 import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaPg as PrismaPgWorker } from '@prisma/adapter-pg-worker'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
 import * as G1 from '@prisma/client/generator-build'
@@ -51,8 +50,3 @@ export const pgPrismaClient = new PrismaClient({
   adapter: new PrismaPg({ connectionString }),
 })
 void pgPrismaClient.user.findMany()
-
-export const pgWorkerPrismaClient = new PrismaClient({
-  adapter: new PrismaPgWorker({ connectionString }),
-})
-void pgWorkerPrismaClient.user.findMany()

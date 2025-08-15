@@ -1,3 +1,4 @@
+import { capitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import { assertNever } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
@@ -176,10 +177,6 @@ export function getFieldRefsTypeName(name: string): string {
 
 export function getType(name: string, isList: boolean, isOptional?: boolean): string {
   return name + (isList ? '[]' : '') + (isOptional ? ' | null' : '')
-}
-
-export function capitalize(str: string): string {
-  return str[0].toUpperCase() + str.slice(1)
 }
 
 export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {

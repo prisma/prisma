@@ -20,9 +20,13 @@ describe('applyMigrations', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -30,7 +34,7 @@ describe('applyMigrations', () => {
         "appliedMigrationNames": [],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should fail on existing brownfield db', async () => {
@@ -38,9 +42,13 @@ describe('applyMigrations', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.applyMigrations({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -49,7 +57,7 @@ describe('applyMigrations', () => {
       The database schema is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
       "
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -69,7 +77,7 @@ describe('createDatabase', () => {
         "databaseName": "dev.db",
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should succeed - Schema - postgresql', async () => {
@@ -89,7 +97,7 @@ describe('createDatabase', () => {
       Database \`tests\` already exists on the database server
       "
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -110,7 +118,7 @@ describe('createMigration', () => {
         "generatedMigrationName": "20201231000000_my_migration",
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('draft should succeed - existing-db-1-migration', async () => {
@@ -129,7 +137,7 @@ describe('createMigration', () => {
         "generatedMigrationName": "20201231000000_draft_123",
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -148,7 +156,7 @@ describe('dbExecute', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`null`)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -158,9 +166,13 @@ describe('devDiagnostic', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
@@ -170,7 +182,7 @@ describe('devDiagnostic', () => {
       }
     `)
 
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('reset because drift', async () => {
@@ -178,9 +190,13 @@ describe('devDiagnostic', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.devDiagnostic({
       migrationsList,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
       {
@@ -203,7 +219,7 @@ describe('devDiagnostic', () => {
       }
     `)
 
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -213,10 +229,14 @@ describe('diagnoseMigrationHistory', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: true,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -227,7 +247,7 @@ describe('diagnoseMigrationHistory', () => {
         "history": null,
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it(' optInToShadowDatabase false should succeed - existing-db-1-migration', async () => {
@@ -235,10 +255,14 @@ describe('diagnoseMigrationHistory', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.diagnoseMigrationHistory({
       migrationsList,
       optInToShadowDatabase: false,
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -249,7 +273,7 @@ describe('diagnoseMigrationHistory', () => {
         "history": null,
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -266,7 +290,7 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`{}`)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should succeed when database exists - PostgreSQL', async () => {
@@ -282,7 +306,7 @@ describe('ensureConnectionValidity', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`{}`)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should fail when database does not exist - SQLite', async () => {
@@ -301,7 +325,7 @@ describe('ensureConnectionValidity', () => {
       Database \`dev.db\` does not exist
       "
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should fail when server does not exist - PostgreSQL', async () => {
@@ -322,7 +346,7 @@ describe('ensureConnectionValidity', () => {
       Please make sure your database server is running at \`server-does-not-exist:5432\`.
       "
     `)
-    migrate.stop()
+    await migrate.stop()
     // It was flaky on CI (but rare)
     // higher timeout might help
   }, 10_000)
@@ -335,10 +359,14 @@ describe('evaluateDataLoss', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -348,7 +376,7 @@ describe('evaluateDataLoss', () => {
         "warnings": [],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   // migration is already applied so should be empty
@@ -357,10 +385,14 @@ describe('evaluateDataLoss', () => {
     const schemaContext = await loadSchemaContext()
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const result = migrate.engine.evaluateDataLoss({
       migrationsList,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -370,7 +402,7 @@ describe('evaluateDataLoss', () => {
         "warnings": [],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -382,7 +414,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
     const migrate = await Migrate.setup({ migrationsDirPath, schemaContext })
     const result = migrate.engine.getDatabaseVersion()
     await expect(result).resolves.toContain('PostgreSQL')
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('[SchemaPath] should succeed', async () => {
@@ -396,7 +428,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
       },
     })
     await expect(result).resolves.toContain('PostgreSQL')
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('[ConnectionString] should succeed', async () => {
@@ -408,7 +440,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
       },
     })
     await expect(result).resolves.toContain('PostgreSQL')
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -432,7 +464,7 @@ describe('markMigrationRolledBack', () => {
       "
     `)
 
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('existing-db-1-migration', async () => {
@@ -458,9 +490,13 @@ describe('markMigrationRolledBack', () => {
     )
 
     try {
-      const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+      const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
       await migrate.engine.applyMigrations({
         migrationsList,
+        filters: {
+          externalTables: [],
+          externalEnums: [],
+        },
       })
     } catch (e) {
       expect(e.message).toContain('no such column: SOMETHING_THAT_DOES_NOT_WORK')
@@ -470,17 +506,17 @@ describe('markMigrationRolledBack', () => {
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkRolledBacked).resolves.toMatchSnapshot()
+    await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(`{}`)
 
-    const migrationsList1 = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList1 = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
       migrationsList: migrationsList1,
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkAppliedFailed).resolves.toMatchSnapshot()
+    await expect(resultMarkAppliedFailed).resolves.toMatchInlineSnapshot(`{}`)
 
-    const migrationsList2 = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList2 = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkApplied = migrate.engine.markMigrationApplied({
       migrationsList: migrationsList2,
       migrationName: result.generatedMigrationName!,
@@ -493,7 +529,7 @@ describe('markMigrationRolledBack', () => {
       "
     `)
 
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -515,7 +551,7 @@ describe('markMigrationApplied', () => {
       }
     `)
 
-    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!)
+    const migrationsList = await listMigrations(migrate.migrationsDirectoryPath!, '')
     const resultMarkApplied = migrate.engine.markMigrationApplied({
       migrationsList,
       migrationName: result.generatedMigrationName!,
@@ -523,7 +559,7 @@ describe('markMigrationApplied', () => {
 
     await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`{}`)
 
-    migrate.stop()
+    await migrate.stop()
   })
 })
 
@@ -538,6 +574,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -547,7 +587,7 @@ describe('schemaPush', () => {
         "warnings": [],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should succeed without warning', async () => {
@@ -558,6 +598,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(schemaContext.schemaFiles),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -567,7 +611,7 @@ describe('schemaPush', () => {
         "warnings": [],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('should return executedSteps 0 with warning if dataloss detected', async () => {
@@ -578,6 +622,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: false,
       schema: toSchemasContainer(replaceInSchemas(schemaContext.schemaFiles, 'Blog', 'Something')),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -589,7 +637,7 @@ describe('schemaPush', () => {
         ],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 
   it('force should accept dataloss', async () => {
@@ -600,6 +648,10 @@ describe('schemaPush', () => {
     const result = migrate.engine.schemaPush({
       force: true,
       schema: toSchemasContainer(replaceInSchemas(schemaContext.schemaFiles, 'Blog', 'Something')),
+      filters: {
+        externalTables: [],
+        externalEnums: [],
+      },
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
@@ -611,7 +663,7 @@ describe('schemaPush', () => {
         ],
       }
     `)
-    migrate.stop()
+    await migrate.stop()
   })
 })
 

@@ -68,7 +68,7 @@ export function inferImportFileExtension({
   generatedFileExtension,
   target,
 }: InferImportFileExtensionOptions): ImportFileExtension {
-  if (target === 'deno' || target === 'deno-deploy') {
+  if (target === 'deno') {
     return generatedFileExtension
   }
 
@@ -99,11 +99,9 @@ function inferImportFileExtensionFromTsConfig(
 
   // Otherwise, we must either use the `.js`/`.mjs`/`.cjs` extension, or none at
   // all. The latter will only work when using a bundler, or when targeting
-  // CommonJS. Using a JavaScript extension is safer because it will always work
-  // when transpiling but may be confusing to some users, especially when using
-  // a bundler. Therefore we conservatively use bare module specifiers without
-  // an extension when we are absolutely sure it is supported, and fall back to
-  // the matching JavaScript extension otherwise.
+  // CommonJS. We use bare module specifiers without an extension when we are
+  // sure it is supported, and fall back to the matching JavaScript extension
+  // otherwise.
 
   const moduleResolution = tsconfig.compilerOptions?.moduleResolution?.toLowerCase() as
     | TsConfigJson.CompilerOptions.ModuleResolution
@@ -111,7 +109,7 @@ function inferImportFileExtensionFromTsConfig(
 
   const module = tsconfig.compilerOptions?.module?.toLowerCase() as TsConfigJson.CompilerOptions.Module | undefined
 
-  if (moduleResolution !== undefined && moduleResolution !== 'classic' && module === 'commonjs') {
+  if (module === 'commonjs' || moduleResolution === 'bundler') {
     return ''
   }
 

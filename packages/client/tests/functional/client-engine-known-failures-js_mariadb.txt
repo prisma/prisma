@@ -1,0 +1,1 @@
+extensions.itx (provider=mysql, js_mariadb) middleware exclude from transaction also works with extended client

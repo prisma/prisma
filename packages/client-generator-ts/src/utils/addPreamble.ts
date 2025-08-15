@@ -5,18 +5,20 @@ const generatedCodePreamble = `
 /* eslint-disable */
 `
 
-const tsNoCheckPreamble = `/* @ts-nocheck */\n`
+const tsNoCheckPreamble = `// @ts-nocheck \n`
+
+const extensions = ['.ts', '.cts', '.mts', '.js', '.cjs', '.mjs']
 
 /**
  * To ensure it is clear that this is generated code and shall not be lint and type checked.
  * We still want to typecheck the generated code during our client tests => includeTSNoCheckPreamble = false.
  */
-export function addPreambleToTSFiles(fileMap: FileMap, includeTSNoCheckPreamble: Boolean) {
+export function addPreambleToSourceFiles(fileMap: FileMap, includeTSNoCheckPreamble: Boolean) {
   for (const [key, value] of Object.entries(fileMap)) {
-    if (typeof value === 'string' && key.endsWith('.ts')) {
-      fileMap[key] = generatedCodePreamble + (includeTSNoCheckPreamble ? tsNoCheckPreamble : '') + value
-    } else if (typeof value === 'object' && value !== null) {
-      addPreambleToTSFiles(value, includeTSNoCheckPreamble)
+    if ((typeof value === 'string' || Buffer.isBuffer(value)) && extensions.some((ext) => key.endsWith(ext))) {
+      fileMap[key] = generatedCodePreamble + (includeTSNoCheckPreamble ? tsNoCheckPreamble : '') + value.toString()
+    } else if (typeof value === 'object' && value !== null && !Buffer.isBuffer(value)) {
+      addPreambleToSourceFiles(value, includeTSNoCheckPreamble)
     }
   }
 }

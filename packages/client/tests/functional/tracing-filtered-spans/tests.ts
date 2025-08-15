@@ -11,8 +11,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+let prisma: PrismaClient
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter
 
@@ -35,7 +35,6 @@ beforeAll(() => {
   registerInstrumentations({
     instrumentations: [
       new PrismaInstrumentation({
-        middleware: true,
         ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/, 'prisma:client:db_query'],
       }),
     ],
@@ -74,7 +73,7 @@ testMatrix.setupTestSuite(
         // 'prisma:client:operation',                   <-- Filtered out parent span (by regex)
       ]
 
-      if (clientRuntime === 'wasm') {
+      if (clientRuntime === 'wasm-engine-edge') {
         expectedSpans.shift() // With wasm we do not perform platform detection
       } else if (engineType === 'client') {
         expectedSpans.splice(0, 3) // Client engine performs no binary engine related spans
@@ -86,7 +85,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDataProxy: {
-      runtimes: ['edge', 'node', 'wasm', 'client'],
+      runtimes: ['edge', 'node', 'wasm-engine-edge', 'wasm-compiler-edge', 'client'],
       reason: 'Data proxy creates different traces',
     },
   },

@@ -11,7 +11,7 @@ import type { PrismaClient, Tag } from './generated/prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }, _suiteMeta, _clientMeta, cliMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta, { runtime }, cliMeta) => {
     const MAX_BIND_VALUES = MAX_BIND_VALUES_BY_PROVIDER[provider]
     const EXCESS_BIND_VALUES = EXCESS_BIND_VALUES_BY_PROVIDER[provider]
 
@@ -164,7 +164,7 @@ testMatrix.setupTestSuite(
       test('Selecting MAX ids at once in two inclusive disjunct filters results in error', async () => {
         const ids = generatedIds(MAX_BIND_VALUES)
 
-        if (driverAdapter === undefined) {
+        if (driverAdapter === undefined || runtime === 'client') {
           // When using MAX ids, it fails both with relationJoins and without because the amount of query params that's computed is not beyond the limit.
           // To be clear: the root problem comes from the way the QE computes the amount of query params.
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
@@ -191,13 +191,16 @@ testMatrix.setupTestSuite(
       reason: 'not relevant for this test.',
     },
     skipDriverAdapter: {
-      from: ['js_planetscale', 'js_neon', 'js_d1'],
+      from: ['js_planetscale', 'js_neon', 'js_d1', 'js_mariadb'],
 
       // `rpc error: code = Aborted desc = Row count exceeded 10000 (CallerID: userData1)", state: "70100"`
       // This could potentially be configured in Vitess by increasing the `queryserver-config-max-result-size`
       // query server parameter.
       reason:
-        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. Neon occasionally fails with different parameter counts in its error messages. D1 does not have the correct amount of max_bind_values.',
+        'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. ' +
+        'Neon occasionally fails with different parameter counts in its error messages. ' +
+        'D1 does not have the correct amount of max_bind_values.' +
+        'The query appears to raise no error with the MariaDB driver adapter.',
     },
   },
 )

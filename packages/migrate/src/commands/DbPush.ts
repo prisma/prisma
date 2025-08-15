@@ -12,7 +12,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
-  protocolToConnectorType,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
@@ -41,7 +41,7 @@ ${bold('Options')}
              --config   Custom path to your Prisma config file
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
-        --force-reset   Force a reset of the database before push 
+        --force-reset   Force a reset of the database before push
       --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${bold('Examples')}
@@ -56,7 +56,7 @@ ${bold('Examples')}
   ${dim('$')} prisma db push --accept-data-loss
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -86,15 +86,19 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
     printDatasource({ datasourceInfo, adapter })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
     if (!adapter) {
@@ -117,7 +121,7 @@ ${bold('Examples')}
       try {
         await migrate.reset()
       } catch (e) {
-        migrate.stop()
+        await migrate.stop()
         throw e
       }
 
@@ -153,7 +157,7 @@ ${bold('Examples')}
         force: args['--accept-data-loss'],
       })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -165,7 +169,7 @@ ${bold('Examples')}
       }
       process.stdout.write('\n') // empty line
 
-      migrate.stop()
+      await migrate.stop()
       throw new Error(`${messages.join('\n')}\n
 You may use the --force-reset flag to drop the database before push like ${bold(
         green(getCommandWithExecutor('prisma db push --force-reset')),
@@ -184,7 +188,7 @@ ${bold(red('All data will be lost.'))}
 
       if (!args['--accept-data-loss']) {
         if (!canPrompt()) {
-          migrate.stop()
+          await migrate.stop()
           throw new DbPushIgnoreWarningsWithFlagError()
         }
 
@@ -197,7 +201,7 @@ ${bold(red('All data will be lost.'))}
 
         if (!confirmation.value) {
           process.stdout.write('Push cancelled.\n')
-          migrate.stop()
+          await migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
         }
@@ -207,13 +211,13 @@ ${bold(red('All data will be lost.'))}
             force: true,
           })
         } catch (e) {
-          migrate.stop()
+          await migrate.stop()
           throw e
         }
       }
     }
 
-    migrate.stop()
+    await migrate.stop()
 
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       process.stdout.write(`\nThe database is already in sync with the Prisma schema.\n`)
@@ -223,8 +227,8 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // this is safe, as if the protocol was unknown, we would have already exited the program with an error
-      const provider = protocolToConnectorType(`${datasourceInfo.url?.split(':')[0]}:`)
+      // Favor the adapter if any, fallback to the provider defined in the schema
+      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${

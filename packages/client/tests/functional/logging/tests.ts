@@ -6,13 +6,18 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma, PrismaClient } from './generated/prisma/client'
 
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+// @only-ts-generator
+type LogPrismaClient = PrismaClient<'query'>
+// @only-js-generator
+type LogPrismaClient = PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+
+declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
   const isMongoDb = provider === Providers.MONGODB
   const isSqlServer = provider === Providers.SQLSERVER
 
-  let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
+  let client: LogPrismaClient
 
   test('should log queries on a method call', async () => {
     client = newPrismaClient({
@@ -107,7 +112,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       // - Since https://github.com/prisma/prisma-engines/pull/4640,
       //   we also skip a read when possible, on SQLite.
 
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {
@@ -183,7 +188,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {
@@ -249,7 +254,7 @@ testMatrix.setupTestSuite(({ provider, driverAdapter }) => {
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer) {
+      if (isSqlServer && driverAdapter === undefined) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
       if (driverAdapter === undefined) {

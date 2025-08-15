@@ -6,8 +6,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'error' }] }>
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+let prisma: PrismaClient
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const email = faker.internet.email()
 
@@ -17,6 +17,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'error' }] })
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('error', (e) => errors.push(e))
     })
 
@@ -40,7 +41,7 @@ testMatrix.setupTestSuite(
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findUniqueOrThrow')
     })
@@ -61,48 +62,9 @@ testMatrix.setupTestSuite(
 
       const errorEvent = errors[0]
       expect(errorEvent.message).toContain(
-        'An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.',
+        'An operation failed because it depends on one or more records that were required but not found. No record was found for a query.',
       )
       expect(errorEvent.target).toContain('user.findFirstOrThrow')
-    })
-
-    // Test for https://github.com/prisma/prisma/issues/16354
-    test('middleware captures errors', async () => {
-      prisma = newPrismaClient()
-      prisma.$use(async (params, next) => {
-        try {
-          return await next(params)
-        } catch (error) {
-          expect(params.action).toEqual('findFirstOrThrow')
-          throw new Error('Middleware error')
-        }
-      })
-
-      await expect(() =>
-        prisma.user.findFirstOrThrow({
-          where: {
-            email,
-          },
-        }),
-      ).rejects.toThrow('Middleware error')
-
-      prisma = newPrismaClient()
-      prisma.$use(async (params, next) => {
-        try {
-          return await next(params)
-        } catch (error) {
-          expect(params.action).toEqual('findUniqueOrThrow')
-          throw new Error('Middleware error')
-        }
-      })
-
-      await expect(() =>
-        prisma.user.findUniqueOrThrow({
-          where: {
-            email,
-          },
-        }),
-      ).rejects.toThrow('Middleware error')
     })
   },
   {

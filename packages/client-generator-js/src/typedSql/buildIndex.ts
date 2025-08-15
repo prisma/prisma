@@ -15,7 +15,10 @@ export function buildIndexTs(queries: SqlQueryOutput[], enums: DbEnumsList) {
   return ts.stringify(file)
 }
 
-export function buildIndexCjs(queries: SqlQueryOutput[], edgeRuntimeSuffix?: 'wasm' | 'edge' | undefined) {
+export function buildIndexCjs(
+  queries: SqlQueryOutput[],
+  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | 'edge' | undefined,
+) {
   const writer = new Writer(0, undefined)
   writer.writeLine('"use strict"')
   for (const { name } of queries) {
@@ -25,7 +28,10 @@ export function buildIndexCjs(queries: SqlQueryOutput[], edgeRuntimeSuffix?: 'wa
   return writer.toString()
 }
 
-export function buildIndexEsm(queries: SqlQueryOutput[], edgeRuntimeSuffix?: 'wasm' | 'edge' | undefined) {
+export function buildIndexEsm(
+  queries: SqlQueryOutput[],
+  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | 'edge' | undefined,
+) {
   const writer = new Writer(0, undefined)
   for (const { name } of queries) {
     const fileName = edgeRuntimeSuffix ? `${name}.${edgeRuntimeSuffix}` : name

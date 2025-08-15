@@ -88,10 +88,15 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
-export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
-  GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
+export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
+
+export type GetLogType<T> = CheckIsLogLevel<
+  T extends LogDefinition ? T['level'] : T
+>;
+
+export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
+  ? GetLogType<T[number]>
+  : never;
 
 export type QueryEvent = {
   timestamp: Date
@@ -131,25 +136,6 @@ export type PrismaAction =
   | 'runCommandRaw'
   | 'findRaw'
   | 'groupBy'
-
-/**
- * These options are being passed into the middleware as "params"
- */
-export type MiddlewareParams = {
-  model?: ModelName
-  action: PrismaAction
-  args: any
-  dataPath: string[]
-  runInTransaction: boolean
-}
-
-/**
- * The \`T\` type makes sure, that the \`return proceed\` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => runtime.Types.Utils.JsPromise<T>,
-) => runtime.Types.Utils.JsPromise<T>
 
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
@@ -204,16 +190,24 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
         .setDocComment(ts.docComment`
              @example
              \`\`\`
-             // Defaults to stdout
+             // Shorthand for \`emit: 'stdout'\`
              log: ['query', 'info', 'warn', 'error']
 
-             // Emit as events
+             // Emit as events only
              log: [
-               { emit: 'stdout', level: 'query' },
-               { emit: 'stdout', level: 'info' },
-               { emit: 'stdout', level: 'warn' }
-               { emit: 'stdout', level: 'error' }
+               { emit: 'event', level: 'query' },
+               { emit: 'event', level: 'info' },
+               { emit: 'event', level: 'warn' }
+               { emit: 'event', level: 'error' }
              ]
+
+            // Emit as events and log to stdout
+            log: [
+              { emit: 'stdout', level: 'query' },
+              { emit: 'stdout', level: 'info' },
+              { emit: 'stdout', level: 'warn' }
+              { emit: 'stdout', level: 'error' }
+            ]
              \`\`\`
              Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
           `),
@@ -236,7 +230,10 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['library', 'client'].includes(options.runtimeName) && context.isPreviewFeatureOn('driverAdapters')) {
+  if (
+    ['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName) &&
+    context.isPreviewFeatureOn('driverAdapters')
+  ) {
     clientOptions.add(
       ts
         .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))

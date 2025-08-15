@@ -494,7 +494,7 @@ describe('getDMMF', () => {
           url      = env("MY_POSTGRES_DB")
         }
         generator client {
-          provider        = "prisma-client-js"
+          provider = "prisma-client-js"
         }
         
         model User1 {

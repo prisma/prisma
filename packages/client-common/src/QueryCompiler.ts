@@ -1,24 +1,10 @@
+import type { BatchResponse } from '@prisma/client-engine-runtime'
 import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 
-export type BatchResponse = MultiBatchResponse | CompactedBatchResponse
-
-export type MultiBatchResponse = {
-  type: 'multi'
-  plans: object[]
-}
-
-export type CompactedBatchResponse = {
-  type: 'compacted'
-  plan: object
-  arguments: Record<string, {}>[]
-  nestedSelection: string[]
-  keys: string[]
-  expectNonEmpty: boolean
-}
-
 export type QueryCompiler = {
-  compile(request: string): string
+  compile(request: string): {}
   compileBatch(batchRequest: string): BatchResponse
+  free(): void
 }
 
 export type QueryCompilerOptions = {

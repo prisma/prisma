@@ -12,7 +12,25 @@ async function getSchemaEngineWasModule() {
   return new WebAssembly.Module(schemaEngineWasmFileBytes)
 }
 
-let loadedWasmInstance: Promise<SchemaEngine>
+async function getSchemaEngineWasmInstance() {
+  // this import points directly to ./schema_engine_bg.js it is generated with >>>
+  // wasm-bindgen --target bundler, whose target is the leanest and most agnostic option
+  // that is also easy to integrate with our bundling.
+  const runtime = await import('@prisma/schema-engine-wasm/schema_engine_bg')
+  const wasmModule = await getSchemaEngineWasModule()
+
+  // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
+  const instance = new WebAssembly.Instance(wasmModule, {
+    // @ts-ignore
+    './schema_engine_bg.js': runtime,
+  })
+  const wbindgen_start = instance.exports.__wbindgen_start as () => void
+  runtime.__wbg_set_wasm(instance.exports)
+  wbindgen_start()
+  return runtime.SchemaEngine
+}
+
+let loadedWasmInstance: typeof SchemaEngine
 export const wasmSchemaEngineLoader = {
   async loadSchemaEngine(
     input: ConstructorOptions,
@@ -23,27 +41,9 @@ export const wasmSchemaEngineLoader = {
     // bindgen keeps an internal cache of its instance already, when the wasm
     // compiler is loaded more than once it crashes with `unwrap_throw failed`.
     if (loadedWasmInstance === undefined) {
-      loadedWasmInstance = (async () => {
-        // this import points directly to ./schema_engine_bg.js it is generated with >>>
-        // wasm-bindgen --target bundler, whose target is the leanest and most agnostic option
-        // that is also easy to integrate with our bundling.
-        const runtime = await import('@prisma/schema-engine-wasm/schema_engine_bg')
-        const wasmModule = await getSchemaEngineWasModule()
-
-        // from https://developers.cloudflare.com/workers/runtime-apis/webassembly/rust/#javascript-plumbing-wasm-bindgen
-        const instance = new WebAssembly.Instance(wasmModule, {
-          // @ts-ignore
-          './schema_engine_bg.js': runtime,
-        })
-        const wbindgen_start = instance.exports.__wbindgen_start as () => void
-        runtime.__wbg_set_wasm(instance.exports)
-        wbindgen_start()
-
-        const engine = await runtime.SchemaEngine.new(input, debug, adapter)
-        return engine
-      })()
+      loadedWasmInstance = await getSchemaEngineWasmInstance()
     }
 
-    return await loadedWasmInstance
+    return await loadedWasmInstance.new(input, debug, adapter)
   },
 }

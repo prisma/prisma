@@ -7,11 +7,11 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   ({ clientRuntime, generatorType }) => {
     describeIf(generatorType === 'prisma-client-js')('Prisma.dmmf in JS client', () => {
-      testIf(clientRuntime !== 'wasm')('exports Prisma.dmmf (default)', () => {
+      testIf(clientRuntime !== 'wasm-engine-edge')('exports Prisma.dmmf (default)', () => {
         expect(Prisma.dmmf).toMatchSnapshot()
       })
 
-      testIf(clientRuntime === 'wasm')('exports Prisma.dmmf (wasm)', () => {
+      testIf(clientRuntime === 'wasm-engine-edge')('exports Prisma.dmmf (wasm)', () => {
         expect(() => Prisma.dmmf).toThrowErrorMatchingInlineSnapshot(
           `"Prisma.dmmf is not available when running in edge runtimes."`,
         )

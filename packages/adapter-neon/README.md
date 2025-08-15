@@ -35,11 +35,10 @@ Generate Prisma Client:
 npx prisma generate
 ```
 
-Install the Prisma adapter for Neon's serverless driver, Neon's serverless driver and `ws` packages:
+Install the Prisma adapter for Neon's serverless driver and `ws` packages:
 
 ```sh
 npm install @prisma/adapter-neon
-npm install @neondatabase/serverless
 npm install ws
 ```
 

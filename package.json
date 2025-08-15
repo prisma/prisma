@@ -34,12 +34,12 @@
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
     "@eslint/eslintrc": "3.3.0",
-    "@eslint/js": "9.19.0",
+    "@eslint/js": "9.30.0",
     "@microsoft/api-extractor": "7.52.1",
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
     "@prisma/engines": "workspace:*",
-    "@sindresorhus/slugify": "1.1.2",
+    "@sindresorhus/slugify": "2.2.1",
     "@size-limit/file": "11.2.0",
     "@slack/webhook": "7.0.5",
     "@types/benchmark": "2.1.5",
@@ -54,17 +54,17 @@
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
-    "chokidar": "3.6.0",
+    "chokidar": "4.0.3",
     "decimal.js-light": "2.5.1",
     "dotenv-cli": "8.0.0",
-    "esbuild": "0.25.1",
+    "esbuild": "0.25.5",
     "esbuild-register": "3.6.0",
     "eslint": "9.22.0",
     "eslint-config-prettier": "10.1.1",
     "eslint-plugin-import-x": "4.6.1",
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-local-rules": "3.0.2",
-    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-prettier": "4.2.5",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "execa": "5.1.1",
     "format-util": "1.0.5",
@@ -105,7 +105,8 @@
   "lint-staged": {
     "*.{md,yml,json}": "prettier --check",
     "*.{js,ts}": [
-      "eslint"
+      "eslint --fix",
+      "prettier --write"
     ]
   },
   "size-limit": [
@@ -140,7 +141,7 @@
       "brotli": false
     },
     {
-      "path": "packages/client/runtime/wasm.js",
+      "path": "packages/client/runtime/wasm-engine-edge.js",
       "gzip": false,
       "brotli": false
     },
@@ -181,11 +182,6 @@
     },
     {
       "path": "packages/bundle-size/da-workers-pg/output.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/bundle-size/da-workers-pg-worker/output.tgz",
       "gzip": false,
       "brotli": false
     },

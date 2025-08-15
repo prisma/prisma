@@ -92,6 +92,10 @@
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
+      "node": {
+        "require": "./runtime/client.js",
+        "default": "./runtime/client.js"
+      },
       "require": "./runtime/client.js",
       "import": "./runtime/client.mjs",
       "default": "./runtime/client.mjs"
@@ -108,11 +112,17 @@
       "import": "./runtime/binary.mjs",
       "default": "./runtime/binary.mjs"
     },
-    "./runtime/wasm": {
-      "types": "./runtime/wasm.d.ts",
-      "require": "./runtime/wasm.js",
-      "import": "./runtime/wasm.mjs",
-      "default": "./runtime/wasm.mjs"
+    "./runtime/wasm-engine-edge": {
+      "types": "./runtime/wasm-engine-edge.d.ts",
+      "require": "./runtime/wasm-engine-edge.js",
+      "import": "./runtime/wasm-engine-edge.mjs",
+      "default": "./runtime/wasm-engine-edge.mjs"
+    },
+    "./runtime/wasm-compiler-edge": {
+      "types": "./runtime/wasm-compiler-edge.d.ts",
+      "require": "./runtime/wasm-compiler-edge.js",
+      "import": "./runtime/wasm-compiler-edge.mjs",
+      "default": "./runtime/wasm-compiler-edge.mjs"
     },
     "./runtime/edge": {
       "types": "./runtime/edge.d.ts",
@@ -164,7 +174,7 @@
     "test": "dotenv -e ../../.db.env -- jest --silent",
     "test:e2e": "dotenv -e ../../.db.env -- tsx tests/e2e/_utils/run.ts",
     "test:functional": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts",
-    "test:functional:client": "pnpm run test:functional --adapter js_pg --client-runtime client --preview-features driverAdapters,queryCompiler --engine-type client --runInBand --json --outputFile tests/functional/results.json decimal",
+    "test:functional:client": "pnpm run test:functional --client-runtime client --preview-features driverAdapters,queryCompiler --engine-type client --runInBand --json --outputFile tests/functional/results.json",
     "test:memory": "dotenv -e ../../.db.env -- tsx helpers/memory-tests.ts",
     "test:functional:code": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --types-only",
@@ -179,7 +189,6 @@
   "files": [
     "README.md",
     "runtime",
-    "!runtime/*.map",
     "scripts",
     "generator-build",
     "edge.js",
@@ -220,9 +229,10 @@
     "@prisma/adapter-better-sqlite3": "workspace:*",
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-libsql": "workspace:*",
+    "@prisma/adapter-mariadb": "workspace:*",
+    "@prisma/adapter-mssql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
-    "@prisma/adapter-pg-worker": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/client-common": "workspace:*",
     "@prisma/client-engine-runtime": "workspace:*",
@@ -233,7 +243,7 @@
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "6.7.0-34.73c36c3d4a550c55ca1ae7e8c2681b168077d39e",
+    "@prisma/engines-version": "6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -242,9 +252,8 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/pg-worker": "workspace:*",
-    "@prisma/query-compiler-wasm": "6.7.0-34.73c36c3d4a550c55ca1ae7e8c2681b168077d39e",
-    "@prisma/query-engine-wasm": "6.7.0-34.73c36c3d4a550c55ca1ae7e8c2681b168077d39e",
+    "@prisma/query-compiler-wasm": "6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49",
+    "@prisma/query-engine-wasm": "6.14.0-25.717184b7b35ea05dfa71a3236b7af656013e1e49",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",
     "@swc-node/register": "1.10.9",
@@ -260,10 +269,11 @@
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
+    "cookie-es": "2.0.0",
     "decimal.js": "10.5.0",
-    "esbuild": "0.25.1",
+    "esbuild": "0.25.5",
     "execa": "5.1.1",
-    "expect-type": "1.2.0",
+    "expect-type": "1.2.2",
     "fs-extra": "11.3.0",
     "get-stream": "6.0.1",
     "globby": "11.1.0",
@@ -277,10 +287,9 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "mariadb": "3.4.0",
-    "memfs": "4.17.0",
+    "memfs": "4.17.2",
     "mssql": "11.0.1",
     "new-github-issue-url": "0.2.1",
-    "node-fetch": "3.3.2",
     "p-retry": "4.6.2",
     "pg": "8.14.1",
     "resolve": "1.22.10",

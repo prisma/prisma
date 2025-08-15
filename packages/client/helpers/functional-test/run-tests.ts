@@ -213,6 +213,7 @@ async function main(): Promise<number | void> {
 
     jestCli = jestCli.withEnv({
       TEST_DATA_PROXY: 'true',
+      PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION: '0.0.0',
     })
 
     if (!args['--no-mini-proxy-server']) {

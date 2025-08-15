@@ -61,8 +61,7 @@ import { JsInputValue } from './core/types/exported/JsApi'
 import { RawQueryArgs } from './core/types/exported/RawQueryArgs'
 import { UnknownTypedSql } from './core/types/exported/TypedSql'
 import { getLogLevel } from './getLogLevel'
-import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
-import { MiddlewareHandler } from './MiddlewareHandler'
+import type { QueryMiddlewareParams } from './QueryMiddlewareParams'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
@@ -74,7 +73,14 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'edge' | 'wasm' | 'react-native' | 'client'
+  const TARGET_BUILD_TYPE:
+    | 'binary'
+    | 'library'
+    | 'edge'
+    | 'wasm-engine-edge'
+    | 'wasm-compiler-edge'
+    | 'react-native'
+    | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -239,7 +245,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
-    _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _globalOmit?: GlobalOmitOptions
@@ -295,11 +300,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
         //
         // TODO: Normalize these provider names once and for all in Prisma 6.
-        const normalizedActiveProvider = config.activeProvider === 'postgresql' ? 'postgres' : config.activeProvider
+        const expectedDriverAdapterProvider =
+          config.activeProvider === 'postgresql'
+            ? 'postgres'
+            : // CockroachDB is only accessible through Postgres driver adapters
+            config.activeProvider === 'cockroachdb'
+            ? 'postgres'
+            : config.activeProvider
 
-        if (adapter.provider !== normalizedActiveProvider) {
+        if (adapter.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(
-            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${normalizedActiveProvider}\` specified in the Prisma schema.`,
+            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }
@@ -434,14 +445,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
-    }
-
-    /**
-     * Hook a middleware into the client
-     * @param middleware to hook
-     */
-    $use(middleware: QueryMiddleware) {
-      this._middlewares.use(middleware)
     }
 
     $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>): PrismaClient {
@@ -797,12 +800,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       // span options for opentelemetry instrumentation
       const spanOptions = {
-        middleware: {
-          name: 'middleware',
-          middleware: true,
-          attributes: { method: '$use' },
-          active: false,
-        } as ExtendedSpanOptions,
         operation: {
           name: 'operation',
           attributes: {
@@ -813,22 +810,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         } as ExtendedSpanOptions,
       }
 
-      let index = -1
       // prepare recursive fn that will pipe params through middlewares
       const consumer = async (changedMiddlewareParams: QueryMiddlewareParams) => {
-        // if this `next` was called and there's some more middlewares
-        const nextMiddleware = this._middlewares.get(++index)
-
-        if (nextMiddleware) {
-          // we pass the modified params down to the next one, & repeat
-          // calling `next` calls the consumer again with the new params
-          return this._tracingHelper.runInChildSpan(spanOptions.middleware, (span) => {
-            // we call `span.end()` _before_ calling the next middleware
-            return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
-          })
-        }
-
-        // no middleware? then we just proceed with request execution
+        // we proceed with request execution
         // before we send the execution request, we use the changed params
         const { runInTransaction, args, ...changedRequestParams } = changedMiddlewareParams
         const requestParams = {

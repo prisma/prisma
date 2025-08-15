@@ -65,6 +65,11 @@ type BinaryDownloadJob = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  // no need to do anything, if there are no binaries
+  if (!options.binaries || Object.values(options.binaries).length === 0) {
+    return {} // we don't download anything if nothing is provided
+  }
+
   if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
     // if this is true the engines have been fetched before and already cached
     // into .cache/prisma/master/_local_ for us to be able to use this version
@@ -91,11 +96,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
     assertNodeAPISupported()
-  }
-
-  // no need to do anything, if there are no binaries
-  if (!options.binaries || Object.values(options.binaries).length === 0) {
-    return {} // we don't download anything if nothing is provided
   }
 
   // merge options

@@ -1,5 +1,5 @@
 import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
-import type { IsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
@@ -17,7 +17,7 @@ import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
 export type BatchTransactionOptions = {
-  isolationLevel?: IsolationLevel
+  isolationLevel?: Transaction.IsolationLevel
 }
 
 export type TransactionOptions<InteractiveTransactionPayload> =

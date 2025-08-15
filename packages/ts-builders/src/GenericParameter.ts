@@ -7,7 +7,7 @@ export class GenericParameter implements BasicBuilder {
   private extendedType?: TypeBuilder
   private defaultType?: TypeBuilder
 
-  constructor(private name: string) {}
+  constructor(readonly name: string) {}
 
   extends(type: TypeBuilder): this {
     this.extendedType = type

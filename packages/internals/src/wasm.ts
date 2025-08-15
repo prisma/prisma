@@ -3,12 +3,18 @@ import type { SchemaEngine as SchemaEngineWasm } from '@prisma/schema-engine-was
 
 import { WasmPanicRegistry } from './WasmPanicRegistry'
 
+type GlobalWithPanicRegistry = typeof globalThis & {
+  PRISMA_WASM_PANIC_REGISTRY: WasmPanicRegistry
+}
+
+const globalWithPanicRegistry = globalThis as GlobalWithPanicRegistry
+
 /**
  * Set up a global registry for Wasm panics.
  * This allows us to retrieve the panic message from the Wasm panic hook,
  * which is not possible otherwise.
  */
-globalThis.PRISMA_WASM_PANIC_REGISTRY = new WasmPanicRegistry()
+globalWithPanicRegistry.PRISMA_WASM_PANIC_REGISTRY = new WasmPanicRegistry()
 
 // Note: using `import { dependencies } from '../package.json'` here would break esbuild with seemingly unrelated errors.
 

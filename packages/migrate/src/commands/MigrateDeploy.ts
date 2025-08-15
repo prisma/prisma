@@ -10,6 +10,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
 
@@ -48,7 +49,7 @@ ${bold('Examples')}
 
 `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(
       argv,
       {
@@ -75,14 +76,19 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
     if (!adapter) {
@@ -118,7 +124,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     process.stdout.write('\n') // empty line

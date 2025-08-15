@@ -83,11 +83,21 @@ async function performRawQuery(client: KyInstance, options: KyOptions) {
   }
 }
 
-type D1HTTPParams = {
+export type D1HTTPParams = {
   CLOUDFLARE_D1_TOKEN: string
   CLOUDFLARE_ACCOUNT_ID: string
   CLOUDFLARE_DATABASE_ID: string
   CLOUDFLARE_SHADOW_DATABASE_ID?: string
+}
+
+export function isD1HTTPParams(params: unknown): params is D1HTTPParams {
+  return (
+    typeof params === 'object' &&
+    params !== null &&
+    'CLOUDFLARE_D1_TOKEN' in params &&
+    'CLOUDFLARE_ACCOUNT_ID' in params &&
+    'CLOUDFLARE_DATABASE_ID' in params
+  )
 }
 
 /**
@@ -253,6 +263,7 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
   getConnectionInfo(): ConnectionInfo {
     return {
       maxBindValues: MAX_BIND_VALUES,
+      supportsRelationJoins: false,
     }
   }
 
@@ -284,6 +295,7 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
   }
 }
 
+/** @deprecated Use PrismaD1 instead */
 export class PrismaD1HTTPAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = `${packageName}-http`

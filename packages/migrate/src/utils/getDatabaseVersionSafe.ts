@@ -21,7 +21,7 @@ export async function getDatabaseVersionSafe(
     debug(e)
   } finally {
     if (migrate && migrate.engine.isRunning) {
-      migrate.stop()
+      await migrate.stop()
     }
   }
 

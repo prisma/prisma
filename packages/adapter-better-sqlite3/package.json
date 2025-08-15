@@ -35,14 +35,11 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@prisma/driver-adapter-utils": "workspace:*"
+    "@prisma/driver-adapter-utils": "workspace:*",
+    "better-sqlite3": "^11.9.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.12",
-    "better-sqlite3": "11.9.1",
     "async-mutex": "0.5.0"
-  },
-  "peerDependencies": {
-    "better-sqlite3": ">= ^11.9.0 < 12"
   }
 }

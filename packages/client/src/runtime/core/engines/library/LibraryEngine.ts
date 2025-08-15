@@ -99,7 +99,7 @@ export class LibraryEngine implements Engine<undefined> {
       if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
-    } else if (TARGET_BUILD_TYPE === 'wasm') {
+    } else if (TARGET_BUILD_TYPE === 'wasm-engine-edge') {
       this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
@@ -139,6 +139,7 @@ export class LibraryEngine implements Engine<undefined> {
       sdlSchema: engine.sdlSchema?.bind(engine),
       startTransaction: this.withRequestId(engine.startTransaction.bind(engine)),
       trace: engine.trace.bind(engine),
+      free: engine.free?.bind(engine),
     }
   }
 
@@ -350,7 +351,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm') {
+    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         getErrorMessageWithLink(
@@ -395,6 +396,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async start(): Promise<void> {
+    if (!this.libraryInstantiationPromise) {
+      this.libraryInstantiationPromise = this.instantiateLibrary()
+    }
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
 
@@ -418,6 +422,11 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         await this.engine?.connect(JSON.stringify(headers))
 
         this.libraryStarted = true
+
+        if (!this.adapterPromise) {
+          this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+        }
+        await this.adapterPromise
 
         debug('library started')
       } catch (err) {
@@ -451,11 +460,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     if (!this.libraryStarted) {
+      await (await this.adapterPromise)?.dispose()
+      this.adapterPromise = undefined
       return
     }
 
     const stopFn = async () => {
-      await new Promise((r) => setTimeout(r, 5))
+      await new Promise((r) => setImmediate(r)) // defer to next tick
 
       debug('library stopping')
 
@@ -464,9 +475,16 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
+      // Only the WASM engine has a free method that we need to call to ensure the engine is freed upon disconnect.
+      // Otherwise it causes memory leaks as the WASM engine instance still references this LibraryEngine.
+      if (this.engine?.free) {
+        this.engine.free()
+      }
+      this.engine = undefined
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined
+      this.libraryInstantiationPromise = undefined
 
       await (await this.adapterPromise)?.dispose()
       this.adapterPromise = undefined
@@ -523,7 +541,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm') {
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
         throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
@@ -548,7 +566,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     this.lastQuery = JSON.stringify(request)
 
-    this.executingQueryPromise = this.engine!.query(
+    this.executingQueryPromise = this.engine?.query(
       this.lastQuery,
       JSON.stringify({ traceparent }),
       getInteractiveTransactionId(transaction),
@@ -586,7 +604,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError, registry?: ErrorRegistry) {
-    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm') {
+    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
       return new PrismaClientRustPanicError(
         getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,

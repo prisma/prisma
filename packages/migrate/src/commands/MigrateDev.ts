@@ -1,3 +1,5 @@
+import path from 'node:path'
+
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
@@ -12,6 +14,7 @@ import {
   isError,
   loadEnvFile,
   loadSchemaContext,
+  MigrateTypes,
   validate,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -68,7 +71,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate dev --create-only
   `)
 
-  public async parse(argv: string[], config: PrismaConfigInternal<any>): Promise<string | Error> {
+  public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -98,12 +101,12 @@ ${bold('Examples')}
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
     })
-    const { migrationsDirPath } = inferDirectoryConfig(schemaContext)
+    const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.migrate?.adapter(process.env)
+    const adapter = await config.adapter?.()
 
     printDatasource({ datasourceInfo, adapter })
 
@@ -123,14 +126,25 @@ ${bold('Examples')}
       }
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+    const schemaFilter: MigrateTypes.SchemaFilter = {
+      externalTables: config.tables?.external ?? [],
+      externalEnums: config.enums?.external ?? [],
+    }
+
+    const migrate = await Migrate.setup({
+      adapter,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      shadowDbInitScript: config.migrations?.initShadowDb,
+    })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
     try {
       devDiagnostic = await migrate.devDiagnostic()
       debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -147,7 +161,7 @@ ${bold('Examples')}
           `You may use ${red('prisma migrate reset')} to drop the development database.\n` +
           `${bold(red('All data will be lost.'))}\n`,
       )
-      migrate.stop()
+      await migrate.stop()
       // Return SIGINT exit code to signal that the process was cancelled.
       process.exit(130)
     }
@@ -169,7 +183,7 @@ ${bold('Examples')}
         )
       }
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -178,7 +192,7 @@ ${bold('Examples')}
       evaluateDataLossResult = await migrate.evaluateDataLoss()
       debug({ evaluateDataLossResult })
     } catch (e) {
-      migrate.stop()
+      await migrate.stop()
       throw e
     }
 
@@ -189,7 +203,7 @@ ${bold('Examples')}
       args['--create-only'],
     )
     if (unexecutableStepsError) {
-      migrate.stop()
+      await migrate.stop()
       throw new Error(unexecutableStepsError)
     }
 
@@ -203,7 +217,7 @@ ${bold('Examples')}
 
       if (!args['--force']) {
         if (!canPrompt()) {
-          migrate.stop()
+          await migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
 
@@ -218,7 +232,7 @@ ${bold('Examples')}
 
         if (!confirmation.value) {
           process.stdout.write('Migration cancelled.\n')
-          migrate.stop()
+          await migrate.stop()
           // Return SIGINT exit code to signal that the process was cancelled.
           process.exit(130)
         }
@@ -231,7 +245,7 @@ ${bold('Examples')}
 
       if (getMigrationNameResult.userCancelled) {
         process.stdout.write(getMigrationNameResult.userCancelled + '\n')
-        migrate.stop()
+        await migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else {
@@ -249,7 +263,7 @@ ${bold('Examples')}
       debug({ createMigrationResult })
 
       if (args['--create-only']) {
-        migrate.stop()
+        await migrate.stop()
 
         return `Prisma Migrate created the following migration without applying it ${printMigrationId(
           createMigrationResult.generatedMigrationName!,
@@ -260,7 +274,7 @@ ${bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // Stop engine
-      migrate.stop()
+      await migrate.stop()
     }
 
     // For display only, empty line
@@ -273,9 +287,12 @@ ${bold('Examples')}
         process.stdout.write(`Already in sync, no schema change or pending migration was found.\n`)
       }
     } else {
+      // e.g., "./prisma/custom-migrations"
+      const migrationsDirPathRelative = path.relative(process.cwd(), migrationsDirPath)
+
       process.stdout.write(
         `\nThe following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
-          'migrations',
+          migrationsDirPathRelative,
           migrationIds,
           {
             'migration.sql': '',
@@ -295,11 +312,14 @@ ${green('Your database is now in sync with your schema.')}\n`,
     // If database was created we want to run the seed if not skipped
     if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       try {
+        const seedCommandFromPrismaConfig = config.migrations?.seed
         const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
-        if (seedCommandFromPkgJson) {
+        const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+
+        if (seedCommand) {
           process.stdout.write('\n') // empty line
-          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
+          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
           if (successfulSeeding) {
             process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {

@@ -4,7 +4,6 @@ import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
 import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
-import { yellow } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
@@ -19,10 +18,10 @@ type PrismaClientJsGeneratorOptions = {
   runtimePath?: string
 }
 
-const MISSING_CUSTOM_OUTPUT_PATH_WARNING = `\
-${yellow('Warning:')} You did not specify an output path for your \`generator\` in schema.prisma. \
-This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more \
-visit https://pris.ly/cli/output-path`
+// const MISSING_CUSTOM_OUTPUT_PATH_WARNING = `\
+// ${yellow('Warning:')} You did not specify an output path for your \`generator\` in schema.prisma. \
+// This behavior is deprecated and will no longer be supported in Prisma 7.0.0. To learn more \
+// visit https://pris.ly/cli/output-path`
 
 export class PrismaClientJsGenerator implements Generator {
   readonly name = 'prisma-client-js'
@@ -51,9 +50,10 @@ export class PrismaClientJsGenerator implements Generator {
 
     debug('requiresEngines', requiresEngines)
 
-    if (!config.output) {
-      console.warn(MISSING_CUSTOM_OUTPUT_PATH_WARNING)
-    }
+    // TODO: warning disabled for now until we fixed issues around custom output paths - see ORM-976
+    // if (!config.output) {
+    //   console.warn(MISSING_CUSTOM_OUTPUT_PATH_WARNING)
+    // }
 
     // If `this.#shouldResolvePrismaClient` is true, which is normally the case,
     // we find the default output path by resolving the path to the

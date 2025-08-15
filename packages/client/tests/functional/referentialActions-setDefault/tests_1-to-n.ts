@@ -96,6 +96,7 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                  [AdapterProviders.JS_MARIADB]: 'Foreign key constraint violated on the fields: (`userId`)',
                 },
               }),
             )
@@ -162,6 +163,11 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
                 [AdapterProviders.JS_PG]:
                   'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_PG_COCKROACHDB]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_MSSQL]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_MARIADB]: 'Foreign key constraint violated on the fields: (`userId`)',
               },
             }),
           )
@@ -181,6 +187,7 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint violated on the fields: (`userId`)',
+                  [AdapterProviders.JS_MARIADB]: 'Foreign key constraint violated on the fields: (`userId`)',
                 },
               }),
             )
@@ -242,6 +249,11 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
                 [AdapterProviders.JS_PG]:
                   'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_PG_COCKROACHDB]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_MSSQL]:
+                  'Foreign key constraint violated on the constraint: `PostOneToMany_userId_fkey`',
+                [AdapterProviders.JS_MARIADB]: 'Foreign key constraint violated on the fields: (`userId`)',
               },
             }),
           )

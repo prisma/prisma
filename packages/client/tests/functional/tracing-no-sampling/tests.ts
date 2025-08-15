@@ -16,8 +16,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+let prisma: PrismaClient
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter
 
@@ -39,7 +39,7 @@ beforeAll(() => {
   basicTracerProvider.register()
 
   registerInstrumentations({
-    instrumentations: [new PrismaInstrumentation({ middleware: true })],
+    instrumentations: [new PrismaInstrumentation()],
   })
 })
 
@@ -62,6 +62,7 @@ testMatrix.setupTestSuite(
     beforeAll(() => {
       prisma = newPrismaClient({ log: [{ emit: 'event', level: 'query' }] })
 
+      // @ts-expect-error - client not typed for log opts for cross generator compatibility - can be improved once we drop the prisma-client-js generator
       prisma.$on('query', (e) => queries.push(e.query))
     })
 

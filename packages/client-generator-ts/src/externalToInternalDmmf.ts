@@ -1,4 +1,4 @@
-import { capitalize, lowerCase } from '@prisma/client-common'
+import { capitalize, uncapitalize } from '@prisma/client-common'
 import * as DMMF from '@prisma/dmmf'
 import pluralize from 'pluralize'
 
@@ -29,7 +29,7 @@ function getMappings(mappings: DMMF.Mappings, datamodel: DMMF.Datamodel): DMMF.M
     // TODO most of this is probably not needed anymore
     .map((mapping: any) => ({
       model: mapping.model,
-      plural: pluralize(lowerCase(mapping.model)), // TODO not needed anymore
+      plural: pluralize(uncapitalize(mapping.model)), // TODO not needed anymore
       findUnique: mapping.findUnique || mapping.findSingle,
       findUniqueOrThrow: mapping.findUniqueOrThrow,
       findFirst: mapping.findFirst,

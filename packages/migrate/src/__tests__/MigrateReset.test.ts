@@ -1,37 +1,20 @@
-import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
-import { CaptureStdout } from '../utils/captureStdout'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-
-const captureStdout = new CaptureStdout()
+const ctx = createDefaultTestContext()
 
 beforeEach(() => {
-  captureStdout.startCapture()
   process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 })
-
-afterEach(() => {
-  captureStdout.clearCaptureText()
-})
-
-afterAll(() => {
-  captureStdout.stopCapture()
-})
-
-function removeSeedlingEmoji(str: string) {
-  return str.replace('🌱  ', '')
-}
 
 describe('common', () => {
   it('wrong flag', async () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--something'], defaultTestConfig())
+    await commandInstance.parse(['--something'], await ctx.config())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
@@ -39,17 +22,17 @@ describe('common', () => {
     const commandInstance = MigrateReset.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
-    await commandInstance.parse(['--help'], defaultTestConfig())
+    await commandInstance.parse(['--help'], await ctx.config())
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "Could not find Prisma Schema that is required for this command.
       You can either provide it with \`--schema\` argument,
-      set it in your \`prisma.config.ts\`,
+      set it in your Prisma Config file (e.g., \`prisma.config.ts\`),
       set it as \`prisma.schema\` in your package.json,
       or put it into the default location (\`./prisma/schema.prisma\`, or \`./schema.prisma\`.
       Checked following paths:
@@ -68,14 +51,13 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -91,13 +73,12 @@ describe('reset', () => {
   it('should work (--force)', async () => {
     ctx.fixture('reset')
 
-    const result = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    const result = MigrateReset.new().parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -113,15 +94,12 @@ describe('reset', () => {
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
-    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], defaultTestConfig())
+    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:dev.db
-
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -138,15 +116,12 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--force'], defaultTestConfig())
+    const result = MigrateReset.new().parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:dev.db
-
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -165,11 +140,11 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -180,29 +155,26 @@ describe('reset', () => {
 
   it('should be cancelled if user send n (prompt)', async () => {
     ctx.fixture('reset')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 130"`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
       Reset cancelled.
       "
     `)
 
-    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.recordedExitCode()).toEqual(130)
   })
 
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
@@ -213,16 +185,14 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -232,25 +202,46 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files - --skip-seed', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--skip-seed'], defaultTestConfig())
+    const result = MigrateReset.new().parse(['--skip-seed'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
   })
 
-  test('reset - seed.js', async () => {
-    ctx.fixture('seed-sqlite-js')
+  test('reset - seed.js in prisma.config.ts', async () => {
+    ctx.fixture('seed-from-prisma-config/seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
-      SQLite database dev.db created at file:./dev.db
+
+      Database reset successful
+
+
+      Running seed command \`node prisma/seed.js\` ...
+
+      The seed command has been executed.
+      "
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('reset - seed.js', async () => {
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -265,21 +256,16 @@ describe('reset', () => {
   })
 
   test('reset - seed.js - error should exit 1', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
-    ctx.fixture('seed-sqlite-js')
+    ctx.fixture('seed-from-package-json/seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -294,21 +280,19 @@ describe('reset', () => {
       An error occurred while running the seed command:
       Error: Command failed with exit code 1: node prisma/seed.js"
     `)
-    expect(mockExit).toHaveBeenCalledWith(1)
+    expect(ctx.recordedExitCode()).toEqual(1)
   })
 
   test('reset - seed.ts', async () => {
-    ctx.fixture('seed-sqlite-ts')
+    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(removeSeedlingEmoji(captureStdout.getCapturedText().join(''))).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -323,20 +307,18 @@ describe('reset', () => {
   }, 10_000)
 
   it('reset - legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-sqlite-legacy')
+    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     // ctx.fs.remove('prisma/seed.sh')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
-
-      SQLite database dev.db created at file:./dev.db
+      Datasource "db": SQLite database "dev.db" <location placeholder>
 
 
       Database reset successful
@@ -351,14 +333,13 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([], defaultTestConfig())
+    const result = MigrateReset.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(captureStdout.getCapturedText().join('')).toMatchInlineSnapshot(`
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
 
-      Applying migration \`20201231000000_init\`
 
       Database reset successful
 

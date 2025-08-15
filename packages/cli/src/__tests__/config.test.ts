@@ -2,10 +2,6 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-function cleanSnapshot(str: string): string {
-  return str.replace(/\\/g, '/').replace(/".*?((\/config)?\/prisma\.config\.ts)"/g, '"REDACTED_ROOT$1"')
-}
-
 const COMMANDS = [
   ['validate'],
   ['migrate', 'dev'],
@@ -32,7 +28,8 @@ COMMANDS.forEach((command) => {
 
     // Running with --help to not run further actions beyond config loading
     const res = await ctx.cli(...command, '--help')
-    expect(cleanSnapshot(res.stdout)).toContain(`Loaded Prisma config from "REDACTED_ROOT/prisma.config.ts".`)
+    expect(res.exitCode).toBe(0)
+    expect(res.stderr).toContain(`Loaded Prisma config from prisma.config.ts.`)
   })
 
   it(`test 'prisma ${command.join(' ')}' picks up custom --config option`, async () => {
@@ -40,6 +37,19 @@ COMMANDS.forEach((command) => {
 
     // Running with --help to not run further actions beyond config loading
     const res = await ctx.cli(...command, '--config=./config/prisma.config.ts', '--help')
-    expect(cleanSnapshot(res.stdout)).toContain(`Loaded Prisma config from "REDACTED_ROOT/config/prisma.config.ts".`)
+    expect(res.exitCode).toBe(0)
+    expect(sanitizeSnapshot(res.stderr)).toContain(
+      `Loaded Prisma config from "sanitized config/prisma.config.ts path".`,
+    )
   })
 })
+
+function sanitizeSnapshot(str: string): string {
+  // Sanitize the Prisma config path to not break on Windows.
+  str = str.replace(
+    /Loaded Prisma config from "?(.*)(\/|\\)prisma\.config\.ts"?/g,
+    'Loaded Prisma config from "sanitized $1/prisma.config.ts path"',
+  )
+
+  return str
+}

@@ -200,6 +200,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
+      supportsRelationJoins: true,
     }
   }
 
@@ -209,6 +210,10 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
       this.isRunning = false
     }
   }
+
+  underlyingDriver(): neon.Pool {
+    return this.client
+  }
 }
 
 export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
@@ -217,7 +222,7 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
 
   constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
 
-  async connect(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaNeonAdapter> {
     return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
   }
 }

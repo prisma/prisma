@@ -1,20 +1,20 @@
 import path from 'node:path'
 
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-
 import { listMigrations } from '../utils/listMigrations'
+import { describeMatrix, sqliteOnly } from './__helpers__/conditionalTests'
+import { createDefaultTestContext } from './__helpers__/context'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = createDefaultTestContext()
 
 const itIf = (condition: boolean) => (condition ? it : it.skip)
 
 describe('listMigrations', () => {
-  describe('sqlite', () => {
+  describeMatrix(sqliteOnly, 'SQLite', () => {
     it('lists migrations without error if the directory does not exist', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')
-      const migrationsList = await listMigrations(migrationsDirectoryPath)
+      const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
       expect(migrationsList).toMatchObject({
         baseDir: migrationsDirectoryPath,
@@ -30,7 +30,7 @@ describe('listMigrations', () => {
       ctx.fixture('edited-and-draft')
 
       const migrationsDirectoryPath = path.join(ctx.fs.cwd(), 'prisma', 'migrations')
-      const migrationsList = await listMigrations(migrationsDirectoryPath)
+      const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
       expect(migrationsList).toMatchObject({
         baseDir: migrationsDirectoryPath,
@@ -102,7 +102,7 @@ describe('listMigrations', () => {
       '-- This is an empty migration.',
     )
 
-    const migrationsList = await listMigrations(migrationsDirectoryPath)
+    const migrationsList = await listMigrations(migrationsDirectoryPath, '')
 
     expect(migrationsList).toMatchObject({
       baseDir: migrationsDirectoryPath,

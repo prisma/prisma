@@ -1,0 +1,1 @@
+reconnect (provider=cockroachdb, js_pg_cockroachdb) can disconnect and reconnect

@@ -126,6 +126,7 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
+      // TODO: no longer needed, remove in Prisma 7
       '--allow-no-models': Boolean,
       '--require-models': Boolean,
       '--sql': Boolean,
@@ -164,7 +165,7 @@ ${bold('Examples')}
 
     // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
     const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
-    const directoryConfig = inferDirectoryConfig(schemaContext)
+    const directoryConfig = inferDirectoryConfig(schemaContext, config)
 
     // TODO Extract logic from here
     let hasJsClient = false
@@ -260,15 +261,6 @@ Please run \`prisma generate\` manually.`
 
       let hint = ''
       if (prismaClientJSGenerator) {
-        const generator = prismaClientJSGenerator.options?.generator
-        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
-        if (isDeno && !generator?.isCustomOutput) {
-          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${bold(
-            generator!.provider.value!,
-          )}.
-When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
-        }
-
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
@@ -323,6 +315,13 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
 
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
+
+        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
+        if (!schemaResult) return ''
+
+        const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
+        const directoryConfig = inferDirectoryConfig(schemaContext, config)
+
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {

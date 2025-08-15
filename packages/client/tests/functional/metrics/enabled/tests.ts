@@ -5,7 +5,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
-declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 const executeOneQuery = async () => {
   const email = 'user@example.com'
@@ -604,7 +604,8 @@ testMatrix.setupTestSuite(
       reason: 'Metrics are not supported with Data Proxy yet',
     },
     skip(when, { clientRuntime }) {
-      when(clientRuntime === 'wasm', 'Metrics are not supported with WASM engine yet')
+      when(clientRuntime === 'wasm-engine-edge', 'Metrics are not supported with WASM engine')
+      when(clientRuntime === 'client', 'Metrics are not implemented for the client runtime')
     },
   },
 )

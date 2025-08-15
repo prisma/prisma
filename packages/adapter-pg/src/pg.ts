@@ -122,7 +122,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     }
   }
 
-  protected onError(error: any): never {
+  protected onError(error: unknown): never {
     debug('Error in performIO: %O', error)
     throw new DriverAdapterError(convertDriverError(error))
   }
@@ -148,6 +148,8 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
 
 export type PrismaPgOptions = {
   schema?: string
+  disposeExternalPool?: boolean
+  onPoolError?: (err: Error) => void
 }
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
@@ -183,8 +185,14 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   }
 
   async executeScript(script: string): Promise<void> {
-    // TODO: crude implementation for now, might need to refine it
-    for (const stmt of script.split(';')) {
+    // FIXME: there's no guarantee that the semicolon is between statements
+    // and not inside one.
+    const statements = script
+      .split(';')
+      .map((stmt) => stmt.trim())
+      .filter((stmt) => stmt.length > 0)
+
+    for (const stmt of statements) {
       try {
         await this.client.query(stmt)
       } catch (error) {
@@ -196,33 +204,67 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
   getConnectionInfo(): ConnectionInfo {
     return {
       schemaName: this.options?.schema,
+      supportsRelationJoins: true,
     }
   }
 
   async dispose(): Promise<void> {
-    await this.release?.()
-    return await this.client.end()
+    return this.release?.()
+  }
+
+  underlyingDriver(): pg.Pool {
+    return this.client
   }
 }
 
 export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
+  private readonly config: pg.PoolConfig
+  private externalPool: pg.Pool | null
 
-  constructor(private readonly config: pg.PoolConfig, private readonly options?: PrismaPgOptions) {}
-
-  async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaPgAdapter(new pg.Pool(this.config), this.options, async () => {})
+  constructor(poolOrConfig: pg.Pool | pg.PoolConfig, private readonly options?: PrismaPgOptions) {
+    if (poolOrConfig instanceof pg.Pool) {
+      this.externalPool = poolOrConfig
+      this.config = poolOrConfig.options
+    } else {
+      this.externalPool = null
+      this.config = poolOrConfig
+    }
   }
 
-  async connectToShadowDb(): Promise<SqlDriverAdapter> {
+  async connect(): Promise<PrismaPgAdapter> {
+    const client = this.externalPool ?? new pg.Pool(this.config)
+
+    const onIdleClientError = (err: Error) => {
+      debug(`Error from idle pool client: ${err.message} %O`, err)
+      this.options?.onPoolError?.(err)
+    }
+    client.on('error', onIdleClientError)
+
+    return new PrismaPgAdapter(client, this.options, async () => {
+      if (this.externalPool) {
+        if (this.options?.disposeExternalPool) {
+          await this.externalPool.end()
+          this.externalPool = null
+        } else {
+          this.externalPool.removeListener('error', onIdleClientError)
+        }
+      } else {
+        await client.end()
+      }
+    })
+  }
+
+  async connectToShadowDb(): Promise<PrismaPgAdapter> {
     const conn = await this.connect()
     const database = `prisma_migrate_shadow_db_${globalThis.crypto.randomUUID()}`
     await conn.executeScript(`CREATE DATABASE "${database}"`)
 
-    return new PrismaPgAdapter(new pg.Pool({ ...this.config, database }), undefined, async () => {
+    const client = new pg.Pool({ ...this.config, database })
+    return new PrismaPgAdapter(client, undefined, async () => {
       await conn.executeScript(`DROP DATABASE "${database}"`)
-      // Note: no need to call dispose here. This callback is run as part of dispose.
+      await client.end()
     })
   }
 }

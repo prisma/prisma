@@ -292,11 +292,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time
+  return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 function normalize_timestampz(time: string): string {
-  return time.split('+')[0]
+  return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
 /*
@@ -310,7 +310,7 @@ function normalize_time(time: string): string {
 function normalize_timez(time: string): string {
   // Although it might be controversial, UTC is assumed in consistency with the behavior of rust postgres driver
   // in quaint. See quaint/src/connector/postgres/conversion.rs
-  return time.split('+')[0]
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '')
 }
 
 /******************/
@@ -337,7 +337,7 @@ function normalize_xml(xml: string): string {
  * stringified here. This function needs to exist as otherwise
  * the default type parser attempts to deserialise it.
  */
-function toJson(json: string): unknown {
+function toJson(json: string): string {
   return json
 }
 
@@ -403,7 +403,9 @@ export const customParsers = {
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
+  [ArrayColumnType.JSON_ARRAY]: normalize_array(toJson),
   [ScalarColumnType.JSONB]: toJson,
+  [ArrayColumnType.JSONB_ARRAY]: normalize_array(toJson),
   [ScalarColumnType.BYTEA]: convertBytes,
   [ArrayColumnType.BYTEA_ARRAY]: normalizeByteaArray,
   [ArrayColumnType.BIT_ARRAY]: normalize_array(normalizeBit),

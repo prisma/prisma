@@ -1,4 +1,4 @@
-import { lowerCase } from '@prisma/client-common'
+import { uncapitalize } from '@prisma/client-common'
 import levenshtein from 'js-levenshtein'
 
 import {
@@ -155,7 +155,7 @@ function applyEmptySelectionError(
     }
   }
 
-  if (globalOmit?.[lowerCase(error.outputType.name)]) {
+  if (globalOmit?.[uncapitalize(error.outputType.name)]) {
     applyEmptySelectionErrorGlobalOmit(error, argsTree)
     return
   }
@@ -395,6 +395,16 @@ function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, 
   } else {
     const typeName = error.inputTypes.map(getInputTypeName).join(' | ')
     parent.addSuggestion(new ObjectFieldSuggestion(argumentName, typeName).makeRequired())
+  }
+
+  if (error.dependentArgumentPath) {
+    selection.getDeepField(error.dependentArgumentPath)?.markAsError()
+    const [, dependentArgumentName] = splitPath(error.dependentArgumentPath)
+    args.addErrorMessage((colors) => {
+      return `Argument \`${colors.green(argumentName)}\` is required because argument \`${colors.green(
+        dependentArgumentName,
+      )}\` was provided.`
+    })
   }
 }
 

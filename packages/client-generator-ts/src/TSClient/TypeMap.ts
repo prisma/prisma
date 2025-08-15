@@ -1,4 +1,4 @@
-import { lowerCase, NonModelOperation, Operation } from '@prisma/client-common'
+import { NonModelOperation, Operation, uncapitalize } from '@prisma/client-common'
 import { assertNever } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
@@ -19,8 +19,8 @@ export function clientTypeMapDefinition(context: GenerateContext) {
   const typeMap = `${ts.stringify(clientTypeMapModelsDefinition(context))} & ${clientTypeMapOthersDefinition(context)}`
 
   return `
-export interface TypeMapCb<ClientOptions = {}> extends runtime.Types.Utils.Fn<{extArgs: runtime.Types.Extensions.InternalArgs }, runtime.Types.Utils.Record<string, any>> {
-  returns: TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
+export interface TypeMapCb<GlobalOmitOptions = {}> extends runtime.Types.Utils.Fn<{extArgs: runtime.Types.Extensions.InternalArgs }, runtime.Types.Utils.Record<string, any>> {
+  returns: TypeMap<this['params']['extArgs'], GlobalOmitOptions>
 }
 
 export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> = ${typeMap}`
@@ -35,7 +35,7 @@ function clientTypeMapModelsDefinition(context: GenerateContext) {
   if (modelNames.length === 0) {
     meta.add(ts.property('modelProps', ts.neverType))
   } else {
-    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(lowerCase(name))))))
+    meta.add(ts.property('modelProps', ts.unionType(modelNames.map((name) => ts.stringLiteral(uncapitalize(name))))))
   }
 
   const isolationLevel = context.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')

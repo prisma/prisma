@@ -35,10 +35,9 @@ npx prisma generate
 
 ### 2. Install the dependencies
 
-Next, install the `pg` package and Prisma ORM's driver adapter:
+Next, install the Prisma ORM's driver adapter for pg:
 
 ```
-npm install pg
 npm install @prisma/adapter-pg
 ```
 

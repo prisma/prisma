@@ -159,7 +159,6 @@ describe('generator', () => {
     await generator.generate()
     const clientDir = path.join(__dirname, 'generated')
     expect(fs.existsSync(clientDir)).toBe(true)
-    expect(fs.existsSync(path.join(clientDir, 'index.ts'))).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
     generator.stop()
   })
@@ -224,10 +223,10 @@ describe('generator', () => {
 
       await generator.generate()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`
-      [Error: An output path is required for the \`prisma-client-ts\` generator. Please provide an output path in your schema file:
+      [Error: An output path is required for the \`prisma-client\` generator. Please provide an output path in your schema file:
 
       generator client {
-        provider = "prisma-client-ts"
+        provider = "prisma-client"
         output   = "../src/generated"
       }
 
@@ -303,7 +302,6 @@ describe('generator', () => {
     await generator.generate()
     const clientDir = path.join(__dirname, 'generated')
     expect(fs.existsSync(clientDir)).toBe(true)
-    expect(fs.existsSync(path.join(clientDir, 'index.ts'))).toBe(true)
     expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
     generator.stop()
   })

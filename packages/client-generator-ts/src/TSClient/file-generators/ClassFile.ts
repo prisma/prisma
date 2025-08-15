@@ -8,8 +8,9 @@ import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
-import { buildGetWasmModule } from '../../utils/buildGetWasmModule'
 import { buildInjectableEdgeEnv } from '../../utils/buildInjectableEdgeEnv'
+import { buildInlineDatasources } from '../../utils/buildInlineDatasources'
+import { buildGetWasmModule } from '../../utils/wasm'
 import { GenerateContext } from '../GenerateContext'
 import { PrismaClientClass } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
@@ -86,9 +87,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     activeProvider: options.activeProvider,
     postinstall: options.postinstall,
     ciName: ciInfo.name ?? undefined,
-    inlineDatasources: datasources.reduce((acc, ds) => {
-      return (acc[ds.name] = { url: ds.url }), acc
-    }, {} as GetPrismaClientConfig['inlineDatasources']),
+    inlineDatasources: buildInlineDatasources(datasources),
     inlineSchema,
     inlineSchemaHash,
     copyEngine,

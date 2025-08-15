@@ -1,9 +1,8 @@
-import { lowerCase } from '@prisma/client-common'
+import { capitalize, uncapitalize } from '@prisma/client-common'
 import type * as DMMF from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 import indent from 'indent-string'
 
-import { capitalize } from '../utils'
 import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { GenerateContext } from './GenerateContext'
@@ -14,12 +13,12 @@ function extendsPropertyDefinition() {
   const extendsDefinition = ts
     .namedType('runtime.Types.Extensions.ExtendsHook')
     .addGenericArgument(ts.stringLiteral('extends'))
-    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
+    .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('OmitOpts')))
     .addGenericArgument(ts.namedType('ExtArgs'))
     .addGenericArgument(
       ts
         .namedType('runtime.Types.Utils.Call')
-        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('ClientOptions')))
+        .addGenericArgument(ts.namedType('Prisma.TypeMapCb').addGenericArgument(ts.namedType('OmitOpts')))
         .addGenericArgument(ts.objectType().add(ts.property('extArgs', ts.namedType('ExtArgs')))),
     )
   return ts.stringify(ts.property('$extends', extendsDefinition), { indentLevel: 1 })
@@ -239,9 +238,9 @@ function runCommandRawDefinition(context: GenerateContext) {
 
 function eventRegistrationMethodDeclaration(runtimeName: TSClientOptions['runtimeName']) {
   if (runtimeName === 'binary') {
-    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => runtime.Types.Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
+    return `$on<V extends (LogOpts | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => runtime.Types.Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
   } else {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
+    return `$on<V extends LogOpts>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
   }
 }
 
@@ -266,7 +265,7 @@ export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.Do
     \`\`\`
     const prisma = new PrismaClient()
     // Fetch zero or more ${capitalize(example.plural)}
-    const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
+    const ${uncapitalize(example.plural)} = await prisma.${uncapitalize(example.model)}.findMany()
     \`\`\`
 
     Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
@@ -293,17 +292,18 @@ export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
 export interface PrismaClientConstructor {
   ${indent(this.jsDoc, TAB_SIZE)}
   new <
-    ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-    U = LogOptions<ClientOptions>,
+    Options extends Prisma.PrismaClientOptions,
+    LogOpts extends LogOptions<Options>,
+    OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends { omit: infer U } ? U : Prisma.PrismaClientOptions['omit'],
     ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
-  >(options?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>): PrismaClient<ClientOptions, U, ExtArgs>
+  >(options?: Prisma.Subset<Options, Prisma.PrismaClientOptions> ): PrismaClient<LogOpts, OmitOpts, ExtArgs>
 }
 
 ${this.jsDoc}
 export interface PrismaClient<
-  ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  U = LogOptions<ClientOptions>,
-  ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
+  in LogOpts extends Prisma.LogLevel = never,
+  in out OmitOpts extends Prisma.PrismaClientOptions['omit'] = Prisma.PrismaClientOptions['omit'],
+  in out ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
@@ -318,13 +318,6 @@ export interface PrismaClient<
    * Disconnect from the database
    */
   $disconnect(): runtime.Types.Utils.JsPromise<void>;
-
-  /**
-   * Add a middleware
-   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
-   * @see https://pris.ly/d/extensions
-   */
-  $use(cb: Prisma.Middleware): void
 
 ${[
   executeRawDefinition(this.context),
@@ -345,18 +338,18 @@ ${[
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
         .map((m) => {
-          let methodName = lowerCase(m.model)
+          let methodName = uncapitalize(m.model)
           if (methodName === 'constructor') {
             methodName = '["constructor"]'
           }
-          const generics = ['ExtArgs', 'ClientOptions']
+          const generics = ['ExtArgs', '{ omit: OmitOpts }']
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
-  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+  * const ${uncapitalize(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`

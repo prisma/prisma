@@ -1,35 +1,50 @@
 import type { DatabaseError } from '@neondatabase/serverless'
-import { Error as DriverAdapterErrorObject } from '@prisma/driver-adapter-utils'
+import { Error as DriverAdapterErrorObject, MappedError } from '@prisma/driver-adapter-utils'
 
-export function convertDriverError(error: any): DriverAdapterErrorObject {
-  if (!isDbError(error)) {
-    throw error
+export function convertDriverError(error: unknown): DriverAdapterErrorObject {
+  if (isDriverError(error)) {
+    return {
+      originalCode: error.code,
+      originalMessage: error.message,
+      ...mapDriverError(error),
+    }
   }
 
+  throw error
+}
+
+function mapDriverError(error: DatabaseError): MappedError {
   switch (error.code) {
     case '22001':
       return {
         kind: 'LengthMismatch',
         column: error.column,
       }
-    case '23505':
+    case '22003':
+      return {
+        kind: 'ValueOutOfRange',
+        cause: error.message,
+      }
+    case '23505': {
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
       return {
         kind: 'UniqueConstraintViolation',
-        fields:
-          error.detail
-            ?.match(/Key \(([^)]+)\)/)
-            ?.at(1)
-            ?.split(', ') ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
-    case '23502':
+    }
+    case '23502': {
+      const fields = error.detail
+        ?.match(/Key \(([^)]+)\)/)
+        ?.at(1)
+        ?.split(', ')
       return {
         kind: 'NullConstraintViolation',
-        fields:
-          error.detail
-            ?.match(/Key \(([^)]+)\)/)
-            ?.at(1)
-            ?.split(', ') ?? [],
+        constraint: fields !== undefined ? { fields } : undefined,
       }
+    }
     case '23503': {
       let constraint: { fields: string[] } | { index: string } | undefined
 
@@ -52,7 +67,11 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
     case '28000':
       return {
         kind: 'DatabaseAccessDenied',
-        db: error.message.split(' ').at(5)?.split('"').at(1),
+        db: error.message
+          .split(',')
+          .find((s) => s.startsWith(' database'))
+          ?.split('"')
+          .at(1),
       }
     case '28P01':
       return {
@@ -96,7 +115,7 @@ export function convertDriverError(error: any): DriverAdapterErrorObject {
   }
 }
 
-function isDbError(error: any): error is DatabaseError {
+function isDriverError(error: any): error is DatabaseError {
   return (
     typeof error.code === 'string' &&
     typeof error.message === 'string' &&

@@ -18,6 +18,8 @@ export type {
   ErrorRecord,
   ErrorRegistry,
   IsolationLevel,
+  MappedError,
+  OfficialDriverAdapterName,
   Provider,
   Queryable,
   SqlDriverAdapter,
