@@ -1,3 +1,5 @@
+import timers from 'node:timers/promises'
+
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
 
@@ -131,7 +133,7 @@ test('transaction is rolled back', async () => {
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionRolledBackError)
 })
 
-test('getTransaction works while being rolled back', async () => {
+test('rollbackTransaction in parallel raises a TransactionRolledBackError', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
     driverAdapter,
@@ -141,9 +143,41 @@ test('getTransaction works while being rolled back', async () => {
 
   const id = await startTransaction(transactionManager)
 
-  const rollbackPromise = transactionManager.rollbackTransaction(id)
-  expect(() => transactionManager.getTransaction({ id }, 'dummy')).toThrow('Transaction is being closed')
-  await rollbackPromise
+  const rollbackPromise1 = transactionManager.rollbackTransaction(id)
+  const rollbackPromise2 = transactionManager.rollbackTransaction(id)
+  await rollbackPromise1
+
+  await expect(rollbackPromise2).rejects.toEqual(new TransactionRolledBackError('rollback'))
+
+  expect(driverAdapter.rollbackMock).toHaveBeenCalled()
+  expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')
+  expect(driverAdapter.commitMock).not.toHaveBeenCalled()
+})
+
+test('commitTransaction during a rollback caused by a time out raises a TransactionExecutionTimeoutError', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const timeout = 200
+  const rollbackDelay = 200
+
+  driverAdapter.rollbackMock = jest.fn().mockImplementation(() => timers.setTimeout(rollbackDelay))
+
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: { timeout, maxWait: 1000 },
+    tracingHelper: noopTracingHelper,
+  })
+
+  const txPromise = transactionManager.startTransaction()
+  await jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME + timeout)
+  const tx = await txPromise
+  const commitPromise = transactionManager.commitTransaction(tx.id)
+
+  await expect(Promise.all([jest.advanceTimersByTimeAsync(rollbackDelay), commitPromise])).rejects.toEqual(
+    new TransactionExecutionTimeoutError('commit', {
+      timeout,
+      timeTaken: START_TRANSACTION_TIME + timeout + rollbackDelay,
+    }),
+  )
 
   expect(driverAdapter.rollbackMock).toHaveBeenCalled()
   expect(driverAdapter.executeRawMock.mock.calls[0][0].sql).toEqual('ROLLBACK')

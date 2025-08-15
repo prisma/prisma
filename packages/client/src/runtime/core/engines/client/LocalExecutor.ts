@@ -60,7 +60,7 @@ export class LocalExecutor implements Executor {
 
   async execute({ plan, placeholderValues, transaction, batchIndex }: ExecutePlanParams): Promise<unknown> {
     const queryable = transaction
-      ? this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
+      ? await this.#transactionManager.getTransaction(transaction, batchIndex !== undefined ? 'batch query' : 'query')
       : this.#driverAdapter
 
     const interpreter = QueryInterpreter.forSql({
