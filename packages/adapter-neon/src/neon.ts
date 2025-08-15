@@ -157,6 +157,8 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
 
 export type PrismaNeonOptions = {
   schema?: string
+  onPoolError?: (err: Error) => void
+  onConnectionError?: (err: Error) => void
 }
 
 export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
@@ -179,6 +181,10 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
+    conn.on('error', (err) => {
+      debug(`Error from pool connection: ${err.message} %O`, err)
+      this.options?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new NeonTransaction(conn, options)
@@ -223,7 +229,13 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
 
   async connect(): Promise<PrismaNeonAdapter> {
-    return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
+    const pool = new neon.Pool(this.config)
+    pool.on('error', (err) => {
+      debug(`Error from pool client: ${err.message} %O`, err)
+      this.options?.onPoolError?.(err)
+    })
+
+    return new PrismaNeonAdapter(pool, this.options)
   }
 }
 
