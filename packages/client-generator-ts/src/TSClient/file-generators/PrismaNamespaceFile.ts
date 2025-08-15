@@ -35,6 +35,8 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
   return `${jsDocHeader}
 ${imports.join('\n')}
 
+export { getDmmf } from '${context.importFileName(`./class`)}'
+
 export type * from '${context.importFileName(`../models`)}'
 
 ${commonCodeTS(options)}
