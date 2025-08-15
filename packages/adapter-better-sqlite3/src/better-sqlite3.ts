@@ -83,7 +83,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
+      const stmt = this.client.prepare(query.sql).bind(...mapQueryArgs(query.args, query.argTypes))
       const result = stmt.run()
 
       return Promise.resolve(result)
@@ -99,7 +99,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(mapQueryArgs(query.args, query.argTypes))
+      const stmt = this.client.prepare(query.sql).bind(...mapQueryArgs(query.args, query.argTypes))
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
       if (!stmt.reader) {
