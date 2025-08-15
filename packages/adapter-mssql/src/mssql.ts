@@ -107,6 +107,8 @@ class MssqlTransaction extends MssqlQueryable implements Transaction {
 
 export type PrismaMssqlOptions = {
   schema?: string
+  onPoolError?: (err: unknown) => void
+  onConnectionError?: (err: unknown) => void
 }
 
 class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
@@ -127,6 +129,11 @@ class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
     debug('%s options: %O', tag, options)
 
     const tx = this.pool.transaction()
+    tx.on('error', (err) => {
+      debug('Error from pool connection: %O', err)
+      this.options?.onConnectionError?.(err)
+    })
+
     try {
       await tx.begin(isolationLevel !== undefined ? mapIsolationLevel(isolationLevel) : undefined)
       return new MssqlTransaction(tx, options)
@@ -160,6 +167,11 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
 
   async connect(): Promise<PrismaMssqlAdapter> {
     const pool = new sql.ConnectionPool(this.config)
+    pool.on('error', (err) => {
+      debug('Error from pool client: %O', err)
+      this.options?.onPoolError?.(err)
+    })
+
     await pool.connect()
     return new PrismaMssqlAdapter(pool, this.options)
   }

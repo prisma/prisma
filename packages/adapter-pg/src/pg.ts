@@ -151,6 +151,7 @@ export type PrismaPgOptions = {
   schema?: string
   disposeExternalPool?: boolean
   onPoolError?: (err: Error) => void
+  onConnectionError?: (err: Error) => void
 }
 
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
@@ -167,6 +168,10 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
+    conn.on('error', (err) => {
+      debug(`Error from pool connection: ${err.message} %O`, err)
+      this.options?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new PgTransaction(conn, options)
