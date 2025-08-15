@@ -1,8 +1,8 @@
 export { BinaryEngine } from './binary/BinaryEngine'
 export { ClientEngine } from './client/ClientEngine'
 export {
+  type AccelerateExtensionFetchDecorator,
   type BatchTransactionOptions,
-  type CustomDataProxyFetch,
   type Engine,
   type EngineConfig,
   type GraphQLQuery,

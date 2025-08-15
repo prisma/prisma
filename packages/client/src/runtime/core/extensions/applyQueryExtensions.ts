@@ -1,7 +1,7 @@
 import { Client, InternalRequestParams } from '../../getPrismaClient'
 import { RequestParams } from '../../RequestHandler'
 import { deepCloneArgs } from '../../utils/deepCloneArgs'
-import { CustomDataProxyFetch } from '../engines'
+import { AccelerateExtensionFetchDecorator } from '../engines'
 import { QueryOptionsCb } from '../types/exported/ExtensionArgs'
 import { BatchInternalParams, BatchQueryOptionsCb } from '../types/internal/ExtensionsInternalArgs'
 
@@ -112,7 +112,7 @@ export function iterateAndCallBatchCallbacks(
   })
 }
 
-const noopFetch: CustomDataProxyFetch = (f) => f
-function composeCustomDataProxyFetch(prevFetch = noopFetch, nextFetch = noopFetch): CustomDataProxyFetch {
+const noopFetch: AccelerateExtensionFetchDecorator = (f) => f
+function composeCustomDataProxyFetch(prevFetch = noopFetch, nextFetch = noopFetch): AccelerateExtensionFetchDecorator {
   return (f) => prevFetch(nextFetch(f))
 }

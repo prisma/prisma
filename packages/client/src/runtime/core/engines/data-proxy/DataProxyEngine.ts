@@ -7,8 +7,8 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
 import { HeaderBuilder } from '../common/accelerate/HeaderBuilder'
 import type {
+  AccelerateExtensionFetchDecorator,
   BatchQueryEngineResult,
-  CustomDataProxyFetch,
   EngineConfig,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -51,7 +51,7 @@ type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
 type RequestInternalOptions = {
   body: Record<string, unknown>
-  customDataProxyFetch?: CustomDataProxyFetch
+  customDataProxyFetch?: AccelerateExtensionFetchDecorator
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
