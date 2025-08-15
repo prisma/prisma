@@ -25,7 +25,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "jest"
+    "test": "vitest run"
   },
   "files": [
     "dist",
@@ -42,9 +42,6 @@
   },
   "devDependencies": {
     "@types/mssql": "9.1.7",
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0"
+    "vitest": "3.0.9"
   }
 }

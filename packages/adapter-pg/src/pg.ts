@@ -17,7 +17,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 
 import { name as packageName } from '../package.json'
-import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const types = pg.types
@@ -83,13 +83,14 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * marked as unhealthy.
    */
   private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
-    const { sql, args: values } = query
+    const { sql, args } = query
+    const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
     try {
       const result = await this.client.query(
         {
           text: sql,
-          values: fixArrayBufferValues(values),
+          values,
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -113,7 +114,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
             },
           },
         },
-        fixArrayBufferValues(values),
+        values,
       )
 
       return result

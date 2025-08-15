@@ -1,4 +1,4 @@
-import { ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import * as mariadb from 'mariadb'
 
 const UNSIGNED_FLAG = 1 << 5
@@ -98,10 +98,44 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
   }
 }
 
-export function mapArg(arg: unknown): unknown {
-  if (arg instanceof Uint8Array) {
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Uint8Array | A {
+  if (arg === null) {
+    return null
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    return BigInt(arg)
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case MariaDbColumnType.TIME:
+      case MariaDbColumnType.TIME2:
+        return formatTime(arg)
+      case MariaDbColumnType.DATE:
+      case MariaDbColumnType.NEWDATE:
+        return formatDate(arg)
+      default:
+        return formatDateTime(arg)
+    }
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  if (ArrayBuffer.isView(arg)) {
     return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
   }
+
   return arg
 }
 
@@ -138,4 +172,41 @@ export const typeCast: mariadb.TypeCastFunction = (field, next) => {
     return field.buffer()
   }
   return next()
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    date.getUTCFullYear() +
+    '-' +
+    pad(date.getUTCMonth() + 1) +
+    '-' +
+    pad(date.getUTCDate()) +
+    ' ' +
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }

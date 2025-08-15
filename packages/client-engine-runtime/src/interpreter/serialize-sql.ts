@@ -3,35 +3,24 @@ import { type ColumnType, ColumnTypeEnum, type SqlResultSet } from '@prisma/driv
 import { assertNever } from '../utils'
 
 export function serializeSql(resultSet: SqlResultSet): Record<string, unknown>[] {
-  const mappers = resultSet.columnTypes.map((type) => {
-    switch (type) {
-      case ColumnTypeEnum.Bytes:
-        return (value: unknown) => (Array.isArray(value) ? new Uint8Array(value) : value)
-      default:
-        return (value: unknown) => value
-    }
-  })
-
   return resultSet.rows.map((row) =>
-    row
-      .map((value, index) => mappers[index](value))
-      .reduce<Record<string, unknown>>((acc, value, index) => {
-        const splitByDot = resultSet.columnNames[index].split('.')
+    row.reduce<Record<string, unknown>>((acc, value, index) => {
+      const splitByDot = resultSet.columnNames[index].split('.')
 
-        let nested: {} = acc
-        for (let i = 0; i < splitByDot.length; i++) {
-          const key = splitByDot[i]
-          if (i === splitByDot.length - 1) {
-            nested[key] = value
-          } else {
-            if (nested[key] === undefined) {
-              nested[key] = {}
-            }
-            nested = nested[key]
+      let nested: {} = acc
+      for (let i = 0; i < splitByDot.length; i++) {
+        const key = splitByDot[i]
+        if (i === splitByDot.length - 1) {
+          nested[key] = value
+        } else {
+          if (nested[key] === undefined) {
+            nested[key] = {}
           }
+          nested = nested[key]
         }
-        return acc
-      }, {}),
+      }
+      return acc
+    }, {}),
   )
 }
 

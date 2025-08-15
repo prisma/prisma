@@ -1,6 +1,5 @@
 import cuid1 from '@bugsnag/cuid'
 import { createId as cuid2 } from '@paralleldrive/cuid2'
-import { Provider } from '@prisma/driver-adapter-utils'
 import { nanoid } from 'nanoid'
 import { ulid } from 'ulid'
 import { v4 as uuidv4, v7 as uuidv7 } from 'uuid'
@@ -21,10 +20,10 @@ export class GeneratorRegistry {
    * method being called, meaning that the built-in time-based generators will always return
    * the same value on repeated calls as long as the same snapshot is used.
    */
-  snapshot(provider?: Provider): Readonly<GeneratorRegistrySnapshot> {
+  snapshot(): Readonly<GeneratorRegistrySnapshot> {
     return Object.create(this.#generators, {
       now: {
-        value: provider === 'mysql' ? new MysqlNowGenerator() : new NowGenerator(),
+        value: new NowGenerator(),
       },
     })
   }
@@ -50,14 +49,6 @@ class NowGenerator implements ValueGenerator {
 
   generate(): string {
     return this.#now.toISOString()
-  }
-}
-
-class MysqlNowGenerator implements ValueGenerator {
-  #now: Date = new Date()
-
-  generate(): string {
-    return this.#now.toISOString().replace('T', ' ').replace('Z', '')
   }
 }
 

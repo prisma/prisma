@@ -52,7 +52,7 @@ class MssqlQueryable implements SqlQueryable {
       req.arrayRowMode = true
 
       for (let i = 0; i < query.args.length; i++) {
-        req.input(`P${i + 1}`, mapArg(query.args[i]))
+        req.input(`P${i + 1}`, mapArg(query.args[i], query.argTypes[i]))
       }
       const res = (await req.query(query.sql)) as unknown as ArrayModeResult
       return res
