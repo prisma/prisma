@@ -130,7 +130,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
 
     const conn = await this.client.getConnection().catch((error) => onError(error))
     conn.on('error', (err: mariadb.SqlError) => {
-      debug(`Error from connection: %O`, err)
+      debug(`Error from connection: ${err.message} %O`, err)
       this.options?.onConnectionError?.(err)
     })
 

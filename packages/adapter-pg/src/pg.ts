@@ -168,7 +168,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
     conn.on('error', (err) => {
-      debug(`Error from pool connection: %O`, err)
+      debug(`Error from pool connection: ${err.message} %O`, err)
       this.options?.onConnectionError?.(err)
     })
 
