@@ -246,7 +246,7 @@ export class QueryInterpreter {
 
         const transactionManager = this.#transactionManager.manager
         const transactionInfo = await transactionManager.startTransaction()
-        const transaction = transactionManager.getTransaction(transactionInfo, 'query')
+        const transaction = await transactionManager.getTransaction(transactionInfo, 'query')
         try {
           const value = await this.interpretNode(node.args, transaction, scope, generators)
           await transactionManager.commitTransaction(transactionInfo.id)

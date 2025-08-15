@@ -7,7 +7,7 @@ import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
 import { type AccelerateHeaders, HeaderBuilder } from '../common/accelerate/HeaderBuilder'
-import type { EngineConfig } from '../common/Engine'
+import type { AccelerateExtensionFetch, EngineConfig } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
 import type { QueryEngineResultExtensions } from '../common/types/QueryEngine'
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -128,7 +128,7 @@ export class RemoteExecutor implements Executor {
     path: string
     method: string
     body?: unknown
-    fetch?: typeof globalThis.fetch
+    fetch?: AccelerateExtensionFetch
     batchRequestIdx?: number
   }): Promise<unknown> {
     const response = await this.#httpClient.request({
@@ -281,7 +281,7 @@ class HttpClient {
     path: string
     headers: AccelerateHeaders
     body: unknown
-    fetch: typeof globalThis.fetch
+    fetch: AccelerateExtensionFetch
   }): Promise<Response> {
     const requestUrl = new URL(path, this.#baseUrl)
 
@@ -294,11 +294,11 @@ class HttpClient {
       headers['Accelerate-Query-Engine-Jwt'] = this.#machineHint
     }
 
-    const response = await fetch(requestUrl, {
+    const response = (await fetch(requestUrl.href, {
       method,
       body: body !== undefined ? JSON.stringify(body) : undefined,
       headers,
-    })
+    })) as Response
 
     debug(method, requestUrl, response.status, response.statusText)
 

@@ -1,6 +1,7 @@
 import type { QueryPlanNode, TransactionOptions } from '@prisma/client-engine-runtime'
 import type { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 
+import type { AccelerateExtensionFetch } from '../common/Engine'
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
 
 export interface ExecutePlanParams {
@@ -10,7 +11,7 @@ export interface ExecutePlanParams {
   placeholderValues: Record<string, unknown>
   transaction: InteractiveTransactionInfo | undefined
   batchIndex: number | undefined
-  customFetch?: typeof globalThis.fetch
+  customFetch?: AccelerateExtensionFetch
 }
 
 export interface ProviderAndConnectionInfo {
