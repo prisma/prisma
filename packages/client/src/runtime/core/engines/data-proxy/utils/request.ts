@@ -1,4 +1,4 @@
-import { CustomDataProxyFetch } from '../../common/Engine'
+import { AccelerateExtensionFetchDecorator } from '../../common/Engine'
 import { RequestError } from '../errors/NetworkError'
 
 /**
@@ -8,7 +8,7 @@ import { RequestError } from '../errors/NetworkError'
 export async function request(
   url: string,
   options: RequestInit & { clientVersion: string },
-  customFetch: CustomDataProxyFetch = (fetch) => fetch,
+  customFetch: AccelerateExtensionFetchDecorator = (fetch) => fetch,
 ): Promise<Response> {
   const { clientVersion, ...fetchOptions } = options
   const decoratedFetch = customFetch(fetch) as typeof fetch
