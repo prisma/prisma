@@ -17,7 +17,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { CustomDataProxyFetch } from './core/engines/common/Engine'
+import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
 import { QueryEngineResultData } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
@@ -52,7 +52,7 @@ export type RequestParams = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
-  customDataProxyFetch?: CustomDataProxyFetch
+  customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
 export type HandleErrorParams = {

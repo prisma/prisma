@@ -18,7 +18,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
-import { cast, fieldToColumnType, type PlanetScaleColumnType } from './conversion'
+import { cast, fieldToColumnType, mapArg, type PlanetScaleColumnType } from './conversion'
 import { createDeferred, Deferred } from './deferred'
 import { convertDriverError } from './errors'
 
@@ -78,13 +78,17 @@ class PlanetScaleQueryable<ClientT extends planetScale.Client | planetScale.Tran
    * marked as unhealthy.
    */
   protected async performIO(query: SqlQuery): Promise<planetScale.ExecutedQuery> {
-    const { sql, args: values } = query
+    const { sql, args } = query
 
     try {
-      const result = await this.client.execute(sql, values, {
-        as: 'array',
-        cast,
-      })
+      const result = await this.client.execute(
+        sql,
+        args.map((arg, i) => mapArg(arg, query.argTypes[i])),
+        {
+          as: 'array',
+          cast,
+        },
+      )
       return result
     } catch (e) {
       const error = e as Error

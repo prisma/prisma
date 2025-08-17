@@ -5,7 +5,9 @@ export { DriverAdapterError, isDriverAdapterError } from './error'
 export * from './mock'
 export { err, ok, type Result } from './result'
 export type {
+  ArgScalarType,
   ArgType,
+  Arity,
   ColumnType,
   ConnectionInfo,
   DriverAdapterFactory,

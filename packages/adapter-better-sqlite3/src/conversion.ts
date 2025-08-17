@@ -187,32 +187,48 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
   return result
 }
 
-export function mapQueryArgs(args: unknown[], argTypes: ArgType[]): unknown[] {
-  return args.map((arg, i) => {
-    const argType = argTypes[i]
-    if (argType === 'Int32') {
-      return Number.parseInt(arg as string)
-    }
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | number | BigInt | Uint8Array | string | A {
+  if (arg === null) {
+    return null
+  }
 
-    if (argType === 'Float' || argType === 'Double') {
-      return Number.parseFloat(arg as string)
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'int') {
+    return Number.parseInt(arg)
+  }
 
-    if (typeof arg === 'boolean') {
-      return arg ? 1 : 0 // SQLite does not natively support booleans
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'float') {
+    return Number.parseFloat(arg)
+  }
 
-    if (arg instanceof Date) {
-      return arg
-        .toISOString()
-        .replace('T', ' ')
-        .replace(/\.\d{3}Z$/, '')
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'decimal') {
+    // This can lose precision, but SQLite does not have a native decimal type.
+    // This is how we have historically handled it.
+    return Number.parseFloat(arg)
+  }
 
-    if (arg instanceof Uint8Array) {
-      return Buffer.from(arg)
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    return BigInt(arg)
+  }
 
-    return arg
-  })
+  if (typeof arg === 'boolean') {
+    return arg ? 1 : 0 // SQLite does not natively support booleans
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    return arg.toISOString().replace('Z', '+00:00')
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  return arg
 }

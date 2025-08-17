@@ -11,7 +11,6 @@ import { Options, TransactionInfo } from './transaction'
 import {
   InvalidTransactionIsolationLevelError,
   TransactionClosedError,
-  TransactionClosingError,
   TransactionExecutionTimeoutError,
   TransactionInternalConsistencyError,
   TransactionManagerError,
@@ -24,12 +23,15 @@ const MAX_CLOSED_TRANSACTIONS = 100
 
 type TransactionWrapper = {
   id: string
-  status: 'waiting' | 'running' | 'closing' | 'committed' | 'rolled_back' | 'timed_out'
   timer?: NodeJS.Timeout
   timeout: number
   startedAt: number
   transaction?: Transaction
-}
+} & TransactionState
+
+type TransactionState =
+  | { status: 'waiting' | 'running' | 'committed' | 'rolled_back' | 'timed_out' }
+  | { status: 'closing'; closing: Promise<void>; reason: 'committed' | 'rolled_back' | 'timed_out' }
 
 const debug = Debug('prisma:client:transactionManager')
 
@@ -84,7 +86,7 @@ export class TransactionManager {
   }
 
   async #startTransactionImpl(options?: Options): Promise<TransactionInfo> {
-    const validatedOptions = options !== undefined ? this.validateOptions(options) : this.transactionOptions
+    const validatedOptions = options !== undefined ? this.#validateOptions(options) : this.transactionOptions
 
     const transaction: TransactionWrapper = {
       id: await randomUUID(),
@@ -110,15 +112,14 @@ export class TransactionManager {
     switch (transaction.status) {
       case 'waiting':
         if (hasTimedOut) {
-          await this.closeTransaction(transaction, 'timed_out')
+          await this.#closeTransaction(transaction, 'timed_out')
           throw new TransactionStartTimeoutError()
         }
 
         transaction.status = 'running'
         // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.startTransactionTimeout(transaction.id, validatedOptions.timeout!)
+        transaction.timer = this.#startTransactionTimeout(transaction.id, validatedOptions.timeout!)
         return { id: transaction.id }
-      case 'closing':
       case 'timed_out':
       case 'running':
       case 'committed':
@@ -127,31 +128,36 @@ export class TransactionManager {
           `Transaction in invalid state ${transaction.status} although it just finished startup.`,
         )
       default:
-        assertNever(transaction.status, 'Unknown transaction status.')
+        assertNever(transaction['status'], 'Unknown transaction status.')
     }
   }
 
   async commitTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('commit_transaction', async () => {
-      const txw = this.getActiveTransaction(transactionId, 'commit')
-      await this.closeTransaction(txw, 'committed')
+      const txw = this.#getActiveOrClosingTransaction(transactionId, 'commit')
+      await this.#closeTransaction(txw, 'committed')
     })
   }
 
   async rollbackTransaction(transactionId: string): Promise<void> {
     return await this.tracingHelper.runInChildSpan('rollback_transaction', async () => {
-      const txw = this.getActiveTransaction(transactionId, 'rollback')
-      await this.closeTransaction(txw, 'rolled_back')
+      const txw = this.#getActiveOrClosingTransaction(transactionId, 'rollback')
+      await this.#closeTransaction(txw, 'rolled_back')
     })
   }
 
-  getTransaction(txInfo: TransactionInfo, operation: string): Transaction {
-    const tx = this.getActiveTransaction(txInfo.id, operation)
+  async getTransaction(txInfo: TransactionInfo, operation: string): Promise<Transaction> {
+    let tx = this.#getActiveOrClosingTransaction(txInfo.id, operation)
+    if (tx.status === 'closing') {
+      await tx.closing
+      // Fetch again to ensure proper error propagation after it's been closed.
+      tx = this.#getActiveOrClosingTransaction(txInfo.id, operation)
+    }
     if (!tx.transaction) throw new TransactionNotFoundError()
     return tx.transaction
   }
 
-  private getActiveTransaction(transactionId: string, operation: string): TransactionWrapper {
+  #getActiveOrClosingTransaction(transactionId: string, operation: string): TransactionWrapper {
     const transaction = this.transactions.get(transactionId)
 
     if (!transaction) {
@@ -179,10 +185,6 @@ export class TransactionManager {
       }
     }
 
-    if (transaction.status === 'closing') {
-      throw new TransactionClosingError(operation)
-    }
-
     if (['committed', 'rolled_back', 'timed_out'].includes(transaction.status)) {
       throw new TransactionInternalConsistencyError('Closed transaction found in active transactions map.')
     }
@@ -193,17 +195,17 @@ export class TransactionManager {
   async cancelAllTransactions(): Promise<void> {
     // TODO: call `map` on the iterator directly without collecting it into an array first
     // once we drop support for Node.js 18 and 20.
-    await Promise.allSettled([...this.transactions.values()].map((tx) => this.closeTransaction(tx, 'rolled_back')))
+    await Promise.allSettled([...this.transactions.values()].map((tx) => this.#closeTransaction(tx, 'rolled_back')))
   }
 
-  private startTransactionTimeout(transactionId: string, timeout: number): NodeJS.Timeout {
+  #startTransactionTimeout(transactionId: string, timeout: number): NodeJS.Timeout {
     const timeoutStartedAt = Date.now()
     return setTimeout(async () => {
       debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
       const tx = this.transactions.get(transactionId)
       if (tx && ['running', 'waiting'].includes(tx.status)) {
-        await this.closeTransaction(tx, 'timed_out')
+        await this.#closeTransaction(tx, 'timed_out')
       } else {
         // Transaction was already committed or rolled back when timeout happened.
         // Should normally not happen as timeout is cancelled when transaction is committed or rolled back.
@@ -213,44 +215,57 @@ export class TransactionManager {
     }, timeout)
   }
 
-  private async closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out') {
-    debug('Closing transaction.', { transactionId: tx.id, status })
-
-    tx.status = 'closing'
-
-    try {
-      if (tx.transaction && status === 'committed') {
-        if (tx.transaction.options.usePhantomQuery) {
-          await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
-        } else {
-          const query = COMMIT_QUERY()
-          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-          await tx.transaction.commit()
+  async #closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out'): Promise<void> {
+    const createClosingPromise = async () => {
+      debug('Closing transaction.', { transactionId: tx.id, status })
+      try {
+        if (tx.transaction && status === 'committed') {
+          if (tx.transaction.options.usePhantomQuery) {
+            await this.#withQuerySpanAndEvent(PHANTOM_COMMIT_QUERY(), tx.transaction, () => tx.transaction!.commit())
+          } else {
+            const query = COMMIT_QUERY()
+            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+            await tx.transaction.commit()
+          }
+        } else if (tx.transaction) {
+          if (tx.transaction.options.usePhantomQuery) {
+            await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () =>
+              tx.transaction!.rollback(),
+            )
+          } else {
+            const query = ROLLBACK_QUERY()
+            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
+            await tx.transaction.rollback()
+          }
         }
-      } else if (tx.transaction) {
-        if (tx.transaction.options.usePhantomQuery) {
-          await this.#withQuerySpanAndEvent(PHANTOM_ROLLBACK_QUERY(), tx.transaction, () => tx.transaction!.rollback())
-        } else {
-          const query = ROLLBACK_QUERY()
-          await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-          await tx.transaction.rollback()
+      } finally {
+        tx.status = status
+        clearTimeout(tx.timer)
+        tx.timer = undefined
+
+        this.transactions.delete(tx.id)
+
+        this.closedTransactions.push(tx)
+        if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
+          this.closedTransactions.shift()
         }
       }
-    } finally {
-      tx.status = status
-      clearTimeout(tx.timer)
-      tx.timer = undefined
+    }
 
-      this.transactions.delete(tx.id)
-
-      this.closedTransactions.push(tx)
-      if (this.closedTransactions.length > MAX_CLOSED_TRANSACTIONS) {
-        this.closedTransactions.shift()
-      }
+    if (tx.status === 'closing') {
+      await tx.closing
+      // Fetch again to ensure proper error propagation after it's been closed.
+      this.#getActiveOrClosingTransaction(tx.id, status === 'committed' ? 'commit' : 'rollback')
+    } else {
+      await Object.assign(tx, {
+        status: 'closing',
+        reason: status,
+        closing: createClosingPromise(),
+      }).closing
     }
   }
 
-  private validateOptions(options: Options) {
+  #validateOptions(options: Options) {
     // Supplying timeout default values is cared for upstream already.
     if (!options.timeout) throw new TransactionManagerError('timeout is required')
     if (!options.maxWait) throw new TransactionManagerError('maxWait is required')

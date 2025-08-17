@@ -38,35 +38,30 @@ export type GraphQLQuery = {
 }
 
 /**
- * Custom fetch function for `DataProxyEngine`.
+ * A stripped down interface of `fetch` that `@prisma/extension-accelerate`
+ * relies on. It must be in sync with the corresponding definition in the
+ * Accelerate extension.
  *
- * We can't use the actual type of `globalThis.fetch` because this will result
- * in API Extractor referencing Node.js type definitions in the `.d.ts` bundle
- * for the client runtime. We can only use such types in internal types that
- * don't end up exported anywhere.
-
- * It's also not possible to write a definition of `fetch` that would accept the
- * actual `fetch` function from different environments such as Node.js and
- * Cloudflare Workers (with their extensions to `RequestInit` and `Response`).
- * `fetch` is used in both covariant and contravariant positions in
- * `CustomDataProxyFetch`, making it invariant, so we need the exact same type.
- * Even if we removed the argument and left `fetch` in covariant position only,
- * then for an extension-supplied function to be assignable to `customDataProxyFetch`,
- * the platform-specific (or custom) `fetch` function needs to be assignable
- * to our `fetch` definition. This, in turn, requires the third-party `Response`
- * to be a subtype of our `Response` (which is not a problem, we could declare
- * a minimal `Response` type that only includes what we use) *and* requires the
- * third-party `RequestInit` to be a supertype of our `RequestInit` (i.e. we
- * have to declare all properties any `RequestInit` implementation in existence
- * could possibly have), which is not possible.
+ * This is the actual interface exposed by the extension. We can't use the
+ * custom fetch function provided by it as normal fetch because the API is
+ * different. Notably, `headers` must be an object and not a `Headers`
+ * instance, and `url` must be a `string` and not a `URL`.
  *
- * Since `@prisma/extension-accelerate` redefines the type of
- * `__internalParams.customDataProxyFetch` to its own type anyway (probably for
- * exactly this reason), our definition is never actually used and is completely
- * ignored, so it doesn't matter, and we can just use `unknown` as the type of
- * `fetch` here.
+ * The return type is `Response` but we can't specify this in an exported type
+ * because it would end up referencing external types from `@types/node` or DOM
+ * which can fail typechecking depending on TypeScript configuration in a user's
+ * project.
  */
-export type CustomDataProxyFetch = (fetch: unknown) => unknown
+export type AccelerateExtensionFetch = (
+  url: string,
+  options: {
+    body?: string
+    method?: string
+    headers: Record<string, string>
+  },
+) => Promise<unknown>
+
+export type AccelerateExtensionFetchDecorator = (fetch: AccelerateExtensionFetch) => AccelerateExtensionFetch
 
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
@@ -74,7 +69,7 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: CustomDataProxyFetch
+  customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
 export type RequestBatchOptions<InteractiveTransactionPayload> = {
@@ -83,7 +78,7 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   numTry?: number
   containsWrite: boolean
   // only used by the data proxy engine
-  customDataProxyFetch?: CustomDataProxyFetch
+  customDataProxyFetch?: AccelerateExtensionFetchDecorator
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResultData<T> | Error
