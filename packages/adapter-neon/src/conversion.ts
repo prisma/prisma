@@ -430,9 +430,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
     switch (argType.dbType) {
       case 'TIME':
       case 'TIMETZ':
-        return arg.toISOString().split('T')[1]
+        return formatTime(arg)
+      case 'DATE':
+        return formatDate(arg)
       default:
-        return arg.toISOString()
+        return formatDateTime(arg)
     }
   }
 
@@ -450,4 +452,41 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   }
 
   return arg
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    date.getUTCFullYear() +
+    '-' +
+    pad(date.getUTCMonth() + 1) +
+    '-' +
+    pad(date.getUTCDate()) +
+    ' ' +
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }
