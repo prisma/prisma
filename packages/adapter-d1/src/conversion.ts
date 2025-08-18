@@ -86,7 +86,7 @@ function inferNumberType(n: number): ColumnType {
   const MAX_INT32 = ~(1 << 31) // 2^31
   const MIN_INT32 = 1 << 31 // -2^31
 
-  if (Number.isInteger(n)) {
+  if (Number.isSafeInteger(n)) {
     if (n >= MIN_INT32 && n <= MAX_INT32) {
       return ColumnTypeEnum.Int32
     }
