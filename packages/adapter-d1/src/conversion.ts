@@ -82,8 +82,18 @@ function inferStringType(value: string): ColumnType {
   return ColumnTypeEnum.Text
 }
 
-function inferNumberType(_: number): ColumnType {
-  return ColumnTypeEnum.UnknownNumber
+function inferNumberType(n: number): ColumnType {
+  const MAX_INT32 = ~(1 << 31) // 2^31
+  const MIN_INT32 = 1 << 31 // -2^31
+
+  if (Number.isInteger(n)) {
+    if (n >= MIN_INT32 && n <= MAX_INT32) {
+      return ColumnTypeEnum.Int32
+    }
+    return ColumnTypeEnum.Int64
+  } else {
+    return ColumnTypeEnum.Double
+  }
 }
 
 function inferObjectType(value: Object): ColumnType {
