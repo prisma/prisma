@@ -1,3 +1,2 @@
-invalid-sqlite-isolation-level (provider=sqlite, js_libsql) invalid level generates run- and compile- time error
 issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_libsql) should return a descriptive error
 issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_libsql) should return a descriptive error
