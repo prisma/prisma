@@ -63,14 +63,26 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 }
 
 async function copyClientWasmRuntime() {
-  const clientRuntimePath = path.join(__dirname, '..', '..', 'client', 'runtime')
+  const clientPath = path.join(__dirname, '..', '..', 'client')
+  const clientRuntimePath = path.join(clientPath, 'runtime')
+  const clientPrismaDepsPath = path.join(clientPath, 'node_modules', '@prisma')
 
   for (const component of ['compiler', 'engine']) {
     for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
       const baseName = `query_${component}_bg.${provider}`
-      for (const file of [`${baseName}.js`, `${baseName}.mjs`, `${baseName}.wasm`]) {
+
+      for (const file of [`${baseName}.js`, `${baseName}.mjs`]) {
         await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
       }
+
+      const wasmFilePath = path.join(
+        clientPrismaDepsPath,
+        `query-${component}-wasm`,
+        provider,
+        `query_${component}_bg.wasm`,
+      )
+
+      await fs.promises.copyFile(wasmFilePath, `./build/${baseName}.wasm`)
     }
   }
 }
