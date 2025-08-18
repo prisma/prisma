@@ -94,6 +94,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 
 export type PrismaMariadbOptions = {
   database?: string
+  onConnectionError?: (err: mariadb.SqlError) => void
 }
 
 export type Capabilities = {
@@ -129,6 +130,10 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.getConnection().catch((error) => onError(error))
+    conn.on('error', (err: mariadb.SqlError) => {
+      debug(`Error from connection: ${err.message} %O`, err)
+      this.options?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new MariaDbTransaction(conn, options)
