@@ -1,8 +1,8 @@
-import { ArgType, ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
-type Value = null | string | number | bigint | ArrayBuffer
+type Value = null | string | number | bigint | ArrayBuffer | Buffer
 export type Row = {
   /** Number of columns in this row.
    *
@@ -142,13 +142,11 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
-  // `Row` doesn't have map, so we copy the array once and modify it in-place
-  // to avoid allocating and copying twice if we used `Array.from(row).map(...)`.
-  const result: unknown[] = Array.from(row)
+export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
+  const result: ResultValue[] = []
 
-  for (let i = 0; i < result.length; i++) {
-    const value = result[i]
+  for (let i = 0; i < row.length; i++) {
+    const value = row[i]
 
     // Convert array buffers to arrays of bytes.
     // Base64 would've been more efficient but would collide with the existing
@@ -182,6 +180,8 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
       result[i] = value.toString()
       continue
     }
+
+    result[i] = value
   }
 
   return result

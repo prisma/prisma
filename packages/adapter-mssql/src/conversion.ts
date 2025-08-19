@@ -1,4 +1,11 @@
-import { ArgType, ColumnType, ColumnTypeEnum, DriverAdapterError, IsolationLevel } from '@prisma/driver-adapter-utils'
+import {
+  ArgType,
+  ColumnType,
+  ColumnTypeEnum,
+  DriverAdapterError,
+  IsolationLevel,
+  ResultValue,
+} from '@prisma/driver-adapter-utils'
 import sql from 'mssql'
 
 export function mapColumnType(col: sql.IColumn): ColumnType {
@@ -129,12 +136,12 @@ export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | numb
   return arg
 }
 
-export function mapRow(row: unknown[], columns?: sql.IColumn[]): unknown[] {
+export function mapRow<A>(row: A[], columns?: sql.IColumn[]): (A | ResultValue)[] {
   return row.map((value, i) => {
     const type = columns?.[i]?.type
     if (value instanceof Date) {
       if (type === sql.Time) {
-        return value.toISOString().split('T').at(1)?.replace('Z', '')
+        return value.toISOString().split('T')[1].replace('Z', '')
       }
       return value.toISOString()
     }
