@@ -1,4 +1,4 @@
-import { ArgType, ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, ResultValue } from '@prisma/driver-adapter-utils'
 import * as mariadb from 'mariadb'
 
 const UNSIGNED_FLAG = 1 << 5
@@ -139,7 +139,7 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
   return arg
 }
 
-export function mapRow(row: unknown[], fields?: mariadb.FieldInfo[]): unknown[] {
+export function mapRow<A>(row: A[], fields?: mariadb.FieldInfo[]): (A | ResultValue)[] {
   return row.map((value, i) => {
     const type = fields?.[i].type as unknown as MariaDbColumnType
 
