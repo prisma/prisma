@@ -152,7 +152,7 @@ export function mapRow(row: unknown[], fields?: mariadb.FieldInfo[]): unknown[] 
       case MariaDbColumnType.TIMESTAMP2:
       case MariaDbColumnType.DATETIME:
       case MariaDbColumnType.DATETIME2:
-        return new Date(`${value}Z`).toISOString()
+        return new Date(`${value}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
     }
 
     if (Buffer.isBuffer(value)) {
