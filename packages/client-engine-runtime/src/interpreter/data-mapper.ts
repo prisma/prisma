@@ -247,7 +247,7 @@ function mapValue(
               `Expected a base64-encoded byte array in column '${columnName}', got ${typeof value}: ${value}`,
             )
           }
-          return { $type: 'Bytes', value: value.replace('\n', '') }
+          return { $type: 'Bytes', value }
 
         case 'hex':
           if (typeof value !== 'string' || !value.startsWith('\\x')) {
