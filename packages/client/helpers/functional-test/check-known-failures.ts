@@ -16,7 +16,7 @@ import fs from 'fs'
 
 const JEST_RESULTS_FILE_LOCATION = './tests/functional/results.json'
 
-function getFailedTestNames(): string[] {
+function getTestNames(): { all: Set<string>; failed: string[] } {
   if (!fs.existsSync(JEST_RESULTS_FILE_LOCATION)) {
     throw Error(
       `❌ Jest results file not found at ${JEST_RESULTS_FILE_LOCATION}. Please run the jest tests with "--json --outputFile=./tests/functional/results.json" flag first!`,
@@ -25,22 +25,23 @@ function getFailedTestNames(): string[] {
 
   const testResults = JSON.parse(fs.readFileSync(JEST_RESULTS_FILE_LOCATION, 'utf-8'))
 
-  return testResults['testResults']
+  const tests = testResults['testResults']
     .filter((test) => test.status === 'failed')
-    .reduce(
-      (acc, test) =>
-        acc.concat(
-          test.assertionResults
-            .filter((assertion) => assertion.status === 'failed')
-            .map((assertion) => assertion.fullName.replaceAll(/seed=-?\d+/g, 'seed=XXXX')),
-        ),
-      [] as string[],
+    .flatMap((test) =>
+      test.assertionResults.map((assertion) => ({
+        status: assertion.status,
+        name: assertion.fullName.replaceAll(/seed=-?\d+/g, 'seed=XXXX'),
+      })),
     )
-    .sort()
+
+  const all = new Set<string>(tests.map((test) => test.name))
+  const failed = tests.filter((test) => test.status === 'failed').sort()
+
+  return { all, failed }
 }
 
 function run() {
-  const failedTestNames = getFailedTestNames()
+  const { all: allTestNames, failed: failedTestNames } = getTestNames()
 
   if (failedTestNames.length === 0) {
     console.log('🎉 No test failures! 🎉')
@@ -71,6 +72,20 @@ function run() {
       console.log('Following tests failed as expected:')
       console.error(failedTestNames.join('\n'))
       console.log('☑️ All failures are expected.')
+    }
+
+    const failedTestNamesSet = new Set(failedTestNames)
+    const unexpectedPasses = [...knownFailures].filter(
+      // A test may be not preset in `failedTestNamesSet` because it wasn't run
+      // in the current test shard on CI and not because it passed, so we need
+      // to also check if it was executed at all.
+      (testName) => allTestNames.has(testName) && !failedTestNamesSet.has(testName),
+    )
+    if (unexpectedPasses.length > 0) {
+      console.error('⚠️ Unexpected passes found: ⚠️')
+      console.error(unexpectedPasses.join('\n'))
+      console.error('💥 These tests seem to be fixed now and must be removed from the known failures list.')
+      process.exit(1)
     }
   }
 }
