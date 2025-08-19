@@ -33,7 +33,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
       .moduleExport(
         ts
           .constDeclaration('PrismaClient')
-          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
+          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__prisma__dirname')])),
       )
       .setDocComment(getPrismaClientClassDocComment(context)),
     ts.moduleExport(
@@ -118,7 +118,7 @@ ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
   if (edge) {
     return `\
-const __dirname = '/'
+const __prisma__dirname = '/'
 `
   }
 
@@ -130,7 +130,7 @@ import * as path from 'node:path'
   if (moduleFormat === 'esm') {
     preamble += `\
 import { fileURLToPath } from 'node:url'
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const __prisma__dirname = path.dirname(fileURLToPath(import.meta.url))
 `
   }
 
