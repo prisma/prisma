@@ -4,8 +4,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-bun-c
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -23,8 +22,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-bun-e
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -42,8 +40,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-deno-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -61,8 +58,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-deno-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -80,8 +76,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -99,8 +94,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -118,8 +112,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-nodej
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -137,8 +130,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-nodej
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -156,8 +148,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-worke
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -175,8 +166,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-worke
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 

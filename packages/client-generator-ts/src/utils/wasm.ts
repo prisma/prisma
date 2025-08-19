@@ -87,8 +87,7 @@ export function buildGetWasmModule({
     return `
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = new Uint8Array(Buffer.from(wasmBase64, 'base64'))
   return new WebAssembly.Module(wasmArray)
 }
 
