@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 
 import type { FileMap } from '../generateClient'
 import { ModuleFormat } from '../module-format'
-import { isNodeJsLike, RuntimeTarget } from '../runtime-targets'
+import { RuntimeTarget } from '../runtime-targets'
 import { RuntimeName } from '../TSClient/TSClient'
 
 export type BuildWasmModuleOptions = {
@@ -21,24 +21,6 @@ export type BuildWasmModuleOptions = {
 }
 
 const debug = Debug('prisma:client-generator-ts:wasm')
-
-/**
- * This function evaluates to:
- * - `import(name)` for all bundler targets, except Webpack, but including Turbopack.
- * - `__non_webpack_require__(name)` for Webpack targets.
- *
- * This is used to dynamically import a module at runtime, while also excluding it from Webpack's bundle.
- * It allows to mitigate the following issues:
- * - https://github.com/webpack/webpack/issues/19607
- * - https://github.com/prisma/prisma/issues/27049
- * - https://github.com/prisma/prisma/issues/27343
- */
-function buildDynamicRequireFn() {
-  return `const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof globalThis.__non_webpack_require__ === 'function'
-        ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)`
-}
 
 function usesEdgeWasmRuntime(component: 'engine' | 'compiler', runtimeName: RuntimeName) {
   return (
@@ -66,8 +48,6 @@ export function buildGetWasmModule({
     .with('library', () => component === 'engine' && !!process.env.PRISMA_CLIENT_FORCE_WASM)
     .with('client', () => component === 'compiler')
     .otherwise(() => false)
-
-  const buildNodeJsLoader = buildNonEdgeLoader && isNodeJsLike(target)
 
   const buildEdgeLoader = usesEdgeWasmRuntime(component, runtimeName)
 
@@ -101,7 +81,7 @@ export function buildGetWasmModule({
     wasmModulePath = `${wasmPathBase}.wasm`
   }
 
-  if (buildNodeJsLoader) {
+  if (buildNonEdgeLoader) {
     wasmBindingsPath = `${wasmPathBase}.${extension}`
     wasmModulePath = `${wasmPathBase}.wasm-base64.${extension}`
     return `
@@ -122,24 +102,6 @@ config.${component}Wasm = {
 }`
   }
 
-  if (buildNonEdgeLoader) {
-    return `config.${component}Wasm = {
-  getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
-
-  getQuery${capitalizedComponent}WasmModule: async () => {
-    ${buildDynamicRequireFn()}
-
-    // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
-    const { readFile } = await dynamicRequireFn('node:fs/promises')
-    ${buildRequire(moduleFormat)}
-    const wasmModulePath = _require.resolve(${JSON.stringify(wasmModulePath)})
-    const wasmModuleBytes = await readFile(wasmModulePath)
-
-    return new globalThis.WebAssembly.Module(wasmModuleBytes)
-  }
-}`
-  }
-
   if (buildEdgeLoader) {
     const fullWasmModulePath = target === 'edge-light' ? `${wasmModulePath}?module` : wasmModulePath
 
@@ -154,15 +116,6 @@ config.${component}Wasm = {
   }
 
   return `config.${component}Wasm = undefined`
-}
-
-function buildRequire(moduleFormat: ModuleFormat): string {
-  if (moduleFormat === 'cjs') {
-    return 'const _require = require\n'
-  }
-
-  return `const { createRequire } = await dynamicRequireFn('node:module')
-    const _require = createRequire(import.meta.url)\n`
 }
 
 export type BuildWasmFileMapOptions = {
