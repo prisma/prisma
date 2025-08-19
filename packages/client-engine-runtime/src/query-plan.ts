@@ -320,7 +320,7 @@ export type FieldScalarType =
         | 'object'
         | 'datetime'
         | 'decimal'
-        | 'bytes'
         | 'unsupported'
     }
   | { type: 'enum'; name: string }
+  | { type: 'bytes'; encoding: 'array' | 'base64' | 'hex' }

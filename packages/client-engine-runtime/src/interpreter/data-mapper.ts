@@ -240,19 +240,36 @@ function mapValue(
     }
 
     case 'bytes': {
-      if (typeof value === 'string' && value.startsWith('\\x')) {
-        // Postgres bytea hex format. We have to handle it here and not only in
-        // driver adapters in order to support `Bytes` fields in nested records
-        // when using `relationLoadStrategy: join`.
-        return { $type: 'Bytes', value: Buffer.from(value.slice(2), 'hex').toString('base64') }
+      switch (scalarType.encoding) {
+        case 'base64':
+          if (typeof value !== 'string') {
+            throw new DataMapperError(
+              `Expected a base64-encoded byte array in column '${columnName}', got ${typeof value}: ${value}`,
+            )
+          }
+          return { $type: 'Bytes', value: value.replace('\n', '') }
+
+        case 'hex':
+          if (typeof value !== 'string' || !value.startsWith('\\x')) {
+            throw new DataMapperError(
+              `Expected a hex-encoded byte array in column '${columnName}', got ${typeof value}: ${value}`,
+            )
+          }
+          return { $type: 'Bytes', value: Buffer.from(value.slice(2), 'hex').toString('base64') }
+
+        case 'array':
+          if (Array.isArray(value)) {
+            return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
+          }
+          if (value instanceof Uint8Array) {
+            return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
+          }
+          throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
+
+        default:
+          assertNever(scalarType.encoding, `DataMapper: Unknown bytes encoding: ${scalarType.encoding}`)
       }
-      if (Array.isArray(value)) {
-        return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
-      }
-      if (value instanceof Uint8Array) {
-        return { $type: 'Bytes', value: Buffer.from(value).toString('base64') }
-      }
-      throw new DataMapperError(`Expected a byte array in column '${columnName}', got ${typeof value}: ${value}`)
+      break
     }
 
     case 'enum': {
