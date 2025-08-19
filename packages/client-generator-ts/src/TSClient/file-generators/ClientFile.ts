@@ -132,6 +132,10 @@ import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
 const __prisma__dirname = path.dirname(fileURLToPath(import.meta.url))
 `
+  } else {
+    preamble += `\
+const __prisma__dirname = __dirname
+`
   }
 
   return preamble
