@@ -76,6 +76,7 @@ testMatrix.setupTestSuite(
           ),
         })
 
+        // @ts-test-if: provider !== Providers.MONGODB
         const users = await prisma.user.createManyAndReturn({
           data: [
             {
