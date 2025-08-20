@@ -24,6 +24,7 @@ export type {
   OfficialDriverAdapterName,
   Provider,
   Queryable,
+  ResultValue,
   SqlDriverAdapter,
   SqlDriverAdapterFactory,
   SqlMigrationAwareDriverAdapterFactory,

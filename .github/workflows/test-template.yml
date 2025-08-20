@@ -399,7 +399,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand --json --outputFile ./tests/functional/results.json # TODO: `--json --outputFile` can be dropped once we remove the checkAgainstKnownFailures step below
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -407,11 +407,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          JEST_ALWAYS_EXIT_WITH_CODE_ZERO: true # TODO: only needed while we know jest tests are failing and do the checkAgainstKnownFailures step below
-
-      # Checks failed jest tests against known failures => fails build only if non known tests fail
-      - run: pnpm run test:knownQueryCompilerFailures:check ${{ matrix.flavor }}
-        working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

@@ -1,4 +1,4 @@
-import { ArgType, ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, ResultValue } from '@prisma/driver-adapter-utils'
 
 export type Value = null | string | number | object
 
@@ -102,7 +102,7 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(result: unknown[], columnTypes: ColumnType[]): unknown[] {
+export function mapRow<A>(result: (A | ResultValue)[], columnTypes: ColumnType[]): (A | ResultValue)[] {
   for (let i = 0; i < result.length; i++) {
     const value = result[i]
 

@@ -3,6 +3,11 @@ import { Result } from './result'
 
 export type ColumnType = (typeof ColumnTypeEnum)[keyof typeof ColumnTypeEnum]
 
+/**
+ * Represents a value that can be returned for a column from `queryRaw`.
+ */
+export type ResultValue = number | string | boolean | null | ResultValue[]
+
 export interface SqlResultSet {
   /**
    * List of column types appearing in a database query, in the same order as `columnNames`.

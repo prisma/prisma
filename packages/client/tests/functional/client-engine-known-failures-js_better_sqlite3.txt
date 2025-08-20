@@ -1,2 +1,0 @@
-issues.15204-conversion-error (provider=sqlite, fieldType=BigInt, js_better_sqlite3) should return a descriptive error
-issues.15204-conversion-error (provider=sqlite, fieldType=Int, js_better_sqlite3) should return a descriptive error

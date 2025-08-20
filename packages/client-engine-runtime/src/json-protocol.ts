@@ -83,7 +83,7 @@ function normalizeTaggedValue({ $type, value }: JsonOutputTaggedValue): JsonOutp
     case 'BigInt':
       return { $type, value: String(value) }
     case 'Bytes':
-      return { $type, value }
+      return { $type, value: Buffer.from(value, 'base64').toString('base64') }
     case 'DateTime':
       return { $type, value: new Date(value).toISOString() }
     case 'Decimal':
