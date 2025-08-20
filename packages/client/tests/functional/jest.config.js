@@ -37,10 +37,6 @@ module.exports = () => {
     ])
   }
 
-  if (process.env['JEST_ALWAYS_EXIT_WITH_CODE_ZERO'] === 'true') {
-    configCommon.testFailureExitCode = 0
-  }
-
   return {
     ...configCommon,
     transform: {
