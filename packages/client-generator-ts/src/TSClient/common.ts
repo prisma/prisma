@@ -373,6 +373,28 @@ export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
+export type NonUndefined<T> = Exclude<T, undefined>
+
+export type JsonFilterNonPath<T> = Omit<T, 'path'>
+
+export type JsonFilterAllowedKeys<T> = Exclude<keyof JsonFilterNonPath<T>, 'mode'>
+
+/**
+ * Exactly one allowed key K, and its value cannot be undefined.
+ */
+export type JsonFilterOneKey<T, K extends JsonFilterAllowedKeys<T>> =
+  Exact<
+    { [P in K]-?: NonUndefined<JsonFilterNonPath<T>[P]> },
+    Pick<JsonFilterNonPath<T>, K>
+  >
+
+export type JsonFilterWithoutPath<T> =
+  OptionalFlat<JsonFilterNonPath<T>> & { path?: never }
+
+export type JsonFilterWithPath<T> =
+  { path: string[] } &
+  { [K in JsonFilterAllowedKeys<T>]: JsonFilterOneKey<T, K> }[JsonFilterAllowedKeys<T>]
+
 `
 }
 
