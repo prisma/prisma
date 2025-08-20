@@ -1,0 +1,9 @@
+generator client {
+  provider = "prisma-client"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_URI")
+}

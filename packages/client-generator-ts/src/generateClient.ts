@@ -78,6 +78,7 @@ export interface BuildClientResult {
   prismaClientDmmf: DMMF.Document
 }
 
+// Note: this breaks
 export function buildClient({
   schemaPath,
   runtimeBase,
