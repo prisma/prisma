@@ -42,7 +42,7 @@ import * as __banner_node_path from "node:path";
 import * as process from "node:process";
 import * as __banner_node_url from "node:url";
 const __filename = __banner_node_url.fileURLToPath(import.meta.url);
-const __prisma__dirname = __banner_node_path.dirname(__filename);
+globalThis['__dirname'] = __banner_node_path.dirname(__filename);
 const require = __banner_node_module.createRequire(import.meta.url);`
 
 // we define the config for runtime
