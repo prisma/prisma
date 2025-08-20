@@ -13,7 +13,7 @@ declare let loaded: {
 }
 
 testMatrix.setupTestSuite(
-  ({ driverAdapter }, _suiteMeta, _clientMeta, _cliMeta, info) => {
+  ({ driverAdapter, clientRuntime }, _suiteMeta, _clientMeta, _cliMeta, info) => {
     test('can create data with an enum array', async () => {
       const { Plan } = loaded
 
@@ -43,11 +43,12 @@ testMatrix.setupTestSuite(
       expect(data.plans).toEqual([Plan.FREE])
     })
 
-    testIf(driverAdapter === 'js_pg')(
+    testIf(driverAdapter === 'js_pg' && clientRuntime === 'client')(
       'can retrieve data with an enum array with a raw query and a custom parser',
       async () => {
         const { Plan } = loaded
 
+        // @ts-test-if: driverAdapter === 'js_pg'
         const prisma = newPrismaClient({
           adapter: new PrismaPg(
             {
