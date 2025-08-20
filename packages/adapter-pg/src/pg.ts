@@ -41,6 +41,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     debug(`${tag} %O`, query)
 
     const { fields, rows } = await this.performIO(query)
+    debug(`${tag} rows: %O`, rows)
 
     const columnNames = fields.map((field) => field.name)
     let columnTypes: ColumnType[] = []

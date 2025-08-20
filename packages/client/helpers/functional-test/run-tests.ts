@@ -35,8 +35,6 @@ const jestArgs = {
   // Use this flag to show full diffs and errors instead of a patch.
   '--expand': Boolean,
   '-e': '--expand',
-  // Create json test report -a lso see --outputFile.
-  '--json': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
   '--listTests': Boolean,
   // Lists all test files that Jest will run given the arguments, and exits.
@@ -51,8 +49,6 @@ const jestArgs = {
   '--noStackTrace': Boolean,
   // Activates notifications for test results.
   '--notify': Boolean,
-  // Output file location for json output. Also see --json.
-  '--outputFile': String,
   // Passes the same flag to Jest to shard tests between multiple machines
   '--shard': String,
   // Passes the same flag to Jest to silence the output
