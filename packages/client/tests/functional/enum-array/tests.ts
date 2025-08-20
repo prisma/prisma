@@ -48,8 +48,8 @@ testMatrix.setupTestSuite(
       async () => {
         const { Plan } = loaded
 
-        // @ts-test-if: driverAdapter === 'js_pg'
         const prisma = newPrismaClient({
+          // @ts-test-if: driverAdapter !== undefined
           adapter: new PrismaPg(
             {
               connectionString: info.databaseUrl,
@@ -87,6 +87,7 @@ testMatrix.setupTestSuite(
           ],
         })
 
+        // @ts-test-if: provider !== Providers.MONGODB
         const data = await prisma.$queryRaw<imports.User[]>`
         SELECT * FROM "User" WHERE "plans" @> Array['CUSTOM']::"Plan"[]
       `
