@@ -56,6 +56,7 @@ function setupTestSuiteMatrix(
     suiteMeta: TestCallbackSuiteMeta,
     clientMeta: ClientMeta,
     cliMeta: CliMeta,
+    datasourceInfo: DatasourceInfo,
   ) => void,
   options?: MatrixOptions,
 ) {
@@ -87,11 +88,10 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
+      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
-
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
 
         // If using D1 Driver adapter
@@ -204,7 +204,7 @@ function setupTestSuiteMatrix(
         test('generate only', () => {})
       }
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, cliMeta)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, cliMeta, datasourceInfo)
     })
   }
 }
