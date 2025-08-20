@@ -1,7 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { expectTypeOf } from 'expect-type'
 
-import { Providers } from '../_utils/providers'
 import { NewPrismaClient } from '../_utils/types'
 // @ts-ignore
 import testMatrix from './_matrix'
@@ -14,7 +13,7 @@ declare let loaded: {
 }
 
 testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, _clientMeta, _cliMeta, info) => {
+  ({ driverAdapter }, _suiteMeta, _clientMeta, _cliMeta, info) => {
     test('can create data with an enum array', async () => {
       const { Plan } = loaded
 
@@ -44,7 +43,7 @@ testMatrix.setupTestSuite(
       expect(data.plans).toEqual([Plan.FREE])
     })
 
-    testIf(provider === Providers.POSTGRESQL)(
+    testIf(driverAdapter === 'js_pg')(
       'can retrieve data with an enum array with a raw query and a custom parser',
       async () => {
         const { Plan } = loaded
