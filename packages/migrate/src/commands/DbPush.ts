@@ -19,6 +19,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
@@ -117,6 +118,8 @@ ${bold('Examples')}
     let wasDatabaseReset = false
     if (args['--force-reset']) {
       process.stdout.write('\n')
+
+      aiAgentConfirmationCheckpoint()
 
       try {
         await migrate.reset()

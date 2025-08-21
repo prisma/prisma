@@ -15,6 +15,7 @@ import {
 import { bold, dim, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
@@ -117,6 +118,8 @@ ${bold('Examples')}
         throw Error(`The database name entered "${confirmation.value}" doesn't match "${datasourceInfo.dbName}".`)
       }
     }
+
+    aiAgentConfirmationCheckpoint()
 
     // Url exists because we set `ignoreEnvVarErrors: false` when calling `loadSchemaContext`
     if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
