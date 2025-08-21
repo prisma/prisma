@@ -204,9 +204,9 @@ describe('using cli', () => {
     }
   })
 
-  describe('should work with --allow-no-models', () => {
+  describe('prisma-client-js should work with no models', () => {
     const generateWithNoModels = async (ctx: BaseContext) => {
-      const data = await ctx.cli('generate', '--allow-no-models')
+      const data = await ctx.cli('generate')
 
       if (typeof data.signal === 'number' && data.signal !== 0) {
         throw new Error(data.stderr + data.stdout)
@@ -216,27 +216,59 @@ describe('using cli', () => {
     }
 
     test('with sqlite', async () => {
-      ctx.fixture('no-models/sqlite')
+      ctx.fixture('no-models-prisma-client-js/sqlite')
       await generateWithNoModels(ctx)
     })
 
     test('with mysql', async () => {
-      ctx.fixture('no-models/mysql')
+      ctx.fixture('no-models-prisma-client-js/mysql')
       await generateWithNoModels(ctx)
     })
 
     test('with postgresql', async () => {
-      ctx.fixture('no-models/postgresql')
+      ctx.fixture('no-models-prisma-client-js/postgresql')
       await generateWithNoModels(ctx)
     })
 
     test('with sqlserver', async () => {
-      ctx.fixture('no-models/sqlserver')
+      ctx.fixture('no-models-prisma-client-js/sqlserver')
       await generateWithNoModels(ctx)
     })
 
     test('with mongo', async () => {
-      ctx.fixture('no-models/mongo')
+      ctx.fixture('no-models-prisma-client-js/mongo')
+      await generateWithNoModels(ctx)
+    })
+  })
+
+  describe('prisma-client should work with no models', () => {
+    const generateWithNoModels = async (ctx: BaseContext) => {
+      const data = await ctx.cli('generate')
+
+      if (typeof data.signal === 'number' && data.signal !== 0) {
+        throw new Error(data.stderr + data.stdout)
+      }
+
+      return data
+    }
+
+    test('with sqlite', async () => {
+      ctx.fixture('no-models-prisma-client/sqlite')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with mysql', async () => {
+      ctx.fixture('no-models-prisma-client/mysql')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with postgresql', async () => {
+      ctx.fixture('no-models-prisma-client/postgresql')
+      await generateWithNoModels(ctx)
+    })
+
+    test('with sqlserver', async () => {
+      ctx.fixture('no-models-prisma-client/sqlserver')
       await generateWithNoModels(ctx)
     })
   })
