@@ -118,7 +118,7 @@ ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
   if (edge) {
     return `\
-const __dirname = '/'
+globalThis['__dirname'] = '/'
 `
   }
 
@@ -130,7 +130,7 @@ import * as path from 'node:path'
   if (moduleFormat === 'esm') {
     preamble += `\
 import { fileURLToPath } from 'node:url'
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
 `
   }
 
