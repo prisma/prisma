@@ -16,6 +16,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
+import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
@@ -49,7 +50,7 @@ ${bold('Examples')}
   ${dim('$')} prisma migrate reset
 
   Specify a schema
-  ${dim('$')} prisma migrate reset --schema=./schema.prisma 
+  ${dim('$')} prisma migrate reset --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
   ${dim('$')} prisma migrate reset --force
@@ -120,6 +121,8 @@ ${bold('Examples')}
         process.exit(130)
       }
     }
+
+    aiAgentConfirmationCheckpoint()
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
