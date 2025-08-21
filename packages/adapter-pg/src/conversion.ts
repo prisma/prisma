@@ -3,6 +3,8 @@ import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
+import { FIRST_NORMAL_OBJECT_ID } from './constants'
+
 const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
 
@@ -260,7 +262,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       // We don't use `ColumnTypeEnum.Enum` for enums here and defer the decision to
       // the serializer in QE because it has access to the query schema, while on
       // this level we would have to query the catalog to introspect the type.
-      if (fieldTypeId >= 10_000) {
+      if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
         return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
