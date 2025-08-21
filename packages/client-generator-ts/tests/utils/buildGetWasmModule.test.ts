@@ -57,6 +57,11 @@ function makeTestCombinations() {
   for (const component of components) {
     for (const runtimeName of runtimeNames) {
       for (const target of targets) {
+        // Skip impossible combinations
+        if (['edge', 'wasm-compiler-edge'].includes(runtimeName) && !['vercel-edge', 'workerd'].includes(target)) {
+          continue
+        }
+
         for (const moduleFormat of moduleFormats) {
           const testName = `${component}-${runtimeName}-${target}-${moduleFormat}` as const
           combinations.push({
