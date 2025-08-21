@@ -162,7 +162,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 function wasmFileToBase64(wasmBuffer: Buffer, format: ModuleFormat = 'esm'): string {
   const base64 = wasmBuffer.toString('base64')
   const moduleExports = format === 'esm' ? 'export { wasm }' : 'module.exports = { wasm }'
-  const encodedWasmContent = `const wasm = "data:application/wasm;base64,${base64}";\n${moduleExports}\n`
+  const encodedWasmContent = `const wasm = "${base64}";\n${moduleExports}\n`
   return encodedWasmContent
 }
 
