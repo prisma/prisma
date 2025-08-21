@@ -5,9 +5,8 @@ const supportedPublicRuntimes = [
   'bun',
   'workerd',
   'cloudflare',
-  'edge-light' /* @deprecated. TODO: remove in Prisma 7 */,
-  'vercel' /* @deprecated. TODO: remove in Prisma 7 */,
   'vercel-edge',
+  'edge-light',
   'react-native',
 ] as const
 
@@ -28,7 +27,6 @@ function parseRuntimeTarget(target: RuntimeTarget | (string & {})): RuntimeTarge
       return 'workerd'
 
     case 'edge-light':
-    case 'vercel':
     case 'vercel-edge':
       return 'vercel-edge'
 
