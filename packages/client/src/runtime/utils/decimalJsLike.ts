@@ -1,4 +1,4 @@
-import { Decimal } from 'decimal.js'
+import { Decimal } from '@prisma/client-runtime'
 
 import { DecimalJsLike } from '../core/types/exported/DecimalJsLike'
 

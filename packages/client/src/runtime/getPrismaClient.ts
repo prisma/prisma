@@ -1,5 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import { RawValue, Sql } from '@prisma/client-runtime'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
@@ -8,7 +9,6 @@ import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
-import { RawValue, Sql } from 'sql-template-tag'
 
 import {
   PrismaClientInitializationError,

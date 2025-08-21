@@ -64,6 +64,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
     },
     plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/), nodeProtocolPlugin],
     banner: format === 'esm' ? { js: NODE_ESM_BANNER } : undefined,
+    external: ['@prisma/client-runtime'],
   }
 }
 
@@ -139,6 +140,7 @@ const runtimesCommonBuildConfig = {
   },
   logLevel: 'error',
   legalComments: 'none',
+  external: ['@prisma/client-runtime'],
 } satisfies BuildOptions
 
 // we define the config for edge

@@ -690,8 +690,12 @@ jobs:
         working-directory: packages/client-common
 
       - run: pnpm run test
-        name: 'client-engine-runtime'
-        working-directory: packages/client-engine-runtime
+        name: 'client-engine'
+        working-directory: packages/client-engine
+
+      - run: pnpm run test
+        name: 'client-runtime'
+        working-directory: packages/client-runtime
 
       - run: pnpm run test
         name: 'ts-builders'

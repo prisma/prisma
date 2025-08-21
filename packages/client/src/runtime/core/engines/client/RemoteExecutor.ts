@@ -1,5 +1,5 @@
 import type { QueryEngineLogLevel } from '@prisma/client-common'
-import type { TransactionOptions } from '@prisma/client-engine-runtime'
+import type { TransactionOptions } from '@prisma/client-engine'
 import { Debug } from '@prisma/debug'
 import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'

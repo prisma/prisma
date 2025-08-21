@@ -5,7 +5,7 @@ import {
   type TracingHelper,
   TransactionManager,
   type TransactionOptions,
-} from '@prisma/client-engine-runtime'
+} from '@prisma/client-engine'
 import type { ConnectionInfo, SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'

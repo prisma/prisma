@@ -5,7 +5,7 @@ import { FieldRef } from './FieldRef'
 import { ObjectEnumValue } from './ObjectEnums'
 import { Skip } from './Skip'
 
-export type { JsOutputValue } from '@prisma/client-engine-runtime'
+export type { JsOutputValue } from '@prisma/client-engine'
 
 export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 

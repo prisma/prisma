@@ -3,7 +3,7 @@ import { ESLintUtils, TSESTree } from '@typescript-eslint/utils'
 // Add files to this list only if there is no other option.
 // Almost always this should be third-party libraries.
 // In case of first-party code, prefer to move it into correct location
-const allowList = new Set(['sql-template-tag', '@prisma/client-common', '@prisma/generator', 'decimal.js'])
+const allowList = new Set(['@prisma/client-common', '@prisma/client-runtime', '@prisma/generator'])
 
 export default ESLintUtils.RuleCreator.withoutDocs({
   defaultOptions: [],

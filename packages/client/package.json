@@ -208,6 +208,9 @@
     "sql.js",
     "sql.mjs"
   ],
+  "dependencies": {
+    "@prisma/client-runtime": "workspace:*"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20250214.0",
     "@codspeed/benchmark.js-plugin": "4.0.0",
@@ -235,7 +238,7 @@
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-planetscale": "workspace:*",
     "@prisma/client-common": "workspace:*",
-    "@prisma/client-engine-runtime": "workspace:*",
+    "@prisma/client-engine": "workspace:*",
     "@prisma/client-generator-js": "workspace:*",
     "@prisma/client-generator-ts": "workspace:*",
     "@prisma/config": "workspace:*",
@@ -270,7 +273,6 @@
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "cookie-es": "2.0.0",
-    "decimal.js": "10.5.0",
     "esbuild": "0.25.5",
     "execa": "5.1.1",
     "expect-type": "1.2.2",
@@ -297,7 +299,6 @@
     "simple-statistics": "7.8.8",
     "sort-keys": "5.1.0",
     "source-map-support": "0.5.21",
-    "sql-template-tag": "5.2.1",
     "stacktrace-parser": "0.1.11",
     "strip-ansi": "6.0.1",
     "strip-indent": "4.0.0",
