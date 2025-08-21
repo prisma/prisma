@@ -102,7 +102,7 @@ config.${component}Wasm = {
   }
 
   if (buildEdgeLoader) {
-    const fullWasmModulePath = target === 'edge-light' ? `${wasmModulePath}?module` : wasmModulePath
+    const fullWasmModulePath = target === 'vercel-edge' ? `${wasmModulePath}?module` : wasmModulePath
 
     return `config.${component}Wasm = {
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),

@@ -418,7 +418,7 @@ function getRuntimeNameForTarget(
       return getNodeRuntimeName(engineType)
 
     case 'workerd':
-    case 'edge-light':
+    case 'vercel-edge':
       if (previewFeatures.includes('driverAdapters')) {
         return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
       } else {

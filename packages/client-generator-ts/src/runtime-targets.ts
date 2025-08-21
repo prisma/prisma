@@ -1,12 +1,13 @@
-export const supportedInternalRuntimes = ['nodejs', 'workerd', 'edge-light', 'react-native'] as const
+export const supportedInternalRuntimes = ['nodejs', 'workerd', 'vercel-edge', 'react-native'] as const
 const supportedPublicRuntimes = [
   'nodejs',
   'deno',
   'bun',
   'workerd',
   'cloudflare',
-  'edge-light',
-  'vercel',
+  'edge-light' /* @deprecated. TODO: remove in Prisma 7 */,
+  'vercel' /* @deprecated. TODO: remove in Prisma 7 */,
+  'vercel-edge',
   'react-native',
 ] as const
 
@@ -28,7 +29,8 @@ function parseRuntimeTarget(target: RuntimeTarget | (string & {})): RuntimeTarge
 
     case 'edge-light':
     case 'vercel':
-      return 'edge-light'
+    case 'vercel-edge':
+      return 'vercel-edge'
 
     case 'nodejs':
     case 'deno':
