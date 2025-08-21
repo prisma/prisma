@@ -135,7 +135,7 @@ export type Schema = ReadonlyDeep<{
   inputObjectTypes: {
     // For now there are no `model` InputTypes
     model?: InputType[]
-    prisma: InputType[]
+    prisma?: InputType[]
   }
   outputObjectTypes: {
     model: OutputType[]
