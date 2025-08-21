@@ -508,9 +508,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     // and we have to decode the WebAssembly binaries from base64.
     const wasmJsBundlePath = path.join(runtimeSourcePath, `${filename}.${suffix}.wasm-base64.js`)
     const wasmBase64: string = require(wasmJsBundlePath).wasm
-    const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
 
-    await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(base64Data, 'base64'))
+    await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(wasmBase64, 'base64'))
     await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
   }
 

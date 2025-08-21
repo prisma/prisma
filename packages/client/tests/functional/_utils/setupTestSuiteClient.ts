@@ -194,8 +194,7 @@ export function setupTestSuiteClientDriverAdapter({
         getQueryEngineWasmModule: () => {
           const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm-base64.js`)
           const wasmBase64: string = require(queryEngineWasmFilePath).wasm
-          const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-          return Promise.resolve(new WebAssembly.Module(Buffer.from(base64Data, 'base64')))
+          return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
         },
       }
       return config
@@ -207,8 +206,7 @@ export function setupTestSuiteClientDriverAdapter({
         getQueryCompilerWasmModule: () => {
           const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm-base64.js`)
           const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
-          const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-          return Promise.resolve(new WebAssembly.Module(Buffer.from(base64Data, 'base64')))
+          return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
         },
       }
       return config
