@@ -26,7 +26,7 @@ import {
 } from './file-extensions'
 import { getPrismaClientDMMF } from './getDMMF'
 import { ModuleFormat } from './module-format'
-import { RuntimeTarget } from './runtime-targets'
+import type { RuntimeTargetInternal } from './runtime-targets'
 import { TSClient } from './TSClient'
 import { RuntimeName, TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
@@ -61,7 +61,7 @@ export interface GenerateClientOptions {
   /** False when --no-engine is passed via CLI */
   copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
-  target: RuntimeTarget
+  target: RuntimeTargetInternal
   generatedFileExtension: GeneratedFileExtension
   importFileExtension: ImportFileExtension
   moduleFormat: ModuleFormat
@@ -409,14 +409,12 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
 }
 
 function getRuntimeNameForTarget(
-  target: RuntimeTarget,
+  target: RuntimeTargetInternal,
   engineType: ClientEngineType,
   previewFeatures: string[],
 ): RuntimeName {
   switch (target) {
     case 'nodejs':
-    case 'deno':
-    case 'bun':
       return getNodeRuntimeName(engineType)
 
     case 'workerd':

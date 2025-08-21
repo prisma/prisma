@@ -7,15 +7,15 @@ import { ActiveConnectorType } from '@prisma/generator'
 import { match } from 'ts-pattern'
 
 import type { FileMap } from '../generateClient'
-import { ModuleFormat } from '../module-format'
-import { RuntimeTarget } from '../runtime-targets'
-import { RuntimeName } from '../TSClient/TSClient'
+import type { ModuleFormat } from '../module-format'
+import type { RuntimeTargetInternal } from '../runtime-targets'
+import type { RuntimeName } from '../TSClient/TSClient'
 
 export type BuildWasmModuleOptions = {
   component: 'engine' | 'compiler'
   runtimeName: RuntimeName
   runtimeBase: string
-  target: RuntimeTarget
+  target: RuntimeTargetInternal
   activeProvider: ActiveConnectorType
   moduleFormat: ModuleFormat
 }
