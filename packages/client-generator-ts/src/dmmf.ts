@@ -127,7 +127,7 @@ export class DMMFHelper implements DMMF.Document {
 
   private buildInputTypesMap() {
     const result = new Map<FullyQualifiedName, DMMF.InputType>()
-    for (const type of this.inputObjectTypes.prisma || []) {
+    for (const type of this.inputObjectTypes.prisma ?? []) {
       result.set(fullyQualifiedName(type.name, 'prisma'), type)
     }
 
