@@ -17,7 +17,8 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 
 import { name as packageName } from '../package.json'
-import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { FIRST_NORMAL_OBJECT_ID } from './constants'
+import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const types = pg.types
@@ -31,7 +32,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(protected readonly client: ClientT, protected readonly pgOptions?: PrismaPgOptions) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -55,6 +56,18 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         })
       }
       throw e
+    }
+
+    const udtParser = this.pgOptions?.userDefinedTypeParser
+    if (udtParser) {
+      for (let i = 0; i < fields.length; i++) {
+        const field = fields[i]
+        if (field.dataTypeID >= FIRST_NORMAL_OBJECT_ID && !Object.hasOwn(customParsers, field.dataTypeID)) {
+          for (let j = 0; j < rows.length; j++) {
+            rows[j][i] = await udtParser(field.dataTypeID, rows[j][i], this)
+          }
+        }
+      }
     }
 
     return {
@@ -83,13 +96,14 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * marked as unhealthy.
    */
   private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
-    const { sql, args: values } = query
+    const { sql, args } = query
+    const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
     try {
       const result = await this.client.query(
         {
           text: sql,
-          values: fixArrayBufferValues(values),
+          values,
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -113,7 +127,7 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
             },
           },
         },
-        fixArrayBufferValues(values),
+        values,
       )
 
       return result
@@ -129,8 +143,8 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  constructor(client: pg.PoolClient, readonly options: TransactionOptions) {
-    super(client)
+  constructor(client: pg.PoolClient, readonly options: TransactionOptions, readonly pgOptions?: PrismaPgOptions) {
+    super(client, pgOptions)
   }
 
   async commit(): Promise<void> {
@@ -150,10 +164,18 @@ export type PrismaPgOptions = {
   schema?: string
   disposeExternalPool?: boolean
   onPoolError?: (err: Error) => void
+  onConnectionError?: (err: Error) => void
+  userDefinedTypeParser?: UserDefinedTypeParser
 }
 
+export type UserDefinedTypeParser = (oid: number, value: unknown, adapter: SqlQueryable) => Promise<unknown>
+
 export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriverAdapter {
-  constructor(client: StdClient, private options?: PrismaPgOptions, private readonly release?: () => Promise<void>) {
+  constructor(
+    client: StdClient,
+    protected readonly pgOptions?: PrismaPgOptions,
+    private readonly release?: () => Promise<void>,
+  ) {
     super(client)
   }
 
@@ -166,6 +188,10 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
+    conn.on('error', (err) => {
+      debug(`Error from pool connection: ${err.message} %O`, err)
+      this.pgOptions?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new PgTransaction(conn, options)
@@ -203,7 +229,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
 
   getConnectionInfo(): ConnectionInfo {
     return {
-      schemaName: this.options?.schema,
+      schemaName: this.pgOptions?.schema,
       supportsRelationJoins: true,
     }
   }

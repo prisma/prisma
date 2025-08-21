@@ -41,7 +41,16 @@ export async function setupTestSuiteFiles({
   await copyPreprocessed({
     from: suiteMeta.testPath,
     to: path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
-    suiteConfig: suiteConfig.matrixOptions,
+    // Default to undefined so that every field gets bound to a variable
+    // when evaluating @ts-test-if magic comments.
+    suiteConfig: {
+      generatorType: undefined,
+      driverAdapter: undefined,
+      relationMode: undefined,
+      engineType: undefined,
+      clientRuntime: undefined,
+      ...suiteConfig.matrixOptions,
+    },
   })
 }
 
@@ -60,7 +69,7 @@ async function copyPreprocessed({
 }: {
   from: string
   to: string
-  suiteConfig: Record<string, string>
+  suiteConfig: Record<string, unknown>
 }): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
@@ -97,7 +106,7 @@ function evaluateMagicComment({
   suiteConfig,
 }: {
   conditionFromComment: string
-  suiteConfig: Record<string, string>
+  suiteConfig: Record<string, unknown>
 }): boolean {
   const script = new Script(`
   ${conditionFromComment}

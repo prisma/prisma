@@ -16,7 +16,7 @@ import type {
 import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 
 import { name as packageName } from '../package.json'
-import { customParsers, fieldToColumnType, fixArrayBufferValues, UnsupportedNativeDataType } from './conversion'
+import { customParsers, fieldToColumnType, mapArg, UnsupportedNativeDataType } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:neon')
@@ -92,13 +92,12 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
   }
 
   override async performIO(query: SqlQuery): Promise<PerformIOResult> {
-    const { sql, args: values } = query
+    const { sql, args } = query
 
     try {
       const result = await this.client.query(
         {
           text: sql,
-          values: fixArrayBufferValues(values),
           rowMode: 'array',
           types: {
             // This is the error expected:
@@ -122,7 +121,7 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
             },
           },
         },
-        fixArrayBufferValues(values),
+        args.map((arg, i) => mapArg(arg, query.argTypes[i])),
       )
 
       return result
@@ -157,6 +156,8 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
 
 export type PrismaNeonOptions = {
   schema?: string
+  onPoolError?: (err: Error) => void
+  onConnectionError?: (err: Error) => void
 }
 
 export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
@@ -179,6 +180,10 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
+    conn.on('error', (err) => {
+      debug(`Error from pool connection: ${err.message} %O`, err)
+      this.options?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new NeonTransaction(conn, options)
@@ -223,7 +228,13 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
 
   async connect(): Promise<PrismaNeonAdapter> {
-    return new PrismaNeonAdapter(new neon.Pool(this.config), this.options)
+    const pool = new neon.Pool(this.config)
+    pool.on('error', (err) => {
+      debug(`Error from pool client: ${err.message} %O`, err)
+      this.options?.onPoolError?.(err)
+    })
+
+    return new PrismaNeonAdapter(pool, this.options)
   }
 }
 

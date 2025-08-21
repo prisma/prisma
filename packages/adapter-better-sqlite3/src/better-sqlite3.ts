@@ -14,7 +14,7 @@ import type { Database as BetterSQLite3, Options as BetterSQLite3Options } from 
 import Database from 'better-sqlite3'
 
 import { name as packageName } from '../package.json'
-import { getColumnTypes, mapQueryArgs, mapRow, Row } from './conversion'
+import { getColumnTypes, mapArg, mapRow, Row } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3')
@@ -83,7 +83,8 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(...mapQueryArgs(query.args, query.argTypes))
+      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      const stmt = this.client.prepare(query.sql).bind(args)
       const result = stmt.run()
 
       return Promise.resolve(result)
@@ -99,7 +100,8 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
-      const stmt = this.client.prepare(query.sql).bind(...mapQueryArgs(query.args, query.argTypes))
+      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      const stmt = this.client.prepare(query.sql).bind(args)
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
       if (!stmt.reader) {

@@ -477,6 +477,7 @@ async function deleteOutputDir(outputDir: string) {
         await glob(
           [
             `${outputDir}/**/*.{js,ts,mts,cts,d.ts}`,
+            `${outputDir}/**/*.wasm`,
             `${outputDir}/*.node`,
             `${outputDir}/{query,schema}-engine-*`,
             `${outputDir}/package.json`,

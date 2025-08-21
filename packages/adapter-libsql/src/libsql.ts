@@ -1,7 +1,6 @@
 import type {
   Client as LibSqlClientRaw,
   Config as LibSqlConfig,
-  InStatement,
   ResultSet as LibSqlResultSet,
   Transaction as LibSqlTransactionRaw,
 } from '@libsql/client'
@@ -19,7 +18,7 @@ import { Debug, DriverAdapterError } from '@prisma/driver-adapter-utils'
 import { Mutex } from 'async-mutex'
 
 import { name as packageName } from '../package.json'
-import { getColumnTypes, mapRow } from './conversion'
+import { getColumnTypes, mapArg, mapRow } from './conversion'
 import { convertDriverError } from './errors'
 
 const debug = Debug('prisma:driver-adapter:libsql')
@@ -74,11 +73,11 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
    */
   private async performIO(query: SqlQuery): Promise<LibSqlResultSet> {
     const release = await this[LOCK_TAG].acquire()
-    if (query.args.some((arg) => Array.isArray(arg))) {
-      throw new Error('Attempted to pass an array argument to the LibSQL client, which is not supported')
-    }
     try {
-      const result = await this.client.execute(query as InStatement)
+      const result = await this.client.execute({
+        sql: query.sql,
+        args: query.args.map((arg, i) => mapArg(arg, query.argTypes[i])),
+      })
       return result
     } catch (e) {
       this.onError(e)

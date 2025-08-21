@@ -16,7 +16,10 @@ describe.each([
       conn.queryRaw({
         sql: 'SELECT ?1 as col1, ?2 as col2',
         args: [1, 'str'],
-        argTypes: ['Numeric', 'Text'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'decimal' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
       }),
     ).resolves.toMatchObject({
       columnNames: ['col1', 'col2'],
@@ -41,7 +44,10 @@ describe.each([
       conn.executeRaw({
         sql: 'INSERT INTO test (id, name) VALUES (?1, ?2)',
         args: [10, 'John'],
-        argTypes: ['Int32', 'Text'],
+        argTypes: [
+          { arity: 'scalar', scalarType: 'int' },
+          { arity: 'scalar', scalarType: 'string' },
+        ],
       }),
     ).resolves.toBe(1)
 

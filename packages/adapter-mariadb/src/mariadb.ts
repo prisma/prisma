@@ -45,10 +45,10 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
   }
 
   protected async performIO(query: SqlQuery): Promise<ArrayModeResult> {
-    const { sql, args: values } = query
+    const { sql, args } = query
 
     try {
-      const query = {
+      const req = {
         sql,
         rowsAsArray: true,
         dateStrings: true,
@@ -60,7 +60,8 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         bitOneIsBoolean: false,
         typeCast,
       }
-      return await this.client.query(query, values.map(mapArg))
+      const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      return await this.client.query(req, values)
     } catch (e) {
       const error = e as Error
       onError(error)
@@ -93,6 +94,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 
 export type PrismaMariadbOptions = {
   database?: string
+  onConnectionError?: (err: mariadb.SqlError) => void
 }
 
 export type Capabilities = {
@@ -128,6 +130,10 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.getConnection().catch((error) => onError(error))
+    conn.on('error', (err: mariadb.SqlError) => {
+      debug(`Error from connection: ${err.message} %O`, err)
+      this.options?.onConnectionError?.(err)
+    })
 
     try {
       const tx = new MariaDbTransaction(conn, options)

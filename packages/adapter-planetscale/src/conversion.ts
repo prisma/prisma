@@ -1,5 +1,5 @@
 import { cast as defaultCast } from '@planetscale/database'
-import { type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 
 import { decodeUtf8 } from './text'
 
@@ -111,4 +111,78 @@ export const cast: typeof defaultCast = (field, value) => {
   }
 
   return defaultValue
+}
+
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | string | Uint8Array | A {
+  if (arg === null) {
+    return null
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    return BigInt(arg)
+  }
+
+  if (argType.scalarType === 'datetime' && typeof arg === 'string') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case 'TIME':
+      case 'TIME2':
+        return formatTime(arg)
+      case 'DATE':
+      case 'NEWDATE':
+        return formatDate(arg)
+      default:
+        return formatDateTime(arg)
+    }
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  return arg
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getMilliseconds()
+  return (
+    date.getFullYear() +
+    '-' +
+    pad(date.getMonth() + 1) +
+    '-' +
+    pad(date.getDate()) +
+    ' ' +
+    pad(date.getHours()) +
+    ':' +
+    pad(date.getMinutes()) +
+    ':' +
+    pad(date.getSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getMilliseconds()
+  return (
+    pad(date.getHours()) +
+    ':' +
+    pad(date.getMinutes()) +
+    ':' +
+    pad(date.getSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }

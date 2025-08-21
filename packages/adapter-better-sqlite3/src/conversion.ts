@@ -1,8 +1,8 @@
-import { ArgType, ColumnType, ColumnTypeEnum, Debug } from '@prisma/driver-adapter-utils'
+import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
-type Value = null | string | number | bigint | ArrayBuffer
+type Value = null | string | number | bigint | ArrayBuffer | Buffer
 export type Row = {
   /** Number of columns in this row.
    *
@@ -142,13 +142,11 @@ class UnexpectedTypeError extends Error {
   }
 }
 
-export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
-  // `Row` doesn't have map, so we copy the array once and modify it in-place
-  // to avoid allocating and copying twice if we used `Array.from(row).map(...)`.
-  const result: unknown[] = Array.from(row)
+export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
+  const result: ResultValue[] = []
 
-  for (let i = 0; i < result.length; i++) {
-    const value = result[i]
+  for (let i = 0; i < row.length; i++) {
+    const value = row[i]
 
     // Convert array buffers to arrays of bytes.
     // Base64 would've been more efficient but would collide with the existing
@@ -182,37 +180,55 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): unknown[] {
       result[i] = value.toString()
       continue
     }
+
+    result[i] = value
   }
 
   return result
 }
 
-export function mapQueryArgs(args: unknown[], argTypes: ArgType[]): unknown[] {
-  return args.map((arg, i) => {
-    const argType = argTypes[i]
-    if (argType === 'Int32') {
-      return Number.parseInt(arg as string)
-    }
+export function mapArg<A>(arg: A | Date, argType: ArgType): null | number | BigInt | Uint8Array | string | A {
+  if (arg === null) {
+    return null
+  }
 
-    if (argType === 'Float' || argType === 'Double') {
-      return Number.parseFloat(arg as string)
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'int') {
+    return Number.parseInt(arg)
+  }
 
-    if (typeof arg === 'boolean') {
-      return arg ? 1 : 0 // SQLite does not natively support booleans
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'float') {
+    return Number.parseFloat(arg)
+  }
 
-    if (arg instanceof Date) {
-      return arg
-        .toISOString()
-        .replace('T', ' ')
-        .replace(/\.\d{3}Z$/, '')
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'decimal') {
+    // This can lose precision, but SQLite does not have a native decimal type.
+    // This is how we have historically handled it.
+    return Number.parseFloat(arg)
+  }
 
-    if (arg instanceof Uint8Array) {
-      return Buffer.from(arg)
-    }
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    return BigInt(arg)
+  }
 
-    return arg
-  })
+  if (typeof arg === 'boolean') {
+    return arg ? 1 : 0 // SQLite does not natively support booleans
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    return arg.toISOString().replace('Z', '+00:00')
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  return arg
 }

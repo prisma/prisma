@@ -1,18 +1,14 @@
 import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
 
-import type {
-  Fragment,
-  PlaceholderFormat,
-  PrismaValue,
-  PrismaValueGenerator,
-  PrismaValuePlaceholder,
-  QueryPlanDbQuery,
-} from '../query-plan'
 import {
-  isPrismaValueBigInt,
-  isPrismaValueBytes,
+  DynamicArgType,
+  type Fragment,
   isPrismaValueGenerator,
   isPrismaValuePlaceholder,
+  type PlaceholderFormat,
+  type PrismaValueGenerator,
+  type PrismaValuePlaceholder,
+  type QueryPlanDbQuery,
 } from '../query-plan'
 import { UserFacingError } from '../user-facing-error'
 import { assertNever } from '../utils'
@@ -25,81 +21,99 @@ export function renderQuery(
   generators: GeneratorRegistrySnapshot,
   maxChunkSize?: number,
 ): SqlQuery[] {
-  const queryType = dbQuery.type
-  const params = evaluateParams(dbQuery.params, scope, generators)
+  const args = dbQuery.args.map((arg) => evaluateArg(arg, scope, generators))
 
-  switch (queryType) {
+  switch (dbQuery.type) {
     case 'rawSql':
-      return [renderRawSql(dbQuery.sql, evaluateParams(dbQuery.params, scope, generators))]
+      return [renderRawSql(dbQuery.sql, args, dbQuery.argTypes)]
     case 'templateSql': {
-      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, params, maxChunkSize) : [params]
+      const chunks = dbQuery.chunkable ? chunkParams(dbQuery.fragments, args, maxChunkSize) : [args]
       return chunks.map((params) => {
         if (maxChunkSize !== undefined && params.length > maxChunkSize) {
           throw new UserFacingError('The query parameter limit supported by your database is exceeded.', 'P2029')
         }
 
-        return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params)
+        return renderTemplateSql(dbQuery.fragments, dbQuery.placeholderFormat, params, dbQuery.argTypes)
       })
     }
     default:
-      assertNever(queryType, `Invalid query type`)
+      assertNever(dbQuery['type'], `Invalid query type`)
   }
 }
 
-function evaluateParams(params: PrismaValue[], scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown[] {
-  return params.map((param) => evaluateParam(param, scope, generators))
-}
-
-export function evaluateParam(
-  param: PrismaValue,
-  scope: ScopeBindings,
-  generators: GeneratorRegistrySnapshot,
-): unknown {
-  let value: unknown = param
-
-  while (doesRequireEvaluation(value)) {
-    if (isPrismaValuePlaceholder(value)) {
-      const found = scope[value.prisma__value.name]
+export function evaluateArg(arg: unknown, scope: ScopeBindings, generators: GeneratorRegistrySnapshot): unknown {
+  while (doesRequireEvaluation(arg)) {
+    if (isPrismaValuePlaceholder(arg)) {
+      const found = scope[arg.prisma__value.name]
       if (found === undefined) {
-        throw new Error(`Missing value for query variable ${value.prisma__value.name}`)
+        throw new Error(`Missing value for query variable ${arg.prisma__value.name}`)
       }
-      value = found
-    } else if (isPrismaValueGenerator(value)) {
-      const { name, args } = value.prisma__value
+      arg = found
+    } else if (isPrismaValueGenerator(arg)) {
+      const { name, args } = arg.prisma__value
       const generator = generators[name]
       if (!generator) {
         throw new Error(`Encountered an unknown generator '${name}'`)
       }
-      value = generator.generate(...args.map((arg) => evaluateParam(arg, scope, generators)))
+      arg = generator.generate(...args.map((arg) => evaluateArg(arg, scope, generators)))
     } else {
-      assertNever(value, `Unexpected unevaluated value type: ${value}`)
+      assertNever(arg, `Unexpected unevaluated value type: ${arg}`)
     }
   }
 
-  if (Array.isArray(value)) {
-    value = value.map((el) => evaluateParam(el, scope, generators))
-  } else if (isPrismaValueBytes(value)) {
-    value = Buffer.from(value.prisma__value, 'base64')
-  } else if (isPrismaValueBigInt(value)) {
-    value = BigInt(value.prisma__value)
+  if (Array.isArray(arg)) {
+    arg = arg.map((el) => evaluateArg(el, scope, generators))
   }
 
-  return value
+  return arg
 }
 
-function renderTemplateSql(fragments: Fragment[], placeholderFormat: PlaceholderFormat, params: unknown[]): SqlQuery {
+function renderTemplateSql(
+  fragments: Fragment[],
+  placeholderFormat: PlaceholderFormat,
+  params: unknown[],
+  argTypes: DynamicArgType[],
+): SqlQuery {
   let sql = ''
   const ctx = { placeholderNumber: 1 }
   const flattenedParams: unknown[] = []
-  for (const fragment of pairFragmentsWithParams(fragments, params)) {
-    flattenedParams.push(...flattenedFragmentParams(fragment))
+  const flattenedArgTypes: ArgType[] = []
+
+  for (const fragment of pairFragmentsWithParams(fragments, params, argTypes)) {
     sql += renderFragment(fragment, placeholderFormat, ctx)
+    if (fragment.type === 'stringChunk') {
+      continue
+    }
+    const length = flattenedParams.length
+    const added = flattenedParams.push(...flattenedFragmentParams(fragment)) - length
+
+    if (fragment.argType.arity === 'tuple') {
+      if (added % fragment.argType.elements.length !== 0) {
+        throw new Error(
+          `Malformed query template. Expected the number of parameters to match the tuple arity, but got ${added} parameters for a tuple of arity ${fragment.argType.elements.length}.`,
+        )
+      }
+      // If we have a tuple, we just expand its elements repeatedly.
+      for (let i = 0; i < added / fragment.argType.elements.length; i++) {
+        flattenedArgTypes.push(...fragment.argType.elements)
+      }
+    } else {
+      // If we have a non-tuple, we just expand the single type repeatedly.
+      for (let i = 0; i < added; i++) {
+        flattenedArgTypes.push(fragment.argType)
+      }
+    }
   }
-  return renderRawSql(sql, flattenedParams)
+
+  return {
+    sql,
+    args: flattenedParams,
+    argTypes: flattenedArgTypes,
+  }
 }
 
-function renderFragment(
-  fragment: FragmentWithParams,
+function renderFragment<Type extends DynamicArgType | undefined>(
+  fragment: FragmentWithParams<Type>,
   placeholderFormat: PlaceholderFormat,
   ctx: { placeholderNumber: number },
 ): string {
@@ -139,53 +153,31 @@ function formatPlaceholder(placeholderFormat: PlaceholderFormat, placeholderNumb
   return placeholderFormat.hasNumbering ? `${placeholderFormat.prefix}${placeholderNumber}` : placeholderFormat.prefix
 }
 
-function renderRawSql(sql: string, params: unknown[]): SqlQuery {
-  const argTypes = params.map((param) => toArgType(param))
-
+function renderRawSql(sql: string, args: unknown[], argTypes: ArgType[]): SqlQuery {
   return {
     sql,
-    args: params,
+    args: args,
     argTypes,
   }
-}
-
-function toArgType(value: unknown): ArgType {
-  if (typeof value === 'string') {
-    return 'Text'
-  }
-
-  if (typeof value === 'number') {
-    return 'Numeric'
-  }
-
-  if (typeof value === 'boolean') {
-    return 'Boolean'
-  }
-
-  if (Array.isArray(value)) {
-    return 'Array'
-  }
-
-  if (Buffer.isBuffer(value)) {
-    return 'Bytes'
-  }
-
-  return 'Unknown'
 }
 
 function doesRequireEvaluation(param: unknown): param is PrismaValuePlaceholder | PrismaValueGenerator {
   return isPrismaValuePlaceholder(param) || isPrismaValueGenerator(param)
 }
 
-type FragmentWithParams = Fragment &
+type FragmentWithParams<Type extends DynamicArgType | undefined = undefined> = Fragment &
   (
     | { type: 'stringChunk' }
-    | { type: 'parameter'; value: unknown }
-    | { type: 'parameterTuple'; value: unknown[] }
-    | { type: 'parameterTupleList'; value: unknown[][] }
+    | { type: 'parameter'; value: unknown; argType: Type }
+    | { type: 'parameterTuple'; value: unknown[]; argType: Type }
+    | { type: 'parameterTupleList'; value: unknown[][]; argType: Type }
   )
 
-function* pairFragmentsWithParams(fragments: Fragment[], params: unknown[]): Generator<FragmentWithParams> {
+function* pairFragmentsWithParams<Types>(
+  fragments: Fragment[],
+  params: unknown[],
+  argTypes: Types,
+): Generator<FragmentWithParams<Types extends DynamicArgType[] ? DynamicArgType : undefined>> {
   let index = 0
 
   for (const fragment of fragments) {
@@ -195,7 +187,8 @@ function* pairFragmentsWithParams(fragments: Fragment[], params: unknown[]): Gen
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        yield { ...fragment, value: params[index++] }
+        yield { ...fragment, value: params[index], argType: argTypes?.[index] }
+        index++
         break
       }
 
@@ -209,8 +202,9 @@ function* pairFragmentsWithParams(fragments: Fragment[], params: unknown[]): Gen
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        const value = params[index++]
-        yield { ...fragment, value: Array.isArray(value) ? value : [value] }
+        const value = params[index]
+        yield { ...fragment, value: Array.isArray(value) ? value : [value], argType: argTypes?.[index] }
+        index++
         break
       }
 
@@ -219,7 +213,7 @@ function* pairFragmentsWithParams(fragments: Fragment[], params: unknown[]): Gen
           throw new Error(`Malformed query template. Fragments attempt to read over ${params.length} parameters.`)
         }
 
-        const value = params[index++]
+        const value = params[index]
         if (!Array.isArray(value)) {
           throw new Error(`Malformed query template. Tuple list expected.`)
         }
@@ -232,14 +226,17 @@ function* pairFragmentsWithParams(fragments: Fragment[], params: unknown[]): Gen
           }
         }
 
-        yield { ...fragment, value }
+        yield { ...fragment, value, argType: argTypes?.[index] }
+        index++
         break
       }
     }
   }
 }
 
-function* flattenedFragmentParams(fragment: FragmentWithParams): Generator<unknown, undefined, undefined> {
+function* flattenedFragmentParams<Type extends DynamicArgType | undefined>(
+  fragment: FragmentWithParams<Type>,
+): Generator<unknown, undefined, undefined> {
   switch (fragment.type) {
     case 'parameter':
       yield fragment.value
@@ -262,7 +259,7 @@ function chunkParams(fragments: Fragment[], params: unknown[], maxChunkSize?: nu
   // parameters in a single fragment is.
   let totalParamCount = 0
   let maxParamsPerFragment = 0
-  for (const fragment of pairFragmentsWithParams(fragments, params)) {
+  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
     let paramSize = 0
     for (const _ of flattenedFragmentParams(fragment)) {
       void _
@@ -273,7 +270,7 @@ function chunkParams(fragments: Fragment[], params: unknown[], maxChunkSize?: nu
   }
 
   let chunkedParams: unknown[][] = [[]]
-  for (const fragment of pairFragmentsWithParams(fragments, params)) {
+  for (const fragment of pairFragmentsWithParams(fragments, params, undefined)) {
     switch (fragment.type) {
       case 'parameter': {
         for (const params of chunkedParams) {

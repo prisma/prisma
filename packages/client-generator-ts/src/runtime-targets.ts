@@ -35,7 +35,3 @@ export function parseRuntimeTargetFromUnknown(target: unknown): RuntimeTarget {
   }
   return parseRuntimeTarget(target)
 }
-
-export function isNodeJsLike(target: RuntimeTarget): boolean {
-  return target === 'nodejs' || target === 'bun' || target === 'deno'
-}

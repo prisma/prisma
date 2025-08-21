@@ -1,4 +1,11 @@
-import { ColumnType, ColumnTypeEnum, DriverAdapterError, IsolationLevel } from '@prisma/driver-adapter-utils'
+import {
+  ArgType,
+  ColumnType,
+  ColumnTypeEnum,
+  DriverAdapterError,
+  IsolationLevel,
+  ResultValue,
+} from '@prisma/driver-adapter-utils'
 import sql from 'mssql'
 
 export function mapColumnType(col: sql.IColumn): ColumnType {
@@ -83,26 +90,76 @@ export function mapIsolationLevel(level: IsolationLevel): sql.IIsolationLevel {
   }
 }
 
-export function mapArg(arg: unknown): unknown {
-  if (arg instanceof Uint8Array) {
-    return Buffer.from(arg)
+export function mapArg<A>(arg: A | BigInt | Date, argType: ArgType): null | number | BigInt | string | Uint8Array | A {
+  if (arg === null) {
+    return null
   }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bigint') {
+    arg = BigInt(arg)
+  }
+
   if (typeof arg === 'bigint') {
     if (arg >= BigInt(Number.MIN_SAFE_INTEGER) && arg <= BigInt(Number.MAX_SAFE_INTEGER)) {
       return Number(arg)
     }
     return arg.toString()
   }
+
+  if (typeof arg === 'string' && argType.scalarType === 'datetime') {
+    arg = new Date(arg)
+  }
+
+  if (arg instanceof Date) {
+    switch (argType.dbType) {
+      case 'TIME':
+        return formatTime(arg)
+      case 'DATE':
+        return formatDate(arg)
+      default:
+        return formatDateTime(arg)
+    }
+  }
+
+  if (typeof arg === 'string' && argType.scalarType === 'bytes') {
+    return Buffer.from(arg, 'base64')
+  }
+
+  if (Array.isArray(arg) && argType.scalarType === 'bytes') {
+    return Buffer.from(arg)
+  }
+
+  if (ArrayBuffer.isView(arg)) {
+    return Buffer.from(arg.buffer, arg.byteOffset, arg.byteLength)
+  }
+
   return arg
 }
 
-export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
+export function mapRow<A>(row: A[], columns?: sql.IColumn[]): (A | ResultValue)[] {
   return row.map((value, i) => {
+    const type = columns?.[i]?.type
     if (value instanceof Date) {
-      if (columns?.[i]?.type === sql.Time) {
-        return value.toISOString().split('T').at(1)?.replace('Z', '')
+      if (type === sql.Time) {
+        return value.toISOString().split('T')[1].replace('Z', '')
       }
       return value.toISOString()
+    }
+
+    if (typeof value === 'number' && type === sql.Real) {
+      // The driver can return float values as doubles that are equal to the original
+      // values when compared with 32-bit precision, but not when 64-bit precision is
+      // used. This leads to comparisons failures with the original value in JavaScript.
+      // We attempt to represent the number accurately as a double by finding a
+      // number with up to 9 decimal places that is equal to the original value.
+      for (let digits = 7; digits <= 9; digits++) {
+        const parsed = Number.parseFloat(value.toPrecision(digits))
+        if (value === new Float32Array([parsed])[0]) {
+          return parsed
+        }
+      }
+      // If no suitable precision is found, return the value as is.
+      return value
     }
 
     if (Buffer.isBuffer(value)) {
@@ -110,14 +167,51 @@ export function mapRow(row: unknown[], columns?: sql.columns): unknown[] {
     }
 
     // Using lower case to make it consistent with the driver in prisma-engines.
-    if (typeof value === 'string' && columns?.[i].type === sql.UniqueIdentifier) {
+    if (typeof value === 'string' && type === sql.UniqueIdentifier) {
       return value.toLowerCase()
     }
 
-    if (typeof value === 'boolean' && columns?.[i]?.type === sql.Bit) {
+    if (typeof value === 'boolean' && type === sql.Bit) {
       return value ? 1 : 0
     }
 
     return value
   })
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    date.getUTCFullYear() +
+    '-' +
+    pad(date.getUTCMonth() + 1) +
+    '-' +
+    pad(date.getUTCDate()) +
+    ' ' +
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }

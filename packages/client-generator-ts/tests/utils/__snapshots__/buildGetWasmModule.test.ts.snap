@@ -4,8 +4,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-bun-c
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -23,8 +22,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-bun-e
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -42,8 +40,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-deno-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -61,8 +58,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-deno-
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -77,46 +73,37 @@ config.compilerWasm = {
 `;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-light-cjs.ts 1`] = `
-"config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof globalThis.__non_webpack_require__ === 'function'
-        ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-
-    // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
-    const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = require
-
-    const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
-    const wasmModuleBytes = await readFile(wasmModulePath)
-
-    return new globalThis.WebAssembly.Module(wasmModuleBytes)
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    return await decodeBase64AsWasm(wasm)
   }
 }"
 `;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-light-esm.ts 1`] = `
-"config.compilerWasm = {
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
   getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof globalThis.__non_webpack_require__ === 'function'
-        ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-
-    // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
-    const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const { createRequire } = await dynamicRequireFn('node:module')
-    const _require = createRequire(import.meta.url)
-
-    const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
-    const wasmModuleBytes = await readFile(wasmModulePath)
-
-    return new globalThis.WebAssembly.Module(wasmModuleBytes)
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    return await decodeBase64AsWasm(wasm)
   }
 }"
 `;
@@ -125,8 +112,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-nodej
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -144,8 +130,7 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-nodej
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
-  const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
-  const wasmArray = new Uint8Array(Buffer.from(base64Data, 'base64'))
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
   return new WebAssembly.Module(wasmArray)
 }
 
@@ -160,46 +145,37 @@ config.compilerWasm = {
 `;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-workerd-cjs.ts 1`] = `
-"config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
 
   getQueryCompilerWasmModule: async () => {
-    const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof globalThis.__non_webpack_require__ === 'function'
-        ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-
-    // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
-    const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const _require = require
-
-    const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
-    const wasmModuleBytes = await readFile(wasmModulePath)
-
-    return new globalThis.WebAssembly.Module(wasmModuleBytes)
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    return await decodeBase64AsWasm(wasm)
   }
 }"
 `;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-workerd-esm.ts 1`] = `
-"config.compilerWasm = {
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
   getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
 
   getQueryCompilerWasmModule: async () => {
-    const dynamicRequireFn = async <const T extends string>(name: T) =>
-      typeof globalThis.__non_webpack_require__ === 'function'
-        ? Promise.resolve(globalThis.__non_webpack_require__(name))
-        : await import(/* webpackIgnore: true */ /* @vite-ignore */ name)
-
-    // Note: we must use dynamic imports here to avoid bundling errors like \`Module parse failed: Unexpected character '' (1:0)\`.
-    const { readFile } = await dynamicRequireFn('node:fs/promises')
-    const { createRequire } = await dynamicRequireFn('node:module')
-    const _require = createRequire(import.meta.url)
-
-    const wasmModulePath = _require.resolve("./query_compiler_bg.postgresql.wasm")
-    const wasmModuleBytes = await readFile(wasmModulePath)
-
-    return new globalThis.WebAssembly.Module(wasmModuleBytes)
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    return await decodeBase64AsWasm(wasm)
   }
 }"
 `;

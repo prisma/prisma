@@ -51,8 +51,6 @@ const jestArgs = {
   '--noStackTrace': Boolean,
   // Activates notifications for test results.
   '--notify': Boolean,
-  // Output file location for json output. Also see --json.
-  '--outputFile': String,
   // Passes the same flag to Jest to shard tests between multiple machines
   '--shard': String,
   // Passes the same flag to Jest to silence the output

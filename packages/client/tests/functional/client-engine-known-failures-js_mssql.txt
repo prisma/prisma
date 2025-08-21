@@ -1,1 +1,0 @@
-issues.9678 (provider=sqlserver, js_mssql) concurrent deleteMany/createMany
