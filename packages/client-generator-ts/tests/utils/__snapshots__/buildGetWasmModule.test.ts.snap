@@ -1,41 +1,5 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-light-cjs.ts 1`] = `
-"
-async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
-  const { Buffer } = await import('node:buffer')
-  const wasmArray = Buffer.from(wasmBase64, 'base64')
-  return new WebAssembly.Module(wasmArray)
-}
-
-config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
-
-  getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
-    return await decodeBase64AsWasm(wasm)
-  }
-}"
-`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-edge-light-esm.ts 1`] = `
-"
-async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
-  const { Buffer } = await import('node:buffer')
-  const wasmArray = Buffer.from(wasmBase64, 'base64')
-  return new WebAssembly.Module(wasmArray)
-}
-
-config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
-
-  getQueryCompilerWasmModule: async () => {
-    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
-    return await decodeBase64AsWasm(wasm)
-  }
-}"
-`;
-
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-nodejs-cjs.ts 1`] = `
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
@@ -108,6 +72,42 @@ config.compilerWasm = {
 }"
 `;
 
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-vercel-edge-cjs.ts 1`] = `
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.postgresql.js"),
+
+  getQueryCompilerWasmModule: async () => {
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.js")
+    return await decodeBase64AsWasm(wasm)
+  }
+}"
+`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-vercel-edge-esm.ts 1`] = `
+"
+async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
+  const { Buffer } = await import('node:buffer')
+  const wasmArray = Buffer.from(wasmBase64, 'base64')
+  return new WebAssembly.Module(wasmArray)
+}
+
+config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.postgresql.mjs"),
+
+  getQueryCompilerWasmModule: async () => {
+    const { wasm } = await import("./query_compiler_bg.postgresql.wasm-base64.mjs")
+    return await decodeBase64AsWasm(wasm)
+  }
+}"
+`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-client-workerd-cjs.ts 1`] = `
 "
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
@@ -144,10 +144,6 @@ config.compilerWasm = {
 }"
 `;
 
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-edge-light-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-edge-light-esm.ts 1`] = `"config.compilerWasm = undefined"`;
-
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-nodejs-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-nodejs-esm.ts 1`] = `"config.compilerWasm = undefined"`;
@@ -156,13 +152,13 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-react-n
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-react-native-esm.ts 1`] = `"config.compilerWasm = undefined"`;
 
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-vercel-edge-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-vercel-edge-esm.ts 1`] = `"config.compilerWasm = undefined"`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-workerd-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-workerd-esm.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-edge-light-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-edge-light-esm.ts 1`] = `"config.compilerWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-nodejs-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
 
@@ -172,31 +168,13 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-reac
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-react-native-esm.ts 1`] = `"config.compilerWasm = undefined"`;
 
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-vercel-edge-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-vercel-edge-esm.ts 1`] = `"config.compilerWasm = undefined"`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-workerd-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-workerd-esm.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-edge-light-cjs.ts 1`] = `
-"config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
-
-  getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
-    return module
-  }
-}"
-`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-edge-light-esm.ts 1`] = `
-"config.compilerWasm = {
-  getRuntime: async () => await import("./query_compiler_bg.js"),
-
-  getQueryCompilerWasmModule: async () => {
-    const { default: module } = await import("./query_compiler_bg.wasm?module")
-    return module
-  }
-}"
-`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-nodejs-cjs.ts 1`] = `
 "config.compilerWasm = {
@@ -242,6 +220,28 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compile
 }"
 `;
 
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-vercel-edge-cjs.ts 1`] = `
+"config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.js"),
+
+  getQueryCompilerWasmModule: async () => {
+    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    return module
+  }
+}"
+`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-vercel-edge-esm.ts 1`] = `
+"config.compilerWasm = {
+  getRuntime: async () => await import("./query_compiler_bg.js"),
+
+  getQueryCompilerWasmModule: async () => {
+    const { default: module } = await import("./query_compiler_bg.wasm?module")
+    return module
+  }
+}"
+`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compiler-edge-workerd-cjs.ts 1`] = `
 "config.compilerWasm = {
   getRuntime: async () => await import("./query_compiler_bg.js"),
@@ -264,10 +264,6 @@ exports[`buildGetWasmModule > generates valid TypeScript > compiler-wasm-compile
 }"
 `;
 
-exports[`buildGetWasmModule > generates valid TypeScript > engine-client-edge-light-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-client-edge-light-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-nodejs-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-nodejs-esm.ts 1`] = `"config.engineWasm = undefined"`;
@@ -276,13 +272,13 @@ exports[`buildGetWasmModule > generates valid TypeScript > engine-client-react-n
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-react-native-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
+exports[`buildGetWasmModule > generates valid TypeScript > engine-client-vercel-edge-cjs.ts 1`] = `"config.engineWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > engine-client-vercel-edge-esm.ts 1`] = `"config.engineWasm = undefined"`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-workerd-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-edge-light-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-edge-light-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-nodejs-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
@@ -292,13 +288,13 @@ exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-react-nat
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-react-native-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
+exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-vercel-edge-cjs.ts 1`] = `"config.engineWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-vercel-edge-esm.ts 1`] = `"config.engineWasm = undefined"`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-workerd-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-library-edge-light-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-library-edge-light-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-library-nodejs-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
@@ -308,13 +304,13 @@ exports[`buildGetWasmModule > generates valid TypeScript > engine-library-react-
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-library-react-native-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
+exports[`buildGetWasmModule > generates valid TypeScript > engine-library-vercel-edge-cjs.ts 1`] = `"config.engineWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > engine-library-vercel-edge-esm.ts 1`] = `"config.engineWasm = undefined"`;
+
 exports[`buildGetWasmModule > generates valid TypeScript > engine-library-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-library-workerd-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-edge-light-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-edge-light-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-nodejs-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
@@ -323,6 +319,10 @@ exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-
 exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-react-native-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-react-native-esm.ts 1`] = `"config.engineWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-vercel-edge-cjs.ts 1`] = `"config.engineWasm = undefined"`;
+
+exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-vercel-edge-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-wasm-compiler-edge-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
