@@ -125,7 +125,7 @@ export type BuildWasmFileMapOptions = {
 
 function readSourceFile(sourceFile: string): Buffer {
   const bundledLocation = path.join(__dirname, sourceFile)
-  const sourceLocation = path.join(__dirname, '..', '..', '..', 'client', 'runtime', sourceFile)
+  const sourceLocation = path.join(__dirname, '..', '..', '..', 'cli', 'build', sourceFile)
 
   if (fs.existsSync(bundledLocation)) {
     debug('We are in the bundled Prisma CLI')

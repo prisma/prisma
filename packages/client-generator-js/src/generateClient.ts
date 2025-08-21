@@ -499,10 +499,18 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   ) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
     const filename = clientEngineType === ClientEngineType.Client ? 'query_compiler_bg' : 'query_engine_bg'
-    await fs.copyFile(
-      path.join(runtimeSourcePath, `${filename}.${suffix}.wasm`),
-      path.join(outputDir, `${filename}.wasm`),
-    )
+
+    // Despite the `!testMode` condition above, we can't assume we are
+    // necessarily inside the bundled Prisma CLI because the `prisma-client-js`
+    // generator has a legacy entrypoint inside `@prisma/client/generator-build`
+    // which is still used by Studio, some e2e tests and possibly more. This means
+    // we can only rely on what's shipped in the `@prisma/client` package here,
+    // and we have to decode the WebAssembly binaries from base64.
+    const wasmJsBundlePath = path.join(runtimeSourcePath, `${filename}.${suffix}.wasm-base64.js`)
+    const wasmBase64: string = require(wasmJsBundlePath).wasm
+    const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
+
+    await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(base64Data, 'base64'))
     await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
   }
 

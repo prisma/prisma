@@ -9,7 +9,6 @@ import {
 } from '@prisma/client-generator-ts'
 import { SqlQueryOutput } from '@prisma/generator'
 import { getDMMF, inferDirectoryConfig, parseEnvValue, processSchemaResult } from '@prisma/internals'
-import { readFile } from 'fs/promises'
 import path from 'path'
 import { fetch, WebSocket } from 'undici'
 
@@ -192,11 +191,11 @@ export function setupTestSuiteClientDriverAdapter({
     __internal.configOverride = (config) => {
       config.engineWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
-        getQueryEngineWasmModule: async () => {
-          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm`)
-          const queryEngineWasmFileBytes = await readFile(queryEngineWasmFilePath)
-
-          return new WebAssembly.Module(queryEngineWasmFileBytes)
+        getQueryEngineWasmModule: () => {
+          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm-base64.js`)
+          const wasmBase64: string = require(queryEngineWasmFilePath).wasm
+          const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
+          return Promise.resolve(new WebAssembly.Module(Buffer.from(base64Data, 'base64')))
         },
       }
       return config
@@ -205,11 +204,11 @@ export function setupTestSuiteClientDriverAdapter({
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
-        getQueryCompilerWasmModule: async () => {
-          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm`)
-          const queryCompilerWasmFileBytes = await readFile(queryCompilerWasmFilePath)
-
-          return new WebAssembly.Module(queryCompilerWasmFileBytes)
+        getQueryCompilerWasmModule: () => {
+          const queryCompilerWasmFilePath = path.join(runtimeBase, `query_compiler_bg.${provider}.wasm-base64.js`)
+          const wasmBase64: string = require(queryCompilerWasmFilePath).wasm
+          const base64Data = wasmBase64.replace('data:application/wasm;base64,', '')
+          return Promise.resolve(new WebAssembly.Module(Buffer.from(base64Data, 'base64')))
         },
       }
       return config
