@@ -22,7 +22,7 @@ const config: runtime.GetPrismaClientConfig = {
       "value": "prisma-client"
     },
     "output": {
-      "value": "/Users/jkomyno/work/prisma/prisma-client/packages/client/tests/e2e/typed-sql-query-compiler-adapter-better-sqlite3/src/generated/prisma",
+      "value": "/Users/jkomyno/work/prisma/prisma-client/packages/client/tests/e2e/typed-sql-query-compiler-adapter-libsql/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -40,7 +40,7 @@ const config: runtime.GetPrismaClientConfig = {
       "queryCompiler",
       "typedSql"
     ],
-    "sourceFilePath": "/Users/jkomyno/work/prisma/prisma-client/packages/client/tests/e2e/typed-sql-query-compiler-adapter-better-sqlite3/prisma/schema.prisma",
+    "sourceFilePath": "/Users/jkomyno/work/prisma/prisma-client/packages/client/tests/e2e/typed-sql-query-compiler-adapter-libsql/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativePath": "../../../prisma",
