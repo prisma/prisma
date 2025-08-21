@@ -1,10 +1,10 @@
-import { PrismaBetterSQLite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaLibSQL } from '@prisma/adapter-libsql'
 
 import { PrismaClient } from './generated/prisma/client'
 import { conversionByVariant, filterTrackingEvents, getTrackingEvents } from './generated/prisma/sql'
 
 async function main() {
-  const adapter = new PrismaBetterSQLite3({
+  const adapter = new PrismaLibSQL({
     url: 'file:./prisma/dev.db',
   })
   const prisma = new PrismaClient({ adapter })
