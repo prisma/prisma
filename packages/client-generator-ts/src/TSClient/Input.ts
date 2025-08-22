@@ -153,13 +153,12 @@ ${indent(
 
     if (type.name.includes('Json') && type.name.includes('Filter')) {
       const innerName = needsGeneric ? `${this.type.name}Base<$PrismaModel>` : `${this.type.name}Base`
-      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter or an undefined parameter
       const baseName = `Required<${innerName}>`
 
       return `
 export type ${typeName} =
   | Prisma.JsonFilterWithoutPath<${baseName}>
-  | Prisma.JsonFilterWithPath<${baseName}>
+  | Prisma.JsonFilterWithPathPatched<${baseName}>
 
 export type ${this.type.name}Base${needsGeneric ? '<$PrismaModel = never>' : ''} = ${wrapWithAtLeast(body, type)}`
     } else {

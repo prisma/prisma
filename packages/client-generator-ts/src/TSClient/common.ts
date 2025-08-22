@@ -373,28 +373,24 @@ export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
-export type NonUndefined<T> = Exclude<T, undefined>
-
 export type JsonFilterNonPath<T> = Omit<T, 'path'>
 
-export type JsonFilterAllowedKeys<T> = Exclude<keyof JsonFilterNonPath<T>, 'mode'>
+export type JsonFilterWithoutPath<T> = OptionalFlat<JsonFilterNonPath<T>> & { path?: never }
 
 /**
- * Exactly one allowed key K, and its value cannot be undefined.
+ * generates types for JsonFilter to prevent the usage of 'path' without another parameter or an undefined parameter
  */
-export type JsonFilterOneKey<T, K extends JsonFilterAllowedKeys<T>> =
-  Exact<
-    { [P in K]-?: NonUndefined<JsonFilterNonPath<T>[P]> },
-    Pick<JsonFilterNonPath<T>, K>
+export type JsonFilterWithPathPatched<T> =
+  PatchUndefined<
+    (
+      { path: string[] } &
+      {
+        [K in keyof JsonFilterNonPath<Required<T>>]:
+          Exact<{ [P in K]-?: undefined }, Pick<JsonFilterNonPath<Required<T>>, K>>
+      }[keyof JsonFilterNonPath<Required<T>>]
+    ),
+    Required<T>
   >
-
-export type JsonFilterWithoutPath<T> =
-  OptionalFlat<JsonFilterNonPath<T>> & { path?: never }
-
-export type JsonFilterWithPath<T> =
-  { path: string[] } &
-  { [K in JsonFilterAllowedKeys<T>]: JsonFilterOneKey<T, K> }[JsonFilterAllowedKeys<T>]
-
 `
 }
 
