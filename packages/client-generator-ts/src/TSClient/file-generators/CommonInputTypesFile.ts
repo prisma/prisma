@@ -3,7 +3,7 @@ import * as ts from '@prisma/ts-builders'
 import { GenerateContext } from '../GenerateContext'
 import { InputType } from '../Input'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
  * This file exports various common sort, input & filter types that are not directly linked to a particular model.
  *
  * 🟢 You can import this file directly.

@@ -9,7 +9,7 @@ import { GenerateContext } from '../GenerateContext'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
  * This file should be your main import to use Prisma. Through it you get access to all the models, enums, and input types.
  *
  * 🟢 You can import this file directly.
