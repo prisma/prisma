@@ -33,7 +33,6 @@ export function buildGetWasmModule({
   component,
   runtimeName,
   runtimeBase,
-  target,
   activeProvider,
   moduleFormat,
 }: BuildWasmModuleOptions) {
@@ -102,13 +101,11 @@ config.${component}Wasm = {
   }
 
   if (buildEdgeLoader) {
-    const fullWasmModulePath = target === 'vercel-edge' ? `${wasmModulePath}?module` : wasmModulePath
-
     return `config.${component}Wasm = {
   getRuntime: async () => await import(${JSON.stringify(wasmBindingsPath)}),
 
   getQuery${capitalizedComponent}WasmModule: async () => {
-    const { default: module } = await import(${JSON.stringify(fullWasmModulePath)})
+    const { default: module } = await import(${JSON.stringify(`${wasmModulePath}?module`)})
     return module
   }
 }`
