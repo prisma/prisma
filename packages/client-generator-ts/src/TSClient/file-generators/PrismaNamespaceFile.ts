@@ -9,7 +9,7 @@ import { globalOmitConfig } from '../globalOmit'
 import type { TSClientOptions } from '../TSClient'
 import { clientTypeMapDefinition } from '../TypeMap'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
  * WARNING: This is an internal file that is subject to change!
  *
  * 🛑 Under no circumstances should you import this file directly! 🛑

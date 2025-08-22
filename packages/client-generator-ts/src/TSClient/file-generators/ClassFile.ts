@@ -15,7 +15,7 @@ import { GenerateContext } from '../GenerateContext'
 import { PrismaClientClass } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
  * WARNING: This is an internal file that is subject to change!
  *
  * 🛑 Under no circumstances should you import this file directly! 🛑
