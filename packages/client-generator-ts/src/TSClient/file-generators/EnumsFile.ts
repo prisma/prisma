@@ -3,11 +3,12 @@ import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
 import { Enum } from '../Enum'
 import { GenerateContext } from '../GenerateContext'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
 * This file exports all enum related types from the schema.
 *
 * 🟢 You can import this file directly.
 */
+
 `
 
 export function createEnumsFile(context: GenerateContext): string {

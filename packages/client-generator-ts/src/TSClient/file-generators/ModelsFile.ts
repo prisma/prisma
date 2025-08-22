@@ -1,6 +1,6 @@
 import { GenerateContext } from '../GenerateContext'
 
-const jsDocHeader = `/**
+const jsDocHeader = `/*
  * This is a barrel export file for all models and their related types.
  *
  * 🟢 You can import this file directly.

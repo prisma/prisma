@@ -4,7 +4,7 @@ import { GenerateContext } from '../GenerateContext'
 import { Model } from '../Model'
 
 export function createModelFile(context: GenerateContext, modelName: string): string {
-  const jsDocHeader = `/**
+  const jsDocHeader = `/*
  * This file exports the \`${modelName}\` model and its related types.
  *
  * 🟢 You can import this file directly.
