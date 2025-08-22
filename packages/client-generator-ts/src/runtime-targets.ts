@@ -1,3 +1,5 @@
+import { runtime as unjsRuntime } from 'std-env'
+
 export const supportedInternalRuntimes = ['nodejs', 'workerd', 'vercel-edge', 'react-native'] as const
 const supportedPublicRuntimes = [
   'nodejs',
@@ -44,6 +46,21 @@ function parseRuntimeTarget(target: RuntimeTarget | (string & {})): RuntimeTarge
           .map((runtime) => `"${runtime}"`)
           .join(', ')}`,
       )
+  }
+}
+
+export function defaultRuntimeTargetFromEnv(): RuntimeTargetInternal {
+  switch (unjsRuntime) {
+    case 'node':
+    case 'bun':
+    case 'deno':
+      return 'nodejs'
+    case 'edge-light':
+      return 'vercel-edge'
+    case 'workerd':
+      return 'workerd'
+    default:
+      return 'nodejs'
   }
 }
 
