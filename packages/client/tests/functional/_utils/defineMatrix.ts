@@ -1,6 +1,7 @@
 import type { U } from 'ts-toolbelt'
 
 import { NamedTestSuiteConfig, TestSuiteMatrix } from './getTestSuiteInfo'
+import { DatasourceInfo } from './setupTestSuiteEnv'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
@@ -18,6 +19,7 @@ export type TestsFactoryFnParams<MatrixT extends TestSuiteMatrix> = [
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
   cliMeta: CliMeta,
+  datasourceInfo: DatasourceInfo,
 ]
 
 /**

@@ -1,6 +1,7 @@
 import { capitalize } from '@prisma/client-common'
 import { describe, expect, it } from 'vitest'
 
+import { supportedInternalRuntimes } from '../../src/runtime-targets'
 import { buildGetWasmModule, type BuildWasmModuleOptions as Options } from '../../src/utils/wasm'
 import { assertTypeScriptIsValid } from '../assert-typescript-is-valid'
 
@@ -44,7 +45,7 @@ const components = ['engine', 'compiler'] as const satisfies Array<Options['comp
 const runtimeNames = ['library', 'client', 'wasm-compiler-edge', 'edge'] as const satisfies Array<
   Options['runtimeName']
 >
-const targets = ['nodejs', 'edge-light', 'workerd', 'deno', 'bun'] as const satisfies Array<Options['target']>
+const targets = supportedInternalRuntimes
 const moduleFormats = ['cjs', 'esm'] as const satisfies Array<Options['moduleFormat']>
 
 type CombinationName =
@@ -56,6 +57,11 @@ function makeTestCombinations() {
   for (const component of components) {
     for (const runtimeName of runtimeNames) {
       for (const target of targets) {
+        // Skip impossible combinations
+        if (['edge', 'wasm-compiler-edge'].includes(runtimeName) && !['vercel-edge', 'workerd'].includes(target)) {
+          continue
+        }
+
         for (const moduleFormat of moduleFormats) {
           const testName = `${component}-${runtimeName}-${target}-${moduleFormat}` as const
           combinations.push({

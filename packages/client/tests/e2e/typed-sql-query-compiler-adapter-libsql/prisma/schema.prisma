@@ -1,0 +1,25 @@
+generator client {
+  provider        = "prisma-client"
+  previewFeatures = ["typedSql", "queryCompiler", "driverAdapters"]
+  output          = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id             String          @id @default(uuid())
+  email          String          @unique
+  trackingEvents TrackingEvent[]
+}
+
+model TrackingEvent {
+  id        String   @id @default(uuid())
+  timestamp DateTime @default(now())
+  userId    String
+  type      String
+  variant   String
+  user      User     @relation(fields: [userId], references: [id])
+}

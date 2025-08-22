@@ -4,7 +4,6 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
 import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { nodeProtocolPlugin } from '../../../helpers/compile/plugins/nodeProtocolPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
@@ -42,7 +41,7 @@ import * as __banner_node_path from "node:path";
 import * as process from "node:process";
 import * as __banner_node_url from "node:url";
 const __filename = __banner_node_url.fileURLToPath(import.meta.url);
-const __dirname = __banner_node_path.dirname(__filename);
+globalThis['__dirname'] = __banner_node_path.dirname(__filename);
 const require = __banner_node_module.createRequire(import.meta.url);`
 
 // we define the config for runtime
@@ -163,7 +162,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 function wasmFileToBase64(wasmBuffer: Buffer, format: ModuleFormat = 'esm'): string {
   const base64 = wasmBuffer.toString('base64')
   const moduleExports = format === 'esm' ? 'export { wasm }' : 'module.exports = { wasm }'
-  const encodedWasmContent = `const wasm = "data:application/wasm;base64,${base64}";\n${moduleExports}\n`
+  const encodedWasmContent = `const wasm = "${base64}";\n${moduleExports}\n`
   return encodedWasmContent
 }
 
@@ -185,22 +184,16 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
         // not yet enabled in edge build while driverAdapters is not GA
         fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
       }),
-      copyFilePlugin(
-        DRIVER_ADAPTER_SUPPORTED_PROVIDERS.map((provider) => ({
-          from: path.join(
-            type === 'compiler' ? wasmQueryCompilerDir : wasmQueryEngineDir,
-            provider,
-            `query_${type}_bg.wasm`,
-          ),
-          to: path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`),
-        })),
-      ),
       {
         name: 'wasm-base64-encoder',
         setup(build) {
           build.onEnd(() => {
             for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
-              const wasmFilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm`)
+              const wasmFilePath = path.join(
+                { compiler: wasmQueryCompilerDir, engine: wasmQueryEngineDir }[type],
+                provider,
+                `query_${type}_bg.wasm`,
+              )
 
               const extToModuleFormatMap = {
                 esm: 'mjs',
@@ -215,7 +208,9 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
                   const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
                   fs.writeFileSync(base64FilePath, base64Content)
                 } catch (error) {
-                  throw new Error(`Failed to create base64 encoded WASM file for ${provider}:`, error as Error)
+                  throw new Error(`Failed to create base64 encoded WASM file for ${provider}`, {
+                    cause: error,
+                  })
                 }
               }
             }

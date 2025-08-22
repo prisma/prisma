@@ -3,6 +3,8 @@ import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
 
+import { FIRST_NORMAL_OBJECT_ID } from './constants'
+
 const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
 
@@ -260,7 +262,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
       // We don't use `ColumnTypeEnum.Enum` for enums here and defer the decision to
       // the serializer in QE because it has access to the query schema, while on
       // this level we would have to query the catalog to introspect the type.
-      if (fieldTypeId >= 10_000) {
+      if (fieldTypeId >= FIRST_NORMAL_OBJECT_ID) {
         return ColumnTypeEnum.Text
       }
       throw new UnsupportedNativeDataType(fieldTypeId)
@@ -436,9 +438,11 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
     switch (argType.dbType) {
       case 'TIME':
       case 'TIMETZ':
-        return arg.toISOString().split('T')[1]
+        return formatTime(arg)
+      case 'DATE':
+        return formatDate(arg)
       default:
-        return arg.toISOString()
+        return formatDateTime(arg)
     }
   }
 
@@ -456,4 +460,41 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   }
 
   return arg
+}
+
+function formatDateTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    date.getUTCFullYear() +
+    '-' +
+    pad(date.getUTCMonth() + 1) +
+    '-' +
+    pad(date.getUTCDate()) +
+    ' ' +
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
+}
+
+function formatDate(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+}
+
+function formatTime(date: Date): string {
+  const pad = (n: number, z = 2) => String(n).padStart(z, '0')
+  const ms = date.getUTCMilliseconds()
+  return (
+    pad(date.getUTCHours()) +
+    ':' +
+    pad(date.getUTCMinutes()) +
+    ':' +
+    pad(date.getUTCSeconds()) +
+    (ms ? '.' + String(ms).padStart(3, '0') : '')
+  )
 }

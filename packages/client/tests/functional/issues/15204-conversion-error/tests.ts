@@ -38,5 +38,9 @@ testMatrix.setupTestSuite(
       from: ['mysql', 'mongodb', 'sqlserver', 'postgresql', 'cockroachdb'],
       reason: 'SQLite-specific test',
     },
+    skipDriverAdapter: {
+      from: ['js_better_sqlite3', 'js_d1', 'js_libsql'],
+      reason: 'Tracked in https://linear.app/prisma-company/issue/ORM-1362/fix-issues15204-conversion-error',
+    },
   },
 )

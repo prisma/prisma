@@ -1,41 +1,55 @@
-const supportedRuntimes = ['nodejs', 'deno', 'bun', 'workerd', 'edge-light', 'react-native'] as const
+export const supportedInternalRuntimes = ['nodejs', 'workerd', 'vercel-edge', 'react-native'] as const
+const supportedPublicRuntimes = [
+  'nodejs',
+  'deno',
+  'bun',
+  'workerd',
+  'cloudflare',
+  'vercel-edge',
+  'edge-light',
+  'react-native',
+] as const
 
-export type RuntimeTarget = (typeof supportedRuntimes)[number]
+/**
+ * The user-facing `runtime` attribute for the `prisma-client` generator.
+ */
+export type RuntimeTarget = (typeof supportedPublicRuntimes)[number]
 
-export function parseRuntimeTarget(target: string): RuntimeTarget {
+/**
+ * The internal representation of the `runtime` attribute for the `prisma-client` generator.
+ */
+export type RuntimeTargetInternal = (typeof supportedInternalRuntimes)[number]
+
+function parseRuntimeTarget(target: RuntimeTarget | (string & {})): RuntimeTargetInternal {
   switch (target.toLowerCase()) {
-    case 'node':
-    case 'nodejs':
-      return 'nodejs'
-    case 'deno':
-    case 'deno-deploy':
-      return 'deno'
-    case 'bun':
-      return 'bun'
     case 'workerd':
     case 'cloudflare':
       return 'workerd'
+
     case 'edge-light':
-    case 'vercel':
-      return 'edge-light'
+    case 'vercel-edge':
+      return 'vercel-edge'
+
+    case 'nodejs':
+    case 'deno':
+    case 'bun':
+      return 'nodejs'
+
     case 'react-native':
       return 'react-native'
+
     default:
       throw new Error(
-        `Unknown target runtime: "${target}". The available options are: ${supportedRuntimes
+        `Unknown target runtime: "${target}". The available options are: ${supportedPublicRuntimes
           .map((runtime) => `"${runtime}"`)
           .join(', ')}`,
       )
   }
 }
 
-export function parseRuntimeTargetFromUnknown(target: unknown): RuntimeTarget {
+export function parseRuntimeTargetFromUnknown(target: unknown) {
   if (typeof target !== 'string') {
     throw new Error(`Invalid target runtime: ${JSON.stringify(target)}. Expected a string.`)
   }
   return parseRuntimeTarget(target)
-}
-
-export function isNodeJsLike(target: RuntimeTarget): boolean {
-  return target === 'nodejs' || target === 'bun' || target === 'deno'
 }

@@ -292,8 +292,8 @@ export type LogOptions<ClientOptions extends Prisma.PrismaClientOptions> =
 export interface PrismaClientConstructor {
   ${indent(this.jsDoc, TAB_SIZE)}
   new <
-    Options extends Prisma.PrismaClientOptions,
-    LogOpts extends LogOptions<Options>,
+    Options extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+    LogOpts extends LogOptions<Options> = LogOptions<Options>,
     OmitOpts extends Prisma.PrismaClientOptions['omit'] = Options extends { omit: infer U } ? U : Prisma.PrismaClientOptions['omit'],
     ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs
   >(options?: Prisma.Subset<Options, Prisma.PrismaClientOptions> ): PrismaClient<LogOpts, OmitOpts, ExtArgs>
