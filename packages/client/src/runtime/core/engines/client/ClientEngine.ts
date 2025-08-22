@@ -2,6 +2,7 @@ import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@p
 import {
   BatchResponse,
   convertCompactedRows,
+  JsonInputTaggedValue,
   QueryEvent,
   QueryPlanNode,
   safeJsonStringify,
@@ -21,7 +22,13 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
-import { JsonQuery } from '../common/types/JsonProtocol'
+import {
+  isJsonInputTaggedValue,
+  JsonArgumentValue,
+  JsonQuery,
+  JsonQueryAction,
+  ParamTaggedValue,
+} from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -92,6 +99,7 @@ export class ClientEngine implements Engine {
   #state: EngineState = { type: 'disconnected' }
   #queryCompilerLoader: QueryCompilerLoader
   #executorKind: ExecutorKind
+  #planCache: Map<string, QueryPlanNode> = new Map()
 
   config: EngineConfig
   datamodel: string
@@ -453,24 +461,26 @@ export class ClientEngine implements Engine {
     { interactiveTransaction, customDataProxyFetch }: RequestOptions<unknown>,
   ): Promise<{ data: T }> {
     debug(`sending request`)
+    const placeholderValues = isRawQuery(query.action) ? {} : extractRequestPlaceholders(query)
     const queryStr = JSON.stringify(query)
 
     const { executor, queryCompiler } = await this.#ensureStarted().catch((err) => {
       throw this.#transformRequestError(err, queryStr)
     })
 
-    let queryPlan: QueryPlanNode
-    try {
-      queryPlan = this.#withLocalPanicHandler(() => queryCompiler.compile(queryStr), queryStr) as QueryPlanNode
-    } catch (error) {
-      throw this.#transformCompileError(error)
+    let queryPlan = this.#planCache.get(queryStr)
+    if (queryPlan === undefined) {
+      try {
+        queryPlan = this.#withLocalPanicHandler(() => queryCompiler.compile(queryStr), queryStr) as QueryPlanNode
+      } catch (error) {
+        throw this.#transformCompileError(error)
+      }
+      this.#planCache.set(queryStr, queryPlan)
     }
 
     try {
       debug(`query plan created`, queryPlan)
 
-      // TODO: ORM-508 - Implement query plan caching by replacing all scalar values in the query with params automatically.
-      const placeholderValues = {}
       const result = await executor.execute({
         plan: queryPlan,
         model: query.modelName,
@@ -630,4 +640,59 @@ function getErrorMessageWithLink(engine: ClientEngine, title: string, query?: st
     database: engine.config.activeProvider as any,
     query,
   })
+}
+
+function extractRequestPlaceholders(req: JsonQuery): Record<string, unknown> {
+  const placeholders: Record<string, number | string | boolean | null | JsonInputTaggedValue> = {}
+  let counter = 0
+
+  function addPlaceholder(value: number | string | boolean | null | JsonInputTaggedValue): ParamTaggedValue {
+    const name = `arg@${++counter}`
+    placeholders[name] = value
+    return { $type: 'Param', value: name }
+  }
+
+  function extract<K extends string | number>(obj: Record<K, JsonArgumentValue | JsonInputTaggedValue>, key: K) {
+    const val = obj[key]
+    if (typeof val === 'string' || typeof val === 'number' || typeof val === 'boolean' || val === null) {
+      obj[key] = addPlaceholder(val)
+    } else if (Array.isArray(val)) {
+      // TODO: arrays currently don't work due to quaint limitations
+      // for (let i = 0; i < val.length; i++) {
+      //   extract(val, i)
+      // }
+    } else if (typeof val === 'object') {
+      if (isJsonInputTaggedValue(val)) {
+        switch (val.$type) {
+          case 'BigInt':
+          case 'Bytes':
+          case 'DateTime':
+          case 'Decimal':
+          case 'Json':
+            obj[key] = addPlaceholder(val.value)
+            break
+          case 'Enum':
+          case 'Raw':
+          case 'FieldRef':
+            break
+        }
+      } else {
+        for (const k of Object.keys(val)) {
+          extract(val, k)
+        }
+      }
+    }
+  }
+
+  const args = req.query.arguments
+  if (args !== undefined && args.$type !== 'Raw') {
+    for (const key of Object.keys(args)) {
+      extract(args as Record<string, JsonArgumentValue | JsonInputTaggedValue>, key)
+    }
+  }
+  return placeholders
+}
+
+function isRawQuery(action: JsonQueryAction): action is 'queryRaw' | 'executeRaw' {
+  return action === 'queryRaw' || action === 'executeRaw'
 }
