@@ -7,7 +7,7 @@ import {
   safeJsonStringify,
   TransactionInfo,
   UserFacingError,
-} from '@prisma/client-engine-runtime'
+} from '@prisma/client-engine'
 import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'

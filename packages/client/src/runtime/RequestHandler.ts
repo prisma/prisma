@@ -1,5 +1,5 @@
 import { Context } from '@opentelemetry/api'
-import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+import { deserializeJsonResponse } from '@prisma/client-engine'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'

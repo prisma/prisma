@@ -1,4 +1,4 @@
-import type { BatchResponse } from '@prisma/client-engine-runtime'
+import type { BatchResponse } from '@prisma/client-engine'
 import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 
 export type QueryCompiler = {

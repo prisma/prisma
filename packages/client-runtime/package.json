@@ -1,7 +1,7 @@
 {
-  "name": "@prisma/client-common",
+  "name": "@prisma/client-runtime",
   "version": "0.0.0",
-  "description": "This package is intended for Prisma's internal use",
+  "description": "Runtime dependencies for generated Prisma clients",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
         "default": "./dist/index.js"
       },
       "import": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/index.d.mts",
         "default": "./dist/index.mjs"
       }
     }
@@ -20,24 +20,22 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/client-common"
+    "directory": "packages/client-runtime"
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@prisma/client-engine": "workspace:*",
-    "@prisma/dmmf": "workspace:*",
-    "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/generator": "workspace:*",
-    "@prisma/internals": "workspace:*"
+    "decimal.js": "10.5.0",
+    "sql-template-tag": "5.2.1"
   },
   "devDependencies": {
-    "vitest": "3.0.9"
+    "@types/node": "18.19.76",
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "vitest run"
+    "test": "vitest run --passWithNoTests"
   },
   "files": [
     "dist"

@@ -610,6 +610,10 @@ importers:
         version: 8.4.1
 
   packages/client:
+    dependencies:
+      '@prisma/client-runtime':
+        specifier: workspace:*
+        version: link:../client-runtime
     devDependencies:
       '@cloudflare/workers-types':
         specifier: 4.20250214.0
@@ -689,9 +693,9 @@ importers:
       '@prisma/client-common':
         specifier: workspace:*
         version: link:../client-common
-      '@prisma/client-engine-runtime':
+      '@prisma/client-engine':
         specifier: workspace:*
-        version: link:../client-engine-runtime
+        version: link:../client-engine
       '@prisma/client-generator-js':
         specifier: workspace:*
         version: link:../client-generator-js
@@ -794,9 +798,6 @@ importers:
       cookie-es:
         specifier: 2.0.0
         version: 2.0.0
-      decimal.js:
-        specifier: 10.5.0
-        version: 10.5.0
       esbuild:
         specifier: 0.25.5
         version: 0.25.5
@@ -875,9 +876,6 @@ importers:
       source-map-support:
         specifier: 0.5.21
         version: 0.5.21
-      sql-template-tag:
-        specifier: 5.2.1
-        version: 5.2.1
       stacktrace-parser:
         specifier: 0.1.11
         version: 0.1.11
@@ -914,9 +912,9 @@ importers:
 
   packages/client-common:
     dependencies:
-      '@prisma/client-engine-runtime':
+      '@prisma/client-engine':
         specifier: workspace:*
-        version: link:../client-engine-runtime
+        version: link:../client-engine
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
@@ -934,7 +932,7 @@ importers:
         specifier: 3.0.9
         version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
-  packages/client-engine-runtime:
+  packages/client-engine:
     dependencies:
       '@bugsnag/cuid':
         specifier: 3.2.1
@@ -945,15 +943,15 @@ importers:
       '@paralleldrive/cuid2':
         specifier: 2.2.2
         version: 2.2.2
+      '@prisma/client-runtime':
+        specifier: workspace:*
+        version: link:../client-runtime
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
-      decimal.js:
-        specifier: 10.5.0
-        version: 10.5.0
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -1126,6 +1124,22 @@ importers:
       vitest:
         specifier: 3.0.9
         version: 3.0.9(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
+  packages/client-runtime:
+    dependencies:
+      decimal.js:
+        specifier: 10.5.0
+        version: 10.5.0
+      sql-template-tag:
+        specifier: 5.2.1
+        version: 5.2.1
+    devDependencies:
+      '@types/node':
+        specifier: 18.19.76
+        version: 18.19.76
+      vitest:
+        specifier: 3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@18.19.76)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/config:
     dependencies:
@@ -15774,7 +15788,7 @@ snapshots:
   yargs@17.6.0:
     dependencies:
       cliui: 8.0.1
-      escalade: 3.1.1
+      escalade: 3.2.0
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3
