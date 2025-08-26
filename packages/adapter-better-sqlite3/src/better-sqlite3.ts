@@ -134,7 +134,11 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 }
 
 class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> implements Transaction {
-  constructor(client: StdClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
+  constructor(
+    client: StdClient,
+    readonly options: TransactionOptions,
+    readonly unlockParent: () => void,
+  ) {
     super(client)
   }
 

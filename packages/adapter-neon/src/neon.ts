@@ -137,7 +137,10 @@ class NeonWsQueryable<ClientT extends neon.Pool | neon.PoolClient> extends NeonQ
 }
 
 class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transaction {
-  constructor(client: neon.PoolClient, readonly options: TransactionOptions) {
+  constructor(
+    client: neon.PoolClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -163,7 +166,10 @@ export type PrismaNeonOptions = {
 export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements SqlDriverAdapter {
   private isRunning = true
 
-  constructor(pool: neon.Pool, private options?: PrismaNeonOptions) {
+  constructor(
+    pool: neon.Pool,
+    private options?: PrismaNeonOptions,
+  ) {
     super(pool)
   }
 
@@ -225,7 +231,10 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
-  constructor(private readonly config: neon.PoolConfig, private options?: PrismaNeonOptions) {}
+  constructor(
+    private readonly config: neon.PoolConfig,
+    private options?: PrismaNeonOptions,
+  ) {}
 
   async connect(): Promise<PrismaNeonAdapter> {
     const pool = new neon.Pool(this.config)

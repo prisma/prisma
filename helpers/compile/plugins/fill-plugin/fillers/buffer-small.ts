@@ -383,8 +383,8 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
   write(string: string, offset: number, encoding?: Encoding): number
   write(string: string, offset: number, length: number, encoding?: Encoding): number
   write(string: string, offsetEnc?: number | Encoding, lengthEnc?: number | Encoding, encoding: Encoding = 'utf8') {
-    const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc ?? 0
-    let length = typeof lengthEnc === 'string' ? this.length - offset : lengthEnc ?? this.length - offset
+    const offset = typeof offsetEnc === 'string' ? 0 : (offsetEnc ?? 0)
+    let length = typeof lengthEnc === 'string' ? this.length - offset : (lengthEnc ?? this.length - offset)
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof lengthEnc === 'string' ? lengthEnc : encoding
 
     assertNumber(offset, 'offset')
@@ -408,7 +408,7 @@ export class BufferClass extends Uint8Array /* implements NodeBuffer */ {
     const offset = typeof offsetEnc === 'string' ? 0 : offsetEnc
     const end = typeof endEnc === 'string' ? this.length : endEnc
     encoding = typeof offsetEnc === 'string' ? offsetEnc : typeof endEnc === 'string' ? endEnc : encoding
-    value = BufferClass.from(typeof value === 'number' ? [value] : value ?? [], encoding)
+    value = BufferClass.from(typeof value === 'number' ? [value] : (value ?? []), encoding)
 
     assertString(encoding, 'encoding')
     assertUnsigned(offset, 'offset', this.length)

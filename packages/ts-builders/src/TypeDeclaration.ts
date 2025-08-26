@@ -8,7 +8,10 @@ export class TypeDeclaration<InnerType extends TypeBuilder = TypeBuilder> implem
   private genericParameters: GenericParameter[] = []
   private docComment?: DocComment
 
-  constructor(public name: string, readonly type: InnerType) {}
+  constructor(
+    public name: string,
+    readonly type: InnerType,
+  ) {}
 
   addGenericParameter(param: GenericParameter): this {
     this.genericParameters.push(param)

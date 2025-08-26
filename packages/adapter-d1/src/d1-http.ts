@@ -185,7 +185,10 @@ class D1HTTPQueryable implements SqlQueryable {
 }
 
 class D1HTTPTransaction extends D1HTTPQueryable implements Transaction {
-  constructor(client: KyInstance, readonly options: TransactionOptions) {
+  constructor(
+    client: KyInstance,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -208,7 +211,10 @@ export class PrismaD1HTTPAdapter extends D1HTTPQueryable implements SqlDriverAda
 
   alreadyWarned = new Set()
 
-  constructor(params: D1HTTPParams, private readonly release?: () => Promise<void>) {
+  constructor(
+    params: D1HTTPParams,
+    private readonly release?: () => Promise<void>,
+  ) {
     const D1_API_BASE_URL = `https://api.cloudflare.com/client/v4/accounts/${params.CLOUDFLARE_ACCOUNT_ID}/d1/database/${params.CLOUDFLARE_DATABASE_ID}`
 
     const client = ky.create({

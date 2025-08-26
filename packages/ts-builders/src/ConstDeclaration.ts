@@ -8,7 +8,10 @@ export class ConstDeclaration implements BasicBuilder {
   private docComment?: DocComment
   private value?: ValueBuilder
 
-  constructor(readonly name: string, readonly type?: TypeBuilder) {}
+  constructor(
+    readonly name: string,
+    readonly type?: TypeBuilder,
+  ) {}
 
   setDocComment(docComment: DocComment): this {
     this.docComment = docComment

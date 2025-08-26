@@ -576,7 +576,7 @@ export class ClientEngine implements Engine {
           })
 
           const results = convertCompactedRows(rows as {}[], batchResponse)
-          return results.map((result) => ({ data: { [firstAction]: result } } as BatchQueryEngineResult<T>))
+          return results.map((result) => ({ data: { [firstAction]: result } }) as BatchQueryEngineResult<T>)
         }
       }
     } catch (e: any) {

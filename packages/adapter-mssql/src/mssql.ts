@@ -70,7 +70,10 @@ class MssqlQueryable implements SqlQueryable {
 class MssqlTransaction extends MssqlQueryable implements Transaction {
   #mutex = new Mutex()
 
-  constructor(private transaction: sql.Transaction, readonly options: TransactionOptions) {
+  constructor(
+    private transaction: sql.Transaction,
+    readonly options: TransactionOptions,
+  ) {
     super(transaction)
   }
 
@@ -112,7 +115,10 @@ export type PrismaMssqlOptions = {
 }
 
 class PrismaMssqlAdapter extends MssqlQueryable implements SqlDriverAdapter {
-  constructor(private pool: sql.ConnectionPool, private readonly options?: PrismaMssqlOptions) {
+  constructor(
+    private pool: sql.ConnectionPool,
+    private readonly options?: PrismaMssqlOptions,
+  ) {
     super(pool)
   }
 
@@ -163,7 +169,10 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
+  constructor(
+    private readonly config: sql.config,
+    private readonly options?: PrismaMssqlOptions,
+  ) {}
 
   async connect(): Promise<PrismaMssqlAdapter> {
     const pool = new sql.ConnectionPool(this.config)
