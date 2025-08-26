@@ -1,5 +1,5 @@
-import { getActiveLogger } from './context.ts'
-import { ExtendedAttributes } from './event.ts'
+import { getActiveLogger } from './context'
+import { ExtendedAttributes } from './event'
 
 /**
  * Logs a debug message using the active logger.

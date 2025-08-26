@@ -1,4 +1,4 @@
-import { parseInteger } from './numeric.ts'
+import { parseInteger } from './numeric'
 
 // Size units with their byte values
 const sizeUnits: Record<string, number> = {

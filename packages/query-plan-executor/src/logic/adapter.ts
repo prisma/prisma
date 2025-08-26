@@ -1,6 +1,6 @@
-import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { PrismaMssql } from '@prisma/adapter-mssql'
+import { PrismaPg } from '@prisma/adapter-pg'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 
 export function createAdapter(url: string): SqlDriverAdapterFactory {

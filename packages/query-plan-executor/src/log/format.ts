@@ -1,5 +1,7 @@
-import { LogEvent } from './event.ts'
-import { LogLevel, validLogLevels } from './log_level.ts'
+import { Temporal } from 'temporal-polyfill'
+
+import { LogEvent } from './event'
+import { LogLevel, validLogLevels } from './log-level'
 
 /**
  * Output format of printed log events.

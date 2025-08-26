@@ -1,4 +1,5 @@
 import { HrTime } from '@opentelemetry/api'
+import { Temporal } from 'temporal-polyfill'
 
 export function instantToHrTime(instant: Temporal.Instant): HrTime {
   const epochSeconds = Math.trunc(instant.epochMilliseconds / 1000)

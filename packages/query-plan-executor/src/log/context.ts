@@ -1,6 +1,6 @@
 import { context } from '@opentelemetry/api'
 
-import { Logger } from './logger.ts'
+import { Logger } from './logger'
 
 const LOG_CONTEXT = Symbol('LogContext')
 

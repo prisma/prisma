@@ -1,3 +1,5 @@
+import timers from 'node:timers/promises'
+
 import { AttributeValue } from '@opentelemetry/api'
 import {
   normalizeJsonProtocolValues,
@@ -9,16 +11,13 @@ import {
   TransactionOptions,
 } from '@prisma/client-engine-runtime'
 import { ConnectionInfo, Provider, SqlDriverAdapter } from '@prisma/driver-adapter-utils'
-import { deadline } from '@std/async/deadline'
 
-import { Options } from '../options.ts'
-import { ResourceLimitError, ResourceLimits } from './resource_limits.ts'
-import { TracingHandler } from '../tracing/handler.ts'
-import { runInActiveSpan, tracer } from '../tracing/tracer.ts'
-import * as log from '../log/facade.ts'
-import { createAdapter } from './adapter.ts'
-
-const TIMEOUT_EXIT_CODE = 124
+import * as log from '../log/facade'
+import { Options } from '../options'
+import { TracingHandler } from '../tracing/handler'
+import { runInActiveSpan, tracer } from '../tracing/tracer'
+import { createAdapter } from './adapter'
+import { ResourceLimitError, ResourceLimits } from './resource-limits'
 
 /**
  * Entry point for the application logic.
@@ -53,9 +52,18 @@ export class App {
       tracingHelper: tracingHandler,
     })
 
-    registerShutdownSignalHandlers(transactionManager, db, options)
-
     return new App(db, transactionManager, tracingHandler)
+  }
+
+  /**
+   * Cancels all active transactions and disconnects from the database.
+   */
+  async shutdown(): Promise<void> {
+    try {
+      await this.#transactionManager.cancelAllTransactions()
+    } finally {
+      await this.#db.dispose()
+    }
   }
 
   /**
@@ -87,19 +95,14 @@ export class App {
         },
       })
 
-      try {
-        const result = await deadline(
-          queryInterpreter.run(queryPlan, queryable),
-          resourceLimits.queryTimeout.total('milliseconds'),
-        )
-        return normalizeJsonProtocolValues(result)
-      } catch (error) {
-        if (error instanceof DOMException) {
+      const result = await Promise.race([
+        queryInterpreter.run(queryPlan, queryable),
+        timers.setTimeout(resourceLimits.queryTimeout.total('milliseconds'), undefined, { ref: false }).then(() => {
           throw new ResourceLimitError('Query timeout exceeded')
-        } else {
-          throw error
-        }
-      }
+        }),
+      ])
+
+      return normalizeJsonProtocolValues(result)
     })
   }
 
@@ -139,9 +142,7 @@ export class App {
    * Retrieves connection information necessary for building the queries.
    */
   getConnectionInfo(): { provider: Provider; connectionInfo: ConnectionInfo } {
-    const connectionInfo = this.#db.getConnectionInfo?.() ?? {
-      supportsRelationJoins: false,
-    }
+    const connectionInfo = this.#db.getConnectionInfo?.() ?? { supportsRelationJoins: false }
     return { provider: this.#db.provider, connectionInfo }
   }
 }
@@ -156,47 +157,4 @@ function serializeParamsForLogging(params: unknown[]): AttributeValue {
     }
     return param
   }) as AttributeValue
-}
-
-function registerShutdownSignalHandlers(
-  transactionManager: TransactionManager,
-  db: SqlDriverAdapter,
-  options: Options,
-) {
-  let shutdownInProgress = false
-
-  const gracefulShutdown = async () => {
-    const terminate = async () => {
-      try {
-        await transactionManager.cancelAllTransactions()
-      } finally {
-        await db.dispose()
-      }
-    }
-
-    try {
-      await deadline(terminate(), options.gracefulShutdownTimeout.total('milliseconds'))
-    } catch (err) {
-      if (err instanceof DOMException && err.name === 'TimeoutError') {
-        log.info('Graceful shutdown timed out')
-        Deno.exit(TIMEOUT_EXIT_CODE)
-      }
-      throw err
-    }
-
-    Deno.exit()
-  }
-
-  const addSignalHandler = (signal: Deno.Signal) => {
-    Deno.addSignalListener(signal, () => {
-      if (!shutdownInProgress) {
-        log.info(`Received ${signal} signal, shutting down`)
-        shutdownInProgress = true
-        void gracefulShutdown()
-      }
-    })
-  }
-
-  addSignalHandler('SIGINT')
-  addSignalHandler('SIGTERM')
 }

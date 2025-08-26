@@ -1,5 +1,7 @@
 import { Attributes, AttributeValue, HrTime, trace } from '@opentelemetry/api'
+import { Temporal } from 'temporal-polyfill'
 
+import { instantToHrTime } from '../formats/hr-time'
 import {
   ExportableSpanId,
   NULL_SPAN_ID,
@@ -8,9 +10,8 @@ import {
   parseTraceId,
   SpanId,
   TraceId,
-} from '../tracing/id.ts'
-import { instantToHrTime } from '../formats/hr_time.ts'
-import { LogLevel } from './log_level.ts'
+} from '../tracing/id'
+import { LogLevel } from './log-level'
 
 /**
  * Log event in a format expected by the Prisma Client.

@@ -1,22 +1,28 @@
-import { Middleware } from '@oak/oak/middleware'
+import { createMiddleware } from 'hono/factory'
 
-import * as log from '../../log/facade.ts'
+import * as log from '../../log/facade'
 
-export const logMiddleware: Middleware = async (ctx, next) => {
+export const logMiddleware = createMiddleware<{
+  Variables: {
+    requestId: string
+  }
+}>(async (c, next) => {
   const id = crypto.randomUUID()
+
+  c.set('requestId', id)
 
   log.debug('Request', {
     id,
-    method: ctx.request.method,
-    pathname: ctx.request.url.pathname,
+    method: c.req.method,
+    pathname: c.req.path,
   })
 
   await next()
 
   log.debug('Response', {
     id,
-    status: ctx.response.status,
-    method: ctx.request.method,
-    pathname: ctx.request.url.pathname,
+    status: c.res.status,
+    method: c.req.method,
+    pathname: c.req.path,
   })
-}
+})

@@ -1,18 +1,10 @@
 import { Span, trace } from '@opentelemetry/api'
 
-import denoJson from '../deno.json' with { type: 'json' }
-import { ExtendedSpanOptions, normalizeSpanOptions } from './options.ts'
-import { extractErrorFromUnknown } from '../utils/error.ts'
+import { version } from '../../package.json'
+import { extractErrorFromUnknown } from '../utils/error'
+import { ExtendedSpanOptions, normalizeSpanOptions } from './options'
 
-const clientEngineRuntimeVersion = denoJson.imports['@prisma/client-engine-runtime'].match(
-  /^npm:@prisma\/client-engine-runtime@(\d+\.\d+\.\d+)$/,
-)?.[1]
-
-if (clientEngineRuntimeVersion === '0.0.0') {
-  throw new Error('Cannot determine the exact client engine runtime version from deno.json')
-}
-
-export const tracer = trace.getTracer('query-plan-executor', clientEngineRuntimeVersion)
+export const tracer = trace.getTracer('query-plan-executor', version)
 
 export function runInActiveSpan<R>(
   nameOrOptions: string | ExtendedSpanOptions,

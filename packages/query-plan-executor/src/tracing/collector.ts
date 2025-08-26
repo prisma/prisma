@@ -1,7 +1,7 @@
 import { context, trace } from '@opentelemetry/api'
 
-import { ExportableSpan } from './span.ts'
-import { ExportableSpanId, parseSpanId, parseTraceId } from './id.ts'
+import { ExportableSpanId, parseSpanId, parseTraceId } from './id'
+import { ExportableSpan } from './span'
 
 /**
  * Collects spans in the scope of a request for sending the back to the Prisma Client.

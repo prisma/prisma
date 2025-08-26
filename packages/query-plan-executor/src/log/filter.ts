@@ -1,5 +1,5 @@
-import { LogEvent } from './event.ts'
-import { LogLevel } from './log_level.ts'
+import { LogEvent } from './event'
+import { LogLevel } from './log-level'
 
 const logLevels: Record<LogLevel, number> = {
   debug: 0,

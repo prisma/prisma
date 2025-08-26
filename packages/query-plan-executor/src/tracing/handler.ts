@@ -1,9 +1,10 @@
-import { TracingHelper } from '@prisma/client-engine-runtime'
 import { Context, context, Span, trace, Tracer } from '@opentelemetry/api'
+import { TracingHelper } from '@prisma/client-engine-runtime'
+import { Temporal } from 'temporal-polyfill'
 
-import { ExtendedSpanOptions, normalizeSpanOptions } from './options.ts'
-import { TracingCollector, tracingCollectorContext } from './collector.ts'
-import { SpanProxy } from './span.ts'
+import { TracingCollector, tracingCollectorContext } from './collector'
+import { ExtendedSpanOptions, normalizeSpanOptions } from './options'
+import { SpanProxy } from './span'
 
 /**
  * An implementation of {@link TracingHelper} from `@prisma/client-engine-runtime`

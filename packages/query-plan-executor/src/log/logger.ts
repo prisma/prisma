@@ -1,6 +1,6 @@
-import { LogSink } from './sink.ts'
-import { ExtendedAttributes, LogEvent } from './event.ts'
-import { LogLevel } from './log_level.ts'
+import { ExtendedAttributes, LogEvent } from './event'
+import { LogLevel } from './log-level'
+import { LogSink } from './sink'
 
 /**
  * Core logger class that writes log events to a sink.

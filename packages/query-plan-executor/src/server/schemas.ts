@@ -1,11 +1,8 @@
-import { Context, Status } from '@oak/oak'
 import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
 import { z } from 'zod'
 
-import { ExportableLogEvent } from '../log/event.ts'
-import * as log from '../log/facade.ts'
-import { ExportableSpan } from '../tracing/span.ts'
-import { extractErrorFromUnknown } from '../utils/error.ts'
+import { ExportableLogEvent } from '../log/event'
+import { ExportableSpan } from '../tracing/span'
 
 /**
  * Schema for the query request body of the query plan executor.
@@ -91,22 +88,4 @@ export type TransactionEndResponseBody =
 export type ConnectionInfoResponseBody = {
   provider: Provider
   connectionInfo: ConnectionInfo
-}
-
-/**
- * Parses an HTTP request body according to the specified schema, or throws an
- * HTTP 400 Bad Request error if the request body does not match the schema or
- * isn't valid JSON.
- */
-export async function parseRequestBody<T extends z.ZodTypeAny>(schema: T, ctx: Context): Promise<z.infer<T>> {
-  try {
-    return schema.parse(await ctx.request.body.json())
-  } catch (error) {
-    log.error('Invalid request body', {
-      method: ctx.request.method,
-      pathname: ctx.request.url.pathname,
-      error: extractErrorFromUnknown(error),
-    })
-    ctx.throw(Status.BadRequest, 'Invalid request body')
-  }
 }

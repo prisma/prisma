@@ -10,9 +10,11 @@ import {
   SpanStatus,
   TimeInput,
 } from '@opentelemetry/api'
-import { ExportableSpanId, parseSpanId, parseTraceId } from './id.ts'
-import { ExtendedSpanOptions } from './options.ts'
-import { instantToHrTime } from '../formats/hr_time.ts'
+import { Temporal } from 'temporal-polyfill'
+
+import { instantToHrTime } from '../formats/hr-time'
+import { ExportableSpanId, parseSpanId, parseTraceId } from './id'
+import { ExtendedSpanOptions } from './options'
 
 /**
  * A span in the format expected by the Prisma Client.

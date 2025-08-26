@@ -1,6 +1,6 @@
-import { ExportableLogEvent, LogEvent } from './event.ts'
-import { FilterDecision, LogFilter } from './filter.ts'
-import { ConsoleFormatter } from './format.ts'
+import { ExportableLogEvent, LogEvent } from './event'
+import { FilterDecision, LogFilter } from './filter'
+import { ConsoleFormatter } from './format'
 
 /**
  * Represents a log sink that writes log events to a destination.

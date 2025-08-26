@@ -1,9 +1,12 @@
-import { Context, Status } from '@oak/oak'
-import { ResourceLimits } from '../logic/resource_limits.ts'
-import { parseDuration } from '../formats/duration.ts'
-import { extractErrorFromUnknown } from '../utils/error.ts'
-import { parseSize } from '../formats/size.ts'
-import { Options } from '../options.ts'
+import { Context } from 'hono'
+import { HTTPException } from 'hono/http-exception'
+import { Temporal } from 'temporal-polyfill'
+
+import { parseDuration } from '../formats/duration'
+import { parseSize } from '../formats/size'
+import { ResourceLimits } from '../logic/resource-limits'
+import { Options } from '../options'
+import { extractErrorFromUnknown } from '../utils/error'
 
 /**
  * Parses {@link ResourceLimits} from headers.
@@ -12,6 +15,7 @@ import { Options } from '../options.ts'
  * malicious users from setting arbitrary resource limits. They
  * must only be set by Accelerate itself.
  */
+
 export function parseResourceLimitsFromHeaders(ctx: Context): Partial<ResourceLimits> {
   return {
     queryTimeout: parseDurationFromHeaders(ctx, 'x-query-timeout'),
@@ -21,9 +25,9 @@ export function parseResourceLimitsFromHeaders(ctx: Context): Partial<ResourceLi
 }
 
 function parseDurationFromHeaders(ctx: Context, name: string): Temporal.Duration | undefined {
-  const header = ctx.request.headers.get(name)
+  const header = ctx.req.header(name)
 
-  if (header === null) {
+  if (header === undefined) {
     return undefined
   }
 
@@ -35,14 +39,14 @@ function parseDurationFromHeaders(ctx: Context, name: string): Temporal.Duration
       error: extractErrorFromUnknown(error),
     })
 
-    ctx.throw(Status.BadRequest, `Malformed ${name} header`)
+    throw new HTTPException(400, { message: `Malformed ${name} header` })
   }
 }
 
 function parseSizeFromHeaders(ctx: Context, name: string): number | undefined {
-  const header = ctx.request.headers.get(name)
+  const header = ctx.req.header(name)
 
-  if (header === null) {
+  if (header === undefined) {
     return undefined
   }
 
@@ -54,7 +58,7 @@ function parseSizeFromHeaders(ctx: Context, name: string): number | undefined {
       error: extractErrorFromUnknown(error),
     })
 
-    ctx.throw(Status.BadRequest, `Malformed ${name} header`)
+    throw new HTTPException(400, { message: `Malformed ${name} header` })
   }
 }
 

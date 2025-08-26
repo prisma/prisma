@@ -1,17 +1,18 @@
-import { assertEquals, assertExists } from '@std/assert'
+import timers from 'node:timers/promises'
+
 import { context, SpanKind, SpanStatusCode } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
-import { delay } from '@std/async/delay'
 import { InMemorySpanExporter, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
+import { expect, test } from 'vitest'
 
-import { TracingCollector, tracingCollectorContext } from './collector.ts'
-import { TracingHandler } from './handler.ts'
-import { getTestTracerProvider } from './test_utils.ts'
+import { TracingCollector, tracingCollectorContext } from './collector'
+import { TracingHandler } from './handler'
+import { getTestTracerProvider } from './test-utils'
 
 // Set up async context for tests
 context.setGlobalContextManager(new AsyncLocalStorageContextManager())
 
-Deno.test('Tracing integration - full flow with nested spans and context', async () => {
+test('full flow with nested spans and context', async () => {
   const exporter = new InMemorySpanExporter()
 
   await using tracerProvider = getTestTracerProvider({
@@ -30,13 +31,13 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
 
       // Simulate parsing the data
       const parsed = await handler.runInChildSpan('parse-data', async () => {
-        await delay(5) // Simulate work
+        await timers.setTimeout(5) // Simulate work
         return { value: data.toUpperCase() }
       })
 
       // Simulate transforming the data
       const result = await handler.runInChildSpan('transform-data', async () => {
-        await delay(5) // Simulate work
+        await timers.setTimeout(5) // Simulate work
         return `Processed: ${parsed.value}`
       })
 
@@ -49,10 +50,10 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   })
 
   // Verify the function result
-  assertEquals(result, 'Processed: TEST DATA')
+  expect(result).toEqual('Processed: TEST DATA')
 
   // Verify spans were collected
-  assertEquals(collector.spans.length, 3)
+  expect(collector.spans.length).toEqual(3)
 
   // Find each span by name
   const processSpan = collector.spans.find((s) => s.name === 'prisma:engine:process-data')
@@ -60,16 +61,16 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   const transformSpan = collector.spans.find((s) => s.name === 'prisma:engine:transform-data')
 
   // Verify all spans exist
-  assertExists(processSpan)
-  assertExists(parseSpan)
-  assertExists(transformSpan)
+  expect(processSpan).toBeDefined()
+  expect(parseSpan).toBeDefined()
+  expect(transformSpan).toBeDefined()
 
   // Verify attributes were set
-  assertEquals(processSpan!.attributes && processSpan.attributes['data.size'], 9)
+  expect(processSpan?.attributes?.['data.size']).toEqual(9)
 
   // Verify parent-child relationships
-  assertEquals(parseSpan!.parentId, processSpan!.id)
-  assertEquals(transformSpan!.parentId, processSpan!.id)
+  expect(parseSpan!.parentId).toEqual(processSpan!.id)
+  expect(transformSpan!.parentId).toEqual(processSpan!.id)
 
   // Verify timing - process span should encompass the other spans
   const processStartTime = processSpan!.startTime[0] * 1_000_000_000 + processSpan!.startTime[1]
@@ -82,13 +83,13 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   const transformEndTime = transformSpan!.endTime[0] * 1_000_000_000 + transformSpan!.endTime[1]
 
   // Process span should start before and end after both child spans
-  assertEquals(processStartTime <= parseStartTime, true)
-  assertEquals(processEndTime >= parseEndTime, true)
-  assertEquals(processStartTime <= transformStartTime, true)
-  assertEquals(processEndTime >= transformEndTime, true)
+  expect(processStartTime).toBeLessThanOrEqual(parseStartTime)
+  expect(processEndTime).toBeGreaterThanOrEqual(parseEndTime)
+  expect(processStartTime).toBeLessThanOrEqual(transformStartTime)
+  expect(processEndTime).toBeGreaterThanOrEqual(transformEndTime)
 
   // Parse span should happen before transform span
-  assertEquals(parseStartTime <= transformStartTime, true)
+  expect(parseStartTime <= transformStartTime).toEqual(true)
 
   // ----- VERIFY OPENTELEMETRY SPANS -----
 
@@ -98,7 +99,7 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   const exportedSpans = exporter.getFinishedSpans()
 
   // Verify spans were captured by the OpenTelemetry exporter
-  assertEquals(exportedSpans.length, 3, 'Expected 3 spans in OTel exporter')
+  expect(exportedSpans.length).toEqual(3)
 
   // Find each OTel span by name
   const otelProcessSpan = exportedSpans.find((s) => s.name === 'process-data')
@@ -106,12 +107,12 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   const otelTransformSpan = exportedSpans.find((s) => s.name === 'transform-data')
 
   // Verify all OTel spans exist
-  assertExists(otelProcessSpan, 'Process span should exist in OTel exporter')
-  assertExists(otelParseSpan, 'Parse span should exist in OTel exporter')
-  assertExists(otelTransformSpan, 'Transform span should exist in OTel exporter')
+  expect(otelProcessSpan, 'Process span should exist in OTel exporter').toBeDefined()
+  expect(otelParseSpan, 'Parse span should exist in OTel exporter').toBeDefined()
+  expect(otelTransformSpan, 'Transform span should exist in OTel exporter').toBeDefined()
 
   // Verify attributes were set in OTel spans
-  assertEquals(otelProcessSpan!.attributes['data.size'], 9)
+  expect(otelProcessSpan!.attributes['data.size']).toEqual(9)
 
   // Get the span context for comparison
   const processContext = otelProcessSpan!.spanContext()
@@ -120,8 +121,8 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
 
   // Verify trace IDs are consistent across spans
   const traceId = processContext.traceId
-  assertEquals(parseContext.traceId, traceId, 'All spans should share the same trace ID')
-  assertEquals(transformContext.traceId, traceId, 'All spans should share the same trace ID')
+  expect(parseContext.traceId).toEqual(traceId)
+  expect(transformContext.traceId).toEqual(traceId)
 
   // Create a snapshot of the spans for future reference
   const spanSnapshot = exportedSpans.map((span) => {
@@ -150,7 +151,7 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   spanSnapshot.sort((a, b) => a.name.localeCompare(b.name))
 
   // Verify the snapshot structure
-  assertEquals(spanSnapshot, [
+  expect(spanSnapshot).toEqual([
     {
       name: 'parse-data',
       kind: 'INTERNAL',
@@ -175,7 +176,7 @@ Deno.test('Tracing integration - full flow with nested spans and context', async
   ])
 })
 
-Deno.test('Tracing integration - handles errors correctly', async () => {
+test('handles errors correctly', async () => {
   const exporter = new InMemorySpanExporter()
 
   await using tracerProvider = getTestTracerProvider({
@@ -192,13 +193,13 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
     return handler.runInChildSpan('process-broken-data', async (_span) => {
       // First child operation succeeds
       await handler.runInChildSpan('first-step', async () => {
-        await delay(5)
+        await timers.setTimeout(5)
         return 'first step completed'
       })
 
       // Second child operation fails
       return await handler.runInChildSpan('error-step', async () => {
-        await delay(5)
+        await timers.setTimeout(5)
         throw new Error('Processing error')
       })
     })
@@ -215,16 +216,16 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
   }
 
   // Verify the error was thrown
-  assertExists(error)
-  assertEquals(error.message, 'Processing error')
+  expect(error).toBeDefined()
+  expect(error!.message).toEqual('Processing error')
 
   // Verify spans were collected, including for the failed operation
-  assertEquals(collector.spans.length, 3)
+  expect(collector.spans.length).toEqual(3)
 
   // All spans should be recorded despite the error
-  assertExists(collector.spans.find((s) => s.name === 'prisma:engine:process-broken-data'))
-  assertExists(collector.spans.find((s) => s.name === 'prisma:engine:first-step'))
-  assertExists(collector.spans.find((s) => s.name === 'prisma:engine:error-step'))
+  expect(collector.spans.find((s) => s.name === 'prisma:engine:process-broken-data')).toBeDefined()
+  expect(collector.spans.find((s) => s.name === 'prisma:engine:first-step')).toBeDefined()
+  expect(collector.spans.find((s) => s.name === 'prisma:engine:error-step')).toBeDefined()
 
   // ----- VERIFY OPENTELEMETRY SPANS -----
 
@@ -234,7 +235,7 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
   const exportedSpans = exporter.getFinishedSpans()
 
   // Verify spans were captured
-  assertEquals(exportedSpans.length, 3, 'Expected 3 spans in OTel exporter')
+  expect(exportedSpans.length).toEqual(3)
 
   // Find each OTel span by name
   const otelProcessSpan = exportedSpans.find((s) => s.name === 'process-broken-data')
@@ -242,9 +243,9 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
   const otelErrorStepSpan = exportedSpans.find((s) => s.name === 'error-step')
 
   // Verify all OTel spans exist
-  assertExists(otelProcessSpan, 'Process span should exist in OTel exporter')
-  assertExists(otelFirstStepSpan, 'First step span should exist in OTel exporter')
-  assertExists(otelErrorStepSpan, 'Error step span should exist in OTel exporter')
+  expect(otelProcessSpan, 'Process span should exist in OTel exporter').toBeDefined()
+  expect(otelFirstStepSpan, 'First step span should exist in OTel exporter').toBeDefined()
+  expect(otelErrorStepSpan, 'Error step span should exist in OTel exporter').toBeDefined()
 
   // Get the span contexts for comparison
   const processContext = otelProcessSpan!.spanContext()
@@ -253,8 +254,8 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
 
   // Verify trace IDs are consistent
   const traceId = processContext.traceId
-  assertEquals(firstStepContext.traceId, traceId, 'All spans should share the same trace ID')
-  assertEquals(errorStepContext.traceId, traceId, 'All spans should share the same trace ID')
+  expect(firstStepContext.traceId).toEqual(traceId)
+  expect(errorStepContext.traceId).toEqual(traceId)
 
   // Create a snapshot of the spans for future reference
   const spanSnapshot = exportedSpans.map((span) => {
@@ -283,7 +284,7 @@ Deno.test('Tracing integration - handles errors correctly', async () => {
   spanSnapshot.sort((a, b) => a.name.localeCompare(b.name))
 
   // Verify the snapshot structure
-  assertEquals(spanSnapshot, [
+  expect(spanSnapshot).toEqual([
     {
       name: 'error-step',
       kind: 'INTERNAL',
