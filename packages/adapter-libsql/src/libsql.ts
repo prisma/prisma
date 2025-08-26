@@ -93,7 +93,11 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 }
 
 class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
-  constructor(client: TransactionClient, readonly options: TransactionOptions, readonly unlockParent: () => void) {
+  constructor(
+    client: TransactionClient,
+    readonly options: TransactionOptions,
+    readonly unlockParent: () => void,
+  ) {
     super(client)
   }
 

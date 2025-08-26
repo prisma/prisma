@@ -54,7 +54,10 @@ export class Model {
   private mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
 
-  constructor(private readonly model: DMMF.Model, private readonly context: GenerateContext) {
+  constructor(
+    private readonly model: DMMF.Model,
+    private readonly context: GenerateContext,
+  ) {
     this.dmmf = context.dmmf
     this.type = this.context.dmmf.outputTypeMap.model[model.name]
 
@@ -475,7 +478,10 @@ ${this.argsTypes.map((type) => ts.stringify(type)).join('\n\n')}
 }
 
 class ModelDelegate {
-  constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
+  constructor(
+    protected readonly outputType: DMMF.OutputType,
+    protected readonly context: GenerateContext,
+  ) {}
 
   /**
    * Returns all available non-aggregate or group actions
@@ -551,8 +557,8 @@ ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Prisma.Subset<T, ${getAggregateArgsName(
-        name,
-      )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
+    name,
+  )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
 `
     : ''
 }
@@ -617,8 +623,8 @@ ${
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: Prisma.SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-        name,
-      )}<T> : Prisma.PrismaPromise<InputErrors>`
+    name,
+  )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
 /**
