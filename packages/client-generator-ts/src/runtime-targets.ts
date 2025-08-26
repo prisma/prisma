@@ -1,4 +1,4 @@
-export const supportedInternalRuntimes = ['nodejs', 'workerd', 'vercel-edge', 'react-native'] as const
+export const supportedInternalRuntimes = ['nodejs', 'workerd', 'vercel-edge', 'deno', 'react-native'] as const
 const supportedPublicRuntimes = [
   'nodejs',
   'deno',
@@ -31,9 +31,11 @@ function parseRuntimeTarget(target: RuntimeTarget | (string & {})): RuntimeTarge
       return 'vercel-edge'
 
     case 'nodejs':
-    case 'deno':
     case 'bun':
       return 'nodejs'
+
+    case 'deno':
+      return 'deno'
 
     case 'react-native':
       return 'react-native'

@@ -1,7 +1,7 @@
 import { capitalize } from '@prisma/client-common'
 import { TsConfigJson, TsConfigJsonResolved } from 'get-tsconfig'
 
-import { RuntimeTarget } from './runtime-targets'
+import type { RuntimeTargetInternal } from './runtime-targets'
 
 const expectedGeneratedFileExtensions = ['ts', 'mts', 'cts'] as const
 export type GeneratedFileExtension = (typeof expectedGeneratedFileExtensions)[number] | (string & {})
@@ -60,7 +60,7 @@ export function importFileNameMapper(importFileExtension: ImportFileExtension): 
 type InferImportFileExtensionOptions = {
   tsconfig: TsConfigJsonResolved | undefined
   generatedFileExtension: GeneratedFileExtension
-  target: RuntimeTarget
+  target: RuntimeTargetInternal
 }
 
 export function inferImportFileExtension({
