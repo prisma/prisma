@@ -15,6 +15,7 @@ import { Mutex } from 'async-mutex'
 import sql from 'mssql'
 
 import { name as packageName } from '../package.json'
+import { extractSchemaFromConnectionString, parseConnectionString } from './connection-string'
 import { mapArg, mapColumnType, mapIsolationLevel, mapRow } from './conversion'
 import { convertDriverError } from './errors'
 
@@ -163,7 +164,23 @@ export class PrismaMssqlAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'sqlserver'
   readonly adapterName = packageName
 
-  constructor(private readonly config: sql.config, private readonly options?: PrismaMssqlOptions) {}
+  private readonly config: sql.config
+  private readonly options?: PrismaMssqlOptions
+
+  constructor(configOrString: sql.config | string, options?: PrismaMssqlOptions) {
+    if (typeof configOrString === 'string') {
+      this.config = parseConnectionString(configOrString)
+      // Extract schema from connection string and merge with provided options
+      const extractedSchema = extractSchemaFromConnectionString(configOrString)
+      this.options = {
+        ...options,
+        schema: options?.schema ?? extractedSchema,
+      }
+    } else {
+      this.config = configOrString
+      this.options = options ?? {}
+    }
+  }
 
   async connect(): Promise<PrismaMssqlAdapter> {
     const pool = new sql.ConnectionPool(this.config)
