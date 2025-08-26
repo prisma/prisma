@@ -6,13 +6,12 @@ const { generatorHandler } = require('../generatorHandler.ts')
 
 generatorHandler({
   async onGenerate() {
-    await new Promise(r => {
+    await new Promise((r) => {
       setTimeout(r, 100)
     })
     console.error('Second last Console error before exit')
     console.error('Last Console error before exit')
     process.exit(1)
   },
-  onManifest() {
-  },
+  onManifest() {},
 })

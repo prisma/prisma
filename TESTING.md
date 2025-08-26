@@ -140,7 +140,6 @@ If you have related tests but different schemas, you can nest directories. For e
 `composite-index/`
 
 1.  `list/`
-
     - `test.ts`
     - `_matrix.ts`
     - `prisma/`

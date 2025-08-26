@@ -20,7 +20,11 @@ type GeneratorProcessOptions = {
 export class GeneratorError extends Error {
   name = 'GeneratorError'
 
-  constructor(message: string, public code?: number, public data?: any) {
+  constructor(
+    message: string,
+    public code?: number,
+    public data?: any,
+  ) {
     super(message)
     if (data?.stack) {
       this.stack = data.stack
@@ -42,7 +46,10 @@ export class GeneratorProcess {
   private pendingError: Error | undefined
   private exited = false
 
-  constructor(private pathOrCommand: string, { isNode = false }: GeneratorProcessOptions = {}) {
+  constructor(
+    private pathOrCommand: string,
+    { isNode = false }: GeneratorProcessOptions = {},
+  ) {
     this.isNode = isNode
   }
 

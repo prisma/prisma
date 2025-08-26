@@ -15,8 +15,8 @@ export const createHelp = (content: HelpContent) => {
   const command_ = subcommand
     ? `prisma platform ${command} ${subcommand}`
     : command && subcommands
-    ? `prisma platform ${command} [command]`
-    : `prisma platform [command]`
+      ? `prisma platform ${command} [command]`
+      : `prisma platform [command]`
 
   const usage = format(`
 ${bold('Usage')}
