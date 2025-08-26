@@ -419,6 +419,62 @@ jobs:
           path: packages/*/junit*.xml
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+  #
+  # CLIENT (functional tests with client engine, query compiler, driver adapters and Accelerate)
+  #
+  client-query-compiler-accelerate:
+    name: QC+Accelerate ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-') ||
+      contains(inputs.jobsToRun, '-query-plan-executor-')
+    strategy:
+      fail-fast: false
+      matrix:
+        provider: ['postgresql', 'mysql', 'sqlserver']
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: [20]
+        previewFeatures: ['queryCompiler']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mssql mysql
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime client --preview-features ${{ matrix.previewFeatures }} --engine-type client --remote-executor --runInBand
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional-qpe'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
   # CLIENT (memory tests)
@@ -1015,6 +1071,10 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
+      - run: pnpm run test
+        name: 'query-plan-executor'
+        working-directory: packages/query-plan-executor
+
   #
   # Driver Adapter Unit Tests
   #
@@ -1347,6 +1407,11 @@ jobs:
         if: contains(inputs.jobsToRun, '-all-')
         name: 'client-generator-registry'
         working-directory: packages/client-generator-registry
+
+      - run: pnpm run test
+        if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
+        name: 'query-plan-executor'
+        working-directory: packages/query-plan-executor
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.

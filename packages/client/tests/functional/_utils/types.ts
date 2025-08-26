@@ -40,18 +40,22 @@ export type Db = {
 
 export type ClientRuntime = 'node' | 'edge' | 'wasm-engine-edge' | 'wasm-compiler-edge' | 'client'
 
+export type ClientEngineExecutor = 'local' | 'remote'
+
 export type CliMeta = {
   dataProxy: boolean
   runtime: ClientRuntime
   previewFeatures: string[]
   engineType: `${ClientEngineType}` | undefined
   generatorType: `${GeneratorTypes}` | undefined
+  clientEngineExecutor: ClientEngineExecutor
 }
 
 export type ClientMeta = {
   driverAdapter: boolean
   dataProxy: boolean
   runtime: ClientRuntime
+  clientEngineExecutor: ClientEngineExecutor
 }
 
 export type AlterStatementCallback = (provider: Providers) => string

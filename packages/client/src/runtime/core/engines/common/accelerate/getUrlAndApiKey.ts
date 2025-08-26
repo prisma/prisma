@@ -57,7 +57,11 @@ export function getUrlAndApiKey(options: GetUrlAndApiKeyOptions): UrlAndApiKey {
 
   // To simplify things, `prisma dev`, for now, will not support HTTPS.
   // In the future, if HTTPS for `prisma dev` becomes a thing, we'll need this line to be dynamic.
-  const httpScheme = isPrismaPostgresDev(url) ? 'http:' : 'https:'
+  let httpScheme = isPrismaPostgresDev(url) ? 'http:' : 'https:'
+
+  if (process.env.TEST_CLIENT_ENGINE_REMOTE_EXECUTOR && url.searchParams.has('use_http')) {
+    httpScheme = 'http:'
+  }
 
   // Switching from `prisma:` or `prisma+postgres:` to `http:` or `https:` by
   // assigning to the `protocol` property is not allowed by the WHATWG URL API,
