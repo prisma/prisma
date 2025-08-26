@@ -64,7 +64,7 @@ async function createEvents(users: User[], variant: ExperimentVariant, event: Ev
         variant,
         type: event,
         userId: user.id,
-      } satisfies Prisma.TrackingEventCreateManyInput),
+      }) satisfies Prisma.TrackingEventCreateManyInput,
   )
   await prisma.trackingEvent.createMany({ data: eventsData })
 }

@@ -400,12 +400,12 @@ testMatrix.setupTestSuite(
         children = isMongoDb
           ? engineConnection()
           : isSqlServer && driverAdapter === undefined
-          ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
-          : driverAdapter === undefined
-          ? [...engineConnection(), txBegin()]
-          : engineType === ClientEngineType.Client
-          ? undefined
-          : engineConnection()
+            ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
+            : driverAdapter === undefined
+              ? [...engineConnection(), txBegin()]
+              : engineType === ClientEngineType.Client
+                ? undefined
+                : engineConnection()
       } else if (operation === 'commit') {
         children = isMongoDb ? undefined : [txCommit()]
       } else if (operation === 'rollback') {

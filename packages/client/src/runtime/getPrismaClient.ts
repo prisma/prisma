@@ -219,8 +219,8 @@ type ExtendedEventType = LogLevel | 'beforeExit'
 type EventCallback<E extends ExtendedEventType> = [E] extends ['beforeExit']
   ? () => Promise<void>
   : [E] extends [LogLevel]
-  ? (event: EngineEvent<E>) => void
-  : never
+    ? (event: EngineEvent<E>) => void
+    : never
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
@@ -304,9 +304,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.activeProvider === 'postgresql'
             ? 'postgres'
             : // CockroachDB is only accessible through Postgres driver adapters
-            config.activeProvider === 'cockroachdb'
-            ? 'postgres'
-            : config.activeProvider
+              config.activeProvider === 'cockroachdb'
+              ? 'postgres'
+              : config.activeProvider
 
         if (adapter.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(

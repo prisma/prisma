@@ -7,7 +7,7 @@ const { generatorHandler } = require('../generatorHandler.ts')
 generatorHandler({
   async onGenerate() {
     console.log('Logging in onGenerate should be fine')
-    await new Promise(r => {
+    await new Promise((r) => {
       setTimeout(r, 100)
     })
   },

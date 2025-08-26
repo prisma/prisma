@@ -6,7 +6,10 @@ export type Import = NamespaceImport | BindingsImport | ModuleImport
 export class NamespaceImport implements BasicBuilder {
   private type = false
 
-  constructor(readonly alias: string, readonly from: string) {}
+  constructor(
+    readonly alias: string,
+    readonly from: string,
+  ) {}
 
   typeOnly() {
     this.type = true

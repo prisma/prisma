@@ -75,7 +75,10 @@ function onError(error: unknown): never {
 }
 
 class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements Transaction {
-  constructor(conn: mariadb.Connection, readonly options: TransactionOptions) {
+  constructor(
+    conn: mariadb.Connection,
+    readonly options: TransactionOptions,
+  ) {
     super(conn)
   }
 

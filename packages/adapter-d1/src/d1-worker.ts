@@ -105,7 +105,10 @@ class D1WorkerQueryable<ClientT extends StdClient> implements SqlQueryable {
 }
 
 class D1WorkerTransaction extends D1WorkerQueryable<StdClient> implements Transaction {
-  constructor(client: StdClient, readonly options: TransactionOptions) {
+  constructor(
+    client: StdClient,
+    readonly options: TransactionOptions,
+  ) {
     super(client)
   }
 
@@ -128,7 +131,10 @@ export class PrismaD1WorkerAdapter extends D1WorkerQueryable<StdClient> implemen
 
   alreadyWarned = new Set()
 
-  constructor(client: StdClient, private readonly release?: () => Promise<void>) {
+  constructor(
+    client: StdClient,
+    private readonly release?: () => Promise<void>,
+  ) {
     super(client)
   }
 
