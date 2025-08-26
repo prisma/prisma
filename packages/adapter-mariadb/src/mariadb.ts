@@ -167,9 +167,11 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
 
   #capabilities?: Capabilities
   #config: mariadb.PoolConfig | string
+  #options?: PrismaMariadbOptions
 
-  constructor(config: mariadb.PoolConfig | string, private readonly options?: PrismaMariadbOptions) {
+  constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
     this.#config = rewriteConnectionString(config)
+    this.#options = options
   }
 
   async connect(): Promise<PrismaMariaDbAdapter> {
@@ -177,7 +179,7 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
     }
-    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.options)
+    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.#options)
   }
 }
 
