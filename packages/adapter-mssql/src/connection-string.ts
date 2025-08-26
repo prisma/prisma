@@ -54,7 +54,7 @@ export function parseConnectionString(connectionString: string): sql.config {
   const withoutProtocol = connectionString.replace(/^sqlserver:\/\//, '')
 
   // Split by semicolon to get key-value pairs
-  const parts = withoutProtocol.split(';')
+  const [hostPart, ...paramParts] = withoutProtocol.split(';')
 
   const config: sql.config = {
     server: '',
@@ -63,7 +63,6 @@ export function parseConnectionString(connectionString: string): sql.config {
   }
 
   // Parse the first part which contains host and port
-  const [hostPart, ...paramParts] = parts
   const [host, portStr] = hostPart.split(':')
   config.server = host.trim()
 
