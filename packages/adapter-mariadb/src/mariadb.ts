@@ -166,11 +166,14 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   readonly adapterName = packageName
 
   #capabilities?: Capabilities
+  #config: mariadb.PoolConfig | string
 
-  constructor(private readonly config: mariadb.PoolConfig | string, private readonly options?: PrismaMariadbOptions) {}
+  constructor(config: mariadb.PoolConfig | string, private readonly options?: PrismaMariadbOptions) {
+    this.#config = rewriteConnectionString(config)
+  }
 
   async connect(): Promise<PrismaMariaDbAdapter> {
-    const pool = mariadb.createPool(this.config)
+    const pool = mariadb.createPool(this.#config)
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
     }
@@ -213,6 +216,22 @@ export function inferCapabilities(version: unknown): Capabilities {
   const supportsRelationJoins = !isMariaDB && (major > 8 || (major === 8 && minor >= 0 && patch >= 13))
 
   return { supportsRelationJoins }
+}
+
+/**
+ * Rewrites mysql:// connection strings to mariadb:// format.
+ * This allows users to use mysql:// connection strings with the MariaDB adapter.
+ */
+export function rewriteConnectionString(config: mariadb.PoolConfig | string): mariadb.PoolConfig | string {
+  if (typeof config !== 'string') {
+    return config
+  }
+
+  if (!config.startsWith('mysql://')) {
+    return config
+  }
+
+  return config.replace(/^mysql:\/\//, 'mariadb://')
 }
 
 type ArrayModeResult = unknown[][] & { meta?: mariadb.FieldInfo[]; affectedRows?: number; insertId?: BigInt }
