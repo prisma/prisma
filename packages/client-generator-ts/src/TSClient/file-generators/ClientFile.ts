@@ -6,6 +6,7 @@ import * as ts from '@prisma/ts-builders'
 import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
+import { modelExports } from '../ModelExports'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
@@ -17,102 +18,55 @@ const jsDocHeader = `/*
  * 🟢 You can import this file directly.
  */
 `
-const jsDocHeaderBrowser = `/*
- * This file should be your main import to use Prisma related types and utilities in the browser. 
- * Through it you get access to all the models, enums, and input types.
- * 
- * This file however does not contain a PrismaClient class as well as various other helpers that shall only be used in the backend. 
- * See client.ts for the backend entry point.
- *
- * 🟢 You can import this file directly.
- */
-`
 
-export function createClientFile(context: GenerateContext, options: TSClientOptions, browser: boolean): string {
+export function createClientFile(context: GenerateContext, options: TSClientOptions): string {
   const clientEngineType = getClientEngineType(options.generator)
   options.generator.config.engineType = clientEngineType
 
-  const imports = (
-    browser
-      ? [
-          ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
-          ts.moduleImport(context.importFileName('./internal/prismaNamespaceBrowser')).asNamespace('Prisma'),
-        ]
-      : [
-          ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
-          ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
-          ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
-          ts.moduleImport(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
-        ]
-  ).map((i) => ts.stringify(i))
+  const imports = [
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
+    ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
+    ts.moduleImport(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
+  ].map((i) => ts.stringify(i))
 
-  const exports = (
-    browser
-      ? [ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums')]
-      : [
-          ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
+  const exports = [
+    ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
+    ts.moduleExportFrom(context.importFileName('./enums')),
+    ts
+      .moduleExport(
+        ts
+          .constDeclaration('PrismaClient')
+          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
+      )
+      .setDocComment(getPrismaClientClassDocComment(context)),
+    ts.moduleExport(
+      ts
+        .typeDeclaration(
+          'PrismaClient',
           ts
-            .moduleExport(
-              ts
-                .constDeclaration('PrismaClient')
-                .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
-            )
-            .setDocComment(getPrismaClientClassDocComment(context)),
-          ts.moduleExport(
-            ts
-              .typeDeclaration(
-                'PrismaClient',
-                ts
-                  .namedType('$Class.PrismaClient')
-                  .addGenericArgument(ts.namedType('LogOpts'))
-                  .addGenericArgument(ts.namedType('OmitOpts'))
-                  .addGenericArgument(ts.namedType('ExtArgs')),
-              )
-              .addGenericParameter(
-                ts.genericParameter('LogOpts').extends(ts.namedType('Prisma.LogLevel')).default(ts.neverType),
-              )
-              .addGenericParameter(
-                ts
-                  .genericParameter('OmitOpts')
-                  .extends(ts.namedType('Prisma.PrismaClientOptions').subKey('omit'))
-                  .default(ts.namedType('Prisma.PrismaClientOptions').subKey('omit')),
-              )
-              .addGenericParameter(
-                ts
-                  .genericParameter('ExtArgs')
-                  .extends(ts.namedType('runtime.Types.Extensions.InternalArgs'))
-                  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs')),
-              ),
-          ),
-        ]
-  ).map((e) => ts.stringify(e))
-
-  const modelExports = Object.values(context.dmmf.typeAndModelMap)
-    .filter((model) => context.dmmf.outputTypeMap.model[model.name])
-    .map((model) => {
-      const docLines = model.documentation ?? ''
-      const modelLine = `Model ${model.name}\n`
-      const docs = `${modelLine}${docLines}`
-
-      const modelTypeExport = ts
-        .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`Prisma.${model.name}Model`)))
-        .setDocComment(ts.docComment(docs))
-
-      return ts.stringify(modelTypeExport)
-    })
-
-  const modelEnumsAliases = context.dmmf.datamodel.enums.map((datamodelEnum) => {
-    return [
-      ts.stringify(
-        ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
-      ),
-      ts.stringify(
-        ts.moduleExport(
-          ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
+            .namedType('$Class.PrismaClient')
+            .addGenericArgument(ts.namedType('LogOpts'))
+            .addGenericArgument(ts.namedType('OmitOpts'))
+            .addGenericArgument(ts.namedType('ExtArgs')),
+        )
+        .addGenericParameter(
+          ts.genericParameter('LogOpts').extends(ts.namedType('Prisma.LogLevel')).default(ts.neverType),
+        )
+        .addGenericParameter(
+          ts
+            .genericParameter('OmitOpts')
+            .extends(ts.namedType('Prisma.PrismaClientOptions').subKey('omit'))
+            .default(ts.namedType('Prisma.PrismaClientOptions').subKey('omit')),
+        )
+        .addGenericParameter(
+          ts
+            .genericParameter('ExtArgs')
+            .extends(ts.namedType('runtime.Types.Extensions.InternalArgs'))
+            .default(ts.namedType('runtime.Types.Extensions.DefaultArgs')),
         ),
-      ),
-    ].join('\n')
-  })
+    ),
+  ].map((e) => ts.stringify(e))
 
   const binaryTargets =
     clientEngineType === ClientEngineType.Library
@@ -123,18 +77,16 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   // being moved around as long as we keep the same project dir structure.
   const relativeOutdir = path.relative(process.cwd(), options.outputDir)
 
-  return `${browser ? jsDocHeaderBrowser : jsDocHeader}
-${browser ? '' : buildPreamble(options.edge, options.moduleFormat)}
+  return `${jsDocHeader}
+${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
 ${exports.join('\n')}
 export { Prisma }
 
-${browser ? '' : buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
-${modelExports.join('\n')}
-
-${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
+${modelExports(context).join('\n')}
 `
 }
 
