@@ -263,6 +263,24 @@ testMatrix.setupTestSuite(
       ]
     }
 
+    function clientCompile(action: string, model?: string) {
+      return clientCompileBatch([action], model ? [model] : [])
+    }
+
+    function clientCompileBatch(actions: string[], models: string[]) {
+      if (engineType !== ClientEngineType.Client) {
+        return []
+      }
+
+      return [
+        {
+          name: 'prisma:client:compile',
+          attributes: { actions, models },
+          kind: 'CLIENT',
+        },
+      ]
+    }
+
     function clientSerialize() {
       return { name: 'prisma:client:serialize' }
     }
@@ -430,6 +448,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'create', [
+            ...clientCompile('createOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
@@ -445,6 +464,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
+            ...clientCompile('findMany', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
@@ -498,6 +518,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'update', [
+            ...clientCompile('updateOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -538,6 +559,7 @@ testMatrix.setupTestSuite(
         }
         await waitForSpanTree(
           operation('User', 'delete', [
+            ...clientCompile('deleteOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -587,6 +609,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'deleteMany', [
+            ...clientCompile('deleteMany', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -602,6 +625,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'count', [
+            ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -626,6 +650,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'aggregate', [
+            ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -684,6 +709,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompileBatch(['createOne', 'findMany'], ['User', 'User']),
               clientSerialize(),
               ...engine([
                 ...engineConnection(),
@@ -721,6 +747,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompile('createOne', 'User'),
               clientSerialize(),
               ...engine([
                 ...createDbQueries(false),
@@ -729,6 +756,7 @@ testMatrix.setupTestSuite(
               ]),
             ]),
             operation('User', 'findMany', [
+              ...clientCompile('findMany', 'User'),
               clientSerialize(),
               ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
@@ -764,6 +792,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompile('createOne', 'User'),
               clientSerialize(),
               ...engine([
                 ...createDbQueries(false),
@@ -772,6 +801,7 @@ testMatrix.setupTestSuite(
               ]),
             ]),
             operation('User', 'findMany', [
+              ...clientCompile('findMany', 'User'),
               clientSerialize(),
               ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
@@ -788,6 +818,7 @@ testMatrix.setupTestSuite(
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
+            ...clientCompile('queryRaw'),
             clientSerialize(),
             ...engine([...engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
           ]),
@@ -805,6 +836,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation(undefined, 'executeRaw', [
+            ...clientCompile('executeRaw'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -836,6 +868,7 @@ testMatrix.setupTestSuite(
         name: 'create-user',
         children: [
           operation('User', 'create', [
+            ...clientCompile('createOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
@@ -868,6 +901,7 @@ testMatrix.setupTestSuite(
           ...detectPlatform(),
           ...loadEngine(),
           operation('User', 'findMany', [
+            ...clientCompile('findMany', 'User'),
             {
               name: 'prisma:client:connect',
               children: engineConnect(),
@@ -916,10 +950,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
+      from: [AdapterProviders.JS_D1],
       reason:
-        'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659 ; ' +
-        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
+        'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
     },
   },
 )
