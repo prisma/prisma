@@ -21,13 +21,9 @@ const jsDocHeader = `/*
  * model files in the \`model\` directory!
  */
 `
-export function createPrismaNamespaceFile(
-  context: GenerateContext,
-  options: TSClientOptions,
-  browser: boolean,
-): string {
+export function createPrismaNamespaceFile(context: GenerateContext, options: TSClientOptions): string {
   const imports = [
-    ts.moduleImport(browser ? `${context.runtimeBase}/index-browser` : context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
     ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
   ].map((i) => ts.stringify(i))
@@ -41,7 +37,7 @@ ${imports.join('\n')}
 
 export type * from '${context.importFileName(`../models`)}'
 
-${commonCodeTS(options, browser)}
+${commonCodeTS(options, false)}
 ${new Enum(
   {
     name: 'ModelName',
@@ -77,10 +73,10 @@ export type BatchPayload = {
 }
 
 ${new Datasources(options.datasources).toTS()}
-${clientExtensionsDefinitions(browser)}
+${clientExtensionsDefinitions()}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-${ts.stringify(ts.moduleExport(buildClientOptions(context, options, browser)))}
+${ts.stringify(ts.moduleExport(buildClientOptions(context, options)))}
 ${ts.stringify(globalOmitConfig(context.dmmf))}
 
 /* Types for Logging */
@@ -147,11 +143,7 @@ export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyL
 `
 }
 
-function clientExtensionsDefinitions(browser: boolean) {
-  if (browser) {
-    return 'export const defineExtension = () => { throw new Error("defineExtension is unable to run in the browser") }'
-  }
-
+function clientExtensionsDefinitions() {
   const define = ts.moduleExport(
     ts.constDeclaration('defineExtension').setValue(
       ts
@@ -170,7 +162,7 @@ function clientExtensionsDefinitions(browser: boolean) {
   return ts.stringify(define)
 }
 
-function buildClientOptions(context: GenerateContext, options: TSClientOptions, browser: boolean) {
+function buildClientOptions(context: GenerateContext, options: TSClientOptions) {
   const clientOptions = ts
     .interfaceDeclaration('PrismaClientOptions')
     .add(
@@ -242,10 +234,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions, 
   ) {
     clientOptions.add(
       ts
-        .property(
-          'adapter',
-          ts.unionType([browser ? ts.anyType : ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]),
-        )
+        .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
         .optional()
         .setDocComment(
           ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),

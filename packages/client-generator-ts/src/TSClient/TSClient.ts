@@ -11,6 +11,7 @@ import { createCommonInputTypeFiles } from './file-generators/CommonInputTypesFi
 import { createEnumsFile } from './file-generators/EnumsFile'
 import { createModelFile } from './file-generators/ModelFile'
 import { createModelsFile } from './file-generators/ModelsFile'
+import { createPrismaNamespaceBrowserFile } from './file-generators/PrismaNamespaceBrowserFile'
 import { createPrismaNamespaceFile } from './file-generators/PrismaNamespaceFile'
 import { GenerateContext } from './GenerateContext'
 
@@ -68,8 +69,8 @@ export class TSClient {
       [context.outputFileName('models')]: createModelsFile(context, modelNames),
       models: modelsFileMap,
       internal: {
-        [context.outputFileName('prismaNamespace')]: createPrismaNamespaceFile(context, this.options, false),
-        [context.outputFileName('prismaNamespaceBrowser')]: createPrismaNamespaceFile(context, this.options, true),
+        [context.outputFileName('prismaNamespace')]: createPrismaNamespaceFile(context, this.options),
+        [context.outputFileName('prismaNamespaceBrowser')]: createPrismaNamespaceBrowserFile(context),
         [context.outputFileName('class')]: createClassFile(context, this.options),
       },
     }
