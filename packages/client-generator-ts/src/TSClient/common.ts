@@ -1,6 +1,6 @@
 import type { TSClientOptions } from './TSClient'
 
-export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions) => {
+export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClientOptions, browser: boolean) => {
   return `export type DMMF = typeof runtime.DMMF
 
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
@@ -14,30 +14,30 @@ export const validator = runtime.Public.validator
  * Prisma Errors
  */
 
-export const PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export const PrismaClientKnownRequestError = ${notSupportedOnBrowser('PrismaClientKnownRequestError', browser)}
+export type PrismaClientKnownRequestError = typeof PrismaClientKnownRequestError
 
-export const PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export const PrismaClientUnknownRequestError = ${notSupportedOnBrowser('PrismaClientUnknownRequestError', browser)}
+export type PrismaClientUnknownRequestError = typeof PrismaClientUnknownRequestError
 
-export const PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export const PrismaClientRustPanicError = ${notSupportedOnBrowser('PrismaClientRustPanicError', browser)}
+export type PrismaClientRustPanicError = typeof PrismaClientRustPanicError
 
-export const PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export const PrismaClientInitializationError = ${notSupportedOnBrowser('PrismaClientInitializationError', browser)}
+export type PrismaClientInitializationError = typeof PrismaClientInitializationError
 
-export const PrismaClientValidationError = runtime.PrismaClientValidationError
-export type PrismaClientValidationError = runtime.PrismaClientValidationError
+export const PrismaClientValidationError = ${notSupportedOnBrowser('PrismaClientValidationError', browser)}
+export type PrismaClientValidationError = typeof PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
  */
-export const sql = runtime.sqltag
-export const empty = runtime.empty
-export const join = runtime.join
-export const raw = runtime.raw
-export const Sql = runtime.Sql
-export type Sql = runtime.Sql
+export const sql = ${notSupportedOnBrowser('sqltag', browser)}
+export const empty = ${notSupportedOnBrowser('empty', browser)}
+export const join = ${notSupportedOnBrowser('join', browser)}
+export const raw = ${notSupportedOnBrowser('raw', browser)}
+export const Sql = ${notSupportedOnBrowser('Sql', browser)}
+export type Sql = typeof Sql
 
 ${buildPrismaSkipTs(generator.previewFeatures)}
 
@@ -61,7 +61,7 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 * Extensions
 */
 export type Extension = runtime.Types.Extensions.UserArgs
-export const getExtensionContext = runtime.Extensions.getExtensionContext
+export const getExtensionContext = ${notSupportedOnBrowser('Extensions.getExtensionContext', browser)}
 export type Args<T, F extends runtime.Operation> = runtime.Types.Public.Args<T, F>
 export type Payload<T, F extends runtime.Operation = never> = runtime.Types.Public.Payload<T, F>
 export type Result<T, A, F extends runtime.Operation> = runtime.Types.Public.Result<T, A, F>
@@ -387,4 +387,11 @@ export const skip = runtime.skip
   }
 
   return ''
+}
+
+function notSupportedOnBrowser(fnc: string, browser: boolean) {
+  if (browser) {
+    return `() => { throw new Error('${fnc} is unable to run in the browser') }`
+  }
+  return `runtime.${fnc}`
 }

@@ -37,7 +37,7 @@ ${imports.join('\n')}
 
 export type * from '${context.importFileName(`../models`)}'
 
-${commonCodeTS(options)}
+${commonCodeTS(options, true)}
 ${new Enum(
   {
     name: 'ModelName',
@@ -73,7 +73,7 @@ export type BatchPayload = {
 }
 
 ${new Datasources(options.datasources).toTS()}
-${clientExtensionsDefinitions()}
+export const defineExtension = () => { throw new Error('defineExtension is unable to run in the browser') }
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${ts.stringify(ts.moduleExport(buildClientOptions(context, options)))}
@@ -141,25 +141,6 @@ export type PrismaAction =
 export type TransactionClient = Omit<DefaultPrismaClient, runtime.ITXClientDenyList>
 
 `
-}
-
-function clientExtensionsDefinitions() {
-  const define = ts.moduleExport(
-    ts.constDeclaration('defineExtension').setValue(
-      ts
-        .namedValue('runtime.Extensions.defineExtension')
-        .as(ts.namedType('unknown'))
-        .as(
-          ts
-            .namedType('runtime.Types.Extensions.ExtendsHook')
-            .addGenericArgument(ts.stringLiteral('define'))
-            .addGenericArgument(ts.namedType('TypeMapCb'))
-            .addGenericArgument(ts.namedType('runtime.Types.Extensions.DefaultArgs')),
-        ),
-    ),
-  )
-
-  return ts.stringify(define)
 }
 
 function buildClientOptions(context: GenerateContext, options: TSClientOptions) {

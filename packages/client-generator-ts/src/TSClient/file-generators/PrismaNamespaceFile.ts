@@ -37,7 +37,7 @@ ${imports.join('\n')}
 
 export type * from '${context.importFileName(`../models`)}'
 
-${commonCodeTS(options)}
+${commonCodeTS(options, false)}
 ${new Enum(
   {
     name: 'ModelName',
