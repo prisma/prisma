@@ -1,6 +1,11 @@
-import { Prisma, Role } from '../client/browser'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { $Enums, Prisma, Role } from '../client/browser'
 
 test('can import enum from browser bundle', () => {
+  // verify type imports work
+  const a: Role = Role.ADMIN
+  const b: $Enums.Role = Role.USER
+
   expect(Role).toEqual({
     USER: 'USER',
     ADMIN: 'ADMIN',
@@ -25,7 +30,7 @@ test('can access model names', () => {
 })
 
 test('can use json utility types', () => {
-  /* eslint-disable @typescript-eslint/no-unused-vars */
+  // verify json utility type imports work
   const a: Prisma.JsonValue = 56
   const b: Prisma.JsonObject = {
     a: 56,
@@ -34,7 +39,6 @@ test('can use json utility types', () => {
   const d: Prisma.InputJsonObject = { foo: 'bar' }
   const e: Prisma.InputJsonArray = ['foo']
   const f: Prisma.InputJsonValue = 56
-  /* eslint-enable @typescript-eslint/no-unused-vars */
 })
 
 export {}
