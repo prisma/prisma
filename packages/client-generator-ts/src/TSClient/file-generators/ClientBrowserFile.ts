@@ -3,7 +3,6 @@ import path from 'node:path'
 import { BinaryTarget, ClientEngineType, getClientEngineType } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
-import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
@@ -98,7 +97,6 @@ export function createClientBrowserFile(context: GenerateContext, options: TSCli
   const relativeOutdir = path.relative(process.cwd(), options.outputDir)
 
   return `${jsDocHeader}
-${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
 ${stubPrismaClientClass()}
@@ -112,28 +110,6 @@ ${modelExports.join('\n')}
 
 ${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 `
-}
-
-function buildPreamble(edge: boolean, moduleFormat: ModuleFormat): string {
-  if (edge) {
-    return `\
-globalThis['__dirname'] = '/'
-`
-  }
-
-  let preamble = `\
-import * as process from 'node:process'
-import * as path from 'node:path'
-`
-
-  if (moduleFormat === 'esm') {
-    preamble += `\
-import { fileURLToPath } from 'node:url'
-globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
-`
-  }
-
-  return preamble
 }
 
 function stubPrismaClientClass(): string {
