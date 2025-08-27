@@ -24,4 +24,17 @@ test('can access model names', () => {
   })
 })
 
+test('can use json utility types', () => {
+  /* eslint-disable @typescript-eslint/no-unused-vars */
+  const a: Prisma.JsonValue = 56
+  const b: Prisma.JsonObject = {
+    a: 56,
+  }
+  const c: Prisma.JsonArray = [56, 56]
+  const d: Prisma.InputJsonObject = { foo: 'bar' }
+  const e: Prisma.InputJsonArray = ['foo']
+  const f: Prisma.InputJsonValue = 56
+  /* eslint-enable @typescript-eslint/no-unused-vars */
+})
+
 export {}
