@@ -9,6 +9,7 @@ export { objectEnumValues } from './core/types/exported/ObjectEnums'
 export { makeStrictEnum } from './strictEnum'
 export { getRuntime } from './utils/getRuntime'
 // export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+export type * as DMMF from '@prisma/dmmf'
 export { default as Decimal } from 'decimal.js'
 
 export { Public }
