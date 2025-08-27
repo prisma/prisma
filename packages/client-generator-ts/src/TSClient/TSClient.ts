@@ -62,7 +62,7 @@ export class TSClient {
 
     return {
       [context.outputFileName('client')]: createClientFile(context, this.options, false),
-      [context.outputFileName('clientBrowser')]: createClientFile(context, this.options, true),
+      [context.outputFileName('browser')]: createClientFile(context, this.options, true),
       [context.outputFileName('enums')]: createEnumsFile(context),
       [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),
       [context.outputFileName('models')]: createModelsFile(context, modelNames),

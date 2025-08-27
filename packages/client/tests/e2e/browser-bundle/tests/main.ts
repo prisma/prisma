@@ -1,4 +1,4 @@
-import { Prisma, Role } from '../client/clientBrowser'
+import { Prisma, Role } from '../client/browser'
 
 test('can import enum from browser bundle', () => {
   expect(Role).toEqual({
