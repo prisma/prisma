@@ -215,7 +215,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
   ) {
     clientOptions.add(
       ts
-        .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+        .property('adapter', ts.unionType([ts.namedType('any'), ts.namedType('null')]))
         .optional()
         .setDocComment(
           ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
