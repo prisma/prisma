@@ -220,7 +220,7 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20250214.0
+        specifier: ^4.20250214.0
         version: 4.20250214.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
