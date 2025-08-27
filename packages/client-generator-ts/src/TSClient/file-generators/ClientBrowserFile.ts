@@ -22,7 +22,7 @@ export function createClientBrowserFile(context: GenerateContext, options: TSCli
   options.generator.config.engineType = clientEngineType
 
   const imports = [
-    ts.moduleImport(context.runtimeImport).asNamespace('runtime').typeOnly(),
+    ts.moduleImport(`${context.runtimeBase}/index-browser.js`).asNamespace('runtime').typeOnly(),
     ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
     ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class').typeOnly(),
     ts.moduleImport(context.importFileName('./internal/prismaNamespaceBrowser')).asNamespace('Prisma'),
