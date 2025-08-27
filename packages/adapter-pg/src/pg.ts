@@ -32,7 +32,10 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
-  constructor(protected readonly client: ClientT, protected readonly pgOptions?: PrismaPgOptions) {}
+  constructor(
+    protected readonly client: ClientT,
+    protected readonly pgOptions?: PrismaPgOptions,
+  ) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -143,7 +146,11 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
 }
 
 class PgTransaction extends PgQueryable<TransactionClient> implements Transaction {
-  constructor(client: pg.PoolClient, readonly options: TransactionOptions, readonly pgOptions?: PrismaPgOptions) {
+  constructor(
+    client: pg.PoolClient,
+    readonly options: TransactionOptions,
+    readonly pgOptions?: PrismaPgOptions,
+  ) {
     super(client, pgOptions)
   }
 
@@ -249,7 +256,10 @@ export class PrismaPgAdapterFactory implements SqlMigrationAwareDriverAdapterFac
   private readonly config: pg.PoolConfig
   private externalPool: pg.Pool | null
 
-  constructor(poolOrConfig: pg.Pool | pg.PoolConfig, private readonly options?: PrismaPgOptions) {
+  constructor(
+    poolOrConfig: pg.Pool | pg.PoolConfig,
+    private readonly options?: PrismaPgOptions,
+  ) {
     if (poolOrConfig instanceof pg.Pool) {
       this.externalPool = poolOrConfig
       this.config = poolOrConfig.options

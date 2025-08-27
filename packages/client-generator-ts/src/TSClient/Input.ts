@@ -127,7 +127,10 @@ function xorTypes(types: ts.TypeBuilder[]) {
 
 export class InputType {
   private generatedName: string
-  constructor(protected readonly type: DMMF.InputType, protected readonly context: GenerateContext) {
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly context: GenerateContext,
+  ) {
     this.generatedName = type.name
   }
 

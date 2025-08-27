@@ -415,6 +415,7 @@ function getRuntimeNameForTarget(
 ): RuntimeName {
   switch (target) {
     case 'nodejs':
+    case 'deno':
       return getNodeRuntimeName(engineType)
 
     case 'workerd':
