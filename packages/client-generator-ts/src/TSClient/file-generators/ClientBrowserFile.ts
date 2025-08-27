@@ -30,7 +30,13 @@ export function createClientBrowserFile(context: GenerateContext, options: TSCli
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
     ts
-      .moduleExport(ts.constDeclaration('PrismaClient').setValue(ts.namedValue('PrismaClientStub')))
+      .moduleExport(
+        ts
+          .constDeclaration('PrismaClient')
+          .setValue(
+            ts.namedValue('PrismaClientStub').as(ts.unknownType).as(ts.namedType('$Class.PrismaClientConstructor')),
+          ),
+      )
       .setDocComment(getPrismaClientClassDocComment(context)),
     ts.moduleExport(
       ts
