@@ -22,20 +22,16 @@ export function createClientBrowserFile(context: GenerateContext, options: TSCli
   options.generator.config.engineType = clientEngineType
 
   const imports = [
-    ts.moduleImport(`${context.runtimeBase}/index-browser.js`).asNamespace('runtime'),
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime').typeOnly(),
     ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
-    ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
+    ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class').typeOnly(),
     ts.moduleImport(context.importFileName('./internal/prismaNamespaceBrowser')).asNamespace('Prisma'),
   ].map((i) => ts.stringify(i))
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
     ts
-      .moduleExport(
-        ts
-          .constDeclaration('PrismaClient')
-          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
-      )
+      .moduleExport(ts.constDeclaration('PrismaClient').setValue(ts.namedValue('PrismaClientStub')))
       .setDocComment(getPrismaClientClassDocComment(context)),
     ts.moduleExport(
       ts
@@ -105,6 +101,8 @@ export function createClientBrowserFile(context: GenerateContext, options: TSCli
 ${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
+${stubPrismaClientClass()}
+
 ${exports.join('\n')}
 export { Prisma }
 
@@ -136,4 +134,18 @@ globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
   }
 
   return preamble
+}
+
+function stubPrismaClientClass(): string {
+  return `
+class PrismaClientStub {
+  constructor() {
+    return new Proxy(this, {
+      get(target, prop) {
+        throw new Error('You are referencing a PrismaClient stub defined in <generated-prisma-client>/clientBrowser.ts. Make sure you import the correct <generated-prisma-client>/client.ts file.')
+      }
+    })
+  }
+}
+`
 }
