@@ -40,7 +40,7 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
-    "@cloudflare/workers-types": "4.20250214.0",
+    "@cloudflare/workers-types": "^4.20250214.0",
     "@prisma/driver-adapter-utils": "workspace:*",
     "ky": "1.7.5"
   },
