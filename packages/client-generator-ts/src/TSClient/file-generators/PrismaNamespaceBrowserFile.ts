@@ -23,7 +23,7 @@ const jsDocHeader = `/*
 `
 export function createPrismaNamespaceBrowserFile(context: GenerateContext, options: TSClientOptions): string {
   const imports = [
-    ts.moduleImport(`${context.runtimeBase}/index-browser.js`).asNamespace('runtime'),
+    ts.moduleImport(`${context.runtimeBase}/index-browser`).asNamespace('runtime'),
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
     ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
   ].map((i) => ts.stringify(i))
