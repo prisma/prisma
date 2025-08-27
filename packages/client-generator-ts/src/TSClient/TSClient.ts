@@ -6,7 +6,6 @@ import type { FileMap } from '../generateClient'
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { createClassFile } from './file-generators/ClassFile'
-import { createClientBrowserFile } from './file-generators/ClientBrowserFile'
 import { createClientFile } from './file-generators/ClientFile'
 import { createCommonInputTypeFiles } from './file-generators/CommonInputTypesFile'
 import { createEnumsFile } from './file-generators/EnumsFile'
@@ -63,8 +62,8 @@ export class TSClient {
     }, {})
 
     return {
-      [context.outputFileName('client')]: createClientFile(context, this.options),
-      [context.outputFileName('clientBrowser')]: createClientBrowserFile(context, this.options),
+      [context.outputFileName('client')]: createClientFile(context, this.options, false),
+      [context.outputFileName('clientBrowser')]: createClientFile(context, this.options, true),
       [context.outputFileName('enums')]: createEnumsFile(context),
       [context.outputFileName('commonInputTypes')]: createCommonInputTypeFiles(context),
       [context.outputFileName('models')]: createModelsFile(context, modelNames),

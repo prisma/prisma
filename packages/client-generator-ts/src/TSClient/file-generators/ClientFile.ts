@@ -15,17 +15,33 @@ const jsDocHeader = `/*
  * 🟢 You can import this file directly.
  */
 `
+const jsDocHeaderBrowser = `/*
+ * This file should be your main import to use Prisma in the browser. Through it you get access to all the models, enums, and input types.
+ * This file however does not contain a functioning PrismaClient class and various helpers are stubbed out as well.
+ *
+ * 🟢 You can import this file directly.
+ */
+`
 
-export function createClientFile(context: GenerateContext, options: TSClientOptions): string {
+export function createClientFile(context: GenerateContext, options: TSClientOptions, browser: boolean): string {
   const clientEngineType = getClientEngineType(options.generator)
   options.generator.config.engineType = clientEngineType
 
-  const imports = [
-    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
-    ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
-    ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
-    ts.moduleImport(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
-  ].map((i) => ts.stringify(i))
+  const imports = (
+    browser
+      ? [
+          ts.moduleImport(`${context.runtimeBase}/index-browser`).asNamespace('runtime').typeOnly(),
+          ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
+          ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class').typeOnly(),
+          ts.moduleImport(context.importFileName('./internal/prismaNamespaceBrowser')).asNamespace('Prisma'),
+        ]
+      : [
+          ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+          ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
+          ts.moduleImport(context.importFileName('./internal/class')).asNamespace('$Class'),
+          ts.moduleImport(context.importFileName('./internal/prismaNamespace')).asNamespace('Prisma'),
+        ]
+  ).map((i) => ts.stringify(i))
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
@@ -33,7 +49,11 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
       .moduleExport(
         ts
           .constDeclaration('PrismaClient')
-          .setValue(ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')])),
+          .setValue(
+            browser
+              ? ts.namedValue('PrismaClientStub').as(ts.unknownType).as(ts.namedType('$Class.PrismaClientConstructor'))
+              : ts.functionCall('$Class.getPrismaClientClass', [ts.namedValue('__dirname')]),
+          ),
       )
       .setDocComment(getPrismaClientClassDocComment(context)),
     ts.moduleExport(
@@ -100,14 +120,16 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   // being moved around as long as we keep the same project dir structure.
   const relativeOutdir = path.relative(process.cwd(), options.outputDir)
 
-  return `${jsDocHeader}
-${buildPreamble(options.edge, options.moduleFormat)}
+  return `${browser ? jsDocHeaderBrowser : jsDocHeader}
+${browser ? '' : buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
+
+${browser ? stubPrismaClientClass() : ''}
 
 ${exports.join('\n')}
 export { Prisma }
 
-${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${browser ? '' : buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
 ${modelExports.join('\n')}
 
@@ -135,4 +157,18 @@ globalThis['__dirname'] = path.dirname(fileURLToPath(import.meta.url))
   }
 
   return preamble
+}
+
+function stubPrismaClientClass(): string {
+  return `
+class PrismaClientStub {
+  constructor() {
+    return new Proxy(this, {
+      get(target, prop) {
+        throw new Error('You are referencing a PrismaClient stub defined in <generated-prisma-client>/clientBrowser.ts. Make sure you import the correct <generated-prisma-client>/client.ts file.')
+      }
+    })
+  }
+}
+  `
 }
