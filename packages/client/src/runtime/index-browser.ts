@@ -6,6 +6,7 @@ export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
 export { objectEnumValues } from './core/types/exported/ObjectEnums'
+export { skip } from './core/types/exported/Skip'
 export { makeStrictEnum } from './strictEnum'
 export { getRuntime } from './utils/getRuntime'
 export type * as DMMF from '@prisma/dmmf'
