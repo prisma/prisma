@@ -225,6 +225,7 @@ async function main(): Promise<number | void> {
         preferLocal: true,
         stdio: 'inherit',
         env: {
+          NODE_ENV: process.env.NODE_ENV,
           DEBUG: args['--mini-proxy-debug'] ? 'mini-proxy:*' : process.env.DEBUG,
         },
       })
