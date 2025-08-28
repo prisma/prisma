@@ -511,10 +511,12 @@ export class ClientEngine implements Engine {
 
     let batchResponse: BatchResponse
     try {
-      batchResponse = this.#withCompileSpan({
-        queries,
-        execute: () => queryCompiler.compileBatch(request),
-      })
+      batchResponse = this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries,
+          execute: () => queryCompiler.compileBatch(request),
+        }),
+      )
     } catch (err) {
       throw this.#transformCompileError(err)
     }
