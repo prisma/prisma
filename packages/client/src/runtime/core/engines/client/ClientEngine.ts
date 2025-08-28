@@ -1,4 +1,3 @@
-import { SpanKind } from '@opentelemetry/api'
 import { QueryCompiler, QueryCompilerConstructor, QueryEngineLogLevel } from '@prisma/client-common'
 import {
   BatchResponse,
@@ -463,7 +462,7 @@ export class ClientEngine implements Engine {
     let queryPlan: QueryPlanNode
     try {
       queryPlan = this.#withLocalPanicHandler(() =>
-        this.#withCompileSpanAndEvent({
+        this.#withCompileSpan({
           queries: [query],
           execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
         }),
@@ -512,7 +511,7 @@ export class ClientEngine implements Engine {
 
     let batchResponse: BatchResponse
     try {
-      batchResponse = this.#withCompileSpanAndEvent({
+      batchResponse = this.#withCompileSpan({
         queries,
         execute: () => queryCompiler.compileBatch(request),
       })
@@ -629,11 +628,10 @@ export class ClientEngine implements Engine {
     }
   }
 
-  #withCompileSpanAndEvent<T>({ queries, execute }: { queries: JsonQuery[]; execute: () => T }): T {
+  #withCompileSpan<T>({ queries, execute }: { queries: JsonQuery[]; execute: () => T }): T {
     return this.tracingHelper.runInChildSpan(
       {
         name: 'compile',
-        kind: SpanKind.CLIENT,
         attributes: {
           models: queries.map((q) => q.modelName).filter((m) => m !== undefined),
           actions: queries.map((q) => q.action),

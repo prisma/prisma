@@ -276,7 +276,6 @@ testMatrix.setupTestSuite(
         {
           name: 'prisma:client:compile',
           attributes: { actions, models },
-          kind: 'CLIENT',
         },
       ]
     }
