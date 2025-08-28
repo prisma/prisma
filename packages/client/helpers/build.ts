@@ -1,4 +1,5 @@
 import { ClientEngineType } from '@prisma/internals'
+import type { Plugin } from 'esbuild'
 import fs from 'fs'
 import path from 'path'
 
@@ -44,6 +45,21 @@ const __filename = __banner_node_url.fileURLToPath(import.meta.url);
 globalThis['__dirname'] = __banner_node_path.dirname(__filename);
 const require = __banner_node_module.createRequire(import.meta.url);`
 
+// Reusable utilities resolver plugin
+function utilitiesResolverPlugin(): Plugin {
+  return {
+    name: 'utilities-resolver',
+    setup(build) {
+      build.onResolve({ filter: /.*\/PrismaClientInitializationError$/ }, (_args) => {
+        return {
+          path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+          external: true,
+        }
+      })
+    },
+  }
+}
+
 // we define the config for runtime
 function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, format: ModuleFormat): BuildOptions {
   return {
@@ -56,13 +72,14 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
     minify: shouldMinify,
     sourcemap: 'linked',
     emitTypes: ['library', 'client'].includes(targetBuildType),
+    external: ['./utilities'],
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
-    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/), nodeProtocolPlugin],
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/), nodeProtocolPlugin, utilitiesResolverPlugin()],
     banner: format === 'esm' ? { js: NODE_ESM_BANNER } : undefined,
   }
 }
@@ -105,6 +122,8 @@ function browserBuildConfigs(): BuildOptions[] {
     bundle: true,
     minify: shouldMinify,
     sourcemap: 'linked',
+    external: ['./utilities'],
+    plugins: [utilitiesResolverPlugin()],
   }))
 }
 
@@ -151,6 +170,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
   outfile: 'runtime/edge',
   emitTypes: true,
+  external: ['./utilities'],
   define: {
     ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
@@ -160,6 +180,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     fillPlugin({
       fillerOverrides: commonRuntimesOverrides,
     }),
+    utilitiesResolverPlugin(),
   ],
 }
 
@@ -179,6 +200,7 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
     name,
     outfile: `runtime/${name}`,
     outExtension: getOutExtension(format),
+    external: ['./utilities'],
     define: {
       ...runtimesCommonBuildConfig.define,
       TARGET_BUILD_TYPE: `"${name}"`,
@@ -188,6 +210,7 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
         // not yet enabled in edge build while driverAdapters is not GA
         fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
       }),
+      utilitiesResolverPlugin(),
       {
         name: 'wasm-base64-encoder',
         setup(build) {
@@ -232,6 +255,7 @@ const reactNativeBuildConfig: BuildOptions = {
   name: 'react-native',
   outfile: 'runtime/react-native',
   emitTypes: true,
+  external: ['./utilities'],
   define: {
     NODE_CLIENT: 'false',
     TARGET_BUILD_TYPE: '"react-native"',
@@ -240,6 +264,7 @@ const reactNativeBuildConfig: BuildOptions = {
     fillPlugin({
       fillerOverrides: { ...commonRuntimesOverrides },
     }),
+    utilitiesResolverPlugin(),
   ],
 }
 
@@ -279,6 +304,25 @@ const accelerateContractBuildConfig: BuildOptions = {
   emitTypes: true,
 }
 
+function utilitiesBuildConfig(format: ModuleFormat): BuildOptions {
+  return {
+    format,
+    name: 'utilities',
+    entryPoints: ['src/runtime/utilities.ts'],
+    outfile: `runtime/utilities`,
+    outExtension: getOutExtension(format),
+    bundle: true,
+    minify: shouldMinify,
+    sourcemap: 'linked',
+    emitTypes: true,
+    define: {
+      NODE_CLIENT: 'false',
+      'define.amd': 'false',
+    },
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/), nodeProtocolPlugin],
+  }
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -309,8 +353,15 @@ function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
   }
 }
 
+function* allUtilitiesBuildConfigs(): Generator<BuildOptions> {
+  for (const format of MODULE_FORMATS) {
+    yield utilitiesBuildConfig(format)
+  }
+}
+
 void build([
   generatorBuildConfig,
+  ...allUtilitiesBuildConfigs(),
   ...allNodeRuntimeBuildConfigs(),
   ...browserBuildConfigs(),
   edgeRuntimeBuildConfig,
