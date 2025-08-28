@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from 'decimal.js'
 
 import { deserializeRawResult } from '../runtime/utils/deserializeRawResults'
 
