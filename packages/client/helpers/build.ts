@@ -56,6 +56,13 @@ function utilitiesResolverPlugin(): Plugin {
           external: true,
         }
       })
+
+      build.onResolve({ filter: /^decimal.js$/ }, (_args) => {
+        return {
+          path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+          external: true,
+        }
+      })
     },
   }
 }
