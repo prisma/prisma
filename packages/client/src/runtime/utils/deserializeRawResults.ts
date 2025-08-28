@@ -1,5 +1,5 @@
 import type { QueryIntrospectionBuiltinType } from '@prisma/generator'
-import Decimal from 'decimal.js'
+import { Decimal } from 'decimal.js'
 
 export type RawResponse = {
   columns: string[]

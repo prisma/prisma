@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from 'decimal.js'
 import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'

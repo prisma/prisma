@@ -7,6 +7,7 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 export interface GenerateContextOptions {
   dmmf: DMMFHelper
   genericArgsInfo: GenericArgsInfo
+  runtimeBase: string
   runtimeImport: string
   outputFileName: FileNameMapper
   importFileName: FileNameMapper
@@ -16,6 +17,7 @@ export interface GenerateContextOptions {
 export class GenerateContext implements GenerateContextOptions {
   dmmf: DMMFHelper
   genericArgsInfo: GenericArgsInfo
+  runtimeBase: string
   runtimeImport: string
   outputFileName: FileNameMapper
   importFileName: FileNameMapper
@@ -24,6 +26,7 @@ export class GenerateContext implements GenerateContextOptions {
   constructor({
     dmmf,
     genericArgsInfo,
+    runtimeBase,
     runtimeImport,
     outputFileName,
     importFileName,
@@ -31,6 +34,7 @@ export class GenerateContext implements GenerateContextOptions {
   }: GenerateContextOptions) {
     this.dmmf = dmmf
     this.genericArgsInfo = genericArgsInfo
+    this.runtimeBase = runtimeBase
     this.runtimeImport = runtimeImport
     this.outputFileName = outputFileName
     this.importFileName = importFileName

@@ -75,8 +75,8 @@
     "./index-browser": {
       "types": "./index.d.ts",
       "require": "./index-browser.js",
-      "import": "./index-browser.js",
-      "default": "./index-browser.js"
+      "import": "./index-browser.mjs",
+      "default": "./index-browser.mjs"
     },
     "./index": {
       "types": "./index.d.ts",
