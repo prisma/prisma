@@ -57,6 +57,7 @@ function utilitiesResolverPlugin(): Plugin {
         'PrismaClientRustPanicError',
         'PrismaClientUnknownRequestError',
         'PrismaClientValidationError',
+        'ObjectEnums',
       ].forEach((error) => {
         build.onResolve({ filter: new RegExp(`^.*\\/${error}$`) }, (_args) => {
           return {
