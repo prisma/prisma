@@ -173,7 +173,7 @@ function mapValue(
     }
 
     case 'bigint': {
-      if (typeof value !== 'number' && typeof value !== 'string') {
+      if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'bigint') {
         throw new DataMapperError(`Expected a bigint in column '${columnName}', got ${typeof value}: ${value}`)
       }
       return { $type: 'BigInt', value }
