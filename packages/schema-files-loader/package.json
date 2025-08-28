@@ -22,7 +22,7 @@
   ],
   "sideEffects": false,
   "dependencies": {
-    "@prisma/prisma-schema-wasm": "6.16.0-2.10e768ca1dcd02df44a1129a2587e85101ef9376",
+    "@prisma/prisma-schema-wasm": "6.16.0-3.1ad4ad872cc519cc74e2896087a9b7d399d89b4d",
     "fs-extra": "11.3.0"
   },
   "devDependencies": {
