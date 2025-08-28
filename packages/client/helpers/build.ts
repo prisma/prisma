@@ -45,16 +45,25 @@ const __filename = __banner_node_url.fileURLToPath(import.meta.url);
 globalThis['__dirname'] = __banner_node_path.dirname(__filename);
 const require = __banner_node_module.createRequire(import.meta.url);`
 
-// Reusable utilities resolver plugin
+// Utilities resolver plugin to extract all imports that are provided by the shared utilities module and make them external.
+// This ensures that esp. error classes are actually the same instance no matter from where they are imported from.
 function utilitiesResolverPlugin(): Plugin {
   return {
     name: 'utilities-resolver',
     setup(build) {
-      build.onResolve({ filter: /.*\/PrismaClientInitializationError$/ }, (_args) => {
-        return {
-          path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
-          external: true,
-        }
+      ;[
+        'PrismaClientInitializationError',
+        'PrismaClientKnownRequestError',
+        'PrismaClientRustPanicError',
+        'PrismaClientUnknownRequestError',
+        'PrismaClientValidationError',
+      ].forEach((error) => {
+        build.onResolve({ filter: new RegExp(`^.*\\/${error}$`) }, (_args) => {
+          return {
+            path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+            external: true,
+          }
+        })
       })
 
       build.onResolve({ filter: /^decimal.js$/ }, (_args) => {
