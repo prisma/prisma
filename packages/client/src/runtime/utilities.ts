@@ -1,2 +1,6 @@
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
+export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
+export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
+export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
+export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
 export { Decimal } from 'decimal.js'
