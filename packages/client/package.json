@@ -275,7 +275,7 @@
     "execa": "5.1.1",
     "expect-type": "1.2.2",
     "fs-extra": "11.3.0",
-    "get-stream": "6.0.1",
+    "get-stream": "9.0.1",
     "globby": "11.1.0",
     "indent-string": "4.0.0",
     "jest": "29.7.0",
