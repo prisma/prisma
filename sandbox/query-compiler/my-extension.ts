@@ -1,7 +1,7 @@
 // import { Prisma } from './prisma/client/client'
 // import { Prisma } from '@prisma/client/extension'
 import { Prisma } from './prisma/client/client'
-import { PrismaClientInitializationError as ErrExt, Decimal as DecimalExt, Prisma as PrismaExt } from '@prisma/client/extension'
+import { PrismaClientInitializationError as ErrExt, Decimal as DecimalExt, Prisma as PrismaExt, DbNull, objectEnumValues } from '@prisma/client/extension'
 
 const ErrA = Prisma.PrismaClientInitializationError
 
@@ -30,6 +30,17 @@ console.log(decA instanceof Prisma.Decimal)
 console.log(decA instanceof DecimalExt)
 console.log(decC instanceof Prisma.Decimal)
 console.log(decC instanceof DecimalExt)
+
+console.log(Prisma.DbNull)
+console.log(DbNull)
+console.log(objectEnumValues.instances.DbNull)
+// TODO: we have an issue with the branded types here on the type level only - at runtime the values are actually equal as it seems
+// @ts-expect-error - TODO: still need to solve this: This comparison appears to be unintentional because the types 'DbNull' and '{ readonly "__#1@#_brand_DbNull": void; _getNamespace(): string; _getName(): string; toString(): string; }' have no overlap.
+console.log(Prisma.DbNull === DbNull)
+// @ts-expect-error - TODO: still need to solve this: This comparison appears to be unintentional because the types 'DbNull' and 'DbNull_2' have no overlap.
+console.log(Prisma.DbNull === objectEnumValues.instances.DbNull)
+// @ts-expect-error - TODO: still need to solve this: This comparison appears to be unintentional because the types '{ readonly "__#1@#_brand_DbNull": void; _getNamespace(): string; _getName(): string; toString(): string; }' and 'DbNull_2' have no overlap.
+console.log(DbNull === objectEnumValues.instances.DbNull)
 
 // Define the extension
 export const myExtension = PrismaExt.defineExtension({
