@@ -1,6 +1,5 @@
+import { Decimal, Sql } from '@prisma/client-runtime'
 import { assertNever } from '@prisma/internals'
-import Decimal from 'decimal.js'
-import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
 import { isTypedSql, TypedSql, UnknownTypedSql } from '../core/types/exported'

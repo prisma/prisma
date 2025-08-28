@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from '@prisma/client-runtime'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
