@@ -63,6 +63,7 @@ export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string; _c
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
 export type RawTaggedValue = { $type: 'Raw'; value: unknown }
+export type ParamTaggedValue = { $type: 'Param'; value: string }
 
 export type JsonInputTaggedValue =
   | DateTaggedValue
@@ -73,6 +74,10 @@ export type JsonInputTaggedValue =
   | JsonTaggedValue
   | EnumTaggedValue
   | RawTaggedValue
+
+export function isJsonInputTaggedValue(value: unknown): value is JsonInputTaggedValue {
+  return value !== null && typeof value == 'object' && typeof value['$type'] === 'string'
+}
 
 export type JsonOutputTaggedValue =
   | DateTaggedValue
