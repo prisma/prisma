@@ -271,7 +271,7 @@ bench('transaction scaling(1)', () => {
       data: { name: 'Tx Updated Name' },
     }),
   ])
-}).types([2094, 'instantiations'])
+}).types([2093, 'instantiations'])
 
 bench('transaction scaling(2)', () => {
   prisma.$transaction([
@@ -287,7 +287,7 @@ bench('transaction scaling(2)', () => {
       },
     }),
   ])
-}).types([3799, 'instantiations'])
+}).types([3798, 'instantiations'])
 
 bench('transaction scaling(10)', () => {
   prisma.$transaction([
@@ -336,7 +336,7 @@ bench('transaction scaling(10)', () => {
       where: { url: { contains: 'temp-link' } },
     }),
   ])
-}).types([8366, 'instantiations'])
+}).types([8365, 'instantiations'])
 
 bench('transaction - interactive User/Link', () => {
   prisma.$transaction(async (tx) => {
@@ -352,4 +352,4 @@ bench('transaction - interactive User/Link', () => {
     })
     return link
   })
-}).types([1221, 'instantiations'])
+}).types([1218, 'instantiations'])
