@@ -28,8 +28,9 @@ const randomId3 = randomBytes(12).toString('hex')
 jest.retryTimes(3)
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }, _suiteMeta, _clientMeta) => {
+  ({ provider, driverAdapter, clientEngineExecutor }, _suiteMeta, _clientMeta) => {
     const isSqlServer = provider === Providers.SQLSERVER
+    const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     beforeEach(async () => {
       prisma = newPrismaClient({
@@ -488,11 +489,11 @@ testMatrix.setupTestSuite(
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -536,11 +537,11 @@ testMatrix.setupTestSuite(
             [{ query: expect.stringContaining('SELECT') }],
             [{ query: expect.stringContaining('COMMIT') }],
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
           expect(fnEmitter).toHaveBeenCalledTimes(expectation.length)
@@ -604,11 +605,11 @@ testMatrix.setupTestSuite(
           [{ query: expect.stringContaining('SELECT') }],
           [{ query: expect.stringContaining('COMMIT') }],
         ]
-        if (driverAdapter === undefined) {
+        if (!usesJsDrivers) {
           // Driver adapters do not issue BEGIN through the query engine.
           expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
         }
-        if (isSqlServer && driverAdapter === undefined) {
+        if (isSqlServer && !usesJsDrivers) {
           expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
         }
 
@@ -705,11 +706,11 @@ testMatrix.setupTestSuite(
             [{ query: expect.stringContaining('COMMIT') }],
           ]
 
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectation.unshift([{ query: expect.stringContaining('BEGIN') }])
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectation.unshift([{ query: expect.stringContaining('SET TRANSACTION') }])
           }
 
