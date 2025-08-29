@@ -92,7 +92,7 @@ export function parseClientTelemetryHeader(header: string): CaptureSettings {
 
     if (trimmedLevel === '') continue
 
-    if (trimmedLevel === 'spans') {
+    if (trimmedLevel === 'tracing') {
       result.spans = true
       continue
     }

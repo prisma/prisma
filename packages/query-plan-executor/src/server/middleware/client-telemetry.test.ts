@@ -11,7 +11,7 @@ describe('parseClientTelemetryHeader', () => {
   })
 
   test('spans', () => {
-    expect(parseClientTelemetryHeader('spans')).toEqual({
+    expect(parseClientTelemetryHeader('tracing')).toEqual({
       spans: true,
       logLevels: [],
     })
@@ -30,12 +30,12 @@ describe('parseClientTelemetryHeader', () => {
   })
 
   test('mixed', () => {
-    expect(parseClientTelemetryHeader('info,spans')).toEqual({
+    expect(parseClientTelemetryHeader('info,tracing')).toEqual({
       spans: true,
       logLevels: ['info'],
     })
 
-    expect(parseClientTelemetryHeader('spans,info,warn,error')).toEqual({
+    expect(parseClientTelemetryHeader('tracing,info,warn,error')).toEqual({
       spans: true,
       logLevels: ['info', 'warn', 'error'],
     })
@@ -44,6 +44,6 @@ describe('parseClientTelemetryHeader', () => {
   test('invalid levels', () => {
     expect(() => parseClientTelemetryHeader('invalid')).toThrow()
     expect(() => parseClientTelemetryHeader('invalid,info')).toThrow()
-    expect(() => parseClientTelemetryHeader('spans,invalid')).toThrow()
+    expect(() => parseClientTelemetryHeader('tracing,invalid')).toThrow()
   })
 })
