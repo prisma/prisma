@@ -114,7 +114,14 @@ function getErrorResponse(error: Error, ctx: Context): Response {
   } else if (error instanceof ResourceLimitError) {
     return ctx.json({ error: error.message } satisfies QueryResponseBody, 422)
   } else if (error instanceof TransactionManagerError) {
-    return ctx.json({ error: error.message } satisfies QueryResponseBody, 409)
+    return ctx.json(
+      {
+        code: error.code,
+        error: error.message,
+        meta: error.meta,
+      } satisfies QueryResponseBody,
+      409,
+    )
   } else if (error instanceof UserFacingError) {
     return ctx.json(
       {
