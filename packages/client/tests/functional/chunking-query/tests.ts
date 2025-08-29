@@ -11,9 +11,11 @@ import type { PrismaClient, Tag } from './generated/prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter }, _suiteMeta, { runtime }, cliMeta) => {
+  ({ provider, driverAdapter, clientEngineExecutor }, _suiteMeta, { runtime }, cliMeta) => {
     const MAX_BIND_VALUES = MAX_BIND_VALUES_BY_PROVIDER[provider]
     const EXCESS_BIND_VALUES = EXCESS_BIND_VALUES_BY_PROVIDER[provider]
+
+    const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     function generatedIds(n: number) {
       // ["1","2",...,"n"]
@@ -131,14 +133,11 @@ testMatrix.setupTestSuite(
       })
 
       // Sqlite excluded because it's bind parameter limit is currently incorrect which makes the QE chunk queries enough to not trigger the error.
-      testIf(driverAdapter === undefined && provider !== Providers.SQLITE)(
-        'should fail when raw query has EXCESS ids',
-        async () => {
-          const ids = await createTags(EXCESS_BIND_VALUES)
+      testIf(!usesJsDrivers && provider !== Providers.SQLITE)('should fail when raw query has EXCESS ids', async () => {
+        const ids = await createTags(EXCESS_BIND_VALUES)
 
-          await expect(getTagsParams(ids)).rejects.toThrow()
-        },
-      )
+        await expect(getTagsParams(ids)).rejects.toThrow()
+      })
     })
 
     // Sqlite excluded because it's bind parameter limit is currently incorrect which makes the QE chunk queries enough to not trigger the error.
@@ -164,7 +163,7 @@ testMatrix.setupTestSuite(
       test('Selecting MAX ids at once in two inclusive disjunct filters results in error', async () => {
         const ids = generatedIds(MAX_BIND_VALUES)
 
-        if (driverAdapter === undefined || runtime === 'client') {
+        if (!usesJsDrivers || (runtime === 'client' && clientEngineExecutor === 'local')) {
           // When using MAX ids, it fails both with relationJoins and without because the amount of query params that's computed is not beyond the limit.
           // To be clear: the root problem comes from the way the QE computes the amount of query params.
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
