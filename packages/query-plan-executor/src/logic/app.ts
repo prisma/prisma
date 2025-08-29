@@ -1,6 +1,5 @@
 import timers from 'node:timers/promises'
 
-import { AttributeValue } from '@opentelemetry/api'
 import {
   normalizeJsonProtocolValues,
   QueryInterpreter,
@@ -90,7 +89,7 @@ export class App {
           log.query('Query', {
             ...event,
             timestamp: Number(event.timestamp),
-            params: serializeParamsForLogging(event.params),
+            params: safeJsonStringify(event.params),
           })
         },
       })
@@ -145,16 +144,4 @@ export class App {
     const connectionInfo = this.#db.getConnectionInfo?.() ?? { supportsRelationJoins: false }
     return { provider: this.#db.provider, connectionInfo }
   }
-}
-
-function serializeParamsForLogging(params: unknown[]): AttributeValue {
-  return params.map((param) => {
-    if (Array.isArray(param)) {
-      return serializeParamsForLogging(param)
-    }
-    if (!['string', 'number', 'boolean'].includes(typeof param)) {
-      return safeJsonStringify(param)
-    }
-    return param
-  }) as AttributeValue
 }
