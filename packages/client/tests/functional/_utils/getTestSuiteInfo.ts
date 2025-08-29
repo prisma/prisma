@@ -39,10 +39,14 @@ const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
  * @returns
  */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  let name = ``
+  let name = `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-  name += ` (${suiteConfig.parametersString})`
+  let parametersString = suiteConfig.parametersString
+  if (suiteConfig.matrixOptions.clientEngineExecutor === 'remote') {
+    parametersString += ', qpe=remote'
+  }
+
+  name += ` (${parametersString})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')

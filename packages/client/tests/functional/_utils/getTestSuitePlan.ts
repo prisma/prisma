@@ -33,16 +33,15 @@ export function getTestSuitePlan(
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const expandedSuiteConfigs = suiteConfigs.flatMap((config) => {
-    return getExpandedTestSuitePlanWithProviderFlavors(config)
-  })
+  const expandedSuiteConfigs = suiteConfigs
+    .flatMap(getExpandedTestSuitePlanWithProviderFlavors)
+    .flatMap(getExpandedTestSuitePlanWithRemoteQpe)
 
   expandedSuiteConfigs.forEach((config) => {
     config.matrixOptions.engineType ??= testCliMeta.engineType
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
     config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
     config.matrixOptions.generatorType ??= testCliMeta.generatorType
-    config.matrixOptions.clientEngineExecutor ??= testCliMeta.clientEngineExecutor
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
@@ -82,6 +81,24 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
   return [suiteConfig, ...suiteConfigExpansions]
 }
 
+/**
+ * Expands each suiteConfig entry to ensure we have separate entries for
+ * client engine's remote executor which doesn't use driver adapters locally
+ * and needs to have matrix entries on its own to ensure the names of generated
+ * tests don't collide with those using QE without driver adapters. We need
+ * this to have different snapshots for, e.g., errors.
+ */
+function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig) {
+  if (suiteConfig.matrixOptions.driverAdapter) {
+    suiteConfig.matrixOptions.clientEngineExecutor = 'local'
+    return [suiteConfig]
+  } else {
+    const remoteExecutorSuiteConfig = klona(suiteConfig)
+    suiteConfig.matrixOptions.clientEngineExecutor = 'remote'
+    return [suiteConfig, remoteExecutorSuiteConfig]
+  }
+}
+
 function shouldSkipSuiteConfig(
   {
     updateSnapshots,
@@ -99,6 +116,7 @@ function shouldSkipSuiteConfig(
   const driverAdapter = config.matrixOptions.driverAdapter
   const relationMode = config.matrixOptions.relationMode
   const engineType = config.matrixOptions.engineType
+  const clientEngineExecutor = config.matrixOptions.clientEngineExecutor
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -174,6 +192,10 @@ function shouldSkipSuiteConfig(
 
   // if Driver Adapters are enabled and the test has no Driver Adapter, skip
   if (includedProviderAdapters !== undefined && driverAdapter === undefined) {
+    return true
+  }
+
+  if (clientEngineExecutor !== cliMeta.clientEngineExecutor) {
     return true
   }
 
