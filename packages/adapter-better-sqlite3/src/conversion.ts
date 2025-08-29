@@ -1,5 +1,7 @@
 import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
+import { PrismaBetterSQLite3Options } from './better-sqlite3'
+
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
 type Value = null | string | number | bigint | ArrayBuffer | Buffer
@@ -187,7 +189,11 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   return result
 }
 
-export function mapArg<A>(arg: A | Date, argType: ArgType): null | number | BigInt | Uint8Array | string | A {
+export function mapArg<A>(
+  arg: A | Date,
+  argType: ArgType,
+  options?: PrismaBetterSQLite3Options,
+): null | number | BigInt | Uint8Array | string | A {
   if (arg === null) {
     return null
   }
@@ -219,7 +225,15 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | number | BigI
   }
 
   if (arg instanceof Date) {
-    return arg.toISOString().replace('Z', '+00:00')
+    const format = options?.timestampFormat ?? 'iso8601'
+    switch (format) {
+      case 'unixepoch-ms':
+        return arg.getTime()
+      case 'iso8601':
+        return arg.toISOString().replace('Z', '+00:00')
+      default:
+        throw new Error(`Unknown timestamp format: ${format}`)
+    }
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {

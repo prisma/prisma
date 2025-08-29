@@ -34,7 +34,10 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 
   [LOCK_TAG] = new Mutex()
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(
+    protected readonly client: ClientT,
+    protected readonly adapterOptions?: PrismaLibSQLOptions,
+  ) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -76,7 +79,7 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
     try {
       const result = await this.client.execute({
         sql: query.sql,
-        args: query.args.map((arg, i) => mapArg(arg, query.argTypes[i])),
+        args: query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions)),
       })
       return result
     } catch (e) {
@@ -93,12 +96,16 @@ class LibSqlQueryable<ClientT extends StdClient | TransactionClient> implements 
 }
 
 class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Transaction {
+  readonly #unlockParent: () => void
+
   constructor(
     client: TransactionClient,
     readonly options: TransactionOptions,
-    readonly unlockParent: () => void,
+    adapterOptions: PrismaLibSQLOptions | undefined,
+    unlockParent: () => void,
   ) {
-    super(client)
+    super(client, adapterOptions)
+    this.#unlockParent = unlockParent
   }
 
   async commit(): Promise<void> {
@@ -107,7 +114,7 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     try {
       await this.client.commit()
     } finally {
-      this.unlockParent()
+      this.#unlockParent()
     }
   }
 
@@ -119,14 +126,14 @@ class LibSqlTransaction extends LibSqlQueryable<TransactionClient> implements Tr
     } catch (error) {
       debug('error in rollback:', error)
     } finally {
-      this.unlockParent()
+      this.#unlockParent()
     }
   }
 }
 
 export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements SqlDriverAdapter {
-  constructor(client: StdClient) {
-    super(client)
+  constructor(client: StdClient, adapterOptions?: PrismaLibSQLOptions) {
+    super(client, adapterOptions)
   }
 
   async executeScript(script: string): Promise<void> {
@@ -159,7 +166,7 @@ export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements S
 
     try {
       const tx = await this.client.transaction('deferred')
-      return new LibSqlTransaction(tx, options, release)
+      return new LibSqlTransaction(tx, options, this.adapterOptions, release)
     } catch (e) {
       // note: we only release the lock if creating the transaction fails, it must stay locked otherwise,
       // hence `catch` and rethrowing the error and not `finally`.
@@ -174,19 +181,31 @@ export class PrismaLibSQLAdapter extends LibSqlQueryable<StdClient> implements S
   }
 }
 
+export type PrismaLibSQLOptions = {
+  timestampFormat?: 'iso8601' | 'unixepoch-ms'
+}
+
 export abstract class PrismaLibSQLAdapterFactoryBase implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(private readonly config: LibSqlConfig) {}
+  readonly #config: LibSqlConfig
+  readonly #options?: PrismaLibSQLOptions
+
+  constructor(config: LibSqlConfig, options?: PrismaLibSQLOptions) {
+    this.#config = config
+    this.#options = options
+  }
 
   connect(): Promise<SqlDriverAdapter> {
-    return Promise.resolve(new PrismaLibSQLAdapter(this.createClient(this.config)))
+    return Promise.resolve(new PrismaLibSQLAdapter(this.createClient(this.#config), this.#options))
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
     // TODO: the user should be able to provide a custom URL for the shadow database
-    return Promise.resolve(new PrismaLibSQLAdapter(this.createClient({ ...this.config, url: ':memory:' })))
+    return Promise.resolve(
+      new PrismaLibSQLAdapter(this.createClient({ ...this.#config, url: ':memory:' }), this.#options),
+    )
   }
 
   abstract createClient(config: LibSqlConfig): StdClient
