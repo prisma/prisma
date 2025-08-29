@@ -118,6 +118,7 @@ testMatrix.setupTestSuite(
       reason: 'D1 does not need to support the QE unixepoch-ms format',
     },
     skipDefaultClientInstance: true,
+    skip: (skip, options) => skip(options.driverAdapter === undefined, 'testing only driver adapters'),
   },
 )
 
