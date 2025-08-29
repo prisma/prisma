@@ -3,13 +3,20 @@ import { createMiddleware } from 'hono/factory'
 import { HTTPException } from 'hono/http-exception'
 
 import { getActiveLogger, withActiveLogger } from '../../log/context'
+import { ExportableLogEvent } from '../../log/event'
 import * as log from '../../log/facade'
 import { discreteLogFilter } from '../../log/filter'
 import { LogLevel, parseLogLevel } from '../../log/log-level'
 import { Logger } from '../../log/logger'
 import { CapturingSink, CompositeSink, FilteringSink } from '../../log/sink'
 import { TracingCollector, tracingCollectorContext } from '../../tracing/collector'
+import { ExportableSpan } from '../../tracing/span'
 import { extractErrorFromUnknown } from '../../utils/error'
+
+interface ResultExtensions {
+  logs?: ExportableLogEvent[]
+  spans?: ExportableSpan[]
+}
 
 /**
  * Middleware that handles the `X-Capture-Telemetry` header,
@@ -48,13 +55,17 @@ export const clientTelemetryMiddleware = createMiddleware<{
     return
   }
 
+  const extensions: ResultExtensions = {}
+
   if (captureSettings.logLevels.length > 0) {
-    jsonResponse.logs = logCollector.export()
+    extensions.logs = logCollector.export()
   }
 
   if (captureSettings.spans) {
-    jsonResponse.spans = spanCollector.spans
+    extensions.spans = spanCollector.spans
   }
+
+  jsonResponse.extensions = extensions
 
   const { status, headers } = ctx.res
 
