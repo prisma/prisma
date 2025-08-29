@@ -98,6 +98,7 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
 export type PrismaMariadbOptions = {
   database?: string
   onConnectionError?: (err: mariadb.SqlError) => void
+  disposeExternalPool?: boolean
 }
 
 export type Capabilities = {
@@ -109,6 +110,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     client: mariadb.Pool,
     private readonly capabilities: Capabilities,
     private readonly options?: PrismaMariadbOptions,
+    private readonly release?: () => Promise<void>,
   ) {
     super(client)
   }
@@ -156,7 +158,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
   }
 
   async dispose(): Promise<void> {
-    await this.client.end()
+    return this.release?.()
   }
 
   underlyingDriver(): mariadb.Pool {
@@ -169,20 +171,51 @@ export class PrismaMariaDbAdapterFactory implements SqlDriverAdapterFactory {
   readonly adapterName = packageName
 
   #capabilities?: Capabilities
-  #config: mariadb.PoolConfig | string
+  #poolOrConfig: { type: 'pool'; pool: mariadb.Pool } | { type: 'config'; config: mariadb.PoolConfig | string }
   #options?: PrismaMariadbOptions
+  #externalPoolDisposed = false
 
-  constructor(config: mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
-    this.#config = rewriteConnectionString(config)
+  constructor(poolOrConfig: mariadb.Pool | mariadb.PoolConfig | string, options?: PrismaMariadbOptions) {
+    // Check if the passed argument is a Pool instance
+    // mariadb.Pool doesn't have a direct instanceof check, so we check for pool-specific methods
+    if (typeof poolOrConfig === 'object' && 'getConnection' in poolOrConfig && 'end' in poolOrConfig) {
+      this.#poolOrConfig = { type: 'pool', pool: poolOrConfig as mariadb.Pool }
+    } else {
+      this.#poolOrConfig = {
+        type: 'config',
+        config: rewriteConnectionString(poolOrConfig as mariadb.PoolConfig | string),
+      }
+    }
     this.#options = options
   }
 
   async connect(): Promise<PrismaMariaDbAdapter> {
-    const pool = mariadb.createPool(this.#config)
+    // Check if we're trying to reconnect after disposing an external pool
+    if (this.#poolOrConfig.type === 'pool' && this.#externalPoolDisposed && this.#options?.disposeExternalPool) {
+      throw new Error(
+        'Cannot call connect() multiple times when using an external pool with `disposeExternalPool: true`. ' +
+          'Either let the adapter manage the pool by passing a config instead, or set `disposeExternalPool: false` ' +
+          'and dispose of the pool manually after you no longer need the adapter.',
+      )
+    }
+
+    const pool =
+      this.#poolOrConfig.type === 'pool' ? this.#poolOrConfig.pool : mariadb.createPool(this.#poolOrConfig.config)
+
     if (this.#capabilities === undefined) {
       this.#capabilities = await getCapabilities(pool)
     }
-    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.#options)
+
+    return new PrismaMariaDbAdapter(pool, this.#capabilities, this.#options, async () => {
+      if (this.#poolOrConfig.type === 'pool') {
+        if (this.#options?.disposeExternalPool) {
+          await this.#poolOrConfig.pool.end()
+          this.#externalPoolDisposed = true
+        }
+      } else {
+        await pool.end()
+      }
+    })
   }
 }
 
