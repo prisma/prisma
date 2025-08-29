@@ -2,6 +2,7 @@ import timers from 'node:timers/promises'
 
 import {
   normalizeJsonProtocolValues,
+  QueryEvent,
   QueryInterpreter,
   QueryPlanNode,
   safeJsonStringify,
@@ -49,6 +50,7 @@ export class App {
         maxWait: options.maxTransactionWaitTime.total('milliseconds'),
       },
       tracingHelper: tracingHandler,
+      onQuery: logQuery,
     })
 
     return new App(db, transactionManager, tracingHandler)
@@ -85,13 +87,7 @@ export class App {
         tracingHelper: this.#tracingHandler,
         transactionManager:
           transactionId !== null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
-        onQuery: (event) => {
-          log.query('Query', {
-            ...event,
-            timestamp: Number(event.timestamp),
-            params: safeJsonStringify(event.params),
-          })
-        },
+        onQuery: logQuery,
       })
 
       const result = await Promise.race([
@@ -144,4 +140,12 @@ export class App {
     const connectionInfo = this.#db.getConnectionInfo?.() ?? { supportsRelationJoins: false }
     return { provider: this.#db.provider, connectionInfo }
   }
+}
+
+function logQuery(event: QueryEvent): void {
+  log.query('Query', {
+    ...event,
+    timestamp: Number(event.timestamp),
+    params: safeJsonStringify(event.params),
+  })
 }
