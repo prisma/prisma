@@ -101,12 +101,12 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     let hasTimedOut = false
     const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
+    startTimer.unref()
 
     transaction.transaction = await this.driverAdapter
       .startTransaction(validatedOptions.isolationLevel)
       .catch(rethrowAsUserFacing)
-
-    clearTimeout(startTimer)
+      .finally(() => clearTimeout(startTimer))
 
     // Transaction status might have timed out while waiting for transaction to start. => Check for it!
     switch (transaction.status) {
@@ -200,7 +200,7 @@ export class TransactionManager {
 
   #startTransactionTimeout(transactionId: string, timeout: number): NodeJS.Timeout {
     const timeoutStartedAt = Date.now()
-    return setTimeout(async () => {
+    const timer = setTimeout(async () => {
       debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
       const tx = this.transactions.get(transactionId)
@@ -213,6 +213,9 @@ export class TransactionManager {
         debug('Transaction already committed or rolled back when timeout happened.', transactionId)
       }
     }, timeout)
+
+    timer.unref()
+    return timer
   }
 
   async #closeTransaction(tx: TransactionWrapper, status: 'committed' | 'rolled_back' | 'timed_out'): Promise<void> {
