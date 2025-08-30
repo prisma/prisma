@@ -6,12 +6,15 @@ import * as ts from '@prisma/ts-builders'
 import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
+import { modelExports } from '../ModelExports'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/*
  * This file should be your main import to use Prisma. Through it you get access to all the models, enums, and input types.
- *
+ * 
+ * If you look for something you can use in the frontend, please consider importing from the browser.ts file instead.
+ * 
  * 🟢 You can import this file directly.
  */
 `
@@ -29,6 +32,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
+    ts.moduleExportFrom(context.importFileName('./enums')),
     ts
       .moduleExport(
         ts
@@ -64,33 +68,6 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
     ),
   ].map((e) => ts.stringify(e))
 
-  const modelExports = Object.values(context.dmmf.typeAndModelMap)
-    .filter((model) => context.dmmf.outputTypeMap.model[model.name])
-    .map((model) => {
-      const docLines = model.documentation ?? ''
-      const modelLine = `Model ${model.name}\n`
-      const docs = `${modelLine}${docLines}`
-
-      const modelTypeExport = ts
-        .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`Prisma.${model.name}Model`)))
-        .setDocComment(ts.docComment(docs))
-
-      return ts.stringify(modelTypeExport)
-    })
-
-  const modelEnumsAliases = context.dmmf.datamodel.enums.map((datamodelEnum) => {
-    return [
-      ts.stringify(
-        ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
-      ),
-      ts.stringify(
-        ts.moduleExport(
-          ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
-        ),
-      ),
-    ].join('\n')
-  })
-
   const binaryTargets =
     clientEngineType === ClientEngineType.Library
       ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
@@ -109,9 +86,7 @@ export { Prisma }
 
 ${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
-${modelExports.join('\n')}
-
-${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
+${modelExports(context).join('\n')}
 `
 }
 

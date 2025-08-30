@@ -12,8 +12,8 @@ const jsDocHeader = `/*
 
 export function createCommonInputTypeFiles(context: GenerateContext) {
   const imports = [
-    ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
-    ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums'),
+    ts.moduleImport(context.runtimeImport).asNamespace('runtime').typeOnly(),
+    ts.moduleImport(context.importFileName(`./enums`)).asNamespace('$Enums').typeOnly(),
     ts.moduleImport(context.importFileName(`./internal/prismaNamespace`)).asNamespace('Prisma').typeOnly(),
   ].map((i) => ts.stringify(i))
 
