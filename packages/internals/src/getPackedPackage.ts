@@ -2,7 +2,7 @@ import { up } from 'empathic/package'
 import fs, { readFileSync } from 'fs'
 import packlist from 'npm-packlist'
 import path from 'path'
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 
 import { resolvePkg } from './resolvePkg'
 
@@ -28,7 +28,7 @@ export async function getPackedPackage(name: string, target?: string, packageDir
     throw new Error(`Error in getPackage: Could not resolve package ${name} from ${process.cwd()} target ${target}`)
   }
 
-  const tmpDir = target ?? tempy.directory() // thanks Sindre
+  const tmpDir = target ?? temporaryDirectory() // thanks Sindre
 
   const pkgFiles = await packlist({ path: packageDir })
 

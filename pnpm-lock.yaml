@@ -888,8 +888,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       tempy:
-        specifier: 3.0.0
-        version: 3.0.0
+        specifier: 3.1.0
+        version: 3.1.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)
@@ -1159,8 +1159,8 @@ importers:
         version: 8.3.0
     devDependencies:
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       vitest:
         specifier: 3.1.3
         version: 3.1.3(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
@@ -1320,8 +1320,8 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       timeout-signal:
         specifier: 2.0.0
         version: 2.0.0
@@ -1436,8 +1436,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       terminal-link:
         specifier: 4.0.0
         version: 4.0.0
@@ -1554,8 +1554,8 @@ importers:
         specifier: 6.0.1
         version: 6.0.1
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       ts-node:
         specifier: 10.9.2
         version: 10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)
@@ -1735,8 +1735,8 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       terminal-link:
         specifier: 4.0.0
         version: 4.0.0
@@ -1874,8 +1874,8 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
       tempy:
-        specifier: 1.0.1
-        version: 1.0.1
+        specifier: 3.1.0
+        version: 3.1.0
       ts-pattern:
         specifier: 5.6.2
         version: 5.6.2
@@ -4674,10 +4674,6 @@ packages:
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
-
-  crypto-random-string@2.0.0:
-    resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
-    engines: {node: '>=8'}
 
   crypto-random-string@4.0.0:
     resolution: {integrity: sha512-x8dy3RnvYdlUcPOjkEHqozhiwzKNSq7GcPuXFbnyMOCHxX8V3OgIg/pYuabl2sbUPfIJaeAQB7PMOK8DFIdoRA==}
@@ -7619,16 +7615,16 @@ packages:
     resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
     engines: {node: '>=8'}
 
+  temp-dir@3.0.0:
+    resolution: {integrity: sha512-nHc6S/bwIilKHNRgK/3jlhDoIHcp45YgyiwcAk46Tr0LfEqGBVpmiAyuiuxeVE44m3mXnEeVhaipLOEWmH+Njw==}
+    engines: {node: '>=14.16'}
+
   temp@0.4.0:
     resolution: {integrity: sha512-IsFisGgDKk7qzK9erMIkQe/XwiSUdac7z3wYOsjcLkhPBy3k1SlvLoIh2dAHIlEpgA971CgguMrx9z8fFg7tSA==}
     engines: {'0': node >=0.4.0}
 
-  tempy@1.0.1:
-    resolution: {integrity: sha512-biM9brNqxSc04Ee71hzFbryD11nX7VPhQQY32AdDmjFvodsRFz/3ufeoTZ6uYkRFfGo188tENcASNs3vTdsM0w==}
-    engines: {node: '>=10'}
-
-  tempy@3.0.0:
-    resolution: {integrity: sha512-B2I9X7+o2wOaW4r/CWMkpOO9mdiTRCxXNgob6iGvPmfPWgH/KyUD6Uy5crtWBxIBe3YrNZKR2lSzv1JJKWD4vA==}
+  tempy@3.1.0:
+    resolution: {integrity: sha512-7jDLIdD2Zp0bDe5r3D2qtkd1QOCacylBuL7oa4udvN6v2pqr4+LcCr67C8DR1zkpaZ8XosF5m1yQSabKAW6f2g==}
     engines: {node: '>=14.16'}
 
   terminal-link@4.0.0:
@@ -7818,10 +7814,6 @@ packages:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
     engines: {node: '>=4'}
 
-  type-fest@0.16.0:
-    resolution: {integrity: sha512-eaBzG6MxNzEn9kiwvtre90cXaNLkmadMWa1zQMs3XORCXNbsH/OewwbxC5ia9dCxIxnTAsSxXJaa/p5y8DlvJg==}
-    engines: {node: '>=10'}
-
   type-fest@0.18.1:
     resolution: {integrity: sha512-OIAYXk8+ISY+qTOwkHtKqzAuxchoMiD9Udx+FSGQDuiRR+PJKJHc2NJAXlbhkGwTt/4/nKZxELY1w3ReWOL8mw==}
     engines: {node: '>=10'}
@@ -7901,10 +7893,6 @@ packages:
 
   unique-slug@2.0.2:
     resolution: {integrity: sha512-zoWr9ObaxALD3DOPfjPSqxt4fnZiWblxHIgeWqW8x7UqDzEtHEQLzji2cuJYQFCU6KmoJikOYAZlrTHHebjx2w==}
-
-  unique-string@2.0.0:
-    resolution: {integrity: sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==}
-    engines: {node: '>=8'}
 
   unique-string@3.0.0:
     resolution: {integrity: sha512-VGXBUVwxKMBUznyffQweQABPRRW1vHZAbadFZud4pLFAqRGvv/96vafgjWFqzourzr8YonlQiPgH0YCJfawoGQ==}
@@ -11450,8 +11438,6 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
-  crypto-random-string@2.0.0: {}
-
   crypto-random-string@4.0.0:
     dependencies:
       type-fest: 1.4.0
@@ -14872,20 +14858,14 @@ snapshots:
 
   temp-dir@2.0.0: {}
 
+  temp-dir@3.0.0: {}
+
   temp@0.4.0: {}
 
-  tempy@1.0.1:
-    dependencies:
-      del: 6.1.1
-      is-stream: 2.0.1
-      temp-dir: 2.0.0
-      type-fest: 0.16.0
-      unique-string: 2.0.0
-
-  tempy@3.0.0:
+  tempy@3.1.0:
     dependencies:
       is-stream: 3.0.0
-      temp-dir: 2.0.0
+      temp-dir: 3.0.0
       type-fest: 2.19.0
       unique-string: 3.0.0
 
@@ -15095,8 +15075,6 @@ snapshots:
 
   type-detect@4.0.8: {}
 
-  type-fest@0.16.0: {}
-
   type-fest@0.18.1: {}
 
   type-fest@0.21.3: {}
@@ -15159,10 +15137,6 @@ snapshots:
     dependencies:
       imurmurhash: 0.1.4
     optional: true
-
-  unique-string@2.0.0:
-    dependencies:
-      crypto-random-string: 2.0.0
 
   unique-string@3.0.0:
     dependencies:

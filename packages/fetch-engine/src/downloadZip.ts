@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import retry from 'p-retry'
 import path from 'path'
 import { rimraf } from 'rimraf'
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
@@ -60,7 +60,7 @@ export async function downloadZip(
   target: string,
   progressCb?: (progress: number) => void,
 ): Promise<DownloadResult> {
-  const tmpDir = tempy.directory()
+  const tmpDir = temporaryDirectory()
   const partial = path.join(tmpDir, 'partial')
 
   // We try 3 times,
@@ -91,7 +91,7 @@ export async function downloadZip(
       const size = parseFloat(response.headers.get('content-length') as string)
       const ws = fs.createWriteStream(partial)
 
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+      // eslint-disable-next-line no-async-promise-executor
       return await new Promise(async (resolve, reject) => {
         let bytesRead = 0
 

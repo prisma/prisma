@@ -3,7 +3,7 @@ import execa from 'execa'
 import fs from 'fs-jetpack'
 import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
 import path from 'path'
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 import { afterEach, beforeEach, type MockInstance, vi } from 'vitest'
 
 /**
@@ -57,7 +57,7 @@ export const vitestContext = {
         cwd: process.cwd(),
       }
 
-      c.tmpDir = tempy.directory()
+      c.tmpDir = temporaryDirectory()
       c.fs = fs.cwd(c.tmpDir)
       c.tree = (startFrom = c.tmpDir, indent = '') => {
         function* generateDirectoryTree(children: InspectTreeResult[], indent = ''): Generator<String> {

@@ -3,7 +3,7 @@ import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 
 import { ErrorArea, RustPanic } from '..'
 import { sendPanic } from '../sendPanic'
@@ -24,7 +24,7 @@ const sendKeystrokes = async (io) => {
 // helper function for timing
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock stdin so we can send messages to the CLI
 
-const testRootDir = tempy.directory()
+const testRootDir = temporaryDirectory()
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const oldProcessCwd = process.cwd

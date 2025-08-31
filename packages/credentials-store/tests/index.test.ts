@@ -1,6 +1,6 @@
 import { readFile } from 'fs/promises'
 import path from 'path'
-import tempy from 'tempy'
+import { temporaryDirectory } from 'tempy'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { Credentials, CredentialsStore } from '../src'
@@ -16,7 +16,7 @@ describe('CredentialsStore', () => {
   let store: CredentialsStore
 
   beforeEach(() => {
-    authFilePath = path.join(tempy.directory(), 'auth.json')
+    authFilePath = path.join(temporaryDirectory(), 'auth.json')
     store = new CredentialsStore(authFilePath)
   })
 

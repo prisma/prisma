@@ -1,5 +1,5 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import tempy from 'tempy'
+import { temporaryDirectory, temporaryFile } from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 import { canConnectToDatabase, createDatabase, dropDatabase, execaCommand } from '../schemaEngineCommands'
@@ -62,7 +62,7 @@ describe('createDatabase', () => {
   })
 
   test('sqlite - file does not exists', async () => {
-    await expect(createDatabase('file:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
+    await expect(createDatabase('file:./doesnotexist.db', temporaryDirectory())).resolves.toEqual(true)
   })
 
   testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)(
@@ -70,7 +70,7 @@ describe('createDatabase', () => {
     async () => {
       expect.assertions(1)
       try {
-        await createDatabase('file:./doesnotexist.db', tempy.file())
+        await createDatabase('file:./doesnotexist.db', temporaryFile())
       } catch (e) {
         expect(serialize(e)).toMatchInlineSnapshot(`
           ""Schema engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
