@@ -503,9 +503,6 @@ importers:
       '@types/node':
         specifier: 18.19.76
         version: 18.19.76
-      '@types/rimraf':
-        specifier: 4.0.5
-        version: 4.0.5
       async-listen:
         specifier: 3.1.0
         version: 3.1.0
@@ -548,9 +545,6 @@ importers:
       get-tsconfig:
         specifier: 4.10.0
         version: 4.10.0
-      global-dirs:
-        specifier: 4.0.0
-        version: 4.0.0
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5))
@@ -1674,7 +1668,7 @@ importers:
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
-      global-dirs:
+      global-directory:
         specifier: 4.0.0
         version: 4.0.0
       globby:
@@ -3774,10 +3768,6 @@ packages:
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
 
-  '@types/rimraf@4.0.5':
-    resolution: {integrity: sha512-DTCZoIQotB2SUJnYgrEx43cQIUYOlNZz0AZPbKU4PSLYTUdML5Gox0++z4F9kQocxStrCmRNhi4x5x/UlwtKUA==}
-    deprecated: This is a stub types definition. rimraf provides its own type definitions, so you do not need this installed.
-
   '@types/shimmer@1.2.0':
     resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
 
@@ -5468,10 +5458,9 @@ packages:
     engines: {node: '>=12'}
     deprecated: Glob versions prior to v9 are no longer supported
 
-  global-dirs@4.0.0:
-    resolution: {integrity: sha512-PJ0OjGf/kVuu9gh5IPgAyssfJne5PsU9+ICxfWiRYDUnYq8ob+Y2nSWAEUNEHRj+gowyzI+wg5/nWkvcjcyLwg==}
-    engines: {node: '>=10'}
-    deprecated: Renamed to global-directory
+  global-directory@4.0.0:
+    resolution: {integrity: sha512-3vKugswCmRx+wqK8azY+6yFXfi3DzPLyMtzUmVbBp6CqV+7v6vcOwUJGt50fmc9orIyCh29g2ypcXWfbCMZVWw==}
+    engines: {node: '>=18'}
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -5666,9 +5655,9 @@ packages:
   ini@1.3.8:
     resolution: {integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==}
 
-  ini@2.0.0:
-    resolution: {integrity: sha512-7PnF4oN3CvZF23ADhA5wRaYEQpJ8qygSkbtTXWBeXWXmEVRXK+1ITciHWwHhsjv1TmW0MgacIv6hEi5pX5NQdA==}
-    engines: {node: '>=10'}
+  ini@4.1.1:
+    resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
+    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
 
   ip@2.0.0:
     resolution: {integrity: sha512-WKa+XuLG1A1R0UWhl2+1XQSi+fZWMsYKffMZTTYsiZaUD8k2yDAj5atimTUD2TZkyCkNEeYE5NhFZmupOGtjYQ==}
@@ -10320,10 +10309,6 @@ snapshots:
 
   '@types/retry@0.12.0': {}
 
-  '@types/rimraf@4.0.5':
-    dependencies:
-      rimraf: 6.0.1
-
   '@types/shimmer@1.2.0': {}
 
   '@types/sqlite3@3.1.11':
@@ -12320,9 +12305,9 @@ snapshots:
       minimatch: 5.1.6
       once: 1.4.0
 
-  global-dirs@4.0.0:
+  global-directory@4.0.0:
     dependencies:
-      ini: 2.0.0
+      ini: 4.1.1
 
   globals@11.12.0: {}
 
@@ -12512,7 +12497,7 @@ snapshots:
 
   ini@1.3.8: {}
 
-  ini@2.0.0: {}
+  ini@4.1.1: {}
 
   ip@2.0.0:
     optional: true
