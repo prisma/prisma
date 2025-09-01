@@ -1,5 +1,5 @@
 import fs from 'fs'
-import globalDirectories from 'global-dirs'
+import globalDirectories from 'global-directory'
 
 // returns if current prisma bin is installed globally
 export function isCurrentBinInstalledGlobally(): 'npm' | false {
