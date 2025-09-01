@@ -45,6 +45,6 @@
     "ky": "1.7.5"
   },
   "devDependencies": {
-    "vitest": "3.0.9"
+    "vitest": "3.2.4"
   }
 }

@@ -42,6 +42,6 @@
   },
   "devDependencies": {
     "@types/mssql": "9.1.7",
-    "vitest": "3.0.9"
+    "vitest": "3.2.4"
   }
 }
