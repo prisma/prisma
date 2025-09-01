@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@types/pluralize": "0.0.33",
-    "vitest": "3.0.9"
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
