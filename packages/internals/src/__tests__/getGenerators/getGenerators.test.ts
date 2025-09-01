@@ -1,8 +1,9 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
@@ -587,7 +588,7 @@ describe('getGenerators', () => {
       }
     `)
 
-    const consoleLog = stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))
+    const consoleLog = stripVTControlCharacters(ctx.mocked['console.log'].mock.calls.join('\n'))
     expect(consoleLog).toContain('Warning: Your current platform')
     expect(consoleLog).toContain(`s not included in your generator's \`binaryTargets\` configuration`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -703,7 +704,7 @@ describe('getGenerators', () => {
         registry,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+      expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "
         You don't have any datasource defined in your schema.prisma.
         You can define a datasource like this:
@@ -738,7 +739,7 @@ describe('getGenerators', () => {
         allowNoModels: false,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+      expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "
         You don't have any models defined in your schema.prisma, so nothing will be generated.
         You can define a model like this:
@@ -775,7 +776,7 @@ describe('getGenerators', () => {
         allowNoModels: false,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+      expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "
         You don't have any models defined in your schema.prisma, so nothing will be generated.
         You can define a model like this:
@@ -827,7 +828,7 @@ describe('getGenerators', () => {
         generatorNames: ['client_1', 'invalid_generator'],
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(
+      expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
         `"The generator invalid_generator specified via --generator does not exist in your Prisma schema"`,
       )
     }

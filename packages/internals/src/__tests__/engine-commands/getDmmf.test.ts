@@ -1,6 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-import stripAnsi from 'strip-ansi'
+import fs from 'node:fs'
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getDMMF, MultipleSchemas } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
@@ -108,7 +108,7 @@ describe('getDMMF', () => {
       try {
         await getDMMF({ datamodel })
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
@@ -150,7 +150,7 @@ describe('getDMMF', () => {
       try {
         await getDMMF({ datamodel })
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
@@ -210,7 +210,7 @@ describe('getDMMF', () => {
       try {
         await getDMMF({ datamodel })
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
           "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Field "id" is already defined on model "User".
