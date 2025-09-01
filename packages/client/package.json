@@ -75,8 +75,8 @@
     "./index-browser": {
       "types": "./index.d.ts",
       "require": "./index-browser.js",
-      "import": "./index-browser.mjs",
-      "default": "./index-browser.mjs"
+      "import": "./index-browser.js",
+      "default": "./index-browser.js"
     },
     "./index": {
       "types": "./index.d.ts",
@@ -135,6 +135,12 @@
       "require": "./runtime/react-native.js",
       "import": "./runtime/react-native.js",
       "default": "./runtime/react-native.js"
+    },
+    "./runtime/index-browser": {
+      "types": "./runtime/index-browser.d.ts",
+      "require": "./runtime/index-browser.js",
+      "import": "./runtime/index-browser.mjs",
+      "default": "./runtime/index-browser.mjs"
     },
     "./generator-build": {
       "require": "./generator-build/index.js",
