@@ -50,13 +50,5 @@ testMatrix.setupTestSuite(
   {
     ...defaultTestSuiteOptions,
     skipDb: true,
-    skip(when, { clientEngineExecutor }) {
-      when(
-        clientEngineExecutor === 'remote',
-        `
-        Can't use driver adapters with Accelerate.
-        `,
-      )
-    },
   },
 )
