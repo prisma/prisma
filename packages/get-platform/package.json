@@ -21,7 +21,7 @@
     "@types/node": "18.19.76",
     "benchmark": "2.1.4",
     "escape-string-regexp": "5.0.0",
-    "execa": "5.1.1",
+    "execa": "9.6.0",
     "fs-jetpack": "5.1.0",
     "jest": "29.7.0",
     "jest-junit": "16.0.0",
