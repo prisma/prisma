@@ -2,8 +2,8 @@ import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import prompt from 'prompts'
-import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
+import { stripVTControlCharacters } from 'util'
 
 import { ErrorArea, RustPanic } from '..'
 import { sendPanic } from '../sendPanic'
@@ -95,11 +95,11 @@ describe('handlePanic', () => {
         getDatabaseVersionSafe,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchSnapshot()
+      expect(stripVTControlCharacters(e.message)).toMatchSnapshot()
     }
 
     console.log = oldConsoleLog
-    expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
+    expect(stripVTControlCharacters(logs.join('\n'))).toMatchSnapshot()
   })
 
   it('no interactive mode in CI', async () => {
@@ -147,8 +147,8 @@ describe('handlePanic', () => {
 
     expect(sendPanic).toHaveBeenCalledTimes(1)
     expect(wouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
-    expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
-    expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
+    expect(stripVTControlCharacters(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(stripVTControlCharacters(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
     expect(mockExit).toHaveBeenCalledWith(1)

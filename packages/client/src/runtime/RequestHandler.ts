@@ -2,7 +2,7 @@ import { Context } from '@opentelemetry/api'
 import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 
 import {
   EngineValidationError,
@@ -251,7 +251,7 @@ export class RequestHandler {
 
   sanitizeMessage(message) {
     if (this.client._errorFormat && this.client._errorFormat !== 'pretty') {
-      return stripAnsi(message)
+      return stripVTControlCharacters(message)
     }
     return message
   }

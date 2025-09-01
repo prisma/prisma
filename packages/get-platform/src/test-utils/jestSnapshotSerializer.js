@@ -1,6 +1,6 @@
 'use strict'
 const path = require('path')
-const stripAnsi = require('strip-ansi')
+const { stripVTControlCharacters } = require('util')
 const { binaryTargetRegex } = require('./binaryTargetRegex')
 
 // Pipe utility
@@ -135,7 +135,7 @@ module.exports = {
 
     // order is important
     return pipe(
-      stripAnsi,
+      stripVTControlCharacters,
       // integration-tests pkg
       prepareSchemaForSnapshot,
       // Generic

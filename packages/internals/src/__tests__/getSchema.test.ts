@@ -1,5 +1,5 @@
 import path from 'path'
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 
 import { getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
@@ -43,11 +43,11 @@ async function testSchemaPath({
   }
 
   if (typeof asyncResult === 'string') {
-    asyncResult = stripAnsi(toUnixPath(path.relative('.', asyncResult)))
+    asyncResult = stripVTControlCharacters(toUnixPath(path.relative('.', asyncResult)))
   }
 
   if (asyncResult instanceof Error) {
-    asyncResult.message = stripAnsi(toUnixPath(asyncResult.message.replace(__dirname, '.')))
+    asyncResult.message = stripVTControlCharacters(toUnixPath(asyncResult.message.replace(__dirname, '.')))
   }
 
   return asyncResult

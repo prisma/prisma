@@ -1,6 +1,6 @@
 import { getLogs } from '@prisma/debug'
 import { underline } from 'kleur/colors'
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 
 import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 import { maskQuery } from './maskQuery'
@@ -17,9 +17,9 @@ export function getErrorMessageWithLink({
   query,
 }: ErrorWithLinkInput) {
   const gotLogs = getLogs(6000 - (query?.length ?? 0))
-  const logs = normalizeLogs(stripAnsi(gotLogs))
+  const logs = normalizeLogs(stripVTControlCharacters(gotLogs))
   const moreInfo = description ? `# Description\n\`\`\`\n${description}\n\`\`\`` : ''
-  const body = stripAnsi(
+  const body = stripVTControlCharacters(
     `Hi Prisma Team! My Prisma Client just crashed. This is the report:
 ## Versions
 

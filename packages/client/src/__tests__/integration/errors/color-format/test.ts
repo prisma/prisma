@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 
@@ -8,7 +8,7 @@ test('client colorless errorFormat argument', async () => {
   try {
     await client.user.findMany({ wrong: 'x' })
   } catch (e) {
-    expect(stripAnsi(e.message) === e.message).toBeTruthy() // This is a workaround as snapshots seem to strip ansi characters
+    expect(stripVTControlCharacters(e.message) === e.message).toBeTruthy() // This is a workaround as snapshots seem to strip ansi characters
   }
   await client.$disconnect()
 })

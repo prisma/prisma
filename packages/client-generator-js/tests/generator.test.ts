@@ -11,7 +11,7 @@ import {
   getPackedPackage,
   parseEnvValue,
 } from '@prisma/internals'
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 import { describe, expect, test, vi } from 'vitest'
 
 import { PrismaClientJsGenerator } from '../src/generator'
@@ -69,7 +69,7 @@ expect.addSnapshotSerializer({
 expect.addSnapshotSerializer({
   test: (val) => val instanceof Error && val.message.includes('\x1B'),
   serialize(val, config, indentation, depth, refs, printer) {
-    val.message = stripAnsi((val as Error).message)
+    val.message = stripVTControlCharacters((val as Error).message)
     return printer(val, config, indentation, depth, refs)
   },
 })

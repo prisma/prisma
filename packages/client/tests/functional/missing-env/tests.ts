@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'util'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -17,7 +17,7 @@ testMatrix.setupTestSuite(
         try {
           await prisma.$connect()
         } catch (e) {
-          const message = stripAnsi(e.message as string)
+          const message = stripVTControlCharacters(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
         }
@@ -35,7 +35,7 @@ testMatrix.setupTestSuite(
         try {
           await prisma.$connect()
         } catch (e) {
-          const message = stripAnsi(e.message as string)
+          const message = stripVTControlCharacters(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
         }
@@ -51,7 +51,7 @@ testMatrix.setupTestSuite(
           try {
             await prisma.$connect()
           } catch (e) {
-            const message = stripAnsi(e.message as string)
+            const message = stripVTControlCharacters(e.message as string)
             expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
             expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
           }
@@ -71,7 +71,7 @@ testMatrix.setupTestSuite(
           try {
             await prisma.$connect()
           } catch (e) {
-            const message = stripAnsi(e.message as string)
+            const message = stripVTControlCharacters(e.message as string)
             expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
             expect(message).toMatchInlineSnapshot(`
               "error: Environment variable not found: DATABASE_URI.
@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(
           try {
             await prisma.$connect()
           } catch (e) {
-            const message = stripAnsi(e.message as string)
+            const message = stripVTControlCharacters(e.message as string)
             expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
             expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
           }
@@ -119,7 +119,7 @@ testMatrix.setupTestSuite(
             },
           })
         } catch (e) {
-          const message = stripAnsi(e.message as string)
+          const message = stripVTControlCharacters(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toMatchInlineSnapshot(
             `"Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration."`,

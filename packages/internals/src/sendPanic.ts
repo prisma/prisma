@@ -1,9 +1,9 @@
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as checkpoint from 'checkpoint-client'
 import os from 'os'
-import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
+import { stripVTControlCharacters } from 'util'
 
 import { createErrorReport, type CreateErrorReportInput, ErrorKind, makeErrorReportCompleted } from './errorReporting'
 import type { MigrateTypes } from './migrateTypes'
@@ -64,7 +64,7 @@ export async function sendPanic({
     cliVersion,
     binaryVersion: enginesVersion,
     command: getCommand(),
-    jsStackTrace: stripAnsi(error.stack || error.message),
+    jsStackTrace: stripVTControlCharacters(error.stack || error.message),
     rustStackTrace: error.rustStack,
     operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
     platform: await getBinaryTargetForCurrentPlatform(),
