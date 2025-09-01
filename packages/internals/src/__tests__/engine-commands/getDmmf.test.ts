@@ -1,6 +1,6 @@
-import fs from 'fs'
-import path from 'path'
-import { stripVTControlCharacters } from 'util'
+import fs from 'node:fs'
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getDMMF, MultipleSchemas } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'

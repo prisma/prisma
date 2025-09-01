@@ -1,3 +1,5 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import isWindows from 'is-windows'
 import isWSL from 'is-wsl'
@@ -5,7 +7,6 @@ import newGitHubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
 import { match } from 'ts-pattern'
-import { stripVTControlCharacters } from 'util'
 
 export function getGitHubIssueUrl({
   title,

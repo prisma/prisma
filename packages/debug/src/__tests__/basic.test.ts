@@ -1,4 +1,4 @@
-import { stripVTControlCharacters } from 'util'
+import { stripVTControlCharacters } from 'node:util'
 
 import { Debug, getLogs } from '../index'
 import { removeISODate, sanitizeTestLogs } from '../util'

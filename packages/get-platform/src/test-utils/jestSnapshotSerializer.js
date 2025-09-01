@@ -1,6 +1,6 @@
 'use strict'
-const path = require('path')
-const { stripVTControlCharacters } = require('util')
+const path = require('node:path')
+const { stripVTControlCharacters } = require('node:util')
 const { binaryTargetRegex } = require('./binaryTargetRegex')
 
 // Pipe utility

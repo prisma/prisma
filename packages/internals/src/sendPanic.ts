@@ -1,9 +1,10 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as checkpoint from 'checkpoint-client'
 import os from 'os'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
-import { stripVTControlCharacters } from 'util'
 
 import { createErrorReport, type CreateErrorReportInput, ErrorKind, makeErrorReportCompleted } from './errorReporting'
 import type { MigrateTypes } from './migrateTypes'

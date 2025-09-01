@@ -1,4 +1,4 @@
-import { stripVTControlCharacters } from 'util'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 

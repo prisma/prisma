@@ -1,4 +1,4 @@
-import { stripVTControlCharacters } from 'util'
+import { stripVTControlCharacters } from 'node:util'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'

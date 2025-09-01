@@ -1,12 +1,12 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
+import { stripVTControlCharacters } from 'node:util'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
 import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
 import fs from 'fs'
-import { stripVTControlCharacters } from 'util'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'

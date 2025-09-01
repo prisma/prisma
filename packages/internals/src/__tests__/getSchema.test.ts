@@ -1,5 +1,5 @@
-import path from 'path'
-import { stripVTControlCharacters } from 'util'
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getSchemaWithPath } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'

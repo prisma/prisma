@@ -1,6 +1,7 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import path from 'path'
-import { stripVTControlCharacters } from 'util'
 
 import { isRustPanic, validate } from '../..'
 import { getSchemaWithPath } from '../../cli/getSchema'

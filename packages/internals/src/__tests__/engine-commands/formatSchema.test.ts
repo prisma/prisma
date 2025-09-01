@@ -1,6 +1,7 @@
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
+
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
-import { stripVTControlCharacters } from 'util'
 
 import { getSchemaWithPath } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'

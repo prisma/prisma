@@ -1,6 +1,7 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getLogs } from '@prisma/debug'
 import { underline } from 'kleur/colors'
-import { stripVTControlCharacters } from 'util'
 
 import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 import { maskQuery } from './maskQuery'

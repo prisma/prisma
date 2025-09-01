@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 
 import { omit } from '@prisma/client-common'
 import {
@@ -9,7 +10,6 @@ import {
   getGenerator,
   parseEnvValue,
 } from '@prisma/internals'
-import { stripVTControlCharacters } from 'util'
 import { describe, expect, test } from 'vitest'
 
 import { PrismaClientTsGenerator } from '../src/generator'

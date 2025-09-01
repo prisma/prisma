@@ -1,12 +1,13 @@
+import fs from 'node:fs'
+import { stripVTControlCharacters } from 'node:util'
+
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
-import fs from 'fs'
 import type { Response } from 'node-fetch'
 import { default as _mockFetch } from 'node-fetch'
 import path from 'path'
 import timeoutSignal from 'timeout-signal'
-import { stripVTControlCharacters } from 'util'
 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'

@@ -1,8 +1,9 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { Context } from '@opentelemetry/api'
 import { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
 import { assertNever } from '@prisma/internals'
-import { stripVTControlCharacters } from 'util'
 
 import {
   EngineValidationError,

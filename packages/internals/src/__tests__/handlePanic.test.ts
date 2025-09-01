@@ -1,9 +1,10 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import prompt from 'prompts'
 import tempy from 'tempy'
-import { stripVTControlCharacters } from 'util'
 
 import { ErrorArea, RustPanic } from '..'
 import { sendPanic } from '../sendPanic'

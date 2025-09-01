@@ -1,8 +1,9 @@
 // add all jest-extended matchers
 // see https://jest-extended.jestcommunity.dev/docs/matchers/
+import { stripVTControlCharacters } from 'node:util'
+
 import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
-import { stripVTControlCharacters } from 'util'
 
 import { EnabledCallSite } from '../../../src/runtime/utils/CallSite'
 import { getTemplateParameters } from '../../../src/runtime/utils/createErrorMessageWithContext'

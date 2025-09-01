@@ -1,7 +1,8 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
-import { stripVTControlCharacters } from 'util'
 
 import { DebugInfo } from '../../DebugInfo'
 
