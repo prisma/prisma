@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getBinaryTargetForCurrentPlatformInternal, getPlatformInfoMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
@@ -107,7 +107,7 @@ describe('getBinaryTargetForCurrentPlatformInternal', () => {
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
       // TODO: can't currently use `toMatchInlineSnaphost` here because our snaphost serialiser replaces "arm" with
       // "TEST_PLATFORM" unnecessarily.
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n') as string)).toBe(
+      expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n') as string)).toBe(
         `prisma:warn Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures (detected "arm" instead). If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "armv7l".`,
       )
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

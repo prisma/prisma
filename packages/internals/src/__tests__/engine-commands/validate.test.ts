@@ -1,6 +1,7 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { isRustPanic, validate } from '../..'
 import { getSchemaWithPath } from '../../cli/getSchema'
@@ -114,7 +115,7 @@ describe('validate', () => {
         try {
           validate({ schemas })
         } catch (e) {
-          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+          expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
             Error code: P1012
             error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
@@ -157,7 +158,7 @@ describe('validate', () => {
         try {
           validate({ schemas })
         } catch (e) {
-          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+          expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
             Error code: P1012
             error: Error parsing attribute "@default": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
@@ -233,7 +234,7 @@ describe('validate', () => {
         try {
           validate({ schemas })
         } catch (e) {
-          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+          expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
             Error code: P1012
             error: Field "id" is already defined on model "User".
@@ -361,7 +362,7 @@ describe('validate', () => {
           validate({ schemas: datamodel })
         } catch (e) {
           // TODO: patch engines to fix this message, it should group errors by the different filenames.
-          expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+          expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
             "Prisma schema validation - (validate wasm)
             Error code: P1012
             error: Field "id" is already defined on model "User".

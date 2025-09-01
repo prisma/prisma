@@ -1,7 +1,8 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { DebugInfo } from '../../DebugInfo'
 
@@ -430,7 +431,9 @@ describe('debug', () => {
 
   it('should succeed with --schema', async () => {
     ctx.fixture('example-project/prisma')
-    const result = stripAnsi((await DebugInfo.new().parse(['--schema=schema.prisma'], defaultTestConfig())) as string)
+    const result = stripVTControlCharacters(
+      (await DebugInfo.new().parse(['--schema=schema.prisma'], defaultTestConfig())) as string,
+    )
 
     expect(result).toContain(`Path: ${path.join(process.cwd(), 'schema.prisma')}`)
   })
