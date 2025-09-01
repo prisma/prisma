@@ -40,6 +40,6 @@
     "mariadb": "3.4.2"
   },
   "devDependencies": {
-    "vitest": "3.0.9"
+    "vitest": "3.2.4"
   }
 }
