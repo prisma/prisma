@@ -30,8 +30,7 @@
     "tempy": "1.0.1",
     "terminal-link": "4.0.0",
     "ts-pattern": "5.6.2",
-    "typescript": "5.4.5",
-    "vitest": "3.2.4"
+    "typescript": "5.4.5"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*"
