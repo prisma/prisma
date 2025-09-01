@@ -875,6 +875,9 @@ importers:
       stacktrace-parser:
         specifier: 0.1.11
         version: 0.1.11
+      strip-ansi:
+        specifier: 7.1.0
+        version: 7.1.0
       strip-indent:
         specifier: 4.0.0
         version: 4.0.0
