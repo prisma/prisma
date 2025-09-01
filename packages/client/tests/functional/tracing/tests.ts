@@ -106,13 +106,19 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter, relationMode, engineType, clientRuntime }, _suiteMeta, clientMeta) => {
+  (
+    { provider, driverAdapter, relationMode, engineType, clientRuntime, clientEngineExecutor },
+    _suiteMeta,
+    clientMeta,
+  ) => {
     const isMongoDb = provider === Providers.MONGODB
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
+    const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     const usesSyntheticTxQueries =
-      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)
+      (driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)) ||
+      (clientEngineExecutor === 'remote' && provider === Providers.SQLSERVER)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -381,10 +387,10 @@ testMatrix.setupTestSuite(
 
       const dbQueries: Tree[] = []
       if (tx) {
-        if (isSqlServer && driverAdapter === undefined) {
+        if (isSqlServer && !usesJsDrivers) {
           dbQueries.push(txSetIsolationLevel())
         }
-        if (driverAdapter === undefined) {
+        if (!usesJsDrivers) {
           // Driver adapters do not issue BEGIN through the query engine.
           dbQueries.push(txBegin())
         }
@@ -416,9 +422,9 @@ testMatrix.setupTestSuite(
       if (operation === 'start') {
         children = isMongoDb
           ? engineConnection()
-          : isSqlServer && driverAdapter === undefined
+          : isSqlServer && !usesJsDrivers
             ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
-            : driverAdapter === undefined
+            : !usesJsDrivers
               ? [...engineConnection(), txBegin()]
               : engineType === ClientEngineType.Client
                 ? undefined
@@ -500,11 +506,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
             dbQuery(expect.stringContaining('SELECT')),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -540,11 +546,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -589,11 +595,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -692,11 +698,11 @@ testMatrix.setupTestSuite(
           } else {
             expectedDbQueries.push(txCommit())
           }
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         }
