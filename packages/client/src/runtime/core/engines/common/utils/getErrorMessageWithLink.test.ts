@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'node:util'
 
 import { getErrorMessageWithLink } from './getErrorMessageWithLink'
 
@@ -13,7 +13,7 @@ test('basic serialization', () => {
     engineVersion: 'abcdefhg',
   })
   expect(
-    stripAnsi(message)
+    stripVTControlCharacters(message)
       .replace(/v\d{1,2}\.\d{1,2}\.\d{1,2}/, 'NODE_VERSION')
       .replace(/[\+-]/g, ''),
   ).toMatchInlineSnapshot(`

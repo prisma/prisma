@@ -1,8 +1,9 @@
 // add all jest-extended matchers
 // see https://jest-extended.jestcommunity.dev/docs/matchers/
+import { stripVTControlCharacters } from 'node:util'
+
 import * as matchers from 'jest-extended'
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
-import stripAnsi from 'strip-ansi'
 
 import { EnabledCallSite } from '../../../src/runtime/utils/CallSite'
 import { getTemplateParameters } from '../../../src/runtime/utils/createErrorMessageWithContext'
@@ -38,7 +39,7 @@ expect.extend({
 })
 
 function sanitizeLineNumbers(message: string) {
-  return stripAnsi(message).replace(/^(\s*→?\s+)\d+/gm, '$1XX')
+  return stripVTControlCharacters(message).replace(/^(\s*→?\s+)\d+/gm, '$1XX')
 }
 
 /**

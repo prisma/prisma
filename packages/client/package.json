@@ -299,7 +299,7 @@
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.2.1",
     "stacktrace-parser": "0.1.11",
-    "strip-ansi": "6.0.1",
+    "strip-ansi": "7.1.0",
     "strip-indent": "4.0.0",
     "tempy": "3.0.0",
     "ts-node": "10.9.2",
