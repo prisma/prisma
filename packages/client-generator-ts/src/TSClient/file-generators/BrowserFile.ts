@@ -6,10 +6,10 @@ import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/*
  * This file should be your main import to use Prisma related types and utilities in the browser. 
- * Through it you get access to all the models, enums, and input types.
+ * Use it to get access to all the models, enums, and input types.
  * 
- * This file however does not contain a PrismaClient class as well as various other helpers that shall only be used in the backend. 
- * See client.ts for the backend entry point.
+ * This file, however, does not contain a `PrismaClient` class, nor several other helpers that are intended as server-side only.
+ * See `client.ts` for the standard, server-side entry point.
  *
  * 🟢 You can import this file directly.
  */
