@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2021",
     "module": "commonjs",
-    "moduleResolution": "node",
+    "moduleResolution": "nodenext",
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
