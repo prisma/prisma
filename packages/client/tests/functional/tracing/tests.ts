@@ -959,5 +959,17 @@ testMatrix.setupTestSuite(
       reason:
         'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
     },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        We are not receiving the server spans in this test, although they do
+        seem to look fine from the manual look at the server response.
+        Either there's a bug in RemoteExecutor, or in the tracing setup for
+        QPE in tests.
+        Tracked in https://linear.app/prisma-company/issue/ORM-1395/fix-missing-spans-in-tracing-tests-with-qcaccelerate
+        `,
+      )
+    },
   },
 )
