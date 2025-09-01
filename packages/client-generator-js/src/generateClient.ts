@@ -760,6 +760,7 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'react-native.js',
     'wasm-engine-edge.js',
     'wasm-compiler-edge.js',
+    'utilities.js',
   ]
 
   files.push(`${runtimeName}.js`)
