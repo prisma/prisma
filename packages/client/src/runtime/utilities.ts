@@ -5,3 +5,4 @@ export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnkno
 export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
 export { objectEnumValues } from './core/types/exported/ObjectEnums'
 export { Decimal } from 'decimal.js'
+export { empty, join, raw, type RawValue, Sql, default as sqltag, type Value } from 'sql-template-tag'

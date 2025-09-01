@@ -58,20 +58,21 @@ function utilitiesResolverPlugin(): Plugin {
         'PrismaClientUnknownRequestError',
         'PrismaClientValidationError',
         'ObjectEnums',
-      ].forEach((error) => {
-        build.onResolve({ filter: new RegExp(`^.*\\/${error}$`) }, (_args) => {
+      ].forEach((file) => {
+        build.onResolve({ filter: new RegExp(`^.*\\/${file}$`) }, (_args) => {
           return {
             path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
             external: true,
           }
         })
       })
-
-      build.onResolve({ filter: /^decimal.js$/ }, (_args) => {
-        return {
-          path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
-          external: true,
-        }
+      ;['decimal.js', 'sql-template-tag'].forEach((library) => {
+        build.onResolve({ filter: new RegExp(`^${library}$`) }, (_args) => {
+          return {
+            path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+            external: true,
+          }
+        })
       })
     },
   }
