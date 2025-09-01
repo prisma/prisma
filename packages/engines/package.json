@@ -18,7 +18,7 @@
     "@types/node": "18.19.76",
     "execa": "5.1.1",
     "typescript": "5.4.5",
-    "vitest": "3.2.0"
+    "vitest": "3.2.4"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

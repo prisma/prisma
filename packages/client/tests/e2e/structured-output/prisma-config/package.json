@@ -10,7 +10,7 @@
   "devDependencies": {
     "@types/node": "18.19.76",
     "prisma": "/tmp/prisma-0.0.0.tgz",
-    "vitest": "^3.2.4"
+    "vitest": "3.2.4"
   },
   "prisma": {
     "schema": "./prisma/schema.prisma"
