@@ -1,27 +1,8 @@
 import { getLogs } from '@prisma/debug'
-import EventEmitter from 'events'
 import pg, { DatabaseError } from 'pg'
+import { vi } from 'vitest'
 
 import { PrismaPgAdapterFactory } from '../pg'
-
-jest.mock('pg', () => {
-  class MockPool extends EventEmitter {
-    end = jest.fn(() => {})
-    listenerCount(event: string | symbol): number {
-      return super.listenerCount(event)
-    }
-    on(event: string | symbol, listener: (...args: any[]) => void): this {
-      return super.on(event, listener)
-    }
-    emit(event: string | symbol, ...args: any[]): boolean {
-      return super.emit(event, ...args)
-    }
-  }
-  return {
-    ...jest.requireActual('pg'),
-    Pool: MockPool,
-  }
-})
 
 describe('PrismaPgAdapterFactory', () => {
   it('should subscribe to pool error events', async () => {
@@ -44,7 +25,7 @@ describe('PrismaPgAdapterFactory', () => {
 
   it('should call onPoolError when supplied', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const onPoolError = jest.fn()
+    const onPoolError = vi.fn()
     const factory = new PrismaPgAdapterFactory(config, { onPoolError })
     const adapter = await factory.connect()
     const error = new Error('Pool error')

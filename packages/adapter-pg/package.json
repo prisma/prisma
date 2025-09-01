@@ -25,7 +25,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "jest"
+    "test": "vitest run"
   },
   "files": [
     "dist",
@@ -41,10 +41,7 @@
     "pg": "^8.11.3"
   },
   "devDependencies": {
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "@types/pg": "8.11.11",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0"
+    "@prisma/debug": "workspace:*",
+    "@types/pg": "8.11.11"
   }
 }
