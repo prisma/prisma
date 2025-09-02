@@ -162,7 +162,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
             this.logEmitter.emit(log.level, {
               timestamp: dateFromEngineTimestamp(log.timestamp),
               message: log.attributes.message ?? '',
-              target: log.target,
+              target: log.target ?? 'BinaryEngine',
             })
             break
           }
@@ -174,7 +174,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
               timestamp: dateFromEngineTimestamp(log.timestamp),
               duration: log.attributes.duration_ms ?? 0,
               params: log.attributes.params ?? '',
-              target: log.target,
+              target: log.target ?? 'BinaryEngine',
             })
 
             break
