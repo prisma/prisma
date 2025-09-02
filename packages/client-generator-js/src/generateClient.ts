@@ -23,8 +23,8 @@ import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
+import { packageUp } from 'package-up'
 import path from 'path'
-import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
 import clientPkg from '../../client/package.json'
@@ -364,7 +364,7 @@ async function getDefaultOutdir(outputDir: string): Promise<string> {
     if (existsSync(path.join(process.env.INIT_CWD, 'package.json'))) {
       return path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
     }
-    const packagePath = await pkgUp({ cwd: process.env.INIT_CWD })
+    const packagePath = await packageUp({ cwd: process.env.INIT_CWD })
     if (packagePath) {
       return path.join(path.dirname(packagePath), 'node_modules/.prisma/client')
     }
@@ -660,7 +660,7 @@ async function getGenerationDirs({
     await verifyOutputDirectory(userOutputDir, datamodel, schemaPath)
   }
 
-  const userPackageRoot = await pkgUp({ cwd: path.dirname(userOutputDir) })
+  const userPackageRoot = await packageUp({ cwd: path.dirname(userOutputDir) })
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
