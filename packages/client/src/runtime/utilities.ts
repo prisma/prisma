@@ -3,6 +3,6 @@ export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRe
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
 export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
-export { objectEnumValues } from './core/types/exported/ObjectEnums'
+export { ObjectEnumValue, objectEnumValues } from './core/types/exported/ObjectEnums'
 export { Decimal } from 'decimal.js'
 export { empty, join, raw, type RawValue, Sql, default as sqltag, type Value } from 'sql-template-tag'
