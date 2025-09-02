@@ -64,6 +64,11 @@ class AnyNull extends NullTypesEnumValue {
 }
 setClassName(AnyNull, 'AnyNull')
 
+/**
+ * Provides access to the shared instances of `DbNull`, `JsonNull` and `AnyNull`.
+ *
+ * @deprecated This is a partially unstable API that might change in the near future.
+ */
 export const objectEnumValues = {
   classes: {
     DbNull,
