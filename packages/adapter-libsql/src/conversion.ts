@@ -1,6 +1,8 @@
 import { InValue, Row, Value } from '@libsql/client'
 import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
+import { PrismaLibSQLOptions } from './libsql'
+
 const debug = Debug('prisma:driver-adapter:libsql:conversion')
 
 // Mirrors sqlite/conversion.rs in quaint
@@ -171,7 +173,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   return result
 }
 
-export function mapArg(arg: unknown, argType: ArgType): InValue {
+export function mapArg(arg: unknown, argType: ArgType, options?: PrismaLibSQLOptions): InValue {
   if (arg === null) {
     return null
   }
@@ -191,7 +193,15 @@ export function mapArg(arg: unknown, argType: ArgType): InValue {
   }
 
   if (arg instanceof Date) {
-    return arg.toISOString().replace('Z', '+00:00')
+    const format = options?.timestampFormat ?? 'iso8601'
+    switch (format) {
+      case 'unixepoch-ms':
+        return arg.getTime()
+      case 'iso8601':
+        return arg.toISOString().replace('Z', '+00:00')
+      default:
+        throw new Error(`Unknown timestamp format: ${format}`)
+    }
   }
 
   if (typeof arg === 'string' && argType.scalarType === 'bytes') {
