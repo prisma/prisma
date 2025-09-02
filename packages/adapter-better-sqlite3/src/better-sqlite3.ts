@@ -43,7 +43,10 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(protected readonly client: ClientT) {}
+  constructor(
+    protected readonly client: ClientT,
+    protected readonly adapterOptions?: PrismaBetterSQLite3Options,
+  ) {}
 
   /**
    * Execute a query given as SQL, interpolating the given parameters.
@@ -83,7 +86,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private executeIO(query: SqlQuery): Promise<BetterSQLite3Meta> {
     try {
-      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
       const stmt = this.client.prepare(query.sql).bind(args)
       const result = stmt.run()
 
@@ -100,7 +103,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
    */
   private performIO(query: SqlQuery): Promise<BetterSQLite3ResultSet> {
     try {
-      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i]))
+      const args = query.args.map((arg, i) => mapArg(arg, query.argTypes[i], this.adapterOptions))
       const stmt = this.client.prepare(query.sql).bind(args)
 
       // Queries that do not return data (e.g. inserts) cannot call stmt.raw()/stmt.columns(). => Use stmt.run() instead.
@@ -134,23 +137,27 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 }
 
 class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> implements Transaction {
+  readonly #unlockParent: () => void
+
   constructor(
     client: StdClient,
     readonly options: TransactionOptions,
-    readonly unlockParent: () => void,
+    adapterOptions: PrismaBetterSQLite3Options | undefined,
+    unlockParent: () => void,
   ) {
-    super(client)
+    super(client, adapterOptions)
+    this.#unlockParent = unlockParent
   }
 
   commit(): Promise<void> {
     debug(`[js::commit]`)
-    this.unlockParent()
+    this.#unlockParent()
     return Promise.resolve()
   }
 
   rollback(): Promise<void> {
     debug(`[js::rollback]`)
-    this.unlockParent()
+    this.#unlockParent()
     return Promise.resolve()
   }
 }
@@ -158,8 +165,8 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
 export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
   #mutex = new Mutex()
 
-  constructor(client: StdClient) {
-    super(client)
+  constructor(client: StdClient, adapterOptions?: PrismaBetterSQLite3Options) {
+    super(client, adapterOptions)
   }
 
   executeScript(script: string): Promise<void> {
@@ -191,7 +198,7 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
 
       this.client.prepare('BEGIN').run()
 
-      return new BetterSQLite3Transaction(this.client, options, release)
+      return new BetterSQLite3Transaction(this.client, options, this.adapterOptions, release)
     } catch (e) {
       this.onError(e)
     }
@@ -205,22 +212,34 @@ export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient
 
 type BetterSQLite3InputParams = BetterSQLite3Options & {
   url: ':memory:' | (string & {})
-  shadowDatabaseURL?: ':memory:' | (string & {})
+}
+
+export type PrismaBetterSQLite3Options = {
+  shadowDatabaseUrl?: string
+  timestampFormat?: 'iso8601' | 'unixepoch-ms'
 }
 
 export class PrismaBetterSQLite3AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
-  constructor(private readonly config: BetterSQLite3InputParams) {}
+  readonly #config: BetterSQLite3InputParams
+  readonly #options?: PrismaBetterSQLite3Options
+
+  constructor(config: BetterSQLite3InputParams, options?: PrismaBetterSQLite3Options) {
+    this.#config = config
+    this.#options = options
+  }
 
   connect(): Promise<SqlDriverAdapter> {
-    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client(this.config)))
+    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client(this.#config), this.#options))
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
-    const url = this.config.shadowDatabaseURL ?? ':memory:'
-    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client({ ...this.config, url })))
+    const url = this.#options?.shadowDatabaseUrl ?? ':memory:'
+    return Promise.resolve(
+      new PrismaBetterSQLite3Adapter(createBetterSQLite3Client({ ...this.#config, url }), this.#options),
+    )
   }
 }
 
