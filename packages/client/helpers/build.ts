@@ -51,6 +51,7 @@ function utilitiesResolverPlugin(): Plugin {
   return {
     name: 'utilities-resolver',
     setup(build) {
+      const utilitiesPath = `./utilities.${build.initialOptions.format === 'esm' ? 'mjs' : 'js'}`
       ;[
         'PrismaClientInitializationError',
         'PrismaClientKnownRequestError',
@@ -61,7 +62,7 @@ function utilitiesResolverPlugin(): Plugin {
       ].forEach((file) => {
         build.onResolve({ filter: new RegExp(`^.*\\/${file}$`) }, (_args) => {
           return {
-            path: './utilities',
+            path: utilitiesPath,
             external: true,
           }
         })
@@ -69,10 +70,17 @@ function utilitiesResolverPlugin(): Plugin {
       ;['decimal.js', 'sql-template-tag'].forEach((library) => {
         build.onResolve({ filter: new RegExp(`^${library}$`) }, (_args) => {
           return {
-            path: './utilities',
+            path: utilitiesPath,
             external: true,
           }
         })
+      })
+
+      build.onResolve({ filter: new RegExp(`^\.\/utilities$`) }, (_args) => {
+        return {
+          path: utilitiesPath,
+          external: true,
+        }
       })
     },
   }
