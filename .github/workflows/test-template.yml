@@ -423,7 +423,7 @@ jobs:
   # CLIENT (functional tests with client engine, query compiler, driver adapters and Accelerate)
   #
   client-query-compiler-accelerate:
-    name: QC+Accelerate ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    name: QC+Accelerate ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
