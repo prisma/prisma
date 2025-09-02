@@ -1,6 +1,6 @@
 import { getLogs } from '@prisma/debug'
 import pg, { DatabaseError } from 'pg'
-import { vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PrismaPgAdapterFactory } from '../pg'
 

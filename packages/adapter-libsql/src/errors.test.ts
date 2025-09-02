@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { convertDriverError } from './errors'
 
 describe('LibSQL error handling', () => {
