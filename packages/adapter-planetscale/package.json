@@ -25,7 +25,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "jest"
+    "test": "vitest run"
   },
   "files": [
     "dist",
@@ -41,10 +41,6 @@
     "@planetscale/database": "^1.15.0"
   },
   "devDependencies": {
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0",
     "undici": "7.4.0"
   }
 }

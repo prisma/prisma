@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import { loadRelatedSchemaFiles } from './loadRelatedSchemaFiles'
 import { fixturePath, loadedFile } from './testUtils'
 

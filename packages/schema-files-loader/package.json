@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
-    "test": "jest",
+    "test": "vitest run",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
@@ -24,8 +24,5 @@
   "dependencies": {
     "@prisma/prisma-schema-wasm": "6.16.0-3.1ad4ad872cc519cc74e2896087a9b7d399d89b4d",
     "fs-extra": "11.3.0"
-  },
-  "devDependencies": {
-    "jest": "29.7.0"
   }
 }
