@@ -112,7 +112,7 @@ jobs:
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
@@ -184,7 +184,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -434,7 +434,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -674,7 +674,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -791,7 +791,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -836,7 +836,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
@@ -885,7 +885,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -929,7 +929,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
         include:
           - os: windows-latest
             version: 18
@@ -960,7 +960,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 23]
+        node: [18, 20, 22, 24]
     steps:
       - uses: actions/checkout@v4
 
@@ -1027,7 +1027,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 23]
+        node: [18, 24]
     steps:
       - uses: actions/checkout@v4
 
