@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { InMemoryFilesResolver } from './InMemoryFilesResolver'
 
 describe('case-sensitive = true', () => {

@@ -38,8 +38,5 @@
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
     "mariadb": "3.4.2"
-  },
-  "devDependencies": {
-    "vitest": "3.0.9"
   }
 }

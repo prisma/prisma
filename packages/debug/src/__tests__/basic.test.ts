@@ -1,4 +1,4 @@
-import stripAnsi from 'strip-ansi'
+import { stripVTControlCharacters } from 'node:util'
 
 import { Debug, getLogs } from '../index'
 import { removeISODate, sanitizeTestLogs } from '../util'
@@ -9,7 +9,7 @@ describe('debug', () => {
     const logs: string[] = []
 
     debug.log = (...args) => {
-      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
+      logs.push(stripVTControlCharacters(`${args[0]}${args[1]}`).trim())
     }
 
     debug('Does it even log?')
@@ -30,7 +30,7 @@ describe('debug', () => {
     Debug.enable('a-namespace')
 
     debug.log = (...args) => {
-      logs.push(stripAnsi(`${args[0]} ${args[1]}`).trim())
+      logs.push(stripVTControlCharacters(`${args[0]} ${args[1]}`).trim())
     }
 
     debug('Does it even log?')

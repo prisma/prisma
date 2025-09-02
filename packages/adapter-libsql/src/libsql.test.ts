@@ -1,5 +1,6 @@
 import type { Client } from '@libsql/client'
 import { ColumnTypeEnum, IsolationLevel, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { describe, expect, test, vi } from 'vitest'
 
 import { PrismaLibSQLAdapterFactoryBase } from './libsql'
 import { PrismaLibSQLAdapterFactory } from './libsql-node'
@@ -211,19 +212,19 @@ describe.each([
 
 class PrismaLibSQLAdapterFactoryMock extends PrismaLibSQLAdapterFactoryBase {
   connection = {
-    execute: jest.fn(),
-    batch: jest.fn(),
-    close: jest.fn(),
+    execute: vi.fn(),
+    batch: vi.fn(),
+    close: vi.fn(),
     closed: false,
-    executeMultiple: jest.fn(),
+    executeMultiple: vi.fn(),
     protocol: 'file',
-    sync: jest.fn(),
+    sync: vi.fn(),
   }
 
   transaction = {
     ...this.connection,
-    commit: jest.fn(),
-    rollback: jest.fn(),
+    commit: vi.fn(),
+    rollback: vi.fn(),
   }
 
   createClient(): Client {
