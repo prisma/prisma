@@ -234,10 +234,6 @@ importers:
       ky:
         specifier: 1.7.5
         version: 1.7.5
-    devDependencies:
-      vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/adapter-libsql:
     dependencies:
@@ -259,10 +255,6 @@ importers:
       mariadb:
         specifier: 3.4.2
         version: 3.4.2
-    devDependencies:
-      vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/adapter-mssql:
     dependencies:
@@ -279,9 +271,6 @@ importers:
       '@types/mssql':
         specifier: 9.1.7
         version: 9.1.7
-      vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/adapter-neon:
     dependencies:
@@ -888,10 +877,6 @@ importers:
       '@prisma/internals':
         specifier: workspace:*
         version: link:../internals
-    devDependencies:
-      vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.13.9)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
   packages/client-engine-runtime:
     dependencies:
