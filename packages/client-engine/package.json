@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/client-engine-runtime",
+  "name": "@prisma/client-engine",
   "version": "0.0.0",
   "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
@@ -20,16 +20,16 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/client-engine-runtime"
+    "directory": "packages/client-engine"
   },
   "license": "Apache-2.0",
   "dependencies": {
     "@bugsnag/cuid": "3.2.1",
     "@opentelemetry/api": "1.9.0",
     "@paralleldrive/cuid2": "2.2.2",
+    "@prisma/client-runtime": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "decimal.js": "10.5.0",
     "nanoid": "5.1.5",
     "ulid": "3.0.0",
     "uuid": "11.1.0"
