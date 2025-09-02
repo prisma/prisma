@@ -201,5 +201,13 @@ testMatrix.setupTestSuite(
         'D1 does not have the correct amount of max_bind_values.' +
         'The query appears to raise no error with the MariaDB driver adapter.',
     },
+    skip(when, { clientEngineExecutor, provider }) {
+      when(
+        clientEngineExecutor === 'remote' && provider === Providers.MYSQL,
+        `
+        Query plan executor server uses MariaDB driver internally.
+        `,
+      )
+    },
   },
 )

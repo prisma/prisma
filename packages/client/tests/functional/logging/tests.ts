@@ -16,6 +16,7 @@ declare const newPrismaClient: NewPrismaClient<LogPrismaClient, typeof PrismaCli
 testMatrix.setupTestSuite(({ provider, driverAdapter, clientEngineExecutor }) => {
   const isMongoDb = provider === Providers.MONGODB
   const isSqlServer = provider === Providers.SQLSERVER
+  const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
   let client: LogPrismaClient
 
@@ -54,85 +55,89 @@ testMatrix.setupTestSuite(({ provider, driverAdapter, clientEngineExecutor }) =>
   })
 
   // D1: iTx are not available.
-  skipTestIf(driverAdapter === 'js_d1')('should log queries inside a ITX', async () => {
-    client = newPrismaClient({
-      log: [
-        {
-          emit: 'event',
-          level: 'query',
-        },
-      ],
-    })
+  // MySQL+QPE: tracked in https://linear.app/prisma-company/issue/ORM-1416/extra-commit-query-in-logs-with-mysqlqcaccelerate
+  skipTestIf(driverAdapter === 'js_d1' || (clientEngineExecutor === 'remote' && provider === Providers.MYSQL))(
+    'should log queries inside a ITX',
+    async () => {
+      client = newPrismaClient({
+        log: [
+          {
+            emit: 'event',
+            level: 'query',
+          },
+        ],
+      })
 
-    const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
-      const logs: Prisma.QueryEvent[] = []
+      const queryLogs = new Promise<Prisma.QueryEvent[]>((resolve) => {
+        const logs: Prisma.QueryEvent[] = []
 
-      client.$on('query', (data) => {
-        if ('query' in data) {
-          logs.push(data)
+        client.$on('query', (data) => {
+          if ('query' in data) {
+            logs.push(data)
 
-          if (isMongoDb && logs.length === 3) {
-            resolve(logs)
+            if (isMongoDb && logs.length === 3) {
+              resolve(logs)
+            }
+
+            if ((data.query as string).includes('COMMIT')) {
+              resolve(logs)
+            }
           }
-
-          if ((data.query as string).includes('COMMIT')) {
-            resolve(logs)
-          }
-        }
-      })
-    })
-
-    await client.$transaction(async (tx) => {
-      const id = isMongoDb ? faker.database.mongodbObjectId() : faker.string.numeric()
-
-      await tx.user.create({
-        data: {
-          id,
-        },
+        })
       })
 
-      return tx.user.findMany({
-        where: {
-          id,
-        },
+      await client.$transaction(async (tx) => {
+        const id = isMongoDb ? faker.database.mongodbObjectId() : faker.string.numeric()
+
+        await tx.user.create({
+          data: {
+            id,
+          },
+        })
+
+        return tx.user.findMany({
+          where: {
+            id,
+          },
+        })
       })
-    })
 
-    const logs = await queryLogs
+      const logs = await queryLogs
 
-    if (isMongoDb) {
-      expect(logs).toHaveLength(3)
-
-      expect(logs[0].query).toContain('User.insertOne')
-      expect(logs[1].query).toContain('User.aggregate')
-      expect(logs[2].query).toContain('User.aggregate')
-    } else {
-      // - Since https://github.com/prisma/prisma-engines/pull/4041,
-      //   we skip a read when possible, on CockroachDB and PostgreSQL.
-      // - Since https://github.com/prisma/prisma-engines/pull/4640,
-      //   we also skip a read when possible, on SQLite.
-
-      if (isSqlServer && driverAdapter === undefined && clientEngineExecutor !== 'remote') {
-        expect(logs.shift()?.query).toContain('SET TRANSACTION')
-      }
-      if (driverAdapter === undefined && clientEngineExecutor !== 'remote') {
-        // Driver adapters do not issue BEGIN through the query engine.
-        expect(logs.shift()?.query).toContain('BEGIN')
-      }
-      if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
+      if (isMongoDb) {
         expect(logs).toHaveLength(3)
-        expect(logs.shift()?.query).toContain('INSERT')
-        expect(logs.shift()?.query).toContain('SELECT')
-        expect(logs.shift()?.query).toContain('COMMIT')
+
+        expect(logs[0].query).toContain('User.insertOne')
+        expect(logs[1].query).toContain('User.aggregate')
+        expect(logs[2].query).toContain('User.aggregate')
       } else {
-        expect(logs).toHaveLength(4)
-        expect(logs.shift()?.query).toContain('INSERT')
-        expect(logs.shift()?.query).toContain('SELECT')
-        expect(logs.shift()?.query).toContain('SELECT')
-        expect(logs.shift()?.query).toContain('COMMIT')
+        // - Since https://github.com/prisma/prisma-engines/pull/4041,
+        //   we skip a read when possible, on CockroachDB and PostgreSQL.
+        // - Since https://github.com/prisma/prisma-engines/pull/4640,
+        //   we also skip a read when possible, on SQLite.
+
+        if (isSqlServer && !usesJsDrivers) {
+          expect(logs.shift()?.query).toContain('SET TRANSACTION')
+        }
+        if (!usesJsDrivers) {
+          // Driver adapters do not issue BEGIN through the query engine.
+          expect(logs.shift()?.query).toContain('BEGIN')
+        }
+        if (['postgresql', 'cockroachdb', 'sqlite'].includes(provider)) {
+          expect(logs).toHaveLength(3)
+          expect(logs.shift()?.query).toContain('INSERT')
+          expect(logs.shift()?.query).toContain('SELECT')
+          expect(logs.shift()?.query).toContain('COMMIT')
+        } else {
+          expect(logs).toHaveLength(4)
+          expect(logs.shift()?.query).toContain('INSERT')
+          expect(logs.shift()?.query).toContain('SELECT')
+          expect(logs.shift()?.query).toContain('SELECT')
+          expect(logs.shift()?.query).toContain('COMMIT')
+        }
       }
-    }
-  })
+    },
+  )
 
   // D1: iTx are not available.
   skipTestIf(driverAdapter === 'js_d1')('should log batched queries inside a ITX', async () => {
@@ -188,10 +193,10 @@ testMatrix.setupTestSuite(({ provider, driverAdapter, clientEngineExecutor }) =>
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer && driverAdapter === undefined && clientEngineExecutor !== 'remote') {
+      if (isSqlServer && !usesJsDrivers) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
-      if (driverAdapter === undefined && clientEngineExecutor !== 'remote') {
+      if (!usesJsDrivers) {
         // Driver adapters do not issue BEGIN through the query engine.
         expect(logs.shift()?.query).toContain('BEGIN')
       }
@@ -254,10 +259,10 @@ testMatrix.setupTestSuite(({ provider, driverAdapter, clientEngineExecutor }) =>
       expect(logs[0].query).toContain('User.aggregate')
       expect(logs[0].query).toContain('User.aggregate')
     } else {
-      if (isSqlServer && driverAdapter === undefined && clientEngineExecutor !== 'remote') {
+      if (isSqlServer && !usesJsDrivers) {
         expect(logs.shift()?.query).toContain('SET TRANSACTION')
       }
-      if (driverAdapter === undefined && clientEngineExecutor !== 'remote') {
+      if (!usesJsDrivers) {
         // Driver adapters do not issue BEGIN through the query engine.
         expect(logs.shift()?.query).toContain('BEGIN')
       }
