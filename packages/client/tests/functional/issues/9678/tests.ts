@@ -74,5 +74,13 @@ testMatrix.setupTestSuite(
         mongo - isolation levels are not supported
       `,
     },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        Tracked in https://linear.app/prisma-company/issue/ORM-1408/failing-issues9678-test-with-qcaccelerate
+        `,
+      )
+    },
   },
 )
