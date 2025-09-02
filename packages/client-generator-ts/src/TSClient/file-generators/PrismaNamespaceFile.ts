@@ -24,6 +24,7 @@ const jsDocHeader = `/*
 export function createPrismaNamespaceFile(context: GenerateContext, options: TSClientOptions): string {
   const imports = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
+    ts.moduleImport(`${context.runtimeBase}/utilities`).asNamespace('utilities'),
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
     ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
   ].map((i) => ts.stringify(i))

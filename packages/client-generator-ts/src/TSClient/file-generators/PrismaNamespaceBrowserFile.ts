@@ -21,6 +21,7 @@ export function createPrismaNamespaceBrowserFile(context: GenerateContext): stri
 
   return `${jsDocHeader}
 ${ts.stringify(ts.moduleImport(`${context.runtimeBase}/index-browser`).asNamespace('runtime'))}
+${ts.stringify(ts.moduleImport(`${context.runtimeBase}/utilities`).asNamespace('utilities'))}
 
 export type * from '${context.importFileName(`../models`)}'
 export type * from '${context.importFileName(`./prismaNamespace`)}'
