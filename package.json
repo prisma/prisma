@@ -105,10 +105,9 @@
     }
   },
   "lint-staged": {
-    "*.{md,yml,json}": "prettier --check",
+    "*": "prettier --ignore-unknown --write",
     "*.{js,ts}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ]
   },
   "size-limit": [
