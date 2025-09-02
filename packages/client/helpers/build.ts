@@ -61,7 +61,7 @@ function utilitiesResolverPlugin(): Plugin {
       ].forEach((file) => {
         build.onResolve({ filter: new RegExp(`^.*\\/${file}$`) }, (_args) => {
           return {
-            path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+            path: './utilities',
             external: true,
           }
         })
@@ -69,7 +69,7 @@ function utilitiesResolverPlugin(): Plugin {
       ;['decimal.js', 'sql-template-tag'].forEach((library) => {
         build.onResolve({ filter: new RegExp(`^${library}$`) }, (_args) => {
           return {
-            path: path.resolve(__dirname, '..', 'runtime', 'utilities'),
+            path: './utilities',
             external: true,
           }
         })
