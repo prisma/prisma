@@ -1831,9 +1831,6 @@ importers:
       ora:
         specifier: 8.2.0
         version: 8.2.0
-      package-up:
-        specifier: 5.0.0
-        version: 5.0.0
       pg:
         specifier: 8.14.1
         version: 8.14.1
