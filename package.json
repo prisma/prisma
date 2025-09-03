@@ -102,7 +102,16 @@
       "allowedVersions": {
         "@octokit/core": ">=3"
       }
-    }
+    },
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "better-sqlite3",
+      "esbuild",
+      "sharp",
+      "sqlite3",
+      "workerd",
+      "yarn"
+    ]
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
