@@ -135,7 +135,6 @@
     "dotenv": "16.5.0",
     "effect": "3.12.10",
     "env-paths": "2.2.1",
-    "esbuild": "0.25.5",
     "execa": "5.1.1",
     "fast-glob": "3.3.3",
     "fs-extra": "11.3.0",
