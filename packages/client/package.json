@@ -271,7 +271,6 @@
     "benchmark": "2.1.4",
     "cookie-es": "2.0.0",
     "decimal.js": "10.5.0",
-    "esbuild": "0.25.5",
     "execa": "5.1.1",
     "expect-type": "1.2.2",
     "fs-extra": "11.3.0",
