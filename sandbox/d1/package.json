@@ -21,6 +21,6 @@
     "prisma": "../../packages/cli",
     "tsx": "4.7.1",
     "typescript": "5.4.2",
-    "wrangler": "3.109.3"
+    "wrangler": "3.114.14"
   }
 }
