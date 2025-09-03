@@ -1,2 +1,15 @@
+onlyBuiltDependencies:
+  - '@swc/core'
+  - better-sqlite3
+  - esbuild
+  - sharp
+  - sqlite3
+  - workerd
+  - yarn
+
 packages:
   - 'packages/*'
+
+peerDependencyRules:
+  allowedVersions:
+    '@octokit/core': '>=3'

@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=18.18",
-    "pnpm": ">=10.15.1 <11"
+    "pnpm": ">=10.15 <11"
   },
   "packageManager": "pnpm@10.15.1",
   "scripts": {
@@ -96,22 +96,6 @@
     "typescript": "5.4.5",
     "vitest": "3.2.4",
     "zx": "8.4.1"
-  },
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "@octokit/core": ">=3"
-      }
-    },
-    "onlyBuiltDependencies": [
-      "@swc/core",
-      "better-sqlite3",
-      "esbuild",
-      "sharp",
-      "sqlite3",
-      "workerd",
-      "yarn"
-    ]
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write",
