@@ -58,7 +58,7 @@
     "chokidar": "4.0.3",
     "decimal.js-light": "2.5.1",
     "dotenv-cli": "8.0.0",
-    "esbuild": "0.25.9",
+    "esbuild": "0.25.5",
     "esbuild-register": "3.6.0",
     "eslint": "9.22.0",
     "eslint-config-prettier": "10.1.8",
