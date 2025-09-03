@@ -166,18 +166,44 @@ async function dependencyCheck(options: BuildOptions) {
 export async function build(options: BuildOptions[]) {
   void transduce.async(options, dependencyCheck)
 
-  return transduce.async(
-    createBuildOptions(options),
-    pipe.async(computeOptions, logStartBuild, addExtensionFormat, addDefaultOutDir, executeEsBuild),
+  const buildOptions = createBuildOptions(options)
+  const progress: Progress = { done: 0, total: buildOptions.length }
+
+  return Promise.all(
+    buildOptions.map(
+      pipe.async(
+        computeOptions,
+        logStartBuild,
+        addExtensionFormat,
+        addDefaultOutDir,
+        executeEsBuild,
+        logEndBuild(progress),
+      ),
+    ),
   )
 }
 
 /**
- * Prints a message every time a new bundle is built
+ * Prints a message every time a new bundle starts to build
  */
 function logStartBuild(options: BuildOptions): BuildOptions {
-  console.log(`Building ${options.name} as ${options.format ?? 'cjs'}...`)
+  console.log(`⏳ Building ${options.name} as ${options.format ?? 'cjs'}...`)
   return options
+}
+
+type Progress = {
+  done: number
+  readonly total: number
+}
+
+/**
+ * Prints a message every time a bundle is finished building
+ */
+function logEndBuild(progress: Progress) {
+  return ([options, result]: readonly [BuildOptions, esbuild.BuildResult]): [BuildOptions, esbuild.BuildResult] => {
+    console.log(`✅ Built ${options.name} as ${options.format ?? 'cjs'} (${++progress.done}/${progress.total})`)
+    return [options, result]
+  }
 }
 
 /**
