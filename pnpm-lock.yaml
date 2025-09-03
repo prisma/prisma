@@ -200,6 +200,9 @@ importers:
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@18.19.76)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+      wrangler:
+        specifier: 3.114.14
+        version: 3.114.14(@cloudflare/workers-types@4.20250903.0)
       zx:
         specifier: 8.4.1
         version: 8.4.1
@@ -229,8 +232,8 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20250214.0
-        version: 4.20250214.0
+        specifier: ^4.20250408.0
+        version: 4.20250903.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -363,9 +366,6 @@ importers:
       prisma:
         specifier: workspace:*
         version: link:../cli
-      wrangler:
-        specifier: 3.114.14
-        version: 3.114.14(@cloudflare/workers-types@4.20250214.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -557,8 +557,8 @@ importers:
   packages/client:
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: 4.20250214.0
-        version: 4.20250214.0
+        specifier: ^4.20250408.0
+        version: 4.20250903.0
       '@codspeed/benchmark.js-plugin':
         specifier: 4.0.0
         version: 4.0.0(benchmark@2.1.4)
@@ -844,9 +844,6 @@ importers:
       undici:
         specifier: 7.4.0
         version: 7.4.0
-      wrangler:
-        specifier: 3.114.14
-        version: 3.114.14(@cloudflare/workers-types@4.20250214.0)
       zx:
         specifier: 8.4.1
         version: 8.4.1
@@ -1739,9 +1736,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      wrangler:
-        specifier: 3.114.14
-        version: 3.114.14(@cloudflare/workers-types@4.20250214.0)
 
   packages/nextjs-monorepo-workaround-plugin:
     devDependencies:
@@ -2108,8 +2102,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-types@4.20250214.0':
-    resolution: {integrity: sha512-+M8oOFVbyXT5GeJrYLWMUGyPf5wGB4+k59PPqdedtOig7NjZ5r4S79wMdaZ/EV5IV8JPtZBSNjTKpDnNmfxjaQ==}
+  '@cloudflare/workers-types@4.20250903.0':
+    resolution: {integrity: sha512-F6G3MG7EZxsJ2Fgsy3eed+U2fU/XGfKqDlyY/vCL/zUqI8KuaNx8GVnxttqzktBY55HK3xe82Zpj8xujW6PfXw==}
 
   '@codspeed/benchmark.js-plugin@4.0.0':
     resolution: {integrity: sha512-1nzkRfvsA2rI1NsqYmkXEnQ/P3NL2JlAqRs/RLWLyeGtmE+4JN8w4ndgUpeb3g9Q+Kki/njmPUf7YsHUAQpUXA==}
@@ -8416,7 +8410,7 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20250718.0':
     optional: true
 
-  '@cloudflare/workers-types@4.20250214.0': {}
+  '@cloudflare/workers-types@4.20250903.0': {}
 
   '@codspeed/benchmark.js-plugin@4.0.0(benchmark@2.1.4)':
     dependencies:
@@ -14815,7 +14809,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20250718.0
       '@cloudflare/workerd-windows-64': 1.20250718.0
 
-  wrangler@3.114.14(@cloudflare/workers-types@4.20250214.0):
+  wrangler@3.114.14(@cloudflare/workers-types@4.20250903.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/unenv-preset': 2.0.2(unenv@2.0.0-rc.14)(workerd@1.20250718.0)
@@ -14828,7 +14822,7 @@ snapshots:
       unenv: 2.0.0-rc.14
       workerd: 1.20250718.0
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20250214.0
+      '@cloudflare/workers-types': 4.20250903.0
       fsevents: 2.3.3
       sharp: 0.33.5
     transitivePeerDependencies:

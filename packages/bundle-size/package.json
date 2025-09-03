@@ -21,7 +21,6 @@
     "@prisma/adapter-mariadb": "workspace:*",
     "@prisma/client": "workspace:*",
     "pg": "8.14.1",
-    "prisma": "workspace:*",
-    "wrangler": "3.114.14"
+    "prisma": "workspace:*"
   }
 }

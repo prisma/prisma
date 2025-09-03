@@ -209,7 +209,7 @@
     "sql.mjs"
   ],
   "devDependencies": {
-    "@cloudflare/workers-types": "4.20250214.0",
+    "@cloudflare/workers-types": "^4.20250408.0",
     "@codspeed/benchmark.js-plugin": "4.0.0",
     "@faker-js/faker": "9.6.0",
     "@fast-check/jest": "2.0.3",
@@ -305,7 +305,6 @@
     "tsd": "0.31.2",
     "typescript": "5.4.5",
     "undici": "7.4.0",
-    "wrangler": "3.114.14",
     "zx": "8.4.1"
   },
   "peerDependencies": {
