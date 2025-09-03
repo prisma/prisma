@@ -7,6 +7,7 @@ build
 tmp
 pnpm-debug.log
 .DS_Store
+.turbo
 
 /target
 query-engine*
