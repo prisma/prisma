@@ -40,7 +40,6 @@
     "cli-truncate": "4.0.0",
     "dotenv": "16.5.0",
     "empathic": "2.0.0",
-    "esbuild": "0.25.5",
     "escape-string-regexp": "5.0.0",
     "execa": "5.1.1",
     "fast-glob": "3.3.3",

@@ -29,7 +29,6 @@
     "@swc-node/register": "1.10.9",
     "@types/cross-spawn": "6.0.6",
     "@types/node": "18.19.76",
-    "esbuild": "0.25.5",
     "ts-node": "10.9.2",
     "typescript": "5.4.5",
     "cross-spawn": "7.0.6",

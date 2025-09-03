@@ -478,9 +478,6 @@ importers:
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       execa:
         specifier: 5.1.1
         version: 5.1.1
@@ -745,9 +742,6 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       execa:
         specifier: 5.1.1
         version: 5.1.1
@@ -1111,9 +1105,6 @@ importers:
       '@types/node':
         specifier: 18.19.76
         version: 18.19.76
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5))
@@ -1294,9 +1285,6 @@ importers:
       cross-spawn:
         specifier: 7.0.6
         version: 7.0.6
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       kleur:
         specifier: 4.1.5
         version: 4.1.5
@@ -1422,9 +1410,6 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       execa:
         specifier: 5.1.1
         version: 5.1.1
@@ -1549,9 +1534,6 @@ importers:
       empathic:
         specifier: 2.0.0
         version: 2.0.0
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       escape-string-regexp:
         specifier: 5.0.0
         version: 5.0.0
@@ -1715,9 +1697,6 @@ importers:
       arg:
         specifier: 5.0.2
         version: 5.0.2
-      esbuild:
-        specifier: 0.25.5
-        version: 0.25.5
       execa:
         specifier: 5.1.1
         version: 5.1.1
