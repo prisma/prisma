@@ -29,7 +29,7 @@
     "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc.local -e /docker/docker-compose.override.yml -e /sandbox -e /.jj",
-    "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
+    "bundle-size": "pnpm i && pnpm build && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",

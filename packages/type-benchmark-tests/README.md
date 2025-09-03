@@ -8,7 +8,7 @@ This test suite shall ensure that we are not running into regressions with our t
 
 ## Usage
 
-- Make sure the overall monorepo has dependency installed (`pnpm install` in root) and is build (`pnpm -r dev` or `pnpm build` in root).
+- Make sure the overall monorepo has dependency installed (`pnpm install` in root) and is build (`pnpm build` in root).
 - Run `pnpm test` to run the test suite
 - Run `pnpm test:update` to update snapshot recordings
 - Run `pnpm test <filter>` to run only files including <filter> in their filename
