@@ -36,7 +36,7 @@
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "log-update": "6.1.0",
-    "mariadb": "3.4.0",
+    "mariadb": "3.4.5",
     "mock-stdin": "1.0.0",
     "mongoose": "8.15.0",
     "mssql": "11.0.1",
