@@ -10,7 +10,7 @@
   "packageManager": "pnpm@10.15.1",
   "scripts": {
     "build": "turbo build",
-    "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
+    "watch": "turbo watch build",
     "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "tsx scripts/ci/publish.ts --publish",
     "bump-engines": "tsx scripts/bump-engines.ts",
