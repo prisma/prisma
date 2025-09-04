@@ -28,7 +28,7 @@ on:
       pnpmVersion:
         description: pnpm package manager version
         type: string
-        default: '9'
+        default: '10'
       engineHash:
         description: Customly-built engine hash to use
         type: string
