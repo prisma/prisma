@@ -44,8 +44,7 @@
     "strip-indent": "4.0.0",
     "tempy": "1.0.1",
     "ts-pattern": "5.6.2",
-    "typescript": "5.4.5",
-    "wrangler": "3.111.0"
+    "typescript": "5.4.5"
   },
   "peerDependencies": {
     "@prisma/internals": "*"

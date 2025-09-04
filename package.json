@@ -96,6 +96,7 @@
     "turbo": "2.5.6",
     "typescript": "5.4.5",
     "vitest": "3.2.4",
+    "wrangler": "3.114.14",
     "zx": "8.4.1"
   },
   "lint-staged": {
