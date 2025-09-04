@@ -9,7 +9,7 @@
   },
   "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "turbo build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
     "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "tsx scripts/ci/publish.ts --publish",
@@ -29,7 +29,7 @@
     "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc.local -e /docker/docker-compose.override.yml -e /sandbox -e /.jj",
-    "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
+    "bundle-size": "pnpm i && pnpm build && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
@@ -93,6 +93,7 @@
     "ts-node": "10.9.2",
     "ts-toolbelt": "9.6.0",
     "tsx": "4.19.3",
+    "turbo": "2.5.6",
     "typescript": "5.4.5",
     "vitest": "3.2.4",
     "zx": "8.4.1"

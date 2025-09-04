@@ -12,7 +12,6 @@ import { map } from '../blaze/map'
 import { omit } from '../blaze/omit'
 import { pipe } from '../blaze/pipe'
 import { transduce } from '../blaze/transduce'
-import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { resolvePathsPlugin } from './plugins/resolvePathsPlugin'
@@ -133,39 +132,10 @@ async function executeEsBuild(options: BuildOptions) {
 }
 
 /**
- * A blank esbuild run to do an analysis of our deps
- */
-async function dependencyCheck(options: BuildOptions) {
-  // we only check our dependencies for a full build
-  if (process.env.DEV === 'true') return undefined
-
-  // we need to bundle everything to do the analysis
-  const buildPromise = esbuild.build({
-    entryPoints: glob.sync('**/*.{j,t}s', {
-      // We don't check dependencies in ecosystem tests because tests are isolated from the build.
-      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
-      gitignore: true,
-    }),
-    logLevel: 'silent', // there will be errors
-    bundle: true, // we bundle to get everything
-    write: false, // no need to write for analysis
-    outdir: 'out',
-    plugins: [depCheckPlugin(options.bundle)],
-  })
-
-  // we absolutely don't care if it has any errors
-  await buildPromise.catch(() => {})
-
-  return undefined
-}
-
-/**
  * Execution pipeline that applies a set of actions
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  void transduce.async(options, dependencyCheck)
-
   return transduce.async(
     createBuildOptions(options),
     pipe.async(computeOptions, logStartBuild, addExtensionFormat, addDefaultOutDir, executeEsBuild),
