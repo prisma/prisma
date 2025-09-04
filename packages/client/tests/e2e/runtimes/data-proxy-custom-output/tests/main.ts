@@ -70,6 +70,7 @@ test('runtime files exists', async () => {
   "library.d.ts",
   "library.js",
   "react-native.js",
+  "utilities.js",
   "wasm-compiler-edge.js",
   "wasm-engine-edge.js",
 ]

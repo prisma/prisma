@@ -3,6 +3,7 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 
 import util from 'node:util'
+import { myExtension } from './my-extension'
 
 async function main() {
   const prisma = new PrismaClient({
@@ -10,12 +11,14 @@ async function main() {
     adapter: new PrismaPg({
       connectionString: process.env.TEST_POSTGRES_URI
     }),
-  })
+  }).$extends(myExtension)
 
   const email = `user.${Date.now()}@prisma.io`
   const user = await prisma.user.create({
     data: { email },
   })
+
+  console.log(prisma.user.foo())
 
   await prisma.post.createMany({
     data: [

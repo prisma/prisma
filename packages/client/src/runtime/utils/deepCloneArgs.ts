@@ -1,5 +1,5 @@
 import { assertNever } from '@prisma/internals'
-import Decimal from 'decimal.js'
+import { Decimal } from 'decimal.js'
 import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
