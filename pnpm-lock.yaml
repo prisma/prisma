@@ -1730,9 +1730,6 @@ importers:
       tempy:
         specifier: 1.0.1
         version: 1.0.1
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5)
       ts-pattern:
         specifier: 5.6.2
         version: 5.6.2
