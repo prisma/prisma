@@ -152,37 +152,37 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | BigInt | stri
 
 function formatDateTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  const ms = date.getMilliseconds()
+  const ms = date.getUTCMilliseconds()
   return (
-    date.getFullYear() +
+    date.getUTCFullYear() +
     '-' +
-    pad(date.getMonth() + 1) +
+    pad(date.getUTCMonth() + 1) +
     '-' +
-    pad(date.getDate()) +
+    pad(date.getUTCDate()) +
     ' ' +
-    pad(date.getHours()) +
+    pad(date.getUTCHours()) +
     ':' +
-    pad(date.getMinutes()) +
+    pad(date.getUTCMinutes()) +
     ':' +
-    pad(date.getSeconds()) +
+    pad(date.getUTCSeconds()) +
     (ms ? '.' + String(ms).padStart(3, '0') : '')
   )
 }
 
 function formatDate(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
 }
 
 function formatTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  const ms = date.getMilliseconds()
+  const ms = date.getUTCMilliseconds()
   return (
-    pad(date.getHours()) +
+    pad(date.getUTCHours()) +
     ':' +
-    pad(date.getMinutes()) +
+    pad(date.getUTCMinutes()) +
     ':' +
-    pad(date.getSeconds()) +
+    pad(date.getUTCSeconds()) +
     (ms ? '.' + String(ms).padStart(3, '0') : '')
   )
 }
