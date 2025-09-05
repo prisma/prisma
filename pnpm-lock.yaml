@@ -406,6 +406,9 @@ importers:
       '@prisma/adapter-libsql':
         specifier: workspace:*
         version: link:../adapter-libsql
+      '@prisma/cli-context':
+        specifier: workspace:*
+        version: link:../cli-context
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -436,6 +439,9 @@ importers:
       '@prisma/mini-proxy':
         specifier: 0.9.5
         version: 0.9.5
+      '@prisma/query-plan-executor':
+        specifier: workspace:*
+        version: link:../query-plan-executor
       '@prisma/studio':
         specifier: 0.511.0
         version: 0.511.0
@@ -553,6 +559,12 @@ importers:
       zx:
         specifier: 8.4.1
         version: 8.4.1
+
+  packages/cli-context:
+    dependencies:
+      '@prisma/config':
+        specifier: workspace:*
+        version: link:../config
 
   packages/client:
     devDependencies:
