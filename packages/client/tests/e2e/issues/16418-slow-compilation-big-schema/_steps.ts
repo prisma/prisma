@@ -1,6 +1,6 @@
 import { $ } from 'zx'
 
-import { executeSteps } from '../_utils/executeSteps'
+import { executeSteps } from '../../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
