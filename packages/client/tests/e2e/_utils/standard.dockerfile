@@ -1,6 +1,4 @@
-FROM node:18 as base
-
-FROM base as dependencies
+FROM node:18
 
 RUN npm -v
 
@@ -20,5 +18,4 @@ RUN npm i -g \
 RUN apt update && \
   apt install iproute2 -y
 
-FROM dependencies as run
 CMD chmod +x ./e2e/_utils/standard.cmd.sh && ./e2e/_utils/standard.cmd.sh
