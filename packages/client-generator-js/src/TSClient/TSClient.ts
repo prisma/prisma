@@ -159,7 +159,7 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
-${buildQueryCompilerWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
