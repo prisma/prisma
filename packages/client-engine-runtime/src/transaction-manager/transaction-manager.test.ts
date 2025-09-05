@@ -2,7 +2,7 @@ import timers from 'node:timers/promises'
 
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
-import { expect, type Mock, test, vi } from 'vitest'
+import { afterAll, beforeAll, expect, type Mock, test, vi } from 'vitest'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -16,8 +16,6 @@ import {
   TransactionRolledBackError,
   TransactionStartTimeoutError,
 } from './transaction-manager-error'
-
-vi.useFakeTimers()
 
 const START_TRANSACTION_TIME = 200
 const TRANSACTION_EXECUTION_TIMEOUT = 500
@@ -93,6 +91,14 @@ async function startTransaction(transactionManager: TransactionManager, options:
   ])
   return id
 }
+
+afterAll(() => {
+  vi.resetAllMocks()
+})
+
+beforeAll(() => {
+  vi.useFakeTimers()
+})
 
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
