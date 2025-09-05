@@ -15,7 +15,7 @@ import {
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
-import pkgUp from 'pkg-up'
+import { packageUp } from 'package-up'
 import type { O } from 'ts-toolbelt'
 
 import {
@@ -398,7 +398,7 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
   const normalizedOutputDir = path.normalize(outputDir)
   const normalizedRuntimeBase = pathToPosix(runtimeBase)
 
-  const userPackageRoot = await pkgUp({ cwd: path.dirname(normalizedOutputDir) })
+  const userPackageRoot = await packageUp({ cwd: path.dirname(normalizedOutputDir) })
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {
@@ -415,6 +415,7 @@ function getRuntimeNameForTarget(
 ): RuntimeName {
   switch (target) {
     case 'nodejs':
+    case 'deno':
       return getNodeRuntimeName(engineType)
 
     case 'workerd':

@@ -11,7 +11,10 @@ export class Property implements BasicBuilder {
   private isReadonly = false
   private docComment?: DocComment
 
-  constructor(private name: string | WellKnownSymbol, private type: TypeBuilder) {}
+  constructor(
+    private name: string | WellKnownSymbol,
+    private type: TypeBuilder,
+  ) {}
 
   optional(): this {
     this.isOptional = true

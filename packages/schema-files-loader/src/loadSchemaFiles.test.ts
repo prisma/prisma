@@ -1,5 +1,7 @@
 import path from 'node:path'
 
+import { expect, test } from 'vitest'
+
 import { loadSchemaFiles } from './loadSchemaFiles'
 import { CompositeFilesResolver, InMemoryFilesResolver, realFsResolver } from './resolver'
 import { fixturePath, line, loadedFile } from './testUtils'

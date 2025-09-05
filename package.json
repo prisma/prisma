@@ -5,11 +5,11 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=18.18",
-    "pnpm": ">=9.14.4 <10"
+    "pnpm": ">=10.15 <11"
   },
-  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
+  "packageManager": "pnpm@10.15.1",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "turbo build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
     "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "tsx scripts/ci/publish.ts --publish",
@@ -29,7 +29,7 @@
     "bench-stdout-only": "node -r esbuild-register scripts/bench.ts",
     "prepare": "is-ci || husky",
     "clean": "git clean -fdx -e /.envrc.local -e /docker/docker-compose.override.yml -e /sandbox -e /.jj",
-    "bundle-size": "pnpm i && pnpm -r dev && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
+    "bundle-size": "pnpm i && pnpm build && pnpm -r --parallel exec pnpm pack && cd packages/bundle-size && pnpm run create-gzip-files"
   },
   "devDependencies": {
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
@@ -51,6 +51,7 @@
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
     "@typescript-eslint/utils": "7.15.0",
+    "@vitest/coverage-v8": "3.2.4",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
@@ -60,11 +61,11 @@
     "esbuild": "0.25.5",
     "esbuild-register": "3.6.0",
     "eslint": "9.22.0",
-    "eslint-config-prettier": "10.1.1",
+    "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import-x": "4.6.1",
     "eslint-plugin-jest": "28.11.0",
     "eslint-plugin-local-rules": "3.0.2",
-    "eslint-plugin-prettier": "4.2.5",
+    "eslint-plugin-prettier": "5.5.4",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "execa": "5.1.1",
     "format-util": "1.0.5",
@@ -80,7 +81,7 @@
     "p-map": "4.0.0",
     "p-reduce": "3.0.0",
     "p-retry": "4.6.2",
-    "prettier": "2.8.8",
+    "prettier": "3.6.2",
     "regenerator-runtime": "0.14.1",
     "resolve": "1.22.10",
     "safe-buffer": "5.2.1",
@@ -92,21 +93,16 @@
     "ts-node": "10.9.2",
     "ts-toolbelt": "9.6.0",
     "tsx": "4.19.3",
+    "turbo": "2.5.6",
     "typescript": "5.4.5",
+    "vitest": "3.2.4",
+    "wrangler": "3.114.14",
     "zx": "8.4.1"
   },
-  "pnpm": {
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "@octokit/core": ">=3"
-      }
-    }
-  },
   "lint-staged": {
-    "*.{md,yml,json}": "prettier --check",
+    "*": "prettier --ignore-unknown --write",
     "*.{js,ts}": [
-      "eslint --fix",
-      "prettier --write"
+      "eslint --fix"
     ]
   },
   "size-limit": [

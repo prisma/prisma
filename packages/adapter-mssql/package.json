@@ -41,7 +41,6 @@
     "async-mutex": "0.5.0"
   },
   "devDependencies": {
-    "@types/mssql": "9.1.7",
-    "vitest": "3.0.9"
+    "@types/mssql": "9.1.7"
   }
 }

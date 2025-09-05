@@ -3,7 +3,7 @@ import { DataSource, EnvValue } from '@prisma/generator'
 
 export function buildInlineDatasources(datasources: DataSource[]): GetPrismaClientConfig['inlineDatasources'] {
   return datasources.reduce((acc, ds) => {
-    return (acc[ds.name] = buildInlineDatasource(ds)), acc
+    return ((acc[ds.name] = buildInlineDatasource(ds)), acc)
   }, {})
 }
 

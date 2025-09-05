@@ -5,7 +5,10 @@ import indent from 'indent-string'
 import { TAB_SIZE } from './constants'
 
 export class Enum {
-  constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
+  constructor(
+    protected readonly type: DMMF.SchemaEnum,
+    protected readonly useNamespace: boolean,
+  ) {}
 
   private isObjectEnum(): boolean {
     return this.useNamespace && objectEnumNames.includes(this.type.name)

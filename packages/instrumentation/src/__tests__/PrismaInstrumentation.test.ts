@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { GLOBAL_INSTRUMENTATION_ACCESSOR_KEY, GLOBAL_VERSIONED_INSTRUMENTATION_ACCESSOR_KEY } from '../constants'
 import { PrismaInstrumentation } from '../PrismaInstrumentation'
 

@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { CompositeFilesResolver } from './CompositeFilesResolver'
 import { InMemoryFilesResolver } from './InMemoryFilesResolver'
 
