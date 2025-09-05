@@ -120,8 +120,8 @@ export function safeJsonStringify(obj: unknown): string {
   return JSON.stringify(obj, (_key, val) => {
     if (typeof val === 'bigint') {
       return val.toString()
-    } else if (val instanceof Uint8Array) {
-      return Buffer.from(val).toString('base64')
+    } else if (ArrayBuffer.isView(val)) {
+      return Buffer.from(val.buffer, val.byteOffset, val.byteLength).toString('base64')
     }
     return val
   })

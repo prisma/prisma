@@ -46,5 +46,8 @@ testMatrix.setupTestSuite(
       from: ['js_mssql'],
       reason: 'Driver fails with `Login failed for user ...`',
     },
+    skip(when, { clientEngineExecutor }) {
+      when(clientEngineExecutor === 'remote', "Fails because it's not an Accelerate URL.")
+    },
   },
 )

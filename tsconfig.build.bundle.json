@@ -27,6 +27,7 @@
       "@prisma/adapter-neon": ["./packages/adapter-neon/src"],
       "@prisma/adapter-pg": ["./packages/adapter-pg/src"],
       "@prisma/adapter-planetscale": ["./packages/adapter-planetscale/src"],
+      "@prisma/query-plan-executor": ["./packages/query-plan-executor/src"],
       "@prisma/ts-builders": ["./packages/ts-builders/src"]
     }
   }

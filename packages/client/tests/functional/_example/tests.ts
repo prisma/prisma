@@ -55,6 +55,7 @@ testMatrix.setupTestSuite(
           runtime: 'node',
           previewFeatures: [],
           generatorType: 'prisma-client-js',
+          clientEngineExecutor: 'local',
         },
         suiteMeta,
         matrixOptions: suiteConfig,

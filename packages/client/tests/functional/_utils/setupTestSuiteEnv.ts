@@ -354,7 +354,7 @@ export type DatasourceInfo = {
   directEnvVarName: string
   envVarName: string
   databaseUrl: string
-  dataProxyUrl?: string
+  accelerateUrl?: string
 }
 
 /**
@@ -386,9 +386,9 @@ export function setupTestSuiteDbURI({
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
 
-  let dataProxyUrl: string | undefined
+  let accelerateUrl: string | undefined
   if (clientMeta.dataProxy) {
-    dataProxyUrl = miniProxy.generateConnectionString({
+    accelerateUrl = miniProxy.generateConnectionString({
       databaseUrl,
       envVar: envVarName,
       port: miniProxy.defaultServerConfig.port,
@@ -399,7 +399,7 @@ export function setupTestSuiteDbURI({
     directEnvVarName,
     envVarName,
     databaseUrl,
-    dataProxyUrl,
+    accelerateUrl,
   }
 }
 

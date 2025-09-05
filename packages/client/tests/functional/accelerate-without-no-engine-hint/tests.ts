@@ -6,35 +6,54 @@ import type { PrismaClient } from './generated/prisma/client'
 declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta, { dataProxy }) => {
-    testIf(dataProxy === false)('using accelerate without --no-engine produces a warning at runtime', () => {
-      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
-      const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
+  ({ provider, clientRuntime }, suiteMeta, { dataProxy }) => {
+    testIf(dataProxy === false && clientRuntime !== 'client')(
+      'using Accelerate without --no-engine or QC produces a warning at runtime',
+      () => {
+        process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
-      newPrismaClient()
+        newPrismaClient()
 
-      // should only warn once
-      newPrismaClient()
+        // should only warn once
+        newPrismaClient()
 
-      expect(consoleWarnMock).toHaveBeenCalledTimes(1)
-      expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
+        expect(consoleWarnMock).toHaveBeenCalledTimes(1)
+        expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [
           "prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`)",
         ]
       `)
 
-      consoleWarnMock.mockRestore()
-    })
+        consoleWarnMock.mockRestore()
+      },
+    )
 
-    testIf(dataProxy === true)('using accelerate with --no-engine produces no warning at runtime', () => {
-      process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
-      const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
+    testIf(dataProxy === true && clientRuntime !== 'client')(
+      'using Accelerate with --no-engine without QC produces no warning at runtime',
+      () => {
+        process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
 
-      newPrismaClient()
+        newPrismaClient()
 
-      expect(consoleWarnMock).toHaveBeenCalledTimes(0)
-      consoleWarnMock.mockRestore()
-    })
+        expect(consoleWarnMock).toHaveBeenCalledTimes(0)
+        consoleWarnMock.mockRestore()
+      },
+    )
+
+    testIf(clientRuntime === 'client')(
+      'using Accelerate without --no-engine with QC produces no warning at runtime',
+      () => {
+        process.env[`DATABASE_URI_${provider}`] = 'prisma://accelerate.net/?api_key=doesNotMatter'
+        const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation()
+
+        newPrismaClient()
+
+        expect(consoleWarnMock).toHaveBeenCalledTimes(0)
+        consoleWarnMock.mockRestore()
+      },
+    )
   },
   {
     optOut: {

@@ -108,8 +108,10 @@ const args = arg(
     '--relation-mode-tests-only': Boolean,
     // Run tests for specific provider adapters (and excludes regular provider tests)
     '--adapter': [String],
-    // Forces any given test to be run with `engineType=` binary, library, or wasm
+    // Forces any given test to be run with `engineType=` binary, library, or client
     '--engine-type': String,
+    // Use client engine's remote executor
+    '--remote-executor': Boolean,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
     '--preview-features': String,
     // Enable Node.js debugger
@@ -234,6 +236,16 @@ async function main(): Promise<number | void> {
 
   if (args['--client-runtime'] === 'edge' && !args['--data-proxy']) {
     throw new Error('--client-runtime=edge is only available when --data-proxy is used')
+  }
+
+  if (args['--remote-executor']) {
+    if (args['--engine-type'] !== 'client') {
+      throw new Error('--remote-executor requires --engine-type=client')
+    }
+
+    jestCli = jestCli.withEnv({
+      TEST_CLIENT_ENGINE_REMOTE_EXECUTOR: 'true',
+    })
   }
 
   // See flag description above.
