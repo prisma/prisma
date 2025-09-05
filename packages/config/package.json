@@ -1,34 +1,69 @@
 {
-  "name": "@prisma/config",
-  "version": "0.0.0",
-  "description": "Internal package used to define and read Prisma configuration files",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/config"
-  },
-  "license": "Apache-2.0",
-  "author": "Alberto Schiabel <schiabel@prisma.io>",
-  "dependencies": {
-    "c12": "3.1.0",
-    "deepmerge-ts": "7.1.5"
-  },
-  "devDependencies": {
-    "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/get-platform": "workspace:*",
-    "effect": "3.16.12",
-    "vitest": "3.2.4"
-  },
-  "scripts": {
-    "dev": "DEV=true tsx helpers/build.ts",
-    "build": "tsx helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "vitest run"
+  "name": "@refract/config",
+  "version": "0.1.0",
+  "description": "Shared configuration and Kysely instance management for Refract",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
   },
   "files": [
-    "dist"
+    "dist",
+    "src"
   ],
-  "sideEffects": false
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "c12": "^3.2.0",
+    "kysely": "^0.27.4",
+    "zod": "^3.22.4"
+  },
+  "peerDependencies": {
+    "@neondatabase/serverless": "*",
+    "better-sqlite3": "*",
+    "kysely-d1": "*",
+    "mysql2": "*",
+    "pg": "*"
+  },
+  "peerDependenciesMeta": {
+    "@neondatabase/serverless": {
+      "optional": true
+    },
+    "better-sqlite3": {
+      "optional": true
+    },
+    "kysely-d1": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "pg": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@neondatabase/serverless": "*",
+    "@types/better-sqlite3": "*",
+    "@types/node": "^20.0.0",
+    "@types/pg": "*",
+    "better-sqlite3": "*",
+    "kysely-d1": "*",
+    "mysql2": "*",
+    "pg": "*",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
 }
