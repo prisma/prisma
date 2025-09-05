@@ -1,5 +1,5 @@
 {
-  "extends": "../tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "exclude": ["_steps.ts"],
   "compilerOptions": {
     "module": "Node16",
