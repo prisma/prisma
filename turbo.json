@@ -4,7 +4,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "generator-build/**", "runtime/**"]
+      "outputs": ["dist/**", "generator-build/**", "runtime/**"],
+      "env": ["DEV", "MINIFY"]
     }
   }
 }
