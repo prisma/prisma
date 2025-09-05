@@ -58,8 +58,8 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_BINARY)('missing-engine-native-binaryTar
 
     The following locations have been searched:
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
       /tmp/prisma-engines
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget"
   `)
