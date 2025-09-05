@@ -35,7 +35,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "ci-info": "4.2.0",
-    "env-paths": "2.2.1",
+    "env-paths": "3.0.0",
     "indent-string": "4.0.0",
     "klona": "2.0.6",
     "package-up": "5.0.0",

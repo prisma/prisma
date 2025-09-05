@@ -14,7 +14,7 @@ import {
   resolveUrl,
 } from '@prisma/internals'
 import { StudioServer } from '@prisma/studio-server'
-import getPort from 'get-port'
+import getPort, { portNumbers } from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
@@ -110,7 +110,7 @@ ${bold('Examples')}
     })
 
     const hostname = args['--hostname']
-    const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
+    const port = args['--port'] || (await getPort({ port: portNumbers(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
