@@ -1,8 +1,0 @@
-generator client {
-  provider        = "prisma-client-js"
-}
-
-model Foo {
-  id   Int    @id
-  name String
-}

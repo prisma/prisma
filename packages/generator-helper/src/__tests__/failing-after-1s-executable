@@ -1,5 +1,0 @@
-#!/usr/bin/env node
-
-setTimeout(() => {
-  throw new Error('test')
-}, 1000)

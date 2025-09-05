@@ -1,4 +1,0 @@
-model Bar {
-  id   Int    @id
-  name String
-}
