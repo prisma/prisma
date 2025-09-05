@@ -6,28 +6,7 @@ Prisma driver adapter for Turso and libSQL. Refer to the [announcement blog post
 
 ## Getting started
 
-To get started, enable the `driverAdapters` Preview feature flag in your Prisma schema:
-
-```prisma
-// schema.prisma
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
-}
-
-datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
-}
-```
-
-Generate Prisma Client:
-
-```sh
-npx prisma generate
-```
-
-Install the libSQL database client and Prisma driver adapter for libSQL packages:
+To get started, install the libSQL database client and Prisma driver adapter for libSQL packages:
 
 ```sh
 npm install @prisma/adapter-libsql

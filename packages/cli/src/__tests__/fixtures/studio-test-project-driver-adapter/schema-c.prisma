@@ -5,7 +5,6 @@ datasource my_db {
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 model with_all_field_types {

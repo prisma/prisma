@@ -104,14 +104,6 @@ export class ClientEngine implements Engine {
   #emitQueryEvent?: (event: QueryEvent) => void
 
   constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (!config.previewFeatures?.includes('driverAdapters') && !remote) {
-      throw new PrismaClientInitializationError(
-        'EngineType `client` requires the driverAdapters preview feature to be enabled.',
-        config.clientVersion,
-        CLIENT_ENGINE_ERROR,
-      )
-    }
-
     if (remote) {
       this.#executorKind = { remote: true }
     } else if (config.adapter) {

@@ -26,8 +26,7 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
     // 'file:.wrangler/state/v3/d1/miniflare-D1DatabaseObject/5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite'
     expect(ctx.normalizedCapturedStdout().replace(urlValueRegex, 'url = "REPLACED_BY_TEST"')).toMatchInlineSnapshot(`
       "generator client {
-        provider        = "prisma-client-js"
-        previewFeatures = ["driverAdapters"]
+        provider = "prisma-client-js"
       }
 
       datasource db {
@@ -69,7 +68,7 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
       ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-      Without the driverAdapters preview feature, the schema introspected via the --local-d1 flag will not work with @prisma/client.
+      Without the schemaEngineDriverAdapters preview feature, the schema introspected via the --local-d1 flag will not work with @prisma/client.
       "
     `)
   })

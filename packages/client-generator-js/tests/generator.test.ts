@@ -87,6 +87,9 @@ describe('generator', () => {
     // Make sure, that nothing is cached.
     await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
     await getPackedPackage('@prisma/client', prismaClientTarget)
+    await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
+      recursive: true,
+    })
 
     if (!fs.existsSync(prismaClientTarget)) {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)

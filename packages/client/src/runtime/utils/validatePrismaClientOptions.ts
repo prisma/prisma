@@ -4,7 +4,6 @@ import leven from 'js-levenshtein'
 
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
-import { getPreviewFeatures } from '../core/init/getPreviewFeatures'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
 const knownProperties = [
@@ -96,12 +95,6 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (adapter === undefined) {
       throw new PrismaClientConstructorValidationError(
         `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
-      )
-    }
-    const previewFeatures = getPreviewFeatures(config)
-    if (!previewFeatures.includes('driverAdapters')) {
-      throw new PrismaClientConstructorValidationError(
-        '"adapter" property can only be provided to PrismaClient constructor when "driverAdapters" preview feature is enabled.',
       )
     }
 
