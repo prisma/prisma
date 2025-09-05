@@ -83,7 +83,13 @@ export function validateEngineInstanceConfig({
   const isUsingDriverAdapters = Boolean(adapter)
   const isAccelerateUrlScheme = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
-  if (!isUsingDriverAdapters && copyEngine && isAccelerateUrlScheme) {
+  if (
+    !isUsingDriverAdapters &&
+    copyEngine &&
+    isAccelerateUrlScheme &&
+    targetBuildType !== 'client' &&
+    targetBuildType !== 'wasm-compiler-edge'
+  ) {
     pushWarning([
       'recommend--no-engine',
       'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',

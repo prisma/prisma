@@ -87,10 +87,40 @@ describe('validateEngineInstanceConfig', () => {
   describe('using Prisma Accelerate', () => {
     const url = URLS.accelerate
 
-    test('recommend using `--no-engine` if it was not run already', () => {
+    test('do not recommend using `--no-engine` for ClientEngine', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url,
-        targetBuildType,
+        targetBuildType: 'client',
+        copyEngine: true,
+      })
+
+      expectTrue(ok)
+      expect(diagnostics.errors).toBe(undefined)
+      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
+      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.driverAdapters).toBe(false)
+      expect(isUsing.ppg).toBe(false)
+    })
+
+    test('do not recommend using `--no-engine` for edge build of ClientEngine', () => {
+      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
+        url,
+        targetBuildType: 'wasm-compiler-edge',
+        copyEngine: true,
+      })
+
+      expectTrue(ok)
+      expect(diagnostics.errors).toBe(undefined)
+      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
+      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.driverAdapters).toBe(false)
+      expect(isUsing.ppg).toBe(false)
+    })
+
+    test('recommend using `--no-engine` for LibraryEngine if it was not run already', () => {
+      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
+        url,
+        targetBuildType: 'library',
         copyEngine: true,
       })
 
@@ -115,7 +145,7 @@ describe('validateEngineInstanceConfig', () => {
     test('do not recommend using `--no-engine` if it was run already', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url,
-        targetBuildType,
+        targetBuildType: 'library',
         copyEngine: false,
       })
 
@@ -223,10 +253,40 @@ describe('validateEngineInstanceConfig', () => {
       expect(isUsing.ppg).toBe(true)
     })
 
-    test('recommend using `--no-engine` if it was not run already', () => {
+    test('do not recommend using `--no-engine` for ClientEngine', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url: URLS.ppg,
-        targetBuildType,
+        targetBuildType: 'client',
+        copyEngine: true,
+      })
+
+      expectTrue(ok)
+      expect(diagnostics.errors).toBe(undefined)
+      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
+      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.driverAdapters).toBe(false)
+      expect(isUsing.ppg).toBe(true)
+    })
+
+    test('do not recommend using `--no-engine` for edge build of ClientEngine', () => {
+      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
+        url: URLS.ppg,
+        targetBuildType: 'wasm-compiler-edge',
+        copyEngine: true,
+      })
+
+      expectTrue(ok)
+      expect(diagnostics.errors).toBe(undefined)
+      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
+      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.driverAdapters).toBe(false)
+      expect(isUsing.ppg).toBe(true)
+    })
+
+    test('recommend using `--no-engine` for LibraryEngine if it was not run already', () => {
+      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
+        url: URLS.ppg,
+        targetBuildType: 'library',
         copyEngine: true,
       })
 
