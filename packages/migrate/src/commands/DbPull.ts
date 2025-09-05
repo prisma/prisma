@@ -237,14 +237,16 @@ Set composite types introspection depth to 2 levels
 
             const result = { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
 
-            const hasDriverAdaptersPreviewFeature = (previewFeatures || []).includes('driverAdapters')
+            const hasSchemaEngineeDriverAdaptersPreviewFeature = (previewFeatures || []).includes(
+              'schemaEngineDriverAdapters',
+            )
             const validationWarning = `Without the ${bold(
-              'driverAdapters',
+              'schemaEngineDriverAdapters',
             )} preview feature, the schema introspected via the ${bold('--local-d1')} flag will not work with ${bold(
               '@prisma/client',
             )}.`
 
-            if (hasDriverAdaptersPreviewFeature) {
+            if (hasSchemaEngineeDriverAdaptersPreviewFeature) {
               return result
             } else {
               return { ...result, validationWarning }
@@ -271,7 +273,6 @@ Set composite types introspection depth to 2 levels
           // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
           const schemaContent = `generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
