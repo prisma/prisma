@@ -1,1 +1,0 @@
-SELECT `double` FROM `TestModel` WHERE `id` = ?

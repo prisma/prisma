@@ -1,1 +1,0 @@
-SELECT "uuid" FROM "public"."TestModel" WHERE id = $1

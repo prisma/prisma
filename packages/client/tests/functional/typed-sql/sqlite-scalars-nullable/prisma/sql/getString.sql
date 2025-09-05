@@ -1,1 +1,0 @@
-SELECT `string` FROM `TestModel` WHERE `id` = ?

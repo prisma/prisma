@@ -1,1 +1,0 @@
-SELECT "date" FROM "public"."TestModel" WHERE id = $1

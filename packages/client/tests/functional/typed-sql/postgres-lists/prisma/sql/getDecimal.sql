@@ -1,1 +1,0 @@
-SELECT "decimal" FROM "public"."TestModel" WHERE id = $1

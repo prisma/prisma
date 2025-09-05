@@ -1,1 +1,0 @@
-SELECT "id" FROM "public"."TestModel" WHERE "double" = $1::double precision[]

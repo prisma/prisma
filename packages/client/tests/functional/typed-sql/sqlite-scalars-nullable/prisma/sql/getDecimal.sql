@@ -1,1 +1,0 @@
-SELECT `decimal` FROM `TestModel` WHERE `id` = ?

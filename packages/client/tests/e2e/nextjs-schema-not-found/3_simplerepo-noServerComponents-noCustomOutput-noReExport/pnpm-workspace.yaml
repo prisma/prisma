@@ -1,4 +1,0 @@
-# just here to signal a boundary to our monorepo
-
-packages:
-  - '**'

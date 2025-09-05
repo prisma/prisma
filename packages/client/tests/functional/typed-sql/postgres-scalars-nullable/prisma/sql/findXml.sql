@@ -1,1 +1,0 @@
-SELECT xmlconcat("xml", $1::XML) as "concatResult" FROM "public"."TestModel"

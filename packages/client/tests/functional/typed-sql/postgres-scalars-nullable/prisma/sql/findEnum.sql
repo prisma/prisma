@@ -1,1 +1,0 @@
-SELECT "id" FROM "public"."TestModel" WHERE "enum" = $1::"Enum"

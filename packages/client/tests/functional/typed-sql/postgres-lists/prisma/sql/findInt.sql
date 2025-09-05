@@ -1,1 +1,0 @@
-SELECT "id" FROM "public"."TestModel" WHERE "int" = $1::INT[]

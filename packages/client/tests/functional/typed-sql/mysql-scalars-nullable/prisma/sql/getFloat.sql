@@ -1,1 +1,0 @@
-SELECT `float` FROM `TestModel` WHERE id = ?

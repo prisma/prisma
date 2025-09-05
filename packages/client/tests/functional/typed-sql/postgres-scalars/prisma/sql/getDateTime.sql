@@ -1,1 +1,0 @@
-SELECT "dateTime" FROM "public"."TestModel" WHERE id = $1

@@ -1,1 +1,0 @@
-SELECT `bytes` FROM `TestModel` WHERE id = ?

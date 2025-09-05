@@ -1,1 +1,0 @@
-SELECT `bigInt` FROM `TestModel` WHERE id = ?
