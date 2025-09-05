@@ -21,7 +21,7 @@ export {
   MetricsClient,
 } from './core/metrics/MetricsClient'
 export { createParam } from './core/model/Param'
-export { defineDmmfProperty } from './core/runtimeDataModel'
+export { defineDmmfProperty, runtimeDataModelToBaseDmmf } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
 export { objectEnumValues } from './core/types/exported/ObjectEnums'
@@ -37,6 +37,7 @@ export {
   type BaseDMMF,
   dmmfToRuntimeDataModel,
   type GetPrismaClientConfig,
+  lazyProperty,
   type Operation,
   type RuntimeDataModel,
 } from '@prisma/client-common'
