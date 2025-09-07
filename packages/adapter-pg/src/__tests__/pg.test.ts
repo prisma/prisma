@@ -46,4 +46,28 @@ describe('PrismaPgAdapterFactory', () => {
     expect(pool.listenerCount('error')).toEqual(1)
     await pool.end()
   })
+
+  it('should remove connection error listener after transaction commit', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const factory = new PrismaPgAdapterFactory(config)
+    const adapter = await factory.connect()
+    const transaction = await adapter.startTransaction()
+    const connection = transaction['client']
+    expect(connection.listenerCount('error')).toEqual(1)
+    await transaction.commit()
+    expect(connection.listenerCount('error')).toEqual(0)
+    await adapter.dispose()
+  })
+
+  it('should remove connection error listener after transaction rollback', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const factory = new PrismaPgAdapterFactory(config)
+    const adapter = await factory.connect()
+    const transaction = await adapter.startTransaction()
+    const connection = transaction['client']
+    expect(connection.listenerCount('error')).toEqual(1)
+    await transaction.rollback()
+    expect(connection.listenerCount('error')).toEqual(0)
+    await adapter.dispose()
+  })
 })
