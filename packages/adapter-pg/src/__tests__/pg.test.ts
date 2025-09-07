@@ -51,11 +51,25 @@ describe('PrismaPgAdapterFactory', () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
     const factory = new PrismaPgAdapterFactory(config)
     const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
     const transaction = await adapter.startTransaction()
-    const connection = transaction['client']
-    expect(connection.listenerCount('error')).toEqual(1)
+    expect(mockConnection.listenerCount('error')).toEqual(1)
+
+    mockConnection.listenerCount.mockReturnValue(0)
     await transaction.commit()
-    expect(connection.listenerCount('error')).toEqual(0)
+    expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
+    expect(mockConnection.listenerCount('error')).toEqual(0)
+
     await adapter.dispose()
   })
 
@@ -63,11 +77,25 @@ describe('PrismaPgAdapterFactory', () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
     const factory = new PrismaPgAdapterFactory(config)
     const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
     const transaction = await adapter.startTransaction()
-    const connection = transaction['client']
-    expect(connection.listenerCount('error')).toEqual(1)
+    expect(mockConnection.listenerCount('error')).toEqual(1)
+
+    mockConnection.listenerCount.mockReturnValue(0)
     await transaction.rollback()
-    expect(connection.listenerCount('error')).toEqual(0)
+    expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
+    expect(mockConnection.listenerCount('error')).toEqual(0)
+
     await adapter.dispose()
   })
 })
