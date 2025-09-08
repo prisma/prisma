@@ -3,7 +3,7 @@ import { stripVTControlCharacters } from 'node:util'
 
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import del from 'del'
+import { deleteAsync } from 'del'
 import type { Response } from 'node-fetch'
 import { default as _mockFetch } from 'node-fetch'
 import path from 'path'
@@ -53,8 +53,8 @@ describeIf(!usesCustomEngines)('download', () => {
     beforeEach(async () => {
       // Make sure to not mix forward and backward slashes in the path
       // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirAll, '*engine*'))
-      await del(path.posix.join(baseDirCorruption, '*engine*'))
+      await deleteAsync(path.posix.join(baseDirAll, '*engine*'))
+      await deleteAsync(path.posix.join(baseDirCorruption, '*engine*'))
     })
 
     test('download all current engines', async () => {
@@ -442,7 +442,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       //
 
       // Delete all artifacts
-      const deletedEngines = await del(path.posix.join(baseDirAll, '/*engine*'))
+      const deletedEngines = await deleteAsync(path.posix.join(baseDirAll, '/*engine*'))
       expect(deletedEngines.length).toBeGreaterThan(0)
 
       const before = Math.round(performance.now())
@@ -584,7 +584,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     beforeEach(async () => {
       // Make sure to not mix forward and backward slashes in the path
       // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirBinaryTarget, '*engine*'))
+      await deleteAsync(path.posix.join(baseDirBinaryTarget, '*engine*'))
     })
 
     afterEach(() => {
@@ -774,7 +774,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     beforeEach(async () => {
       // Make sure to not mix forward and backward slashes in the path
       // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirChecksum, '*engine*'))
+      await deleteAsync(path.posix.join(baseDirChecksum, '*engine*'))
     })
 
     test('if checksum downloads and matches, does not throw', async () => {
