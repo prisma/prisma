@@ -150,6 +150,7 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
     client: pg.PoolClient,
     readonly options: TransactionOptions,
     readonly pgOptions?: PrismaPgOptions,
+    readonly cleanup?: () => void,
   ) {
     super(client, pgOptions)
   }
@@ -157,12 +158,14 @@ class PgTransaction extends PgQueryable<TransactionClient> implements Transactio
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
+    this.cleanup?.()
     this.client.release()
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
+    this.cleanup?.()
     this.client.release()
   }
 }
@@ -195,13 +198,18 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
-    conn.on('error', (err) => {
+    const onError = (err: Error) => {
       debug(`Error from pool connection: ${err.message} %O`, err)
       this.pgOptions?.onConnectionError?.(err)
-    })
+    }
+    conn.on('error', onError)
+
+    const cleanup = () => {
+      conn.removeListener('error', onError)
+    }
 
     try {
-      const tx = new PgTransaction(conn, options)
+      const tx = new PgTransaction(conn, options, this.pgOptions, cleanup)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
@@ -212,6 +220,7 @@ export class PrismaPgAdapter extends PgQueryable<StdClient> implements SqlDriver
       }
       return tx
     } catch (error) {
+      cleanup()
       conn.release(error)
       this.onError(error)
     }
