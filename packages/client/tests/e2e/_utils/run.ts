@@ -60,6 +60,8 @@ async function main() {
   let allPackageFolderNames = await fs.readdir(path.join(monorepoRoot, 'packages'))
   allPackageFolderNames = allPackageFolderNames.filter((p) => !p.includes('DS_Store'))
 
+  const prismaTmpDir = path.join(os.homedir(), '.local', 'share', 'prisma-tmp')
+
   if (args['--skipPack'] === false) {
     // this process will need to modify some package.json, we save copies
     await $`pnpm -r exec cp package.json package.copy.json`
@@ -81,7 +83,7 @@ async function main() {
       await fs.writeFile(allPkgJsonPaths[i], JSON.stringify(allPkgJson[i], null, 2))
     }
 
-    await $`pnpm -r --parallel exec pnpm pack --pack-destination /tmp/`
+    await $`pnpm -r --parallel exec pnpm pack --pack-destination ${prismaTmpDir}/`
     await restoreOriginalState()
   }
 
@@ -95,8 +97,8 @@ async function main() {
   }
 
   const dockerVolumes = [
-    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
-    ...allPackageFolderNames.map((p) => `/tmp/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
+    `${prismaTmpDir}/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`, // hardcoded because folder doesn't match name
+    ...allPackageFolderNames.map((p) => `${prismaTmpDir}/prisma-${p}-0.0.0.tgz:/tmp/prisma-${p}-0.0.0.tgz`),
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
     `${e2eRoot}:/e2e`,
