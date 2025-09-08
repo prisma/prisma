@@ -2,7 +2,7 @@ import { GetPrismaClientConfig } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
 import { getRuntime } from '../../utils/getRuntime'
-import { BinaryEngine, ClientEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
+import { BinaryEngine, ClientEngine, DataProxyEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
@@ -16,7 +16,7 @@ import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
  * @param engineConfig
  * @returns
  */
-export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig) {
+export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
   let url: string | undefined
 
   try {
@@ -82,7 +82,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
-    return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion })
+    return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion }) as Engine
   }
 
   return TARGET_BUILD_TYPE satisfies never
