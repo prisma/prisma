@@ -82,19 +82,35 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
-    const message = [
-      `PrismaClient failed to initialize because it wasn't configured to run in this environment (${
-        getRuntime().prettyName
-      }).`,
-      'In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:',
-      '- Enable Driver Adapters: https://pris.ly/d/driver-adapters',
-      '- Enable Accelerate: https://pris.ly/d/accelerate',
-    ]
-
-    throw new PrismaClientValidationError(message.join('\n'), {
-      clientVersion: engineConfig.clientVersion,
-    })
+    return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion })
   }
 
   return TARGET_BUILD_TYPE satisfies never
+}
+
+class MisconfiguredEngine {
+  constructor(options: { clientVersion: string }) {
+    return new Proxy(this, {
+      get(_target, _prop) {
+        let message: string
+        const runtime = getRuntime()
+        if (runtime.isEdge) {
+          message = `PrismaClient is not configured to run in ${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters
+`
+        } else {
+          message =
+            'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' +
+            runtime.prettyName +
+            '\`).'
+        }
+
+        message += `
+If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`
+
+        throw new PrismaClientValidationError(message, options)
+      },
+    })
+  }
 }
