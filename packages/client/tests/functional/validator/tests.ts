@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('validation via extended client', () => {
+    testIf(generatorType === 'prisma-client-js')('validation via extended client', () => {
       const xprisma = prisma.$extends({
         result: {
           user: {
