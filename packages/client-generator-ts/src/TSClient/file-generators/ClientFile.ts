@@ -6,12 +6,14 @@ import * as ts from '@prisma/ts-builders'
 import { ModuleFormat } from '../../module-format'
 import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
+import { modelExports } from '../ModelExports'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
 import { TSClientOptions } from '../TSClient'
 
 const jsDocHeader = `/*
  * This file should be your main import to use Prisma. Through it you get access to all the models, enums, and input types.
- *
+ * If you're looking for something you can import in the client-side of your application, please refer to the \`browser.ts\` file instead.
+ * 
  * 🟢 You can import this file directly.
  */
 `
@@ -65,20 +67,6 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
     ),
   ].map((e) => ts.stringify(e))
 
-  const modelExports = Object.values(context.dmmf.typeAndModelMap)
-    .filter((model) => context.dmmf.outputTypeMap.model[model.name])
-    .map((model) => {
-      const docLines = model.documentation ?? ''
-      const modelLine = `Model ${model.name}\n`
-      const docs = `${modelLine}${docLines}`
-
-      const modelTypeExport = ts
-        .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`Prisma.${model.name}Model`)))
-        .setDocComment(ts.docComment(docs))
-
-      return ts.stringify(modelTypeExport)
-    })
-
   const binaryTargets =
     clientEngineType === ClientEngineType.Library
       ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
@@ -97,7 +85,7 @@ export { Prisma }
 
 ${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
-${modelExports.join('\n')}
+${modelExports(context).join('\n')}
 `
 }
 
