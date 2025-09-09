@@ -8,32 +8,9 @@ The `mssql` driver is one of the most popular drivers in the JavaScript ecosyste
 
 This section explains how you can use it with Prisma ORM and the `@prisma/adapter-mssql` driver adapter. Be sure that the `DATABASE_URL` environment variable is set to your SQL Server connection string (e.g. in a `.env` file).
 
-### 1. Enable the `driverAdapters` Preview feature flag
+### 1. Install the dependencies
 
-Since driver adapters are currently in [Preview](/orm/more/releases#preview), you need to enable its feature flag on the `datasource` block in your Prisma schema:
-
-```prisma
-// schema.prisma
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
-}
-
-datasource db {
-  provider = "sqlserver"
-  url      = env("DATABASE_URL")
-}
-```
-
-Once you have added the feature flag to your schema, re-generate Prisma Client:
-
-```
-npx prisma generate
-```
-
-### 2. Install the dependencies
-
-Next, install the Prisma ORM's driver adapter:
+Install the Prisma ORM's driver adapter:
 
 ```
 npm install @prisma/adapter-mssql

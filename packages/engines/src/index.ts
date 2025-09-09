@@ -40,8 +40,8 @@ export async function ensureNeededBinariesExist({
     binaries[BinaryType.SchemaEngineBinary] = binaryDir
   }
 
-  // query engine should only be downloaded if the queryCompiler preview feature is not enabled, or if
-  // QE is enabled explicitly by specifying the engineType generator property.
+  // query engine should only be downloaded if QE is enabled explicitly by specifying the
+  // engineType generator property.
   const usesQueryCompiler = clientEngineType === 'client'
 
   if (!usesQueryCompiler) {
