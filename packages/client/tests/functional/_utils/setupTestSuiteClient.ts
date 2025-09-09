@@ -94,8 +94,8 @@ export async function setupTestSuiteClient({
     typedSql = await introspectSql(directoryConfig, schemaContextIntrospect)
   }
 
-  if (clientMeta.dataProxy === true) {
-    process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl
+  if (datasourceInfo.accelerateUrl !== undefined) {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.accelerateUrl
   } else {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
   }
@@ -178,14 +178,143 @@ export function setupTestSuiteClientDriverAdapter({
   cfWorkerBindings?: Record<string, unknown>
 }) {
   const driverAdapter = suiteConfig.matrixOptions.driverAdapter
-  const provider = suiteConfig.matrixOptions.provider
-  const __internal: PrismaClientOptions['__internal'] = {}
 
   if (clientMeta.driverAdapter !== true) return {}
 
   if (driverAdapter === undefined) {
     throw new Error(`Missing Driver Adapter`)
   }
+
+  if (driverAdapter === AdapterProviders.JS_PG || driverAdapter === AdapterProviders.JS_PG_COCKROACHDB) {
+    const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
+
+    return {
+      adapter: new PrismaPg({
+        connectionString: datasourceInfo.databaseUrl,
+      }),
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_NEON) {
+    const { neonConfig } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
+    const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
+
+    neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
+    neonConfig.webSocketConstructor = WebSocket
+    neonConfig.useSecureWebSocket = false // disable tls
+    neonConfig.pipelineConnect = false
+
+    return {
+      adapter: new PrismaNeon({
+        connectionString: datasourceInfo.databaseUrl,
+      }),
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_PLANETSCALE) {
+    const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
+
+    const url = new URL('http://root:root@127.0.0.1:8085')
+    url.pathname = new URL(datasourceInfo.databaseUrl).pathname
+
+    return {
+      adapter: new PrismaPlanetScale({
+        url: url.toString(),
+        fetch, // TODO remove when Node 16 is deprecated
+      }),
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_LIBSQL) {
+    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
+
+    return {
+      adapter: new PrismaLibSQL({
+        url: datasourceInfo.databaseUrl,
+        intMode: 'bigint',
+      }),
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_D1) {
+    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
+
+    const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
+    return { adapter: new PrismaD1(d1Client) }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
+    const { PrismaBetterSQLite3 } =
+      require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
+
+    return {
+      adapter: new PrismaBetterSQLite3({
+        // Workaround to avoid the Prisma validation error:
+        // ```
+        // Error validating datasource `db`: the URL must start with the protocol `file:`
+        // ```
+        url: datasourceInfo.databaseUrl.replace('file:', ''),
+      }),
+    }
+  }
+
+  if (driverAdapter === AdapterProviders.JS_MSSQL) {
+    const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
+
+    const [, server, port, database, user, password] =
+      datasourceInfo.databaseUrl.match(
+        /^sqlserver:\/\/([^:;]+):(\d+);database=([^;]+);user=([^;]+);password=([^;]+);/,
+      ) || []
+
+    return {
+      adapter: new PrismaMssql({
+        user,
+        password,
+        database,
+        server,
+        port: Number(port),
+        options: {
+          trustServerCertificate: true,
+        },
+      }),
+    }
+  }
+
+  if (driverAdapter === 'js_mariadb') {
+    const { PrismaMariaDb } = require('@prisma/adapter-mariadb') as typeof import('@prisma/adapter-mariadb')
+
+    const url = new URL(datasourceInfo.databaseUrl)
+    const { username: user, password, hostname: host, port } = url
+    const database = url.pathname && url.pathname.slice(1)
+
+    return {
+      adapter: new PrismaMariaDb({
+        user,
+        password,
+        database,
+        host,
+        port: Number(port),
+        connectionLimit: 4, // avoid running out of connections, some tests create multiple clients
+      }),
+    }
+  }
+
+  throw new Error(`No Driver Adapter support for ${driverAdapter}`)
+}
+
+/**
+ * Constructs the `__internal` argument of `PrismaClient` that contains configuration overrides
+ * specific to the test environment.
+ */
+export function getPrismaClientInternalArgs({
+  suiteConfig,
+  clientMeta,
+}: {
+  suiteConfig: NamedTestSuiteConfig
+  clientMeta: ClientMeta
+}) {
+  const provider = suiteConfig.matrixOptions.provider
+  const __internal: PrismaClientOptions['__internal'] = {}
 
   if (clientMeta.runtime === 'wasm-engine-edge') {
     __internal.configOverride = (config) => {
@@ -213,126 +342,5 @@ export function setupTestSuiteClientDriverAdapter({
     }
   }
 
-  if (driverAdapter === AdapterProviders.JS_PG || driverAdapter === AdapterProviders.JS_PG_COCKROACHDB) {
-    const { PrismaPg } = require('@prisma/adapter-pg') as typeof import('@prisma/adapter-pg')
-
-    return {
-      adapter: new PrismaPg({
-        connectionString: datasourceInfo.databaseUrl,
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_NEON) {
-    const { neonConfig } = require('@neondatabase/serverless') as typeof import('@neondatabase/serverless')
-    const { PrismaNeon } = require('@prisma/adapter-neon') as typeof import('@prisma/adapter-neon')
-
-    neonConfig.wsProxy = () => `127.0.0.1:5488/v1`
-    neonConfig.webSocketConstructor = WebSocket
-    neonConfig.useSecureWebSocket = false // disable tls
-    neonConfig.pipelineConnect = false
-
-    return {
-      adapter: new PrismaNeon({
-        connectionString: datasourceInfo.databaseUrl,
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_PLANETSCALE) {
-    const { PrismaPlanetScale } = require('@prisma/adapter-planetscale') as typeof import('@prisma/adapter-planetscale')
-
-    const url = new URL('http://root:root@127.0.0.1:8085')
-    url.pathname = new URL(datasourceInfo.databaseUrl).pathname
-
-    return {
-      adapter: new PrismaPlanetScale({
-        url: url.toString(),
-        fetch, // TODO remove when Node 16 is deprecated
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_LIBSQL) {
-    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
-
-    return {
-      adapter: new PrismaLibSQL({
-        url: datasourceInfo.databaseUrl,
-        intMode: 'bigint',
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_D1) {
-    const { PrismaD1 } = require('@prisma/adapter-d1') as typeof import('@prisma/adapter-d1')
-
-    const d1Client = cfWorkerBindings!.MY_DATABASE as D1Database
-    return { adapter: new PrismaD1(d1Client), __internal }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
-    const { PrismaBetterSQLite3 } =
-      require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
-
-    return {
-      adapter: new PrismaBetterSQLite3({
-        // Workaround to avoid the Prisma validation error:
-        // ```
-        // Error validating datasource `db`: the URL must start with the protocol `file:`
-        // ```
-        url: datasourceInfo.databaseUrl.replace('file:', ''),
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === AdapterProviders.JS_MSSQL) {
-    const { PrismaMssql } = require('@prisma/adapter-mssql') as typeof import('@prisma/adapter-mssql')
-
-    const [, server, port, database, user, password] =
-      datasourceInfo.databaseUrl.match(
-        /^sqlserver:\/\/([^:;]+):(\d+);database=([^;]+);user=([^;]+);password=([^;]+);/,
-      ) || []
-
-    return {
-      adapter: new PrismaMssql({
-        user,
-        password,
-        database,
-        server,
-        port: Number(port),
-        options: {
-          trustServerCertificate: true,
-        },
-      }),
-      __internal,
-    }
-  }
-
-  if (driverAdapter === 'js_mariadb') {
-    const { PrismaMariaDb } = require('@prisma/adapter-mariadb') as typeof import('@prisma/adapter-mariadb')
-
-    const url = new URL(datasourceInfo.databaseUrl)
-    const { username: user, password, hostname: host, port } = url
-    const database = url.pathname && url.pathname.slice(1)
-
-    return {
-      adapter: new PrismaMariaDb({
-        user,
-        password,
-        database,
-        host,
-        port: Number(port),
-        connectionLimit: 4, // avoid running out of connections, some tests create multiple clients
-      }),
-      __internal,
-    }
-  }
-
-  throw new Error(`No Driver Adapter support for ${driverAdapter}`)
+  return { __internal }
 }
