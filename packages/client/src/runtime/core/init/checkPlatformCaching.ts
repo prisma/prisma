@@ -15,20 +15,33 @@ const cachingPlatforms = {
   'Netlify CI': 'netlify',
 } as const
 
-type Config = Pick<GetPrismaClientConfig, 'postinstall' | 'ciName' | 'clientVersion'>
+type Config = Pick<GetPrismaClientConfig, 'postinstall' | 'ciName' | 'clientVersion' | 'generator'>
 
 /**
  * Throws an error if the client has been generated via auto-install and the
  * platform is known to have caching issues. In that case, we will display a
  * useful error message, and ask the user to run `prisma generate` manually.
+ *
+ * This function is specifically about dealing with `node_modules` caching.
+ *
  * @returns
  */
-export function checkPlatformCaching({ postinstall, ciName, clientVersion }: Config) {
+export function checkPlatformCaching({ postinstall, ciName, clientVersion, generator }: Config) {
   debug('checkPlatformCaching:postinstall', postinstall)
   debug('checkPlatformCaching:ciName', ciName)
 
   // if client was not generated manually
   if (postinstall !== true) return
+
+  // check if a custom output directory is used
+  if (generator && generator.output) {
+    const output = generator.output.fromEnvVar ?? generator.output.value
+
+    if (typeof output === 'string') {
+      // The generator is using a custom output directory, so we can skip the caching check
+      return
+    }
+  }
 
   // and we generated on one a caching CI
   if (ciName && ciName in cachingPlatforms) {
