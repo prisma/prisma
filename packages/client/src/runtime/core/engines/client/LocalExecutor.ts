@@ -94,4 +94,8 @@ export class LocalExecutor implements Executor {
       await this.#driverAdapter.dispose()
     }
   }
+
+  apiKey(): string | null {
+    return null
+  }
 }
