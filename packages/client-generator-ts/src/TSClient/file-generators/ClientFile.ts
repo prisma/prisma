@@ -29,6 +29,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
 
   const exports = [
     ts.moduleExportFrom(context.importFileName('./enums')).asNamespace('$Enums'),
+    ts.moduleExportFrom(context.importFileName('./enums')),
     ts
       .moduleExport(
         ts
@@ -78,19 +79,6 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
       return ts.stringify(modelTypeExport)
     })
 
-  const modelEnumsAliases = context.dmmf.datamodel.enums.map((datamodelEnum) => {
-    return [
-      ts.stringify(
-        ts.moduleExport(ts.typeDeclaration(datamodelEnum.name, ts.namedType(`$Enums.${datamodelEnum.name}`))),
-      ),
-      ts.stringify(
-        ts.moduleExport(
-          ts.constDeclaration(datamodelEnum.name).setValue(ts.namedValue(`$Enums.${datamodelEnum.name}`)),
-        ),
-      ),
-    ].join('\n')
-  })
-
   const binaryTargets =
     clientEngineType === ClientEngineType.Library
       ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
@@ -110,8 +98,6 @@ export { Prisma }
 ${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
 
 ${modelExports.join('\n')}
-
-${modelEnumsAliases.length > 0 ? `${modelEnumsAliases.join('\n\n')}` : ''}
 `
 }
 
