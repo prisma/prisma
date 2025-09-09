@@ -118,6 +118,10 @@ export class RemoteExecutor implements Executor {
     return Promise.resolve()
   }
 
+  apiKey(): string | null {
+    return this.#headerBuilder.apiKey
+  }
+
   async #request({
     path,
     method,

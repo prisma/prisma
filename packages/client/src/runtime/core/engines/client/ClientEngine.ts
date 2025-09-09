@@ -592,6 +592,14 @@ export class ClientEngine implements Engine {
     throw new Error('Method not implemented.')
   }
 
+  /**
+   * Used by `@prisma/extension-accelerate`
+   */
+  async apiKey(): Promise<string | null> {
+    const { executor } = await this.#ensureStarted()
+    return executor.apiKey()
+  }
+
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
     switch (clientIsolationLevel) {
       case undefined:
