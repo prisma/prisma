@@ -1,7 +1,6 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
-import { getRuntime } from '../../utils/getRuntime'
 import { BinaryEngine, ClientEngine, DataProxyEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
@@ -92,22 +91,9 @@ class MisconfiguredEngine {
   constructor(options: { clientVersion: string }) {
     return new Proxy(this, {
       get(_target, _prop) {
-        let message: string
-        const runtime = getRuntime()
-        if (runtime.isEdge) {
-          message = `PrismaClient is not configured to run in ${runtime.prettyName}. In order to run Prisma Client on edge runtime, either:
+        const message = `In order to run Prisma Client on edge runtime, either:
 - Use Prisma Accelerate: https://pris.ly/d/accelerate
-- Use Driver Adapters: https://pris.ly/d/driver-adapters
-`
-        } else {
-          message =
-            'PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`' +
-            runtime.prettyName +
-            '\`).'
-        }
-
-        message += `
-If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report`
+- Use Driver Adapters: https://pris.ly/d/driver-adapters`
 
         throw new PrismaClientValidationError(message, options)
       },

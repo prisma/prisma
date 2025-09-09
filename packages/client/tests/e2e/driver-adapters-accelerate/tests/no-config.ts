@@ -8,8 +8,9 @@ test('error is shown when both driver adapters and accelerate are not configured
     }
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-"PrismaClient is unable to run in this browser environment, or has been bundled for the browser (running in \`Node.js\`).
-If this is unexpected, please open an issue: https://pris.ly/prisma-prisma-bug-report"
+"In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters"
 `)
   })
 })

@@ -68,7 +68,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
       ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
-      Without the schemaEngineDriverAdapters preview feature, the schema introspected via the --local-d1 flag will not work with @prisma/client.
       "
     `)
   })
