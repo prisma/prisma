@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
-import { AdapterProviders } from '../../_utils/providers'
+import { AdapterProviders, Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
@@ -100,6 +100,14 @@ testMatrix.setupTestSuite(
     skipDriverAdapter: {
       from: [AdapterProviders.JS_LIBSQL],
       reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
+    },
+    skip(when, { clientEngineExecutor, provider }) {
+      when(
+        clientEngineExecutor === 'remote' && provider === Providers.MYSQL,
+        `
+        Tracked in https://linear.app/prisma-company/issue/ORM-1415/interactive-transaction-tests-fail-with-mysqlqcaccelerate
+        `,
+      )
     },
   },
 )

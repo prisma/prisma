@@ -666,7 +666,11 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
           `),
     )
 
-    if (['library.js', 'client.js'].includes(this.runtimeNameTs) && this.context.isPreviewFeatureOn('driverAdapters')) {
+    if (
+      ['library.js', 'client.js'].includes(this.runtimeNameTs) &&
+      // We don't support a custom adapter with MongoDB for now.
+      this.internalDatasources.some((d) => d.provider !== 'mongodb')
+    ) {
       clientOptions.add(
         ts
           .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))

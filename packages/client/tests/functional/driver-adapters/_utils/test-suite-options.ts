@@ -29,4 +29,7 @@ export const defaultTestSuiteOptions: MatrixOptions = {
   },
   skipDataProxy,
   optOut: optOutFromProvidersWithNoMatchingDriverAdapters,
+  skip(when, { clientEngineExecutor }) {
+    when(clientEngineExecutor === 'remote', "Can't use driver adapters with Acelerate.")
+  },
 }

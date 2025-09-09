@@ -217,82 +217,76 @@ export async function buildClient({
     fileMap['react-native.d.ts'] = TS(rnTsClient)
   }
 
-  const usesWasmRuntime = generator.previewFeatures.includes('driverAdapters')
   const usesClientEngine = clientEngineType === ClientEngineType.Client
 
-  if (usesWasmRuntime) {
-    // The trampoline client points to #main-entry-point (see below).  We use
-    // imports similar to an exports map to ensure correct imports.❗ Before
-    // going GA, please notify @millsp as some things can be cleaned up:
-    // - defaultClient can be deleted since trampolineTsClient will replace it.
-    //   - Special handling of . paths in TSClient.ts can also be removed.
-    // - The main @prisma/client exports map can be simplified:
-    //   - Everything can point to `default.js`, including browser fields.
-    //   - Exports map's `.` entry can be made like the others (e.g. `./edge`).
-    // - exportsMapDefault can be deleted as it's only needed for defaultClient:
-    //   - #main-entry-point can handle all the heavy lifting on its own.
-    //   - Always using #main-entry-point is kept for GA (small breaking change).
-    //   - exportsMapDefault can be inlined down below and MUST be removed elsewhere.
-    // In short: A lot can be simplified, but can only happen in GA & P6.
-    fileMap['default.js'] = JS(trampolineTsClient)
-    fileMap['default.d.ts'] = TS(trampolineTsClient)
-    if (usesClientEngine) {
-      fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
-      fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
-    } else {
-      fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
-      fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
-    }
-
-    pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
-    pkgJson['imports'] = {
-      // when `import('#wasm-engine-loader')` or `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
-      [usesClientEngine ? '#wasm-compiler-loader' : '#wasm-engine-loader']: {
-        // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
-
-        /**
-         * Vercel Edge Functions / Next.js Middlewares
-         */
-        'edge-light': './wasm-edge-light-loader.mjs',
-
-        /**
-         * Cloudflare Workers, Cloudflare Pages
-         */
-        workerd: './wasm-worker-loader.mjs',
-
-        /**
-         * (Old) Cloudflare Workers
-         * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
-         */
-        worker: './wasm-worker-loader.mjs',
-
-        /**
-         * Fallback for every other JavaScript runtime
-         */
-        default: './wasm-worker-loader.mjs',
-      },
-      // when `require('#main-entry-point')` is called, it will be resolved to the correct file
-      '#main-entry-point': exportsMapDefault,
-    }
-
-    const wasmClient = new TSClient({
-      ...baseClientOptions,
-      runtimeNameJs: usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge',
-      runtimeNameTs: 'library.js',
-      reusedTs: 'default',
-      edge: true,
-      wasm: true,
-    })
-
-    fileMap['wasm.js'] = JS(wasmClient)
-    fileMap['wasm.d.ts'] = TS(wasmClient)
+  // The trampoline client points to #main-entry-point (see below).  We use
+  // imports similar to an exports map to ensure correct imports.❗ Before
+  // going GA, please notify @millsp as some things can be cleaned up:
+  // - defaultClient can be deleted since trampolineTsClient will replace it.
+  //   - Special handling of . paths in TSClient.ts can also be removed.
+  // - The main @prisma/client exports map can be simplified:
+  //   - Everything can point to `default.js`, including browser fields.
+  //   - Exports map's `.` entry can be made like the others (e.g. `./edge`).
+  // - exportsMapDefault can be deleted as it's only needed for defaultClient:
+  //   - #main-entry-point can handle all the heavy lifting on its own.
+  //   - Always using #main-entry-point is kept for GA (small breaking change).
+  //   - exportsMapDefault can be inlined down below and MUST be removed elsewhere.
+  // In short: A lot can be simplified, but can only happen in GA & P6.
+  fileMap['default.js'] = JS(trampolineTsClient)
+  fileMap['default.d.ts'] = TS(trampolineTsClient)
+  if (usesClientEngine) {
+    fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
+    fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
   } else {
-    fileMap['wasm.js'] = fileMap['index-browser.js']
-    fileMap['wasm.d.ts'] = fileMap['default.d.ts']
+    fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
+    fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
   }
 
+  pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
+  pkgJson['imports'] = {
+    // when `import('#wasm-engine-loader')` or `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
+    [usesClientEngine ? '#wasm-compiler-loader' : '#wasm-engine-loader']: {
+      // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
+
+      /**
+       * Vercel Edge Functions / Next.js Middlewares
+       */
+      'edge-light': './wasm-edge-light-loader.mjs',
+
+      /**
+       * Cloudflare Workers, Cloudflare Pages
+       */
+      workerd: './wasm-worker-loader.mjs',
+
+      /**
+       * (Old) Cloudflare Workers
+       * @millsp It's a fallback, in case both other keys didn't work because we could be on a different edge platform. It's a hypothetical case rather than anything actually tested.
+       */
+      worker: './wasm-worker-loader.mjs',
+
+      /**
+       * Fallback for every other JavaScript runtime
+       */
+      default: './wasm-worker-loader.mjs',
+    },
+    // when `require('#main-entry-point')` is called, it will be resolved to the correct file
+    '#main-entry-point': exportsMapDefault,
+  }
+
+  const wasmClient = new TSClient({
+    ...baseClientOptions,
+    runtimeNameJs: usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge',
+    runtimeNameTs: 'library.js',
+    reusedTs: 'default',
+    edge: true,
+    wasm: true,
+  })
+
+  fileMap['wasm.js'] = JS(wasmClient)
+  fileMap['wasm.d.ts'] = TS(wasmClient)
+
   if (typedSql && typedSql.length > 0) {
-    const edgeRuntimeName = usesWasmRuntime ? (usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge') : 'edge'
+    const edgeRuntimeName = usesClientEngine ? 'wasm-compiler-edge' : 'edge'
     const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
     const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
     pkgJson.exports['./sql'] = {
@@ -396,10 +390,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const clientEngineType = getClientEngineType(generator)
 
-  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
-    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
-  }
-
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -490,8 +480,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
-  const runtimeNeedsWasmEngine =
-    clientEngineType === ClientEngineType.Client || (generator.previewFeatures.includes('driverAdapters') && copyEngine)
+  const runtimeNeedsWasmEngine = clientEngineType === ClientEngineType.Client || copyEngine
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (runtimeNeedsWasmEngine && isWasmEngineSupported(provider) && !testMode) {

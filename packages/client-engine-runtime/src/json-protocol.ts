@@ -52,6 +52,11 @@ export function normalizeJsonProtocolValues(result: unknown): unknown {
       return normalizeTaggedValue(result)
     }
 
+    if (ArrayBuffer.isView(result)) {
+      const buffer = Buffer.from(result.buffer, result.byteOffset, result.byteLength)
+      return buffer.toString('base64')
+    }
+
     // avoid mapping class instances
     if (result.constructor !== null && result.constructor.name !== 'Object') {
       return result
