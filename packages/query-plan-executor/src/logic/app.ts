@@ -86,7 +86,7 @@ export class App {
         placeholderValues,
         tracingHelper: this.#tracingHandler,
         transactionManager:
-          transactionId !== null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
+          transactionId === null ? { enabled: true, manager: this.#transactionManager } : { enabled: false },
         onQuery: logQuery,
       })
 
