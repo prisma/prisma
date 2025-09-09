@@ -3,13 +3,11 @@
 
 generator client1 {
   provider        = "prisma-client-js"
-  previewFeatures = ["queryCompiler"]
   engineType      = "client"
 }
 
 generator client2 {
   provider        = "prisma-client-js"
-  previewFeatures = ["queryCompiler"]
   engineType      = "client"
   output          = "../generated/prisma"
 }

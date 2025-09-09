@@ -213,10 +213,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const clientEngineType = getClientEngineType(generator)
 
-  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
-    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
-  }
-
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = buildClient({

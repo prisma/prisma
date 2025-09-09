@@ -211,12 +211,6 @@ export function getTestSuiteSchema({
     schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
-  // update the generator block to use the correct generator type
-  if (defaultGeneratorMatch !== null && matrixOptions.generatorType !== undefined) {
-    const replacement = `provider = "${matrixOptions.generatorType}"`
-    schema = schema.replace(defaultGeneratorMatch[0], replacement)
-  }
-
   // if an engine type is specified, append it to the default generator block
   if (engineType !== undefined && defaultGeneratorMatch !== null) {
     const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
@@ -230,6 +224,12 @@ export function getTestSuiteSchema({
     if (prismaRelationModeMatch === null) {
       schema = schema.replace(providerMatch[0], replacement)
     }
+  }
+
+  // update the generator block to use the correct generator type
+  if (defaultGeneratorMatch !== null && matrixOptions.generatorType !== undefined) {
+    const replacement = `provider = "${matrixOptions.generatorType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
   return schema
