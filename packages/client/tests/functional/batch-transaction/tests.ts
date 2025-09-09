@@ -1,6 +1,5 @@
 import { faker } from '@faker-js/faker'
 
-import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
@@ -66,14 +65,6 @@ testMatrix.setupTestSuite(
     skipDriverAdapter: {
       from: ['js_d1'],
       reason: 'D1 does not support transactions',
-    },
-    skip(when, { clientEngineExecutor, provider }) {
-      when(
-        clientEngineExecutor === 'remote' && provider === Providers.MYSQL,
-        `
-        Tracked in https://linear.app/prisma-company/issue/ORM-1415/interactive-transaction-tests-fail-with-mysqlqcaccelerate
-        `,
-      )
     },
   },
 )
