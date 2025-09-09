@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "exclude": ["_steps.ts"],
+  "compilerOptions": {
+    "lib": ["es2021", "dom"],
+    "types": ["@types/jest"],
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "files": ["tests/main.ts"]
+}
