@@ -827,5 +827,13 @@ testMatrix.setupTestSuite(
         'js_d1: iTx are not possible. There is no Transaction API for D1 yet: https://github.com/cloudflare/workers-sdk/issues/2733; ' +
         'js_libsql: SIGABRT crash occurs on having the first transaction with at least two create statements, panic inside `statement.rs` inside libsql',
     },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        Tracked in https://linear.app/prisma-company/issue/ORM-1415/interactive-transaction-tests-fail-with-mysqlqcaccelerate
+        `,
+      )
+    },
   },
 )

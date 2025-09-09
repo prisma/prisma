@@ -105,5 +105,14 @@ testMatrix.setupTestSuite(
       from: ['binary'],
       reason: 'TODO: fails with timeout on CI: https://github.com/prisma/team-orm/issues/636',
     },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        Since the test URL is not a prisma:// URL, the test fails due to a
+        missing driver adapter instead of the expected error.
+        `,
+      )
+    },
   },
 )

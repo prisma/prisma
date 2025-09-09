@@ -65,5 +65,13 @@ testMatrix.setupTestSuite(
       from: [AdapterProviders.JS_LIBSQL],
       reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: array)', // TODO: ORM-867
     },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        Tracked in https://linear.app/prisma-company/issue/ORM-1394/investigate-failing-regression-test-for-gh-15044
+        `,
+      )
+    },
   },
 )
