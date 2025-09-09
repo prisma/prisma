@@ -34,7 +34,7 @@ export function checkPlatformCaching({ postinstall, ciName, clientVersion, gener
   if (postinstall !== true) return
 
   // check if a custom output directory is used
-  if (generator && generator.output) {
+  if (generator?.output) {
     const output = generator.output.fromEnvVar ?? generator.output.value
 
     if (typeof output === 'string') {
