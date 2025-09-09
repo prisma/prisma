@@ -69,6 +69,7 @@ testMatrix.setupTestSuite(
       test('throws when both `datasourceUrl` and `adapter` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
+            // @ts-test-if: provider !== Providers.MONGODB
             adapter,
             datasourceUrl: dbURL,
           })
@@ -80,6 +81,7 @@ testMatrix.setupTestSuite(
       test('throws when both `datasources` and `adapter` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
+            // @ts-test-if: provider !== Providers.MONGODB
             adapter,
             datasources: {
               db: { url: dbURL },
