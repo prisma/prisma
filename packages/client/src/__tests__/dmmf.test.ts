@@ -1,5 +1,6 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getDMMF } from '@prisma/internals'
-import stripAnsi from 'strip-ansi'
 
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {
@@ -394,7 +395,7 @@ describe('dmmf', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+      expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(`
         "Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.

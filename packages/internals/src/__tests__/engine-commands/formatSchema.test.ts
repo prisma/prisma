@@ -1,6 +1,7 @@
+import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
+
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { getSchemaWithPath } from '../../cli/getSchema'
 import { formatSchema } from '../../engine-commands'
@@ -186,7 +187,7 @@ describe('format', () => {
     expect(formattedContent[0]).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warning:
       - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature."
@@ -219,7 +220,7 @@ describe('format', () => {
     expect(formattedContent[0]).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+    expect(stripVTControlCharacters(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warnings:
       - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.

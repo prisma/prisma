@@ -23,7 +23,6 @@
     "@types/pg": "../../packages/adapter-pg/node_modules/@types/pg",
     "prisma": "../../packages/cli",
     "ts-node": "*",
-    "tsx": "*",
     "typescript": "*"
   }
 }

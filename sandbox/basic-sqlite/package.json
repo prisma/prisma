@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/node": "18.19.76",
     "prisma": "../../packages/cli",
-    "ts-node": "10.9.1",
+    "ts-node": "10.9.2",
     "typescript": "5.2.2"
   }
 }

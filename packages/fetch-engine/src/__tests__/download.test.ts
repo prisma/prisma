@@ -1,11 +1,12 @@
+import fs from 'node:fs'
+import { stripVTControlCharacters } from 'node:util'
+
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
-import fs from 'fs'
 import type { Response } from 'node-fetch'
 import { default as _mockFetch } from 'node-fetch'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 import timeoutSignal from 'timeout-signal'
 
 import { BinaryType } from '../BinaryType'
@@ -597,7 +598,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
             'query-engine': baseDirBinaryTarget,
           },
           version: CURRENT_ENGINES_HASH,
-          binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+          binaryTargets: ['darwin', 'marvin'] as any,
         }),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
         `"Unknown binaryTarget marvin and no custom engine files were provided"`,
@@ -613,10 +614,10 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
             'query-engine': baseDirBinaryTarget,
           },
           version: CURRENT_ENGINES_HASH,
-          binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+          binaryTargets: ['darwin', 'marvin'] as any,
         })
       } catch (err: any) {
-        expect(stripAnsi(err.message)).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(err.message)).toMatchInlineSnapshot(
           `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
         )
       }
@@ -643,7 +644,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           'query-engine': baseDirBinaryTarget,
         },
         version: CURRENT_ENGINES_HASH,
-        binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        binaryTargets: ['marvin'] as any,
       })
       expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
     })

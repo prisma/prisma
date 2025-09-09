@@ -106,13 +106,19 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider, driverAdapter, relationMode, engineType, clientRuntime }, _suiteMeta, clientMeta) => {
+  (
+    { provider, driverAdapter, relationMode, engineType, clientRuntime, clientEngineExecutor },
+    _suiteMeta,
+    clientMeta,
+  ) => {
     const isMongoDb = provider === Providers.MONGODB
     const isMySql = provider === Providers.MYSQL
     const isSqlServer = provider === Providers.SQLSERVER
+    const usesJsDrivers = driverAdapter !== undefined || clientEngineExecutor === 'remote'
 
     const usesSyntheticTxQueries =
-      driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)
+      (driverAdapter !== undefined && ['js_d1', 'js_libsql', 'js_planetscale', 'js_mssql'].includes(driverAdapter)) ||
+      (clientEngineExecutor === 'remote' && provider === Providers.SQLSERVER)
 
     beforeEach(async () => {
       await prisma.$connect()
@@ -263,6 +269,23 @@ testMatrix.setupTestSuite(
       ]
     }
 
+    function clientCompile(action: string, model?: string) {
+      return clientCompileBatch([action], model ? [model] : [])
+    }
+
+    function clientCompileBatch(actions: string[], models: string[]) {
+      if (engineType !== ClientEngineType.Client) {
+        return []
+      }
+
+      return [
+        {
+          name: 'prisma:client:compile',
+          attributes: { actions, models },
+        },
+      ]
+    }
+
     function clientSerialize() {
       return { name: 'prisma:client:serialize' }
     }
@@ -364,10 +387,10 @@ testMatrix.setupTestSuite(
 
       const dbQueries: Tree[] = []
       if (tx) {
-        if (isSqlServer && driverAdapter === undefined) {
+        if (isSqlServer && !usesJsDrivers) {
           dbQueries.push(txSetIsolationLevel())
         }
-        if (driverAdapter === undefined) {
+        if (!usesJsDrivers) {
           // Driver adapters do not issue BEGIN through the query engine.
           dbQueries.push(txBegin())
         }
@@ -399,9 +422,9 @@ testMatrix.setupTestSuite(
       if (operation === 'start') {
         children = isMongoDb
           ? engineConnection()
-          : isSqlServer && driverAdapter === undefined
+          : isSqlServer && !usesJsDrivers
             ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
-            : driverAdapter === undefined
+            : !usesJsDrivers
               ? [...engineConnection(), txBegin()]
               : engineType === ClientEngineType.Client
                 ? undefined
@@ -430,6 +453,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'create', [
+            ...clientCompile('createOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
@@ -445,6 +469,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'findMany', [
+            ...clientCompile('findMany', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
           ]),
@@ -481,11 +506,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('UPDATE'), AdapterQueryChildSpans.ArgsOnly),
             dbQuery(expect.stringContaining('SELECT')),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -498,6 +523,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'update', [
+            ...clientCompile('updateOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -520,11 +546,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -538,6 +564,7 @@ testMatrix.setupTestSuite(
         }
         await waitForSpanTree(
           operation('User', 'delete', [
+            ...clientCompile('deleteOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -568,11 +595,11 @@ testMatrix.setupTestSuite(
             dbQuery(expect.stringContaining('SELECT')),
             dbQuery(expect.stringContaining('DELETE'), AdapterQueryChildSpans.ArgsOnly),
           ]
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
           if (engineType === ClientEngineType.Client) {
@@ -587,6 +614,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'deleteMany', [
+            ...clientCompile('deleteMany', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
           ]),
@@ -602,6 +630,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'count', [
+            ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -626,6 +655,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation('User', 'aggregate', [
+            ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -668,11 +698,11 @@ testMatrix.setupTestSuite(
           } else {
             expectedDbQueries.push(txCommit())
           }
-          if (driverAdapter === undefined) {
+          if (!usesJsDrivers) {
             // Driver adapters do not issue BEGIN through the query engine.
             expectedDbQueries.unshift(txBegin())
           }
-          if (isSqlServer && driverAdapter === undefined) {
+          if (isSqlServer && !usesJsDrivers) {
             expectedDbQueries.unshift(txSetIsolationLevel())
           }
         }
@@ -684,6 +714,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompileBatch(['createOne', 'findMany'], ['User', 'User']),
               clientSerialize(),
               ...engine([
                 ...engineConnection(),
@@ -721,6 +752,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompile('createOne', 'User'),
               clientSerialize(),
               ...engine([
                 ...createDbQueries(false),
@@ -729,6 +761,7 @@ testMatrix.setupTestSuite(
               ]),
             ]),
             operation('User', 'findMany', [
+              ...clientCompile('findMany', 'User'),
               clientSerialize(),
               ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
@@ -764,6 +797,7 @@ testMatrix.setupTestSuite(
           },
           children: [
             operation('User', 'create', [
+              ...clientCompile('createOne', 'User'),
               clientSerialize(),
               ...engine([
                 ...createDbQueries(false),
@@ -772,6 +806,7 @@ testMatrix.setupTestSuite(
               ]),
             ]),
             operation('User', 'findMany', [
+              ...clientCompile('findMany', 'User'),
               clientSerialize(),
               ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
             ]),
@@ -788,6 +823,7 @@ testMatrix.setupTestSuite(
         await prisma.$queryRaw`SELECT 1 + 1;`
         await waitForSpanTree(
           operation(undefined, 'queryRaw', [
+            ...clientCompile('queryRaw'),
             clientSerialize(),
             ...engine([...engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
           ]),
@@ -805,6 +841,7 @@ testMatrix.setupTestSuite(
 
         await waitForSpanTree(
           operation(undefined, 'executeRaw', [
+            ...clientCompile('executeRaw'),
             clientSerialize(),
             ...engine([
               ...engineConnection(),
@@ -836,6 +873,7 @@ testMatrix.setupTestSuite(
         name: 'create-user',
         children: [
           operation('User', 'create', [
+            ...clientCompile('createOne', 'User'),
             clientSerialize(),
             ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
           ]),
@@ -868,6 +906,7 @@ testMatrix.setupTestSuite(
           ...detectPlatform(),
           ...loadEngine(),
           operation('User', 'findMany', [
+            ...clientCompile('findMany', 'User'),
             {
               name: 'prisma:client:connect',
               children: engineConnect(),
@@ -916,10 +955,21 @@ testMatrix.setupTestSuite(
   },
   {
     skipDriverAdapter: {
-      from: [AdapterProviders.JS_D1, AdapterProviders.JS_LIBSQL],
+      from: [AdapterProviders.JS_D1],
       reason:
-        'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659 ; ' +
-        'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867
+        'js_d1: Errors with D1_ERROR: A prepared SQL statement must contain only one statement. See https://github.com/prisma/team-orm/issues/880  https://github.com/cloudflare/workers-sdk/issues/3892#issuecomment-1912102659',
+    },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        We are not receiving the server spans in this test, although they do
+        seem to look fine from the manual look at the server response.
+        Either there's a bug in RemoteExecutor, or in the tracing setup for
+        QPE in tests.
+        Tracked in https://linear.app/prisma-company/issue/ORM-1395/fix-missing-spans-in-tracing-tests-with-qcaccelerate
+        `,
+      )
     },
   },
 )

@@ -28,7 +28,7 @@
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/engines-version": "6.15.0-5.85179d7826409ee107a6ba334b5e305ae3fba9fb",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -39,15 +39,14 @@
     "get-tsconfig": "4.10.0",
     "indent-string": "4.0.0",
     "klona": "2.0.6",
-    "pkg-up": "3.1.0",
+    "package-up": "5.0.0",
     "pluralize": "8.0.0",
     "std-env": "3.9.0",
     "ts-pattern": "5.6.2"
   },
   "devDependencies": {
     "@types/pluralize": "0.0.33",
-    "strip-ansi": "7.1.0",
-    "vitest": "3.0.9"
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

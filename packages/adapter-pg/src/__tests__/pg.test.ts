@@ -1,27 +1,8 @@
 import { getLogs } from '@prisma/debug'
-import EventEmitter from 'events'
 import pg, { DatabaseError } from 'pg'
+import { describe, expect, it, vi } from 'vitest'
 
 import { PrismaPgAdapterFactory } from '../pg'
-
-jest.mock('pg', () => {
-  class MockPool extends EventEmitter {
-    end = jest.fn(() => {})
-    listenerCount(event: string | symbol): number {
-      return super.listenerCount(event)
-    }
-    on(event: string | symbol, listener: (...args: any[]) => void): this {
-      return super.on(event, listener)
-    }
-    emit(event: string | symbol, ...args: any[]): boolean {
-      return super.emit(event, ...args)
-    }
-  }
-  return {
-    ...jest.requireActual('pg'),
-    Pool: MockPool,
-  }
-})
 
 describe('PrismaPgAdapterFactory', () => {
   it('should subscribe to pool error events', async () => {
@@ -44,7 +25,7 @@ describe('PrismaPgAdapterFactory', () => {
 
   it('should call onPoolError when supplied', async () => {
     const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
-    const onPoolError = jest.fn()
+    const onPoolError = vi.fn()
     const factory = new PrismaPgAdapterFactory(config, { onPoolError })
     const adapter = await factory.connect()
     const error = new Error('Pool error')
@@ -64,5 +45,57 @@ describe('PrismaPgAdapterFactory', () => {
     await adapter.dispose()
     expect(pool.listenerCount('error')).toEqual(1)
     await pool.end()
+  })
+
+  it('should remove connection error listener after transaction commit', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const factory = new PrismaPgAdapterFactory(config)
+    const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const transaction = await adapter.startTransaction()
+    expect(mockConnection.listenerCount('error')).toEqual(1)
+
+    mockConnection.listenerCount.mockReturnValue(0)
+    await transaction.commit()
+    expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
+    expect(mockConnection.listenerCount('error')).toEqual(0)
+
+    await adapter.dispose()
+  })
+
+  it('should remove connection error listener after transaction rollback', async () => {
+    const config: pg.PoolConfig = { user: 'test', password: 'test', database: 'test', port: 5432, host: 'localhost' }
+    const factory = new PrismaPgAdapterFactory(config)
+    const adapter = await factory.connect()
+
+    const mockConnection = {
+      on: vi.fn(),
+      removeListener: vi.fn(),
+      query: vi.fn().mockResolvedValue({ rows: [], rowCount: 0 }),
+      release: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(1),
+    }
+
+    adapter['client'].connect = vi.fn().mockResolvedValue(mockConnection)
+
+    const transaction = await adapter.startTransaction()
+    expect(mockConnection.listenerCount('error')).toEqual(1)
+
+    mockConnection.listenerCount.mockReturnValue(0)
+    await transaction.rollback()
+    expect(mockConnection.removeListener).toHaveBeenCalledWith('error', expect.any(Function))
+    expect(mockConnection.listenerCount('error')).toEqual(0)
+
+    await adapter.dispose()
   })
 })

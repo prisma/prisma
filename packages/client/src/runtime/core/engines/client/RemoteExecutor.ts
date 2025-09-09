@@ -118,6 +118,10 @@ export class RemoteExecutor implements Executor {
     return Promise.resolve()
   }
 
+  apiKey(): string | null {
+    return this.#headerBuilder.apiKey
+  }
+
   async #request({
     path,
     method,
@@ -231,7 +235,7 @@ export class RemoteExecutor implements Executor {
         this.#logEmitter.emit(event.level, {
           timestamp: dateFromEngineTimestamp(event.timestamp),
           message: event.attributes.message ?? '',
-          target: event.target,
+          target: event.target ?? 'RemoteExecutor',
         })
         break
       }
@@ -242,7 +246,7 @@ export class RemoteExecutor implements Executor {
           timestamp: dateFromEngineTimestamp(event.timestamp),
           duration: event.attributes.duration_ms ?? 0,
           params: event.attributes.params ?? '',
-          target: event.target,
+          target: event.target ?? 'RemoteExecutor',
         })
 
         break

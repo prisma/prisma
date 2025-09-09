@@ -35,7 +35,12 @@ beforeAll(() => {
   registerInstrumentations({
     instrumentations: [
       new PrismaInstrumentation({
-        ignoreSpanTypes: ['prisma:engine:connection', /prisma:client:operat.*/, 'prisma:client:db_query'],
+        ignoreSpanTypes: [
+          'prisma:engine:connection',
+          /prisma:client:operat.*/,
+          'prisma:client:compile',
+          'prisma:client:db_query',
+        ],
       }),
     ],
   })
@@ -65,6 +70,7 @@ testMatrix.setupTestSuite(
         'prisma:engine:connect',
         'prisma:client:connect',
         'prisma:client:serialize',
+        // 'prisma:engine:compile',                     <-- Filtered out individually
         // 'prisma:engine:connection',                  <-- Child span of filtered out parent span 'prisma:engine:query'
         // 'prisma:engine:db_query',                    <-- Child span of filtered out parent span 'prisma:engine:query'
         // 'prisma:engine:serialize',                   <-- Child span of filtered out parent span 'prisma:engine:query'

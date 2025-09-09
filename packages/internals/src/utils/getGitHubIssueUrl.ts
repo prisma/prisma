@@ -1,10 +1,11 @@
+import { stripVTControlCharacters } from 'node:util'
+
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import isWindows from 'is-windows'
 import isWSL from 'is-wsl'
 import newGitHubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
-import stripAnsi from 'strip-ansi'
 import { match } from 'ts-pattern'
 
 export function getGitHubIssueUrl({
@@ -89,7 +90,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
 }
 
 const issueTemplate = (platform: string, options: IssueOptions) => {
-  return stripAnsi(`
+  return stripVTControlCharacters(`
 Hi Prisma Team! The following command just crashed.
 ${options.reportId ? `The report Id is: ${options.reportId}` : ''}
 

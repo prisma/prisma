@@ -1,3 +1,5 @@
+import type { GeneratorConfig } from '@prisma/generator'
+
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 import { checkPlatformCaching } from './checkPlatformCaching'
 
@@ -26,6 +28,52 @@ test('generated via postinstall on vercel', () => {
 
 test('generated on vercel', () => {
   expect(() => checkPlatformCaching({ postinstall: false, ciName: 'Vercel', clientVersion: '0.0.0' })).not.toThrow()
+
+  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`undefined`)
+})
+
+test('generated on vercel with `prisma-client-js` + custom output', () => {
+  const generator = {
+    provider: {
+      value: 'prisma-client-js',
+      fromEnvVar: null,
+    },
+    output: {
+      value: './custom-output',
+      fromEnvVar: null,
+    },
+    name: 'prisma-client-js',
+    previewFeatures: [],
+    binaryTargets: [],
+    config: {},
+    sourceFilePath: '',
+  } satisfies GeneratorConfig
+  expect(() =>
+    checkPlatformCaching({ postinstall: false, ciName: 'Vercel', clientVersion: '0.0.0', generator }),
+  ).not.toThrow()
+
+  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`undefined`)
+})
+
+test('generated on vercel with `prisma-client` + custom output', () => {
+  const generator = {
+    provider: {
+      value: 'prisma-client',
+      fromEnvVar: null,
+    },
+    output: {
+      value: './custom-output',
+      fromEnvVar: null,
+    },
+    name: 'prisma-client',
+    previewFeatures: [],
+    binaryTargets: [],
+    config: {},
+    sourceFilePath: '',
+  } satisfies GeneratorConfig
+  expect(() =>
+    checkPlatformCaching({ postinstall: false, ciName: 'Vercel', clientVersion: '0.0.0', generator }),
+  ).not.toThrow()
 
   expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`undefined`)
 })

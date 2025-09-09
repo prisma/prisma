@@ -7,7 +7,7 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import { AdapterProviders, GeneratorTypes, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, ClientRuntime, CliMeta } from './types'
+import { ClientEngineExecutor, ClientMeta, ClientRuntime, CliMeta } from './types'
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
@@ -20,6 +20,7 @@ export type NamedTestSuiteConfig = {
     engineType?: `${ClientEngineType}`
     clientRuntime?: `${ClientRuntime}`
     previewFeatures?: string[]
+    clientEngineExecutor?: ClientEngineExecutor
   }
 }
 
@@ -38,10 +39,14 @@ const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
  * @returns
  */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
-  let name = ``
+  let name = `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-  name += ` (${suiteConfig.parametersString})`
+  let parametersString = suiteConfig.parametersString
+  if (suiteConfig.matrixOptions.clientEngineExecutor === 'remote') {
+    parametersString += ', qpe=remote'
+  }
+
+  name += ` (${parametersString})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
@@ -206,12 +211,6 @@ export function getTestSuiteSchema({
     schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
-  // update the generator block to use the correct generator type
-  if (defaultGeneratorMatch !== null && matrixOptions.generatorType !== undefined) {
-    const replacement = `provider = "${matrixOptions.generatorType}"`
-    schema = schema.replace(defaultGeneratorMatch[0], replacement)
-  }
-
   // if an engine type is specified, append it to the default generator block
   if (engineType !== undefined && defaultGeneratorMatch !== null) {
     const replacement = `${defaultGeneratorMatch[0]}\nengineType = "${engineType}"`
@@ -225,6 +224,12 @@ export function getTestSuiteSchema({
     if (prismaRelationModeMatch === null) {
       schema = schema.replace(providerMatch[0], replacement)
     }
+  }
+
+  // update the generator block to use the correct generator type
+  if (defaultGeneratorMatch !== null && matrixOptions.generatorType !== undefined) {
+    const replacement = `provider = "${matrixOptions.generatorType}"`
+    schema = schema.replace(defaultGeneratorMatch[0], replacement)
   }
 
   return schema
@@ -279,6 +284,7 @@ export function getTestSuiteCliMeta(): CliMeta {
   const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
   const generatorType = process.env.TEST_GENERATOR_TYPE as GeneratorTypes | undefined
+  const clientEngineExecutor = process.env.TEST_CLIENT_ENGINE_REMOTE_EXECUTOR ? 'remote' : 'local'
 
   return {
     dataProxy,
@@ -286,6 +292,7 @@ export function getTestSuiteCliMeta(): CliMeta {
     engineType: engineType ?? ClientEngineType.Library,
     previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
     generatorType,
+    clientEngineExecutor,
   }
 }
 

@@ -1,7 +1,10 @@
 generator client {
-  provider        = "prisma-client"
-  previewFeatures = ["typedSql", "queryCompiler", "driverAdapters"]
-  output          = "../src/generated/prisma"
+  provider            = "prisma-client"
+  engineType          = "client"
+  previewFeatures     = ["typedSql"]
+  output              = "../src/generated/prisma"
+  moduleFormat        = "commonjs"
+  importFileExtension = ""
 }
 
 datasource db {

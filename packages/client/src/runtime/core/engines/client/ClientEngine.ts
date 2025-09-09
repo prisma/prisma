@@ -104,14 +104,6 @@ export class ClientEngine implements Engine {
   #emitQueryEvent?: (event: QueryEvent) => void
 
   constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (!config.previewFeatures?.includes('driverAdapters') && !remote) {
-      throw new PrismaClientInitializationError(
-        'EngineType `client` requires the driverAdapters preview feature to be enabled.',
-        config.clientVersion,
-        CLIENT_ENGINE_ERROR,
-      )
-    }
-
     if (remote) {
       this.#executorKind = { remote: true }
     } else if (config.adapter) {
@@ -461,7 +453,12 @@ export class ClientEngine implements Engine {
 
     let queryPlan: QueryPlanNode
     try {
-      queryPlan = this.#withLocalPanicHandler(() => queryCompiler.compile(queryStr), queryStr) as QueryPlanNode
+      queryPlan = this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries: [query],
+          execute: () => queryCompiler.compile(queryStr) as QueryPlanNode,
+        }),
+      )
     } catch (error) {
       throw this.#transformCompileError(error)
     }
@@ -506,7 +503,12 @@ export class ClientEngine implements Engine {
 
     let batchResponse: BatchResponse
     try {
-      batchResponse = queryCompiler.compileBatch(request)
+      batchResponse = this.#withLocalPanicHandler(() =>
+        this.#withCompileSpan({
+          queries,
+          execute: () => queryCompiler.compileBatch(request),
+        }),
+      )
     } catch (err) {
       throw this.#transformCompileError(err)
     }
@@ -590,6 +592,14 @@ export class ClientEngine implements Engine {
     throw new Error('Method not implemented.')
   }
 
+  /**
+   * Used by `@prisma/extension-accelerate`
+   */
+  async apiKey(): Promise<string | null> {
+    const { executor } = await this.#ensureStarted()
+    return executor.apiKey()
+  }
+
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {
     switch (clientIsolationLevel) {
       case undefined:
@@ -618,6 +628,19 @@ export class ClientEngine implements Engine {
           },
         )
     }
+  }
+
+  #withCompileSpan<T>({ queries, execute }: { queries: JsonQuery[]; execute: () => T }): T {
+    return this.tracingHelper.runInChildSpan(
+      {
+        name: 'compile',
+        attributes: {
+          models: queries.map((q) => q.modelName).filter((m) => m !== undefined),
+          actions: queries.map((q) => q.action),
+        },
+      },
+      execute,
+    )
   }
 }
 

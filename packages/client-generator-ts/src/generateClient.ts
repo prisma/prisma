@@ -15,7 +15,7 @@ import {
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
-import pkgUp from 'pkg-up'
+import { packageUp } from 'package-up'
 import type { O } from 'ts-toolbelt'
 
 import {
@@ -213,10 +213,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const clientEngineType = getClientEngineType(generator)
 
-  if (clientEngineType === ClientEngineType.Client && !generator.previewFeatures.includes('queryCompiler')) {
-    throw new Error('`engineType = "client"` requires enabling the `queryCompiler` preview feature')
-  }
-
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = buildClient({
@@ -398,7 +394,7 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
   const normalizedOutputDir = path.normalize(outputDir)
   const normalizedRuntimeBase = pathToPosix(runtimeBase)
 
-  const userPackageRoot = await pkgUp({ cwd: path.dirname(normalizedOutputDir) })
+  const userPackageRoot = await packageUp({ cwd: path.dirname(normalizedOutputDir) })
   const userProjectRoot = userPackageRoot ? path.dirname(userPackageRoot) : process.cwd()
 
   return {

@@ -18,11 +18,11 @@
     "@types/node": "18.19.76",
     "execa": "5.1.1",
     "typescript": "5.4.5",
-    "vitest": "3.2.0"
+    "vitest": "3.2.4"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.15.0-5.85179d7826409ee107a6ba334b5e305ae3fba9fb",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*"
   },

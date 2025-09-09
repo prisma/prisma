@@ -1,6 +1,6 @@
 import fs from 'fs'
 import Module from 'module'
-import pkgUp from 'pkg-up'
+import { packageUp } from 'package-up'
 
 /**
  * Try reading the installed Prisma Client version
@@ -38,7 +38,7 @@ async function getPrismaClientVersionFromNodeModules(cwd: string = process.cwd()
  */
 async function getPrismaClientVersionFromLocalPackageJson(cwd: string = process.cwd()): Promise<string | null> {
   try {
-    const pkgJsonPath = await pkgUp({ cwd })
+    const pkgJsonPath = await packageUp({ cwd })
 
     if (!pkgJsonPath) {
       return null

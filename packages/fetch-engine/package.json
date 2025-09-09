@@ -35,7 +35,6 @@
     "p-retry": "4.6.2",
     "progress": "2.0.3",
     "rimraf": "6.0.1",
-    "strip-ansi": "6.0.1",
     "temp-dir": "2.0.0",
     "tempy": "1.0.1",
     "timeout-signal": "2.0.0",
@@ -43,7 +42,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.15.0-5.85179d7826409ee107a6ba334b5e305ae3fba9fb",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

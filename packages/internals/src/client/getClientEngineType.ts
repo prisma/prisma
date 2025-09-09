@@ -16,7 +16,7 @@ export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEn
   } else if (generatorConfig?.config.engineType === ClientEngineType.Client) {
     return ClientEngineType.Client
   } else {
-    return getDefaultEngineType(generatorConfig)
+    return getDefaultEngineType()
   }
 }
 
@@ -33,9 +33,6 @@ function getEngineTypeFromEnvVar() {
   }
 }
 
-function getDefaultEngineType(generatorConfig?: GeneratorConfig): ClientEngineType {
-  if (generatorConfig?.previewFeatures.includes('queryCompiler')) {
-    return ClientEngineType.Client
-  }
+function getDefaultEngineType(): ClientEngineType {
   return ClientEngineType.Library
 }
