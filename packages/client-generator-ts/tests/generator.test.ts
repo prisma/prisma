@@ -305,4 +305,96 @@ describe('generator', () => {
     expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
     generator.stop()
   })
+
+  test('workerd - issue prisma#28073', async () => {
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'workerd.prisma'),
+      printDownloadProgress: false,
+      skipDownload: true,
+      registry,
+    })
+
+    const manifest = omit(generator.manifest!, ['version'])
+
+    if (manifest.requiresEngineVersion?.length !== 40) {
+      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
+    }
+    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
+
+    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
+      expect(manifest).toMatchInlineSnapshot(`
+        {
+          "defaultOutput": "./generated",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [
+            "libqueryEngine",
+          ],
+        }
+      `)
+    } else {
+      expect(manifest).toMatchInlineSnapshot(`
+        {
+          "defaultOutput": "./generated",
+          "prettyName": "Prisma Client",
+          "requiresEngineVersion": "ENGINE_VERSION_TEST",
+          "requiresEngines": [],
+        }
+      `)
+    }
+
+    expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
+      {
+        "binaryTargets": [
+          {
+            "fromEnvVar": null,
+            "native": true,
+            "value": "NATIVE_BINARY_TARGET",
+          },
+        ],
+        "config": {
+          "engineType": "client",
+          "runtime": "workerd",
+        },
+        "isCustomOutput": true,
+        "name": "client",
+        "previewFeatures": [],
+        "provider": {
+          "fromEnvVar": null,
+          "value": "prisma-client-ts",
+        },
+        "sourceFilePath": "/project/workerd.prisma",
+      }
+    `)
+
+    expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+      `"generated"`,
+    )
+
+    await generator.generate()
+    const clientDir = path.join(__dirname, 'generated')
+    expect(fs.existsSync(clientDir)).toBe(true)
+    expect(fs.existsSync(path.join(clientDir, 'client.ts'))).toBe(true)
+    generator.stop()
+
+    function allFiles(dir: string): string[] {
+      let results: string[] = []
+      for (const file of fs.readdirSync(dir)) {
+        const fullPath = path.join(dir, file)
+        if (fs.statSync(fullPath)?.isDirectory()) {
+          results = results.concat(allFiles(fullPath))
+        } else {
+          results.push(fullPath)
+        }
+      }
+      return results
+    }
+
+    // Check if the adapter property has been generated.
+    expect(
+      allFiles(clientDir)
+        .filter((f) => f.endsWith('.ts'))
+        .some((f) => /adapter\?: runtime.SqlDriverAdapterFactory \| null/g.test(fs.readFileSync(f, 'utf8'))),
+    ).toBe(true)
+  })
 })
