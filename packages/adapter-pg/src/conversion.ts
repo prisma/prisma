@@ -435,7 +435,6 @@ export function mapArg<A>(arg: A | Date, argType: ArgType): null | unknown[] | s
   }
 
   if (arg instanceof Date) {
-    console.log('argType.dbType', argType.dbType)
     switch (argType.dbType) {
       case 'TIME':
       case 'TIMETZ':
