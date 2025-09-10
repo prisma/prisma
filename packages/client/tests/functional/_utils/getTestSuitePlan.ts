@@ -195,7 +195,7 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  if (clientEngineExecutor !== cliMeta.clientEngineExecutor) {
+  if (clientEngineExecutor !== undefined && clientEngineExecutor !== cliMeta.clientEngineExecutor) {
     return true
   }
 
