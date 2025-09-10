@@ -103,7 +103,7 @@ export function buildClient({
   // we define the basic options for the client generation
   const clientEngineType = getClientEngineType(generator)
 
-  const runtimeName = getRuntimeNameForTarget(target, clientEngineType, generator.previewFeatures)
+  const runtimeName = getRuntimeNameForTarget(target, clientEngineType)
 
   const outputName = generatedFileNameMapper(generatedFileExtension)
   const importName = importFileNameMapper(importFileExtension)
@@ -404,11 +404,7 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
   }
 }
 
-function getRuntimeNameForTarget(
-  target: RuntimeTargetInternal,
-  engineType: ClientEngineType,
-  previewFeatures: string[],
-): RuntimeName {
+function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: ClientEngineType): RuntimeName {
   switch (target) {
     case 'nodejs':
     case 'deno':
@@ -416,11 +412,7 @@ function getRuntimeNameForTarget(
 
     case 'workerd':
     case 'vercel-edge':
-      if (previewFeatures.includes('driverAdapters')) {
-        return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
-      } else {
-        return 'edge'
-      }
+      return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
 
     case 'react-native':
       return 'react-native'
