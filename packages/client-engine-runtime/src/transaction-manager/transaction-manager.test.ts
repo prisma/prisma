@@ -314,3 +314,27 @@ test('TransactionManagerErrors have common structure', () => {
   expect(error.message).toEqual('Transaction API error: test message')
   expect(error.meta).toEqual({ foo: 'bar' })
 })
+
+test('startTransaction works when setTimeout returns a timer without unref (workerd environment)', async () => {
+  const originalSetTimeout = global.setTimeout
+  const setTimeoutSpy = jest
+    .spyOn(global, 'setTimeout')
+    .mockImplementation((callback: (...args: any[]) => void, ms?: number, ...args: any[]) => {
+      const timer = originalSetTimeout(callback, ms, ...args)
+      // @ts-expect-error
+      timer.unref = undefined
+      return timer
+    })
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: TRANSACTION_OPTIONS,
+    tracingHelper: noopTracingHelper,
+  })
+
+  // This should not throw, even though the timer has no unref
+  const id = await startTransaction(transactionManager)
+  await transactionManager.commitTransaction(id)
+
+  setTimeoutSpy.mockRestore()
+})
