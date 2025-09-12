@@ -16,7 +16,7 @@ import {
 import { StudioServer } from '@prisma/studio-server'
 import getPort, { portNumbers } from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
-import open from 'open'
+import open, { Options as OpenOptions } from 'open'
 import path from 'path'
 
 // Note that we have a test relying on the namespace
@@ -67,7 +67,7 @@ ${bold('Examples')}
 
   Specify a schema
     ${dim('$')} prisma studio --schema=./schema.prisma
-    
+
   Specify a custom prisma config file
     ${dim('$')} prisma studio --config=./prisma.config.ts
 `)
@@ -146,12 +146,19 @@ ${bold('Examples')}
     await studio.start()
 
     const serverUrl = `http://localhost:${port}`
-    if (!browser || browser.toLowerCase() !== 'none') {
+    if (browser?.toLowerCase() !== 'none') {
+      let options: OpenOptions | undefined = undefined
+
+      if (browser) {
+        options = {
+          app: {
+            name: browser,
+          },
+        }
+      }
+
       try {
-        const subprocess = await open(serverUrl, {
-          app: browser,
-          url: true,
-        })
+        const subprocess = await open(serverUrl, options)
 
         subprocess.on('spawn', () => {
           // We match on this string in debug logs in tests
