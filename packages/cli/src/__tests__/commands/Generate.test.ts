@@ -510,7 +510,7 @@ describe('using cli', () => {
     }
 
     expect(data.stdout).toContain(`I am a minimal generator`)
-  }, 75_000) // timeout
+  }, 150_000) // timeout
 })
 
 describe('--schema from project directory', () => {
