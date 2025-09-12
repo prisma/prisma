@@ -1,9 +1,9 @@
 /* eslint-disable jest/no-identical-title */
+import fs from 'node:fs'
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
-import fs from 'fs-jetpack'
 
 import { Format } from '../../Format'
 import { Validate } from '../../Validate'
@@ -245,13 +245,13 @@ describe('format', () => {
   it('should add a trailing EOL', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([], defaultTestConfig())
-    expect(fs.read('schema.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('schema.prisma', { encoding: 'utf-8' })).toMatchSnapshot()
   })
 
   it('should add missing backrelation', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse(['--schema=missing-backrelation.prisma'], defaultTestConfig())
-    expect(fs.read('missing-backrelation.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('missing-backrelation.prisma', { encoding: 'utf-8' })).toMatchSnapshot()
   })
 
   it('should throw if schema is broken', async () => {
