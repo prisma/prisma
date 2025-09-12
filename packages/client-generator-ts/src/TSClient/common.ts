@@ -6,11 +6,6 @@ export const commonCodeTS = ({ clientVersion, engineVersion, generator }: TSClie
 export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
 /**
- * Validator
- */
-export const validator = runtime.Public.validator
-
-/**
  * Prisma Errors
  */
 

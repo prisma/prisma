@@ -14,7 +14,7 @@ export async function stopMiniProxyQueryEngine({
   datasourceInfo: DatasourceInfo
 }): Promise<void> {
   const schemaHash = client._engineConfig.inlineSchemaHash
-  const url = new URL(datasourceInfo.dataProxyUrl!)
+  const url = new URL(datasourceInfo.accelerateUrl!)
 
   debug('stopping mini-proxy query engine at', url.host)
 

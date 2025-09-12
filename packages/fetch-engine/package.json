@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.16.0-5.66f07015fb4a0f9195e6e97dca56186a2f4cad17",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

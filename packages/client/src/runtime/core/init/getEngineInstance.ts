@@ -1,8 +1,7 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
-import { getRuntime } from '../../utils/getRuntime'
-import { BinaryEngine, ClientEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
+import { BinaryEngine, ClientEngine, DataProxyEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
@@ -16,7 +15,7 @@ import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
  * @param engineConfig
  * @returns
  */
-export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig) {
+export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
   let url: string | undefined
 
   try {
@@ -82,19 +81,22 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
-    const message = [
-      `PrismaClient failed to initialize because it wasn't configured to run in this environment (${
-        getRuntime().prettyName
-      }).`,
-      'In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:',
-      '- Enable Driver Adapters: https://pris.ly/d/driver-adapters',
-      '- Enable Accelerate: https://pris.ly/d/accelerate',
-    ]
-
-    throw new PrismaClientValidationError(message.join('\n'), {
-      clientVersion: engineConfig.clientVersion,
-    })
+    return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion }) as Engine
   }
 
   return TARGET_BUILD_TYPE satisfies never
+}
+
+class MisconfiguredEngine {
+  constructor(options: { clientVersion: string }) {
+    return new Proxy(this, {
+      get(_target, _prop) {
+        const message = `In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters`
+
+        throw new PrismaClientValidationError(message, options)
+      },
+    })
+  }
 }

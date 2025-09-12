@@ -31,4 +31,6 @@ export interface Executor {
   rollbackTransaction(transaction: InteractiveTransactionInfo): Promise<void>
 
   disconnect(): Promise<void>
+
+  apiKey(): string | null
 }

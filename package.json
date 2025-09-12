@@ -35,7 +35,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
     "@eslint/eslintrc": "3.3.0",
     "@eslint/js": "9.30.0",
-    "@microsoft/api-extractor": "7.52.1",
+    "@microsoft/api-extractor": "7.52.11",
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
     "@prisma/engines": "workspace:*",
@@ -96,6 +96,7 @@
     "turbo": "2.5.6",
     "typescript": "5.4.5",
     "vitest": "3.2.4",
+    "wrangler": "3.114.14",
     "zx": "8.4.1"
   },
   "lint-staged": {

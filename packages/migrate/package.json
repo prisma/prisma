@@ -44,8 +44,7 @@
     "strip-indent": "4.0.0",
     "tempy": "1.0.1",
     "ts-pattern": "5.6.2",
-    "typescript": "5.4.5",
-    "wrangler": "3.111.0"
+    "typescript": "5.4.5"
   },
   "peerDependencies": {
     "@prisma/internals": "*"
@@ -55,7 +54,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/engines-version": "6.16.0-5.66f07015fb4a0f9195e6e97dca56186a2f4cad17",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
