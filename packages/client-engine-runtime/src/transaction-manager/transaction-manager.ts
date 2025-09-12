@@ -101,7 +101,7 @@ export class TransactionManager {
     // Start timeout to wait for transaction to be started.
     let hasTimedOut = false
     const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
-    startTimer.unref()
+    startTimer.unref?.()
 
     transaction.transaction = await this.driverAdapter
       .startTransaction(validatedOptions.isolationLevel)
@@ -215,7 +215,7 @@ export class TransactionManager {
       }
     }, timeout)
 
-    timer.unref()
+    timer.unref?.()
     return timer
   }
 
