@@ -1293,7 +1293,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const migrationSqlFile = `migrations/${(ctx.fs.list('migrations') || [])[0]}/migration.sql`
     expect(ctx.fs.read(migrationSqlFile)).toMatchInlineSnapshot(`
       "-- CreateTable
-      CREATE TABLE "public"."Order" (
+      CREATE TABLE "Order" (
           "id" INTEGER NOT NULL,
           "userId" INTEGER NOT NULL,
 
@@ -1301,7 +1301,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       );
 
       -- AddForeignKey
-      ALTER TABLE "public"."Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+      ALTER TABLE "Order" ADD CONSTRAINT "Order_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
       "
     `)
   })
