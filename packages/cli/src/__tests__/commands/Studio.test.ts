@@ -1,10 +1,10 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import * as miniProxy from '@prisma/mini-proxy'
-import fs from 'fs'
 import fetch from 'node-fetch'
-import path from 'path'
-import * as rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
@@ -17,6 +17,7 @@ const STUDIO_TEST_PORT = 5678
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const rmSync = (path: string) => fs.rmSync(path, { recursive: true, force: true })
 
 async function sendRequest(message: any): Promise<any> {
   const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
@@ -125,14 +126,14 @@ describe('studio with default schema.prisma filename', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
+    rmSync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
-    rimraf.sync(path.join(__dirname, '../prisma-client'))
+    rmSync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
     await studio.parse(
@@ -311,14 +312,14 @@ describe('studio with custom schema.prisma filename', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'))
+    rmSync(path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
-    rimraf.sync(path.join(__dirname, '../prisma-client'))
+    rmSync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
     await studio.parse(
@@ -497,14 +498,14 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project-schema-folder/dev_tmp.db'))
+    rmSync(path.join(__dirname, '../fixtures/studio-test-project-schema-folder/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project-schema-folder/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project-schema-folder/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
-    rimraf.sync(path.join(__dirname, '../prisma-client'))
+    rmSync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
     await studio.parse(
@@ -689,14 +690,14 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
     beforeAll(async () => {
       // Before every test, we'd like to reset the DB.
       // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-      rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
+      rmSync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
       fs.copyFileSync(
         path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev.db'),
         path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'),
       )
 
       // Clean up Client generation directory
-      rimraf.sync(path.join(__dirname, '../prisma-client'))
+      rmSync(path.join(__dirname, '../prisma-client'))
       studio = Studio.new()
 
       const config = (

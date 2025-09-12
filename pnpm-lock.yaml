@@ -448,9 +448,6 @@ importers:
       '@swc/jest':
         specifier: 0.2.37
         version: 0.2.37(@swc/core@1.11.5)
-      '@types/debug':
-        specifier: 4.1.12
-        version: 4.1.12
       '@types/fs-extra':
         specifier: 11.0.4
         version: 11.0.4
@@ -469,36 +466,18 @@ importers:
       chokidar:
         specifier: 4.0.3
         version: 4.0.3
-      debug:
-        specifier: 4.4.0
-        version: 4.4.0
-      dotenv:
-        specifier: 16.5.0
-        version: 16.5.0
-      effect:
-        specifier: 3.16.12
-        version: 3.16.12
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
       execa:
         specifier: 5.1.1
         version: 5.1.1
-      fast-glob:
-        specifier: 3.3.3
-        version: 3.3.3
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
-      fs-jetpack:
-        specifier: 5.1.0
-        version: 5.1.0
       get-port:
         specifier: 7.1.0
         version: 7.1.0
-      get-tsconfig:
-        specifier: 4.10.0
-        version: 4.10.0
       jest:
         specifier: 29.7.0
         version: 29.7.0(@types/node@18.19.76)(ts-node@10.9.2(@swc/core@1.11.5)(@types/node@18.19.76)(typescript@5.4.5))
@@ -523,36 +502,24 @@ importers:
       open:
         specifier: 7.4.2
         version: 7.4.2
-      ora:
-        specifier: 8.2.0
-        version: 8.2.0
       package-up:
         specifier: 5.0.0
         version: 5.0.0
       resolve-pkg:
         specifier: 2.0.0
         version: 2.0.0
-      rimraf:
-        specifier: 6.0.1
-        version: 6.0.1
       ts-pattern:
         specifier: 5.6.2
         version: 5.6.2
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      vitest:
-        specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@18.19.76)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
       xdg-app-paths:
         specifier: 8.3.0
         version: 8.3.0
       zod:
         specifier: 3.24.2
         version: 3.24.2
-      zx:
-        specifier: 8.4.1
-        version: 8.4.1
 
   packages/client:
     devDependencies:
@@ -1540,9 +1507,6 @@ importers:
       fs-extra:
         specifier: 11.3.0
         version: 11.3.0
-      fs-jetpack:
-        specifier: 5.1.0
-        version: 5.1.0
       global-directory:
         specifier: 4.0.0
         version: 4.0.0
