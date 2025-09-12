@@ -1,9 +1,8 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { getClientEngineType, getPackedPackage } from '@prisma/internals'
-import fs from 'fs'
-import path from 'path'
-import { rimraf } from 'rimraf'
 import tsd, { formatter } from 'tsd'
-import { promisify } from 'util'
 
 import { compileFile } from '../../utils/compileFile'
 import { generateInFolder } from '../../utils/generateInFolder'
@@ -22,7 +21,7 @@ describe('valid types', () => {
 
     const nodeModules = path.join(dir, 'node_modules')
     if (fs.existsSync(nodeModules)) {
-      await rimraf(nodeModules)
+      await fs.promises.rm(nodeModules, { force: true, recursive: true })
     }
     await generateInFolder({
       projectDir: dir,
