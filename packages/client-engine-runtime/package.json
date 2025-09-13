@@ -35,16 +35,13 @@
     "uuid": "11.1.0"
   },
   "devDependencies": {
-    "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0"
+    "@types/node": "18.19.76"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
     "build": "tsx helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "test": "jest"
+    "test": "vitest run"
   },
   "files": [
     "dist"
