@@ -1,4 +1,5 @@
 import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { PrismaPg } from '@prisma/adapter-pg'
 import {
   OfficialDriverAdapterName,
   Provider,
@@ -24,6 +25,17 @@ const driverAdapters: Record<string, DriverAdapterTestConfig> = {
       return Promise.resolve(
         new PrismaLibSQL({
           url,
+        }),
+      )
+    },
+  },
+  pg: {
+    provider: 'postgres',
+    adapter: (_ctx: BaseContext) => () => {
+      const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!
+      return Promise.resolve(
+        new PrismaPg({
+          connectionString,
         }),
       )
     },
