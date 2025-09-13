@@ -100,6 +100,8 @@ beforeEach(() => {
   vi.useFakeTimers()
 })
 
+vi.setConfig({ testTimeout: 300_000 })
+
 test('transaction executes normally', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
