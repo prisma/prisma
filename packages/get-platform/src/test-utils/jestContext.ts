@@ -1,7 +1,8 @@
+import path from 'node:path'
+
 import { type ExecaChildProcess, execaNode } from 'execa'
 import fs from 'fs-jetpack'
 import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
-import path from 'path'
 import tempy from 'tempy'
 
 /**

@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { Script } from 'node:vm'
 
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
@@ -8,7 +9,6 @@ import * as miniProxy from '@prisma/mini-proxy'
 import { execa } from 'execa'
 import fs from 'fs-extra'
 import { match } from 'ts-pattern'
-import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'

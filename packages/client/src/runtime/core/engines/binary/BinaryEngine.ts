@@ -1,3 +1,4 @@
+import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 
 import { Debug } from '@prisma/debug'
@@ -6,7 +7,6 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { byline, ClientEngineType, EngineTrace, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
-import { spawn } from 'child_process'
 import { execa } from 'execa'
 import { bold, green, red } from 'kleur/colors'
 import pRetry from 'p-retry'
