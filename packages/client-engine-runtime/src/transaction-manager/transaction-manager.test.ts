@@ -93,7 +93,7 @@ async function startTransaction(transactionManager: TransactionManager, options:
 }
 
 afterEach(() => {
-  vi.resetAllMocks()
+  vi.restoreAllMocks()
 })
 
 beforeEach(() => {
