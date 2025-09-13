@@ -1,7 +1,8 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
-import fs from 'fs'
 import { bold, underline, yellow } from 'kleur/colors'
-import path from 'path'
 
 import { BinaryType } from './BinaryType'
 

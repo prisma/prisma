@@ -1,13 +1,13 @@
 import fs from 'node:fs'
+import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
-import type { Response } from 'node-fetch'
-import { default as _mockFetch } from 'node-fetch'
-import path from 'path'
+import { default as fetch, type Response } from 'node-fetch'
 import timeoutSignal from 'timeout-signal'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
@@ -16,18 +16,12 @@ import { getFiles } from './__utils__/getFiles'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-jest.mock('node-fetch', () => jest.fn())
-const actualFetch: typeof import('node-fetch').default = jest.requireActual('node-fetch').default
-const mockFetch = _mockFetch as jest.MockedFunction<typeof actualFetch>
+vi.mock('node-fetch', { spy: true })
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
 const FIXED_ENGINES_HASH = 'bb8e7aae27ce478f586df41260253876ccb5b390'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
-
-// Network can be slow, especially for macOS in CI.
-jest.setTimeout(300_000)
-jest.retryTimes(3)
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const usesCustomEngines =
@@ -35,16 +29,18 @@ const usesCustomEngines =
   process.env.PRISMA_QUERY_ENGINE_BINARY ||
   process.env.PRISMA_SCHEMA_ENGINE_BINARY
 
-describeIf(!usesCustomEngines)('download', () => {
+vi.setConfig({ testTimeout: 300_000 })
+
+describeIf(!usesCustomEngines)('download', async () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
   const baseDirBinaryTarget = path.posix.join(dirname, 'binaryTarget')
   let binaryTarget: BinaryTarget
+  const actualFetch = (await vi.importActual('node-fetch')).default as typeof fetch
 
   beforeEach(async () => {
-    mockFetch.mockReset().mockImplementation(actualFetch)
-    // completely clean up the cache and keep nothing
+    vi.resetAllMocks()
     await cleanupCache(0)
     binaryTarget = await getBinaryTargetForCurrentPlatform()
   })
@@ -588,7 +584,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     afterEach(() => {
-      delete process.env.PRISMA_QUERY_ENGINE_BINARY
+      vi.unstubAllEnvs()
     })
 
     test('handle nonexistent "binaryTarget"', async () => {
@@ -601,13 +597,13 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: ['darwin', 'marvin'] as any,
         }),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `"Unknown binaryTarget marvin and no custom engine files were provided"`,
+        `[Error: Unknown binaryTarget marvin and no custom engine files were provided]`,
       )
     })
 
     test('handle nonexistent "binaryTarget" with missing custom engine binary', async () => {
       expect.assertions(1)
-      process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
+      vi.stubEnv('PRISMA_QUERY_ENGINE_BINARY', '../query-engine')
       try {
         await download({
           binaries: {
@@ -637,7 +633,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         getBinaryName('query-engine', 'marvin'),
       )
       fs.copyFileSync(dummyPath, targetPath)
-      process.env.PRISMA_QUERY_ENGINE_BINARY = targetPath
+      vi.stubEnv('PRISMA_QUERY_ENGINE_BINARY', targetPath)
 
       const testResult = await download({
         binaries: {
@@ -650,9 +646,9 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
   })
 
-  describe('retries', () => {
+  describe('retries', { retry: 3 }, () => {
     test('if fetching of checksums fails with a non 200 code it retries it 2 more times', async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         if (String(url).endsWith('.sha256')) {
           return Promise.resolve({
             ok: false,
@@ -678,11 +674,11 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Because we try to fetch 2 different checksum files
       // And there are 2 retries for the checksums
       // 2 checksums * 3 attempts = 6
-      expect(mockFetch).toHaveBeenCalledTimes(6)
+      expect(fetch).toHaveBeenCalledTimes(6)
     })
 
     test('if fetching of a binary fails with a non 200 code it retries it 2 more times', async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         if (!String(url).endsWith('.sha256')) {
           return Promise.resolve({
             ok: false,
@@ -708,11 +704,11 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
       // And there are 2 retries for the binary
       // 2 checksums + (1 engine * 3 attempts) = 5
-      expect(mockFetch).toHaveBeenCalledTimes(5)
+      expect(fetch).toHaveBeenCalledTimes(5)
     })
 
     test('if fetching of checksums fails with a timeout it retries it 2 more times', async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         opts = opts || {}
         // This makes everything fail with a timeout
         opts.signal = timeoutSignal(0)
@@ -732,11 +728,11 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Because we try to fetch 2 different checksum files
       // And there are 2 retries for the checksums
       // 2 checksums * 3 attempts = 6
-      expect(mockFetch).toHaveBeenCalledTimes(6)
+      expect(fetch).toHaveBeenCalledTimes(6)
     })
 
     test('if fetching of a binary fails with a timeout it retries it 2 more times', async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         opts = opts || {}
         // We only make binaries fail with a timeout, not checksums
         if (!String(url).endsWith('.sha256')) {
@@ -758,17 +754,17 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
       // And there are 2 retries for the binary
       // 2 checksums + (1 engine * 3 attempts) = 5
-      expect(mockFetch).toHaveBeenCalledTimes(5)
+      expect(fetch).toHaveBeenCalledTimes(5)
     })
   })
 
   describe('env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1', () => {
     beforeAll(() => {
-      process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = '1'
+      vi.stubEnv('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING', '1')
     })
 
     afterAll(() => {
-      delete process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING
+      vi.unstubAllEnvs()
     })
 
     beforeEach(async () => {
@@ -803,7 +799,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     // EPERM: operation not permitted, unlink 'D:\a\prisma\prisma\packages\fetch-engine\src\__tests__\checksum\query_engine-windows.dll.node'
     // TODO: Fix this test on Windows one day
     testIf(process.platform !== 'win32')("if checksum downloads but doesn't match, throws", async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         if (String(url).endsWith('.sha256')) {
           return Promise.resolve({
             ok: true,
@@ -831,7 +827,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     // EPERM: operation not permitted, unlink 'D:\a\prisma\prisma\packages\fetch-engine\src\__tests__\checksum\query_engine-windows.dll.node'
     // TODO: Fix this test on Windows one day
     testIf(process.platform !== 'win32')('if checksum download fails, logs warning but does not throw', async () => {
-      mockFetch.mockImplementation((url, opts) => {
+      vi.mocked(fetch).mockImplementation((url, opts) => {
         if (String(url).endsWith('.sha256')) {
           return Promise.resolve({
             ok: false,
