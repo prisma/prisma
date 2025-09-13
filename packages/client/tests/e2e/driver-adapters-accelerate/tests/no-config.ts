@@ -2,13 +2,15 @@ test('error is shown when both driver adapters and accelerate are not configured
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/wasm')
 
-    const newClient = () => new PrismaClient({})
+    const newClient = () => {
+      const client = new PrismaClient({})
+      client.$connect()
+    }
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-"PrismaClient failed to initialize because it wasn't configured to run in this environment (Node.js).
-In order to run Prisma Client in an edge runtime, you will need to configure one of the following options:
-- Enable Driver Adapters: https://pris.ly/d/driver-adapters
-- Enable Accelerate: https://pris.ly/d/accelerate"
+"In order to run Prisma Client on edge runtime, either:
+- Use Prisma Accelerate: https://pris.ly/d/accelerate
+- Use Driver Adapters: https://pris.ly/d/driver-adapters"
 `)
   })
 })

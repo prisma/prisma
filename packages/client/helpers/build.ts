@@ -94,14 +94,18 @@ function wasmBindgenRuntimeConfig(
 }
 
 // we define the config for browser
-const browserBuildConfig: BuildOptions = {
-  name: 'browser',
-  entryPoints: ['src/runtime/index-browser.ts'],
-  outfile: 'runtime/index-browser',
-  target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
-  bundle: true,
-  minify: shouldMinify,
-  sourcemap: 'linked',
+function browserBuildConfigs(): BuildOptions[] {
+  return MODULE_FORMATS.map((format) => ({
+    format,
+    name: 'browser',
+    entryPoints: ['src/runtime/index-browser.ts'],
+    outfile: 'runtime/index-browser',
+    outExtension: getOutExtension(format),
+    target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
+    bundle: true,
+    minify: shouldMinify,
+    sourcemap: 'linked',
+  }))
 }
 
 /**
@@ -308,7 +312,7 @@ function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
 void build([
   generatorBuildConfig,
   ...allNodeRuntimeBuildConfigs(),
-  browserBuildConfig,
+  ...browserBuildConfigs(),
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   ...allWasmEdgeRuntimeConfigs(),

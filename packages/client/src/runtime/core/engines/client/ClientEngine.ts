@@ -104,14 +104,6 @@ export class ClientEngine implements Engine {
   #emitQueryEvent?: (event: QueryEvent) => void
 
   constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (!config.previewFeatures?.includes('driverAdapters') && !remote) {
-      throw new PrismaClientInitializationError(
-        'EngineType `client` requires the driverAdapters preview feature to be enabled.',
-        config.clientVersion,
-        CLIENT_ENGINE_ERROR,
-      )
-    }
-
     if (remote) {
       this.#executorKind = { remote: true }
     } else if (config.adapter) {
@@ -598,6 +590,14 @@ export class ClientEngine implements Engine {
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
     throw new Error('Method not implemented.')
+  }
+
+  /**
+   * Used by `@prisma/extension-accelerate`
+   */
+  async apiKey(): Promise<string | null> {
+    const { executor } = await this.#ensureStarted()
+    return executor.apiKey()
   }
 
   #convertIsolationLevel(clientIsolationLevel: Tx.IsolationLevel | undefined): SqlIsolationLevel | undefined {

@@ -69,6 +69,7 @@ testMatrix.setupTestSuite(
       test('throws when both `datasourceUrl` and `adapter` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
+            // @ts-test-if: provider !== Providers.MONGODB
             adapter,
             datasourceUrl: dbURL,
           })
@@ -80,6 +81,7 @@ testMatrix.setupTestSuite(
       test('throws when both `datasources` and `adapter` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
+            // @ts-test-if: provider !== Providers.MONGODB
             adapter,
             datasources: {
               db: { url: dbURL },
@@ -104,6 +106,15 @@ testMatrix.setupTestSuite(
     skipEngine: {
       from: ['binary'],
       reason: 'TODO: fails with timeout on CI: https://github.com/prisma/team-orm/issues/636',
+    },
+    skip(when, { clientEngineExecutor }) {
+      when(
+        clientEngineExecutor === 'remote',
+        `
+        Since the test URL is not a prisma:// URL, the test fails due to a
+        missing driver adapter instead of the expected error.
+        `,
+      )
     },
   },
 )

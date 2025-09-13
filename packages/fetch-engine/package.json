@@ -34,7 +34,6 @@
     "p-map": "4.0.0",
     "p-retry": "4.6.2",
     "progress": "2.0.3",
-    "rimraf": "6.0.1",
     "temp-dir": "2.0.0",
     "tempy": "1.0.1",
     "timeout-signal": "2.0.0",
@@ -42,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "6.16.0-6.42747065991212ea20d86c4732cf122c34af160b",
+    "@prisma/engines-version": "6.16.0-7.1c57fdcd7e44b29b9313256c76699e91c3ac3c43",
     "@prisma/get-platform": "workspace:*"
   },
   "scripts": {

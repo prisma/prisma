@@ -184,7 +184,6 @@ Set composite types introspection depth to 2 levels
         (input): input is { url: string | undefined; schemaContext: SchemaContext; fromD1: boolean } =>
           input.schemaContext !== null,
         async (input) => {
-          const previewFeatures = input.schemaContext.generators.find(({ name }) => name === 'client')?.previewFeatures
           const firstDatasource = input.schemaContext.primaryDatasource
             ? input.schemaContext.primaryDatasource
             : undefined
@@ -235,20 +234,7 @@ Set composite types introspection depth to 2 levels
               ignoreEnvVarErrors: true,
             })
 
-            const result = { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-
-            const hasDriverAdaptersPreviewFeature = (previewFeatures || []).includes('driverAdapters')
-            const validationWarning = `Without the ${bold(
-              'driverAdapters',
-            )} preview feature, the schema introspected via the ${bold('--local-d1')} flag will not work with ${bold(
-              '@prisma/client',
-            )}.`
-
-            if (hasDriverAdaptersPreviewFeature) {
-              return result
-            } else {
-              return { ...result, validationWarning }
-            }
+            return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
           } else {
             // Use getConfig with ignoreEnvVarErrors
             // It will  throw an error if the env var is not set or if it is invalid
@@ -271,7 +257,6 @@ Set composite types introspection depth to 2 levels
           // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
           const schemaContent = `generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           const schema: MultipleSchemas = [['schema.prisma', schemaContent]]

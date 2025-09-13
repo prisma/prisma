@@ -1,3 +1,6 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
@@ -12,10 +15,7 @@ import {
   getPackedPackage,
 } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
-import fs from 'fs'
-import path from 'path'
 import { performance } from 'perf_hooks'
-import { rimraf } from 'rimraf'
 
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
@@ -65,7 +65,7 @@ export async function generateInFolder({
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
-  await rimraf(outputDir)
+  await fs.promises.rm(outputDir, { force: true, recursive: true })
 
   if (packageSource) {
     await copy({

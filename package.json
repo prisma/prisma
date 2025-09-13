@@ -35,7 +35,7 @@
     "@eslint-community/eslint-plugin-eslint-comments": "4.4.1",
     "@eslint/eslintrc": "3.3.0",
     "@eslint/js": "9.30.0",
-    "@microsoft/api-extractor": "7.52.1",
+    "@microsoft/api-extractor": "7.52.11",
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
     "@prisma/engines": "workspace:*",

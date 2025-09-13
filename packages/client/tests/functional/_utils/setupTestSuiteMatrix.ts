@@ -1,4 +1,11 @@
+import events from 'node:events'
+
+import { serve, ServerType } from '@hono/node-server'
 import { afterAll, beforeAll, test } from '@jest/globals'
+import { context, trace } from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
+import * as QueryPlanExecutor from '@prisma/query-plan-executor'
 import path from 'path'
 
 import type { Client } from '../../../src/runtime/getPrismaClient'
@@ -11,7 +18,11 @@ import {
   getTestSuiteMeta,
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { setupTestSuiteClient, setupTestSuiteClientDriverAdapter } from './setupTestSuiteClient'
+import {
+  getPrismaClientInternalArgs,
+  setupTestSuiteClient,
+  setupTestSuiteClientDriverAdapter,
+} from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
@@ -89,10 +100,50 @@ function setupTestSuiteMatrix(
     describeFn(name, () => {
       const clients = [] as any[]
       const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
+      let server: { qpe: QueryPlanExecutor.Server; net: ServerType } | undefined
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
+        // Set up the global context manager and the global tracer provider.
+        // They are used by the query plan executor server, as well as by tracing tests.
+        context.setGlobalContextManager(new AsyncLocalStorageContextManager())
+        trace.setGlobalTracerProvider(new BasicTracerProvider())
+
         globalThis['datasourceInfo'] = datasourceInfo // keep it here before anything runs
+
+        if (clientMeta.runtime === 'client' && clientMeta.clientEngineExecutor === 'remote') {
+          const qpe = await QueryPlanExecutor.Server.create({
+            databaseUrl: datasourceInfo.databaseUrl,
+            maxResponseSize: QueryPlanExecutor.parseSize('128 MiB'),
+            queryTimeout: QueryPlanExecutor.parseDuration('PT30S'),
+            maxTransactionTimeout: QueryPlanExecutor.parseDuration('PT1M'),
+            maxTransactionWaitTime: QueryPlanExecutor.parseDuration('PT1M'),
+            perRequestLogContext: {
+              logFormat: 'text',
+              logLevel: 'warn',
+            },
+          })
+
+          const hostname = '127.0.0.1'
+
+          const net = serve({
+            fetch: qpe.fetch,
+            hostname,
+            port: 0,
+          })
+
+          await events.once(net, 'listening')
+          const address = net.address()
+          if (address === null) {
+            throw new Error('query plan executor server did not start')
+          }
+          if (typeof address === 'string') {
+            throw new Error('query plan executor must be listening on TCP and not Unix socket')
+          }
+
+          server = { qpe, net }
+          datasourceInfo.accelerateUrl = `prisma://${hostname}:${address.port}/?api_key=1&use_http=1`
+        }
 
         // If using D1 Driver adapter
         // We need to setup wrangler bindings to the D1 db (using miniflare under the hood)
@@ -121,6 +172,12 @@ function setupTestSuiteMatrix(
 
         globalThis['loaded'] = clientModule
 
+        const internalArgs = () =>
+          getPrismaClientInternalArgs({
+            suiteConfig,
+            clientMeta,
+          })
+
         const newDriverAdapter = () =>
           setupTestSuiteClientDriverAdapter({
             suiteConfig,
@@ -132,7 +189,7 @@ function setupTestSuiteMatrix(
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = clientModule
 
-          const options = { ...newDriverAdapter(), ...args }
+          const options = { ...internalArgs(), ...newDriverAdapter(), ...args }
           const client = new PrismaClient(options)
 
           globalThis['Prisma'] = Prisma
@@ -180,6 +237,13 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
+
+        if (server) {
+          server.net.close()
+          await server.qpe.shutdown()
+          server = undefined
+        }
+
         // CI=false: Only drop the db if not skipped, and if the db does not need to be reused.
         // CI=true always skip to save time
         if (options?.skipDb !== true && process.env.TEST_REUSE_DATABASE !== 'true' && process.env.CI !== 'true') {
