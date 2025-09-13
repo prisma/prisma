@@ -2,7 +2,7 @@ import timers from 'node:timers/promises'
 
 import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
 import { ok } from '@prisma/driver-adapter-utils'
-import { afterAll, beforeAll, expect, type Mock, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, type Mock, test, vi } from 'vitest'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -92,11 +92,11 @@ async function startTransaction(transactionManager: TransactionManager, options:
   return id
 }
 
-afterAll(() => {
+afterEach(() => {
   vi.resetAllMocks()
 })
 
-beforeAll(() => {
+beforeEach(() => {
   vi.useFakeTimers()
 })
 
