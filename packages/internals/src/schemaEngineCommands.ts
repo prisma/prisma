@@ -1,5 +1,5 @@
 import { BinaryType } from '@prisma/fetch-engine'
-import execa from 'execa'
+import { execa, type ExecaError } from 'execa'
 
 import { resolveBinary } from './resolveBinary'
 
@@ -84,7 +84,7 @@ export async function canConnectToDatabase(
       engineCommandName: 'can-connect-to-database',
     })
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
@@ -125,7 +125,7 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
 
     return true
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
@@ -189,7 +189,7 @@ export async function execaCommand({
       },
     })
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
 
     if (e.message) {
       e.message = e.message.replace(connectionString, '<REDACTED>')

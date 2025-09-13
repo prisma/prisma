@@ -1,3 +1,7 @@
+import fs from 'node:fs'
+import path from 'node:path'
+import { promisify } from 'node:util'
+
 import Debug from '@prisma/debug'
 import {
   assertNodeAPISupported,
@@ -6,14 +10,11 @@ import {
   getNodeAPIName,
   getPlatformInfo,
 } from '@prisma/get-platform'
-import execa from 'execa'
-import fs from 'fs'
+import { execa } from 'execa'
 import { ensureDir } from 'fs-extra'
 import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
-import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
 
 import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'

@@ -1,8 +1,9 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
-import execa, { ExecaChildProcess } from 'execa'
-import fs from 'fs'
-import path from 'path'
+import { execa, type ExecaChildProcess } from 'execa'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'

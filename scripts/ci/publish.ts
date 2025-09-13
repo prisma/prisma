@@ -1,14 +1,15 @@
+import fs from 'node:fs'
+import path from 'node:path'
+
 import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
 import topo from 'batching-toposort'
-import execa from 'execa'
-import fs from 'fs'
+import { execaCommand, type ExecaError } from 'execa'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import pRetry from 'p-retry'
-import path from 'path'
 import semver from 'semver'
 
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
@@ -33,14 +34,14 @@ async function getLatestCommitHash(dir: string): Promise<string> {
  */
 async function runResult(cwd: string, cmd: string): Promise<string> {
   try {
-    const result = await execa.command(cmd, {
+    const result = await execaCommand(cmd, {
       cwd,
       stdio: 'pipe',
       shell: true,
     })
     return result.stdout
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
     throw new Error(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`) + (e.stderr || e.stack || e.message))
   }
 }
@@ -63,7 +64,7 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
   }
 
   try {
-    await execa.command(cmd, {
+    await execaCommand(cmd, {
       cwd,
       stdio: 'inherit',
       shell: true,
@@ -73,7 +74,7 @@ async function run(cwd: string, cmd: string, dry = false, hidden = false): Promi
       },
     })
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
     throw new Error(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`) + (e.stderr || e.stack || e.message))
   }
 }

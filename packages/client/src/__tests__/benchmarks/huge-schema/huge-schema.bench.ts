@@ -1,10 +1,10 @@
 // @ts-nocheck
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
-import execa from 'execa'
-import fs from 'fs'
-import path from 'path'
+import { execaSync } from 'execa'
 
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
@@ -54,11 +54,11 @@ suite
     if (process.env.CI) {
       printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-3.0.x.so.node')
     }
-    execa.sync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
+    execaSync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
       stdout: 'pipe',
       cwd: __dirname,
     })
-    execa.sync(
+    execaSync(
       'zip',
       ['-r', 'dotPlusAtPrismaClientFolder.zip', './node_modules/.prisma/client', './node_modules/@prisma/client'],
       {

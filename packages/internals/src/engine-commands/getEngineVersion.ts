@@ -1,7 +1,7 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { assertNodeAPISupported, getPlatformInfo } from '@prisma/get-platform'
-import execa from 'execa'
+import { execa } from 'execa'
 import * as TE from 'fp-ts/TaskEither'
 
 import { resolveBinary } from '../resolveBinary'
