@@ -1,10 +1,10 @@
 // @ts-nocheck
+import fs from 'node:fs'
+import path from 'node:path'
 
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
-import execa from 'execa'
-import fs from 'fs'
-import path from 'path'
+import { execa } from 'execa'
 
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'

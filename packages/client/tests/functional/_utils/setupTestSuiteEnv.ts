@@ -1,11 +1,12 @@
+import path from 'node:path'
+
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
 import { defaultTestConfig } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
-import execa from 'execa'
+import { execa } from 'execa'
 import fs from 'fs-extra'
-import path from 'path'
 import { match } from 'ts-pattern'
 import { Script } from 'vm'
 
