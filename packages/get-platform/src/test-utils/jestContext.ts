@@ -1,5 +1,4 @@
-import type { ExecaChildProcess } from 'execa'
-import execa from 'execa'
+import { type ExecaChildProcess, execaNode } from 'execa'
 import fs from 'fs-jetpack'
 import type { FSJetpack, InspectTreeResult } from 'fs-jetpack/types'
 import path from 'path'
@@ -93,7 +92,7 @@ ${[...generateDirectoryTree(children, indent)].join('\n')}
       }
 
       c.cli = (...input) => {
-        return execa.node(path.join(originalCwd, '../cli/build/index.js'), input, {
+        return execaNode(path.join(originalCwd, '../cli/build/index.js'), input, {
           cwd: c.fs.cwd(),
           stdio: 'pipe',
           all: true,

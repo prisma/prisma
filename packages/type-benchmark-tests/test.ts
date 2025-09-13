@@ -1,7 +1,8 @@
-import execa from 'execa'
-import { readdirSync, statSync } from 'fs'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
+import { readdirSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+import { execa } from 'execa'
 
 // @ts-ignore
 const parentDir = dirname(fileURLToPath(import.meta.url))
