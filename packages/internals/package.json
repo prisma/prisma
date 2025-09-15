@@ -41,7 +41,7 @@
     "dotenv": "16.5.0",
     "empathic": "2.0.0",
     "escape-string-regexp": "5.0.0",
-    "execa": "5.1.1",
+    "execa": "8.0.1",
     "fast-glob": "3.3.3",
     "find-up": "7.0.0",
     "fp-ts": "2.16.9",

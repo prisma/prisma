@@ -1,6 +1,7 @@
+import path from 'node:path'
+
 import { type BaseContext } from '@prisma/get-platform'
-import execa from 'execa'
-import path from 'path'
+import { execa, type ExecaError } from 'execa'
 
 import { MigrateDiff } from '../../src'
 import { describeMatrix } from './__helpers__/conditionalTests'
@@ -665,7 +666,7 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'd1 local', () =
         await applyWranglerD1Migration(ctx)
         expect(true).toBe(false) // unreachable
       } catch (error) {
-        const e = error as execa.ExecaError
+        const e = error as ExecaError
 
         // There are two possible `FOREIGN KEY` constraint failure messages that could appear, depending on the order of the output of `prisma migrate diff`.
         const possibleMatches = [
