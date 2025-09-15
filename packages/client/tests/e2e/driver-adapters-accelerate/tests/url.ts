@@ -22,8 +22,8 @@ describe('driver adapters cannot be used with accelerate', () => {
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-  "Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.
-  Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor."
+  "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+  Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
   `)
     })
   })
@@ -38,8 +38,8 @@ describe('driver adapters cannot be used with accelerate', () => {
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-  "Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.
-  Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor."
+  "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+  Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
   `)
     })
   })

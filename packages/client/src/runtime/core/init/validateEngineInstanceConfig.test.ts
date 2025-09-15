@@ -16,6 +16,7 @@ describe('validateEngineInstanceConfig', () => {
     accelerate: 'prisma://some-accelerate-usage.net',
     pgPlain: 'postgresql://some-plain-postgres.net',
     ppg: 'prisma+postgres://some-prisma-postgres.net',
+    ppgDirectTCP: 'postgres://user:pass@db.prisma.io:5432/postgres?sslmode=require',
     noUrl: undefined,
   }
 
@@ -157,11 +158,11 @@ describe('validateEngineInstanceConfig', () => {
       expect(isUsing.ppg).toBe(false)
     })
 
-    test('error when using Driver Adapters', () => {
+    test.each([[{ copyEngine: true }, { copyEngine: false }]])('error when using Driver Adapters', ({ copyEngine }) => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url,
         targetBuildType,
-        copyEngine: true,
+        copyEngine,
         adapter: mockAdapter,
       })
 
@@ -172,8 +173,8 @@ describe('validateEngineInstanceConfig', () => {
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "Prisma Client was configured to use the \`adapter\` option but the URL was a \`prisma://\` URL.
-        Please either use the \`prisma://\` URL or remove the \`adapter\` from the Prisma Client constructor."
+        "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+        Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
       `)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(true)
@@ -220,9 +221,9 @@ describe('validateEngineInstanceConfig', () => {
       expect(isUsing.ppg).toBe(false)
     })
 
-    it('works with Prisma Postgres', () => {
+    it('works with Prisma Postgres direct TCP', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.ppg,
+        url: URLS.ppgDirectTCP,
         targetBuildType,
         copyEngine: true,
         adapter: mockAdapter,
@@ -231,9 +232,9 @@ describe('validateEngineInstanceConfig', () => {
       expectTrue(ok)
       expect(diagnostics.errors).toBe(undefined)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.accelerate).toBe(false)
       expect(isUsing.driverAdapters).toBe(true)
-      expect(isUsing.ppg).toBe(true)
+      expect(isUsing.ppg).toBe(false)
     })
   })
 
@@ -320,6 +321,29 @@ describe('validateEngineInstanceConfig', () => {
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
+      expect(isUsing.ppg).toBe(true)
+    })
+
+    test.each([[{ copyEngine: true }, { copyEngine: false }]])('error when using Driver Adapters', ({ copyEngine }) => {
+      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
+        url: URLS.ppg,
+        targetBuildType,
+        copyEngine,
+        adapter: mockAdapter,
+      })
+
+      if (!ok) {
+        diagnostics.errors
+      }
+
+      expectFalse(ok)
+      expect(diagnostics.errors).toHaveLength(1)
+      expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
+        "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+        Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
+      `)
+      expect(isUsing.accelerate).toBe(true)
+      expect(isUsing.driverAdapters).toBe(true)
       expect(isUsing.ppg).toBe(true)
     })
   })
