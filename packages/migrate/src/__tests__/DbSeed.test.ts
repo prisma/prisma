@@ -1,4 +1,4 @@
-import execa from 'execa'
+import { execaCommand } from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
 import { createDefaultTestContext } from './__helpers__/context'
@@ -85,7 +85,7 @@ describe('seed', () => {
       ctx.fixture('seed-from-package-json/seed-sqlite-ts-esm')
 
       // Needs ts-node to be installed
-      await execa.command('npm i')
+      await execaCommand('npm i')
 
       const result = DbSeed.new().parse([], await ctx.config())
       await expect(result).resolves.toContain(`The seed command has been executed.`)
@@ -204,7 +204,7 @@ describe('seed', () => {
       ctx.fixture('seed-from-prisma-config/seed-sqlite-ts-esm')
 
       // Needs ts-node to be installed
-      await execa.command('npm i')
+      await execaCommand('npm i')
 
       const result = DbSeed.new().parse([], await ctx.config())
       await expect(result).resolves.toContain(`The seed command has been executed.`)

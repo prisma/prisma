@@ -2,7 +2,7 @@ import path from 'node:path'
 
 import { loadConfigFromPackageJson } from '@prisma/config'
 import Debug from '@prisma/debug'
-import execa from 'execa'
+import { execaCommand, type ExecaError } from 'execa'
 import { bold, italic, red } from 'kleur/colors'
 
 const debug = Debug('prisma:migrate:seed')
@@ -59,12 +59,12 @@ export async function executeSeedCommand({
   process.stdout.write(`Running seed command \`${italic(command)}\` ...\n`)
 
   try {
-    await execa.command(command, {
+    await execaCommand(command, {
       stdout: 'inherit',
       stderr: 'inherit',
     })
   } catch (_e) {
-    const e = _e as execa.ExecaError
+    const e = _e as ExecaError
     debug({ e })
     console.error(bold(red(`\nAn error occurred while running the seed command:`)))
     console.error(red(e.stderr || String(e)))

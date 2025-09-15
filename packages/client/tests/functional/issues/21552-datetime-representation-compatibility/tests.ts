@@ -1,6 +1,7 @@
-import execa from 'execa'
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
+
+import { execaNode } from 'execa'
 
 import { DatasourceInfo } from '../../_utils/setupTestSuiteEnv'
 import testMatrix from './_matrix'
@@ -24,7 +25,7 @@ testMatrix.setupTestSuite(
       // Use a separate process for seeding to use native drivers. We can't turn
       // the native quaint executor back on in the current process when testing
       // against driver adapters.
-      const seedOutput = await execa.node(path.join(suiteMeta.generatedFolder, '_seed.ts'), [], {
+      const seedOutput = await execaNode(path.join(suiteMeta.generatedFolder, '_seed.ts'), [], {
         nodeOptions: ['-r', 'esbuild-register'],
         env: {
           [datasourceInfo.envVarName]: datasourceInfo.databaseUrl,
