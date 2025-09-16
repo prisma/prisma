@@ -18,7 +18,7 @@
     "@types/node": "18.19.76",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
-    "execa": "5.1.1",
+    "execa": "8.0.1",
     "find-cache-dir": "5.0.0",
     "fs-extra": "11.3.0",
     "hasha": "5.2.2",

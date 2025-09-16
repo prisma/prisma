@@ -1,7 +1,8 @@
+import path from 'node:path'
+
 import arg from 'arg'
-import execa from 'execa'
+import { execaCommand } from 'execa'
 import { bold, dim, red, underline } from 'kleur/colors'
-import path from 'path'
 
 const argv = arg({})
 const usage = `
@@ -38,7 +39,7 @@ void main()
 async function run(cwd: string, cmd: string): Promise<void> {
   console.log(underline('./' + cwd).padEnd(20), bold(cmd))
   try {
-    await execa.command(cmd, {
+    await execaCommand(cmd, {
       cwd,
       stdio: 'inherit',
     })

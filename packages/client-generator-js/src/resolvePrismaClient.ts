@@ -4,7 +4,7 @@ import path from 'node:path'
 import { Command, detect, getCommand } from '@antfu/ni'
 import { Debug } from '@prisma/debug'
 import { longestCommonPathPrefix, resolvePkg } from '@prisma/internals'
-import execa from 'execa'
+import { execaCommand } from 'execa'
 import { bold, dim, green, yellow } from 'kleur/colors'
 
 export const debug = Debug('prisma:generator')
@@ -161,7 +161,7 @@ async function isYarnUsed(baseDir: string): Promise<boolean> {
 }
 
 async function runPackageCmd(cwd: string, cmd: Command, ...args: string[]): Promise<void> {
-  await execa.command(await getPackageCmd(cwd, cmd, ...args), {
+  await execaCommand(await getPackageCmd(cwd, cmd, ...args), {
     // we skip this because we are already in the generator
     env: { PRISMA_SKIP_POSTINSTALL_GENERATE: 'true' },
     stdio: 'inherit',

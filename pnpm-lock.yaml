@@ -114,8 +114,8 @@ importers:
         specifier: 12.1.1
         version: 12.1.1(eslint@9.22.0(jiti@2.4.2))
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       format-util:
         specifier: 1.0.5
         version: 1.0.5
@@ -716,8 +716,8 @@ importers:
         specifier: 10.5.0
         version: 10.5.0
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       expect-type:
         specifier: 1.2.2
         version: 1.2.2
@@ -1153,8 +1153,8 @@ importers:
         specifier: 6.1.1
         version: 6.1.1
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       find-cache-dir:
         specifier: 5.0.0
         version: 5.0.0
@@ -1269,8 +1269,8 @@ importers:
         specifier: 5.0.0
         version: 5.0.0
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
@@ -1356,9 +1356,6 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
-      execa:
-        specifier: 5.1.1
-        version: 5.1.1
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
@@ -1481,8 +1478,8 @@ importers:
         specifier: 5.0.0
         version: 5.0.0
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       fast-glob:
         specifier: 3.3.3
         version: 3.3.3
@@ -1635,8 +1632,8 @@ importers:
         specifier: 5.0.2
         version: 5.0.2
       execa:
-        specifier: 5.1.1
-        version: 5.1.1
+        specifier: 8.0.1
+        version: 8.0.1
       fp-ts:
         specifier: 2.16.9
         version: 2.16.9
@@ -4464,10 +4461,6 @@ packages:
 
   create-require@1.1.1:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
-
-  cross-spawn@7.0.3:
-    resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
-    engines: {node: '>= 8'}
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -10980,12 +10973,6 @@ snapshots:
 
   create-require@1.1.1: {}
 
-  cross-spawn@7.0.3:
-    dependencies:
-      path-key: 3.1.1
-      shebang-command: 2.0.0
-      which: 2.0.2
-
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -11439,7 +11426,7 @@ snapshots:
 
   execa@5.1.1:
     dependencies:
-      cross-spawn: 7.0.3
+      cross-spawn: 7.0.6
       get-stream: 6.0.1
       human-signals: 2.1.0
       is-stream: 2.0.1
@@ -12716,7 +12703,7 @@ snapshots:
     dependencies:
       chalk: 5.4.1
       commander: 13.1.0
-      debug: 4.4.0
+      debug: 4.4.1
       execa: 8.0.1
       lilconfig: 3.1.3
       listr2: 8.2.5

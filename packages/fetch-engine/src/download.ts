@@ -10,7 +10,7 @@ import {
   getNodeAPIName,
   getPlatformInfo,
 } from '@prisma/get-platform'
-import execa from 'execa'
+import { execa } from 'execa'
 import { ensureDir } from 'fs-extra'
 import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
