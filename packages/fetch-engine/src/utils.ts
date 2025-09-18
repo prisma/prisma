@@ -1,10 +1,11 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
 import Debug from '@prisma/debug'
 import { BinaryTarget, getNodeAPIName } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
-import fs from 'fs'
 import { ensureDir } from 'fs-extra'
-import os from 'os'
-import path from 'path'
 
 import { BinaryType } from './BinaryType'
 
@@ -74,7 +75,6 @@ export function getDownloadUrl({
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
   if (binaryName === BinaryType.QueryEngineLibrary) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     binaryName = getNodeAPIName(binaryTarget, 'url')
   }
 
