@@ -797,6 +797,7 @@ export namespace Prisma {
    */
 
 
+  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -15341,14 +15342,14 @@ export namespace Prisma {
   export type DMinAggregateOutputType = {
     id: string | null
     bool: boolean | null
-    byteA: Uint8Array | null
+    byteA: Bytes | null
     xml: string | null
   }
 
   export type DMaxAggregateOutputType = {
     id: string | null
     bool: boolean | null
-    byteA: Uint8Array | null
+    byteA: Bytes | null
     xml: string | null
   }
 
@@ -15486,7 +15487,7 @@ export namespace Prisma {
   export type DGroupByOutputType = {
     id: string
     bool: boolean
-    byteA: Uint8Array
+    byteA: Bytes
     xml: string
     json: JsonValue
     jsonb: JsonValue
@@ -15560,7 +15561,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: string
       bool: boolean
-      byteA: Uint8Array
+      byteA: Prisma.Bytes
       xml: string
       json: Prisma.JsonValue
       jsonb: Prisma.JsonValue
@@ -18708,7 +18709,7 @@ export namespace Prisma {
     NOT?: DWhereInput | DWhereInput[]
     id?: StringFilter<"D"> | string
     bool?: BoolFilter<"D"> | boolean
-    byteA?: BytesFilter<"D"> | Uint8Array
+    byteA?: BytesFilter<"D"> | Bytes
     xml?: StringFilter<"D"> | string
     json?: JsonFilter<"D">
     jsonb?: JsonFilter<"D">
@@ -18731,7 +18732,7 @@ export namespace Prisma {
     OR?: DWhereInput[]
     NOT?: DWhereInput | DWhereInput[]
     bool?: BoolFilter<"D"> | boolean
-    byteA?: BytesFilter<"D"> | Uint8Array
+    byteA?: BytesFilter<"D"> | Bytes
     xml?: StringFilter<"D"> | string
     json?: JsonFilter<"D">
     jsonb?: JsonFilter<"D">
@@ -18759,7 +18760,7 @@ export namespace Prisma {
     NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"D"> | string
     bool?: BoolWithAggregatesFilter<"D"> | boolean
-    byteA?: BytesWithAggregatesFilter<"D"> | Uint8Array
+    byteA?: BytesWithAggregatesFilter<"D"> | Bytes
     xml?: StringWithAggregatesFilter<"D"> | string
     json?: JsonWithAggregatesFilter<"D">
     jsonb?: JsonWithAggregatesFilter<"D">
@@ -19887,7 +19888,7 @@ export namespace Prisma {
   export type DCreateInput = {
     id?: string
     bool: boolean
-    byteA: Uint8Array
+    byteA: Bytes
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
@@ -19897,7 +19898,7 @@ export namespace Prisma {
   export type DUncheckedCreateInput = {
     id?: string
     bool: boolean
-    byteA: Uint8Array
+    byteA: Bytes
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
@@ -19907,7 +19908,7 @@ export namespace Prisma {
   export type DUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
+    byteA?: BytesFieldUpdateOperationsInput | Bytes
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
@@ -19917,7 +19918,7 @@ export namespace Prisma {
   export type DUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
+    byteA?: BytesFieldUpdateOperationsInput | Bytes
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
@@ -19927,7 +19928,7 @@ export namespace Prisma {
   export type DCreateManyInput = {
     id?: string
     bool: boolean
-    byteA: Uint8Array
+    byteA: Bytes
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
@@ -19937,7 +19938,7 @@ export namespace Prisma {
   export type DUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
+    byteA?: BytesFieldUpdateOperationsInput | Bytes
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
@@ -19947,7 +19948,7 @@ export namespace Prisma {
   export type DUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
-    byteA?: BytesFieldUpdateOperationsInput | Uint8Array
+    byteA?: BytesFieldUpdateOperationsInput | Bytes
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
@@ -21099,10 +21100,10 @@ export namespace Prisma {
   }
 
   export type BytesFilter<$PrismaModel = never> = {
-    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesFilter<$PrismaModel> | Uint8Array
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Bytes
   }
 
   export type IntNullableListFilter<$PrismaModel = never> = {
@@ -21146,10 +21147,10 @@ export namespace Prisma {
   }
 
   export type BytesWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Bytes
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
     _max?: NestedBytesFilter<$PrismaModel>
@@ -21495,7 +21496,7 @@ export namespace Prisma {
   }
 
   export type BytesFieldUpdateOperationsInput = {
-    set?: Uint8Array
+    set?: Bytes
   }
 
   export type DUpdatelistInput = {
@@ -21884,17 +21885,17 @@ export namespace Prisma {
   }
 
   export type NestedBytesFilter<$PrismaModel = never> = {
-    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesFilter<$PrismaModel> | Uint8Array
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Bytes
   }
 
   export type NestedBytesWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Uint8Array | BytesFieldRefInput<$PrismaModel>
-    in?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    notIn?: Uint8Array[] | ListBytesFieldRefInput<$PrismaModel>
-    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Uint8Array
+    equals?: Bytes | BytesFieldRefInput<$PrismaModel>
+    in?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Bytes[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Bytes
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedBytesFilter<$PrismaModel>
     _max?: NestedBytesFilter<$PrismaModel>
