@@ -1,12 +1,18 @@
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { PrismaMssql } from '@prisma/adapter-mssql'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { describe, expect, test } from 'vitest'
+import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { createAdapter } from './adapter'
 
+vi.mock('@prisma/adapter-pg')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+})
+
 describe('createAdapter', () => {
-  test('createAdapter - PostgreSQL protocols', () => {
+  test('PostgreSQL protocols', () => {
     const postgresUrls = ['postgres://user:pass@localhost:5432/db', 'postgresql://user:pass@localhost:5432/db']
 
     for (const url of postgresUrls) {
@@ -15,7 +21,7 @@ describe('createAdapter', () => {
     }
   })
 
-  test('createAdapter - MySQL/MariaDB protocols', () => {
+  test('MySQL/MariaDB protocols', () => {
     const mysqlUrls = ['mysql://user:pass@localhost:3306/db', 'mariadb://user:pass@localhost:3306/db']
 
     for (const url of mysqlUrls) {
@@ -24,14 +30,14 @@ describe('createAdapter', () => {
     }
   })
 
-  test('createAdapter - SQL Server protocol', () => {
+  test('SQL Server protocol', () => {
     const sqlserverUrl =
       'sqlserver://localhost:1433;database=master;user=SA;password=YourStrong@Passw0rd;trustServerCertificate=true;'
     const adapter = createAdapter(sqlserverUrl)
     expect(adapter).toBeInstanceOf(PrismaMssql)
   })
 
-  test('createAdapter - unsupported protocol', () => {
+  test('unsupported protocol', () => {
     // These URLs are valid but have unsupported protocols
     const unsupportedUrls = [
       'http://localhost:8080',
@@ -46,12 +52,105 @@ describe('createAdapter', () => {
     }
   })
 
-  test('createAdapter - invalid database URLs', () => {
+  test('invalid database URLs', () => {
     // These URLs are invalid or not recognized as database URLs
     const invalidUrls = ['', 'not-a-url', 'no-protocol.com/db?param=value']
 
     for (const url of invalidUrls) {
       expect(() => createAdapter(url)).toThrowError('Invalid database URL')
+    }
+  })
+})
+
+describe('PostgreSQL TLS parameters', () => {
+  test('default behavior (no SSL params) should disable SSL', () => {
+    const url = 'postgresql://user:pass@localhost:5432/db'
+    createAdapter(url)
+
+    expect(PrismaPg).toHaveBeenCalledWith({
+      connectionString: url,
+      ssl: false,
+    })
+  })
+
+  test('sslmode=disable should disable SSL', () => {
+    const url = 'postgresql://user:pass@localhost:5432/db?sslmode=disable'
+    createAdapter(url)
+
+    expect(PrismaPg).toHaveBeenCalledWith({
+      connectionString: url,
+      ssl: false,
+    })
+  })
+
+  test('sslmode values that enable SSL without certificate verification', () => {
+    const modesWithoutVerification = ['prefer', 'require', 'no-verify']
+
+    for (const mode of modesWithoutVerification) {
+      vi.clearAllMocks()
+      const url = `postgresql://user:pass@localhost:5432/db?sslmode=${mode}`
+      createAdapter(url)
+
+      expect(PrismaPg).toHaveBeenCalledWith({
+        connectionString: url,
+        ssl: { rejectUnauthorized: false },
+      })
+    }
+  })
+
+  test('sslmode values that enable SSL with certificate verification', () => {
+    const modesWithVerification = ['verify-ca', 'verify-full']
+
+    for (const mode of modesWithVerification) {
+      vi.clearAllMocks()
+      const url = `postgresql://user:pass@localhost:5432/db?sslmode=${mode}`
+      createAdapter(url)
+
+      expect(PrismaPg).toHaveBeenCalledWith({
+        connectionString: url,
+        ssl: true,
+      })
+    }
+  })
+
+  test('ssl=true without sslmode should be treated as sslmode=require', () => {
+    const url = 'postgresql://user:pass@localhost:5432/db?ssl=true'
+    createAdapter(url)
+
+    expect(PrismaPg).toHaveBeenCalledWith({
+      connectionString: url,
+      ssl: { rejectUnauthorized: false },
+    })
+  })
+
+  test('ssl=true with sslmode should respect sslmode', () => {
+    const url = 'postgresql://user:pass@localhost:5432/db?ssl=true&sslmode=disable'
+    createAdapter(url)
+
+    // sslmode takes precedence over ssl parameter
+    expect(PrismaPg).toHaveBeenCalledWith({
+      connectionString: url,
+      ssl: false,
+    })
+  })
+
+  test('unsupported sslmode values should throw error', () => {
+    const unsupportedModes = ['allow', 'invalid-mode']
+
+    for (const mode of unsupportedModes) {
+      const url = `postgresql://user:pass@localhost:5432/db?sslmode=${mode}`
+      expect(() => createAdapter(url)).toThrowError(`Unsupported sslmode: ${mode}`)
+    }
+  })
+
+  test('custom certificate parameters should throw error', () => {
+    const certParams = ['sslcert', 'sslkey', 'sslrootcert']
+
+    for (const param of certParams) {
+      const url = `postgresql://user:pass@localhost:5432/db?${param}=/path/to/cert`
+      expect(() => createAdapter(url)).toThrowError(
+        'Unsupported parameters in connection string: uploading and using custom TLS certificates is not currently supported',
+      )
     }
   })
 })
