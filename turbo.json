@@ -6,6 +6,14 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "generator-build/**", "runtime/**"],
       "env": ["DEV", "MINIFY"]
+    },
+    "dev": {
+      "dependsOn": ["^dev"],
+      "outputs": ["dist/**", "generator-build/**", "runtime/**"],
+      "env": ["DEV", "MINIFY"]
+    },
+    "@prisma/type-benchmark-tests#dev": {
+      "outputs": ["**/generated"]
     }
   }
 }

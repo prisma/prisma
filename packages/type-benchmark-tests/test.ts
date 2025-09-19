@@ -99,7 +99,7 @@ function getTestFilter() {
 function getTestDirectories() {
   return readdirSync(parentDir).filter((item) => {
     const fullPath = join(parentDir, item)
-    return statSync(fullPath).isDirectory() && !directoryBlockList.includes(item)
+    return statSync(fullPath).isDirectory() && !item.startsWith('.') && !directoryBlockList.includes(item)
   })
 }
 
