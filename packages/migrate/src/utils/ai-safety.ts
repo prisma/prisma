@@ -54,6 +54,7 @@ function detectAiAgent(): string | undefined {
     Cursor: process.env.CURSOR_AGENT,
     Aider: process.env.OR_APP_NAME === 'Aider',
     Replit: process.env.REPLIT_CLI,
+    'Codex CLI': process.env.CODEX_SANDBOX === 'seatbelt',
   }
 
   for (const [agentName, marker] of Object.entries(agentMarkers)) {
