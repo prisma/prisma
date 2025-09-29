@@ -94,6 +94,7 @@ function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig
     return [suiteConfig]
   } else {
     const remoteExecutorSuiteConfig = klona(suiteConfig)
+    suiteConfig.matrixOptions.clientRuntime = 'client'
     suiteConfig.matrixOptions.clientEngineExecutor = 'remote'
     return [suiteConfig, remoteExecutorSuiteConfig]
   }
