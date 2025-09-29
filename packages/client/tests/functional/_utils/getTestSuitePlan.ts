@@ -113,11 +113,8 @@ function shouldSkipSuiteConfig(
   cliMeta: CliMeta,
   options?: MatrixOptions,
 ): boolean {
-  const provider = config.matrixOptions.provider
-  const driverAdapter = config.matrixOptions.driverAdapter
-  const relationMode = config.matrixOptions.relationMode
-  const engineType = config.matrixOptions.engineType
-  const clientEngineExecutor = config.matrixOptions.clientEngineExecutor
+  const { provider, driverAdapter, relationMode, engineType, clientRuntime, clientEngineExecutor } =
+    config.matrixOptions
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -171,6 +168,12 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if this test can't use a driver adapter, and we run the tests for a specific
+  // driver adapter, skip it
+  if (driverAdapter === undefined && includedProviderAdapters !== undefined) {
+    return true
+  }
+
   // if there is a Driver Adapter to run and it's excluded, skip
   if (driverAdapter && excludedProviderFlavors.includes(driverAdapter)) {
     return true
@@ -196,7 +199,19 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if this test requires a specific client runtime which doesn't match the one we're testing for, skip
+  if (clientRuntime !== undefined && clientRuntime !== cliMeta.runtime) {
+    return true
+  }
+
+  // if this test requires a specific client engine executor in case a client engine is used,
+  // and it doesn't match the one we're testing for, skip
   if (clientEngineExecutor !== undefined && clientEngineExecutor !== cliMeta.clientEngineExecutor) {
+    return true
+  }
+
+  // if this test requires client engine's remote executor and we're not testing QC, skip
+  if (clientEngineExecutor === 'remote' && clientRuntime !== 'client') {
     return true
   }
 
