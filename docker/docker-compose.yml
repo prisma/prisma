@@ -24,7 +24,10 @@ services:
       retries: 20
 
   postgres-16:
-    image: postgres:16
+    build:
+      context: ./postgres_ext
+      args:
+        POSTGRES_VERSION: 16
     restart: unless-stopped
     # Uncomment the following line to enable query logging
     # Then restart the container.

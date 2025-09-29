@@ -301,7 +301,11 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const migrate = await Migrate.setup({ adapter, schemaContext: schemaContext ?? undefined })
+    const migrate = await Migrate.setup({
+      adapter,
+      schemaContext: schemaContext ?? undefined,
+      extensions: config['extensions'],
+    })
 
     const engine = migrate.engine
     const basedOn =
