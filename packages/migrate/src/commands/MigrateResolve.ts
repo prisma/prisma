@@ -121,7 +121,12 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
         await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
       }
 
-      const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext })
+      const migrate = await Migrate.setup({
+        adapter,
+        migrationsDirPath,
+        schemaContext,
+        extensions: config['extensions'],
+      })
 
       try {
         await migrate.markMigrationApplied({
@@ -144,7 +149,12 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
 
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
-      const migrate = await Migrate.setup({ adapter: undefined, migrationsDirPath, schemaContext })
+      const migrate = await Migrate.setup({
+        adapter: undefined,
+        migrationsDirPath,
+        schemaContext,
+        extensions: config['extensions'],
+      })
 
       try {
         await migrate.markMigrationRolledBack({

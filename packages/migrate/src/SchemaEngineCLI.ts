@@ -15,6 +15,7 @@ import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
 
+import { ExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -41,6 +42,7 @@ interface SchemaEngineCLISetupInput {
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
+  extensions?: ExtensionConfig
 }
 
 export type SchemaEngineCLIOptions = SchemaEngineCLISetupInput
@@ -57,6 +59,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private lastError: SchemaEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
+  private extensions?: ExtensionConfig
 
   // `latestSchema` is set to the latest schema that was used in `introspect()`
   // TODO: remove, it's not used anywhere.
@@ -65,13 +68,14 @@ export class SchemaEngineCLI implements SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  private constructor({ debug = false, schemaContext, enabledPreviewFeatures }: SchemaEngineCLIOptions) {
+  private constructor({ debug = false, schemaContext, enabledPreviewFeatures, extensions }: SchemaEngineCLIOptions) {
     this.schemaContext = schemaContext
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
+    this.extensions = extensions
   }
 
   static setup(input: SchemaEngineCLISetupInput): Promise<SchemaEngineCLI> {
@@ -381,6 +385,11 @@ export class SchemaEngineCLI implements SchemaEngine {
         ) {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
+
+        if (this.extensions) {
+          args.push(...['--extension-types', JSON.stringify(this.extensions)])
+        }
+
         this.child = spawn(binaryPath, args, {
           cwd: projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
