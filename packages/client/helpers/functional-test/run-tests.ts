@@ -127,6 +127,10 @@ const args = arg(
   true,
 )
 
+if (args instanceof Error) {
+  throw args
+}
+
 async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
 
