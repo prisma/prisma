@@ -40,9 +40,10 @@ const schemaRelationModeRegex = /relationMode\s*=\s*".*"/
  */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   let name = `${suiteMeta.testName.replace(/\\|\//g, '.')}`
-
   let parametersString = suiteConfig.parametersString
-  if (suiteConfig.matrixOptions.clientEngineExecutor === 'remote') {
+
+  const { clientEngineExecutor, clientRuntime } = suiteConfig.matrixOptions
+  if (clientRuntime === 'client' && clientEngineExecutor === 'remote') {
     parametersString += ', qpe=remote'
   }
 
