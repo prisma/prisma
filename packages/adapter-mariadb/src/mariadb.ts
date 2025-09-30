@@ -159,6 +159,7 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
       return tx
     } catch (error) {
       await conn.end()
+      cleanup()
       this.onError(error)
     }
   }
