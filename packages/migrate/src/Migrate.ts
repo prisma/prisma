@@ -29,7 +29,7 @@ interface MigrateSetupInput {
   schemaContext?: SchemaContext
   schemaFilter?: MigrateTypes.SchemaFilter
   shadowDbInitScript?: string
-  extensions?: Extension
+  extensions?: Extension[]
 }
 
 interface MigrateOptions {
