@@ -177,11 +177,95 @@ export function parseConnectionString(connectionString: string): sql.config {
     config.options.isolationLevel = mapIsolationLevelFromString(isolationLevel)
   }
 
+  const authentication = firstKey(parameters, 'authentication')
+  if (authentication !== null) {
+    config.authentication = parseAuthenticationOptions(parameters, authentication)
+  }
+
   if (!config.server || config.server.trim() === '') {
     throw new Error('Server host is required in connection string')
   }
 
   return config
+}
+
+/**
+ * Parse all the authentication options, ensuring a valid configuration is provided
+ * @param parameters configuration parameters
+ * @param authenticationValue authentication string value
+ */
+function parseAuthenticationOptions(
+  parameters: Record<string, string>,
+  authenticationValue: string,
+): sql.config['authentication'] | undefined {
+  switch (authenticationValue) {
+    /**
+     * 'DefaultAzureCredential' is not listed in the JDBC driver spec
+     * https://learn.microsoft.com/en-us/sql/connect/jdbc/setting-the-connection-properties?view=sql-server-ver15#properties
+     * but is supported by tedious so included here
+     */
+    case 'DefaultAzureCredential':
+    case 'ActiveDirectoryIntegrated':
+    case 'ActiveDirectoryInteractive':
+      // uses https://learn.microsoft.com/en-gb/azure/developer/javascript/sdk/authentication/credential-chains#use-defaultazurecredential-for-flexibility
+      return { type: 'azure-active-directory-default', options: {} }
+    case 'ActiveDirectoryPassword': {
+      const userName = firstKey(parameters, 'userName')
+      const password = firstKey(parameters, 'password')
+      const clientId = firstKey(parameters, 'clientId')
+      const tenantId = firstKey(parameters, 'tenantId')
+      if (!userName || !password || !clientId) {
+        throw new Error(`Invalid authentication, ActiveDirectoryPassword requires userName, password, clientId`)
+      }
+      return {
+        type: 'azure-active-directory-password',
+        options: {
+          userName,
+          password,
+          clientId,
+          tenantId: tenantId || '',
+        },
+      }
+    }
+    case 'ActiveDirectoryManagedIdentity':
+    case 'ActiveDirectoryMSI': {
+      const clientId = firstKey(parameters, 'clientId')
+      const msiEndpoint = firstKey(parameters, 'msiEndpoint')
+      const msiSecret = firstKey(parameters, 'msiSecret')
+      if (!msiEndpoint || !msiSecret) {
+        throw new Error(`Invalid authentication, ActiveDirectoryManagedIdentity requires msiEndpoint, msiSecret`)
+      }
+      return {
+        type: 'azure-active-directory-msi-app-service',
+        options: {
+          clientId: clientId || undefined,
+          // @ts-expect-error TODO: tedious typings don't define msiEndpoint and msiSecret -- needs to be fixed upstream
+          msiEndpoint,
+          msiSecret,
+        },
+      }
+    }
+    case 'ActiveDirectoryServicePrincipal': {
+      const clientId = firstKey(parameters, 'userName')
+      const clientSecret = firstKey(parameters, 'password')
+      const tenantId = firstKey(parameters, 'tenantId')
+      if (clientId && clientSecret) {
+        return {
+          type: 'azure-active-directory-service-principal-secret',
+          options: {
+            clientId,
+            clientSecret,
+            tenantId: tenantId || '',
+          },
+        }
+      } else {
+        throw new Error(
+          `Invalid authentication, ActiveDirectoryServicePrincipal requires userName (clientId), password (clientSecret)`,
+        )
+      }
+    }
+  }
+  return undefined
 }
 
 /**
