@@ -94,9 +94,22 @@ function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig
     suiteConfig.matrixOptions.clientEngineExecutor = 'local'
     return [suiteConfig]
   } else {
+    // For each suite config that doesn't use driver adapters, we need
+    // to clone it and create two separate configs:
+    //  - one which doesn't require `ClientEngine` specifically and can
+    //    be run with any engine type, but requires specifically a local
+    //    executor in the event it is executed using `ClientEngine`;
+    //  - another one which is only ever used with remote executor of
+    //    `ClientEngine` and never runs with either a local exeuctor
+    //    of the client engine nor any other engine type.
+    // This is required to separate the snapshots between them.
+
+    suiteConfig.matrixOptions.clientEngineExecutor = 'local'
+
     const remoteExecutorSuiteConfig = klona(suiteConfig)
-    suiteConfig.matrixOptions.clientRuntime = 'client'
-    suiteConfig.matrixOptions.clientEngineExecutor = 'remote'
+    remoteExecutorSuiteConfig.matrixOptions.clientRuntime = 'client'
+    remoteExecutorSuiteConfig.matrixOptions.clientEngineExecutor = 'remote'
+
     return [suiteConfig, remoteExecutorSuiteConfig]
   }
 }
