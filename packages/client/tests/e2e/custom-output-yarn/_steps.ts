@@ -8,6 +8,7 @@ void executeSteps({
     await $`cp original.package.json package.json`
   },
   test: async () => {
+    await $`yarn cache clean`
     await $`yarn`
     await $`yarn prisma generate`
     await $`yarn add db@link:./prisma/client`
