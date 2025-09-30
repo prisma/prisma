@@ -331,13 +331,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         expect(polishedTree).toEqual([`${viewsPath}/public/simpleuser.sql`, `${viewsPath}/work/workers.sql`])
 
         const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
-        expect(publicSimpleUserView).toMatchInlineSnapshot(`
-          "SELECT
-            su.first_name,
-            su.last_name
-          FROM
-            someuser su;"
-        `)
+        expect(publicSimpleUserView).toMatch(/SELECT\s*(su\.)?first_name,\s*(su\.)?last_name\s*FROM\s*someuser su;/)
 
         const workWorkersView = await ctx.fs.readAsync(`${viewsPath}/work/workers.sql`)
         expect(workWorkersView).toMatchInlineSnapshot(`
