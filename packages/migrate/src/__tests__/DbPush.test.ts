@@ -63,6 +63,21 @@ describe('push', () => {
     `)
   })
 
+  it('extensions', async () => {
+    ctx.fixture('prisma-config-extensions')
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      Datasource "db": PostgreSQL database "tests-migrate" <location placeholder>
+
+      The PostgreSQL database "tests-migrate" at "localhost:5432" was successfully reset.
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
   // Not relevant for driver adapters as the file location comes from prisma.config.ts then.
   describeMatrix(noDriverAdapters, 'SQLite file placements', () => {
     it('missing SQLite db should be created relative to the schema.prisma file', async () => {

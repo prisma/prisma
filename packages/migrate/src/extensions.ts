@@ -1,4 +1,4 @@
-export type ExtensionConfig = {
+export type Extension = {
   types: ExtensionType[]
 }
 
@@ -8,4 +8,8 @@ export type ExtensionType = {
   dbNamespace?: string
   dbTypeModifiers?: string[]
   numberOfDbTypeModifiers: number
+}
+
+export type SchemaExtensionConfig = {
+  types: ExtensionType[]
 }

@@ -15,7 +15,7 @@ import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
 
-import { ExtensionConfig } from './extensions'
+import { Extension, SchemaExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -42,7 +42,7 @@ interface SchemaEngineCLISetupInput {
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
-  extensions?: ExtensionConfig
+  extensions?: Extension[]
 }
 
 export type SchemaEngineCLIOptions = SchemaEngineCLISetupInput
@@ -59,7 +59,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private lastError: SchemaEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
-  private extensions?: ExtensionConfig
+  private extensionConfig?: SchemaExtensionConfig
 
   // `latestSchema` is set to the latest schema that was used in `introspect()`
   // TODO: remove, it's not used anywhere.
@@ -75,7 +75,7 @@ export class SchemaEngineCLI implements SchemaEngine {
     }
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
-    this.extensions = extensions
+    this.extensionConfig = extensions ? { types: extensions.flatMap((ext) => ext.types) } : undefined
   }
 
   static setup(input: SchemaEngineCLISetupInput): Promise<SchemaEngineCLI> {
@@ -386,8 +386,8 @@ export class SchemaEngineCLI implements SchemaEngine {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
 
-        if (this.extensions) {
-          args.push(...['--extension-types', JSON.stringify(this.extensions)])
+        if (this.extensionConfig) {
+          args.push(...['--extension-types', JSON.stringify(this.extensionConfig)])
         }
 
         this.child = spawn(binaryPath, args, {
