@@ -270,7 +270,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
     "@types/js-levenshtein": "1.1.3",
-    "@types/mssql": "9.1.5",
+    "@types/mssql": "9.1.8",
     "@types/node": "18.19.76",
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
