@@ -24,7 +24,6 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@prisma/internals": "workspace:*",
     "decimal.js": "10.5.0",
     "sql-template-tag": "5.2.1"
   },

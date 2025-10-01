@@ -7,11 +7,6 @@ export { Extensions }
 export { Public }
 
 export { type JsonBatchQuery, type JsonQuery } from './core/engines'
-export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
-export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
-export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
-export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
-export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
 export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 export {
   type Metric,
@@ -42,6 +37,13 @@ export {
 } from '@prisma/client-common'
 export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 export type { RawValue, Value } from '@prisma/client-runtime-utils'
+export {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client-runtime-utils'
 export { empty, join, raw, Sql, sql as sqltag } from '@prisma/client-runtime-utils'
 export { Decimal } from '@prisma/client-runtime-utils'
 export { Debug } from '@prisma/debug'
