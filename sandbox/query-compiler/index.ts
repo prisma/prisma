@@ -1,6 +1,5 @@
-import { Prisma, PrismaClient } from '.prisma/client'
+import { Prisma, PrismaClient } from './generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { Pool } from 'pg'
 
 import util from 'node:util'
 
