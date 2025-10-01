@@ -251,6 +251,14 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({
       TEST_CLIENT_ENGINE_REMOTE_EXECUTOR: 'true',
     })
+
+    // If we are running tests for all providers at the same time, or for a specific
+    // set of providers that include sqlserver, we need to run the tests without
+    // concurrency because SQL Server needs to be using the same database.
+    if (args['--provider'] === undefined || args['--provider']?.includes('sqlserver')) {
+      jestCli = jestCli.withArgs(['--runInBand'])
+      jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
+    }
   }
 
   // See flag description above.
