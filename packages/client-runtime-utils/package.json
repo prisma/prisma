@@ -25,7 +25,8 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@prisma/internals": "workspace:*",
-    "decimal.js": "10.5.0"
+    "decimal.js": "10.5.0",
+    "sql-template-tag": "5.2.1"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

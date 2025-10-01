@@ -41,10 +41,10 @@ export {
   type RuntimeDataModel,
 } from '@prisma/client-common'
 export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
+export type { RawValue, Value } from '@prisma/client-runtime-utils'
+export { empty, join, raw, Sql, sql as sqltag } from '@prisma/client-runtime-utils'
 export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
 export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 export { warnOnce } from '@prisma/internals'
 export { Decimal } from 'decimal.js'
-export type { RawValue, Value } from 'sql-template-tag'
-export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'

@@ -1035,6 +1035,9 @@ importers:
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
+      sql-template-tag:
+        specifier: 5.2.1
+        version: 5.2.1
 
   packages/config:
     dependencies:
