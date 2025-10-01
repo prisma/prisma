@@ -194,6 +194,7 @@ export type QueryPlanNode =
       args: {
         from: QueryPlanNode
         to: QueryPlanNode
+        fields: string[]
       }
     }
   | {
