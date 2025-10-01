@@ -522,6 +522,10 @@ importers:
         version: 3.24.2
 
   packages/client:
+    dependencies:
+      '@prisma/client-runtime-utils':
+        specifier: workspace:*
+        version: link:../client-runtime-utils
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20250408.0
@@ -1022,6 +1026,12 @@ importers:
       vitest:
         specifier: 3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
+
+  packages/client-runtime-utils:
+    dependencies:
+      '@prisma/internals':
+        specifier: workspace:*
+        version: link:../internals
 
   packages/config:
     dependencies:

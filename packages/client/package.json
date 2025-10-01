@@ -312,6 +312,9 @@
     "undici": "7.4.0",
     "zx": "8.4.1"
   },
+  "dependencies": {
+    "@prisma/client-runtime-utils": "workspace:*"
+  },
   "peerDependencies": {
     "prisma": "*",
     "typescript": ">=5.1.0"

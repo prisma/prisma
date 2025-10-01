@@ -56,6 +56,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
     minify: shouldMinify,
     sourcemap: 'linked',
     emitTypes: ['library', 'client'].includes(targetBuildType),
+    external: ['@prisma/client-runtime-utils'],
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
@@ -105,6 +106,7 @@ function browserBuildConfigs(): BuildOptions[] {
     bundle: true,
     minify: shouldMinify,
     sourcemap: 'linked',
+    external: ['@prisma/client-runtime-utils'],
   }))
 }
 
@@ -151,6 +153,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
   outfile: 'runtime/edge',
   emitTypes: true,
+  external: ['@prisma/client-runtime-utils'],
   define: {
     ...runtimesCommonBuildConfig.define,
     // tree shake the Library and Binary engines out
@@ -179,6 +182,7 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
     name,
     outfile: `runtime/${name}`,
     outExtension: getOutExtension(format),
+    external: ['@prisma/client-runtime-utils'],
     define: {
       ...runtimesCommonBuildConfig.define,
       TARGET_BUILD_TYPE: `"${name}"`,
@@ -232,6 +236,7 @@ const reactNativeBuildConfig: BuildOptions = {
   name: 'react-native',
   outfile: 'runtime/react-native',
   emitTypes: true,
+  external: ['@prisma/client-runtime-utils'],
   define: {
     NODE_CLIENT: 'false',
     TARGET_BUILD_TYPE: '"react-native"',
