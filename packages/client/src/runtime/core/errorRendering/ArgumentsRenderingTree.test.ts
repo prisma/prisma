@@ -1,5 +1,5 @@
+import { Decimal } from '@prisma/client-runtime-utils'
 import { Writer } from '@prisma/ts-builders'
-import { Decimal } from 'decimal.js'
 
 import { FieldRefImpl } from '../model/FieldRef'
 import { objectEnumValues } from '../types/exported/ObjectEnums'

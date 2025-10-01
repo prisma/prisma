@@ -23,8 +23,9 @@
     "directory": "packages/client-runtime-utils"
   },
   "license": "Apache-2.0",
-  "dependencies": {
-    "@prisma/internals": "workspace:*"
+  "devDependencies": {
+    "@prisma/internals": "workspace:*",
+    "decimal.js": "10.5.0"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
