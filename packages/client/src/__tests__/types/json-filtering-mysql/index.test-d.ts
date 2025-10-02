@@ -30,4 +30,14 @@ const prisma = new PrismaClient({
       },
     }),
   )
+  expectError(
+    await prisma.user.findFirst({
+      where: {
+        info: {
+          path: '$.any',
+          equals: undefined,
+        },
+      },
+    }),
+  )
 })()
