@@ -135,3 +135,5 @@ function getErrorResponse(error: Error, ctx: Context): Response {
     return ctx.json({ error: error.message }, 500)
   }
 }
+
+export const serverRoutes = /^\/(connection-info|query|transaction\/(start|(.+\/(query|commit|rollback))))$/
