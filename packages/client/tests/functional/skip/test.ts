@@ -145,6 +145,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
+    expect(result.posts.length).toBeGreaterThan(0)
     expect(result.posts[0].content).toBe(null)
   })
 
