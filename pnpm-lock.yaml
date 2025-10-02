@@ -360,6 +360,9 @@ importers:
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
+      '@prisma/client-runtime-utils':
+        specifier: workspace:*
+        version: link:../client-runtime-utils
       pg:
         specifier: 8.14.1
         version: 8.14.1
