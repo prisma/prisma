@@ -109,6 +109,45 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf(result).toHaveProperty('email')
   })
 
+  test('skips fields in create', async () => {
+    const { id: authorId } = await prisma.user.findUniqueOrThrow({
+      where: {
+        email: 'boat@example.com',
+      },
+    })
+
+    const result = await prisma.post.create({
+      data: {
+        authorId,
+        title: 'Concise post',
+        content: Prisma.skip,
+      },
+    })
+
+    expect(result.content).toBe(null)
+  })
+
+  test('skips fields in nested create', async () => {
+    const result = await prisma.user.update({
+      where: {
+        email: 'boat@example.com',
+      },
+      data: {
+        posts: {
+          create: {
+            title: 'Nested post',
+            content: Prisma.skip,
+          },
+        },
+      },
+      include: {
+        posts: true,
+      },
+    })
+
+    expect(result.posts[0].content).toBe(null)
+  })
+
   describe('after extension', () => {
     test('skips relations in include', async () => {
       const result = await prisma.$extends({}).user.findFirstOrThrow({
