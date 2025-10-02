@@ -5,9 +5,10 @@
   "main": "index.ts",
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
-    "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
+    "generate": "prisma generate",
     "start": "npm run generate && npm run test",
     "test": "ts-node index.ts",
+    "typecheck": "tsc",
     "debug": "node -r ts-node/register --enable-source-maps index.ts"
   },
   "keywords": [],

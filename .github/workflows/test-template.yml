@@ -258,7 +258,7 @@ jobs:
           ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [20]
-        previewFeatures: ['', ',relationJoins']
+        previewFeatures: ['', 'relationJoins']
     steps:
       - uses: actions/checkout@v4
 
@@ -277,7 +277,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features ${{ matrix.previewFeatures }} --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries

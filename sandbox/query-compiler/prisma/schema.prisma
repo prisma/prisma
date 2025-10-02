@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../node_modules/.prisma/client"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
   engineType      = "client"
 }
 
@@ -14,6 +14,8 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   posts     Post[]
+  field     Json?
+  role      Role     @default(User)
 }
 
 model Post {
@@ -21,4 +23,9 @@ model Post {
   title  String
   userId Int
   user   User   @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  Admin
+  User
 }
