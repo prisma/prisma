@@ -716,9 +716,6 @@ importers:
       cookie-es:
         specifier: 2.0.0
         version: 2.0.0
-      decimal.js:
-        specifier: 10.5.0
-        version: 10.5.0
       execa:
         specifier: 8.0.1
         version: 8.0.1
@@ -791,9 +788,6 @@ importers:
       source-map-support:
         specifier: 0.5.21
         version: 0.5.21
-      sql-template-tag:
-        specifier: 5.2.1
-        version: 5.2.1
       stacktrace-parser:
         specifier: 0.1.11
         version: 0.1.11
@@ -851,15 +845,15 @@ importers:
       '@paralleldrive/cuid2':
         specifier: 2.2.2
         version: 2.2.2
+      '@prisma/client-runtime-utils':
+        specifier: workspace:*
+        version: link:../client-runtime-utils
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
-      decimal.js:
-        specifier: 10.5.0
-        version: 10.5.0
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -1336,6 +1330,9 @@ importers:
 
   packages/integration-tests:
     devDependencies:
+      '@prisma/client-runtime-utils':
+        specifier: workspace:*
+        version: link:../client-runtime-utils
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1369,9 +1366,6 @@ importers:
       '@types/sqlite3':
         specifier: 3.1.11
         version: 3.1.11
-      decimal.js:
-        specifier: 10.5.0
-        version: 10.5.0
       fs-jetpack:
         specifier: 5.1.0
         version: 5.1.0
