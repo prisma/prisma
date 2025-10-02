@@ -81,6 +81,7 @@ export const prismaVersion: PrismaVersion = {
  * Utility Types
  */
 
+export type Bytes = runtime.Bytes
 export type JsonObject = runtime.JsonObject
 export type JsonArray = runtime.JsonArray
 export type JsonValue = runtime.JsonValue
