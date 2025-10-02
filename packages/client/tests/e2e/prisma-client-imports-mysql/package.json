@@ -9,6 +9,7 @@
     "@planetscale/database": "1.18.0",
     "@prisma/adapter-planetscale": "/tmp/prisma-adapter-planetscale-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/client-runtime-utils": "/tmp/prisma-client-runtime-utils-0.0.0.tgz",
     "@prisma/extension-accelerate": "1.2.1",
     "@prisma/extension-read-replicas": "0.3.0",
     "db": "link:custom"

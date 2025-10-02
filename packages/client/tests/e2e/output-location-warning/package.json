@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/client-runtime-utils": "/tmp/prisma-client-runtime-utils-0.0.0.tgz",
     "db": "./custom"
   },
   "devDependencies": {
