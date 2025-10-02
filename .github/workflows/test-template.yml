@@ -1247,6 +1247,7 @@ jobs:
             echo "TEST_SKIP_MSSQL=true"
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
+            echo "TEST_NO_DOCKER=true"
             echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
             echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"

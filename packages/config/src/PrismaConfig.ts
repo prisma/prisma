@@ -234,6 +234,7 @@ const PrismaConfigShape = Shape.Struct({
   enums: Shape.optional(EnumsConfigShape),
   views: Shape.optional(ViewsConfigShape),
   typedSql: Shape.optional(TypedSqlConfigShape),
+  extensions: Shape.optional(Shape.Any),
 })
 
 /**

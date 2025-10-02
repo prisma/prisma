@@ -12,6 +12,7 @@ import {
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
 
+import { Extension } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import { SchemaEngineCLI } from './SchemaEngineCLI'
 import { SchemaEngineWasm } from './SchemaEngineWasm'
@@ -28,6 +29,7 @@ interface MigrateSetupInput {
   schemaContext?: SchemaContext
   schemaFilter?: MigrateTypes.SchemaFilter
   shadowDbInitScript?: string
+  extensions?: Extension[]
 }
 
 interface MigrateOptions {

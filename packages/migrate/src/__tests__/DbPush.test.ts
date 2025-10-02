@@ -14,6 +14,9 @@ beforeEach(() => {
 })
 
 describe('push', () => {
+  // A test that requires docker (e.g, because it relies on extensions being installed)
+  const inDockerIt = process.env.TEST_NO_DOCKER ? it.skip : it
+
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
@@ -57,6 +60,23 @@ describe('push', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+      "
+    `)
+  })
+
+  inDockerIt('should load extensions from the config', async () => {
+    ctx.fixture('prisma-config-extensions')
+    const result = DbPush.new().parse(['--force-reset'], await ctx.config())
+    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+      "Prisma schema loaded from schema.prisma
+      Datasource "db": PostgreSQL database "tests-migrate" <location placeholder>
+
+      PostgreSQL database tests-migrate created at localhost:5432
+
+      The PostgreSQL database "tests-migrate" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "

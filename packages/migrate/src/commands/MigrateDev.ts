@@ -137,6 +137,7 @@ ${bold('Examples')}
       schemaContext,
       schemaFilter,
       shadowDbInitScript: config.migrations?.initShadowDb,
+      extensions: config['extensions'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
