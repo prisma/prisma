@@ -1,4 +1,4 @@
-import { setClassName } from '@prisma/internals'
+import { setClassName } from './setClassName'
 
 export class PrismaClientRustPanicError extends Error {
   clientVersion: string

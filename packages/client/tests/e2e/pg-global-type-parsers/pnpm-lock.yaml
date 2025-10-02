@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@prisma/adapter-neon':
-        specifier: /tmp/prisma-adapter-neon-0.0.0.tgz
-        version: file:../../tmp/prisma-adapter-neon-0.0.0.tgz(@neondatabase/serverless@0.9.5)
+        specifier: file:/tmp/prisma-adapter-neon-0.0.0.tgz
+        version: file:../../tmp/prisma-adapter-neon-0.0.0.tgz
       '@prisma/adapter-pg':
-        specifier: /tmp/prisma-adapter-pg-0.0.0.tgz
-        version: file:../../tmp/prisma-adapter-pg-0.0.0.tgz(pg@8.11.5)
+        specifier: file:/tmp/prisma-adapter-pg-0.0.0.tgz
+        version: file:../../tmp/prisma-adapter-pg-0.0.0.tgz
       pg:
         specifier: 8.11.5
         version: 8.11.5
@@ -27,12 +27,12 @@ importers:
 
 packages:
 
-  '@babel/code-frame@7.26.2':
-    resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
+  '@babel/code-frame@7.27.1':
+    resolution: {integrity: sha512-cjQ7ZlQ0Mv3b47hABuTevyTuYN4i+loJKGeV9flcCgIK37cCXRh+L1bd3iBHlynerhQ7BhCkn2BPbQUL+rGqFg==}
     engines: {node: '>=6.9.0'}
 
-  '@babel/helper-validator-identifier@7.25.9':
-    resolution: {integrity: sha512-Ed61U6XJc3CVRfkERJWDz4dJwKe7iLmmJsbOGu9wSloNSFttHV0I8g6UAgb7qnK5ly5bGLPd4oXZlxCdANBOWQ==}
+  '@babel/helper-validator-identifier@7.27.1':
+    resolution: {integrity: sha512-D2hP9eA+Sqx1kBZgzxZh0y1trbuU+JoDkiEwqhQ36nodYqJwyEIhPSdMNd7lOm/4io72luTPWH20Yda0xOuUow==}
     engines: {node: '>=6.9.0'}
 
   '@jest/expect-utils@29.7.0':
@@ -47,27 +47,24 @@ packages:
     resolution: {integrity: sha512-u3UPsIilWKOM3F9CXtrG8LEJmNxwoCQC/XVj4IKYXvvpx7QIi/Kg1LI5uDmDpKlac62NUtX7eLjRh+jVZcLOzw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
 
-  '@neondatabase/serverless@0.9.5':
-    resolution: {integrity: sha512-siFas6gItqv6wD/pZnvdu34wEqgG3nSE6zWZdq5j2DEsa+VvX8i/5HXJOo06qrw5axPXn+lGCxeR+NLaSPIXug==}
+  '@neondatabase/serverless@1.0.2':
+    resolution: {integrity: sha512-I5sbpSIAHiB+b6UttofhrN/UJXII+4tZPAq1qugzwCwLIL8EZLV7F/JyHUrEIiGgQpEXzpnjlJ+zwcEhheGvCw==}
+    engines: {node: '>=19.0.0'}
 
   '@prisma/adapter-neon@file:../../tmp/prisma-adapter-neon-0.0.0.tgz':
-    resolution: {integrity: sha512-84ApDOYiCHmsYh3XcCrBc02c1G6pCYVwT2xESHBk7HDH1mFAEfaAzx3HCN4edrYzVNcs+9G+/PcOEi0qqdJTkA==, tarball: file:../../tmp/prisma-adapter-neon-0.0.0.tgz}
+    resolution: {integrity: sha512-iosphr8fV+Q3rsQc/CezpDmtnNgJyRzLfW5SS6l7G+jls/UHFy18nWCKILKbIoWoORZ1dGCzveQRzbXs8rOR5A==, tarball: file:../../tmp/prisma-adapter-neon-0.0.0.tgz}
     version: 0.0.0
-    peerDependencies:
-      '@neondatabase/serverless': ^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0 || ^0.10.0
 
   '@prisma/adapter-pg@file:../../tmp/prisma-adapter-pg-0.0.0.tgz':
-    resolution: {integrity: sha512-LID64OK78N+N3eOFYhFRXKitlHharMMWv5oHvxHZI6+2l5C7K9037QgEstZJ0dhGe9j0AMsWN8K2Npd9PI61gw==, tarball: file:../../tmp/prisma-adapter-pg-0.0.0.tgz}
+    resolution: {integrity: sha512-+9ZMvyjRdK1+w6uVALeGX7xrfAtaqjf/OkKScKppTRmWbzYF5CqBR53TYsWTSJvmb79+9FEQlK9Mjd6voJnlSA==, tarball: file:../../tmp/prisma-adapter-pg-0.0.0.tgz}
     version: 0.0.0
-    peerDependencies:
-      pg: ^8.11.3
 
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz':
-    resolution: {integrity: sha512-FG7Ub+yCsggS6QfnJw8XVwbi4txy+BgM2qaN10+RCQRHZUsRGyeEga7eruzEaCyRhMLZ2+eU9W/PYBESy/zFpg==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
+    resolution: {integrity: sha512-98qifti7v9JEB4/qwa/6EZed0Wet1EW1cufnsuuDR+6c3+JOMq67cCZq3e+yKHh3164eoIEsHMeSiP8dc2dHcw==, tarball: file:../../tmp/prisma-debug-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/driver-adapter-utils@file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz':
-    resolution: {integrity: sha512-Stk0VAkO6DE+hG3A9WCCfqmnsirhlx5BxXpXmXg/heAosXAnJUMo9XFB7rsrUSWcG7iIbISCFYaFmVZOiXR3Kw==, tarball: file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz}
+    resolution: {integrity: sha512-aPWIP9yk1lhfIFliaKmmI/Rfc28JPo9KA0DMwGyAbMLDCFnKjQn49OLDHwIMNGeWtQSkClIR0by8Odhvmz7cOQ==, tarball: file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz}
     version: 0.0.0
 
   '@sinclair/typebox@0.27.8':
@@ -88,8 +85,11 @@ packages:
   '@types/node@18.19.50':
     resolution: {integrity: sha512-xonK+NRrMBRtkL1hVCc3G+uXtjh1Al4opBLjqVmipe5ZAaBYWW6cNAiBVZ1BvmkBhep698rP3UM3aRAdSALuhg==}
 
-  '@types/pg@8.11.6':
-    resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
+  '@types/node@22.18.8':
+    resolution: {integrity: sha512-pAZSHMiagDR7cARo/cch1f3rXy0AEXwsVsVH09FcyeJVAzCnGgmYis7P3JidtTUjyadhTeSo8TgRPswstghDaw==}
+
+  '@types/pg@8.15.5':
+    resolution: {integrity: sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==}
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
@@ -181,38 +181,27 @@ packages:
     resolution: {integrity: sha512-PXwfBhYu0hBCPw8Dn0E+WDYb7af3dSLVWKi3HGv84IdF4TyFoC0ysxFd0Goxw7nSv4T/PzEJQxsYsEiFCKo2BA==}
     engines: {node: '>=8.6'}
 
-  obuf@1.1.2:
-    resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
+  pg-cloudflare@1.2.7:
+    resolution: {integrity: sha512-YgCtzMH0ptvZJslLM1ffsY4EuGaU0cx4XSdXLRFae8bPP4dS5xL1tNB3k2o/N64cHJpwU7dxKli/nZ2lUa5fLg==}
 
-  pg-cloudflare@1.1.1:
-    resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
-
-  pg-connection-string@2.7.0:
-    resolution: {integrity: sha512-PI2W9mv53rXJQEOb8xNR8lH7Hr+EKa6oJa38zsK0S/ky2er16ios1wLKhZyxzD7jUReiWokc9WK5nxSnC7W1TA==}
+  pg-connection-string@2.9.1:
+    resolution: {integrity: sha512-nkc6NpDcvPVpZXxrreI/FOtX3XemeLl8E0qFr6F2Lrm/I8WOnaWNhIPK2Z7OHpw7gh5XJThi6j6ppgNoaT1w4w==}
 
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
 
-  pg-numeric@1.0.2:
-    resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
-    engines: {node: '>=4'}
-
-  pg-pool@3.7.0:
-    resolution: {integrity: sha512-ZOBQForurqh4zZWjrgSwwAtzJ7QiRX0ovFkZr2klsen3Nm0aoh33Ls0fzfv3imeH/nw/O27cjdz5kzYJfeGp/g==}
+  pg-pool@3.10.1:
+    resolution: {integrity: sha512-Tu8jMlcX+9d8+QVzKIvM/uJtp07PKr82IUOYEphaWcoBhIYkoHpLXN3qO59nAI11ripznDsEzEv8nUxBVWajGg==}
     peerDependencies:
       pg: '>=8.0'
 
-  pg-protocol@1.7.0:
-    resolution: {integrity: sha512-hTK/mE36i8fDDhgDFjy6xNOG+LCorxLG3WO17tku+ij6sVHXh1jQUJ8hYAnRhNla4QVD2H8er/FOjc/+EgC6yQ==}
+  pg-protocol@1.10.3:
+    resolution: {integrity: sha512-6DIBgBQaTKDJyxnXaLiLR8wBpQQcGWuAESkRBX/t6OwA8YsqP+iVSiond2EDy6Y/dsGk8rh/jtax3js5NeV7JQ==}
 
   pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
     engines: {node: '>=4'}
-
-  pg-types@4.0.2:
-    resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
-    engines: {node: '>=10'}
 
   pg@8.11.5:
     resolution: {integrity: sha512-jqgNHSKL5cbDjFlHyYsCXmQDrfIX/3RsNwYqpd4N0Kt8niLuNoRNH+aazv6cOd43gPh9Y4DjQCtb+X0MH0Hvnw==}
@@ -237,36 +226,21 @@ packages:
     resolution: {integrity: sha512-VpZrUqU5A69eQyW2c5CA1jtLecCsN2U/bD6VilrFDWq5+5UIEVO7nazS3TEcHf1zuPYO/sqGvUvW62g86RXZuA==}
     engines: {node: '>=4'}
 
-  postgres-array@3.0.2:
-    resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
+  postgres-array@3.0.4:
+    resolution: {integrity: sha512-nAUSGfSDGOaOAEGwqsRY27GPOea7CNipJPOA7lPbdEpx5Kg3qzdP0AaWC5MlhTWV9s4hFX39nomVZ+C4tnGOJQ==}
     engines: {node: '>=12'}
 
   postgres-bytea@1.0.0:
     resolution: {integrity: sha512-xy3pmLuQqRBZBXDULy7KbaitYqLcmxigw14Q5sj8QBVLqEwXfeybIKVWiqAXTlcvdvb0+xkOtDbfQMOf4lST1w==}
     engines: {node: '>=0.10.0'}
 
-  postgres-bytea@3.0.0:
-    resolution: {integrity: sha512-CNd4jim9RFPkObHSjVHlVrxoVQXz7quwNFpz7RY1okNNme49+sVyiTvTRobiLV548Hx/hb1BG+iE7h9493WzFw==}
-    engines: {node: '>= 6'}
-
   postgres-date@1.0.7:
     resolution: {integrity: sha512-suDmjLVQg78nMK2UZ454hAG+OAW+HQPZ6n++TNDUX+L0+uUlLywnoxJKDou51Zm+zTCjrCl0Nq6J9C5hP9vK/Q==}
     engines: {node: '>=0.10.0'}
 
-  postgres-date@2.1.0:
-    resolution: {integrity: sha512-K7Juri8gtgXVcDfZttFKVmhglp7epKb1K4pgrkLxehjqkrgPhfG6OO8LHLkfaqkbpjNRnra018XwAr1yQFWGcA==}
-    engines: {node: '>=12'}
-
   postgres-interval@1.2.0:
     resolution: {integrity: sha512-9ZhXKM/rw350N1ovuWHbGxnGh/SNJ4cnxHiM0rxE4VN41wsg8P8zWn9hv/buK00RP4WvlOyr/RBDiptyxVbkZQ==}
     engines: {node: '>=0.10.0'}
-
-  postgres-interval@3.0.0:
-    resolution: {integrity: sha512-BSNDnbyZCXSxgA+1f5UU2GmwhoI0aU5yMxRGO8CdFEcY2BQF9xm/7MqKnYoM1nJDk8nONNWDk9WeSmePFhQdlw==}
-    engines: {node: '>=12'}
-
-  postgres-range@1.1.4:
-    resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
 
   pretty-format@29.7.0:
     resolution: {integrity: sha512-Pdlw/oPxN+aXdmM9R00JVC9WVFoCLTKJvDVLgmJ+qAffBMxsV85l/Lu7sNx4zSzPyoL2euImuEwHhOXdEgNFZQ==}
@@ -298,19 +272,22 @@ packages:
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
+  undici-types@6.21.0:
+    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
     engines: {node: '>=0.4'}
 
 snapshots:
 
-  '@babel/code-frame@7.26.2':
+  '@babel/code-frame@7.27.1':
     dependencies:
-      '@babel/helper-validator-identifier': 7.25.9
+      '@babel/helper-validator-identifier': 7.27.1
       js-tokens: 4.0.0
       picocolors: 1.1.1
 
-  '@babel/helper-validator-identifier@7.25.9': {}
+  '@babel/helper-validator-identifier@7.27.1': {}
 
   '@jest/expect-utils@29.7.0':
     dependencies:
@@ -329,21 +306,24 @@ snapshots:
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
-  '@neondatabase/serverless@0.9.5':
+  '@neondatabase/serverless@1.0.2':
     dependencies:
-      '@types/pg': 8.11.6
+      '@types/node': 22.18.8
+      '@types/pg': 8.15.5
 
-  '@prisma/adapter-neon@file:../../tmp/prisma-adapter-neon-0.0.0.tgz(@neondatabase/serverless@0.9.5)':
+  '@prisma/adapter-neon@file:../../tmp/prisma-adapter-neon-0.0.0.tgz':
     dependencies:
-      '@neondatabase/serverless': 0.9.5
+      '@neondatabase/serverless': 1.0.2
       '@prisma/driver-adapter-utils': file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz
-      postgres-array: 3.0.2
+      postgres-array: 3.0.4
 
-  '@prisma/adapter-pg@file:../../tmp/prisma-adapter-pg-0.0.0.tgz(pg@8.11.5)':
+  '@prisma/adapter-pg@file:../../tmp/prisma-adapter-pg-0.0.0.tgz':
     dependencies:
       '@prisma/driver-adapter-utils': file:../../tmp/prisma-driver-adapter-utils-0.0.0.tgz
       pg: 8.11.5
-      postgres-array: 3.0.2
+      postgres-array: 3.0.4
+    transitivePeerDependencies:
+      - pg-native
 
   '@prisma/debug@file:../../tmp/prisma-debug-0.0.0.tgz': {}
 
@@ -372,11 +352,15 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
-  '@types/pg@8.11.6':
+  '@types/node@22.18.8':
     dependencies:
-      '@types/node': 18.19.50
-      pg-protocol: 1.7.0
-      pg-types: 4.0.2
+      undici-types: 6.21.0
+
+  '@types/pg@8.15.5':
+    dependencies:
+      '@types/node': 22.18.8
+      pg-protocol: 1.10.3
+      pg-types: 2.2.0
 
   '@types/stack-utils@2.0.3': {}
 
@@ -449,7 +433,7 @@ snapshots:
 
   jest-message-util@29.7.0:
     dependencies:
-      '@babel/code-frame': 7.26.2
+      '@babel/code-frame': 7.27.1
       '@jest/types': 29.6.3
       '@types/stack-utils': 2.0.3
       chalk: 4.1.2
@@ -475,22 +459,18 @@ snapshots:
       braces: 3.0.3
       picomatch: 2.3.1
 
-  obuf@1.1.2: {}
-
-  pg-cloudflare@1.1.1:
+  pg-cloudflare@1.2.7:
     optional: true
 
-  pg-connection-string@2.7.0: {}
+  pg-connection-string@2.9.1: {}
 
   pg-int8@1.0.1: {}
 
-  pg-numeric@1.0.2: {}
-
-  pg-pool@3.7.0(pg@8.11.5):
+  pg-pool@3.10.1(pg@8.11.5):
     dependencies:
       pg: 8.11.5
 
-  pg-protocol@1.7.0: {}
+  pg-protocol@1.10.3: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -500,25 +480,15 @@ snapshots:
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
 
-  pg-types@4.0.2:
-    dependencies:
-      pg-int8: 1.0.1
-      pg-numeric: 1.0.2
-      postgres-array: 3.0.2
-      postgres-bytea: 3.0.0
-      postgres-date: 2.1.0
-      postgres-interval: 3.0.0
-      postgres-range: 1.1.4
-
   pg@8.11.5:
     dependencies:
-      pg-connection-string: 2.7.0
-      pg-pool: 3.7.0(pg@8.11.5)
-      pg-protocol: 1.7.0
+      pg-connection-string: 2.9.1
+      pg-pool: 3.10.1(pg@8.11.5)
+      pg-protocol: 1.10.3
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
-      pg-cloudflare: 1.1.1
+      pg-cloudflare: 1.2.7
 
   pgpass@1.0.5:
     dependencies:
@@ -530,25 +500,15 @@ snapshots:
 
   postgres-array@2.0.0: {}
 
-  postgres-array@3.0.2: {}
+  postgres-array@3.0.4: {}
 
   postgres-bytea@1.0.0: {}
 
-  postgres-bytea@3.0.0:
-    dependencies:
-      obuf: 1.1.2
-
   postgres-date@1.0.7: {}
-
-  postgres-date@2.1.0: {}
 
   postgres-interval@1.2.0:
     dependencies:
       xtend: 4.0.2
-
-  postgres-interval@3.0.0: {}
-
-  postgres-range@1.1.4: {}
 
   pretty-format@29.7.0:
     dependencies:
@@ -575,5 +535,7 @@ snapshots:
       is-number: 7.0.0
 
   undici-types@5.26.5: {}
+
+  undici-types@6.21.0: {}
 
   xtend@4.0.2: {}

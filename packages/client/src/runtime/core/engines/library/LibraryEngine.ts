@@ -1,4 +1,10 @@
 import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
@@ -6,10 +12,6 @@ import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatfor
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'

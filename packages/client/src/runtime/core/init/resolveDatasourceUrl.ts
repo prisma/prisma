@@ -1,8 +1,8 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 
 import { Datasources } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
-import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 export function resolveDatasourceUrl({
   inlineDatasources,

@@ -1,6 +1,7 @@
+import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
+
 import { Client } from '../../getPrismaClient'
 import type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
-import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
 export type MetricsOptions = {
   /**

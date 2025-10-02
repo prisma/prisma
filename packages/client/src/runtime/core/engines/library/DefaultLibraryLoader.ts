@@ -1,9 +1,9 @@
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 import { getPlatformInfo } from '@prisma/get-platform'
 import { ClientEngineType, handleLibraryLoadingErrors } from '@prisma/internals'
 import os from 'os'
 import path from 'path'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import { Library, LibraryLoader } from './types/Library'

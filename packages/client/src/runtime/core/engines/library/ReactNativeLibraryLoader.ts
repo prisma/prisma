@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/require-await */
 
 import { QueryEngineConfig, QueryEngineInstance } from '@prisma/client-common'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { LibraryLoader } from './types/Library'
 
 type PrismaCreateOptions = {
