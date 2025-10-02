@@ -30,7 +30,9 @@ export async function getRootCacheDir(): Promise<string | null> {
       return null
     }
   }
-  return path.join(os.homedir(), '.cache/prisma')
+  return process.env.XDG_CACHE_HOME
+    ? path.join(process.env.XDG_CACHE_HOME, 'prisma')
+    : path.join(os.homedir(), '.cache/prisma')
 }
 
 export async function getCacheDir(channel: string, version: string, binaryTarget: string): Promise<string | null> {

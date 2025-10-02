@@ -389,6 +389,100 @@ describe('parseConnectionString', () => {
       // Should ignore malformed pairs
     })
   })
+
+  describe('authentication parameters', () => {
+    it.each([
+      'sqlserver://localhost:1433;database=testdb;authentication=DefaultAzureCredential',
+      'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryIntegrated',
+      'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryInteractive',
+    ])('should support authentication parameter for %s', (connectionString) => {
+      const config = parseConnectionString(connectionString)
+      expect(config.user).toBe(undefined)
+      expect(config.password).toBe(undefined)
+      expect(config.authentication?.type).toBe('azure-active-directory-default')
+    })
+
+    it('should support authentication password parameters', () => {
+      const connectionString =
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryPassword;userName=user1;password=mypassword;clientId=my-client-id'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.authentication?.type).toBe('azure-active-directory-password')
+      if (config.authentication?.type === 'azure-active-directory-password') {
+        expect(config.authentication?.options?.clientId).toBe('my-client-id')
+        expect(config.authentication?.options?.userName).toBe('user1')
+        expect(config.authentication?.options?.password).toBe('mypassword')
+        expect(config.authentication?.options?.tenantId).toBe('')
+      } else {
+        throw new Error('expected config.authentication.type to be azure-active-directory-password')
+      }
+    })
+
+    it.each([
+      'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryManagedIdentity;clientId=test-client;msiEndpoint=msi-endpoint-1;msiSecret=msi-secret-1',
+      'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryMSI;clientId=test-client;msiEndpoint=msi-endpoint-1;msiSecret=msi-secret-1',
+    ])('should support authentication managed identity parameters for %s', (connectionString) => {
+      const config = parseConnectionString(connectionString)
+
+      expect(config.user).toBe(undefined)
+      expect(config.password).toBe(undefined)
+      expect(config.authentication?.type).toBe('azure-active-directory-msi-app-service')
+      if (config.authentication?.type === 'azure-active-directory-msi-app-service') {
+        expect(config.authentication?.options?.clientId).toBe('test-client')
+        // @ts-expect-error tedious typings do not include msiEndpoint
+        expect(config.authentication?.options?.msiEndpoint).toBe('msi-endpoint-1')
+        // @ts-expect-error tedious typings do not include msiSecret
+        expect(config.authentication?.options?.msiSecret).toBe('msi-secret-1')
+      } else {
+        throw new Error('expected config.authentication.type to be azure-active-directory-msi-app-service')
+      }
+    })
+
+    it('should support authentication service principal parameters', () => {
+      const connectionString =
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryServicePrincipal;userName=test-client-id;password=mysecret'
+      const config = parseConnectionString(connectionString)
+
+      expect(config.authentication?.type).toBe('azure-active-directory-service-principal-secret')
+      if (config.authentication?.type === 'azure-active-directory-service-principal-secret') {
+        expect(config.authentication?.options?.clientId).toBe('test-client-id')
+        expect(config.authentication?.options?.clientSecret).toBe('mysecret')
+        expect(config.authentication?.options?.tenantId).toBe('')
+      } else {
+        throw new Error('expected config.authentication.type to be azure-active-directory-service-principal-secret')
+      }
+    })
+
+    describe('error handling', () => {
+      it.each([
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryPassword;userName=user1;password=mypassword',
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryPassword;userName=user1;clientId=my-client-id',
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryPassword;password=mypassword;clientId=my-client-id',
+      ])('should check authentication password parameters are present for %s', (connectionString) => {
+        expect(() => parseConnectionString(connectionString)).toThrow(
+          'Invalid authentication, ActiveDirectoryPassword requires userName, password, clientId',
+        )
+      })
+
+      it.each([
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryManagedIdentity;clientId=test-client;msiSecret=msi-secret-1',
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryManagedIdentity;clientId=test-client;msiEndpoint=msi-endpoint-1;',
+      ])('should check authentication managed identity parameters are present for %s', (connectionString) => {
+        expect(() => parseConnectionString(connectionString)).toThrow(
+          'Invalid authentication, ActiveDirectoryManagedIdentity requires msiEndpoint, msiSecret',
+        )
+      })
+
+      it.each([
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryServicePrincipal;userName=test-client-id',
+        'sqlserver://localhost:1433;database=testdb;authentication=ActiveDirectoryServicePrincipal;password=mysecret',
+      ])('should check authentication service principal parameters are present for %s', (connectionString) => {
+        expect(() => parseConnectionString(connectionString)).toThrow(
+          'Invalid authentication, ActiveDirectoryServicePrincipal requires userName (clientId), password (clientSecret)',
+        )
+      })
+    })
+  })
 })
 
 describe('extractSchemaFromConnectionString', () => {

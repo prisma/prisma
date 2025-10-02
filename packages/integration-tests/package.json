@@ -19,7 +19,7 @@
     "@swc/core": "1.11.5",
     "@swc/jest": "0.2.37",
     "@types/jest": "29.5.14",
-    "@types/mssql": "9.1.5",
+    "@types/mssql": "9.1.8",
     "@types/node": "18.19.76",
     "@types/pg": "8.11.11",
     "@types/sqlite3": "3.1.11",

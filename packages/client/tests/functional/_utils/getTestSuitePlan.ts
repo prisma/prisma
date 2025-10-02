@@ -42,6 +42,7 @@ export function getTestSuitePlan(
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
     config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
     config.matrixOptions.generatorType ??= testCliMeta.generatorType
+    config.matrixOptions.clientEngineExecutor ??= testCliMeta.clientEngineExecutor
   })
 
   return expandedSuiteConfigs.map((namedConfig, configIndex) => ({
@@ -93,8 +94,22 @@ function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig
     suiteConfig.matrixOptions.clientEngineExecutor = 'local'
     return [suiteConfig]
   } else {
+    // For each suite config that doesn't use driver adapters, we need
+    // to clone it and create two separate configs:
+    //  - one which doesn't require `ClientEngine` specifically and can
+    //    be run with any engine type, but requires specifically a local
+    //    executor in the event it is executed using `ClientEngine`;
+    //  - another one which is only ever used with remote executor of
+    //    `ClientEngine` and never runs with either a local exeuctor
+    //    of the client engine nor any other engine type.
+    // This is required to separate the snapshots between them.
+
+    suiteConfig.matrixOptions.clientEngineExecutor = 'local'
+
     const remoteExecutorSuiteConfig = klona(suiteConfig)
-    suiteConfig.matrixOptions.clientEngineExecutor = 'remote'
+    remoteExecutorSuiteConfig.matrixOptions.clientRuntime = 'client'
+    remoteExecutorSuiteConfig.matrixOptions.clientEngineExecutor = 'remote'
+
     return [suiteConfig, remoteExecutorSuiteConfig]
   }
 }
@@ -112,11 +127,8 @@ function shouldSkipSuiteConfig(
   cliMeta: CliMeta,
   options?: MatrixOptions,
 ): boolean {
-  const provider = config.matrixOptions.provider
-  const driverAdapter = config.matrixOptions.driverAdapter
-  const relationMode = config.matrixOptions.relationMode
-  const engineType = config.matrixOptions.engineType
-  const clientEngineExecutor = config.matrixOptions.clientEngineExecutor
+  const { provider, driverAdapter, relationMode, engineType, clientRuntime, clientEngineExecutor } =
+    config.matrixOptions
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -170,6 +182,12 @@ function shouldSkipSuiteConfig(
     return true
   }
 
+  // if this test can't use a driver adapter, and we run the tests for a specific
+  // driver adapter, skip it
+  if (driverAdapter === undefined && includedProviderAdapters !== undefined) {
+    return true
+  }
+
   // if there is a Driver Adapter to run and it's excluded, skip
   if (driverAdapter && excludedProviderFlavors.includes(driverAdapter)) {
     return true
@@ -195,7 +213,19 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  if (clientEngineExecutor !== cliMeta.clientEngineExecutor) {
+  // if this test requires a specific client runtime which doesn't match the one we're testing for, skip
+  if (clientRuntime !== undefined && clientRuntime !== cliMeta.runtime) {
+    return true
+  }
+
+  // if this test requires a specific client engine executor in case a client engine is used,
+  // and it doesn't match the one we're testing for, skip
+  if (clientEngineExecutor !== undefined && clientEngineExecutor !== cliMeta.clientEngineExecutor) {
+    return true
+  }
+
+  // if this test requires client engine's remote executor and we're not testing QC, skip
+  if (clientEngineExecutor === 'remote' && clientRuntime !== 'client') {
     return true
   }
 

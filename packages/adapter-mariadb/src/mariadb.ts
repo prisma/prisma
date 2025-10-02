@@ -64,20 +64,21 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
       return await this.client.query(req, values)
     } catch (e) {
       const error = e as Error
-      onError(error)
+      this.onError(error)
     }
   }
-}
 
-function onError(error: unknown): never {
-  debug('Error in performIO: %O', error)
-  throw new DriverAdapterError(convertDriverError(error))
+  protected onError(error: unknown): never {
+    debug('Error in performIO: %O', error)
+    throw new DriverAdapterError(convertDriverError(error))
+  }
 }
 
 class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements Transaction {
   constructor(
     conn: mariadb.Connection,
     readonly options: TransactionOptions,
+    readonly cleanup?: () => void,
   ) {
     super(conn)
   }
@@ -85,12 +86,14 @@ class MariaDbTransaction extends MariaDbQueryable<mariadb.Connection> implements
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
+    this.cleanup?.()
     await this.client.end()
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
+    this.cleanup?.()
     await this.client.end()
   }
 }
@@ -132,14 +135,19 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
     const tag = '[js::startTransaction]'
     debug('%s options: %O', tag, options)
 
-    const conn = await this.client.getConnection().catch((error) => onError(error))
-    conn.on('error', (err: mariadb.SqlError) => {
+    const conn = await this.client.getConnection().catch((error) => this.onError(error))
+    const onError = (err: mariadb.SqlError) => {
       debug(`Error from connection: ${err.message} %O`, err)
       this.options?.onConnectionError?.(err)
-    })
+    }
+    conn.on('error', onError)
+
+    const cleanup = () => {
+      conn.removeListener('error', onError)
+    }
 
     try {
-      const tx = new MariaDbTransaction(conn, options)
+      const tx = new MariaDbTransaction(conn, options, cleanup)
       if (isolationLevel) {
         await tx.executeRaw({
           sql: `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`,
@@ -151,7 +159,8 @@ export class PrismaMariaDbAdapter extends MariaDbQueryable<mariadb.Pool> impleme
       return tx
     } catch (error) {
       await conn.end()
-      onError(error)
+      cleanup()
+      this.onError(error)
     }
   }
 
