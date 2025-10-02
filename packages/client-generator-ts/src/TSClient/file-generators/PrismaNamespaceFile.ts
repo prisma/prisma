@@ -1,3 +1,4 @@
+import { datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import * as ts from '@prisma/ts-builders'
 
 import { commonCodeTS } from '../common'
@@ -27,8 +28,9 @@ export function createPrismaNamespaceFile(context: GenerateContext, options: TSC
     ts.moduleImport(context.importFileName(`../models`)).asNamespace('Prisma').typeOnly(),
     ts.moduleImport(context.importFileName(`./class`)).named(ts.namedImport('PrismaClient').typeOnly()),
   ].map((i) => ts.stringify(i))
-
-  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
+  const prismaEnums = context.dmmf.schema.enumTypes.prisma?.map((type) =>
+    new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toTS(),
+  )
 
   const fieldRefs = context.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
@@ -41,7 +43,10 @@ ${commonCodeTS(options)}
 ${new Enum(
   {
     name: 'ModelName',
-    values: context.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: context.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toTS()}
