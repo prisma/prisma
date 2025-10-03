@@ -1,4 +1,3 @@
-// @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import pg from 'pg'
 import { describe, expect, it } from 'vitest'
 
