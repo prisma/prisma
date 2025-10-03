@@ -52,6 +52,8 @@ class MariaDbQueryable<Connection extends mariadb.Pool | mariadb.Connection> imp
         sql,
         rowsAsArray: true,
         dateStrings: true,
+        // Disable automatic conversion of JSON blobs to objects.
+        autoJsonMap: false,
         // Return JSON strings as strings, not objects.
         // Available in the driver, but not provided in the typings.
         jsonStrings: true,
