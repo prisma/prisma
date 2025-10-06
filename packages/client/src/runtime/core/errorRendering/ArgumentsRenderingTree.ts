@@ -1,11 +1,11 @@
 import { uncapitalize } from '@prisma/client-common'
+import { ObjectEnumValue } from '@prisma/client-runtime-utils'
 import { Writer } from '@prisma/ts-builders'
 
 import { ErrorFormat } from '../../getPrismaClient'
 import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
-import { ObjectEnumValue } from '../types/exported/ObjectEnums'
 import { ArrayValue } from './ArrayValue'
 import { activeColors, Colors, ErrorBasicBuilder, ErrorWriter, inactiveColors } from './base'
 import { ObjectField } from './ObjectField'

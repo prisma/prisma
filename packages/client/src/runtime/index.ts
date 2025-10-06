@@ -19,7 +19,6 @@ export { createParam } from './core/model/Param'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
 export type { ITXClientDenyList } from './core/types/exported/itxClientDenyList'
-export { objectEnumValues } from './core/types/exported/ObjectEnums'
 export { skip } from './core/types/exported/Skip'
 export { makeTypedQueryFactory } from './core/types/exported/TypedSql'
 export type { PrismaClientOptions } from './getPrismaClient'
@@ -45,6 +44,16 @@ export {
   PrismaClientValidationError,
 } from '@prisma/client-runtime-utils'
 export { empty, join, raw, Sql, sql as sqltag } from '@prisma/client-runtime-utils'
+export {
+  AnyNull,
+  DbNull,
+  isAnyNull,
+  isDbNull,
+  isJsonNull,
+  JsonNull,
+  NullTypes,
+  ObjectEnumValue,
+} from '@prisma/client-runtime-utils'
 export { Decimal } from '@prisma/client-runtime-utils'
 export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
