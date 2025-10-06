@@ -1,6 +1,9 @@
 import { defineConfig } from '@prisma/config/src'
 
 export default defineConfig({
+  experimental: {
+    extensions: true,
+  },
   extensions: [
     {
       types: [
