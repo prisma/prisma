@@ -1,7 +1,7 @@
 {
   "name": "@prisma/client-runtime-utils",
   "version": "0.0.0",
-  "description": "This package is intended for Prisma's internal use",
+  "description": "Utility types and singletons used by the Prisma Client.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
