@@ -37,6 +37,12 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
     )
   }
 
+  if (config['extensions'] && !experimental.extensions) {
+    return Either.left(
+      new Error('The `extensions` configuration requires `experimental.extensions` to be set to `true`.'),
+    )
+  }
+
   return Either.right(config)
 }
 

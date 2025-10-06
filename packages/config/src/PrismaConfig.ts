@@ -51,12 +51,17 @@ export type ExperimentalConfig = {
    * Enable experimental external tables support.
    */
   externalTables?: boolean
+  /**
+   * Enable experimental extensions support. This is required to use the `extensions` config option.
+   */
+  extensions?: boolean
 }
 
 const ExperimentalConfigShape = Shape.Struct({
   adapter: Shape.optional(Shape.Boolean),
   studio: Shape.optional(Shape.Boolean),
   externalTables: Shape.optional(Shape.Boolean),
+  extensions: Shape.optional(Shape.Boolean),
 })
 
 declare const __testExperimentalConfigShapeValueA: (typeof ExperimentalConfigShape)['Type']
@@ -324,6 +329,12 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
       new Error(
         'The `migrations.initShadowDb` configuration requires `experimental.externalTables` to be set to `true`.',
       ),
+    )
+  }
+
+  if (config['extensions'] && !experimental.extensions) {
+    return Either.left(
+      new Error('The `extensions` configuration requires `experimental.extensions` to be set to `true`.'),
     )
   }
 
