@@ -129,7 +129,13 @@ ${bold('Examples')}
       externalEnums: config.enums?.external ?? [],
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+    const migrate = await Migrate.setup({
+      adapter,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      extensions: config['extensions'],
+    })
 
     let migrationIds: string[]
     try {
