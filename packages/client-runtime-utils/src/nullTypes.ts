@@ -57,21 +57,21 @@ class NullTypesEnumValue extends ObjectEnumValue {
   }
 }
 
-class DbNullClass extends NullTypesEnumValue {
+export class DbNullClass extends NullTypesEnumValue {
   // Phantom private property to prevent structural type equality
   // eslint-disable-next-line no-unused-private-class-members
   readonly #_brand_DbNull!: void
 }
 setClassName(DbNullClass, 'DbNull')
 
-class JsonNullClass extends NullTypesEnumValue {
+export class JsonNullClass extends NullTypesEnumValue {
   // Phantom private property to prevent structural type equality
   // eslint-disable-next-line no-unused-private-class-members
   readonly #_brand_JsonNull!: void
 }
 setClassName(JsonNullClass, 'JsonNull')
 
-class AnyNullClass extends NullTypesEnumValue {
+export class AnyNullClass extends NullTypesEnumValue {
   // Phantom private property to prevent structural type equality
   // eslint-disable-next-line no-unused-private-class-members
   readonly #_brand_AnyNull!: void
