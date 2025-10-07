@@ -338,7 +338,7 @@ ${bold('Examples')}
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
-    const migrate = await Migrate.setup({ adapter, schemaFilter })
+    const migrate = await Migrate.setup({ adapter, schemaFilter, extensions: config['extensions'] })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()

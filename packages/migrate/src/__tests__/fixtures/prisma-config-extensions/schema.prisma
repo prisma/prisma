@@ -1,0 +1,16 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  extensions = [vector]
+}
+
+model User {
+  id       Int @id @default(autoincrement())
+  name     String
+  position Vector3
+}
