@@ -1070,10 +1070,6 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
-      - run: pnpm run test
-        name: 'query-plan-executor'
-        working-directory: packages/query-plan-executor
-
   #
   # Driver Adapter Unit Tests
   #
@@ -1120,6 +1116,33 @@ jobs:
       - run: pnpm run test
         name: 'adapter-mssql'
         working-directory: packages/adapter-mssql
+
+  #
+  # Query plan executor unit tests
+  #
+  qpe-unit-tests:
+    name: QPE Unit Tests [v${{ matrix.node }}]
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'query-plan-executor'
+        working-directory: packages/query-plan-executor
 
   #
   # Run type performance benchmark tests
