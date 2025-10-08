@@ -95,7 +95,7 @@
     "ts-toolbelt": "9.6.0",
     "tsx": "4.19.3",
     "turbo": "2.5.6",
-    "typescript": "5.4.5",
+    "typescript": "5.9.3",
     "vitest": "3.2.4",
     "wrangler": "3.114.14",
     "zx": "8.4.1"

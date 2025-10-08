@@ -145,7 +145,7 @@
     "package-up": "5.0.0",
     "resolve-pkg": "2.0.0",
     "ts-pattern": "5.6.2",
-    "typescript": "5.4.5",
+    "typescript": "5.9.3",
     "xdg-app-paths": "8.3.0",
     "zod": "3.24.2"
   },
@@ -166,7 +166,7 @@
     "@prisma/engines": "workspace:*"
   },
   "peerDependencies": {
-    "typescript": ">=5.1.0"
+    "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "typescript": {
