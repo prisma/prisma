@@ -28,7 +28,7 @@
   "devDependencies": {
     "@swc-node/register": "catalog:",
     "@types/cross-spawn": "6.0.6",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "typescript": "catalog:",
     "cross-spawn": "7.0.6",
     "kleur": "catalog:"

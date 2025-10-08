@@ -1255,7 +1255,7 @@ importers:
         specifier: 'catalog:'
         version: 29.5.14
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       jest:
         specifier: 'catalog:'
@@ -1303,7 +1303,7 @@ importers:
         specifier: 'catalog:'
         version: 29.5.14
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       execa:
         specifier: 5.1.1
@@ -1325,7 +1325,7 @@ importers:
         version: link:../get-platform
     devDependencies:
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       '@types/progress':
         specifier: 2.0.7
@@ -1407,7 +1407,7 @@ importers:
         specifier: 6.0.6
         version: 6.0.6
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       cross-spawn:
         specifier: 7.0.6
@@ -1438,7 +1438,7 @@ importers:
         specifier: 'catalog:'
         version: 29.5.14
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       benchmark:
         specifier: 'catalog:'
@@ -1487,7 +1487,7 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       typescript:
         specifier: 'catalog:'
@@ -1520,7 +1520,7 @@ importers:
         specifier: 'catalog:'
         version: 9.1.8
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       '@types/pg':
         specifier: 'catalog:'
@@ -1629,7 +1629,7 @@ importers:
         specifier: 'catalog:'
         version: 29.5.14
       '@types/node':
-        specifier: 18.19.76
+        specifier: 'catalog:'
         version: 18.19.76
       '@types/resolve':
         specifier: 'catalog:'

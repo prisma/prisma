@@ -33,7 +33,7 @@
     "@swc/jest": "catalog:",
     "@types/babel__helper-validator-identifier": "7.15.2",
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@types/resolve": "catalog:",
     "archiver": "6.0.2",
     "checkpoint-client": "catalog:",

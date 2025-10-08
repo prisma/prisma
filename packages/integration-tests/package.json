@@ -20,7 +20,7 @@
     "@swc/jest": "catalog:",
     "@types/jest": "catalog:",
     "@types/mssql": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/sqlite3": "catalog:",
     "decimal.js": "catalog:",

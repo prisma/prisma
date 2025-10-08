@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@types/progress": "2.0.7",
     "del": "6.1.1",
     "execa": "catalog:",

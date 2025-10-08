@@ -27,7 +27,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@prisma/internals": "workspace:*",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@opentelemetry/api": "catalog:",
     "typescript": "catalog:"
   },

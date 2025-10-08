@@ -15,7 +15,7 @@
     "@swc/core": "catalog:",
     "@swc/jest": "catalog:",
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "execa": "5.1.1",
     "typescript": "catalog:"
   },

@@ -18,7 +18,7 @@
     "@swc/core": "catalog:",
     "@swc/jest": "catalog:",
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "benchmark": "catalog:",
     "escape-string-regexp": "catalog:",
     "execa": "catalog:",

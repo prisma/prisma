@@ -28,7 +28,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "jest": "catalog:",
     "jest-junit": "catalog:",
     "kleur": "catalog:",
