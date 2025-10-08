@@ -183,7 +183,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
       continue
     }
 
-    result[i] = value
+    result[i] = value as ResultValue
   }
 
   return result

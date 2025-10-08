@@ -9,7 +9,7 @@ async function getSchemaEngineWasModule() {
   const schemaEngineWasmFilePath = path.join(runtimeBase, `schema_engine_bg.wasm`)
   const schemaEngineWasmFileBytes = await fs.readFile(schemaEngineWasmFilePath)
 
-  return new WebAssembly.Module(schemaEngineWasmFileBytes)
+  return new WebAssembly.Module(new Uint8Array(schemaEngineWasmFileBytes))
 }
 
 async function getSchemaEngineWasmInstance() {
