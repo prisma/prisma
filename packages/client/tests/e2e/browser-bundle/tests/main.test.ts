@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { $Enums, Prisma, Role } from '../client/browser'
+import { expect, test } from 'vitest'
+
+import { $Enums, Prisma, Role } from '../generated/prisma/browser'
 
 test('can import enum from browser bundle', () => {
   // verify type imports work
