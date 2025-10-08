@@ -271,7 +271,7 @@
     "@types/jest": "catalog:",
     "@types/js-levenshtein": "1.1.3",
     "@types/mssql": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "arg": "catalog:",
     "benchmark": "catalog:",

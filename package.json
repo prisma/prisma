@@ -47,7 +47,7 @@
     "@types/fs-extra": "catalog:",
     "@types/graphviz": "0.0.39",
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "@types/resolve": "catalog:",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",

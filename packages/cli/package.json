@@ -126,7 +126,7 @@
     "@swc/jest": "catalog:",
     "@types/fs-extra": "catalog:",
     "@types/jest": "catalog:",
-    "@types/node": "18.19.76",
+    "@types/node": "catalog:",
     "async-listen": "3.1.0",
     "checkpoint-client": "catalog:",
     "chokidar": "catalog:",
