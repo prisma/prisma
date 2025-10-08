@@ -11,10 +11,10 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@hono/node-server": "1.19.0",
+    "@hono/node-server": "catalog:",
     "@hono/zod-validator": "0.7.2",
-    "@opentelemetry/api": "1.9.0",
-    "@opentelemetry/context-async-hooks": "2.0.1",
+    "@opentelemetry/api": "catalog:",
+    "@opentelemetry/context-async-hooks": "catalog:",
     "@opentelemetry/sdk-trace-base": "2.0.1",
     "@prisma/adapter-pg": "workspace:*",
     "@prisma/adapter-mariadb": "workspace:*",
@@ -23,7 +23,6 @@
     "@prisma/driver-adapter-utils": "workspace:*",
     "hono": "4.9.4",
     "temporal-polyfill": "0.3.0",
-    "vitest": "3.2.4",
     "zod": "4.1.3"
   },
   "scripts": {

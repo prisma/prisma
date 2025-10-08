@@ -36,7 +36,7 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.4",
+    "postgres-array": "catalog:",
     "@neondatabase/serverless": ">0.6.0 <2"
   }
 }

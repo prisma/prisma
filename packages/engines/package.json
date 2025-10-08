@@ -12,13 +12,12 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "@types/jest": "29.5.14",
+    "@swc/core": "catalog:",
+    "@swc/jest": "catalog:",
+    "@types/jest": "catalog:",
     "@types/node": "18.19.76",
     "execa": "5.1.1",
-    "typescript": "5.4.5",
-    "vitest": "3.2.4"
+    "typescript": "catalog:"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
