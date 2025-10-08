@@ -24,7 +24,7 @@ const MAX_CLOSED_TRANSACTIONS = 100
 type TransactionWrapper = {
   id: string
   timer?: NodeJS.Timeout
-  timeout: number
+  timeout: number | undefined
   startedAt: number
   transaction?: Transaction
 } & TransactionState
@@ -81,18 +81,31 @@ export class TransactionManager {
     this.#provider = provider
   }
 
-  async startTransaction(options?: Options): Promise<TransactionInfo> {
-    return await this.tracingHelper.runInChildSpan('start_transaction', () => this.#startTransactionImpl(options))
+  /**
+   * Starts an internal transaction. The difference to `startTransaction` is that it does not
+   * use the default transaction options from the `TransactionManager`, which in practice means
+   * that it does not apply the default timeouts.
+   */
+  async startInternalTransaction(options?: Options): Promise<TransactionInfo> {
+    const validatedOptions = options !== undefined ? this.#validateOptions(options) : {}
+    return await this.tracingHelper.runInChildSpan('start_transaction', () =>
+      this.#startTransactionImpl(validatedOptions),
+    )
   }
 
-  async #startTransactionImpl(options?: Options): Promise<TransactionInfo> {
+  async startTransaction(options?: Options): Promise<TransactionInfo> {
     const validatedOptions = options !== undefined ? this.#validateOptions(options) : this.transactionOptions
+    return await this.tracingHelper.runInChildSpan('start_transaction', () =>
+      this.#startTransactionImpl(validatedOptions),
+    )
+  }
 
+  async #startTransactionImpl(options: Options): Promise<TransactionInfo> {
     const transaction: TransactionWrapper = {
       id: await randomUUID(),
       status: 'waiting',
       timer: undefined,
-      timeout: validatedOptions.timeout!,
+      timeout: options.timeout,
       startedAt: Date.now(),
       transaction: undefined,
     }
@@ -100,11 +113,11 @@ export class TransactionManager {
 
     // Start timeout to wait for transaction to be started.
     let hasTimedOut = false
-    const startTimer = setTimeout(() => (hasTimedOut = true), validatedOptions.maxWait!)
-    startTimer.unref?.()
+    const startTimer = createTimeoutIfDefined(() => (hasTimedOut = true), options.maxWait)
+    startTimer?.unref?.()
 
     transaction.transaction = await this.driverAdapter
-      .startTransaction(validatedOptions.isolationLevel)
+      .startTransaction(options.isolationLevel)
       .catch(rethrowAsUserFacing)
 
     clearTimeout(startTimer)
@@ -119,7 +132,7 @@ export class TransactionManager {
 
         transaction.status = 'running'
         // Start timeout to wait for transaction to be finished.
-        transaction.timer = this.#startTransactionTimeout(transaction.id, validatedOptions.timeout!)
+        transaction.timer = this.#startTransactionTimeout(transaction.id, options.timeout)
         return { id: transaction.id }
       case 'timed_out':
       case 'running':
@@ -176,7 +189,7 @@ export class TransactionManager {
             throw new TransactionRolledBackError(operation)
           case 'timed_out':
             throw new TransactionExecutionTimeoutError(operation, {
-              timeout: closedTransaction.timeout,
+              timeout: closedTransaction.timeout!,
               timeTaken: Date.now() - closedTransaction.startedAt,
             })
         }
@@ -199,9 +212,9 @@ export class TransactionManager {
     await Promise.allSettled([...this.transactions.values()].map((tx) => this.#closeTransaction(tx, 'rolled_back')))
   }
 
-  #startTransactionTimeout(transactionId: string, timeout: number): NodeJS.Timeout {
+  #startTransactionTimeout(transactionId: string, timeout: number | undefined): NodeJS.Timeout | undefined {
     const timeoutStartedAt = Date.now()
-    const timer = setTimeout(async () => {
+    const timer = createTimeoutIfDefined(async () => {
       debug('Transaction timed out.', { transactionId, timeoutStartedAt, timeout })
 
       const tx = this.transactions.get(transactionId)
@@ -215,7 +228,7 @@ export class TransactionManager {
       }
     }, timeout)
 
-    timer.unref?.()
+    timer?.unref?.()
     return timer
   }
 
@@ -293,4 +306,8 @@ export class TransactionManager {
       onQuery: this.#onQuery,
     })
   }
+}
+
+function createTimeoutIfDefined(cb: () => void, ms: number | undefined): NodeJS.Timeout | undefined {
+  return ms !== undefined ? setTimeout(cb, ms) : undefined
 }
