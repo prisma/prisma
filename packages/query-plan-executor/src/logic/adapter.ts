@@ -1,5 +1,3 @@
-import type { ConnectionOptions as TlsOptions } from 'node:tls'
-
 import { PrismaMariaDb } from '@prisma/adapter-mariadb'
 import { PrismaMssql } from '@prisma/adapter-mssql'
 import { PrismaPg } from '@prisma/adapter-pg'
@@ -37,39 +35,19 @@ const factories: Factory[] = [
         )
       }
 
-      let sslmode = url.searchParams.get('sslmode')
+      const sslmode = url.searchParams.get('sslmode')
 
-      // If `sslmode` is not set and `ssl=true`, treat it as `sslmode=require` for compatibility with JDBC URLs.
-      // See https://www.postgresql.org/docs/18/libpq-connect.html#LIBPQ-CONNSTRING-URIS
-      if (sslmode === null && url.searchParams.get('ssl') === 'true') {
-        sslmode = 'require'
+      // Accept self-signed certificates with `sslmode=require` for backward compatibility with QE
+      // and consistency with libpq. If certificate validation is desired, `sslmode` must be set
+      // to `verify-ca` or `verify-full`.
+      // Note that `sslmode=prefer` is still treated the same as `sslmode=require`. This is a
+      // `node-postgres` quirk which is inconsistent with both QE and libpq. Unfortunately
+      // there's currently no way to support `sslmode=prefer` properly with `node-postgres`.
+      if (sslmode === 'prefer' || sslmode === 'require') {
+        url.searchParams.set('sslmode', 'no-verify')
       }
 
-      // Accept self-signed certificates with `sslmode=require` for backward compatibility with QE.
-      // Other than this, the behaviour is identical to the defaults in `node-postgres`.
-      // Notably, `sslmode=disable` by default because `node-postgres` doesn't really support
-      // `sslmode=prefer` properly and treats it the same as `sslmode=require`.
-      const ssl: TlsOptions | boolean = (() => {
-        switch (sslmode) {
-          case null:
-          case 'disable':
-            return false
-          case 'prefer':
-          case 'require':
-          case 'no-verify':
-            return { rejectUnauthorized: false }
-          case 'verify-ca':
-          case 'verify-full':
-            return true
-          default:
-            throw new Error(`Unsupported sslmode: ${sslmode}`)
-        }
-      })()
-
-      // The explicit `ssl` argument overrides TLS-related parameters in the connection string
-      // so we don't need to edit the connection string ourselves.
-      // See https://node-postgres.com/features/ssl#usage-with-connectionstring
-      return new PrismaPg({ connectionString, ssl })
+      return new PrismaPg({ connectionString: url.toString() })
     },
   },
 

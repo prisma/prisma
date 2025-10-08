@@ -77,6 +77,7 @@ export type GetGeneratorOptions = {
   noEngine?: boolean
   allowNoModels?: boolean
   typedSql?: SqlQueryOutput[]
+  extensions?: {}
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a

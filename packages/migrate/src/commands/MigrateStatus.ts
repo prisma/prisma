@@ -89,7 +89,13 @@ Check the status of your database migrations
       externalEnums: config.enums?.external ?? [],
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+    const migrate = await Migrate.setup({
+      adapter,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      extensions: config['extensions'],
+    })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
     if (!adapter) {
