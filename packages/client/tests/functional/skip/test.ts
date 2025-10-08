@@ -149,6 +149,17 @@ testMatrix.setupTestSuite(() => {
     expect(result.posts[0].content).toBe(null)
   })
 
+  test('skips fields in create with non-nullable field with default', async () => {
+    const result = await prisma.user.create({
+      data: {
+        email: 'testuser@example.com',
+        name: Prisma.skip,
+      },
+    })
+
+    expect(result.name).toBe('Test User')
+  })
+
   describe('after extension', () => {
     test('skips relations in include', async () => {
       const result = await prisma.$extends({}).user.findFirstOrThrow({
