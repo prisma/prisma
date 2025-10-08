@@ -1,0 +1,23 @@
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://user@pwd:example.com/db"
+}
+
+model User {
+  id   Int  @id @default(autoincrement())
+  role Role
+}
+
+enum Role {
+  USER
+  ADMIN
+}
