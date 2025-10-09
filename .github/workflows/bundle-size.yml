@@ -5,21 +5,6 @@ on:
     workflows: [Build]
     types:
       - completed
-    paths-ignore:
-      # Any update here needs to be done for all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
-      - '*.md'
-      - '*.bench.ts'
-      - 'LICENSE'
-      - '.dockerignore'
-      - 'scripts/ci/publish.ts'
-      - '.github/CODEOWNERS'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/DISCUSSION_TEMPLATE/**'
-      - '.devcontainer/**'
-      - '.vscode/**'
-      - 'graphs/**'
-      - 'sandbox/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
