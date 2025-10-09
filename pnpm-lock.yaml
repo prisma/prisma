@@ -36,9 +36,24 @@ catalogs:
     '@planetscale/database':
       specifier: ^1.15.0
       version: 1.19.0
+    '@prisma/engines-version':
+      specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
     '@prisma/mini-proxy':
       specifier: 0.9.5
       version: 0.9.5
+    '@prisma/prisma-schema-wasm':
+      specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+    '@prisma/query-compiler-wasm':
+      specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+    '@prisma/query-engine-wasm':
+      specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+    '@prisma/schema-engine-wasm':
+      specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
     '@sindresorhus/slugify':
       specifier: 2.2.1
       version: 2.2.1
@@ -837,7 +852,7 @@ importers:
         specifier: workspace:*
         version: link:../engines
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/fetch-engine':
         specifier: workspace:*
@@ -864,10 +879,10 @@ importers:
         specifier: 'catalog:'
         version: 0.9.5
       '@prisma/query-compiler-wasm':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/query-engine-wasm':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/query-plan-executor':
         specifier: workspace:*
@@ -1102,7 +1117,7 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/fetch-engine':
         specifier: workspace:*
@@ -1175,7 +1190,7 @@ importers:
         specifier: workspace:*
         version: link:../dmmf
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/fetch-engine':
         specifier: workspace:*
@@ -1288,7 +1303,7 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/fetch-engine':
         specifier: workspace:*
@@ -1322,7 +1337,7 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/get-platform':
         specifier: workspace:*
@@ -1599,10 +1614,10 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/schema-engine-wasm':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/schema-files-loader':
         specifier: workspace:*
@@ -1765,7 +1780,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       '@prisma/engines-version':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       '@prisma/generator':
         specifier: workspace:*
@@ -1916,7 +1931,7 @@ importers:
   packages/schema-files-loader:
     dependencies:
       '@prisma/prisma-schema-wasm':
-        specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+        specifier: 'catalog:'
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
       fs-extra:
         specifier: 'catalog:'
