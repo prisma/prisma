@@ -170,7 +170,12 @@ function clientExtensionsDefinitions(context: GenerateContext) {
   return [typeMap, ts.stringify(define)].join('\n')
 }
 
-function schemaMethodDefinition() {
+function schemaMethodDefinition(activeProvider: string) {
+  // Only generate .schema() method for PostgreSQL and CockroachDB
+  if (activeProvider !== 'postgresql' && activeProvider !== 'cockroachdb') {
+    return ''
+  }
+
   const method = ts
     .method('schema')
     .setDocComment(
@@ -465,6 +470,7 @@ export class PrismaClientClass implements Generable {
     protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
     protected readonly runtimeNameTs: TSClientOptions['runtimeNameTs'],
+    protected readonly activeProvider: string,
     protected readonly browser?: boolean,
   ) {}
   private get jsDoc(): string {
@@ -532,7 +538,7 @@ ${[
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
   applyPendingMigrationsDefinition.bind(this)(),
-  schemaMethodDefinition(),
+  schemaMethodDefinition(this.activeProvider),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)

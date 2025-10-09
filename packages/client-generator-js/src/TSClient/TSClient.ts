@@ -192,6 +192,7 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
       this.options.datasources,
       this.options.outputDir,
       this.options.runtimeNameTs,
+      this.options.activeProvider,
       this.options.browser,
     )
 

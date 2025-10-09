@@ -9,7 +9,12 @@ import { GenerateContext } from './GenerateContext'
 import { TSClientOptions } from './TSClient'
 import * as tsx from './utils/type-builders'
 
-function schemaMethodDefinition() {
+function schemaMethodDefinition(activeProvider: string) {
+  // Only generate .schema() method for PostgreSQL and CockroachDB
+  if (activeProvider !== 'postgresql' && activeProvider !== 'cockroachdb') {
+    return ''
+  }
+
   const method = ts
     .method('schema')
     .setDocComment(
@@ -315,6 +320,7 @@ export class PrismaClientClass {
   constructor(
     private readonly context: GenerateContext,
     private readonly runtimeName: TSClientOptions['runtimeName'],
+    private readonly activeProvider: string,
   ) {}
 
   private get jsDoc(): string {
@@ -367,7 +373,7 @@ ${[
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
   this.applyPendingMigrationsDefinition(),
-  schemaMethodDefinition(),
+  schemaMethodDefinition(this.activeProvider),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
