@@ -103,6 +103,12 @@ type SchemaEngineConfigJsInternal = {
   adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
 }
 
+export type SchemaEngineConfigClassicDatasource = {
+  url: string
+  directUrl?: string
+  shadowDatabaseUrl?: string
+}
+
 type SchemaEngineConfigClassic = {
   /**
    * Uses the "old classic" Schema Engine binary
@@ -111,11 +117,7 @@ type SchemaEngineConfigClassic = {
   /**
    * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
    */
-  datasource: {
-    url: string
-    directUrl?: string
-    shadowDatabaseUrl?: string
-  }
+  datasource: SchemaEngineConfigClassicDatasource
 }
 
 type SchemaEngineConfigAbsent = {

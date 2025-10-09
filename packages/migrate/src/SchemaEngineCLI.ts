@@ -1,3 +1,4 @@
+import type { SchemaEngineConfigClassicDatasource } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -39,6 +40,7 @@ setClassName(EngineError, 'EngineError')
 let messageId = 1
 
 interface SchemaEngineCLISetupInput {
+  datasource?: SchemaEngineConfigClassicDatasource
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -51,6 +53,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private debug: boolean
   private child?: ChildProcess
   private schemaContext?: SchemaContext
+  private datasource?: SchemaEngineConfigClassicDatasource
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
@@ -68,8 +71,15 @@ export class SchemaEngineCLI implements SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  private constructor({ debug = false, schemaContext, enabledPreviewFeatures, extensions }: SchemaEngineCLIOptions) {
+  private constructor({
+    debug = false,
+    schemaContext,
+    datasource,
+    enabledPreviewFeatures,
+    extensions,
+  }: SchemaEngineCLIOptions) {
     this.schemaContext = schemaContext
+    this.datasource = datasource
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
@@ -376,6 +386,10 @@ export class SchemaEngineCLI implements SchemaEngine {
           projectDir = this.schemaContext.primaryDatasourceDirectory
           const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['-d', path])
           args.push(...schemaArgs)
+        }
+
+        if (this.datasource) {
+          args.push(...['--datasource', JSON.stringify(this.datasource)])
         }
 
         if (

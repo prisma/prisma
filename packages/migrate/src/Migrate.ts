@@ -60,13 +60,15 @@ export class Migrate {
 
   static async setup({ schemaContext, schemaEngineConfig, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const schemaEngine = await (async () => {
-      if (schemaEngineConfig?.engine === undefined || schemaEngineConfig?.engine === 'classic') {
-        return await SchemaEngineCLI.setup({ schemaContext, ...rest })
-      } else {
+      if (schemaEngineConfig?.engine === 'js') {
         const adapter = await schemaEngineConfig.adapter()
         warnDatasourceDriverAdapter(schemaContext)
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
       }
+
+      const datasource = schemaEngineConfig?.engine === 'classic' ? schemaEngineConfig.datasource : undefined
+
+      return await SchemaEngineCLI.setup({ datasource, schemaContext, ...rest })
     })()
 
     return new Migrate({ engine: schemaEngine, schemaContext, ...rest })
