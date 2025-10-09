@@ -7,9 +7,6 @@ export default {
     studio: true,
   },
   schema: 'schema.prisma',
-  adapter: async () => {
-    return mockMigrationAwareAdapterFactory('postgres')
-  },
   studio: {
     adapter: async () => {
       return mockMigrationAwareAdapterFactory('postgres')

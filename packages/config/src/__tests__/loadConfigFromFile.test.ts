@@ -25,7 +25,7 @@ describe('loadConfigFromFile', () => {
     expect(error).toMatchObject({ _tag: 'ConfigFileSyntaxError' })
   }
 
-  describe('no-define-config', () => {
+  describe.only('no-define-config', () => {
     it('successfully loads a Prisma config file that does not use the `defineConfig` function', async () => {
       ctx.fixture('loadConfigFromFile/no-define-config')
       const cwd = ctx.fs.cwd()

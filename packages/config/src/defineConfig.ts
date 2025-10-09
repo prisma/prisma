@@ -12,8 +12,8 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
   const experimental = config.experimental || {}
 
   // Check adapter configuration
-  if (config.adapter && !experimental.adapter) {
-    return Either.left(new Error('The `adapter` configuration requires `experimental.adapter` to be set to `true`.'))
+  if (config.engine && !experimental.adapter) {
+    return Either.left(new Error('The `engine` configuration requires `experimental.adapter` to be set to `true`.'))
   }
 
   // Check studio configuration
@@ -68,7 +68,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
 
   defineExperimentalConfig(config, configInput)
   defineSchemaConfig(config, configInput)
-  defineAdapterConfig(config, configInput)
+  defineEngineConfig(config, configInput)
   defineStudioConfig(config, configInput)
   defineMigrationsConfig(config, configInput)
   defineTablesConfig(config, configInput)
@@ -192,19 +192,30 @@ function defineStudioConfig(config: DeepMutable<PrismaConfigInternal>, configInp
  * For `config.adapter`, we internally retrieve the `ErrorCapturingSqlMigrationAwareDriverAdapterFactory`
  * instance from the `SqlMigrationAwareDriverAdapterFactory` retrieved after invoking `configInput.adapter()`.
  */
-function defineAdapterConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
-  if (!configInput.adapter) {
+function defineEngineConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (configInput.engine === undefined) {
     return
-  }
+  } else if (configInput.engine === 'js') {
+    const { engine, adapter: getAdapterFactory } = configInput
 
-  const { adapter: getAdapterFactory } = configInput
+    const adapter = async () => {
+      const adapterFactory = await getAdapterFactory()
+      debug('[config.adapter]: %o', adapterFactory.adapterName)
+      return bindMigrationAwareSqlAdapterFactory(adapterFactory)
+    }
 
-  config.adapter = async () => {
-    const adapterFactory = await getAdapterFactory()
-    debug('[config.adapter]: %o', adapterFactory.adapterName)
-    return bindMigrationAwareSqlAdapterFactory(adapterFactory)
+    Object.assign(config, { engine, adapter })
+
+    debug('[config.engine]: %o', engine)
+    debug('[config.adapter]: %o', adapter)
+  } else if (configInput.engine === 'classic') {
+    const { engine, datasource } = configInput
+
+    Object.assign(config, { engine, datasource })
+
+    debug('[config.engine]: %o', engine)
+    debug('[config.datasource]: %o', datasource)
   }
-  debug('[config.adapter]: %o', config.adapter)
 }
 
 function defineExtensionsConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
