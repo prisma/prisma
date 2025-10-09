@@ -9,7 +9,12 @@ catalog:
   '@opentelemetry/api': 1.9.0
   '@opentelemetry/context-async-hooks': 2.0.1
   '@planetscale/database': ^1.15.0
+  '@prisma/engines-version': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
   '@prisma/mini-proxy': 0.9.5
+  '@prisma/query-compiler-wasm': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+  '@prisma/query-engine-wasm': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+  '@prisma/prisma-schema-wasm': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+  '@prisma/schema-engine-wasm': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
   '@sindresorhus/slugify': 2.2.1
   '@swc/core': 1.11.5
   '@swc/jest': 0.2.37
