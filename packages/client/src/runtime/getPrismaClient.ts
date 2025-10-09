@@ -262,13 +262,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
     _schemaOverride?: string
-    /**
-     * Switch to a different PostgreSQL schema for all operations on this client.
-     * Available only for PostgreSQL and CockroachDB providers.
-     * @param schemaName - The name of the schema to switch to
-     * @returns A new PrismaClient instance scoped to the specified schema
-     */
-    schema?: (schemaName: string) => PrismaClient
 
     constructor(optionsArg?: PrismaClientOptions) {
       config = optionsArg?.__internal?.configOverride?.(config) ?? config
@@ -959,11 +952,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return this._engine.applyPendingMigrations()
     }
 
-    $extends = $extends
-  }
-
-  // Only add schema() method for PostgreSQL and CockroachDB to avoid memory overhead
-  if (config.activeProvider === 'postgresql' || config.activeProvider === 'cockroachdb') {
     /**
      * Switch PostgreSQL schema context for query execution.
      * Returns a new client instance that shares the same database connection
@@ -974,6 +962,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * has isolated data in separate PostgreSQL schemas. By using `.schema()`, you can
      * dynamically switch between tenant schemas while reusing the same connection pool,
      * ensuring data isolation and optimal resource usage.
+     *
+     * Available only for PostgreSQL and CockroachDB providers.
      *
      * @param schemaName The PostgreSQL schema name to switch to
      * @returns A new PrismaClient instance with schema context
@@ -994,7 +984,13 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * // All clients share the same connection pool for efficiency
      * ```
      */
-    PrismaClient.prototype.schema = function (schemaName: string): Client {
+    schema?(schemaName: string): Client {
+      if (config.activeProvider !== 'postgresql' && config.activeProvider !== 'cockroachdb') {
+        throw new Error(
+          `The schema() method is only available for PostgreSQL and CockroachDB providers. Current provider: ${config.activeProvider}`,
+        )
+      }
+
       const schemaClient = createCompositeProxy(
         applyModelsAndClientExtensions(
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
@@ -1009,6 +1005,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       // Return client with schema override via middleware
       return schemaClient
     }
+
+    $extends = $extends
   }
 
   return PrismaClient
