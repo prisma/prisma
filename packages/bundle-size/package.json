@@ -9,9 +9,9 @@
   "author": "Pierre-Antoine Mills",
   "license": "Apache-2.0",
   "dependencies": {
-    "@libsql/client": "0.8.1",
-    "@neondatabase/serverless": "0.10.2",
-    "@planetscale/database": "1.19.0",
+    "@libsql/client": "catalog:",
+    "@neondatabase/serverless": "catalog:",
+    "@planetscale/database": "catalog:",
     "@prisma/adapter-mssql": "workspace:*",
     "@prisma/adapter-neon": "workspace:*",
     "@prisma/adapter-pg": "workspace:*",
@@ -20,7 +20,7 @@
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-mariadb": "workspace:*",
     "@prisma/client": "workspace:*",
-    "pg": "8.14.1",
+    "pg": "catalog:",
     "prisma": "workspace:*"
   }
 }
