@@ -37,13 +37,13 @@ generator client {
 Exporting traces to [Jaeger Tracing](https://jaegertracing.io).
 
 ```ts
-import { context } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { Resource } from '@opentelemetry/resources'
+import { resourceFromAttributes } from '@opentelemetry/resources'
 import { BasicTracerProvider, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base'
-import { SEMRESATTRS_SERVICE_NAME, SEMRESATTRS_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 import { PrismaClient } from '.prisma/client'
@@ -55,14 +55,14 @@ context.setGlobalContextManager(contextManager)
 const otlpTraceExporter = new OTLPTraceExporter()
 
 const provider = new BasicTracerProvider({
-  resource: new Resource({
-    [SEMRESATTRS_SERVICE_NAME]: 'test-tracing-service',
-    [SEMRESATTRS_SERVICE_VERSION]: '1.0.0',
+  resource: resourceFromAttributes({
+    [ATTR_SERVICE_NAME]: 'test-tracing-service',
+    [ATTR_SERVICE_VERSION]: '1.0.0',
   }),
+  spanProcessors: [new SimpleSpanProcessor(otlpTraceExporter)],
 })
 
-provider.addSpanProcessor(new SimpleSpanProcessor(otlpTraceExporter))
-provider.register()
+trace.setGlobalTracerProvider(provider)
 
 registerInstrumentations({
   instrumentations: [new PrismaInstrumentation()],
