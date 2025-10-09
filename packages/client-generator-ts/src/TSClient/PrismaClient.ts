@@ -376,7 +376,7 @@ ${[
   schemaMethodDefinition(this.activeProvider),
   extendsPropertyDefinition(),
 ]
-  .filter((d) => d !== null)
+  .filter((d) => d !== null && d !== '')
   .join('\n')
   .trim()}
 
