@@ -87,7 +87,7 @@ ${bold('Examples')}
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = await config.adapter?.()
+    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', schemaContext })
 
@@ -122,7 +122,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       }
 
       const migrate = await Migrate.setup({
-        adapter,
+        schemaEngineConfig: config,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],
@@ -150,7 +150,7 @@ ${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 202012
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
 
       const migrate = await Migrate.setup({
-        adapter: undefined,
+        schemaEngineConfig: config,
         migrationsDirPath,
         schemaContext,
         extensions: config['extensions'],

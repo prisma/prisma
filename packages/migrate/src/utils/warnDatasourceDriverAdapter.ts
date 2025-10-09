@@ -1,4 +1,3 @@
-import { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { SchemaContext } from '@prisma/internals'
 
 const DEPRECATED_PROPERTIES = ['url', 'directUrl', 'shadowDatabaseUrl']
@@ -6,11 +5,8 @@ const DEPRECATED_PROPERTIES = ['url', 'directUrl', 'shadowDatabaseUrl']
 // this placeholder value is used in the PSL parser if no URL property is given.
 const NO_URL_PLACEHOLDER = '<invalid>'
 
-export function warnDatasourceDriverAdapter(
-  schemaContext: SchemaContext | undefined,
-  adapter: ErrorCapturingSqlDriverAdapterFactory | undefined,
-) {
-  if (!schemaContext || !adapter) return
+export function warnDatasourceDriverAdapter(schemaContext: SchemaContext | undefined) {
+  if (!schemaContext) return
 
   const foundProperties: string[] = []
   for (const property of DEPRECATED_PROPERTIES) {

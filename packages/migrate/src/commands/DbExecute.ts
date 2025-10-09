@@ -198,8 +198,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       }
     }
 
-    const adapter = await config.adapter?.()
-    const migrate = await Migrate.setup({ adapter, extensions: config['extensions'] })
+    const migrate = await Migrate.setup({ schemaEngineConfig: config, extensions: config['extensions'] })
 
     try {
       await migrate.engine.dbExecute({

@@ -57,7 +57,7 @@ export type ExperimentalConfig = {
   extensions?: boolean
 }
 
-const SchemaEngineConfigClassic = Shape.Struct({
+const SchemaEngineConfigClassicShape = Shape.Struct({
   engine: Shape.Literal('classic'),
   datasource: Shape.Struct({
     url: Shape.String,
@@ -66,45 +66,68 @@ const SchemaEngineConfigClassic = Shape.Struct({
   }),
 })
 
-const SchemaEngineConfigJs = Shape.Struct({
+const SchemaEngineConfigJsShape = Shape.Struct({
   engine: Shape.Literal('js'),
   adapter: SqlMigrationAwareDriverAdapterFactoryShape,
 })
 
-const SchemaEngineConfigAbsent = Shape.Struct({
+const SchemaEngineConfigAbsentShape = Shape.Struct({
   engine: Shape.optional(Shape.Never),
 })
 
-const SchemaEngineConfig = Shape.Union(SchemaEngineConfigClassic, SchemaEngineConfigJs, SchemaEngineConfigAbsent)
+const SchemaEngineConfigShape = Shape.Union(
+  SchemaEngineConfigClassicShape,
+  SchemaEngineConfigJsShape,
+  SchemaEngineConfigAbsentShape,
+)
 
-export type SchemaEngineConfig =
-  | {
-      engine?: never
-    }
-  | {
-      /**
-       * Uses the "old classic" Schema Engine binary
-       */
-      engine: 'classic'
-      /**
-       * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
-       */
-      datasource: {
-        url: string
-        directUrl?: string
-        shadowDatabaseUrl?: string
-      }
-    }
-  | {
-      /**
-       * Uses the new, unstable JavaScript based Schema Engine.
-       */
-      engine: 'js'
-      /**
-       * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
-       */
-      adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
-    }
+type SchemaEngineConfigJs = {
+  /**
+   * Uses the new, unstable JavaScript based Schema Engine.
+   */
+  engine: 'js'
+  /**
+   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
+   */
+  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+}
+
+type SchemaEngineConfigJsInternal = {
+  /**
+   * Uses the new, unstable JavaScript based Schema Engine.
+   */
+  engine: 'js'
+  /**
+   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
+   */
+  adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
+}
+
+type SchemaEngineConfigClassic = {
+  /**
+   * Uses the "old classic" Schema Engine binary
+   */
+  engine: 'classic'
+  /**
+   * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
+   */
+  datasource: {
+    url: string
+    directUrl?: string
+    shadowDatabaseUrl?: string
+  }
+}
+
+type SchemaEngineConfigAbsent = {
+  engine?: never
+}
+
+type SchemaEngineConfig = SchemaEngineConfigJs | SchemaEngineConfigClassic | SchemaEngineConfigAbsent
+
+export type SchemaEngineConfigInternal =
+  | SchemaEngineConfigJsInternal
+  | SchemaEngineConfigClassic
+  | SchemaEngineConfigAbsent
 
 const SchemaEngineConfigJsInternal = Shape.Struct({
   engine: Shape.Literal('js'),
@@ -112,9 +135,9 @@ const SchemaEngineConfigJsInternal = Shape.Struct({
 })
 
 const SchemaEngineConfigInternal = Shape.Union(
-  SchemaEngineConfigClassic,
+  SchemaEngineConfigClassicShape,
   SchemaEngineConfigJsInternal,
-  SchemaEngineConfigAbsent,
+  SchemaEngineConfigAbsentShape,
 )
 
 const ExperimentalConfigShape = Shape.Struct({
@@ -303,7 +326,7 @@ const PrismaConfigUnconditionalShape = Shape.Struct({
 })
 
 // Define the shape for the user-facing `PrismaConfig` type.
-const PrismaConfigShape = Shape.extend(SchemaEngineConfig, PrismaConfigUnconditionalShape)
+const PrismaConfigShape = Shape.extend(SchemaEngineConfigShape, PrismaConfigUnconditionalShape)
 
 type PrismaConfigUnconditional = {
   /**
@@ -462,7 +485,7 @@ type _PrismaConfigInternal = Omit<PrismaConfig, 'engine' | 'datasource' | 'adapt
       }
     | {
         engine: 'js'
-        adapter?: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
+        adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
       }
     | {
         engine?: never
