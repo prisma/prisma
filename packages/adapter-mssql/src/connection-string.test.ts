@@ -100,16 +100,12 @@ describe('parseConnectionString', () => {
     })
   })
 
-  it('should parse multiSubnetFailover parameter correctly', () => {
-    const testCases = [
-      { input: 'sqlserver://localhost;database=testdb;multiSubnetFailover=true', expected: true },
-      { input: 'sqlserver://localhost;database=testdb;multiSubnetFailover=false', expected: false },
-    ]
-
-    testCases.forEach(({ input, expected }) => {
-      const config = parseConnectionString(input)
-      expect(config.options?.multiSubnetFailover).toBe(expected)
-    })
+  it.each([
+    { input: 'sqlserver://localhost;database=testdb;multiSubnetFailover=true', expected: true },
+    { input: 'sqlserver://localhost;database=testdb;multiSubnetFailover=false', expected: false },
+  ])('should parse multiSubnetFailover parameter correctly for %o', ({ input, expected }) => {
+    const config = parseConnectionString(input)
+    expect(config.options?.multiSubnetFailover).toBe(expected)
   })
 
   describe('connection pool parameters', () => {
