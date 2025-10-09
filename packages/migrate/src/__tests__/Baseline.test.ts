@@ -66,7 +66,7 @@ describe('Baselining', () => {
       // migrate dev --create-only
       const migrateDevCreateOnly = MigrateDev.new().parse(['--create-only'], await ctx.config())
       await expect(migrateDevCreateOnly).resolves.toMatchInlineSnapshot(`
-        "Prisma Migrate created the following migration without applying it 20201231000000_
+        "Prisma Migrate created the following migration without applying it 20201231000000
 
         You can now edit it and apply it by running prisma migrate dev."
       `)
@@ -92,7 +92,7 @@ describe('Baselining', () => {
         The following migration(s) have been applied:
 
         migrations/
-          └─ 20201231000000_/
+          └─ 20201231000000/
             └─ migration.sql
 
         Your database is now in sync with your schema.
@@ -114,7 +114,7 @@ describe('Baselining', () => {
         "Prisma schema loaded from prisma/schema.prisma
         Datasource "my_db": SQLite database "prod.db" <location placeholder>
 
-        Migration 20201231000000_ marked as applied.
+        Migration 20201231000000 marked as applied.
         "
       `)
       ctx.clearCapturedStderr()
