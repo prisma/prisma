@@ -952,6 +952,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return this._engine.applyPendingMigrations()
     }
 
+    $extends = $extends
+  }
+
+  // Only add schema() method for PostgreSQL and CockroachDB to avoid memory overhead
+  if (config.activeProvider === 'postgresql' || config.activeProvider === 'cockroachdb') {
     /**
      * Switch PostgreSQL schema context for query execution.
      * Returns a new client instance that shares the same database connection
@@ -982,14 +987,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * // All clients share the same connection pool for efficiency
      * ```
      */
-    schema(schemaName: string): Client {
-      if (this._activeProvider !== 'postgresql' && this._activeProvider !== 'cockroachdb') {
-        throw new PrismaClientValidationError(
-          `.schema() is only supported for PostgreSQL and CockroachDB. Current provider: ${this._activeProvider}`,
-          { clientVersion: this._clientVersion },
-        )
-      }
-
+    PrismaClient.prototype.schema = function (schemaName: string): Client {
       const schemaClient = createCompositeProxy(
         applyModelsAndClientExtensions(
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
@@ -1004,8 +1002,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       // Return client with schema override via middleware
       return schemaClient
     }
-
-    $extends = $extends
   }
 
   return PrismaClient
