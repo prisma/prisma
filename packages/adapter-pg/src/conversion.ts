@@ -300,7 +300,7 @@ function normalize_date(date: string): string {
 function normalize_timestamp(time: string): string {
   // Parse timestamp manually to avoid JavaScript's 2-digit year interpretation issues
   // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff]"
-  const match = time.match(/^(\d{1,4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/)
+  const match = time.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/)
   if (!match) {
     // Fallback to original behavior for unexpected formats
     return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
@@ -329,7 +329,7 @@ function normalize_timestamp(time: string): string {
 function normalize_timestampz(time: string): string {
   // Parse timestamptz manually to avoid JavaScript's 2-digit year interpretation issues
   // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff][+/-HH[:MM]]"
-  const match = time.match(/^(\d{1,4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([+-]\d{2}(?::\d{2})?)?$/)
+  const match = time.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([+-]\d{2}(?::\d{2})?)?$/)
   if (!match) {
     // Fallback to original behavior for unexpected formats
     return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
