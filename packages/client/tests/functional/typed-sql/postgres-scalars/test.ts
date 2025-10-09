@@ -188,7 +188,7 @@ testMatrix.setupTestSuite(
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
       expect(result[0].bytes).toEqual(Uint8Array.of(1, 2, 3))
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array>()
+      expectTypeOf(result[0].bytes).toEqualTypeOf<PrismaNamespace.Bytes>()
     })
 
     test('bytes - input', async () => {

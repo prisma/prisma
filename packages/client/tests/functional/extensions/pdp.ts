@@ -234,7 +234,7 @@ testMatrix.setupTestSuite(() => {
     async () => {
       const xprisma = prisma.$extends({
         query: {
-          // @ts-expect-error
+          // @ts-ignore
           async $__internalBatch({ query, args, __internalParams }) {
             let cacheInfo: null | string = null
             __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
@@ -393,7 +393,7 @@ testMatrix.setupTestSuite(() => {
     const xprisma = prisma
       .$extends({
         query: {
-          // @ts-expect-error
+          // @ts-ignore
           $__internalBatch({ query, args, __internalParams }) {
             __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
               return fetch(url, { ...args, order: [1] })
@@ -405,7 +405,7 @@ testMatrix.setupTestSuite(() => {
       })
       .$extends({
         query: {
-          // @ts-expect-error
+          // @ts-ignore
           $__internalBatch({ query, args, __internalParams }) {
             __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
               expect(args.order).toEqual([1])
@@ -418,7 +418,7 @@ testMatrix.setupTestSuite(() => {
       })
       .$extends({
         query: {
-          // @ts-expect-error
+          // @ts-ignore
           $__internalBatch({ query, args, __internalParams }) {
             __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
               expect(args.order).toEqual([1, 2])

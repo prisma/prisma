@@ -266,7 +266,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
-            // @ts-expect-error
+            // @ts-ignore
             findFirst() {
               return 1 // override
             },
@@ -290,7 +290,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              // @ts-expect-error
+              // @ts-ignore
               findFirst() {
                 return 1 // override
               },
@@ -337,7 +337,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              // @ts-expect-error
+              // @ts-ignore
               findFirst() {
                 return 1 // override
               },

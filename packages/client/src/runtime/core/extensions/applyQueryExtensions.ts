@@ -34,7 +34,7 @@ function iterateAndCallQueryCallbacks(
       model: params.model,
       operation: params.model ? params.action : params.clientMethod,
       args: deepCloneArgs(params.args ?? {}),
-      // @ts-expect-error because not part of public API
+      // @ts-ignore because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
         // we need to keep track of the current customDataProxyFetch

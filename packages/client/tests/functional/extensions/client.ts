@@ -127,9 +127,9 @@ testMatrix.setupTestSuite(() => {
     const dataTransaction = xprisma.$transaction()
     const dataQueryRaw = xprisma.$queryRaw()
 
-    // @ts-expect-error
+    // @ts-ignore
     void xprisma.$transaction([])
-    // @ts-expect-error
+    // @ts-ignore
     void xprisma.$queryRaw('')
 
     expect(dataTransaction).toBeUndefined()
