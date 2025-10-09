@@ -10,6 +10,7 @@ generator client {
 datasource db {
   provider = "${provider}"
   url      = env("DATABASE_URI_${provider}")
+  schemas  = ["schema1", "schema2"]
 }
 
 model User {
