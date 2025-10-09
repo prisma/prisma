@@ -53,6 +53,7 @@ export type RequestParams = {
   otelChildCtx?: Context
   globalOmit?: GlobalOmitOptions
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
+  schemaOverride?: string
 }
 
 export type HandleErrorParams = {
@@ -109,6 +110,13 @@ export class RequestHandler {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
+        // Apply schema override for PostgreSQL if needed
+        if (request.schemaOverride && this.client._activeProvider === 'postgresql') {
+          // Execute SET search_path before the actual query
+          // This works because both queries will use the same connection from the pool
+          await this.setSearchPath(request.schemaOverride, interactiveTransaction, request.customDataProxyFetch)
+        }
+
         const response = await this.client._engine.request(request.protocolQuery, {
           traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,
@@ -132,6 +140,42 @@ export class RequestHandler {
         }
         return 0
       },
+    })
+  }
+
+  /**
+   * Sets the PostgreSQL search_path for schema switching.
+   * Executes SET search_path before the actual query on the same connection.
+   *
+   * This enables multi-tenant applications where each tenant has isolated data
+   * in separate PostgreSQL schemas. By setting the search_path dynamically,
+   * all subsequent queries on this connection will operate in the specified schema,
+   * ensuring complete data isolation between tenants while reusing the same
+   * database connection pool for optimal resource efficiency.
+   */
+  private async setSearchPath(
+    schemaName: string,
+    interactiveTransaction: InteractiveTransactionOptions<unknown> | undefined,
+    customDataProxyFetch: AccelerateExtensionFetchDecorator | undefined,
+  ): Promise<void> {
+    // Build a raw SQL query to set search_path
+    const setSearchPathQuery: JsonQuery = {
+      modelName: undefined,
+      action: 'executeRaw',
+      query: {
+        arguments: [
+          `SET search_path TO "${schemaName}"`,
+        ],
+        selection: { $scalars: true },
+      },
+    }
+
+    // Execute on the same connection/transaction context
+    await this.client._engine.request(setSearchPathQuery, {
+      traceparent: this.client._tracingHelper.getTraceParent(),
+      interactiveTransaction,
+      isWrite: true,
+      customDataProxyFetch,
     })
   }
 
