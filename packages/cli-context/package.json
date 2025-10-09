@@ -1,0 +1,39 @@
+{
+  "name": "@prisma/cli-context",
+  "version": "0.0.0",
+  "description": "Internal package that is part of external command support in Prisma CLI",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/cli-context"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@prisma/config": "workspace:*"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "prepublishOnly": "pnpm run build",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false
+}

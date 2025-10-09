@@ -3,34 +3,19 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
+import { type Runnable, RunnableContextWithExtensionRegistry } from '@prisma/cli-context'
 import type { PrismaConfigInternal } from '@prisma/config'
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/internals'
 import * as execa from 'execa'
 import { dim, underline } from 'kleur/colors'
 
+import { createQpeExtension } from './sub-command-extensions/qpe'
 import { printError } from './utils/prompt/utils/print'
 
 const packageJson = require('../package.json')
 
 const debug = Debug('prisma:cli:subcommand')
-
-/**
- * Additional context that is passed to the subcommand.
- */
-type RunnableContext = {
-  /**
-   * Version of the CLI that is running the subcommand. Can be used to check for breaking changes etc..
-   */
-  cliVersion: string
-}
-
-/**
- * Sub-CLIs that are installed on demand need to implement this interface
- */
-type Runnable = {
-  run: (args: string[], config: PrismaConfigInternal, context: RunnableContext) => Promise<void>
-}
 
 class NpmInstallError extends Error {
   constructor(readonly reason: unknown) {
@@ -67,9 +52,8 @@ export class SubCommand implements Command {
       // we accept forcing a version with @, eg. prisma rules @1.0.0 --help
       const [version, ...args] = argv[0]?.startsWith('@') ? argv : ['@latest', ...argv]
 
-      const context: RunnableContext = {
-        cliVersion: packageJson.version,
-      }
+      const context = new RunnableContextWithExtensionRegistry(packageJson.version)
+      context.registerExtension('queryPlanExecutor', () => Promise.resolve(createQpeExtension(packageJson.version)))
 
       // load the module and run it via the Runnable interface
       const module = await this.importPackage(this.pkg, version)
