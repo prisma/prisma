@@ -8,16 +8,18 @@ import {
   TransactionInfo,
   UserFacingError,
 } from '@prisma/client-engine-runtime'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
 import { version as clientVersion } from '../../../../../package.json'
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'

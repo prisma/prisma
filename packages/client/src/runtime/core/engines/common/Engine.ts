@@ -1,12 +1,14 @@
 import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
 import { Datasources } from '../../../getPrismaClient'
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type { LogEmitter } from './types/Events'

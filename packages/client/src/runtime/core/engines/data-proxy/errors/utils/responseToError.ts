@@ -1,5 +1,5 @@
-import { PrismaClientInitializationError } from '../../../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../../../errors/PrismaClientKnownRequestError'
+import { PrismaClientInitializationError, PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
+
 import { BAD_REQUEST_DEFAULT_MESSAGE, BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
 import { HealthcheckTimeoutError } from '../EngineHealthcheckTimeoutError'

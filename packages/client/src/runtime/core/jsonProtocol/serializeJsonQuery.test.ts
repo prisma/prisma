@@ -1,10 +1,9 @@
-import Decimal from 'decimal.js'
+import { AnyNull, DbNull, Decimal, JsonNull } from '@prisma/client-runtime-utils'
 
 import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../model/FieldRef'
 import { skip } from '../types'
-import { objectEnumValues } from '../types/exported/ObjectEnums'
 import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [
@@ -702,7 +701,7 @@ test('args - JsonNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.JsonNull } },
+      args: { where: { jsonColumn: JsonNull } },
     }),
   ).toMatchInlineSnapshot(`
     "{
@@ -731,7 +730,7 @@ test('args - DbNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.DbNull } },
+      args: { where: { jsonColumn: DbNull } },
     }),
   ).toMatchInlineSnapshot(`
     "{
@@ -760,7 +759,7 @@ test('args - AnyNull field', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { jsonColumn: objectEnumValues.instances.AnyNull } },
+      args: { where: { jsonColumn: AnyNull } },
     }),
   ).toMatchInlineSnapshot(`
     "{

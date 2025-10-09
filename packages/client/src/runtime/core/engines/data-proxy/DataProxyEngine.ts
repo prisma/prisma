@@ -1,8 +1,7 @@
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { TracingHelper } from '@prisma/internals'
 
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
 import { HeaderBuilder } from '../common/accelerate/HeaderBuilder'

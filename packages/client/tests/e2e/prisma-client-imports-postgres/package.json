@@ -10,6 +10,7 @@
     "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
     "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/client-runtime-utils": "/tmp/prisma-client-runtime-utils-0.0.0.tgz",
     "@prisma/extension-accelerate": "1.2.1",
     "@prisma/extension-read-replicas": "0.3.0",
     "db": "link:custom",

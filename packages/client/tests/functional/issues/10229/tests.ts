@@ -1,4 +1,5 @@
-import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
+import type { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
