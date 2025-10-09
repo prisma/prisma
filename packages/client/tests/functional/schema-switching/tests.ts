@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker'
+import { randomUUID } from 'crypto'
 
 import { Providers } from '../_utils/providers'
-// @ts-ignore this is necessary for functional tests
-import type { PrismaClient } from './.generated/client'
 import testMatrix from './_matrix'
+// @ts-ignore this is necessary for functional tests
+import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -265,10 +266,11 @@ testMatrix.setupTestSuite(
           const schema1Client = prisma.schema('schema1')
           const email = faker.internet.email()
           const name = faker.person.fullName()
+          const id = randomUUID()
 
           const count = await schema1Client.$executeRaw`
             INSERT INTO "User" (id, email, name)
-            VALUES (gen_random_uuid(), ${email}, ${name})
+            VALUES (${id}, ${email}, ${name})
           `
 
           expect(count).toBe(1)

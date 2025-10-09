@@ -110,8 +110,11 @@ export class RequestHandler {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        // Apply schema override for PostgreSQL if needed
-        if (request.schemaOverride && this.client._activeProvider === 'postgresql') {
+        // Apply schema override for PostgreSQL/CockroachDB if needed
+        if (
+          request.schemaOverride &&
+          (this.client._activeProvider === 'postgresql' || this.client._activeProvider === 'cockroachdb')
+        ) {
           // Execute SET search_path before the actual query
           // This works because both queries will use the same connection from the pool
           await this.setSearchPath(request.schemaOverride, interactiveTransaction, request.customDataProxyFetch)

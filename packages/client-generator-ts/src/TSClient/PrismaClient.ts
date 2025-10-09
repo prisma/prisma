@@ -48,7 +48,13 @@ function schemaMethodDefinition(activeProvider: string) {
       `,
     )
     .addParameter(ts.parameter('schemaName', ts.stringType))
-    .setReturnType(ts.namedType('PrismaClient').addGenericArgument(ts.namedType('LogOpts')).addGenericArgument(ts.namedType('OmitOpts')).addGenericArgument(ts.namedType('ExtArgs')))
+    .setReturnType(
+      ts
+        .namedType('PrismaClient')
+        .addGenericArgument(ts.namedType('LogOpts'))
+        .addGenericArgument(ts.namedType('OmitOpts'))
+        .addGenericArgument(ts.namedType('ExtArgs')),
+    )
 
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
