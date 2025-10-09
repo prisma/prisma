@@ -289,6 +289,10 @@ importers:
       postgres-array:
         specifier: 3.0.4
         version: 3.0.4
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
 
   packages/adapter-pg:
     dependencies:
