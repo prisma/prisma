@@ -136,9 +136,6 @@ describe('defineConfig', () => {
 
     test('if `engine === "classic"` configuration is provided, it should configure Prisma Migrate using the provided adapter', () => {
       const config = defineConfig({
-        experimental: {
-          adapter: true,
-        },
         engine: 'classic',
         datasource: {
           url: 'postgresql://DATABASE_URL',
@@ -173,7 +170,7 @@ describe('defineConfig', () => {
           engine: 'js',
           adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
         }),
-      ).toThrow('The `engine` configuration requires `experimental.adapter` to be set to `true`.')
+      ).toThrow('The `engine === "js"` configuration requires `experimental.adapter` to be set to `true`.')
     })
 
     test('should throw error when studio is used without experimental.studio', () => {

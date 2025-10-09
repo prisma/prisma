@@ -12,8 +12,10 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
   const experimental = config.experimental || {}
 
   // Check adapter configuration
-  if (config.engine && !experimental.adapter) {
-    return Either.left(new Error('The `engine` configuration requires `experimental.adapter` to be set to `true`.'))
+  if (config.engine === 'js' && !experimental.adapter) {
+    return Either.left(
+      new Error('The `engine === "js"` configuration requires `experimental.adapter` to be set to `true`.'),
+    )
   }
 
   // Check studio configuration
