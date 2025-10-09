@@ -1,9 +1,9 @@
 import { faker } from '@faker-js/faker'
 
 import { Providers } from '../_utils/providers'
-import testMatrix from './_matrix'
 // @ts-ignore this is necessary for functional tests
 import type { PrismaClient } from './.generated/client'
+import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
 
@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
   () => {
     describe('schema switching', () => {
       describe('basic functionality', () => {
-        test('should allow switching between schemas', async () => {
+        test('should allow switching between schemas', () => {
           const schema1Client = prisma.schema('schema1')
           const schema2Client = prisma.schema('schema2')
 
@@ -299,7 +299,7 @@ testMatrix.setupTestSuite(
         test('should work with multiple derived clients', async () => {
           const client1a = prisma.schema('schema1')
           const client1b = prisma.schema('schema1')
-          const client2 = prisma.schema('schema2')
+          const _client2 = prisma.schema('schema2')
 
           const email = faker.internet.email()
 
