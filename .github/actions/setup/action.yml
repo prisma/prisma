@@ -20,6 +20,15 @@ runs:
   using: composite
   steps:
     - uses: pnpm/action-setup@v4.0.0
+
+    - name: Cache turbo build setup
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-turbo-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ inputs.node-version }}-turbo-
+
     - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v4
       with:
@@ -29,7 +38,7 @@ runs:
         # The NPM_TOKEN secret needs to be defined in the job
         registry-url: 'https://registry.npmjs.org'
 
-    - run: pnpm install
+    - run: pnpm install --prefer-offline
       shell: bash
 
     - run: pnpm -r run dev

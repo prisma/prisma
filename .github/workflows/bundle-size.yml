@@ -1,7 +1,10 @@
 name: Bundle size
 
 on:
-  pull_request:
+  workflow_run:
+    workflows: [Build]
+    types:
+      - completed
     paths-ignore:
       # Any update here needs to be done for all files
       # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
@@ -25,6 +28,7 @@ concurrency:
 jobs:
   size:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -33,8 +37,8 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 18
-          skip-tsc: true
-          skip-build: true
+          skip-tsc: false
+          skip-build: false
 
       - uses: andresz1/size-limit-action@v1
         with:
