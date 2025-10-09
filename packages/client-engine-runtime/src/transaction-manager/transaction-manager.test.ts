@@ -291,6 +291,43 @@ test('transaction times out during execution', async () => {
   await expect(transactionManager.rollbackTransaction(id)).rejects.toBeInstanceOf(TransactionExecutionTimeoutError)
 })
 
+test('internal transaction does not apply the default start timeout', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: { ...TRANSACTION_OPTIONS, maxWait: START_TRANSACTION_TIME / 2 },
+    tracingHelper: noopTracingHelper,
+  })
+
+  const [tx] = await Promise.all([
+    transactionManager.startInternalTransaction(),
+    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+  ])
+  await transactionManager.commitTransaction(tx.id)
+
+  expect(driverAdapter.commitMock).toHaveBeenCalled()
+  expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
+})
+
+test('internal transaction does not apply the default execution timeout', async () => {
+  const driverAdapter = new MockDriverAdapter()
+  const transactionManager = new TransactionManager({
+    driverAdapter,
+    transactionOptions: { ...TRANSACTION_OPTIONS, timeout: TRANSACTION_EXECUTION_TIMEOUT / 2 },
+    tracingHelper: noopTracingHelper,
+  })
+
+  const [tx] = await Promise.all([
+    transactionManager.startInternalTransaction(),
+    jest.advanceTimersByTimeAsync(START_TRANSACTION_TIME),
+  ])
+  await jest.advanceTimersByTimeAsync(TRANSACTION_EXECUTION_TIMEOUT)
+  await transactionManager.commitTransaction(tx.id)
+
+  expect(driverAdapter.commitMock).toHaveBeenCalled()
+  expect(driverAdapter.rollbackMock).not.toHaveBeenCalled()
+})
+
 test('trying to commit or rollback invalid transaction id fails with TransactionNotFoundError', async () => {
   const driverAdapter = new MockDriverAdapter()
   const transactionManager = new TransactionManager({
