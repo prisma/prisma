@@ -24,7 +24,8 @@
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
-    "build": "tsx helpers/build.ts"
+    "build": "tsx helpers/build.ts",
+    "test": "vitest run"
   },
   "files": [
     "dist",
@@ -38,5 +39,8 @@
     "@prisma/driver-adapter-utils": "workspace:*",
     "postgres-array": "catalog:",
     "@neondatabase/serverless": ">0.6.0 <2"
+  },
+  "devDependencies": {
+    "@prisma/debug": "workspace:*"
   }
 }

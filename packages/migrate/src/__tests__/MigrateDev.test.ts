@@ -630,7 +630,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -666,7 +666,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     const result = MigrateDev.new().parse(['--create-only'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-      "Prisma Migrate created the following migration without applying it 20201231000000_
+      "Prisma Migrate created the following migration without applying it 20201231000000
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
@@ -706,7 +706,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -948,7 +948,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -973,7 +973,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -998,7 +998,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1128,7 +1128,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
   //     Prisma Migrate applied the following migration(s):
 
   //     migrations/
-  //       └─ 20201231000000_/
+  //       └─ 20201231000000/
   //         └─ migration.sql
   //   `)
 
@@ -1222,7 +1222,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1356,7 +1356,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1377,7 +1377,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1398,7 +1398,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1531,7 +1531,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1552,7 +1552,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1573,7 +1573,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1736,7 +1736,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1757,7 +1757,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1778,7 +1778,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
