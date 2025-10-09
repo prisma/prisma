@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
     test('int - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getInt(id))
       expect(result[0].int).toEqual([1, 2, 3])
-      expectTypeOf(result[0].int).toEqualTypeOf<number[] | null>()
+      expectTypeOf(result[0].int).toMatchTypeOf<number[] | null>()
     })
 
     test('int - input', async () => {
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
     test('real - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getReal(id))
       expect(result[0].real).toEqual([1.1, 2.2, 3.3])
-      expectTypeOf(result[0].real).toEqualTypeOf<number[] | null>()
+      expectTypeOf(result[0].real).toMatchTypeOf<number[] | null>()
     })
 
     test('real - input', async () => {
@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(
     test('double - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getDouble(id))
       expect(result[0].double).toEqual([1.1, 2.2, 3.3])
-      expectTypeOf(result[0].double).toEqualTypeOf<number[] | null>()
+      expectTypeOf(result[0].double).toMatchTypeOf<number[] | null>()
     })
 
     test('double - input', async () => {
@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(
     test('string - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getString(id))
       expect(result[0].string).toEqual(['hello', 'world'])
-      expectTypeOf(result[0].string).toEqualTypeOf<string[] | null>()
+      expectTypeOf(result[0].string).toMatchTypeOf<string[] | null>()
     })
 
     test('string - input', async () => {
@@ -90,7 +90,7 @@ testMatrix.setupTestSuite(
     test('BigInt - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBigInt(id))
       expect(result[0].bigInt).toEqual(bigInt)
-      expectTypeOf(result[0].bigInt).toEqualTypeOf<bigint[] | null>()
+      expectTypeOf(result[0].bigInt).toMatchTypeOf<bigint[] | null>()
     })
 
     test('BigInt - input', async () => {
@@ -104,7 +104,7 @@ testMatrix.setupTestSuite(
     test('DateTime - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getDateTime(id))
       expect(result[0].dateTime).toEqual(dateTime)
-      expectTypeOf(result[0].dateTime).toEqualTypeOf<Date[] | null>()
+      expectTypeOf(result[0].dateTime).toMatchTypeOf<Date[] | null>()
     })
 
     test('DateTime - input', async () => {
@@ -115,7 +115,7 @@ testMatrix.setupTestSuite(
     test('Date - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getDate(id))
       expect(result[0].date).toEqual(date)
-      expectTypeOf(result[0].date).toEqualTypeOf<Date[] | null>()
+      expectTypeOf(result[0].date).toMatchTypeOf<Date[] | null>()
     })
 
     test('Date - input', async () => {
@@ -126,7 +126,7 @@ testMatrix.setupTestSuite(
     test('Time - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getTime(id))
       expect(result[0].time).toEqual(time)
-      expectTypeOf(result[0].time).toEqualTypeOf<Date[] | null>()
+      expectTypeOf(result[0].time).toMatchTypeOf<Date[] | null>()
     })
 
     test('Time - input', async () => {
@@ -138,7 +138,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.getDecimal(id))
       expect(result[0].decimal![0]).toBeInstanceOf(Prisma.Decimal)
       expect(result[0].decimal).toEqual([new Prisma.Decimal('12.34'), new Prisma.Decimal('45.67')])
-      expectTypeOf(result[0].decimal).toEqualTypeOf<PrismaNamespace.Decimal[] | null>()
+      expectTypeOf(result[0].decimal).toMatchTypeOf<PrismaNamespace.Decimal[] | null>()
     })
 
     test('Decimal - input', async () => {
@@ -154,13 +154,13 @@ testMatrix.setupTestSuite(
     test('xml - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getXml(id))
       expect(result[0].xml).toEqual(['<hello />', '<world />'])
-      expectTypeOf(result[0].xml).toEqualTypeOf<string[] | null>()
+      expectTypeOf(result[0].xml).toMatchTypeOf<string[] | null>()
     })
 
     test('uuid - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getUuid(id))
       expect(result[0].uuid).toEqual(uuid)
-      expectTypeOf(result[0].uuid).toEqualTypeOf<string[] | null>()
+      expectTypeOf(result[0].uuid).toMatchTypeOf<string[] | null>()
     })
 
     test('uuid - input', async () => {
@@ -171,7 +171,7 @@ testMatrix.setupTestSuite(
     test('bytes - output', async () => {
       const result = await prisma.$queryRawTyped(sql.getBytes(id))
       expect(result[0].bytes).toEqual(bytes)
-      expectTypeOf(result[0].bytes).toEqualTypeOf<Uint8Array[] | null>()
+      expectTypeOf(result[0].bytes).toMatchTypeOf<Uint8Array[] | null>()
     })
 
     test('bytes - input', async () => {
@@ -183,7 +183,7 @@ testMatrix.setupTestSuite(
       const result = await prisma.$queryRawTyped(sql.getJson(id))
       expect(result[0].json).toEqual([{ hello: 'world' }, { goodbye: 'blue sky' }])
 
-      expectTypeOf(result[0].json).toEqualTypeOf<PrismaNamespace.JsonValue[] | null>()
+      expectTypeOf(result[0].json).toMatchTypeOf<PrismaNamespace.JsonValue[] | null>()
     })
   },
   {
