@@ -14,5 +14,6 @@ generated/
 /packages/config/src/__tests__/fixtures/loadConfigFromFile/invalid/syntax-error/prisma.config.ts
 /sandbox
 /target
+.cache/
 .idea/
 .vscode/
