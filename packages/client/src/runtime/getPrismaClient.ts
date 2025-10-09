@@ -262,6 +262,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
     _schemaOverride?: string
+    /**
+     * Switch to a different PostgreSQL schema for all operations on this client.
+     * Available only for PostgreSQL and CockroachDB providers.
+     * @param schemaName - The name of the schema to switch to
+     * @returns A new PrismaClient instance scoped to the specified schema
+     */
+    schema?: (schemaName: string) => PrismaClient
 
     constructor(optionsArg?: PrismaClientOptions) {
       config = optionsArg?.__internal?.configOverride?.(config) ?? config
@@ -993,7 +1000,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           createCompositeProxy(unApplyModelsAndClientExtensions(this), [
             addProperty('_schemaOverride', () => schemaName),
             addProperty('_engine', () => this._originalClient._engine),
-            addProperty('_appliedParent', () => this._appliedParent.schema(schemaName)),
+            addProperty('_appliedParent', () => this._appliedParent.schema!(schemaName)),
           ]),
         ),
         [],
