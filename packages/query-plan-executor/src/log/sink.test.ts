@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { LogEvent } from './event'
 import { FilterDecision, LogFilter } from './filter'
 import { ConsoleFormatter } from './format'
-import { CapturingSink, CompositeSink, ConsoleSink, FilteringSink } from './sink'
+import { CapturingSink, CompositeSink, ConsoleSink, DroppingSink, FilteringSink } from './sink'
 
 describe('CapturingSink', () => {
   it('captures events', () => {
@@ -17,6 +17,15 @@ describe('CapturingSink', () => {
     expect(sink.events.length).toEqual(2)
     expect(sink.events[0]).toEqual(event1)
     expect(sink.events[1]).toEqual(event2)
+  })
+})
+
+describe('DroppingSink', () => {
+  it('drops events without side effects', () => {
+    const sink = new DroppingSink()
+    const event = new LogEvent('info', 'ignored message')
+
+    expect(() => sink.write(event)).not.toThrow()
   })
 })
 
