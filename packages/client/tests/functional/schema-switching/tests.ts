@@ -98,9 +98,9 @@ testMatrix.setupTestSuite(
           const schema2Client = prisma.schema('schema2')
 
           // Both should share the same engine
-          expect(schema1Client._engine).toBe(prisma._engine)
-          expect(schema2Client._engine).toBe(prisma._engine)
-          expect(schema1Client._engine).toBe(schema2Client._engine)
+          expect(schema1Client['_engine']).toBe(prisma['_engine'])
+          expect(schema2Client['_engine']).toBe(prisma['_engine'])
+          expect(schema1Client['_engine']).toBe(schema2Client['_engine'])
         })
 
         test('should execute queries from different schemas using same connection', async () => {
@@ -289,13 +289,13 @@ testMatrix.setupTestSuite(
           const client1 = prisma.schema('schema1')
           const client2 = client1.schema('schema2')
 
-          expect(client2._schemaOverride).toBe('schema2')
+          expect(client2['_schemaOverride']).toBe('schema2')
         })
 
         test('should maintain parent reference', () => {
           const schemaClient = prisma.schema('schema1')
 
-          expect(schemaClient._appliedParent).toBeDefined()
+          expect(schemaClient['_appliedParent']).toBeDefined()
         })
 
         test('should work with multiple derived clients', async () => {
