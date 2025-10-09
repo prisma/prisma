@@ -163,9 +163,13 @@ export class RequestHandler {
       modelName: undefined,
       action: 'executeRaw',
       query: {
-        arguments: [
-          `SET search_path TO "${schemaName}"`,
-        ],
+        arguments: {
+          $type: 'Raw',
+          value: {
+            query: `SET search_path TO "${schemaName}"`,
+            parameters: '[]',
+          },
+        },
         selection: { $scalars: true },
       },
     }
