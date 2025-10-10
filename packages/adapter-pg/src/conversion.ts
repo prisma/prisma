@@ -298,38 +298,13 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  // Parse timestamp manually to avoid JavaScript's 2-digit year interpretation issues
-  // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff]"
-  const match = time.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?$/)
-  if (!match) {
-    // Fallback to original behavior for unexpected formats
-    return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
-  }
-
-  const [, year, month, day, hour, minute, second, fraction = '0'] = match
-  const ms = fraction.padEnd(3, '0').slice(0, 3)
-
-  // Use a safe year (2000) to avoid 2-digit year interpretation, then set the actual year
-  const date = new Date(
-    Date.UTC(
-      2000,
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      parseInt(ms, 10),
-    ),
-  )
-  date.setUTCFullYear(parseInt(year, 10))
-
-  return date.toISOString().replace(/(\.000)?Z$/, '+00:00')
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
-function normalize_timestampz(time: string): string {
+function normalize_timestamptz(time: string): string {
   // Parse timestamptz manually to avoid JavaScript's 2-digit year interpretation issues
   // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff][+/-HH[:MM]]"
-  const match = time.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([+-]\d{2}(?::\d{2})?)?$/)
+  const match = time.match(/^(\d{1,4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([+-]\d{2}(?::\d{2})?)?$/)
   if (!match) {
     // Fallback to original behavior for unexpected formats
     return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
@@ -466,8 +441,8 @@ export const customParsers = {
   [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
   [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
-  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
-  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestampz),
+  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestamptz,
+  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestamptz),
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
