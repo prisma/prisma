@@ -76,6 +76,7 @@ Check the status of your database migrations
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined

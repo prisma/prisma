@@ -86,7 +86,13 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
+
+    if (config.engine === 'classic') {
+      schemaContext.primaryDatasource
+    }
+
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })

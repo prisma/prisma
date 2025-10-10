@@ -256,6 +256,7 @@ ${bold('Examples')}
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--from-schema-datasource'],
         schemaPathArgumentName: '--from-schema-datasource',
+        schemaEngineConfig: config,
         printLoadMessage: false,
       })
       checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })

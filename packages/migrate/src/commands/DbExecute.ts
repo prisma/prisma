@@ -185,6 +185,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--schema'],
         schemaPathFromConfig: config.schema,
+        schemaEngineConfig: config,
         printLoadMessage: false,
       })
 
