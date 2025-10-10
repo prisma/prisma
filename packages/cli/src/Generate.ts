@@ -69,7 +69,6 @@ ${bold('Options')}
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
           --no-hints   Hides the hint messages but still outputs errors and warnings
-   --allow-no-models   Allow generating a client without models (default)
     --require-models   Do not allow generating a client without models
 
 ${bold('Examples')}
@@ -126,20 +125,11 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
-      // TODO: no longer needed, remove in Prisma 7
-      '--allow-no-models': Boolean,
       '--require-models': Boolean,
       '--sql': Boolean,
     })
 
-    let allowNoModels = true
-
-    if (args['--require-models']) {
-      if (args['--allow-no-models']) {
-        return Error('Cannot use --allow-no-models and --require-models together')
-      }
-      allowNoModels = false
-    }
+    const allowNoModels = !args['--require-models']
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
