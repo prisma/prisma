@@ -24,7 +24,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@prisma/dmmf": "workspace:*"
+    "@prisma/dmmf": "workspace:*",
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

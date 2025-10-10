@@ -37,10 +37,10 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "async-mutex": "catalog:",
-    "@planetscale/database": "catalog:"
+    "async-mutex": "0.5.0",
+    "@planetscale/database": "^1.15.0"
   },
   "devDependencies": {
-    "undici": "catalog:"
+    "undici": "7.4.0"
   }
 }
