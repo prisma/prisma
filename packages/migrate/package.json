@@ -19,9 +19,6 @@
   "devDependencies": {
     "@prisma/adapter-libsql": "workspace:*",
     "@sindresorhus/slugify": "2.2.1",
-    "@swc/core": "1.11.5",
-    "@swc/jest": "0.2.37",
-    "@types/jest": "29.5.14",
     "@types/node": "18.19.76",
     "@types/pg": "8.11.11",
     "@types/prompts": "2.4.9",
@@ -31,8 +28,6 @@
     "fp-ts": "2.16.9",
     "fs-jetpack": "5.1.0",
     "indent-string": "4.0.0",
-    "jest": "29.7.0",
-    "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "log-update": "6.1.0",
     "mariadb": "3.4.5",
