@@ -40,6 +40,6 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "7.6.12",
-    "async-mutex": "catalog:"
+    "async-mutex": "0.5.0"
   }
 }

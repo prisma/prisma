@@ -15,11 +15,12 @@
     "c12": "3.1.0",
     "deepmerge-ts": "7.1.5",
     "effect": "3.16.12",
-    "empathic": "catalog:"
+    "empathic": "2.0.0"
   },
   "devDependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/get-platform": "workspace:*"
+    "@prisma/get-platform": "workspace:*",
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

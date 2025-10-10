@@ -24,7 +24,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@antfu/ni": "catalog:",
+    "@antfu/ni": "0.21.12",
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
@@ -34,17 +34,18 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
-    "ci-info": "catalog:",
-    "fast-glob": "catalog:",
+    "ci-info": "4.2.0",
+    "fast-glob": "3.3.3",
     "get-tsconfig": "4.10.0",
-    "indent-string": "catalog:",
-    "klona": "catalog:",
-    "package-up": "catalog:",
-    "pluralize": "catalog:",
-    "ts-pattern": "catalog:"
+    "indent-string": "4.0.0",
+    "klona": "2.0.6",
+    "package-up": "5.0.0",
+    "pluralize": "8.0.0",
+    "ts-pattern": "5.6.2"
   },
   "devDependencies": {
-    "@types/pluralize": "catalog:"
+    "@types/pluralize": "0.0.33",
+    "vitest": "3.2.4"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",

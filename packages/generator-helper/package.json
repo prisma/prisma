@@ -26,12 +26,12 @@
     "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "@swc-node/register": "catalog:",
+    "@swc-node/register": "1.10.9",
     "@types/cross-spawn": "6.0.6",
-    "@types/node": "catalog:",
-    "typescript": "catalog:",
+    "@types/node": "18.19.76",
+    "typescript": "5.4.5",
     "cross-spawn": "7.0.6",
-    "kleur": "catalog:"
+    "kleur": "4.1.5"
   },
   "files": [
     "README.md",
