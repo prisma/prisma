@@ -37,11 +37,11 @@
   "sideEffects": false,
   "dependencies": {
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.4",
-    "pg": "^8.11.3"
+    "postgres-array": "catalog:",
+    "pg": "catalog:"
   },
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@types/pg": "8.11.11"
+    "@types/pg": "catalog:"
   }
 }

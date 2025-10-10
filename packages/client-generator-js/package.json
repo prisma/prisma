@@ -24,27 +24,26 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@antfu/ni": "0.21.12",
+    "@antfu/ni": "catalog:",
     "@prisma/client-common": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/engines-version": "6.18.0-1.a3a68297617862dfc64e9773802511b304419ce4",
+    "@prisma/engines-version": "6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
-    "ci-info": "4.2.0",
-    "env-paths": "2.2.1",
-    "indent-string": "4.0.0",
-    "klona": "2.0.6",
-    "package-up": "5.0.0",
-    "pluralize": "8.0.0",
-    "ts-pattern": "5.6.2"
+    "ci-info": "catalog:",
+    "env-paths": "catalog:",
+    "indent-string": "catalog:",
+    "klona": "catalog:",
+    "package-up": "catalog:",
+    "pluralize": "catalog:",
+    "ts-pattern": "catalog:"
   },
   "devDependencies": {
-    "@types/pluralize": "0.0.33",
-    "vitest": "3.2.4"
+    "@types/pluralize": "catalog:"
   },
   "scripts": {
     "dev": "DEV=true tsx helpers/build.ts",
