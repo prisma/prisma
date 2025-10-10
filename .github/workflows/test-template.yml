@@ -1070,10 +1070,6 @@ jobs:
         name: 'credentials-store'
         working-directory: packages/credentials-store
 
-      - run: pnpm run test
-        name: 'query-plan-executor'
-        working-directory: packages/query-plan-executor
-
   #
   # Driver Adapter Unit Tests
   #
@@ -1120,6 +1116,37 @@ jobs:
       - run: pnpm run test
         name: 'adapter-mssql'
         working-directory: packages/adapter-mssql
+
+      - run: pnpm run test
+        name: 'adapter-neon'
+        working-directory: packages/adapter-neon
+
+  #
+  # Query plan executor unit tests
+  #
+  qpe-unit-tests:
+    name: QPE Unit Tests [v${{ matrix.node }}]
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+    if: contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-query-plan-executor-')
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [24]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: true
+
+      - run: pnpm run test
+        name: 'query-plan-executor'
+        working-directory: packages/query-plan-executor
 
   #
   # Run type performance benchmark tests
@@ -1247,6 +1274,7 @@ jobs:
             echo "TEST_SKIP_MSSQL=true"
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
+            echo "TEST_NO_DOCKER=true"
             echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
             echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"

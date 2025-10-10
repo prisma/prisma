@@ -166,5 +166,18 @@ describe('defineConfig', () => {
         'The `migrations.initShadowDb` configuration requires `experimental.externalTables` to be set to `true`.',
       )
     })
+
+    test.each([{ whatever: true }, false])(
+      'should throw an error when extensions are used without the experimental flag (%o)',
+      (extensions) => {
+        const newLocal = {
+          experimental: {},
+          extensions,
+        }
+        expect(() => defineConfig(newLocal)).toThrow(
+          'The `extensions` configuration requires `experimental.extensions` to be set to `true`.',
+        )
+      },
+    )
   })
 })

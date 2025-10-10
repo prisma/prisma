@@ -37,6 +37,12 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
     )
   }
 
+  if (config['extensions'] !== undefined && !experimental.extensions) {
+    return Either.left(
+      new Error('The `extensions` configuration requires `experimental.extensions` to be set to `true`.'),
+    )
+  }
+
   return Either.right(config)
 }
 
@@ -69,6 +75,7 @@ export function defineConfig(configInput: PrismaConfig): PrismaConfigInternal {
   defineEnumsConfig(config, configInput)
   defineTypedSqlConfig(config, configInput)
   defineViewsConfig(config, configInput)
+  defineExtensionsConfig(config, configInput)
 
   /**
    * We cast the type of `config` back to its original, deeply-nested
@@ -198,4 +205,13 @@ function defineAdapterConfig(config: DeepMutable<PrismaConfigInternal>, configIn
     return bindMigrationAwareSqlAdapterFactory(adapterFactory)
   }
   debug('[config.adapter]: %o', config.adapter)
+}
+
+function defineExtensionsConfig(config: DeepMutable<PrismaConfigInternal>, configInput: PrismaConfig) {
+  if (!configInput['extensions']) {
+    return
+  }
+
+  config['extensions'] = configInput['extensions']
+  debug('[config.extensions]: %o', config['extensions'])
 }

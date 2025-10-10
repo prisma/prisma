@@ -65,6 +65,15 @@ export class CapturingSink implements LogSink {
 }
 
 /**
+ * A log sink that silently drops all log events.
+ */
+export class DroppingSink implements LogSink {
+  write(_: LogEvent): void {
+    // No-op
+  }
+}
+
+/**
  * A log sink that writes log events to multiple downstream sinks.
  */
 export class CompositeSink implements LogSink {

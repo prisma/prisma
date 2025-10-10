@@ -10,6 +10,16 @@ We also encourage you to join our sprawling [community](https://www.prisma.io/co
 
 Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines))
 
+## Contributing via comments
+
+### Signal interest without noise
+
+To help maintainers triage efficiently:
+
+- Use GitHub reactions (👍) on the top post or relevant comments to show support.
+- Only add a comment if you bring _new, actionable information_ (e.g., reproducible steps, environment details, impact/severity, or a concrete use case).
+- Comments that only say “+1”, “same here”, or “any update?” create notification noise and may be marked as off-topic. Please use reactions instead on the main post.
+
 ## General Prerequisites
 
 1. Install Node.js `>=18.18` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)

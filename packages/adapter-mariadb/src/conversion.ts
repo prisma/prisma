@@ -78,7 +78,12 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
     case MariaDbColumnType.BLOB:
     case MariaDbColumnType.TINY_BLOB:
     case MariaDbColumnType.MEDIUM_BLOB:
-      if (field.flags.valueOf() & BINARY_FLAG) {
+    case MariaDbColumnType.LONG_BLOB:
+      // Special handling for MariaDB, the database returns JSON columns as BLOB
+      // https://github.com/mariadb-corporation/mariadb-connector-nodejs/blob/1bbbb41e92d2123948c2322a4dbb5021026f2d05/lib/cmd/column-definition.js#L27
+      if (field['dataTypeFormat'] === 'json') {
+        return ColumnTypeEnum.Json
+      } else if (field.flags.valueOf() & BINARY_FLAG) {
         return ColumnTypeEnum.Bytes
       } else {
         return ColumnTypeEnum.Text
