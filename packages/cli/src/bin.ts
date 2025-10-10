@@ -43,7 +43,6 @@ import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
-import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -81,8 +80,6 @@ const args = arg(
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-
-  detectPrisma1()
 
   const cli = CLI.new(
     {
