@@ -18,7 +18,12 @@ async function testDirectoryConfig({
 }) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
-  const schemaContext = await loadSchemaContext({ schemaPathFromArg: schemaPath, cwd, allowNull: true })
+  const schemaContext = await loadSchemaContext({
+    schemaPathFromArg: schemaPath,
+    schemaEngineConfig: config,
+    cwd,
+    allowNull: true,
+  })
   return inferDirectoryConfig(schemaContext, config, cwd)
 }
 
@@ -29,7 +34,12 @@ describe('with .config/prisma.ts', () => {
     const config = await loadConfigFromFile({ configRoot: cwd })
     expect(config.error).toBeUndefined()
 
-    const schemaContext = await loadSchemaContext({ schemaPathFromArg: './prisma', cwd, allowNull: true })
+    const schemaContext = await loadSchemaContext({
+      schemaPathFromArg: './prisma',
+      schemaEngineConfig: config.config,
+      cwd,
+      allowNull: true,
+    })
     const res = inferDirectoryConfig(schemaContext, config.config, cwd)
 
     expect(res).toEqual({

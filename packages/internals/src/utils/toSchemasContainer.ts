@@ -11,6 +11,7 @@ export function toSchemasContainer(schemas: MultipleSchemas): MigrateTypes.Schem
 export function toSchemasWithConfigDir(schemaContext: SchemaContext): MigrateTypes.SchemasWithConfigDir {
   return {
     files: multipleSchemasToSchemaContainers(schemaContext.schemaFiles),
+    // TODO: can this be nullish?
     configDir: schemaContext.primaryDatasourceDirectory,
   }
 }

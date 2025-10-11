@@ -82,10 +82,11 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.adapter?.()
+    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     printDatasource({ datasourceInfo, adapter })
 
@@ -130,7 +131,7 @@ ${bold('Examples')}
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      schemaEngineConfig: config,
       migrationsDirPath,
       schemaContext,
       schemaFilter,

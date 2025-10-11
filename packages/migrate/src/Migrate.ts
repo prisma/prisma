@@ -1,5 +1,5 @@
 import { defaultRegistry } from '@prisma/client-generator-registry'
-import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { SchemaEngineConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
@@ -22,8 +22,8 @@ import { DatasourceInfo } from './utils/ensureDatabaseExists'
 import { listMigrations } from './utils/listMigrations'
 import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
-interface MigrateSetupInput {
-  adapter?: ErrorCapturingSqlDriverAdapterFactory
+type MigrateSetupInput = {
+  schemaEngineConfig?: SchemaEngineConfigInternal
   migrationsDirPath?: string
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -58,18 +58,20 @@ export class Migrate {
     this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 
-  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
-    const engine = await (async () => {
-      if (adapter) {
+  static async setup({ schemaContext, schemaEngineConfig, ...rest }: MigrateSetupInput): Promise<Migrate> {
+    const schemaEngine = await (async () => {
+      if (schemaEngineConfig?.engine === 'js') {
+        const adapter = await schemaEngineConfig.adapter()
+        warnDatasourceDriverAdapter(schemaContext)
         return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
-      } else {
-        return await SchemaEngineCLI.setup({ schemaContext, ...rest })
       }
+
+      const datasource = schemaEngineConfig?.engine === 'classic' ? schemaEngineConfig.datasource : undefined
+
+      return await SchemaEngineCLI.setup({ datasource, schemaContext, ...rest })
     })()
 
-    warnDatasourceDriverAdapter(schemaContext, adapter)
-
-    return new Migrate({ engine, schemaContext, ...rest })
+    return new Migrate({ engine: schemaEngine, schemaContext, ...rest })
   }
 
   public async stop(): Promise<void> {

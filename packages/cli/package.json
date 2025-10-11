@@ -117,6 +117,7 @@
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
+    "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",

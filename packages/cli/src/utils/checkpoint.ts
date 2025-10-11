@@ -136,6 +136,9 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
 
     // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
     // (this was not scoped to `prisma-client-js` before Prisma 3.0)
+    // TODO: we should normalize how `previewFeatures` are extracted, since we currently support
+    // multiple generators (`prisma-client-js`, `prisma-client`), and each generator can occur
+    // more than once.
     const prismaClientJSGenerator = schemaContext.generators.find(
       (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
     )

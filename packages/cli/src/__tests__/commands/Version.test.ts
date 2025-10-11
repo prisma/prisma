@@ -34,7 +34,7 @@ describe('version', () => {
         Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
         PSL                     : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
         Schema Engine           : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine Adapter   : @prisma/adapter-sqlite-mock
+        Schema Engine Adapter   : @prisma/adapter-mock
         Default Engines Hash    : ENGINE_VERSION
         Studio                  : STUDIO_VERSION"
       `)
@@ -77,7 +77,7 @@ describe('version', () => {
           Query Compiler        : enabled
           PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
           Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-          Schema Engine Adapter : @prisma/adapter-sqlite-mock
+          Schema Engine Adapter : @prisma/adapter-mock
           Default Engines Hash  : ENGINE_VERSION
           Studio                : STUDIO_VERSION"
         `)
@@ -218,5 +218,5 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
 
-  return str
+  return str // serialize(str)
 }

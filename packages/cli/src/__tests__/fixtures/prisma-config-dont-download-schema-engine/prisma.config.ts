@@ -1,11 +1,11 @@
+import { mockAdapter } from 'test-utils/mock-adapter'
+
 export default {
   experimental: {
     adapter: true,
   },
-  // @ts-ignore
+  engine: 'js',
   adapter: async () => {
-    return Promise.resolve({
-      adapterName: '@prisma/adapter-sqlite-mock',
-    })
+    return mockAdapter('postgres')
   },
 }

@@ -55,7 +55,7 @@ export class CLI implements Command {
       return this.help()
     }
 
-    const hasMigrateAdapterInConfig = config.adapter !== undefined
+    const hasMigrateAdapterInConfig = config.engine === 'js'
 
     // We pre-parse the optional custom schema path from `prisma [cmd] --schema ...`,
     // which we use to inspect the client generator to determine whether we should
