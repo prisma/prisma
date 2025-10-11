@@ -10,7 +10,7 @@ import { version as clientVersion } from '../package.json'
 import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
 import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
-import { parseRuntimeTargetFromUnknown } from './runtime-targets'
+import { defaultRuntimeTargetFromEnv, parseRuntimeTargetFromUnknown } from './runtime-targets'
 
 const debug = Debug('prisma:client:generator')
 
@@ -57,7 +57,8 @@ export class PrismaClientTsGenerator implements Generator {
     const outputDir = getOutputPath(options.generator)
     const tsconfig = getTsconfig(outputDir)?.config
 
-    const target = config.runtime !== undefined ? parseRuntimeTargetFromUnknown(config.runtime) : 'nodejs'
+    const target =
+      config.runtime === undefined ? defaultRuntimeTargetFromEnv() : parseRuntimeTargetFromUnknown(config.runtime)
 
     const generatedFileExtension =
       config.generatedFileExtension !== undefined ? parseGeneratedFileExtension(config.generatedFileExtension) : 'ts'
