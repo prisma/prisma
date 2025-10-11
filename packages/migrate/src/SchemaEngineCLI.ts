@@ -384,7 +384,8 @@ export class SchemaEngineCLI implements SchemaEngine {
         let projectDir: string = process.cwd()
         if (this.schemaContext) {
           projectDir = this.schemaContext.primaryDatasourceDirectory
-          const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['-d', path])
+          // console.log('[projectDir@internalInit]', projectDir)
+          const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['--datamodels', path])
           // list of paths to the schema files
           args.push(...schemaArgs)
         }
@@ -404,9 +405,6 @@ export class SchemaEngineCLI implements SchemaEngine {
         if (this.extensionConfig) {
           args.push(...['--extension-types', JSON.stringify(this.extensionConfig)])
         }
-
-        console.log('[schema-engine-cli] args')
-        console.dir(args, { depth: null })
 
         this.child = spawn(binaryPath, args, {
           cwd: projectDir,

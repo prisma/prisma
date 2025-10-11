@@ -120,17 +120,20 @@ export async function processSchemaResult({
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 
   const { primaryDatasource, primaryDatasourceDirectory } = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource, loadedFromFile }) => {
+    .with({ engine: 'classic' }, ({ datasource, loadedFromFile: _ }) => {
       const { url, directUrl, shadowDatabaseUrl } = datasource
 
       const primaryDatasource = {
         ...datasourceFromPsl,
         url: { fromEnvVar: null, value: url },
-        directUrl: { fromEnvVar: null, value: directUrl ?? null },
-        shadowDatabaseUrl: { fromEnvVar: null, value: shadowDatabaseUrl ?? null },
+        directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
+        shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
+        [Symbol.for('engine.classic')]: true,
       } as DataSource
 
-      const primaryDatasourceDirectory = loadedFromFile!
+      // TODO: `primaryDatasourceDirectory` should be `loadedFromFile!` instead.
+      // However, doing so currently results in `spawn ENOTDIR` errors.
+      const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
 
       return { primaryDatasource, primaryDatasourceDirectory }
     })
