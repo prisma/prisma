@@ -3,7 +3,6 @@ import { mockMigrationAwareAdapterFactory } from 'test-utils/mock-adapter'
 
 export default {
   experimental: {
-    adapter: true,
     studio: true,
   },
   schema: 'schema.prisma',
