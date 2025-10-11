@@ -31,6 +31,7 @@ const ArrayColumnType = {
   OID_ARRAY: 1028,
   TEXT_ARRAY: 1009,
   TIMESTAMP_ARRAY: 1115,
+  TIMESTAMPTZ_ARRAY: 1185,
   TIME_ARRAY: 1183,
   UUID_ARRAY: 2951,
   VARBIT_ARRAY: 1563,
@@ -292,10 +293,19 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
-function normalize_timestampz(time: string): string {
+function normalize_timestamptz(time: string): string {
+  // Pad the year component to 4 digits to avoid JavaScript's 2-digit year interpretation
+  // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff][+/-HH[:MM]]"
+  const match = time.match(/^(\d{1,4})-/)
+  if (match) {
+    const paddedYear = match[1].padStart(4, '0')
+    time = paddedYear + time.slice(match[1].length)
+  }
+
+  // Replace any timezone with 'Z' to normalize to UTC, then convert to ISO format
   return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
 }
 
@@ -399,7 +409,8 @@ export const customParsers = {
   [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
   [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
-  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
+  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestamptz,
+  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestamptz),
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
