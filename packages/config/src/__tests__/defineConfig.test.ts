@@ -139,14 +139,14 @@ describe('defineConfig', () => {
         engine: 'classic',
         datasource: {
           url: 'postgresql://DATABASE_URL',
-          directUrl: 'http://DIRECT_DATABASE_URL',
+          directUrl: 'https://DIRECT_DATABASE_URL',
           shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
         },
       })
       assertConfigWithEngineClassic(config)
       expect(config.datasource).toMatchObject({
         url: 'postgresql://DATABASE_URL',
-        directUrl: 'http://DIRECT_DATABASE_URL',
+        directUrl: 'https://DIRECT_DATABASE_URL',
         shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
       })
     })

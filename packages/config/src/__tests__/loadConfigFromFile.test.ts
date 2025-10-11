@@ -1,8 +1,14 @@
+/* eslint-disable @typescript-eslint/no-redundant-type-constituents */
 import path from 'node:path'
 
-import { mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
+import {
+  bindMigrationAwareSqlAdapterFactory,
+  mockMigrationAwareAdapterFactory,
+  SqlMigrationAwareDriverAdapterFactory,
+} from '@prisma/driver-adapter-utils'
 import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import type { ParseError } from 'effect/ParseResult'
+import { PrismaConfigInternal } from 'src/PrismaConfig'
 import { beforeEach, describe, expect, it, test, vi } from 'vitest'
 
 import { defaultConfig } from '../defaultConfig'
@@ -11,6 +17,10 @@ import { loadConfigFromFile, type LoadConfigFromFileError, SUPPORTED_EXTENSIONS 
 const ctx = vitestContext.new().assemble()
 
 describe('loadConfigFromFile', () => {
+  function assertConfigDefined(config: PrismaConfigInternal | undefined): asserts config is PrismaConfigInternal {
+    expect(config).toBeDefined()
+  }
+
   function assertErrorConfigLoadError(error: LoadConfigFromFileError | undefined): asserts error is {
     _tag: 'ConfigLoadError'
     error: Error
@@ -25,7 +35,25 @@ describe('loadConfigFromFile', () => {
     expect(error).toMatchObject({ _tag: 'ConfigFileSyntaxError' })
   }
 
-  describe.only('no-define-config', () => {
+  function assertConfigWithEngineJs(config: PrismaConfigInternal): asserts config is PrismaConfigInternal & {
+    engine: 'js'
+    adapter: () => SqlMigrationAwareDriverAdapterFactory
+  } {
+    expect(config['engine']).toBe('js')
+  }
+
+  function assertConfigWithEngineClassic(config: PrismaConfigInternal): asserts config is PrismaConfigInternal & {
+    engine: 'classic'
+    datasource: {
+      url: string
+      directUrl?: string
+      shadowDatabaseUrl?: string
+    }
+  } {
+    expect(config['engine']).toBe('classic')
+  }
+
+  describe('no-define-config', () => {
     it('successfully loads a Prisma config file that does not use the `defineConfig` function', async () => {
       ctx.fixture('loadConfigFromFile/no-define-config')
       const cwd = ctx.fs.cwd()
@@ -33,12 +61,50 @@ describe('loadConfigFromFile', () => {
       const { config, error, resolvedPath } = await loadConfigFromFile({})
       expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
       expect(error).toBeUndefined()
+      assertConfigDefined(config)
       expect(config).toMatchObject({
         experimental: {
           adapter: true,
           studio: true,
         },
         schema: path.join(cwd, 'schema.prisma'),
+      })
+    })
+
+    describe('engine', () => {
+      test('if `engine === "js"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+        ctx.fixture('loadConfigFromFile/engine/js')
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        assertConfigDefined(config)
+
+        const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
+        assertConfigWithEngineJs(config)
+        expect(config.adapter).toStrictEqual(expect.any(Function))
+
+        const { adapter: adapterFactory } = config
+        expect(adapterFactory).toBeDefined()
+
+        const adapter = await adapterFactory()
+        expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
+      })
+
+      test('if `engine === "classic"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+        ctx.fixture('loadConfigFromFile/engine/classic')
+
+        const { config, error, resolvedPath } = await loadConfigFromFile({})
+        expect(resolvedPath).toMatch(path.join(ctx.fs.cwd(), 'prisma.config.ts'))
+        expect(error).toBeUndefined()
+        assertConfigDefined(config)
+
+        assertConfigWithEngineClassic(config)
+        expect(config.datasource).toMatchObject({
+          url: 'postgresql://DATABASE_URL',
+          directUrl: 'https://DIRECT_DATABASE_URL',
+          shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
+        })
       })
     })
   })
