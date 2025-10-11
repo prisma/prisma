@@ -2,4 +2,5 @@
 module.exports = {
   preset: '../../helpers/test/presets/withSnapshotSerializer.js',
   testPathIgnorePatterns: ['\\.vitest.ts$'],
+  setupFilesAfterEnv: ['./jest.setup.js'],
 }

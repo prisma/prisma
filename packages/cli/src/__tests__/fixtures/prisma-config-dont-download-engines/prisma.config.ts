@@ -1,12 +1,12 @@
+import type { PrismaConfig } from 'src/index'
+import { mockMigrationAwareAdapterFactory } from 'test-utils/mock-adapter'
+
 export default {
   experimental: {
     adapter: true,
   },
   engine: 'js',
-  // @ts-ignore
   adapter: async () => {
-    return Promise.resolve({
-      adapterName: '@prisma/adapter-sqlite-mock',
-    })
+    return mockMigrationAwareAdapterFactory('postgres')
   },
-}
+} satisfies PrismaConfig

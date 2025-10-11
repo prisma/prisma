@@ -422,6 +422,9 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
+      '@prisma/driver-adapter-utils':
+        specifier: workspace:*
+        version: link:../driver-adapter-utils
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
