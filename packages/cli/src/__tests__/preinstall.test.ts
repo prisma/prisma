@@ -23,7 +23,7 @@ it.each(['16.18.0', '18.20.8', '20.18.3', '22.11.0'] as const)(
   },
 )
 
-it.each(['20.19.5', '22.12.0', '22.20.0', '24.0.0', '24.10.0'] as const)(
+it.each(['20.19.5', '22.12.0', '22.20.0', '24.0.1', '24.10.0'] as const)(
   'should do nothing when Node.js version is supported - %s',
   (version) => {
     printMessageAndExitIfUnsupportedNodeVersion(version)
