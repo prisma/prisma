@@ -89,7 +89,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 20
+          node-version: '20.19.0'
           skip-tsc: false
 
       - name: Update npm to support Trusted Publishers
