@@ -39,7 +39,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18"
+    "node": "^20.19 || ^22.12 || ^24.0"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -126,7 +126,7 @@
     "@swc/jest": "0.2.37",
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
+    "@types/node": "~20.19.0",
     "async-listen": "3.1.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",

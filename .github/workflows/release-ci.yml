@@ -63,7 +63,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 18
+          node-version: '20.19.0'
           skip-tsc: false
 
       - name: Publish all packages to npm

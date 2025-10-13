@@ -49,11 +49,9 @@ export function load(libraryPath: string): Library {
     // system OpenSSL on Linux but the dynamic linker resolves the symbols from
     // the Node.js binary instead.
     //
-    // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
     flags = os.constants.dlopen.RTLD_LAZY | os.constants.dlopen.RTLD_DEEPBIND
   }
 
-  // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
   process.dlopen(libraryModule, fullLibraryPath, flags)
 
   cache[libraryPath] = libraryModule.exports

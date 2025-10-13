@@ -73,7 +73,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 20
+          node-version: '20.19.0'
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
@@ -112,7 +112,7 @@ jobs:
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         previewFeatures: ['', 'relationJoins']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
@@ -184,7 +184,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -257,7 +257,7 @@ jobs:
             'js_pg_cockroachdb',
           ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
       - uses: actions/checkout@v4
@@ -314,7 +314,7 @@ jobs:
         provider: ['postgresql'] # TODO: test on all providers once it becomes stable
         clientRuntime: ['node'] # TODO: test on wasm
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [18] # TODO: test on all node versions once it becomes stable
+        node: ['20.19.0'] # TODO: test on all node versions once it becomes stable
     steps:
       - uses: actions/checkout@v4
 
@@ -379,7 +379,7 @@ jobs:
             'js_pg_cockroachdb',
           ]
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -434,7 +434,7 @@ jobs:
       matrix:
         provider: ['postgresql', 'mysql']
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [20]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -489,7 +489,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -586,7 +586,7 @@ jobs:
         # The Node.js version here is only used for the GitHub Actions job
         # The version used by the tests is actually defined in
         # ./packages/client/tests/e2e/_utils/standard.dockerfile
-        node: [20]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -627,7 +627,7 @@ jobs:
       matrix:
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
-        node: [18]
+        node: ['20.19.0']
     env:
       NODE_OPTIONS: '--max-old-space-size=8096'
       JEST_JUNIT_SUITE_NAME: 'client/functional'
@@ -701,7 +701,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -729,7 +729,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -774,7 +774,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -801,7 +801,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18]
+        node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
 
@@ -846,7 +846,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -891,7 +891,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
@@ -940,7 +940,7 @@ jobs:
       matrix:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -984,7 +984,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
         include:
           - os: windows-latest
             version: 18
@@ -1015,7 +1015,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 20, 22, 24]
+        node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -1082,7 +1082,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [18, 24]
+        node: ['20.19.0', '24']
     steps:
       - uses: actions/checkout@v4
 
@@ -1129,7 +1129,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [24]
+        node: ['24']
     steps:
       - uses: actions/checkout@v4
 
@@ -1188,7 +1188,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [18]
+        node: ['20.19.0']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
@@ -1258,7 +1258,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-14, windows-latest]
-        node: [18]
+        node: ['20.19.0']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4
