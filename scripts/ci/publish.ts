@@ -1,4 +1,4 @@
-import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json'
+// import { dependencies as dependenciesPrismaEnginesPkg } from '@prisma/engines/package.json' // Removed - no longer using Prisma engines
 import slugify from '@sindresorhus/slugify'
 import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
@@ -599,13 +599,13 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
     await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-    const enginesCommitHash = getEnginesCommitHash()
-    const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
+    // const enginesCommitHash = getEnginesCommitHash() // Removed - no longer using Prisma engines
+    // const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
     const prismaCommitHash = await getLatestCommitHash('.')
     const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
 
     if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-      fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
+      // fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`) // Removed - no longer using Prisma engines
       fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
     }
 
@@ -613,8 +613,9 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
       try {
         await sendSlackMessage({
           version: prismaVersion,
-          enginesCommitInfo,
+          // enginesCommitInfo, // Removed - no longer using Prisma engines
           prismaCommitInfo,
+          dryRun: false,
         })
       } catch (e) {
         console.error(e)
@@ -623,13 +624,13 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-function getEnginesCommitHash(): string {
-  const npmEnginesVersion = dependenciesPrismaEnginesPkg['@prisma/engines-version']
-  const sha1Pattern = /\b[0-9a-f]{5,40}\b/
-  const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
-
-  return commitHash
-}
+// function getEnginesCommitHash(): string {
+//   const npmEnginesVersion = dependenciesPrismaEnginesPkg['@prisma/engines-version']
+//   const sha1Pattern = /\b[0-9a-f]{5,40}\b/
+//   const commitHash = npmEnginesVersion.match(sha1Pattern)![0]
+//
+//   return commitHash
+// } // Removed - no longer using Prisma engines
 
 /**
  * Tests packages in "publishOrder"
@@ -892,9 +893,9 @@ type CommitInfo = {
 
 type SlackMessageArgs = {
   version: string
-  enginesCommitInfo: CommitInfo
+  enginesCommitInfo?: CommitInfo // Optional - no longer using Prisma engines
   prismaCommitInfo: CommitInfo
-  dryRun?: boolean
+  dryRun: boolean
 }
 
 async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, dryRun }: SlackMessageArgs) {
@@ -902,27 +903,33 @@ async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, 
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
 
   const prismaLines = getLines(prismaCommitInfo.message)
-  const enginesLines = getLines(enginesCommitInfo.message)
+  const enginesLines = enginesCommitInfo ? getLines(enginesCommitInfo.message) : []
 
   const authoredByString = (author: string) => {
     if (!author) return ''
-    return `Authored by ${prismaCommitInfo.author}`
+    return `Authored by ${author}`
   }
 
-  await webhook.send(
-    `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
-What's shipped:
-\`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${
-      prismaLines[0]
-    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
-${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommitInfo.author)}
+  const enginesSection = enginesCommitInfo
+    ? `
 
 \`prisma/prisma-engines\`
 <https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${
-      enginesLines[0]
-    }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
-${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`,
+        enginesLines[0]
+      }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
+${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`
+    : ''
+
+  await webhook.send(
+    `${dryRunStr}<https://www.npmjs.com/package/refract/v/${version}|refract@${version}> has just been released. Install via \`npm i -g refract@${version}\` or \`npx refract@${version}\`
+What's shipped:
+\`refract/refract\`
+<https://github.com/refract/refract/commit/${prismaCommitInfo.hash}|${
+      prismaLines[0]
+    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
+${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(
+      prismaCommitInfo.author,
+    )}${enginesSection}`,
   )
 }
 
