@@ -1,0 +1,61 @@
+{
+  "name": "@refract/migrate",
+  "version": "0.0.0",
+  "description": "TypeScript-native migration engine for Refract ORM with direct Kysely integration",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/migrate"
+  },
+  "homepage": "https://www.prisma.io",
+  "author": "Refract Team",
+  "bugs": "https://github.com/prisma/prisma/issues",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest run",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "devDependencies": {
+    "@swc/core": "1.11.5",
+    "@types/node": "^20.0.0",
+    "@vitest/ui": "3.2.4",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.3",
+    "typescript": "5.4.5",
+    "vitest": "3.2.4"
+  },
+  "dependencies": {
+    "@prisma/debug": "workspace:*",
+    "@refract/schema-parser": "workspace:*",
+    "kysely": "^0.27.0"
+  },
+  "peerDependencies": {
+    "kysely": ">=0.27.0",
+    "typescript": ">=5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "sideEffects": false
+}

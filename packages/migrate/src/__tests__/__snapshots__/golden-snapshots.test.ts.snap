@@ -1,0 +1,796 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Golden Snapshot Tests > Complex Schema with All Features > should generate expected SQL migration statements > complex-migration-diff.json 1`] = `
+{
+  "hasDestructiveChanges": true,
+  "riskLevel": "high",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")",
+    "CREATE TABLE "Category" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_Category_name" ON "Category" ("name")",
+    "CREATE TABLE "Post" (...)",
+    "CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'EDITOR', 'VIEWER')",
+    "CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "email",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+      {
+        "column": "createdAt",
+        "table": "User",
+      },
+      {
+        "column": "updatedAt",
+        "table": "User",
+      },
+      {
+        "column": "posts",
+        "table": "User",
+      },
+      {
+        "column": "id",
+        "table": "Category",
+      },
+      {
+        "column": "name",
+        "table": "Category",
+      },
+      {
+        "column": "description",
+        "table": "Category",
+      },
+      {
+        "column": "posts",
+        "table": "Category",
+      },
+      {
+        "column": "id",
+        "table": "Post",
+      },
+      {
+        "column": "title",
+        "table": "Post",
+      },
+      {
+        "column": "content",
+        "table": "Post",
+      },
+      {
+        "column": "status",
+        "table": "Post",
+      },
+      {
+        "column": "authorId",
+        "table": "Post",
+      },
+      {
+        "column": "categoryId",
+        "table": "Post",
+      },
+      {
+        "column": "createdAt",
+        "table": "Post",
+      },
+      {
+        "column": "updatedAt",
+        "table": "Post",
+      },
+      {
+        "column": "author",
+        "table": "Post",
+      },
+      {
+        "column": "category",
+        "table": "Post",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [
+      "UserRole",
+      "PostStatus",
+    ],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [
+      "uniq_User_email",
+      "uniq_Category_name",
+    ],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+      "Category",
+      "Post",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+  "testCase": "Complex Schema with All Features",
+}
+`;
+
+exports[`Golden Snapshot Tests > Complex Schema with All Features > should validate migration preview generation > complex-migration-preview.json 1`] = `
+{
+  "description": "Create 3 table(s): User, Category, Post
+Column changes: add 21
+Index changes: create 2",
+  "factors": [
+    "Contains destructive operations that may cause data loss",
+  ],
+  "recommendations": [
+    "Create a backup before proceeding",
+  ],
+  "riskLevel": "medium",
+  "rollbackAvailable": false,
+  "statementCount": 7,
+  "testCase": "Complex Schema with All Features",
+}
+`;
+
+exports[`Golden Snapshot Tests > Default Value Changes > should generate expected SQL migration statements > defaults-migration-diff.json 1`] = `
+{
+  "hasDestructiveChanges": true,
+  "riskLevel": "high",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "createdAt",
+        "table": "User",
+      },
+      {
+        "column": "isActive",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+  "testCase": "Default Value Changes",
+}
+`;
+
+exports[`Golden Snapshot Tests > Default Value Changes > should validate migration preview generation > defaults-migration-preview.json 1`] = `
+{
+  "description": "Create 1 table(s): User
+Column changes: add 5",
+  "factors": [
+    "Contains destructive operations that may cause data loss",
+  ],
+  "recommendations": [
+    "Create a backup before proceeding",
+  ],
+  "riskLevel": "medium",
+  "rollbackAvailable": false,
+  "statementCount": 1,
+  "testCase": "Default Value Changes",
+}
+`;
+
+exports[`Golden Snapshot Tests > Dialect-Specific SQL Generation > should generate mysql-compatible SQL > complex-mysql-migration.json 1`] = `
+{
+  "dialect": "mysql",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")",
+    "CREATE TABLE "Category" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_Category_name" ON "Category" ("name")",
+    "CREATE TABLE "Post" (...)",
+    "CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'EDITOR', 'VIEWER')",
+    "CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "email",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+      {
+        "column": "createdAt",
+        "table": "User",
+      },
+      {
+        "column": "updatedAt",
+        "table": "User",
+      },
+      {
+        "column": "posts",
+        "table": "User",
+      },
+      {
+        "column": "id",
+        "table": "Category",
+      },
+      {
+        "column": "name",
+        "table": "Category",
+      },
+      {
+        "column": "description",
+        "table": "Category",
+      },
+      {
+        "column": "posts",
+        "table": "Category",
+      },
+      {
+        "column": "id",
+        "table": "Post",
+      },
+      {
+        "column": "title",
+        "table": "Post",
+      },
+      {
+        "column": "content",
+        "table": "Post",
+      },
+      {
+        "column": "status",
+        "table": "Post",
+      },
+      {
+        "column": "authorId",
+        "table": "Post",
+      },
+      {
+        "column": "categoryId",
+        "table": "Post",
+      },
+      {
+        "column": "createdAt",
+        "table": "Post",
+      },
+      {
+        "column": "updatedAt",
+        "table": "Post",
+      },
+      {
+        "column": "author",
+        "table": "Post",
+      },
+      {
+        "column": "category",
+        "table": "Post",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [
+      "UserRole",
+      "PostStatus",
+    ],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [
+      "uniq_User_email",
+      "uniq_Category_name",
+    ],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+      "Category",
+      "Post",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+}
+`;
+
+exports[`Golden Snapshot Tests > Dialect-Specific SQL Generation > should generate postgresql-compatible SQL > complex-postgresql-migration.json 1`] = `
+{
+  "dialect": "postgresql",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")",
+    "CREATE TABLE "Category" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_Category_name" ON "Category" ("name")",
+    "CREATE TABLE "Post" (...)",
+    "CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'EDITOR', 'VIEWER')",
+    "CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "email",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+      {
+        "column": "createdAt",
+        "table": "User",
+      },
+      {
+        "column": "updatedAt",
+        "table": "User",
+      },
+      {
+        "column": "posts",
+        "table": "User",
+      },
+      {
+        "column": "id",
+        "table": "Category",
+      },
+      {
+        "column": "name",
+        "table": "Category",
+      },
+      {
+        "column": "description",
+        "table": "Category",
+      },
+      {
+        "column": "posts",
+        "table": "Category",
+      },
+      {
+        "column": "id",
+        "table": "Post",
+      },
+      {
+        "column": "title",
+        "table": "Post",
+      },
+      {
+        "column": "content",
+        "table": "Post",
+      },
+      {
+        "column": "status",
+        "table": "Post",
+      },
+      {
+        "column": "authorId",
+        "table": "Post",
+      },
+      {
+        "column": "categoryId",
+        "table": "Post",
+      },
+      {
+        "column": "createdAt",
+        "table": "Post",
+      },
+      {
+        "column": "updatedAt",
+        "table": "Post",
+      },
+      {
+        "column": "author",
+        "table": "Post",
+      },
+      {
+        "column": "category",
+        "table": "Post",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [
+      "UserRole",
+      "PostStatus",
+    ],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [
+      "uniq_User_email",
+      "uniq_Category_name",
+    ],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+      "Category",
+      "Post",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+}
+`;
+
+exports[`Golden Snapshot Tests > Dialect-Specific SQL Generation > should generate sqlite-compatible SQL > complex-sqlite-migration.json 1`] = `
+{
+  "dialect": "sqlite",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_email" ON "User" ("email")",
+    "CREATE TABLE "Category" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_Category_name" ON "Category" ("name")",
+    "CREATE TABLE "Post" (...)",
+    "CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'EDITOR', 'VIEWER')",
+    "CREATE TYPE "PostStatus" AS ENUM ('DRAFT', 'PUBLISHED', 'ARCHIVED')",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "email",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+      {
+        "column": "createdAt",
+        "table": "User",
+      },
+      {
+        "column": "updatedAt",
+        "table": "User",
+      },
+      {
+        "column": "posts",
+        "table": "User",
+      },
+      {
+        "column": "id",
+        "table": "Category",
+      },
+      {
+        "column": "name",
+        "table": "Category",
+      },
+      {
+        "column": "description",
+        "table": "Category",
+      },
+      {
+        "column": "posts",
+        "table": "Category",
+      },
+      {
+        "column": "id",
+        "table": "Post",
+      },
+      {
+        "column": "title",
+        "table": "Post",
+      },
+      {
+        "column": "content",
+        "table": "Post",
+      },
+      {
+        "column": "status",
+        "table": "Post",
+      },
+      {
+        "column": "authorId",
+        "table": "Post",
+      },
+      {
+        "column": "categoryId",
+        "table": "Post",
+      },
+      {
+        "column": "createdAt",
+        "table": "Post",
+      },
+      {
+        "column": "updatedAt",
+        "table": "Post",
+      },
+      {
+        "column": "author",
+        "table": "Post",
+      },
+      {
+        "column": "category",
+        "table": "Post",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [
+      "UserRole",
+      "PostStatus",
+    ],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [
+      "uniq_User_email",
+      "uniq_Category_name",
+    ],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+      "Category",
+      "Post",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+}
+`;
+
+exports[`Golden Snapshot Tests > Enum Type Management > should generate expected SQL migration statements > enums-migration-diff.json 1`] = `
+{
+  "hasDestructiveChanges": true,
+  "riskLevel": "high",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE TYPE "UserRole" AS ENUM ('ADMIN', 'USER', 'MODERATOR')",
+    "CREATE TYPE "Status" AS ENUM ('ACTIVE', 'INACTIVE', 'PENDING')",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "role",
+        "table": "User",
+      },
+      {
+        "column": "status",
+        "table": "User",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [
+      "UserRole",
+      "Status",
+    ],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+  "testCase": "Enum Type Management",
+}
+`;
+
+exports[`Golden Snapshot Tests > Enum Type Management > should validate migration preview generation > enums-migration-preview.json 1`] = `
+{
+  "description": "Create 1 table(s): User
+Column changes: add 4",
+  "factors": [
+    "Contains destructive operations that may cause data loss",
+  ],
+  "recommendations": [
+    "Create a backup before proceeding",
+  ],
+  "riskLevel": "medium",
+  "rollbackAvailable": false,
+  "statementCount": 3,
+  "testCase": "Enum Type Management",
+}
+`;
+
+exports[`Golden Snapshot Tests > Foreign Key Constraints > should generate expected SQL migration statements > foreignKeys-migration-diff.json 1`] = `
+{
+  "hasDestructiveChanges": true,
+  "riskLevel": "high",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE TABLE "Post" (...)",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "posts",
+        "table": "User",
+      },
+      {
+        "column": "id",
+        "table": "Post",
+      },
+      {
+        "column": "title",
+        "table": "Post",
+      },
+      {
+        "column": "content",
+        "table": "Post",
+      },
+      {
+        "column": "authorId",
+        "table": "Post",
+      },
+      {
+        "column": "author",
+        "table": "Post",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+      "Post",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+  "testCase": "Foreign Key Constraints",
+}
+`;
+
+exports[`Golden Snapshot Tests > Foreign Key Constraints > should validate migration preview generation > foreignKeys-migration-preview.json 1`] = `
+{
+  "description": "Create 2 table(s): User, Post
+Column changes: add 8",
+  "factors": [
+    "Contains destructive operations that may cause data loss",
+  ],
+  "recommendations": [
+    "Create a backup before proceeding",
+  ],
+  "riskLevel": "medium",
+  "rollbackAvailable": false,
+  "statementCount": 2,
+  "testCase": "Foreign Key Constraints",
+}
+`;
+
+exports[`Golden Snapshot Tests > Index Creation and Modification > should generate expected SQL migration statements > indexes-migration-diff.json 1`] = `
+{
+  "hasDestructiveChanges": true,
+  "riskLevel": "high",
+  "statements": [
+    "CREATE TABLE "User" (...)",
+    "CREATE UNIQUE INDEX IF NOT EXISTS "uniq_User_name" ON "User" ("name")",
+  ],
+  "summary": {
+    "columnsAdded": [
+      {
+        "column": "id",
+        "table": "User",
+      },
+      {
+        "column": "name",
+        "table": "User",
+      },
+      {
+        "column": "email",
+        "table": "User",
+      },
+    ],
+    "columnsDropped": [],
+    "columnsModified": [],
+    "enumsCreated": [],
+    "enumsDropped": [],
+    "enumsModified": [],
+    "foreignKeysCreated": [],
+    "foreignKeysDropped": [],
+    "indexesCreated": [
+      "uniq_User_name",
+    ],
+    "indexesDropped": [],
+    "tablesCreated": [
+      "User",
+    ],
+    "tablesDropped": [],
+    "tablesModified": [],
+  },
+  "testCase": "Index Creation and Modification",
+}
+`;
+
+exports[`Golden Snapshot Tests > Index Creation and Modification > should validate migration preview generation > indexes-migration-preview.json 1`] = `
+{
+  "description": "Create 1 table(s): User
+Column changes: add 3
+Index changes: create 1",
+  "factors": [
+    "Contains destructive operations that may cause data loss",
+  ],
+  "recommendations": [
+    "Create a backup before proceeding",
+  ],
+  "riskLevel": "medium",
+  "rollbackAvailable": false,
+  "statementCount": 2,
+  "testCase": "Index Creation and Modification",
+}
+`;
