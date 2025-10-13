@@ -64,7 +64,6 @@ describe('loadConfigFromFile', () => {
       assertConfigDefined(config)
       expect(config).toMatchObject({
         experimental: {
-          adapter: true,
           studio: true,
         },
         schema: path.join(cwd, 'schema.prisma'),
