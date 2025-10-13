@@ -145,10 +145,6 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      /**
-       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
-       */
-      introspect: DbPull.new(),
       studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
@@ -164,7 +160,7 @@ async function main(): Promise<number> {
       // TODO: add login subcommand to --help after it works.
       login: new SubCommand('@prisma/cli-login'),
     },
-    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'studio', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 
