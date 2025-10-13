@@ -1,0 +1,95 @@
+{
+  "name": "@refract/cli",
+  "version": "0.0.0",
+  "description": "CLI for Refract ORM",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "refract": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bin": {
+      "import": "./dist/bin.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jharrell/refract.git",
+    "directory": "packages/cli"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "refract": "tsx src/bin.ts",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "keywords": [
+    "refract",
+    "cli",
+    "orm",
+    "typescript",
+    "kysely",
+    "database",
+    "migration",
+    "schema"
+  ],
+  "author": "Refract Team",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@refract/schema-parser": "workspace:*",
+    "@refract/migrate": "workspace:*",
+    "@refract/client": "workspace:*",
+    "@refract/config": "workspace:*",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "ora": "^8.2.0",
+    "prompts": "^2.4.2",
+    "zod": "^3.24.2"
+  },
+  "optionalDependencies": {
+    "kysely": "^0.27.4",
+    "pg": "^8.12.0",
+    "mysql2": "^3.11.4",
+    "better-sqlite3": "^11.6.0"
+  },
+  "devDependencies": {
+    "@swc/core": "1.11.5",
+    "@types/node": "^20.0.0",
+    "@types/prompts": "^2.4.9",
+    "@types/pg": "^8.11.10",
+    "@types/better-sqlite3": "^7.6.11",
+    "@vitest/ui": "3.2.4",
+    "kysely": "^0.27.4",
+    "pg": "^8.12.0",
+    "mysql2": "^3.11.4",
+    "better-sqlite3": "^11.6.0",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.3",
+    "typescript": "5.4.5",
+    "vitest": "3.2.4"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
