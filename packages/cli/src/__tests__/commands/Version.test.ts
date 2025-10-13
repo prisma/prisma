@@ -218,5 +218,5 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
 
-  return str // serialize(str)
+  return str
 }
