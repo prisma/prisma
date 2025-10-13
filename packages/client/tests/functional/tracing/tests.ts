@@ -2,7 +2,7 @@ import { faker } from '@faker-js/faker'
 import { Attributes, context, SpanKind, trace } from '@opentelemetry/api'
 import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { Resource } from '@opentelemetry/resources'
+import { resourceFromAttributes } from '@opentelemetry/resources'
 import {
   BasicTracerProvider,
   InMemorySpanExporter,
@@ -52,7 +52,7 @@ function buildTree(rootSpan: ReadableSpan, spans: ReadableSpan[]): Tree {
       // provide stable ordering guarantee.
       return normalizeNameForComparison(a.name).localeCompare(normalizeNameForComparison(b.name))
     })
-    .filter((span) => span.parentSpanId === rootSpan.spanContext().spanId)
+    .filter((span) => span.parentSpanContext?.spanId === rootSpan.spanContext().spanId)
 
   const tree: Tree = {
     name: rootSpan.name,
@@ -84,17 +84,17 @@ beforeAll(() => {
   context.setGlobalContextManager(contextManager)
 
   inMemorySpanExporter = new InMemorySpanExporter()
+  processor = new SimpleSpanProcessor(inMemorySpanExporter)
 
   const basicTracerProvider = new BasicTracerProvider({
-    resource: new Resource({
+    resource: resourceFromAttributes({
       [ATTR_SERVICE_NAME]: 'test-name',
       [ATTR_SERVICE_VERSION]: '1.0.0',
     }),
+    spanProcessors: [processor],
   })
 
-  processor = new SimpleSpanProcessor(inMemorySpanExporter)
-  basicTracerProvider.addSpanProcessor(processor)
-  basicTracerProvider.register()
+  trace.setGlobalTracerProvider(basicTracerProvider)
 
   registerInstrumentations({
     instrumentations: [new PrismaInstrumentation()],
@@ -129,7 +129,7 @@ testMatrix.setupTestSuite(
       await waitFor(async () => {
         await processor.forceFlush()
         const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpans = spans.filter((span) => !span.parentSpanId)
+        const rootSpans = spans.filter((span) => !span.parentSpanContext?.spanId)
         const trees = rootSpans.map((rootSpan) => buildTree(rootSpan, spans))
 
         if (Array.isArray(expectedTree)) {
