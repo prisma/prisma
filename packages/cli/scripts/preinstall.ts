@@ -23,17 +23,24 @@ function extractSemanticVersionParts(version: MajorMinor | MajorMinorPatch) {
 export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion: MajorMinorPatch) {
   const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(nodeVersion)
 
-  // Minimum Node.js version supported by Prisma
-  const MIN_NODE_VERSION = '20.19'
-  const [MIN_NODE_MAJOR_VERSION, MIN_NODE_MINOR_VERSION] = extractSemanticVersionParts(MIN_NODE_VERSION)
+  // Minimum Node.js versions supported by Prisma
+  const MIN_NODE_VERSION_MATRIX: Record<string, string> = {
+    '20': '19',
+    '22': '12',
+    '24': '0',
+  }
 
   if (
-    nodeMajorVersion < MIN_NODE_MAJOR_VERSION ||
-    (nodeMajorVersion === MIN_NODE_MAJOR_VERSION && nodeMinorVersion < MIN_NODE_MINOR_VERSION)
+    !(nodeMajorVersion in MIN_NODE_VERSION_MATRIX) ||
+    nodeMinorVersion < parseInt(MIN_NODE_VERSION_MATRIX[nodeMajorVersion], 10)
   ) {
+    const supportedVersions = Object.entries(MIN_NODE_VERSION_MATRIX)
+      .map(([major, minor]) => `${major}.${minor}`)
+      .join(', ')
+
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= ${MIN_NODE_VERSION}.\nPlease upgrade your Node.js version.`,
+        str: `Prisma only supports Node.js versions ${supportedVersions}.\nPlease upgrade your Node.js version.`,
         height: 2,
         width: 48,
         horizontalPadding: 4,

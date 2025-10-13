@@ -51,7 +51,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/resolve':
         specifier: 1.20.6
@@ -455,7 +455,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       async-listen:
         specifier: 3.1.0
@@ -698,7 +698,7 @@ importers:
         specifier: 9.1.8
         version: 9.1.8
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/pg':
         specifier: 8.11.11
@@ -870,7 +870,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       jest:
         specifier: 29.7.0
@@ -1067,7 +1067,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       jest:
         specifier: 29.7.0
@@ -1119,7 +1119,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       execa:
         specifier: 5.1.1
@@ -1144,7 +1144,7 @@ importers:
         version: link:../get-platform
     devDependencies:
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/progress':
         specifier: 2.0.7
@@ -1229,7 +1229,7 @@ importers:
         specifier: 6.0.6
         version: 6.0.6
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       cross-spawn:
         specifier: 7.0.6
@@ -1260,7 +1260,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       benchmark:
         specifier: 2.1.4
@@ -1312,7 +1312,7 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       typescript:
         specifier: 5.4.5
@@ -1345,7 +1345,7 @@ importers:
         specifier: 9.1.8
         version: 9.1.8
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/pg':
         specifier: 8.11.11
@@ -1454,7 +1454,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/resolve':
         specifier: 1.20.6
@@ -1617,7 +1617,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: 20.19.0
+        specifier: ~20.19.0
         version: 20.19.0
       '@types/pg':
         specifier: 8.11.11
