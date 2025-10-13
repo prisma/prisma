@@ -20,7 +20,7 @@ export type SchemaContext = {
   /**
    * The directory of the schema.prisma file that contains the datasource block.
    * Some relative paths like SQLite paths or SSL file paths are resolved relative to it.
-   * TODO: consider whether relative paths should be resolved relative to `prisma.config.ts` instead.
+   * TODO(prisma7): consider whether relative paths should be resolved relative to `prisma.config.ts` instead.
    */
   primaryDatasourceDirectory: string
   /**
@@ -52,7 +52,7 @@ export type SchemaContext = {
 type LoadSchemaContextOptions = {
   schemaPathFromArg?: string
   schemaPathFromConfig?: string
-  schemaEngineConfig?: SchemaEngineConfigInternal & { loadedFromFile: string | null }
+  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
   ignoreEnvVarErrors?: boolean
   allowNull?: boolean
@@ -103,7 +103,7 @@ export async function processSchemaResult({
   cwd = process.cwd(),
 }: {
   schemaResult: GetSchemaResult
-  schemaEngineConfig?: SchemaEngineConfigInternal & { loadedFromFile: string | null }
+  schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
   ignoreEnvVarErrors?: boolean
   cwd?: string
@@ -120,7 +120,7 @@ export async function processSchemaResult({
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 
   const primaryDatasource = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource, loadedFromFile: _ }) => {
+    .with({ engine: 'classic' }, ({ datasource }) => {
       const { url, directUrl, shadowDatabaseUrl } = datasource
 
       const primaryDatasource = {

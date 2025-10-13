@@ -431,7 +431,7 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
  * Parse a given input object to ensure it conforms to the `PrismaConfig` type Shape.
  * This function may fail, but it will never throw.
  */
-export function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
+function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConfig, Error> {
   return pipe(
     Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
       onExcessProperty: 'error',
