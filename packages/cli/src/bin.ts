@@ -1,5 +1,8 @@
 #!/usr/bin/env tsx
 
+import { context, trace } from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import { InjectFormatters } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
@@ -47,6 +50,9 @@ import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
+
+context.setGlobalContextManager(new AsyncLocalStorageContextManager())
+trace.setGlobalTracerProvider(new BasicTracerProvider())
 
 const debug = Debug('prisma:cli:bin')
 
