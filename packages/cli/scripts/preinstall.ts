@@ -24,7 +24,7 @@ export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion: MajorMi
   const [nodeMajorVersion, nodeMinorVersion] = extractSemanticVersionParts(nodeVersion)
 
   // Minimum Node.js version supported by Prisma
-  const MIN_NODE_VERSION = '18.18'
+  const MIN_NODE_VERSION = '20.19'
   const [MIN_NODE_MAJOR_VERSION, MIN_NODE_MINOR_VERSION] = extractSemanticVersionParts(MIN_NODE_VERSION)
 
   if (

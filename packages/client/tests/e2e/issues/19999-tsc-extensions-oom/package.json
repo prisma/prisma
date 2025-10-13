@@ -7,7 +7,7 @@
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
   },
   "devDependencies": {
-    "@types/node": "18.19.76",
+    "@types/node": "20.19.0",
     "prisma": "/tmp/prisma-0.0.0.tgz",
     "typescript": "5.4.5"
   }

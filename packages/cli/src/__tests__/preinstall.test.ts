@@ -11,7 +11,7 @@ it('should exit 1 and print a message when Node.js minor version is lower than m
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
     "┌──────────────────────────────────────────────┐
-    │    Prisma only supports Node.js >= 18.18.    │
+    │    Prisma only supports Node.js >= 20.19.    │
     │    Please upgrade your Node.js version.      │
     └──────────────────────────────────────────────┘"
   `)
@@ -27,7 +27,7 @@ it('should exit 1 and print a message when Node.js major version is lower than m
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
     "┌──────────────────────────────────────────────┐
-    │    Prisma only supports Node.js >= 18.18.    │
+    │    Prisma only supports Node.js >= 20.19.    │
     │    Please upgrade your Node.js version.      │
     └──────────────────────────────────────────────┘"
   `)
@@ -36,8 +36,8 @@ it('should exit 1 and print a message when Node.js major version is lower than m
   mockExit.mockRestore()
 })
 
-it('should do nothing when Node.js version is supported - 18.18', () => {
-  printMessageAndExitIfUnsupportedNodeVersion('18.18.0')
+it('should do nothing when Node.js version is supported - 20.19', () => {
+  printMessageAndExitIfUnsupportedNodeVersion('20.19.0')
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })
@@ -48,8 +48,8 @@ it('should do nothing when Node.js version is supported - current', () => {
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })
 
-it('should do nothing when Node.js version is supported - 20.0', () => {
-  printMessageAndExitIfUnsupportedNodeVersion('20.0.0')
+it('should do nothing when Node.js version is supported - 22.12', () => {
+  printMessageAndExitIfUnsupportedNodeVersion('22.12.0')
 
   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 })

@@ -32,7 +32,7 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: 18
+          node-version: 20
           skip-tsc: true
           skip-build: true
 
