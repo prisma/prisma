@@ -219,6 +219,7 @@ function mapValue(
       return { $type: 'Decimal', value }
 
     case 'datetime': {
+      console.log('Mapping datetime value:', { columnName, value, valueType: typeof value })
       if (typeof value === 'string') {
         return { $type: 'DateTime', value: normalizeDateTime(value) }
       }
@@ -306,15 +307,18 @@ const TIME_TZ_PATTERN = /\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}(:?\d{2})?)?$/
  * if there's no timezone specified, to prevent it from being interpreted as local time.
  */
 function normalizeDateTime(dt: string): string {
-  const matches = TIME_TZ_PATTERN.exec(dt)
-  if (matches === null) {
+  const timeTzMatches = TIME_TZ_PATTERN.exec(dt)
+  if (timeTzMatches === null) {
     // We found no time part, so we return it as a plain zulu date,
-    // e.g. '2023-10-01Z'.
-    return `${dt}Z`
+    // e.g. '2023-10-01T00:00Z'.
+    // We append the time because the JS Date constructor can't parse
+    // pre-1000 dates with a timezone, for example '0032-01-01Z' parses
+    // as '2032-01-01T00:00:00.000Z'.
+    return `${dt}T00:00:00Z`
   }
 
   let dtWithTz = dt
-  const [timeTz, tz, tzMinuteOffset] = matches
+  const [timeTz, tz, tzMinuteOffset] = timeTzMatches
   if (tz !== undefined && tz !== 'Z' && tzMinuteOffset === undefined) {
     // If the timezone is specified as +HH or -HH (without minutes),
     // we need to suffix it with ':00' to make it a valid Date input.
@@ -329,54 +333,10 @@ function normalizeDateTime(dt: string): string {
     return `1970-01-01T${dtWithTz}`
   }
 
-  // Handle 2-digit year interpretation issues for historical dates
-  // JavaScript's Date constructor interprets 2-digit years as 1900-1999
-  // We need to extract the year and handle it explicitly if it's less than 100
-  const yearMatch = dtWithTz.match(/^(\d{1,4})-/)
-  if (yearMatch) {
-    const year = parseInt(yearMatch[1], 10)
-    if (year < 100) {
-      // For years 0-99, we need to parse manually to avoid JS Date's 2-digit year interpretation
-      // Parse the datetime string manually
-      const match = dtWithTz.match(
-        /^(\d{1,4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:?\d{2})?$/,
-      )
-      if (match) {
-        const [, yearStr, month, day, hour, minute, second, fraction = '0', timezone] = match
-        const ms = fraction.padEnd(3, '0').slice(0, 3)
-
-        // Parse timezone offset if present (in minutes)
-        let offsetMinutes = 0
-        if (timezone && timezone !== 'Z') {
-          const tzMatch = timezone.match(/^([+-])(\d{2}):?(\d{2})?$/)
-          if (tzMatch) {
-            const [, sign, hours, minutes = '0'] = tzMatch
-            offsetMinutes = (parseInt(hours, 10) * 60 + parseInt(minutes, 10)) * (sign === '+' ? 1 : -1)
-          }
-        }
-
-        // Use a safe year (2000) to avoid 2-digit year interpretation, then set the actual year
-        const date = new Date(
-          Date.UTC(
-            2000,
-            parseInt(month, 10) - 1,
-            parseInt(day, 10),
-            parseInt(hour, 10),
-            parseInt(minute, 10),
-            parseInt(second, 10),
-            parseInt(ms, 10),
-          ),
-        )
-        date.setUTCFullYear(parseInt(yearStr, 10))
-
-        // Apply timezone offset
-        if (offsetMinutes !== 0) {
-          date.setUTCMinutes(date.getUTCMinutes() - offsetMinutes)
-        }
-
-        return date.toISOString()
-      }
-    }
+  const timeSeparatorIndex = timeTzMatches.index - 1
+  // If the time part is preceded by a space, we replace it with 'T'.
+  if (dtWithTz[timeSeparatorIndex] === ' ') {
+    dtWithTz = `${dtWithTz.slice(0, timeSeparatorIndex)}T${dtWithTz.slice(timeSeparatorIndex + 1)}`
   }
 
   return dtWithTz

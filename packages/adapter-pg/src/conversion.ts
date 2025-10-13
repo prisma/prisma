@@ -298,47 +298,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return time.replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  return `${time}+00:00`
 }
 
 function normalize_timestamptz(time: string): string {
-  // Parse timestamptz manually to avoid JavaScript's 2-digit year interpretation issues
-  // PostgreSQL format: "YYYY-MM-DD HH:MM:SS[.ffffff][+/-HH[:MM]]"
-  const match = time.match(/^(\d{1,4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?([+-]\d{2}(?::\d{2})?)?$/)
-  if (!match) {
-    // Fallback to original behavior for unexpected formats
-    return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
-  }
-
-  const [, year, month, day, hour, minute, second, fraction = '0', timezone] = match
-  const ms = fraction.padEnd(3, '0').slice(0, 3)
-
-  // Parse timezone offset if present (in minutes)
-  let offsetMinutes = 0
-  if (timezone) {
-    const tzMatch = timezone.match(/^([+-])(\d{2})(?::?(\d{2}))?$/)
-    if (tzMatch) {
-      const [, sign, hours, minutes = '0'] = tzMatch
-      offsetMinutes = (parseInt(hours, 10) * 60 + parseInt(minutes, 10)) * (sign === '+' ? 1 : -1)
-    }
-  }
-
-  // Use a safe year (2000) to avoid 2-digit year interpretation, then set the actual year
-  const date = new Date(
-    Date.UTC(
-      2000,
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hour, 10),
-      parseInt(minute, 10),
-      parseInt(second, 10),
-      parseInt(ms, 10),
-    ),
-  )
-  date.setUTCFullYear(parseInt(year, 10))
-  date.setUTCMinutes(date.getUTCMinutes() - offsetMinutes)
-
-  return date.toISOString().replace(/(\.000)?Z$/, '+00:00')
+  return time.replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
 /*
