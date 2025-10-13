@@ -4,7 +4,7 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18",
+    "node": ">=20.0.0",
     "pnpm": ">=9.14.4 <10"
   },
   "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab",
@@ -13,7 +13,6 @@
     "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
     "publish-all-dryrun": "tsx scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "tsx scripts/ci/publish.ts --publish",
-    "bump-engines": "tsx scripts/bump-engines.ts",
     "test": "dotenv -e ../../.db.env -- tsx scripts/ci/publish.ts --test",
     "status": "tsx scripts/ci/publish.ts --status",
     "pull": "tsx scripts/ci/publish.ts --pull",
@@ -38,7 +37,6 @@
     "@microsoft/api-extractor": "7.52.1",
     "@octokit/graphql": "8.2.1",
     "@octokit/rest": "21.1.1",
-    "@prisma/engines": "workspace:*",
     "@sindresorhus/slugify": "2.2.1",
     "@size-limit/file": "11.2.0",
     "@slack/webhook": "7.0.5",
@@ -46,7 +44,7 @@
     "@types/fs-extra": "11.0.4",
     "@types/graphviz": "0.0.39",
     "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
+    "@types/node": "^20.0.0",
     "@types/resolve": "1.20.6",
     "@typescript-eslint/eslint-plugin": "7.15.0",
     "@typescript-eslint/parser": "7.15.0",
@@ -110,62 +108,7 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/library.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/binary.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/binary.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/edge.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/edge-esm.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/wasm-engine-edge.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/index-browser.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/index-browser.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
       "path": "packages/cli/build/index.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/prisma-client-0.0.0.tgz",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/cli/prisma-0.0.0.tgz",
       "gzip": false,
       "brotli": false
     },
