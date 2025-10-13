@@ -301,7 +301,6 @@ if (false) {
 // Ensure that the keys of the `PrismaConfig` type are the same as the keys of the `PrismaConfigInternal` type.
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
-// Type assertion blocks below are for type safety only and may be skipped if union types are not strictly compatible.
 declare const __testPrismaConfig: keyof (typeof PrismaConfigShape)['Type']
 declare const __testPrismaConfigInternal: keyof Omit<
   (typeof PrismaConfigInternalShape)['Type'],
@@ -315,7 +314,6 @@ if (false) {
 }
 
 const PrismaConfigUnconditionalShape = Shape.Struct({
-  // engine: Shape.optional(Shape.Never),
   experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
@@ -385,6 +383,13 @@ if (false) {
 function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
   const experimental = config.experimental || {}
 
+  // Check adapter configuration
+  if (config.engine === 'js' && !experimental.adapter) {
+    return Either.left(
+      new Error("The `engine === 'js'` configuration requires `experimental.adapter` to be set to `true`."),
+    )
+  }
+
   // Check studio configuration
   if (config.studio && !experimental.studio) {
     return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
@@ -431,7 +436,7 @@ export function parsePrismaConfigShape(input: unknown): Either.Either<PrismaConf
     Shape.decodeUnknownEither(PrismaConfigShape, {})(input, {
       onExcessProperty: 'error',
     }),
-    Either.flatMap((c) => validateExperimentalFeatures(c)),
+    Either.flatMap(validateExperimentalFeatures),
   )
 }
 

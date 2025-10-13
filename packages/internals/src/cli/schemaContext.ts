@@ -20,7 +20,7 @@ export type SchemaContext = {
   /**
    * The directory of the schema.prisma file that contains the datasource block.
    * Some relative paths like SQLite paths or SSL file paths are resolved relative to it.
-   * TODO: change this name. It is not necessarily referring to the primary datasource.
+   * TODO: consider whether relative paths should be resolved relative to `prisma.config.ts` instead.
    */
   primaryDatasourceDirectory: string
   /**
@@ -119,7 +119,7 @@ export async function processSchemaResult({
 
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 
-  const { primaryDatasource, primaryDatasourceDirectory } = match(schemaEngineConfig)
+  const primaryDatasource = match(schemaEngineConfig)
     .with({ engine: 'classic' }, ({ datasource, loadedFromFile: _ }) => {
       const { url, directUrl, shadowDatabaseUrl } = datasource
 
@@ -131,16 +131,11 @@ export async function processSchemaResult({
         [Symbol.for('engine.classic')]: true,
       } as DataSource
 
-      // TODO: `primaryDatasourceDirectory` should be `loadedFromFile!` instead.
-      // However, doing so currently results in `spawn ENOTDIR` errors.
-      const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
-
-      return { primaryDatasource, primaryDatasourceDirectory }
+      return primaryDatasource
     })
-    .otherwise(() => ({
-      primaryDatasource: datasourceFromPsl,
-      primaryDatasourceDirectory: getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir,
-    }))
+    .otherwise(() => datasourceFromPsl)
+
+  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
 
   return {
     schemaFiles: schemaResult.schemas,
