@@ -1,0 +1,24 @@
+{
+  "name": "unplugin-refract-rollup-fixture",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Rollup test fixture for unplugin-refract blessed path",
+  "type": "module",
+  "scripts": {
+    "build": "NODE_ENV=production rollup -c",
+    "dev": "rollup -c -w",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@refract/client": "workspace:*",
+    "unplugin-refract": "workspace:*"
+  },
+  "devDependencies": {
+    "rollup": "^4.30.1",
+    "@rollup/plugin-typescript": "^12.1.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-commonjs": "^28.0.1",
+    "typescript": "^5.7.3",
+    "@types/node": "^20.0.0"
+  }
+}

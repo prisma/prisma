@@ -1,0 +1,61 @@
+// Test schema for unplugin-refract fixtures
+generator client {
+  provider = "refract-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  posts     Post[]
+  profile   Profile?
+  
+  @@map("users")
+}
+
+model Profile {
+  id     Int    @id @default(autoincrement())
+  bio    String?
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+  
+  @@map("profiles")
+}
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  title       String
+  content     String?
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    Int
+  author      User      @relation(fields: [authorId], references: [id])
+  tags        Tag[]
+  
+  @@map("posts")
+}
+
+model Tag {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  posts Post[]
+  
+  @@map("tags")
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}

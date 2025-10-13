@@ -1,0 +1,23 @@
+{
+  "name": "unplugin-refract-esbuild-fixture",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ESBuild test fixture for unplugin-refract blessed path",
+  "type": "module",
+  "scripts": {
+    "build": "NODE_ENV=production node build.js",
+    "dev": "node build.js",
+    "watch": "chokidar 'src/**/*' -c 'npm run dev'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@refract/client": "workspace:*",
+    "unplugin-refract": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.3",
+    "@types/node": "^20.0.0",
+    "chokidar-cli": "^3.0.0"
+  }
+}
