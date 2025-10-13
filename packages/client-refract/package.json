@@ -1,0 +1,70 @@
+{
+  "name": "@refract/client",
+  "version": "0.0.0",
+  "description": "Type-safe database client with CRUD operations for Refract ORM",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jharrell/refract.git",
+    "directory": "packages/client-refract"
+  },
+  "scripts": {
+    "dev": "tsup --watch",
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "demo": "tsx demo/demo.ts",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "keywords": [
+    "refract",
+    "client",
+    "orm",
+    "typescript",
+    "kysely",
+    "database",
+    "crud"
+  ],
+  "author": "Refract Team",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@refract/schema-parser": "workspace:*",
+    "@refract/config": "workspace:*",
+    "@refract/field-translator": "workspace:*",
+    "kysely": "^0.27.4"
+  },
+  "devDependencies": {
+    "@swc/core": "1.11.5",
+    "@types/node": "^20.0.0",
+    "@vitest/ui": "3.2.4",
+    "tsup": "^8.3.5",
+    "tsx": "4.19.3",
+    "typescript": "5.4.5",
+    "vitest": "3.2.4"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.1.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
