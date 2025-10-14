@@ -298,11 +298,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return `${time}+00:00`
+  return `${time.replace(' ', 'T')}+00:00`
 }
 
 function normalize_timestamptz(time: string): string {
-  return time.replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
+  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
 /*
