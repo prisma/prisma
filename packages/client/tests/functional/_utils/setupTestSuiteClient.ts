@@ -226,10 +226,10 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_LIBSQL) {
-    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
+    const { PrismaLibSql } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
 
     return {
-      adapter: new PrismaLibSQL({
+      adapter: new PrismaLibSql({
         url: datasourceInfo.databaseUrl,
         intMode: 'bigint',
       }),
@@ -244,11 +244,11 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
-    const { PrismaBetterSQLite3 } =
+    const { PrismaBetterSqlite3 } =
       require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
 
     return {
-      adapter: new PrismaBetterSQLite3({
+      adapter: new PrismaBetterSqlite3({
         // Workaround to avoid the Prisma validation error:
         // ```
         // Error validating datasource `db`: the URL must start with the protocol `file:`

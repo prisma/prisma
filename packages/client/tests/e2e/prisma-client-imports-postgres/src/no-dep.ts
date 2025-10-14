@@ -1,6 +1,6 @@
 import { neonConfig } from '@neondatabase/serverless'
-// import { PrismaLibSQL } from '@prisma/adapter-libsql'
-import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
+// import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaNeon, PrismaNeonHttp } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
@@ -32,7 +32,7 @@ export const neonPrismaClient = new PrismaClient({
 void neonPrismaClient.user.findMany()
 
 export const neonHttpPrismaClient = new PrismaClient({
-  adapter: new PrismaNeonHTTP('postgresql://user:password@example.com/dbname', {
+  adapter: new PrismaNeonHttp('postgresql://user:password@example.com/dbname', {
     arrayMode: false,
     fullResults: true,
   }),

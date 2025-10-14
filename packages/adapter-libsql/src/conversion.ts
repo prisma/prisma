@@ -1,7 +1,7 @@
 import { InValue, Row, Value } from '@libsql/client'
 import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
-import { PrismaLibSQLOptions } from './libsql'
+import { PrismaLibSqlOptions } from './libsql'
 
 const debug = Debug('prisma:driver-adapter:libsql:conversion')
 
@@ -173,7 +173,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
   return result
 }
 
-export function mapArg(arg: unknown, argType: ArgType, options?: PrismaLibSQLOptions): InValue {
+export function mapArg(arg: unknown, argType: ArgType, options?: PrismaLibSqlOptions): InValue {
   if (arg === null) {
     return null
   }
