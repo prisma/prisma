@@ -87,6 +87,7 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
 
     checkUnsupportedDataProxy({ cmd: 'db drop', schemaContext })

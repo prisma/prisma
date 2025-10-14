@@ -256,6 +256,7 @@ ${bold('Examples')}
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--from-schema-datasource'],
         schemaPathArgumentName: '--from-schema-datasource',
+        schemaEngineConfig: config,
         printLoadMessage: false,
       })
       checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
@@ -333,12 +334,15 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = await config.adapter?.()
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
-    const migrate = await Migrate.setup({ adapter, schemaFilter, extensions: config['extensions'] })
+    const migrate = await Migrate.setup({
+      schemaEngineConfig: config,
+      schemaFilter,
+      extensions: config['extensions'],
+    })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()
