@@ -7,7 +7,9 @@ import { QueryCompilerConstructor } from '@prisma/client-common'
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 
-let loadedWasmInstance: Promise<QueryCompilerConstructor>
+// cache loaded wasm instances by provider
+const loadedWasmInstances: Record<string, Promise<QueryCompilerConstructor>> = {}
+
 export const wasmQueryCompilerLoader: QueryCompilerLoader = {
   async loadQueryCompiler(config) {
     const { clientVersion, compilerWasm } = config
@@ -16,11 +18,13 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
       throw new PrismaClientInitializationError('WASM query compiler was unexpectedly `undefined`', clientVersion)
     }
 
+    let loading: Promise<QueryCompilerConstructor>
+
     // we only create the instance once for efficiency and also because wasm
     // bindgen keeps an internal cache of its instance already, when the wasm
     // compiler is loaded more than once it crashes with `unwrap_throw failed`.
-    if (loadedWasmInstance === undefined) {
-      loadedWasmInstance = (async () => {
+    if (config.activeProvider === undefined || loadedWasmInstances[config.activeProvider] === undefined) {
+      loading = (async () => {
         const runtime = await compilerWasm.getRuntime()
         const wasmModule = await compilerWasm.getQueryCompilerWasmModule()
 
@@ -39,8 +43,15 @@ export const wasmQueryCompilerLoader: QueryCompilerLoader = {
         wbindgen_start()
         return runtime.QueryCompiler
       })()
+
+      // only cache if we have an active provider
+      if (config.activeProvider !== undefined) {
+        loadedWasmInstances[config.activeProvider] = loading
+      }
+    } else {
+      loading = loadedWasmInstances[config.activeProvider]
     }
 
-    return await loadedWasmInstance
+    return await loading
   },
 }
