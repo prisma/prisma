@@ -26,7 +26,7 @@
   "dependencies": {
     "@prisma/client-engine-runtime": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/driver-adapter-utils": "workspace:*",
+    "@prisma/driver-utils": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/internals": "workspace:*"
   },

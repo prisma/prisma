@@ -9,7 +9,7 @@ import {
   UserFacingError,
 } from '@prisma/client-engine-runtime'
 import { Debug } from '@prisma/debug'
-import type { IsolationLevel as SqlIsolationLevel, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { IsolationLevel as SqlIsolationLevel, SqlDriverFactory } from '@prisma/driver-utils'
 import type { ActiveConnectorType } from '@prisma/generator'
 import { assertNever, TracingHelper } from '@prisma/internals'
 
@@ -81,7 +81,7 @@ type EngineState =
 type ExecutorKind =
   | {
       remote: false
-      driverAdapterFactory: SqlDriverAdapterFactory
+      driverFactory: SqlDriverFactory
     }
   | { remote: true }
 
@@ -106,12 +106,12 @@ export class ClientEngine implements Engine {
   constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
     if (remote) {
       this.#executorKind = { remote: true }
-    } else if (config.adapter) {
-      this.#executorKind = { remote: false, driverAdapterFactory: config.adapter }
-      debug('Using driver adapter: %O', config.adapter)
+    } else if (config.driver) {
+      this.#executorKind = { remote: false, driverFactory: config.driver }
+      debug('Using driver: %O', config.driver)
     } else {
       throw new PrismaClientInitializationError(
-        'Missing configured driver adapter. Engine type `client` requires an active driver adapter. Please check your PrismaClient initialization code.',
+        'Missing configured driver. Engine type `client` requires an active driver. Please check your PrismaClient initialization code.',
         config.clientVersion,
         CLIENT_ENGINE_ERROR,
       )
@@ -218,7 +218,7 @@ export class ClientEngine implements Engine {
       })
     } else {
       return await LocalExecutor.connect({
-        driverAdapterFactory: this.#executorKind.driverAdapterFactory,
+        driverFactory: this.#executorKind.driverFactory,
         tracingHelper: this.tracingHelper,
         transactionOptions: {
           ...this.config.transactionOptions,

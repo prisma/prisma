@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { ErrorCapturingSqlDriverAdapterFactory, ErrorRegistry } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlDriverFactory, ErrorRegistry } from '@prisma/driver-utils'
 import {
   assertAlways,
   ErrorArea,
@@ -26,12 +26,12 @@ export type SchemaEngineInput<M extends keyof SchemaEngineMethods> = Parameters<
 export type SchemaEngineOutput<M extends keyof SchemaEngineMethods> = ReturnType<wasm.SchemaEngineWasm[M]>
 
 interface SchemaEngineWasmSetupInput {
-  adapter: ErrorCapturingSqlDriverAdapterFactory
+  driver: ErrorCapturingSqlDriverFactory
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
 }
 
-export interface SchemaEngineWasmOptions extends Omit<SchemaEngineWasmSetupInput, 'adapter'> {
+export interface SchemaEngineWasmOptions extends Omit<SchemaEngineWasmSetupInput, 'driver'> {
   debug?: boolean
   engine: wasm.SchemaEngineWasm
   errorRegistry: ErrorRegistry
@@ -62,7 +62,7 @@ export class SchemaEngineWasm implements SchemaEngine {
     this.errorRegistry = errorRegistry
   }
 
-  static async setup({ adapter, schemaContext, ...rest }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
+  static async setup({ driver, schemaContext, ...rest }: SchemaEngineWasmSetupInput): Promise<SchemaEngineWasm> {
     const debug = (arg: string) => {
       debugStderr(arg)
     }
@@ -74,9 +74,9 @@ export class SchemaEngineWasm implements SchemaEngine {
         datamodels,
       },
       debug,
-      adapter,
+      driver,
     )
-    return new SchemaEngineWasm({ ...rest, engine, errorRegistry: adapter.errorRegistry })
+    return new SchemaEngineWasm({ ...rest, engine, errorRegistry: driver.errorRegistry })
   }
 
   private async runCommand<M extends keyof SchemaEngineMethods>(

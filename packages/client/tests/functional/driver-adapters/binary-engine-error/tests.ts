@@ -14,10 +14,10 @@ testMatrix.setupTestSuite(
       expect(() => {
         newPrismaClient({
           // @ts-expect-error
-          adapter: {},
+          driver: {},
         })
       }).toThrowErrorMatchingInlineSnapshot(`
-          Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.
+          Cannot use a driver with the "binary" Query Engine. Please use the "library" Query Engine.
           Read more at https://pris.ly/d/client-constructor
         `)
     })

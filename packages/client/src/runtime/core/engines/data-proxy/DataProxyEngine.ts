@@ -493,7 +493,7 @@ export class DataProxyEngine implements Engine<DataProxyTxInfoPayload> {
   private convertProtocolErrorsToClientError(
     errors: RequestError[],
   ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-    // TODO: handle Rust panics and driver adapter errors correctly. See `LibraryEngine#buildQueryError`.
+    // TODO: handle Rust panics and driver errors correctly. See `LibraryEngine#buildQueryError`.
     if (errors.length === 1) {
       return prismaGraphQLToJSError(errors[0], this.config.clientVersion, this.config.activeProvider!)
     } else {

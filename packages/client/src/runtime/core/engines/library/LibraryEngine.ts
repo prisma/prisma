@@ -1,6 +1,6 @@
 import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
 import { Debug } from '@prisma/debug'
-import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
+import { bindAdapter, ErrorCapturingSqlDriver, ErrorRecord, ErrorRegistry } from '@prisma/driver-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
@@ -82,7 +82,7 @@ export class LibraryEngine implements Engine<undefined> {
   lastQuery?: string
   loggerRustPanic?: any
   tracingHelper: TracingHelper
-  adapterPromise: Promise<ErrorCapturingSqlDriverAdapter> | undefined
+  driverPromise: Promise<ErrorCapturingSqlDriver> | undefined
 
   versionInfo?: {
     commit: string
@@ -188,7 +188,7 @@ export class LibraryEngine implements Engine<undefined> {
   ): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
-    const adapter = await this.adapterPromise
+    const adapter = await this.driverPromise
 
     const headerStr = JSON.stringify(headers)
 
@@ -299,13 +299,13 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       // being GCed. Using weak ref helps to avoid this cycle
       const weakThis = new WeakRef(this)
 
-      if (!this.adapterPromise) {
-        this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+      if (!this.driverPromise) {
+        this.driverPromise = this.config.driver?.connect()?.then(bindAdapter)
       }
-      const adapter = await this.adapterPromise
+      const adapter = await this.driverPromise
 
       if (adapter) {
-        debug('Using driver adapter: %O', adapter)
+        debug('Using driver: %O', adapter)
       }
 
       this.engine = this.wrapEngine(
@@ -423,10 +423,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         this.libraryStarted = true
 
-        if (!this.adapterPromise) {
-          this.adapterPromise = this.config.adapter?.connect()?.then(bindAdapter)
+        if (!this.driverPromise) {
+          this.driverPromise = this.config.driver?.connect()?.then(bindAdapter)
         }
-        await this.adapterPromise
+        await this.driverPromise
 
         debug('library started')
       } catch (err) {
@@ -460,8 +460,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
 
     if (!this.libraryStarted) {
-      await (await this.adapterPromise)?.dispose()
-      this.adapterPromise = undefined
+      await (await this.driverPromise)?.dispose()
+      this.driverPromise = undefined
       return
     }
 
@@ -486,8 +486,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       this.libraryStoppingPromise = undefined
       this.libraryInstantiationPromise = undefined
 
-      await (await this.adapterPromise)?.dispose()
-      this.adapterPromise = undefined
+      await (await this.driverPromise)?.dispose()
+      this.driverPromise = undefined
 
       debug('library stopped')
     }
@@ -518,7 +518,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
     try {
       await this.start()
-      const adapter = await this.adapterPromise
+      const adapter = await this.driverPromise
 
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
@@ -562,7 +562,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     debug('requestBatch')
     const request = getBatchRequestPayload(queries, transaction)
     await this.start()
-    const adapter = await this.adapterPromise
+    const adapter = await this.driverPromise
 
     this.lastQuery = JSON.stringify(request)
 

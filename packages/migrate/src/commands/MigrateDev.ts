@@ -43,7 +43,7 @@ export class MigrateDev implements Command {
 ${
   process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
- 
+
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate dev [options]
@@ -106,9 +106,9 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.adapter?.()
+    const driver = await config.driver?.()
 
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo, driver })
 
     process.stdout.write('\n') // empty line
 
@@ -118,7 +118,7 @@ ${bold('Examples')}
     let wasDbCreated: string | undefined
     // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
+    if (!driver) {
       // Automatically create the database if it doesn't exist
       wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
       if (wasDbCreated) {
@@ -132,7 +132,7 @@ ${bold('Examples')}
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      driver,
       migrationsDirPath,
       schemaContext,
       schemaFilter,

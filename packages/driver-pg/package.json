@@ -1,0 +1,47 @@
+{
+  "name": "@prisma/driver-pg",
+  "version": "0.0.0",
+  "description": "Prisma's driver for \"pg\"",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      }
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/driver-pg"
+  },
+  "scripts": {
+    "dev": "DEV=true tsx helpers/build.ts",
+    "build": "tsx helpers/build.ts",
+    "test": "vitest run"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [],
+  "author": "Tom Houlé <houle@prisma.io>",
+  "license": "Apache-2.0",
+  "sideEffects": false,
+  "dependencies": {
+    "@prisma/driver-utils": "workspace:*",
+    "postgres-array": "3.0.4",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@prisma/debug": "workspace:*",
+    "@types/pg": "8.11.11"
+  }
+}

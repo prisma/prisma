@@ -39,7 +39,7 @@ testMatrix.setupTestSuite(
       when(
         clientEngineExecutor === 'remote',
         `
-        Query plan executor server uses driver adapters internally,
+        Query plan executor server uses drivers internally,
         so it is also affected by https://github.com/prisma/team-orm/issues/1159
         `,
       )

@@ -410,7 +410,7 @@ describe('migrate diff', () => {
       }
     })
 
-    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver', () => {
       it('should fail if schema does no exists, --from-schema-datasource', async () => {
         ctx.fixture('empty')
         expect.assertions(2)
@@ -587,7 +587,7 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrow(isWindows ? 'EPERM' : 'EACCES')
     })
 
-    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver', () => {
       it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
         ctx.fixture('schema-only-sqlite')
 

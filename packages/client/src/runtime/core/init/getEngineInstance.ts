@@ -32,7 +32,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
 
   const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
     url,
-    adapter: engineConfig.adapter,
+    driver: engineConfig.driver,
     copyEngine,
     targetBuildType: TARGET_BUILD_TYPE,
   })
@@ -58,9 +58,9 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   // - Delete DataProxyEngine and all related files
   // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
 
-  // When a local driver adapter is configured, the URL from the datasource
-  // block in the Prisma schema is no longer relevant as driver adapters don't
-  // use it. Therefore, a configured driver adapter takes precedence over the
+  // When a local driver is configured, the URL from the datasource
+  // block in the Prisma schema is no longer relevant as drivers don't
+  // use it. Therefore, a configured driver takes precedence over the
   // Accelerate or PPg URL in the schema file.
   const clientEngineUsesRemoteExecutor = (isUsing.accelerate || isUsing.ppg) && !isUsing.driverAdapters
 

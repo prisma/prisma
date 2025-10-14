@@ -438,7 +438,7 @@ function getDbUrlFromFlavor(driverAdapterOrFlavor: `${AdapterProviders}` | undef
   return (
     match(driverAdapterOrFlavor)
       .with(AdapterProviders.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-      // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver adapter),
+      // Note: we're using Postgres 10 for Postgres (Rust driver, `pg` driver),
       // and Postgres 16 for Neon due to https://github.com/prisma/team-orm/issues/511.
       .with(AdapterProviders.JS_PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
       .with(AdapterProviders.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_16_URI'))

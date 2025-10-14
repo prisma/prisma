@@ -34,7 +34,7 @@ Check the status of your database migrations
   ${bold('Usage')}
 
     ${dim('$')} prisma migrate status [options]
-    
+
   ${bold('Options')}
 
   -h, --help   Display this help message
@@ -78,11 +78,11 @@ Check the status of your database migrations
       schemaPathFromConfig: config.schema,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    const adapter = await config.adapter?.()
+    const driver = await config.driver?.()
 
     checkUnsupportedDataProxy({ cmd: 'migrate status', schemaContext })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), driver })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -90,7 +90,7 @@ Check the status of your database migrations
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      driver,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -98,7 +98,7 @@ Check the status of your database migrations
     })
 
     // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
-    if (!adapter) {
+    if (!driver) {
       await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
     }
 
@@ -175,7 +175,7 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`)
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         console.error(`The current database is not managed by Prisma Migrate.
-        
+
 Read more about how to baseline an existing production database:
 ${link('https://pris.ly/d/migrate-baseline')}`)
         // Exit 1 to signal that the status is not in sync
@@ -209,7 +209,7 @@ During development if the failed migration(s) have not been deployed to a produc
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:
-      
+
 - If you rolled back the migration(s) manually:
 ${bold(green(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
 

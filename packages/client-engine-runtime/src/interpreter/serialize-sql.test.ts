@@ -1,4 +1,4 @@
-import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+import { ColumnTypeEnum } from '@prisma/driver-utils'
 
 import { serializeSql } from './serialize-sql'
 

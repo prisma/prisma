@@ -1,9 +1,9 @@
 import superjson from 'superjson'
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 
-export async function smokeTest(adapter: SqlDriverAdapterFactory) {
+export async function smokeTest(driver: SqlDriverFactory) {
   // wait for the database pool to be initialized
   await setImmediate(0)
 
@@ -41,7 +41,7 @@ export async function smokeTest(adapter: SqlDriverAdapterFactory) {
 }
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly provider: SqlDriverAdapterFactory['provider']) {}
+  constructor(private readonly prisma: PrismaClient, readonly provider: SqlDriverFactory['provider']) {}
 
   async testJSON() {
     const json = JSON.stringify({

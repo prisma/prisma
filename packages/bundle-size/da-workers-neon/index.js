@@ -1,4 +1,4 @@
-import { PrismaNeon } from '@prisma/adapter-neon'
+import { PrismaNeon } from '@prisma/driver-neon'
 
 import { PrismaClient } from './client/wasm'
 
@@ -10,7 +10,6 @@ export default {
     const users = await prisma.user.findMany()
     const result = JSON.stringify(users)
 
-    // eslint-disable-next-line no-undef
     return new Response(result)
   },
 }

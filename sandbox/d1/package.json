@@ -11,9 +11,9 @@
     "execute": "npx wrangler d1 execute MY_DATABASE --local --file=./sql/schema.sql"
   },
   "dependencies": {
-    "@prisma/adapter-d1": "../../packages/adapter-d1",
+    "@prisma/driver-d1": "../../packages/driver-d1",
     "@prisma/client": "../../packages/client",
-    "@prisma/driver-adapter-utils": "../../packages/client",
+    "@prisma/driver-utils": "../../packages/client",
     "db": "link:./node_modules/.prisma/client"
   },
   "devDependencies": {

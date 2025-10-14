@@ -246,7 +246,7 @@ testMatrix.setupTestSuite(
     skipDriverAdapter: {
       from: ['js_d1'],
       reason:
-        'D1 driver adapter does not return the correct number of created records. See https://github.com/prisma/team-orm/issues/1069',
+        'D1 driver does not return the correct number of created records. See https://github.com/prisma/team-orm/issues/1069',
     },
     optOut: {
       from: [Providers.MONGODB, Providers.SQLSERVER, Providers.MYSQL],

@@ -213,118 +213,6 @@ importers:
         specifier: workspace:*
         version: link:../client
 
-  packages/adapter-better-sqlite3:
-    dependencies:
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      better-sqlite3:
-        specifier: ^11.9.0
-        version: 11.10.0
-    devDependencies:
-      '@types/better-sqlite3':
-        specifier: 7.6.12
-        version: 7.6.12
-      async-mutex:
-        specifier: 0.5.0
-        version: 0.5.0
-
-  packages/adapter-d1:
-    dependencies:
-      '@cloudflare/workers-types':
-        specifier: ^4.20250408.0
-        version: 4.20250903.0
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      ky:
-        specifier: 1.7.5
-        version: 1.7.5
-
-  packages/adapter-libsql:
-    dependencies:
-      '@libsql/client':
-        specifier: ^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0
-        version: 0.8.1
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      async-mutex:
-        specifier: 0.5.0
-        version: 0.5.0
-
-  packages/adapter-mariadb:
-    dependencies:
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      mariadb:
-        specifier: 3.4.5
-        version: 3.4.5
-
-  packages/adapter-mssql:
-    dependencies:
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      async-mutex:
-        specifier: 0.5.0
-        version: 0.5.0
-      mssql:
-        specifier: ^11.0.1
-        version: 11.0.1
-    devDependencies:
-      '@types/mssql':
-        specifier: 9.1.8
-        version: 9.1.8
-
-  packages/adapter-neon:
-    dependencies:
-      '@neondatabase/serverless':
-        specifier: '>0.6.0 <2'
-        version: 0.10.2
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      postgres-array:
-        specifier: 3.0.4
-        version: 3.0.4
-
-  packages/adapter-pg:
-    dependencies:
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      pg:
-        specifier: ^8.11.3
-        version: 8.14.1
-      postgres-array:
-        specifier: 3.0.4
-        version: 3.0.4
-    devDependencies:
-      '@prisma/debug':
-        specifier: workspace:*
-        version: link:../debug
-      '@types/pg':
-        specifier: 8.11.11
-        version: 8.11.11
-
-  packages/adapter-planetscale:
-    dependencies:
-      '@planetscale/database':
-        specifier: ^1.15.0
-        version: 1.19.0
-      '@prisma/driver-adapter-utils':
-        specifier: workspace:*
-        version: link:../driver-adapter-utils
-      async-mutex:
-        specifier: 0.5.0
-        version: 0.5.0
-    devDependencies:
-      undici:
-        specifier: 7.4.0
-        version: 7.4.0
-
   packages/bundle-size:
     dependencies:
       '@libsql/client':
@@ -336,30 +224,30 @@ importers:
       '@planetscale/database':
         specifier: 1.19.0
         version: 1.19.0
-      '@prisma/adapter-d1':
-        specifier: workspace:*
-        version: link:../adapter-d1
-      '@prisma/adapter-libsql':
-        specifier: workspace:*
-        version: link:../adapter-libsql
-      '@prisma/adapter-mariadb':
-        specifier: workspace:*
-        version: link:../adapter-mariadb
-      '@prisma/adapter-mssql':
-        specifier: workspace:*
-        version: link:../adapter-mssql
-      '@prisma/adapter-neon':
-        specifier: workspace:*
-        version: link:../adapter-neon
-      '@prisma/adapter-pg':
-        specifier: workspace:*
-        version: link:../adapter-pg
-      '@prisma/adapter-planetscale':
-        specifier: workspace:*
-        version: link:../adapter-planetscale
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
+      '@prisma/driver-d1':
+        specifier: workspace:*
+        version: link:../driver-d1
+      '@prisma/driver-libsql':
+        specifier: workspace:*
+        version: link:../driver-libsql
+      '@prisma/driver-mariadb':
+        specifier: workspace:*
+        version: link:../driver-mariadb
+      '@prisma/driver-mssql':
+        specifier: workspace:*
+        version: link:../driver-mssql
+      '@prisma/driver-neon':
+        specifier: workspace:*
+        version: link:../driver-neon
+      '@prisma/driver-pg':
+        specifier: workspace:*
+        version: link:../driver-pg
+      '@prisma/driver-planetscale':
+        specifier: workspace:*
+        version: link:../driver-planetscale
       pg:
         specifier: 8.14.1
         version: 8.14.1
@@ -403,9 +291,6 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: 1.13.2
         version: 1.13.2
-      '@prisma/adapter-libsql':
-        specifier: workspace:*
-        version: link:../adapter-libsql
       '@prisma/client':
         specifier: workspace:*
         version: link:../client
@@ -418,6 +303,9 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
+      '@prisma/driver-libsql':
+        specifier: workspace:*
+        version: link:../driver-libsql
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -577,30 +465,6 @@ importers:
       '@planetscale/database':
         specifier: 1.19.0
         version: 1.19.0
-      '@prisma/adapter-better-sqlite3':
-        specifier: workspace:*
-        version: link:../adapter-better-sqlite3
-      '@prisma/adapter-d1':
-        specifier: workspace:*
-        version: link:../adapter-d1
-      '@prisma/adapter-libsql':
-        specifier: workspace:*
-        version: link:../adapter-libsql
-      '@prisma/adapter-mariadb':
-        specifier: workspace:*
-        version: link:../adapter-mariadb
-      '@prisma/adapter-mssql':
-        specifier: workspace:*
-        version: link:../adapter-mssql
-      '@prisma/adapter-neon':
-        specifier: workspace:*
-        version: link:../adapter-neon
-      '@prisma/adapter-pg':
-        specifier: workspace:*
-        version: link:../adapter-pg
-      '@prisma/adapter-planetscale':
-        specifier: workspace:*
-        version: link:../adapter-planetscale
       '@prisma/client-common':
         specifier: workspace:*
         version: link:../client-common
@@ -622,9 +486,33 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-better-sqlite3':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-better-sqlite3
+      '@prisma/driver-d1':
+        specifier: workspace:*
+        version: link:../driver-d1
+      '@prisma/driver-libsql':
+        specifier: workspace:*
+        version: link:../driver-libsql
+      '@prisma/driver-mariadb':
+        specifier: workspace:*
+        version: link:../driver-mariadb
+      '@prisma/driver-mssql':
+        specifier: workspace:*
+        version: link:../driver-mssql
+      '@prisma/driver-neon':
+        specifier: workspace:*
+        version: link:../driver-neon
+      '@prisma/driver-pg':
+        specifier: workspace:*
+        version: link:../driver-pg
+      '@prisma/driver-planetscale':
+        specifier: workspace:*
+        version: link:../driver-planetscale
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -826,9 +714,9 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-utils':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-utils
       '@prisma/generator':
         specifier: workspace:*
         version: link:../generator
@@ -850,9 +738,9 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-utils':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-utils
       decimal.js:
         specifier: 10.5.0
         version: 10.5.0
@@ -1038,9 +926,9 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
     devDependencies:
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-utils':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-utils
       '@prisma/get-platform':
         specifier: workspace:*
         version: link:../get-platform
@@ -1088,7 +976,119 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
 
-  packages/driver-adapter-utils:
+  packages/driver-better-sqlite3:
+    dependencies:
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      better-sqlite3:
+        specifier: ^11.9.0
+        version: 11.10.0
+    devDependencies:
+      '@types/better-sqlite3':
+        specifier: 7.6.12
+        version: 7.6.12
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
+
+  packages/driver-d1:
+    dependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20250408.0
+        version: 4.20250903.0
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      ky:
+        specifier: 1.7.5
+        version: 1.7.5
+
+  packages/driver-libsql:
+    dependencies:
+      '@libsql/client':
+        specifier: ^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0
+        version: 0.8.1
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
+
+  packages/driver-mariadb:
+    dependencies:
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      mariadb:
+        specifier: 3.4.5
+        version: 3.4.5
+
+  packages/driver-mssql:
+    dependencies:
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
+      mssql:
+        specifier: ^11.0.1
+        version: 11.0.1
+    devDependencies:
+      '@types/mssql':
+        specifier: 9.1.8
+        version: 9.1.8
+
+  packages/driver-neon:
+    dependencies:
+      '@neondatabase/serverless':
+        specifier: '>0.6.0 <2'
+        version: 0.10.2
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      postgres-array:
+        specifier: 3.0.4
+        version: 3.0.4
+
+  packages/driver-pg:
+    dependencies:
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      pg:
+        specifier: ^8.11.3
+        version: 8.14.1
+      postgres-array:
+        specifier: 3.0.4
+        version: 3.0.4
+    devDependencies:
+      '@prisma/debug':
+        specifier: workspace:*
+        version: link:../debug
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
+
+  packages/driver-planetscale:
+    dependencies:
+      '@planetscale/database':
+        specifier: ^1.15.0
+        version: 1.19.0
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
+      async-mutex:
+        specifier: 0.5.0
+        version: 0.5.0
+    devDependencies:
+      undici:
+        specifier: 7.4.0
+        version: 7.4.0
+
+  packages/driver-utils:
     dependencies:
       '@prisma/debug':
         specifier: workspace:*
@@ -1401,9 +1401,9 @@ importers:
       '@prisma/dmmf':
         specifier: workspace:*
         version: link:../dmmf
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-utils':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-utils
       '@prisma/engines':
         specifier: workspace:*
         version: link:../engines
@@ -1582,9 +1582,9 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-utils':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-utils
       '@prisma/engines-version':
         specifier: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
         version: 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
@@ -1601,9 +1601,9 @@ importers:
         specifier: 2.4.2
         version: 2.4.2
     devDependencies:
-      '@prisma/adapter-libsql':
+      '@prisma/driver-libsql':
         specifier: workspace:*
-        version: link:../adapter-libsql
+        version: link:../driver-libsql
       '@sindresorhus/slugify':
         specifier: 2.2.1
         version: 2.2.1
@@ -1709,21 +1709,21 @@ importers:
       '@opentelemetry/sdk-trace-base':
         specifier: 2.0.1
         version: 2.0.1(@opentelemetry/api@1.9.0)
-      '@prisma/adapter-mariadb':
-        specifier: workspace:*
-        version: link:../adapter-mariadb
-      '@prisma/adapter-mssql':
-        specifier: workspace:*
-        version: link:../adapter-mssql
-      '@prisma/adapter-pg':
-        specifier: workspace:*
-        version: link:../adapter-pg
       '@prisma/client-engine-runtime':
         specifier: workspace:*
         version: link:../client-engine-runtime
-      '@prisma/driver-adapter-utils':
+      '@prisma/driver-mariadb':
         specifier: workspace:*
-        version: link:../driver-adapter-utils
+        version: link:../driver-mariadb
+      '@prisma/driver-mssql':
+        specifier: workspace:*
+        version: link:../driver-mssql
+      '@prisma/driver-pg':
+        specifier: workspace:*
+        version: link:../driver-pg
+      '@prisma/driver-utils':
+        specifier: workspace:*
+        version: link:../driver-utils
       hono:
         specifier: 4.9.4
         version: 4.9.4
@@ -9848,7 +9848,7 @@ snapshots:
 
   '@types/better-sqlite3@7.6.12':
     dependencies:
-      '@types/node': 18.19.76
+      '@types/node': 20.19.0
 
   '@types/chai@5.2.2':
     dependencies:
@@ -9924,7 +9924,7 @@ snapshots:
 
   '@types/mssql@9.1.8':
     dependencies:
-      '@types/node': 18.19.76
+      '@types/node': 20.19.0
       tarn: 3.0.2
       tedious: 18.2.1
     transitivePeerDependencies:

@@ -8,8 +8,8 @@
   "dependencies": {
     "@cloudflare/workers-types": "^4.20250408.0",
     "@libsql/client": "0.8.1",
-    "@prisma/adapter-d1": "/tmp/prisma-adapter-d1-0.0.0.tgz",
-    "@prisma/adapter-libsql": "/tmp/prisma-adapter-libsql-0.0.0.tgz",
+    "@prisma/driver-d1": "/tmp/prisma-driver-d1-0.0.0.tgz",
+    "@prisma/driver-libsql": "/tmp/prisma-driver-libsql-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
     "@prisma/extension-accelerate": "1.2.1",
     "@prisma/extension-read-replicas": "0.3.0",

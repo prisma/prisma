@@ -1,5 +1,5 @@
 import type { BatchResponse } from '@prisma/client-engine-runtime'
-import { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, Provider } from '@prisma/driver-utils'
 
 export type QueryCompiler = {
   compile(request: string): {}

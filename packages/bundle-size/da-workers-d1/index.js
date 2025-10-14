@@ -1,4 +1,4 @@
-import { PrismaD1 } from '@prisma/adapter-d1'
+import { PrismaD1 } from '@prisma/driver-d1'
 
 import { PrismaClient } from './client/wasm'
 
@@ -10,7 +10,6 @@ export default {
     const users = await prisma.user.findMany()
     const result = JSON.stringify(users)
 
-    // eslint-disable-next-line no-undef
     return new Response(result)
   },
 }

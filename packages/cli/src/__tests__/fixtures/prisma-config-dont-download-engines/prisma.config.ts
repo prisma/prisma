@@ -1,11 +1,11 @@
 export default {
   experimental: {
-    adapter: true,
+    driver: true,
   },
   // @ts-ignore
-  adapter: async () => {
+  driver: async () => {
     return Promise.resolve({
-      adapterName: '@prisma/adapter-sqlite-mock',
+      driverName: '@prisma/driver-sqlite-mock',
     })
   },
 }

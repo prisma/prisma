@@ -1,7 +1,7 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import { clearLogs, Debug } from '@prisma/debug'
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
@@ -97,9 +97,9 @@ export type PrismaClientOptions = {
    */
   datasourceUrl?: string
   /**
-   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/driver-planetscale.
    */
-  adapter?: SqlDriverAdapterFactory | null
+  driver?: SqlDriverFactory | null
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -289,28 +289,28 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
        * Initialise and validate the Driver Adapter, if provided.
        */
 
-      let adapter: SqlDriverAdapterFactory | undefined
-      if (optionsArg?.adapter) {
-        adapter = optionsArg.adapter
+      let driver: SqlDriverFactory | undefined
+      if (optionsArg?.driver) {
+        driver = optionsArg.driver
 
         // Note:
         // - `getConfig(..).datasources[0].provider` can be `postgresql`, `postgres`, `mysql`, or other known providers
         // - `getConfig(..).datasources[0].activeProvider`, stored in `config.activeProvider`, can be `postgresql`, `mysql`, or other known providers
-        // - `adapter.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
+        // - `driver.provider` can be `postgres`, `mysql`, or `sqlite`, and changing this requires changes to Rust as well,
         //    see https://github.com/prisma/prisma-engines/blob/d116c37d7d27aee74fdd840fc85ab2b45407e5ce/query-engine/driver-adapters/src/types.rs#L22-L23.
         //
         // TODO: Normalize these provider names once and for all in Prisma 6.
         const expectedDriverAdapterProvider =
           config.activeProvider === 'postgresql'
             ? 'postgres'
-            : // CockroachDB is only accessible through Postgres driver adapters
+            : // CockroachDB is only accessible through Postgres drivers
               config.activeProvider === 'cockroachdb'
               ? 'postgres'
               : config.activeProvider
 
-        if (adapter.provider !== expectedDriverAdapterProvider) {
+        if (driver.provider !== expectedDriverAdapterProvider) {
           throw new PrismaClientInitializationError(
-            `The Driver Adapter \`${adapter.adapterName}\`, based on \`${adapter.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
+            `The Driver Adapter \`${driver.driverName}\`, based on \`${driver.provider}\`, is not compatible with the provider \`${expectedDriverAdapterProvider}\` specified in the Prisma schema.`,
             this._clientVersion,
           )
         }
@@ -324,7 +324,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && !adapter && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
+        (NODE_CLIENT && !driver && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
         config.injectableEdgeEnv?.()
 
       try {
@@ -398,7 +398,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           },
           logEmitter,
           isBundled: config.isBundled,
-          adapter,
+          driver,
         }
 
         this._accelerateEngineConfig = {
@@ -757,7 +757,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       // iTx - Interactive transaction
       if (typeof input === 'function') {
-        if (this._engineConfig.adapter?.adapterName === '@prisma/adapter-d1') {
+        if (this._engineConfig.driver?.driverName === '@prisma/driver-d1') {
           callback = () => {
             throw new Error(
               'Cloudflare D1 does not support interactive transactions. We recommend you to refactor your queries with that limitation in mind, and use batch transactions with `prisma.$transactions([])` where applicable.',

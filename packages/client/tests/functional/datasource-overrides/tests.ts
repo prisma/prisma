@@ -1,4 +1,4 @@
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/driver-pg'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -61,12 +61,12 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describeIf(driverAdapter === 'js_pg')('custom datasource should not be used with driver adapter', () => {
+    describeIf(driverAdapter === 'js_pg')('custom datasource should not be used with driver', () => {
       const adapter = new PrismaPg({
         connectionString: dbURL,
       })
 
-      test('throws when both `datasourceUrl` and `adapter` are used at the same time', () => {
+      test('throws when both `datasourceUrl` and `driver` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
             // @ts-test-if: provider !== Providers.MONGODB
@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(
         )
       })
 
-      test('throws when both `datasources` and `adapter` are used at the same time', () => {
+      test('throws when both `datasources` and `driver` are used at the same time', () => {
         expect(() => {
           newPrismaClient({
             // @ts-test-if: provider !== Providers.MONGODB
@@ -97,7 +97,7 @@ testMatrix.setupTestSuite(
     skipDefaultClientInstance: true,
     skipDriverAdapter: {
       from: ['js_planetscale', 'js_neon', 'js_d1', 'js_libsql', 'js_better_sqlite3'],
-      reason: 'We only need to check a single driver adapter. We can skip the rest.',
+      reason: 'We only need to check a single driver. We can skip the rest.',
     },
     skipDataProxy: {
       runtimes: ['edge'],
@@ -112,7 +112,7 @@ testMatrix.setupTestSuite(
         clientEngineExecutor === 'remote',
         `
         Since the test URL is not a prisma:// URL, the test fails due to a
-        missing driver adapter instead of the expected error.
+        missing driver instead of the expected error.
         `,
       )
     },

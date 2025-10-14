@@ -1,4 +1,4 @@
-import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, SqlQuery, SqlQueryable, SqlResultSet } from '@prisma/driver-utils'
 
 import { QueryEvent } from '../events'
 import { FieldInitializer, FieldOperation, JoinExpression, QueryPlanNode } from '../query-plan'

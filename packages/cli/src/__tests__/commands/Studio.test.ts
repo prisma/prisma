@@ -678,71 +678,68 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
   })
 })
 
-describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
-  'studio with driver adapter from prisma.config.ts',
-  () => {
-    jest.setTimeout(20_000)
+describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with driver from prisma.config.ts', () => {
+  jest.setTimeout(20_000)
 
-    afterEach(() => {
-      process.env = { ...originalEnv }
-    })
+  afterEach(() => {
+    process.env = { ...originalEnv }
+  })
 
-    beforeAll(async () => {
-      // Before every test, we'd like to reset the DB.
-      // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-      rmSync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
-      fs.copyFileSync(
-        path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev.db'),
-        path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'),
-      )
+  beforeAll(async () => {
+    // Before every test, we'd like to reset the DB.
+    // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
+    rmSync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
+    fs.copyFileSync(
+      path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev.db'),
+      path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'),
+    )
 
-      // Clean up Client generation directory
-      rmSync(path.join(__dirname, '../prisma-client'))
-      studio = Studio.new()
+    // Clean up Client generation directory
+    rmSync(path.join(__dirname, '../prisma-client'))
+    studio = Studio.new()
 
-      const config = (
-        await import(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/prisma.config.ts'))
-      ).default as PrismaConfigInternal
+    const config = (
+      await import(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/prisma.config.ts'))
+    ).default as PrismaConfigInternal
 
-      await studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], config)
+    await studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], config)
 
-      // Give Studio time to start
-      await new Promise((r) => setTimeout(() => r(null), 2_000))
-    })
+    // Give Studio time to start
+    await new Promise((r) => setTimeout(() => r(null), 2_000))
+  })
 
-    afterAll(() => {
-      studio.instance!.stop()
-    })
+  afterAll(() => {
+    studio.instance!.stop()
+  })
 
-    test('starts up correctly', async () => {
-      const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}`)
-      expect(res.status).toEqual(200)
-    })
+  test('starts up correctly', async () => {
+    const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}`)
+    expect(res.status).toEqual(200)
+  })
 
-    test('responds to `findMany` queries', async () => {
-      const res = await sendRequest({
-        requestId: 1,
-        channel: 'prisma',
-        action: 'clientRequest',
-        payload: {
-          data: {
-            modelName: 'with_all_field_types',
-            operation: 'findMany',
-            args: {
-              select: {
-                id: true,
-                string: true,
-                int: true,
-                float: true,
-                relation: true,
-                relation_list: true,
-              },
+  test('responds to `findMany` queries', async () => {
+    const res = await sendRequest({
+      requestId: 1,
+      channel: 'prisma',
+      action: 'clientRequest',
+      payload: {
+        data: {
+          modelName: 'with_all_field_types',
+          operation: 'findMany',
+          args: {
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              relation: true,
+              relation_list: true,
             },
           },
         },
-      })
-
-      expect(res).toMatchSnapshot()
+      },
     })
-  },
-)
+
+    expect(res).toMatchSnapshot()
+  })
+})

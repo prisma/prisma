@@ -177,20 +177,20 @@ describe('generator', () => {
       Error code: P1012
       error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
         -->  tests/denylist.prisma:11
-         | 
-      10 | 
+         |
+      10 |
       11 | model public {
       12 |   id Int @id
       13 | }
-         | 
+         |
       error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
         -->  tests/denylist.prisma:15
-         | 
-      14 | 
+         |
+      14 |
       15 | model return {
       16 |   id Int @id
       17 | }
-         | 
+         |
 
       Validation Error Count: 2
       [Context: getDmmf]
@@ -394,7 +394,7 @@ describe('generator', () => {
     expect(
       allFiles(clientDir)
         .filter((f) => f.endsWith('.ts'))
-        .some((f) => /adapter\?: runtime.SqlDriverAdapterFactory \| null/g.test(fs.readFileSync(f, 'utf8'))),
+        .some((f) => /adapter\?: runtime.SqlDriverFactory \| null/g.test(fs.readFileSync(f, 'utf8'))),
     ).toBe(true)
   })
 

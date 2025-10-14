@@ -1,4 +1,4 @@
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 import { isPrismaPostgres } from '@prisma/internals'
 
 /**
@@ -15,7 +15,7 @@ type ErrorDiagnostic = { _tag: 'error'; value: string }
 
 type ValidateEngineInstanceConfigParams = {
   url?: string
-  adapter?: SqlDriverAdapterFactory
+  driver?: SqlDriverFactory
   copyEngine: boolean
 
   /**
@@ -56,13 +56,13 @@ type ValidateEngineInstanceConfigOutput = WithDiagnostics & {
 /**
  * Validates the engine instance configuration, without side effects.
  * @param url The URL passed to the Prisma Client constructor
- * @param adapter The driver adapter passed to the Prisma Client constructor
+ * @param driver The driver passed to the Prisma Client constructor
  * @param copyEngine Whether the engine was copied. `prisma generate --no-engine` implies `copyEngine: false`
  * @param targetBuildType The target build type
  */
 export function validateEngineInstanceConfig({
   url,
-  adapter,
+  driver,
   copyEngine,
   targetBuildType,
 }: ValidateEngineInstanceConfigParams): ValidateEngineInstanceConfigOutput {
@@ -80,7 +80,7 @@ export function validateEngineInstanceConfig({
 
   const isUsingPrismaAccelerate = Boolean(url?.startsWith('prisma://'))
   const isUsingPrismaPostgres = isPrismaPostgres(url)
-  const isUsingDriverAdapters = Boolean(adapter)
+  const isUsingDriverAdapters = Boolean(driver)
   const isAccelerateUrlScheme = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
   if (
@@ -101,18 +101,18 @@ export function validateEngineInstanceConfig({
   if (isUsingDriverAdapters && (isAccelerateConfigured || targetBuildType === 'edge')) {
     if (targetBuildType === 'edge') {
       pushError([
-        `Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.`,
-        `Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor.`,
+        `Prisma Client was configured to use the \`driver\` option but it was imported via its \`/edge\` endpoint.`,
+        `Please either remove the \`/edge\` endpoint or remove the \`driver\` from the Prisma Client constructor.`,
       ])
     } else if (isAccelerateUrlScheme) {
       pushError([
-        `You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
-        `Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter.`,
+        `You've provided both a driver and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
+        `Please provide either a driver with a direct database URL or an Accelerate URL and no driver.`,
       ])
     } else if (!copyEngine) {
       pushError([
-        `Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.`,
-        `Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter.`,
+        `Prisma Client was configured to use the \`driver\` option but \`prisma generate\` was run with \`--no-engine\`.`,
+        `Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the driver.`,
       ])
     }
   }

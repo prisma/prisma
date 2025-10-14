@@ -39,7 +39,7 @@ declare const __PrismaProxy: {
 
 class ReactNativeQueryEngine implements QueryEngineInstance {
   private engineObject: QueryEngineObject
-  constructor(config: QueryEngineConfig, logger: (log: string) => void, _adapter?: any) {
+  constructor(config: QueryEngineConfig, logger: (log: string) => void, _driver?: any) {
     this.engineObject = __PrismaProxy.create({
       datamodel: config.datamodel,
       env: process.env,

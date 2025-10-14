@@ -1,6 +1,6 @@
-import { mockAdapterFactory } from '../../_utils/mock-adapter'
+import { mockDriverFactory } from '../../_utils/mock-adapter'
 
-describe('driver adapters cannot be used with accelerate', () => {
+describe('drivers cannot be used with accelerate', () => {
   let dbURL: string | undefined
 
   beforeEach(() => {
@@ -12,34 +12,34 @@ describe('driver adapters cannot be used with accelerate', () => {
     process.env['DATABASE_URL'] = dbURL
   })
 
-  test('driver adapters cannot be used with accelerate via @prisma/client/wasm', () => {
+  test('drivers cannot be used with accelerate via @prisma/client/wasm', () => {
     jest.isolateModules(() => {
       const { PrismaClient } = require('@prisma/client/wasm')
 
       const newClient = () =>
         new PrismaClient({
-          adapter: mockAdapterFactory('postgres'),
+          driver: mockDriverFactory('postgres'),
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-  "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
-  Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
+  "You've provided both a driver and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+  Please provide either a driver with a direct database URL or an Accelerate URL and no driver."
   `)
     })
   })
 
-  test('driver adapters cannot be used with accelerate via @prisma/client/default', () => {
+  test('drivers cannot be used with accelerate via @prisma/client/default', () => {
     jest.isolateModules(() => {
       const { PrismaClient } = require('@prisma/client/default')
 
       const newClient = () =>
         new PrismaClient({
-          adapter: mockAdapterFactory('postgres'),
+          driver: mockDriverFactory('postgres'),
         })
 
       expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-  "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
-  Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
+  "You've provided both a driver and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+  Please provide either a driver with a direct database URL or an Accelerate URL and no driver."
   `)
     })
   })

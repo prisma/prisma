@@ -92,15 +92,15 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.adapter?.()
-    printDatasource({ datasourceInfo, adapter })
+    const driver = await config.driver?.()
+    printDatasource({ datasourceInfo, driver })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      driver,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -108,7 +108,7 @@ ${bold('Examples')}
     })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
+    if (!driver) {
       try {
         // Automatically create the database if it doesn't exist
         const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
@@ -237,7 +237,7 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
       // Favor the adapter if any, fallback to the provider defined in the schema
-      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
+      const provider = driver?.provider ?? schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${

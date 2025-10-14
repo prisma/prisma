@@ -1,5 +1,5 @@
 import { defaultRegistry } from '@prisma/client-generator-registry'
-import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlDriverFactory } from '@prisma/driver-utils'
 import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
@@ -23,7 +23,7 @@ import { listMigrations } from './utils/listMigrations'
 import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
 interface MigrateSetupInput {
-  adapter?: ErrorCapturingSqlDriverAdapterFactory
+  driver?: ErrorCapturingSqlDriverFactory
   migrationsDirPath?: string
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
@@ -58,16 +58,16 @@ export class Migrate {
     this.shadowDbInitScript = shadowDbInitScript ?? ''
   }
 
-  static async setup({ adapter, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
+  static async setup({ driver, schemaContext, ...rest }: MigrateSetupInput): Promise<Migrate> {
     const engine = await (async () => {
-      if (adapter) {
-        return await SchemaEngineWasm.setup({ adapter, schemaContext, ...rest })
+      if (driver) {
+        return await SchemaEngineWasm.setup({ driver, schemaContext, ...rest })
       } else {
         return await SchemaEngineCLI.setup({ schemaContext, ...rest })
       }
     })()
 
-    warnDatasourceDriverAdapter(schemaContext, adapter)
+    warnDatasourceDriverAdapter(schemaContext, driver)
 
     return new Migrate({ engine, schemaContext, ...rest })
   }

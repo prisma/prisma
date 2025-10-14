@@ -1,4 +1,4 @@
-import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-adapter-utils'
+import { DriverAdapterError, isDriverAdapterError } from '@prisma/driver-utils'
 
 import { assertNever } from './utils'
 

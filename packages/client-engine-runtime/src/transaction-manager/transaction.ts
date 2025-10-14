@@ -1,4 +1,4 @@
-import type { IsolationLevel } from '@prisma/driver-adapter-utils'
+import type { IsolationLevel } from '@prisma/driver-utils'
 
 export type Options = {
   /// Timeout for starting the transaction [ms]

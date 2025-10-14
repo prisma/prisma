@@ -151,13 +151,13 @@ Set composite types introspection depth to 2 levels
       flags: ['--url', '--local-d1'],
     })
 
-    const adapter = await config.adapter?.()
+    const driver = await config.driver?.()
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), driver })
     }
 
     const fromD1 = Boolean(args['--local-d1'])
@@ -302,7 +302,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      driver,
       schemaContext: schemaContext ?? undefined,
       extensions: config['extensions'],
     })
@@ -356,7 +356,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
@@ -375,7 +375,7 @@ ${bold('To fix this, you have two options:')}
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */

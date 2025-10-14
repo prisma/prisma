@@ -1,8 +1,8 @@
 import {
   Debug,
-  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
-  SqlMigrationAwareDriverAdapterFactory,
-} from '@prisma/driver-adapter-utils'
+  ErrorCapturingSqlMigrationAwareDriverFactory,
+  SqlMigrationAwareDriverFactory,
+} from '@prisma/driver-utils'
 import { Either, identity, Schema as Shape, Struct } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -12,27 +12,25 @@ import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
-const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
-  (input: any): input is () => Promise<SqlMigrationAwareDriverAdapterFactory> => {
+const SqlMigrationAwareDriverFactoryShape = Shape.declare(
+  (input: any): input is () => Promise<SqlMigrationAwareDriverFactory> => {
     return typeof input === 'function'
   },
   {
-    identifier: 'SqlMigrationAwareDriverAdapterFactory',
+    identifier: 'SqlMigrationAwareDriverFactory',
     encode: identity,
     decode: identity,
   },
 )
 
-export type SqlMigrationAwareDriverAdapterFactoryShape =
-  | undefined
-  | (() => Promise<SqlMigrationAwareDriverAdapterFactory>)
+export type SqlMigrationAwareDriverFactoryShape = undefined | (() => Promise<SqlMigrationAwareDriverFactory>)
 
-const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
-  (input: any): input is () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
+const ErrorCapturingSqlMigrationAwareDriverFactoryShape = Shape.declare(
+  (input: any): input is () => Promise<ErrorCapturingSqlMigrationAwareDriverFactory> => {
     return typeof input === 'function'
   },
   {
-    identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory',
+    identifier: 'ErrorCapturingSqlMigrationAwareDriverFactory',
     encode: identity,
     decode: identity,
   },
@@ -42,7 +40,7 @@ export type ExperimentalConfig = {
   /**
    * Enable experimental adapter support.
    */
-  adapter?: boolean
+  driver?: boolean
   /**
    * Enable experimental Prisma Studio features.
    */
@@ -58,7 +56,7 @@ export type ExperimentalConfig = {
 }
 
 const ExperimentalConfigShape = Shape.Struct({
-  adapter: Shape.optional(Shape.Boolean),
+  driver: Shape.optional(Shape.Boolean),
   studio: Shape.optional(Shape.Boolean),
   externalTables: Shape.optional(Shape.Boolean),
   extensions: Shape.optional(Shape.Boolean),
@@ -194,14 +192,14 @@ if (false) {
 }
 
 export type PrismaStudioConfigShape = {
-  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+  driver: () => Promise<SqlMigrationAwareDriverFactory>
 }
 
 const PrismaStudioConfigShape = Shape.Struct({
   /**
-   * Instantiates the Prisma driver adapter to use for Prisma Studio.
+   * Instantiates the Prisma driver to use for Prisma Studio.
    */
-  adapter: SqlMigrationAwareDriverAdapterFactoryShape,
+  driver: SqlMigrationAwareDriverFactoryShape,
 })
 
 declare const __testPrismaStudioConfigShapeValueA: (typeof PrismaStudioConfigShape)['Type']
@@ -233,7 +231,7 @@ const PrismaConfigShape = Shape.Struct({
   experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
-  adapter: Shape.optional(SqlMigrationAwareDriverAdapterFactoryShape),
+  driver: Shape.optional(SqlMigrationAwareDriverFactoryShape),
   migrations: Shape.optional(MigrationsConfigShape),
   tables: Shape.optional(TablesConfigShape),
   enums: Shape.optional(EnumsConfigShape),
@@ -258,7 +256,7 @@ export type PrismaConfig = {
   /**
    * The Driver Adapter used for Prisma CLI.
    */
-  adapter?: () => Promise<SqlMigrationAwareDriverAdapterFactory>
+  driver?: () => Promise<SqlMigrationAwareDriverFactory>
   /**
    * The configuration for Prisma Studio.
    */
@@ -300,8 +298,8 @@ function validateExperimentalFeatures(config: PrismaConfig): Either.Either<Prism
   const experimental = config.experimental || {}
 
   // Check adapter configuration
-  if (config.adapter && !experimental.adapter) {
-    return Either.left(new Error('The `adapter` configuration requires `experimental.adapter` to be set to `true`.'))
+  if (config.driver && !experimental.driver) {
+    return Either.left(new Error('The `driver` configuration requires `experimental.driver` to be set to `true`.'))
   }
 
   // Check studio configuration
@@ -359,8 +357,8 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
 const PrismaConfigInternalShape = Shape.Struct({
-  ...Struct.omit(PrismaConfigShape.fields, 'adapter'),
-  adapter: Shape.optional(ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape),
+  ...Struct.omit(PrismaConfigShape.fields, 'driver'),
+  driver: Shape.optional(ErrorCapturingSqlMigrationAwareDriverFactoryShape),
   loadedFromFile: Shape.NullOr(Shape.String),
   deprecatedPackageJson: Shape.NullOr(
     Shape.Struct({
@@ -370,11 +368,11 @@ const PrismaConfigInternalShape = Shape.Struct({
   ),
 })
 
-type _PrismaConfigInternal = Omit<PrismaConfig, 'adapter'> & {
+type _PrismaConfigInternal = Omit<PrismaConfig, 'driver'> & {
   /**
    * The Driver Adapter used for Prisma CLI.
    */
-  adapter?: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
+  driver?: () => Promise<ErrorCapturingSqlMigrationAwareDriverFactory>
   /**
    * The path from where the config was loaded.
    * It's set to `null` if no config file was found and only default config is applied.

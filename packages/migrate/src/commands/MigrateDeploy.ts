@@ -80,8 +80,8 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = await config.adapter?.()
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    const driver = await config.driver?.()
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), driver })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -89,7 +89,7 @@ ${bold('Examples')}
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      driver,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
@@ -97,7 +97,7 @@ ${bold('Examples')}
     })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
+    if (!driver) {
       try {
         // Automatically create the database if it doesn't exist
         const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
@@ -144,7 +144,7 @@ ${bold('Examples')}
           'migration.sql': '',
         },
       )}
-      
+
 ${green('All migrations have been successfully applied.')}`
     }
   }

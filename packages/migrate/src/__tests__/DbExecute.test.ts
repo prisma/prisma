@@ -68,7 +68,7 @@ describe('db execute', () => {
 
       const result = DbExecute.new().parse(['--file=1', '--stdin'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        "--stdin and --file cannot be used at the same time. Only 1 must be provided. 
+        "--stdin and --file cannot be used at the same time. Only 1 must be provided.
         See \`prisma db execute -h\`"
       `)
     })
@@ -83,7 +83,7 @@ describe('db execute', () => {
       `)
     })
 
-    describeMatrix({ providers: allProviders, driverAdapters: {} }, 'non driver adapter', () => {
+    describeMatrix({ providers: allProviders, driverAdapters: {} }, 'non driver', () => {
       it('should fail if both --schema and --url are provided', async () => {
         ctx.fixture('empty')
 
@@ -97,7 +97,7 @@ describe('db execute', () => {
 
     describeMatrix(
       { providers: allProviders, driverAdapters: allDriverAdapters, onlyDriverAdapters: true },
-      'with driver adapter',
+      'with driver',
       () => {
         it('should fail if --url is provided', async () => {
           ctx.fixture('empty')
@@ -216,7 +216,7 @@ BEGIN;
 
 ${sqlScript}
 
--- commit changes    
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(
@@ -226,7 +226,7 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    describeMatrix(noDriverAdapters, 'non driver adapter', () => {
+    describeMatrix(noDriverAdapters, 'non driver', () => {
       it('should pass if no schema file in directory with --file --url', async () => {
         ctx.fixture('empty')
 
@@ -386,8 +386,8 @@ DROP SCHEMA "test-dbexecute";`
 BEGIN;
 
 ${sqlScript}
-      
--- commit changes    
+
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(
@@ -624,8 +624,8 @@ DROP SCHEMA "test-dbexecute";`
 BEGIN;
 
 ${sqlScript}
-      
--- commit changes    
+
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(
@@ -830,8 +830,8 @@ DROP DATABASE \`test-dbexecute\`;`
 START TRANSACTION;
 
 ${sqlScript}
-      
--- commit changes    
+
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(
@@ -1037,8 +1037,8 @@ DROP DATABASE "test-dbexecute";`
 BEGIN TRANSACTION;
 
 SELECT 1
-      
--- commit changes    
+
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(
@@ -1059,8 +1059,8 @@ COMMIT;`,
 BEGIN TRANSACTION;
 
 ${sqlScript}
-      
--- commit changes    
+
+-- commit changes
 COMMIT;`,
       )
       const result = DbExecute.new().parse(

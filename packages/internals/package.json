@@ -77,7 +77,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
-    "@prisma/driver-adapter-utils": "workspace:*",
+    "@prisma/driver-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",

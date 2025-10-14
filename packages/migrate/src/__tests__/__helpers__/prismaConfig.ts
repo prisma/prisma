@@ -1,5 +1,5 @@
 import { defineConfig, PrismaConfigInternal } from '@prisma/config'
-import { SqlMigrationAwareDriverAdapterFactoryShape } from '@prisma/config/src/PrismaConfig'
+import { SqlMigrationAwareDriverFactoryShape } from '@prisma/config/src/PrismaConfig'
 import type { BaseContext } from '@prisma/get-platform'
 
 import driverAdapters, { currentDriverAdapterName } from './driverAdapters'
@@ -10,7 +10,7 @@ type ConfigContext = {
 
 /**
  * Extends a jestContext with a function to get a PrismaConfig.
- * The config includes a configured migrate driver adapter based on the current test matrix.
+ * The config includes a configured migrate driver based on the current test matrix.
  * Any prisma.config.ts file in the root of the test context fixture will be merged with the default config.
  * Use with jestContext e.g. via `const ctx = jestContext.new().add(configContextContributor()).assemble()`
  */
@@ -32,26 +32,26 @@ export const configContextContributor =
   }
 
 /**
- * Creates a PrismaConfig with a driver adapter if the test are run with a driver adapter.
+ * Creates a PrismaConfig with a driver if the test are run with a driver.
  * If a prisma.config.ts file exists, it will be merged with the default config.
  */
 function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
-  let adapter: SqlMigrationAwareDriverAdapterFactoryShape | undefined
+  let driver: SqlMigrationAwareDriverFactoryShape | undefined
 
-  const adapterName = currentDriverAdapterName()
-  if (adapterName) {
-    const { adapter: createAdapter } = driverAdapters[adapterName]
+  const driverName = currentDriverAdapterName()
+  if (driverName) {
+    const { driver: createAdapter } = driverAdapters[driverName]
     if (!createAdapter) {
-      throw new Error(`Driver Adapter ${adapterName} not found`)
+      throw new Error(`Driver Adapter ${driverName} not found`)
     }
-    adapter = createAdapter(ctx)
+    driver = createAdapter(ctx)
   }
 
   return defineConfig({
     experimental: {
-      adapter: adapter !== undefined,
+      driver: driver !== undefined,
     },
-    adapter,
+    driver,
   })
 }
 

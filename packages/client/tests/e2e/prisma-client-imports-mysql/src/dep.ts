@@ -1,4 +1,4 @@
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
+import { PrismaPlanetScale } from '@prisma/driver-planetscale'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
 import { PrismaClient } from 'db'
@@ -21,6 +21,6 @@ void replicaClient.user.findMany()
 
 /* Driver Adapters */
 export const planetScalePrismaClient = new PrismaClient({
-  adapter: new PrismaPlanetScale({ url: connectionString }),
+  driver: new PrismaPlanetScale({ url: connectionString }),
 })
 void planetScalePrismaClient.user.findMany()

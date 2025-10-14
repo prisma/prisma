@@ -2,9 +2,9 @@ export default {
   earlyAccess: true,
   schema: './prisma/schema.prisma',
   migrate: {
-    adapter: async () => {
+    driver: async () => {
       return Promise.resolve({
-        adapterName: '@prisma/adapter-mock-sqlite',
+        driverName: '@prisma/driver-mock-sqlite',
       })
     }
   }

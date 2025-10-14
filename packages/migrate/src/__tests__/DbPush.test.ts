@@ -44,10 +44,10 @@ describe('push', () => {
 
       error: Native type VarChar is not supported for sqlite connector.
         -->  prisma/schema.prisma:12
-         | 
+         |
       11 |   id   Int    @id
       12 |   name String @db.VarChar(100)
-         | 
+         |
 
       "
     `)
@@ -83,7 +83,7 @@ describe('push', () => {
     `)
   })
 
-  // Not relevant for driver adapters as the file location comes from prisma.config.ts then.
+  // Not relevant for drivers as the file location comes from prisma.config.ts then.
   describeMatrix(noDriverAdapters, 'SQLite file placements', () => {
     it('missing SQLite db should be created relative to the schema.prisma file', async () => {
       ctx.fixture('reset')

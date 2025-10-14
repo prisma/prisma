@@ -16,12 +16,12 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "../../packages/client",
-    "@prisma/adapter-pg": "../../packages/adapter-pg",
-    "pg": "../../packages/adapter-pg/node_modules/pg"
+    "@prisma/driver-pg": "../../packages/driver-pg",
+    "pg": "../../packages/driver-pg/node_modules/pg"
   },
   "devDependencies": {
     "@types/node": "~20.19.0",
-    "@types/pg": "../../packages/adapter-pg/node_modules/@types/pg",
+    "@types/pg": "../../packages/driver-pg/node_modules/@types/pg",
     "prisma": "../../packages/cli",
     "ts-node": "*",
     "typescript": "*"

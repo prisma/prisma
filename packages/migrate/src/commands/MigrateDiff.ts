@@ -84,7 +84,7 @@ The command takes a source ${green(`--from-...`)} and a destination ${green(`--t
 The source and destination must use the same provider,
 e.g. a diff using 2 different providers like PostgreSQL and SQLite is not supported.
 
-It compares the source with the destination to generate a diff. 
+It compares the source with the destination to generate a diff.
 The diff can be interpreted as generating a migration that brings the source schema (from) to the shape of the destination schema (to).
 The default output is a human readable diff, it can be rendered as SQL using \`--script\` on SQL databases.
 
@@ -92,13 +92,13 @@ See the documentation for more information ${link('https://pris.ly/d/migrate-dif
 
 ${helpOptions}
 ${bold('Examples')}
- 
+
   From database to database as summary
     e.g. compare two live databases
   ${dim('$')} prisma migrate diff \\
     --from-url "$DATABASE_URL" \\
     --to-url "postgresql://login:password@localhost:5432/db2"
-  
+
   From a live database to a Prisma datamodel
     e.g. roll forward after a migration failed in the middle
   ${dim('$')} prisma migrate diff \\
@@ -106,8 +106,8 @@ ${bold('Examples')}
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=next_datamodel.prisma \\
     --script
-  
-  From a live database to a datamodel 
+
+  From a live database to a datamodel
     e.g. roll backward after a migration failed in the middle
   ${dim('$')} prisma migrate diff \\
     --shadow-database-url "$SHADOW_DB" \\
@@ -126,7 +126,7 @@ ${bold('Examples')}
     --from-schema-datamodel=./prisma/schema.prisma \\
     --to-local-d1 \\
     --script
-  
+
   From a Prisma Migrate \`migrations\` directory to another database
     e.g. generate a migration for a hotfix already applied on production
   ${dim('$')} prisma migrate diff \\
@@ -333,12 +333,12 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = await config.adapter?.()
+    const driver = await config.driver?.()
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
-    const migrate = await Migrate.setup({ adapter, schemaFilter, extensions: config['extensions'] })
+    const migrate = await Migrate.setup({ driver, schemaFilter, extensions: config['extensions'] })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()

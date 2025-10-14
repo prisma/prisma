@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(
 
       // Use a separate process for seeding to use native drivers. We can't turn
       // the native quaint executor back on in the current process when testing
-      // against driver adapters.
+      // against drivers.
       const seedOutput = await execaNode(path.join(suiteMeta.generatedFolder, '_seed.ts'), [], {
         nodeOptions: ['-r', 'esbuild-register'],
         env: {
@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
           PRISMA_DISABLE_QUAINT_EXECUTORS: '0',
           // we force the engine type to either binary or library and discard wasm
           // this is necessary because the seed script is run in a separate process
-          // and is not actually using a driver adapter - which yields an error
+          // and is not actually using a driver - which yields an error
           PRISMA_CLIENT_ENGINE_TYPE: engineType === 'binary' ? 'binary' : 'library',
         },
       })
@@ -51,12 +51,12 @@ testMatrix.setupTestSuite(
   {
     skipEngine: {
       from: ['client'],
-      reason: 'Client engine cannot be used with native drivers but requires driver adapters / wasm.',
+      reason: 'Client engine cannot be used with native drivers but requires drivers / wasm.',
     },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: `
-        The test needs direct access to database, and is only important to run with driver adapters,
+        The test needs direct access to database, and is only important to run with drivers,
         which are not supported with data proxy.
       `,
     },

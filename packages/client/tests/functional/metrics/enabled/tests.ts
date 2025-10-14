@@ -546,7 +546,7 @@ testMatrix.setupTestSuite(
         expect(histograms[0].value.sum).toBeGreaterThan(0)
         const histogramsKeys = histograms.map((c) => c.key)
         if (provider === Providers.MONGODB || usesDriverAdapter) {
-          // mongo and driver adapter don't use connection pool
+          // mongo and driver don't use connection pool
           expect(histogramsKeys).toEqual([
             'prisma_client_queries_duration_histogram_ms',
             'prisma_datasource_queries_duration_histogram_ms',

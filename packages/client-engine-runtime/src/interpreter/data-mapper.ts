@@ -301,7 +301,7 @@ function mapValue(
 const TIME_TZ_PATTERN = /\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}(:?\d{2})?)?$/
 
 /**
- * Normalizes date time strings received from driver adapters. The returned string is always a
+ * Normalizes date time strings received from drivers. The returned string is always a
  * valid input for the Javascript `Date` constructor. This function will add a UTC timezone suffix
  * if there's no timezone specified, to prevent it from being interpreted as local time.
  */

@@ -59,7 +59,7 @@ testMatrix.setupTestSuite(
         `
         When using client engine, since the URL won't be a valid Accelerate URL,
         we will take the local executor code path and will show an error about
-        the missing driver adapter instead, which is not what this test is about.
+        the missing driver instead, which is not what this test is about.
         `,
       )
     },

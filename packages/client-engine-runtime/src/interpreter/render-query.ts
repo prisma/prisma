@@ -1,4 +1,4 @@
-import { ArgType, SqlQuery } from '@prisma/driver-adapter-utils'
+import { ArgType, SqlQuery } from '@prisma/driver-utils'
 
 import {
   DynamicArgType,

@@ -70,9 +70,9 @@ bench('datasourceUrl applied', () => {
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
-    adapter: {
+    driver: {
       provider: 'sqlite',
-      adapterName: 'mock-adapter',
+      driverName: 'mock-adapter',
       connect: () => Promise.resolve({} as any),
     },
   })
@@ -254,9 +254,9 @@ bench('using typeof - datasourceUrl applied', () => {
 
 bench('using typeof - adapter applied', () => {
   const client = new PrismaClientConstructor({
-    adapter: {
+    driver: {
       provider: 'sqlite',
-      adapterName: 'mock-adapter',
+      driverName: 'mock-adapter',
       connect: () => Promise.resolve({} as any),
     },
   })

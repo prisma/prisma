@@ -5,9 +5,9 @@ export default defineConfig({
     studio: true,
   },
   studio: {
-    adapter: async () => {
-      const { mockMigrationAwareAdapterFactory } = await import('test-utils/mock-adapter')
-      return mockMigrationAwareAdapterFactory('postgres')
+    driver: async () => {
+      const { mockMigrationAwareDriverFactory } = await import('test-utils/mock-adapter')
+      return mockMigrationAwareDriverFactory('postgres')
     },
   },
 })

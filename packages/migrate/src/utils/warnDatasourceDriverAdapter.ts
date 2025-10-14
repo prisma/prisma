@@ -1,4 +1,4 @@
-import { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlDriverFactory } from '@prisma/driver-utils'
 import { SchemaContext } from '@prisma/internals'
 
 const DEPRECATED_PROPERTIES = ['url', 'directUrl', 'shadowDatabaseUrl']
@@ -8,9 +8,9 @@ const NO_URL_PLACEHOLDER = '<invalid>'
 
 export function warnDatasourceDriverAdapter(
   schemaContext: SchemaContext | undefined,
-  adapter: ErrorCapturingSqlDriverAdapterFactory | undefined,
+  driver: ErrorCapturingSqlDriverFactory | undefined,
 ) {
-  if (!schemaContext || !adapter) return
+  if (!schemaContext || !driver) return
 
   const foundProperties: string[] = []
   for (const property of DEPRECATED_PROPERTIES) {
@@ -30,7 +30,7 @@ ${foundProperties.map((property) => `- ${property}`).join('\n')}
 
 The values from your schema will NOT be used!
 
-We recommend you to remove those properties from your schema to avoid confusion if you are only using driver adapters.
+We recommend you to remove those properties from your schema to avoid confusion if you are only using drivers.
 `,
     )
   }

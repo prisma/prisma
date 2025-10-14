@@ -1,4 +1,4 @@
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
@@ -21,12 +21,12 @@ describe('validateEngineInstanceConfig', () => {
   }
 
   const mockAdapter = {
-    adapterName: '@prisma/adapter-mock',
+    driverName: '@prisma/driver-mock',
     provider: 'postgres',
     connect: () => {
       throw new Error('Not implemented')
     },
-  } as SqlDriverAdapterFactory
+  } as SqlDriverFactory
 
   const targetBuildType = 'client' satisfies Parameters<typeof validateEngineInstanceConfig>[0]['targetBuildType']
 
@@ -61,7 +61,7 @@ describe('validateEngineInstanceConfig', () => {
       const { ok, isUsing } = validateEngineInstanceConfig({
         url: URLS.pgPlain,
         targetBuildType,
-        adapter: mockAdapter,
+        driver: mockAdapter,
         copyEngine: true,
       })
 
@@ -163,7 +163,7 @@ describe('validateEngineInstanceConfig', () => {
         url,
         targetBuildType,
         copyEngine,
-        adapter: mockAdapter,
+        driver: mockAdapter,
       })
 
       if (!ok) {
@@ -173,8 +173,8 @@ describe('validateEngineInstanceConfig', () => {
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
-        Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
+        "You've provided both a driver and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+        Please provide either a driver with a direct database URL or an Accelerate URL and no driver."
       `)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(true)
@@ -188,14 +188,14 @@ describe('validateEngineInstanceConfig', () => {
         url: URLS.pgPlain,
         targetBuildType: 'edge',
         copyEngine: true,
-        adapter: mockAdapter,
+        driver: mockAdapter,
       })
 
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
-        Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor."
+        "Prisma Client was configured to use the \`driver\` option but it was imported via its \`/edge\` endpoint.
+        Please either remove the \`/edge\` endpoint or remove the \`driver\` from the Prisma Client constructor."
       `)
       expect(isUsing.accelerate).toBe(false)
       expect(isUsing.driverAdapters).toBe(true)
@@ -207,13 +207,13 @@ describe('validateEngineInstanceConfig', () => {
         url: URLS.pgPlain,
         targetBuildType,
         copyEngine: false,
-        adapter: mockAdapter,
+        driver: mockAdapter,
       })
 
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.
+        "Prisma Client was configured to use the \`driver\` option but \`prisma generate\` was run with \`--no-engine\`.
         Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter."
       `)
       expect(isUsing.accelerate).toBe(true)
@@ -226,7 +226,7 @@ describe('validateEngineInstanceConfig', () => {
         url: URLS.ppgDirectTCP,
         targetBuildType,
         copyEngine: true,
-        adapter: mockAdapter,
+        driver: mockAdapter,
       })
 
       expectTrue(ok)
@@ -329,7 +329,7 @@ describe('validateEngineInstanceConfig', () => {
         url: URLS.ppg,
         targetBuildType,
         copyEngine,
-        adapter: mockAdapter,
+        driver: mockAdapter,
       })
 
       if (!ok) {
@@ -339,8 +339,8 @@ describe('validateEngineInstanceConfig', () => {
       expectFalse(ok)
       expect(diagnostics.errors).toHaveLength(1)
       expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
-        Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter."
+        "You've provided both a driver and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.
+        Please provide either a driver with a direct database URL or an Accelerate URL and no driver."
       `)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(true)

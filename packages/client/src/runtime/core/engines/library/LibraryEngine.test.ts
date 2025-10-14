@@ -1,5 +1,5 @@
 import { QueryEngineInstance } from '@prisma/client-common'
-import { SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { SqlDriver, SqlDriverFactory } from '@prisma/driver-utils'
 import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -47,26 +47,26 @@ function setupMockLibraryEngine() {
 
   const adapterMock = {
     provider: 'sqlite',
-    adapterName: '@prisma/adapter-libsql',
+    driverName: '@prisma/driver-libsql',
     queryRaw: jest.fn().mockResolvedValue(undefined),
     executeRaw: jest.fn().mockResolvedValue(0),
     executeScript: jest.fn().mockResolvedValue(undefined),
     startTransaction: jest.fn().mockResolvedValue(undefined),
     dispose: jest.fn().mockResolvedValue(undefined),
-  } satisfies SqlDriverAdapter
+  } satisfies SqlDriver
 
   const adapterFactoryMock = {
     provider: 'sqlite',
-    adapterName: '@prisma/adapter-libsql',
+    driverName: '@prisma/driver-libsql',
     connect: () => Promise.resolve(adapterMock),
-  } satisfies SqlDriverAdapterFactory
+  } satisfies SqlDriverFactory
 
   const engine = new LibraryEngine(
     {
       dirname: __dirname,
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
-      adapter: adapterFactoryMock,
+      driver: adapterFactoryMock,
       env: {},
       cwd: process.cwd(),
       transactionOptions: {

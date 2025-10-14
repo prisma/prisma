@@ -17,7 +17,7 @@ export enum AdapterProviders {
   JS_MSSQL = 'js_mssql',
   JS_MARIADB = 'js_mariadb',
 
-  // entries below are not driver adapters,
+  // entries below are not drivers,
   // they are used for testing different databases
   JS_PG_COCKROACHDB = 'js_pg_cockroachdb',
   VITESS_8 = 'vitess_8',

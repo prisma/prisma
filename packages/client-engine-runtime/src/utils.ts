@@ -27,7 +27,7 @@ export function isDeepStrictEqual(a: unknown, b: unknown): boolean {
 /**
  * Checks if two objects representing the names and values of key columns match. A match is
  * defined by one of the sets of keys being a subset of the other. This function also
- * converts arguments to the types used by driver adapters if necessary.
+ * converts arguments to the types used by drivers if necessary.
  */
 export function doKeysMatch(lhs: {}, rhs: {}): boolean {
   const lhsKeys = Object.keys(lhs)

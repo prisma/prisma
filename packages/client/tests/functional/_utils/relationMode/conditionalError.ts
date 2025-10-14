@@ -47,7 +47,7 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
     if (driverAdapter === 'js_d1' || driverAdapter === 'js_libsql' || driverAdapter === 'js_better_sqlite3') {
       return (
         errorBase['sqlite'] ||
-        `TODO: add error for provider=sqlite (which will be used for libSQL and D1 driver adapters snapshots)`
+        `TODO: add error for provider=sqlite (which will be used for libSQL and D1 drivers snapshots)`
       )
     }
 

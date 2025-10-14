@@ -236,10 +236,10 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
   if (['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName)) {
     clientOptions.add(
       ts
-        .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+        .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverFactory'), ts.namedType('null')]))
         .optional()
         .setDocComment(
-          ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+          ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/driver-planetscale`'),
         ),
     )
   }

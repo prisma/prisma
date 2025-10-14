@@ -1,5 +1,5 @@
 import { Debug } from '@prisma/debug'
-import { SqlDriverAdapter, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-adapter-utils'
+import { SqlDriver, SqlQuery, SqlQueryable, Transaction } from '@prisma/driver-utils'
 
 import { randomUUID } from '../crypto'
 import { QueryEvent } from '../events'
@@ -55,7 +55,7 @@ export class TransactionManager {
   // List of last closed transactions. Max MAX_CLOSED_TRANSACTIONS entries.
   // Used to provide better error messages than a generic "transaction not found".
   private closedTransactions: TransactionWrapper[] = []
-  private readonly driverAdapter: SqlDriverAdapter
+  private readonly driverAdapter: SqlDriver
   private readonly transactionOptions: Options
   private readonly tracingHelper: TracingHelper
   readonly #onQuery?: (event: QueryEvent) => void
@@ -68,7 +68,7 @@ export class TransactionManager {
     onQuery,
     provider,
   }: {
-    driverAdapter: SqlDriverAdapter
+    driverAdapter: SqlDriver
     transactionOptions: Options
     tracingHelper: TracingHelper
     onQuery?: (event: QueryEvent) => void
@@ -287,7 +287,7 @@ export class TransactionManager {
     if (!options.timeout) throw new TransactionManagerError('timeout is required')
     if (!options.maxWait) throw new TransactionManagerError('maxWait is required')
 
-    // Snapshot level only supported for MS SQL Server, which is not supported via driver adapters so far.
+    // Snapshot level only supported for MS SQL Server, which is not supported via drivers so far.
     if (options.isolationLevel === 'SNAPSHOT') throw new InvalidTransactionIsolationLevelError(options.isolationLevel)
 
     return {

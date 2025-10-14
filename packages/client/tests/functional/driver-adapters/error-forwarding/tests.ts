@@ -1,5 +1,5 @@
 import { NewPrismaClient } from '../../_utils/types'
-import { mockAdapterErrors, mockAdapterFactory } from '../_utils/mock-adapter'
+import { mockAdapterErrors, mockDriverFactory } from '../_utils/mock-adapter'
 import { defaultTestSuiteOptions } from '../_utils/test-suite-options'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(
 
     beforeAll(() => {
       prisma = newPrismaClient({
-        adapter: mockAdapterFactory(provider),
+        driver: mockDriverFactory(provider),
       })
     })
     test('correctly forwards error for queryRaw', async () => {

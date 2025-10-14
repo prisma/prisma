@@ -1,4 +1,4 @@
-test('error is shown when both driver adapters and accelerate are not configured via @prisma/client/wasm', () => {
+test('error is shown when both drivers and accelerate are not configured via @prisma/client/wasm', () => {
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/wasm')
 
@@ -15,7 +15,7 @@ test('error is shown when both driver adapters and accelerate are not configured
   })
 })
 
-test('no error is shown when both driver adapters and accelerate are not configured via @prisma/client/default', () => {
+test('no error is shown when both drivers and accelerate are not configured via @prisma/client/default', () => {
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/default')
 

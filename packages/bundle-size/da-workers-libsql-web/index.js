@@ -1,4 +1,4 @@
-import { PrismaLibSql } from '@prisma/adapter-libsql/web'
+import { PrismaLibSql } from '@prisma/driver-libsql/web'
 
 import { PrismaClient } from './client/wasm'
 

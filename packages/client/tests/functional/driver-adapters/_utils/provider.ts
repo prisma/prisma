@@ -1,11 +1,11 @@
-import { SqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { SqlDriver } from '@prisma/driver-utils'
 
 import { Providers as Provider } from '../../_utils/providers'
 
 /**
- * Return the driver adapter provider name for a given provider, if it is supported.
+ * Return the driver provider name for a given provider, if it is supported.
  */
-export function getDriverAdaptersProvider(provider: Provider): SqlDriverAdapter['provider'] {
+export function getDriverAdaptersProvider(provider: Provider): SqlDriver['provider'] {
   switch (provider) {
     case Provider.POSTGRESQL:
     case Provider.COCKROACHDB:
@@ -15,7 +15,7 @@ export function getDriverAdaptersProvider(provider: Provider): SqlDriverAdapter[
     case Provider.SQLITE:
       return 'sqlite'
     default:
-      throw new Error(`no driver adapter support for ${provider} yet`)
+      throw new Error(`no driver support for ${provider} yet`)
   }
 }
 

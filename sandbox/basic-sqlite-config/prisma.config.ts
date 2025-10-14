@@ -12,7 +12,7 @@ const env = process.env as Env
 
 export default defineConfig({
   experimental: {
-    adapter: true,
+    driver: true,
   },
   async adapter() {
     return new PrismaD1({

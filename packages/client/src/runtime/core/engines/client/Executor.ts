@@ -1,5 +1,5 @@
 import type { QueryPlanNode, TransactionOptions } from '@prisma/client-engine-runtime'
-import type { ConnectionInfo, Provider } from '@prisma/driver-adapter-utils'
+import type { ConnectionInfo, Provider } from '@prisma/driver-utils'
 
 import type { AccelerateExtensionFetch } from '../common/Engine'
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'

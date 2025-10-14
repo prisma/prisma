@@ -44,11 +44,11 @@ testMatrix.setupTestSuite(
     },
     skipEngine: {
       from: ['client'],
-      reason: 'constructor is missing driver adapter params',
+      reason: 'constructor is missing driver params',
     },
     skipDriverAdapter: {
       from: ['js_d1', 'js_libsql', 'js_neon', 'js_pg', 'js_planetscale', 'vitess_8', 'js_better_sqlite3'],
-      reason: 'constructor is missing driver adapter params',
+      reason: 'constructor is missing driver params',
     },
   },
 )

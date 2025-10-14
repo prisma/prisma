@@ -70,9 +70,9 @@ bench('datasourceUrl applied', () => {
 
 bench('adapter applied', () => {
   const client = new PrismaClientConstructor({
-    adapter: {
+    driver: {
       provider: 'sqlite',
-      adapterName: 'mock-adapter',
+      driverName: 'mock-adapter',
       connect: () => Promise.resolve({} as any),
     },
   })

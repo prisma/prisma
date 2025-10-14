@@ -1,11 +1,11 @@
-import { PrismaD1 } from '@prisma/adapter-d1'
 import { PrismaClient } from '@prisma/client'
+import { PrismaD1 } from '@prisma/driver-d1'
 
 const prisma = new PrismaClient({
   errorFormat: 'minimal',
   // There is need to pass the adapter here for this test
   // @ts-ignore
-  adapter: new PrismaD1('something'),
+  driver: new PrismaD1('something'),
 })
 
 test('errors when iTx is used', async () => {

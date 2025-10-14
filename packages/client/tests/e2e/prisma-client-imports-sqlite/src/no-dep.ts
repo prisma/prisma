@@ -1,5 +1,5 @@
 import { D1Database } from '@cloudflare/workers-types'
-import { PrismaD1 } from '@prisma/adapter-d1'
+import { PrismaD1 } from '@prisma/driver-d1'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
 
@@ -21,6 +21,6 @@ void replicaClient.user.findMany()
 /* Driver Adapters */
 const d1Db = {} as D1Database
 export const d1PrismaClient = new PrismaClient({
-  adapter: new PrismaD1(d1Db),
+  driver: new PrismaD1(d1Db),
 })
 void d1PrismaClient.user.findMany()

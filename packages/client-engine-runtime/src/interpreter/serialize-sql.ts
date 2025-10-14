@@ -1,4 +1,4 @@
-import { type ColumnType, ColumnTypeEnum, type SqlResultSet } from '@prisma/driver-adapter-utils'
+import { type ColumnType, ColumnTypeEnum, type SqlResultSet } from '@prisma/driver-utils'
 
 import { assertNever } from '../utils'
 

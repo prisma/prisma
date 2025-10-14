@@ -1,12 +1,12 @@
 import { Prisma, PrismaClient } from './generated/prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/driver-pg'
 
 import util from 'node:util'
 
 async function main() {
   const prisma = new PrismaClient({
     log: ['query'],
-    adapter: new PrismaPg({
+    driver: new PrismaPg({
       connectionString: process.env.TEST_POSTGRES_URI
     }),
   })

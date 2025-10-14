@@ -43,7 +43,7 @@ export {
 export { deserializeJsonResponse } from '@prisma/client-engine-runtime'
 export { Debug } from '@prisma/debug'
 export * as DMMF from '@prisma/dmmf'
-export type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+export type { SqlDriverFactory as SqlDriverFactory } from '@prisma/driver-utils'
 export { warnOnce } from '@prisma/internals'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'

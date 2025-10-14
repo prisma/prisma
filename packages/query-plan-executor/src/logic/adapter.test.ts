@@ -1,11 +1,11 @@
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-import { PrismaMssql } from '@prisma/adapter-mssql'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaMariaDb } from '@prisma/driver-mariadb'
+import { PrismaMssql } from '@prisma/driver-mssql'
+import { PrismaPg } from '@prisma/driver-pg'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { createAdapter } from './adapter'
 
-vi.mock('@prisma/adapter-pg')
+vi.mock('@prisma/driver-pg')
 
 beforeEach(() => {
   vi.clearAllMocks()

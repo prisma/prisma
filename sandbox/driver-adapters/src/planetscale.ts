@@ -1,4 +1,4 @@
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
+import { PrismaPlanetScale } from '@prisma/driver-planetscale'
 import { smokeTest } from './test'
 
 async function main() {

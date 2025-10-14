@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@prisma/adapter-neon": "/tmp/prisma-adapter-neon-0.0.0.tgz",
-    "@prisma/adapter-pg": "/tmp/prisma-adapter-pg-0.0.0.tgz",
+    "@prisma/driver-neon": "/tmp/prisma-driver-neon-0.0.0.tgz",
+    "@prisma/driver-pg": "/tmp/prisma-driver-pg-0.0.0.tgz",
     "pg": "8.11.5"
   },
   "devDependencies": {

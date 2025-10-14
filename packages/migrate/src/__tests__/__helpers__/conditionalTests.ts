@@ -1,9 +1,9 @@
-import { Provider } from '@prisma/driver-adapter-utils'
+import { Provider } from '@prisma/driver-utils'
 
-import { currentDriverAdapterName, DriverAdapterName, providerOfCurrentDriverAdapter } from './driverAdapters'
+import { currentDriverAdapterName, DriverName, providerOfCurrentDriverAdapter } from './driverAdapters'
 
-// We have some tests for providers that are not supported by driver adapters yet.
-// TODO: D1 is also a special case as its tests have to be transformed to driver adapter tests.
+// We have some tests for providers that are not supported by drivers yet.
+// TODO: D1 is also a special case as its tests have to be transformed to driver tests.
 export type SupportedProviders = Provider | 'mongodb' | 'cockroachdb' | 'sqlserver' | 'd1'
 
 export type Matrix = {
@@ -11,7 +11,7 @@ export type Matrix = {
     [K in SupportedProviders]?: boolean
   }
   driverAdapters: {
-    [K in DriverAdapterName]?: boolean
+    [K in DriverName]?: boolean
   }
   onlyDriverAdapters?: boolean
 }
@@ -32,7 +32,7 @@ export const allDriverAdapters = {
   neon: true,
   libsql: true,
   d1: true,
-} satisfies Record<DriverAdapterName, true>
+} satisfies Record<DriverName, true>
 
 export const sqliteOnly = {
   providers: { sqlite: true },
@@ -66,11 +66,11 @@ export const mongodbOnly = {
 
 /**
  * Drop in replacement for `describe` that executes only if the given matrix condition is true.
- * This is mostly to exclude tests from for specific driver adapters.
+ * This is mostly to exclude tests from for specific drivers.
  * Tests for the legacy schema engine run against all providers at once by default except if
  * certain `TEST_SKIP_` env vars are set.
  *
- * Use `PRISMA_MIGRATE_TEST_ADAPTER` env var to set which driver adapter is used for testing.
+ * Use `PRISMA_MIGRATE_TEST_ADAPTER` env var to set which driver is used for testing.
  * E.g.: `PRISMA_MIGRATE_TEST_ADAPTER=libsql pnpm test`
  *
  * There are various shorthands for the matrix:
@@ -87,25 +87,25 @@ export const mongodbOnly = {
  * ```ts
  * describeMatrix(
  *   { providers: allProviders, driverAdapters: allDriverAdapters },
- *   'test will run with all driver adapters and providers',
+ *   'test will run with all drivers and providers',
  *   () => {...},
  * )
  *
  * describeMatrix(
  *   { providers: { ...allProviders, cockroachdb: false }, driverAdapters: allDriverAdapters },
- *   'test will run with all driver adapters and all providers except cockroachdb',
+ *   'test will run with all drivers and all providers except cockroachdb',
  *   () => {...},
  * )
  *
  * describeMatrix(
  *   { providers: { cockroachdb: true }, driverAdapters: {} },
- *   'test will run only with cockroachdb and no driver adapters',
+ *   'test will run only with cockroachdb and no drivers',
  *   () => {...},
  * )
  *
  * describeMatrix(
  *   { providers: allProviders, driverAdapters: allDriverAdapters, onlyDriverAdapters: true },
- *   'test will run only with all driver adapters and providers but not for the legacy schema engine',
+ *   'test will run only with all drivers and providers but not for the legacy schema engine',
  *   () => {...},
  * )
  * ```
@@ -116,18 +116,18 @@ export function describeMatrix(matrix: Matrix, name: string, fn: jest.EmptyFunct
   if (matrix.providers.sqlserver && process.env.TEST_SKIP_MSSQL) return skip(name)
   if (matrix.providers.mongodb && process.env.TEST_SKIP_MONGODB) return skip(name)
 
-  const adapterName = currentDriverAdapterName()
+  const driverName = currentDriverAdapterName()
 
-  if (adapterName) {
-    // Skip tests that shall not run for a specific driver adapter
-    if (!matrix.driverAdapters[adapterName]) return skip(name)
+  if (driverName) {
+    // Skip tests that shall not run for a specific driver
+    if (!matrix.driverAdapters[driverName]) return skip(name)
     const provider = providerOfCurrentDriverAdapter()
-    // Skip tests that shall not run for driver adapters using a specific provider
+    // Skip tests that shall not run for drivers using a specific provider
     if (!matrix.providers[provider]) return skip(name)
   }
 
-  // Skip tests that shall not run for driver adapters if no driver adapter is used
-  if (matrix.onlyDriverAdapters && !adapterName) return skip(name)
+  // Skip tests that shall not run for drivers if no driver is used
+  if (matrix.onlyDriverAdapters && !driverName) return skip(name)
 
   // eslint-disable-next-line jest/valid-describe-callback
   describe(name, fn)

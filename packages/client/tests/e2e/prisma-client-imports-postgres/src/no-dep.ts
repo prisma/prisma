@@ -1,7 +1,7 @@
 import { neonConfig } from '@neondatabase/serverless'
-// import { PrismaLibSql } from '@prisma/adapter-libsql'
-import { PrismaNeon, PrismaNeonHttp } from '@prisma/adapter-neon'
-import { PrismaPg } from '@prisma/adapter-pg'
+// import { PrismaLibSql } from '@prisma/driver-libsql'
+import { PrismaNeon, PrismaNeonHttp } from '@prisma/driver-neon'
+import { PrismaPg } from '@prisma/driver-pg'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
 import ws from 'ws'
@@ -27,12 +27,12 @@ void replicaClient.user.findMany()
 
 /* Driver Adapters */
 export const neonPrismaClient = new PrismaClient({
-  adapter: new PrismaNeon({ connectionString }),
+  driver: new PrismaNeon({ connectionString }),
 })
 void neonPrismaClient.user.findMany()
 
 export const neonHttpPrismaClient = new PrismaClient({
-  adapter: new PrismaNeonHttp('postgresql://user:password@example.com/dbname', {
+  driver: new PrismaNeonHttp('postgresql://user:password@example.com/dbname', {
     arrayMode: false,
     fullResults: true,
   }),
@@ -40,6 +40,6 @@ export const neonHttpPrismaClient = new PrismaClient({
 void neonHttpPrismaClient.user.findMany()
 
 export const pgPrismaClient = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  driver: new PrismaPg({ connectionString }),
 })
 void pgPrismaClient.user.findMany()

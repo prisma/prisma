@@ -1,4 +1,4 @@
-import { bindMigrationAwareSqlAdapterFactory, mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
+import { bindMigrationAwareSqlDriverFactory, mockMigrationAwareDriverFactory } from '@prisma/driver-utils'
 import { describe, expect, test } from 'vitest'
 
 import { defaultConfig } from '../defaultConfig'
@@ -41,13 +41,13 @@ describe('defineConfig', () => {
     test('if `experimental` features are provided, they should be configured', () => {
       const config = defineConfig({
         experimental: {
-          adapter: true,
+          driver: true,
           studio: true,
           externalTables: true,
         },
       })
       expect(config.experimental).toEqual({
-        adapter: true,
+        driver: true,
         studio: true,
         externalTables: true,
       })
@@ -62,24 +62,24 @@ describe('defineConfig', () => {
     })
 
     test('if a `studio` configuration is provided, it should configure Prisma Studio using the provided adapter', async () => {
-      const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
+      const expectedAdapter = mockMigrationAwareDriverFactory('postgres')
       const config = defineConfig({
         experimental: {
           studio: true,
         },
         studio: {
-          adapter: () => Promise.resolve(expectedAdapter),
+          driver: () => Promise.resolve(expectedAdapter),
         },
       })
       expect(config.studio).toStrictEqual({
-        adapter: expect.any(Function),
+        driver: expect.any(Function),
       })
 
       if (!config?.studio) {
         throw new Error('Expected config.studio to be defined')
       }
 
-      const { adapter: adapterFactory } = config.studio
+      const { driver: adapterFactory } = config.studio
       expect(adapterFactory).toBeDefined()
 
       const adapter = await adapterFactory()
@@ -88,30 +88,30 @@ describe('defineConfig', () => {
   })
 
   describe('adapter', () => {
-    test("if no `adapter` configuration is provided, it should not configure Prisma CLI's adapter", () => {
+    test("if no `driver` configuration is provided, it should not configure Prisma CLI's adapter", () => {
       const config = defineConfig(baselineConfig)
-      expect(config.adapter).toBeUndefined()
+      expect(config.driver).toBeUndefined()
     })
 
-    test('if an `adapter` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
-      const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
+    test('if an `driver` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+      const expectedAdapter = mockMigrationAwareDriverFactory('postgres')
       const config = defineConfig({
         experimental: {
-          adapter: true,
+          driver: true,
         },
-        adapter: () => Promise.resolve(expectedAdapter),
+        driver: () => Promise.resolve(expectedAdapter),
       })
-      expect(config.adapter).toStrictEqual(expect.any(Function))
+      expect(config.driver).toStrictEqual(expect.any(Function))
 
-      if (!config?.adapter) {
-        throw new Error('Expected config.adapter to be defined')
+      if (!config?.driver) {
+        throw new Error('Expected config.driver to be defined')
       }
 
-      const { adapter: adapterFactory } = config
+      const { driver: adapterFactory } = config
       expect(adapterFactory).toBeDefined()
 
       const adapter = await adapterFactory()
-      expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
+      expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlDriverFactory(expectedAdapter)))
     })
   })
 
@@ -127,19 +127,19 @@ describe('defineConfig', () => {
   })
 
   describe('experimental validation', () => {
-    test('should throw error when adapter is used without experimental.adapter', () => {
+    test('should throw error when adapter is used without experimental.driver', () => {
       expect(() =>
         defineConfig({
-          adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
+          driver: () => Promise.resolve(mockMigrationAwareDriverFactory('postgres')),
         }),
-      ).toThrow('The `adapter` configuration requires `experimental.adapter` to be set to `true`.')
+      ).toThrow('The `driver` configuration requires `experimental.driver` to be set to `true`.')
     })
 
     test('should throw error when studio is used without experimental.studio', () => {
       expect(() =>
         defineConfig({
           studio: {
-            adapter: () => Promise.resolve(mockMigrationAwareAdapterFactory('postgres')),
+            driver: () => Promise.resolve(mockMigrationAwareDriverFactory('postgres')),
           },
         }),
       ).toThrow('The `studio` configuration requires `experimental.studio` to be set to `true`.')

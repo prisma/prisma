@@ -1,5 +1,5 @@
 import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
@@ -144,12 +144,12 @@ export interface EngineConfig {
   transactionOptions: Transaction.Options
 
   /**
-   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/driver-planetscale`.
    * If set, this is only used in the library engine, and all queries would be performed through it,
    * rather than Prisma's Rust drivers.
    * @remarks only used by LibraryEngine.ts
    */
-  adapter?: SqlDriverAdapterFactory
+  driver?: SqlDriverFactory
 
   /**
    * The contents of the schema encoded into a string

@@ -1,7 +1,7 @@
 import timers from 'node:timers/promises'
 
-import type { SqlDriverAdapter, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-adapter-utils'
-import { ok } from '@prisma/driver-adapter-utils'
+import type { SqlDriver, SqlQuery, SqlResultSet, Transaction } from '@prisma/driver-utils'
+import { ok } from '@prisma/driver-utils'
 
 import { noopTracingHelper } from '../tracing'
 import { Options } from './transaction'
@@ -27,16 +27,16 @@ const TRANSACTION_OPTIONS = {
   isolationLevel: undefined,
 } as Options
 
-class MockDriverAdapter implements SqlDriverAdapter {
-  adapterName = 'mock-adapter'
-  provider: SqlDriverAdapter['provider']
+class MockDriverAdapter implements SqlDriver {
+  driverName = 'mock-adapter'
+  provider: SqlDriver['provider']
   private readonly usePhantomQuery: boolean
 
   executeRawMock: jest.MockedFn<(params: SqlQuery) => Promise<number>> = jest.fn().mockResolvedValue(ok(1))
   commitMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
   rollbackMock: jest.MockedFn<() => Promise<void>> = jest.fn().mockResolvedValue(ok(undefined))
 
-  constructor({ provider = 'postgres' as SqlDriverAdapter['provider'], usePhantomQuery = false } = {}) {
+  constructor({ provider = 'postgres' as SqlDriver['provider'], usePhantomQuery = false } = {}) {
     this.usePhantomQuery = usePhantomQuery
     this.provider = provider
   }
@@ -64,7 +64,7 @@ class MockDriverAdapter implements SqlDriverAdapter {
     const usePhantomQuery = this.usePhantomQuery
 
     const mockTransaction: Transaction = {
-      adapterName: 'mock-adapter',
+      driverName: 'mock-adapter',
       provider: 'postgres',
       options: { usePhantomQuery },
       queryRaw: jest.fn().mockRejectedValue('Not implemented for test'),
@@ -208,7 +208,7 @@ test('transactions are rolled back when shutting down', async () => {
   await expect(transactionManager.rollbackTransaction(id2)).rejects.toBeInstanceOf(TransactionRolledBackError)
 })
 
-test('when driver adapter requires phantom queries does not execute transaction statements', async () => {
+test('when driver requires phantom queries does not execute transaction statements', async () => {
   const driverAdapter = new MockDriverAdapter({ usePhantomQuery: true })
   const transactionManager = new TransactionManager({
     driverAdapter,

@@ -1,4 +1,4 @@
-import { SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { SqlDriver, SqlDriverFactory } from '@prisma/driver-utils'
 
 import { Providers as Provider } from '../../_utils/providers'
 import { getDriverAdaptersProvider } from './provider'
@@ -14,10 +14,10 @@ export const mockAdapterErrors = {
 /**
  * Create an adapter stub for testing.
  */
-export function mockAdapter(provider: Provider): SqlDriverAdapter {
+export function mockAdapter(provider: Provider): SqlDriver {
   return {
     provider: getDriverAdaptersProvider(provider),
-    adapterName: getDriverAdaptersProvider(provider),
+    driverName: getDriverAdaptersProvider(provider),
     queryRaw: () => Promise.reject(mockAdapterErrors.queryRaw),
     executeRaw: () => Promise.reject(mockAdapterErrors.executeRaw),
     startTransaction: () => Promise.reject(mockAdapterErrors.startTransaction),
@@ -29,10 +29,10 @@ export function mockAdapter(provider: Provider): SqlDriverAdapter {
 /**
  * Create an adapter factory stub for testing.
  */
-export function mockAdapterFactory(provider: Provider): SqlDriverAdapterFactory {
+export function mockDriverFactory(provider: Provider): SqlDriverFactory {
   return {
     provider: getDriverAdaptersProvider(provider),
-    adapterName: getDriverAdaptersProvider(provider),
+    driverName: getDriverAdaptersProvider(provider),
     connect: () => Promise.resolve(mockAdapter(provider)),
   }
 }

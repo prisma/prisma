@@ -1,17 +1,17 @@
-import { mockAdapterFactory } from '../../_utils/mock-adapter'
+import { mockDriverFactory } from '../../_utils/mock-adapter'
 
-test('driver adapters cannot be used via @prisma/client/edge', () => {
+test('drivers cannot be used via @prisma/client/edge', () => {
   jest.isolateModules(() => {
     const { PrismaClient } = require('@prisma/client/edge')
 
     const newClient = () =>
       new PrismaClient({
-        adapter: mockAdapterFactory('postgres'),
+        driver: mockDriverFactory('postgres'),
       })
 
     expect(newClient).toThrowErrorMatchingInlineSnapshot(`
-"Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
-Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor."
+"Prisma Client was configured to use the \`driver\` option but it was imported via its \`/edge\` endpoint.
+Please either remove the \`/edge\` endpoint or remove the \`driver\` from the Prisma Client constructor."
 `)
   })
 })

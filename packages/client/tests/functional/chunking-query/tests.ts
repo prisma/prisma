@@ -168,7 +168,7 @@ testMatrix.setupTestSuite(
           // To be clear: the root problem comes from the way the QE computes the amount of query params.
           await expect(selectWith2InFilters(ids)).rejects.toThrow()
         } else {
-          // It's unknown why this test doesn't fail with driver adapters.
+          // It's unknown why this test doesn't fail with drivers.
           await expect(selectWith2InFilters(ids)).resolves.toMatchInlineSnapshot(`[]`)
         }
       })
@@ -199,7 +199,7 @@ testMatrix.setupTestSuite(
         'Vitess supports at most 10k rows returned in a single query, so this test is not applicable. ' +
         'Neon occasionally fails with different parameter counts in its error messages. ' +
         'D1 does not have the correct amount of max_bind_values.' +
-        'The query appears to raise no error with the MariaDB driver adapter.',
+        'The query appears to raise no error with the MariaDB driver.',
     },
     skip(when, { clientEngineExecutor, provider }) {
       when(

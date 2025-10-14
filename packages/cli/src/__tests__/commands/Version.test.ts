@@ -17,7 +17,7 @@ const runBinaryTest =
   getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
-  describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
+  describe('shows @prisma/schema-engine-wasm when config.migrate.driver is set', () => {
     testIf(runLibraryTest)('shows query-engine library when queryCompiler is turned off', async () => {
       ctx.fixture('prisma-config-dont-download-schema-engine')
       const data = await ctx.cli('version')
@@ -34,7 +34,7 @@ describe('version', () => {
         Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
         PSL                     : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
         Schema Engine           : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine Adapter   : @prisma/adapter-sqlite-mock
+        Schema Engine Adapter   : @prisma/driver-sqlite-mock
         Default Engines Hash    : ENGINE_VERSION
         Studio                  : STUDIO_VERSION"
       `)
@@ -77,7 +77,7 @@ describe('version', () => {
           Query Compiler        : enabled
           PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
           Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-          Schema Engine Adapter : @prisma/adapter-sqlite-mock
+          Schema Engine Adapter : @prisma/driver-sqlite-mock
           Default Engines Hash  : ENGINE_VERSION
           Studio                : STUDIO_VERSION"
         `)

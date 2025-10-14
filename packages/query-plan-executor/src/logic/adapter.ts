@@ -1,9 +1,9 @@
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
-import { PrismaMssql } from '@prisma/adapter-mssql'
-import { PrismaPg } from '@prisma/adapter-pg'
-import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { PrismaMariaDb } from '@prisma/driver-mariadb'
+import { PrismaMssql } from '@prisma/driver-mssql'
+import { PrismaPg } from '@prisma/driver-pg'
+import type { SqlDriverFactory } from '@prisma/driver-utils'
 
-export function createAdapter(url: string): SqlDriverAdapterFactory {
+export function createAdapter(url: string): SqlDriverFactory {
   for (const factory of factories) {
     if (factory.protocols.some((protocol) => url.startsWith(`${protocol}://`))) {
       return factory.create(url)
@@ -20,7 +20,7 @@ export function createAdapter(url: string): SqlDriverAdapterFactory {
 
 type Factory = {
   protocols: string[]
-  create: (url: string) => SqlDriverAdapterFactory
+  create: (url: string) => SqlDriverFactory
 }
 
 const factories: Factory[] = [

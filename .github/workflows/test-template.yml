@@ -34,7 +34,7 @@ on:
         type: string
         required: false
       driverAdapterTestJobTimeout:
-        description: Timeout for driver adapter tests. Default is 60 minutes
+        description: Timeout for driver tests. Default is 60 minutes
         type: number
         default: 60
         required: false
@@ -231,7 +231,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (functional tests with driver adapters)
+  # CLIENT (functional tests with drivers)
   #
   client-driveradapters:
     name: DA ${{ matrix.flavor }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
@@ -354,7 +354,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
   #
-  # CLIENT (functional tests with client engine, query compiler and driver adapters)
+  # CLIENT (functional tests with client engine, query compiler and drivers)
   #
   client-query-compiler:
     name: QC ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
@@ -419,7 +419,7 @@ jobs:
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
   #
-  # CLIENT (functional tests with client engine, query compiler, driver adapters and Accelerate)
+  # CLIENT (functional tests with client engine, query compiler, drivers and Accelerate)
   #
   client-query-compiler-accelerate:
     name: QC+Accelerate ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
@@ -892,7 +892,7 @@ jobs:
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
-        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
+        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with drivers actually enable them on CI and add further adapters
         driverAdapter: ['']
     steps:
       - uses: actions/checkout@v4
@@ -1073,8 +1073,8 @@ jobs:
   #
   # Driver Adapter Unit Tests
   #
-  driver-adapter-unit-tests:
-    name: DA Unit Tests [v${{ matrix.node }}]
+  driver-unit-tests:
+    name: Driver Unit Tests [v${{ matrix.node }}]
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
     if: contains(inputs.jobsToRun, '-all-')
@@ -1094,28 +1094,28 @@ jobs:
           skip-tsc: true
 
       - run: pnpm run test
-        name: 'adapter-libsql'
-        working-directory: packages/adapter-libsql
+        name: 'driver-libsql'
+        working-directory: packages/driver-libsql
 
       - run: pnpm run test
-        name: 'adapter-mariadb'
-        working-directory: packages/adapter-mariadb
+        name: 'driver-mariadb'
+        working-directory: packages/driver-mariadb
 
       - run: pnpm run test
-        name: 'adapter-d1'
-        working-directory: packages/adapter-d1
+        name: 'driver-d1'
+        working-directory: packages/driver-d1
 
       - run: pnpm run test
-        name: 'adapter-pg'
-        working-directory: packages/adapter-pg
+        name: 'driver-pg'
+        working-directory: packages/driver-pg
 
       - run: pnpm run test
-        name: 'adapter-planetscale'
-        working-directory: packages/adapter-planetscale
+        name: 'driver-planetscale'
+        working-directory: packages/driver-planetscale
 
       - run: pnpm run test
-        name: 'adapter-mssql'
-        working-directory: packages/adapter-mssql
+        name: 'driver-mssql'
+        working-directory: packages/driver-mssql
 
   #
   # Query plan executor unit tests

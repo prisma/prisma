@@ -52,7 +52,7 @@ jobs:
           npm dist-tag "${{ env.ACTION }}" "@prisma/client${{ env.VERSION }}" "${{ env.TAG_NAME }}"
           npm dist-tag "${{ env.ACTION }}" "prisma${{ env.VERSION }}" "${{ env.TAG_NAME }}"
 
-          npm dist-tag "${{ env.ACTION }}" "@prisma/adapter-d1${{ env.VERSION }}" "${{ env.TAG_NAME }}"
+          npm dist-tag "${{ env.ACTION }}" "@prisma/driver-d1${{ env.VERSION }}" "${{ env.TAG_NAME }}"
 
         env:
           # Secrets

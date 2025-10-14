@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { defineConfig } from '@prisma/config'
-import { PrismaD1 } from '@prisma/adapter-d1'
+import { PrismaD1 } from '@prisma/driver-d1'
 
 type Env = {
   CLOUDFLARE_D1_TOKEN: string
@@ -16,7 +16,7 @@ const env = {
 
 export default defineConfig({
   experimental: {
-    adapter: true,
+    driver: true,
   },
   schema: path.join('schema.prisma'),
   async adapter() {

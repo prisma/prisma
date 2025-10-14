@@ -83,7 +83,7 @@ export class Version implements Command {
       return { engineType }
     })
 
-    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.adapter)
+    const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config.driver)
       .with(undefined, async () => {
         const name = BinaryType.SchemaEngineBinary
         const engineResult = await resolveEngine(name)
@@ -101,7 +101,7 @@ export class Version implements Command {
         return {
           schemaEngineRows: [
             ['Schema Engine', `@prisma/schema-engine-wasm ${wasm.schemaEngineWasmVersion}`] as const,
-            ['Schema Engine Adapter', adapter.adapterName] as const,
+            ['Schema Engine Adapter', adapter.driverName] as const,
           ],
           schemaEngineRetrievalErrors: enginesRetrievalErrors,
         }

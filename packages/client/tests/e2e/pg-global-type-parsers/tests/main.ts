@@ -1,11 +1,11 @@
 import { Pool } from 'pg'
 
-test('node-postgres global type parsers should not be changed by `@prisma/adapter-pg`', async () => {
+test('node-postgres global type parsers should not be changed by `@prisma/driver-pg`', async () => {
   const pgPool = new Pool({ connectionString: process.env.POSTGRES_URL })
 
   const beforeAdapterImport = await pgPool.query(`SELECT NOW() as ts`)
 
-  require('@prisma/adapter-pg')
+  require('@prisma/driver-pg')
 
   const afterAdapterImport = await pgPool.query(`SELECT NOW() as ts`)
 
@@ -16,12 +16,12 @@ test('node-postgres global type parsers should not be changed by `@prisma/adapte
   await pgPool.end()
 })
 
-test('node-postgres global type parsers should not be changed by `@prisma/adapter-neon`', async () => {
+test('node-postgres global type parsers should not be changed by `@prisma/driver-neon`', async () => {
   const pgPool = new Pool({ connectionString: process.env.POSTGRES_URL })
 
   const beforeAdapterImport = await pgPool.query(`SELECT NOW() as ts`)
 
-  require('@prisma/adapter-neon')
+  require('@prisma/driver-neon')
 
   const afterAdapterImport = await pgPool.query(`SELECT NOW() as ts`)
 

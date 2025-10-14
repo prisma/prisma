@@ -14,7 +14,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta, cliMeta) => {
   const usingRelationJoins = cliMeta.previewFeatures.includes('relationJoins')
 
-  // TODO: broken when using relation joins with driver adapters
+  // TODO: broken when using relation joins with drivers
   // because of https://github.com/prisma/team-orm/issues/683
   const shouldSkip = clientMeta.driverAdapter && usingRelationJoins
 

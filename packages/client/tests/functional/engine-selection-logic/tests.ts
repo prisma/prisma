@@ -33,7 +33,7 @@ testMatrix.setupTestSuite(
         },
       )
 
-      // driver adapters cannot be used along with accelerate
+      // drivers cannot be used along with accelerate
       skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite(
         },
       )
 
-      // driver adapters cannot be used along with accelerate
+      // drivers cannot be used along with accelerate
       skipTestIf(clientMeta.dataProxy || Boolean(driverAdapter))(
         'prisma:// url works as expected even when --no-engine is not used',
         async () => {

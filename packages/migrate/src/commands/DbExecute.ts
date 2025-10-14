@@ -49,7 +49,7 @@ export class DbExecute implements Command {
   }
 
   // TODO: This command needs to get proper support for `prisma.config.ts` eventually. Not just taking the schema path
-  //  from prisma.config.ts but likely to support driver adapters, too?
+  //  from prisma.config.ts but likely to support drivers, too?
   //  See https://linear.app/prisma-company/issue/ORM-639/prisma-db-execute-support-prismaconfigts-and-driver-adapters
   private static help = format(`
 ${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
@@ -58,7 +58,7 @@ This command takes as input a datasource, using ${green(`--url`)} or ${green(`--
     `--stdin`,
   )} or ${green(`--file`)}.
 The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
- 
+
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
 
 On SQL databases, this command takes as input a SQL script.
@@ -68,7 +68,7 @@ ${italic(`This command is currently not supported on MongoDB.`)}
 
 ${helpOptions}
 ${bold('Examples')}
- 
+
   Execute the content of a SQL script file to the datasource URL taken from the schema
   ${dim('$')} prisma db execute
     --file ./script.sql \\
@@ -125,7 +125,7 @@ ${bold('Examples')}
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {
       throw new Error(
-        `--stdin and --file cannot be used at the same time. Only 1 must be provided. 
+        `--stdin and --file cannot be used at the same time. Only 1 must be provided.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     } else if (!args['--stdin'] && !args['--file']) {
@@ -198,8 +198,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       }
     }
 
-    const adapter = await config.adapter?.()
-    const migrate = await Migrate.setup({ adapter, extensions: config['extensions'] })
+    const driver = await config.driver?.()
+    const migrate = await Migrate.setup({ driver, extensions: config['extensions'] })
 
     try {
       await migrate.engine.dbExecute({

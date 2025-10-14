@@ -330,18 +330,18 @@ List of types:
 
 List of directories in the monorepo:
 
-- adapter-better-sqlite3
-- adapter-d1
-- adapter-libsql
-- adapter-mssql
-- adapter-neon
-- adapter-pg
-- adapter-planetscale
-- adapter-mariadb
+- driver-better-sqlite3
+- driver-d1
+- driver-libsql
+- driver-mssql
+- driver-neon
+- driver-pg
+- driver-planetscale
+- driver-mariadb
 - cli
 - client
 - debug
-- driver-adapter-utils
+- driver-utils
 - engines
 - fetch-engine
 - generator-helper

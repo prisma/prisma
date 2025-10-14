@@ -1,5 +1,3 @@
-/* eslint-disable import/no-duplicates */
-import { PrismaPlanetScale } from '@prisma/adapter-planetscale'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
 import * as G1 from '@prisma/client/generator-build'
@@ -7,6 +5,7 @@ import * as G1 from '@prisma/client/generator-build'
 import * as G2 from '@prisma/client/generator-build/index.js'
 import { PrismaClientKnownRequestError as E1 } from '@prisma/client/runtime/library'
 import { PrismaClientKnownRequestError as E2 } from '@prisma/client/runtime/library.js'
+import { PrismaPlanetScale } from '@prisma/driver-planetscale'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { readReplicas } from '@prisma/extension-read-replicas'
 
@@ -28,6 +27,6 @@ export const generators = [G1, G2]
 
 /* Driver Adapters */
 export const planetScalePrismaClient = new PrismaClient({
-  adapter: new PrismaPlanetScale({ url: connectionString }),
+  driver: new PrismaPlanetScale({ url: connectionString }),
 })
 void planetScalePrismaClient.user.findMany()

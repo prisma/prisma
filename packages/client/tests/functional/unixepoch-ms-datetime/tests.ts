@@ -1,5 +1,5 @@
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { PrismaBetterSqlite3 } from '@prisma/driver-better-sqlite3'
+import { PrismaLibSql } from '@prisma/driver-libsql'
 import { randomUUID } from 'crypto'
 
 import { AdapterProviders } from '../_utils/providers'
@@ -118,7 +118,7 @@ testMatrix.setupTestSuite(
       reason: 'D1 does not need to support the QE unixepoch-ms format',
     },
     skipDefaultClientInstance: true,
-    skip: (skip, options) => skip(options.driverAdapter === undefined, 'testing only driver adapters'),
+    skip: (skip, options) => skip(options.driverAdapter === undefined, 'testing only drivers'),
   },
 )
 
@@ -127,7 +127,7 @@ function createClient(info: DatasourceInfo, driverAdapter?: `${AdapterProviders}
 
   return newPrismaClient({
     // @ts-test-if: driverAdapter !== undefined
-    adapter: new constructor(
+    driver: new constructor(
       {
         url: info.databaseUrl,
       },

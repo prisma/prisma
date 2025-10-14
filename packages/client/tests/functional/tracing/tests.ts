@@ -167,7 +167,7 @@ testMatrix.setupTestSuite(
         span.attributes['db.operation.name'] = expect.toBeString()
       }
 
-      // extra children spans for driver adapters, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
+      // extra children spans for drivers, except some queries (BEGIN/COMMIT with `usePhantomQuery: true`)
       if (
         clientMeta.driverAdapter &&
         driverAdapterChildSpans !== AdapterQueryChildSpans.None &&

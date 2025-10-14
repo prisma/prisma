@@ -9,7 +9,7 @@
  */
 
 import { PrismaClient } from 'db';
-import { PrismaD1 } from '@prisma/adapter-d1';
+import { PrismaD1 } from '@prisma/driver-d1';
 
 export interface Env {
 	MY_DATABASE: D1Database;

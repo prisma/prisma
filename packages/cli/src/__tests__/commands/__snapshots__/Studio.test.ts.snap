@@ -270,7 +270,7 @@ exports[`studio with default schema.prisma filename can respond to \`update\` qu
 }
 `;
 
-exports[`studio with driver adapter from prisma.config.ts responds to \`findMany\` queries 1`] = `
+exports[`studio with driver from prisma.config.ts responds to \`findMany\` queries 1`] = `
 {
   "action": "clientRequest",
   "channel": "-prisma",

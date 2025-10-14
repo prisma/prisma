@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(
         expect(queryLogs.length).toBeGreaterThan(0)
 
         // We always have at least one quaint log item with native Rust SQL connectors,
-        // and the API calls related logs with Data Proxy, but with driver adapters,
+        // and the API calls related logs with Data Proxy, but with drivers,
         // MongoDB and QPE there might not necessarily be any info logs in this test.
         if (
           !clientMeta.driverAdapter &&

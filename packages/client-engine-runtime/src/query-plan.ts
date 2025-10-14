@@ -1,4 +1,4 @@
-import { ArgType, Arity } from '@prisma/driver-adapter-utils'
+import { ArgType, Arity } from '@prisma/driver-utils'
 
 export type PrismaValuePlaceholder = { prisma__type: 'param'; prisma__value: { name: string; type: string } }
 

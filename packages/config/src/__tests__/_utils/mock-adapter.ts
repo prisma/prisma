@@ -1,1 +1,1 @@
-export { mockAdapter, mockAdapterFactory, mockMigrationAwareAdapterFactory } from '@prisma/driver-adapter-utils'
+export { mockAdapter, mockDriverFactory, mockMigrationAwareDriverFactory } from '@prisma/driver-utils'

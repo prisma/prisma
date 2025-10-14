@@ -1,5 +1,5 @@
 import { type Context, type Span, SpanKind, type SpanOptions } from '@opentelemetry/api'
-import type { SqlQuery } from '@prisma/driver-adapter-utils'
+import type { SqlQuery } from '@prisma/driver-utils'
 
 import { QueryEvent } from './events'
 import type { SchemaProvider } from './schema'

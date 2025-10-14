@@ -1,4 +1,4 @@
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaPg } from '@prisma/driver-pg'
 import { expectTypeOf } from 'expect-type'
 
 import { NewPrismaClient } from '../_utils/types'
@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
 
         const prisma = newPrismaClient({
           // @ts-test-if: provider !== Providers.MONGODB
-          adapter: new PrismaPg(
+          driver: new PrismaPg(
             {
               connectionString: info.databaseUrl,
             },

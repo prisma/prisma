@@ -65,14 +65,14 @@ describe('CLI', () => {
       process.env = { ...originalEnv }
     })
 
-    describe('with config.migrate.adapter, should not download schema-engine', () => {
+    describe('with config.migrate.driver, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
         experimental: {
-          adapter: true,
+          driver: true,
         },
         // @ts-ignore: we don't need to import an actual adapter
-        adapter: async () => {
+        driver: async () => {
           return Promise.resolve({})
         },
       })
@@ -116,7 +116,7 @@ describe('CLI', () => {
       })
     })
 
-    describe('without config.migrate.adapter, should download schema-engine', () => {
+    describe('without config.migrate.driver, should download schema-engine', () => {
       it('should not download query-engine when engineType = "client"', async () => {
         ctx.fixture('ensure-needed-binaries-exist')
 

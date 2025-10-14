@@ -6,13 +6,13 @@ import {
   TransactionManager,
   type TransactionOptions,
 } from '@prisma/client-engine-runtime'
-import type { ConnectionInfo, SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { ConnectionInfo, SqlDriver, SqlDriverFactory } from '@prisma/driver-utils'
 
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
 import type { ExecutePlanParams, Executor, ProviderAndConnectionInfo } from './Executor'
 
 export interface LocalExecutorOptions {
-  driverAdapterFactory: SqlDriverAdapterFactory
+  driverFactory: SqlDriverFactory
   transactionOptions: TransactionOptions
   tracingHelper: TracingHelper
   onQuery?: (event: QueryEvent) => void
@@ -21,11 +21,11 @@ export interface LocalExecutorOptions {
 
 export class LocalExecutor implements Executor {
   readonly #options: LocalExecutorOptions
-  readonly #driverAdapter: SqlDriverAdapter
+  readonly #driverAdapter: SqlDriver
   readonly #transactionManager: TransactionManager
   readonly #connectionInfo?: ConnectionInfo
 
-  constructor(options: LocalExecutorOptions, driverAdapter: SqlDriverAdapter, transactionManager: TransactionManager) {
+  constructor(options: LocalExecutorOptions, driverAdapter: SqlDriver, transactionManager: TransactionManager) {
     this.#options = options
     this.#driverAdapter = driverAdapter
     this.#transactionManager = transactionManager
@@ -33,11 +33,11 @@ export class LocalExecutor implements Executor {
   }
 
   static async connect(options: LocalExecutorOptions): Promise<LocalExecutor> {
-    let driverAdapter: SqlDriverAdapter | undefined = undefined
+    let driverAdapter: SqlDriver | undefined = undefined
     let transactionManager: TransactionManager | undefined = undefined
 
     try {
-      driverAdapter = await options.driverAdapterFactory.connect()
+      driverAdapter = await options.driverFactory.connect()
       transactionManager = new TransactionManager({
         driverAdapter,
         transactionOptions: options.transactionOptions,

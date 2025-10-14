@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@prisma/adapter-d1": "/tmp/prisma-adapter-d1-0.0.0.tgz",
+    "@prisma/driver-d1": "/tmp/prisma-driver-d1-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
   },
   "devDependencies": {

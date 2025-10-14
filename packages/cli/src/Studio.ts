@@ -67,7 +67,7 @@ ${bold('Examples')}
 
   Specify a schema
     ${dim('$')} prisma studio --schema=./schema.prisma
-    
+
   Specify a custom prisma config file
     ${dim('$')} prisma studio --config=./prisma.config.ts
 `)
@@ -119,7 +119,7 @@ ${bold('Examples')}
       schemas: schemaContext.schemaFiles,
     })
 
-    const adapter = await config.studio?.adapter()
+    const adapter = await config.studio?.driver()
 
     if (!schemaContext.primaryDatasource) throw new Error('No datasource found in schema')
 

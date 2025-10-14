@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@prisma/adapter-libsql": "/tmp/prisma-adapter-libsql-0.0.0.tgz",
+    "@prisma/driver-libsql": "/tmp/prisma-driver-libsql-0.0.0.tgz",
     "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
   },
   "devDependencies": {

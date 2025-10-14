@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import type { ErrorCapturingSqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import type { ErrorCapturingSqlDriverFactory } from '@prisma/driver-utils'
 import type { ConstructorOptions, SchemaEngine } from '@prisma/schema-engine-wasm'
 
 async function getSchemaEngineWasModule() {
@@ -35,7 +35,7 @@ export const wasmSchemaEngineLoader = {
   async loadSchemaEngine(
     input: ConstructorOptions,
     debug: (arg: string) => void,
-    adapter: ErrorCapturingSqlDriverAdapterFactory,
+    driver: ErrorCapturingSqlDriverFactory,
   ) {
     // we only create the instance once for efficiency and also because wasm
     // bindgen keeps an internal cache of its instance already, when the wasm
@@ -44,6 +44,6 @@ export const wasmSchemaEngineLoader = {
       loadedWasmInstance = await getSchemaEngineWasmInstance()
     }
 
-    return await loadedWasmInstance.new(input, debug, adapter)
+    return await loadedWasmInstance.new(input, debug, driver)
   },
 }

@@ -11,11 +11,11 @@ import { LibraryLoader } from './types/Library'
 let loadedWasmInstance: Promise<QueryEngineConstructor>
 export const wasmLibraryLoader: LibraryLoader = {
   async loadLibrary(config) {
-    const { clientVersion, adapter, engineWasm } = config
+    const { clientVersion, driver, engineWasm } = config
 
-    if (adapter === undefined) {
+    if (driver === undefined) {
       throw new PrismaClientInitializationError(
-        `The \`adapter\` option for \`PrismaClient\` is required in this context (${getRuntime().prettyName})`,
+        `The \`driver\` option for \`PrismaClient\` is required in this context (${getRuntime().prettyName})`,
         clientVersion,
       )
     }

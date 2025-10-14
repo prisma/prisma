@@ -10,7 +10,7 @@ const knownProperties = [
   'datasources',
   'datasourceUrl',
   'errorFormat',
-  'adapter',
+  'driver',
   'log',
   'transactionOptions',
   'omit',
@@ -81,26 +81,26 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  adapter: (adapter, config) => {
-    if (!adapter && getClientEngineType(config.generator) === ClientEngineType.Client) {
+  driver: (driver, config) => {
+    if (!driver && getClientEngineType(config.generator) === ClientEngineType.Client) {
       throw new PrismaClientConstructorValidationError(
-        `Using engine type "client" requires a driver adapter to be provided to PrismaClient constructor.`,
+        `Using engine type "client" requires a driver to be provided to PrismaClient constructor.`,
       )
     }
 
-    if (adapter === null) {
+    if (driver === null) {
       return
     }
 
-    if (adapter === undefined) {
+    if (driver === undefined) {
       throw new PrismaClientConstructorValidationError(
-        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+        `"driver" property must not be undefined, use null to conditionally disable drivers.`,
       )
     }
 
     if (getClientEngineType(config.generator) === ClientEngineType.Binary) {
       throw new PrismaClientConstructorValidationError(
-        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
+        `Cannot use a driver with the "binary" Query Engine. Please use the "library" Query Engine.`,
       )
     }
   },

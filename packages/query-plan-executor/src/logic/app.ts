@@ -10,7 +10,7 @@ import {
   TransactionManager,
   TransactionOptions,
 } from '@prisma/client-engine-runtime'
-import { ConnectionInfo, Provider, SqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { ConnectionInfo, Provider, SqlDriver } from '@prisma/driver-utils'
 
 import * as log from '../log/facade'
 import { Options } from '../options'
@@ -23,11 +23,11 @@ import { ResourceLimitError, ResourceLimits } from './resource-limits'
  * Entry point for the application logic.
  */
 export class App {
-  readonly #db: SqlDriverAdapter
+  readonly #db: SqlDriver
   readonly #transactionManager: TransactionManager
   readonly #tracingHandler: TracingHandler
 
-  constructor(db: SqlDriverAdapter, transactionManager: TransactionManager, tracingHandler: TracingHandler) {
+  constructor(db: SqlDriver, transactionManager: TransactionManager, tracingHandler: TracingHandler) {
     this.#db = db
     this.#transactionManager = transactionManager
     this.#tracingHandler = tracingHandler

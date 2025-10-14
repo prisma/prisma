@@ -1,4 +1,4 @@
-import { ErrorCapturingSqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlMigrationAwareDriverFactory } from '@prisma/driver-utils'
 import { dim } from 'kleur/colors'
 
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -10,10 +10,10 @@ import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 // Datasource "my_db": SQL Server database
 export function printDatasource({
   datasourceInfo,
-  adapter,
+  driver,
 }: {
   datasourceInfo: DatasourceInfo
-  adapter?: ErrorCapturingSqlMigrationAwareDriverAdapterFactory
+  driver?: ErrorCapturingSqlMigrationAwareDriverFactory
 }): void {
   if (!datasourceInfo.name || !datasourceInfo.prettyProvider) return
 
@@ -31,8 +31,8 @@ export function printDatasource({
     message += `, schema "${datasourceInfo.schema}"`
   }
 
-  if (adapter) {
-    message += ` using driver adapter "${adapter.adapterName}"`
+  if (driver) {
+    message += ` using driver "${driver.driverName}"`
   } else if (datasourceInfo.dbLocation) {
     message += ` at "${datasourceInfo.dbLocation}"`
   }

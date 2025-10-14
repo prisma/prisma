@@ -1,4 +1,4 @@
-import { ErrorCapturingSqlDriverAdapter } from '@prisma/driver-adapter-utils'
+import { ErrorCapturingSqlDriver } from '@prisma/driver-utils'
 
 export type EngineWasmLoadingConfig = {
   /**
@@ -41,11 +41,7 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new (
-    config: QueryEngineConfig,
-    logger: (log: string) => void,
-    adapter?: ErrorCapturingSqlDriverAdapter,
-  ): QueryEngineInstance
+  new (config: QueryEngineConfig, logger: (log: string) => void, driver?: ErrorCapturingSqlDriver): QueryEngineInstance
 }
 
 export type QueryEngineConfig = {

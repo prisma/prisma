@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
       when(
         clientEngineExecutor === 'remote',
         `
-        Fails because it expects a driver adapter when there's no Accelerate URL.
+        Fails because it expects a driver when there's no Accelerate URL.
         `,
       )
     },

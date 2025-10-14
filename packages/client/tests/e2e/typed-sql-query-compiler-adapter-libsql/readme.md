@@ -1,3 +1,3 @@
 # Readme
 
-Test for typed-sql + query compiler with `@prisma/adapter-libsql`.
+Test for typed-sql + query compiler with `@prisma/driver-libsql`.

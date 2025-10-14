@@ -1,4 +1,4 @@
-import { PrismaMariaDb } from '@prisma/adapter-mariadb'
+import { PrismaMariaDb } from '@prisma/driver-mariadb'
 
 import { PrismaClient } from './client/wasm'
 
@@ -12,7 +12,6 @@ export default {
     const users = await prisma.user.findMany()
     const result = JSON.stringify(users)
 
-    // eslint-disable-next-line no-undef
     return new Response(result)
   },
 }

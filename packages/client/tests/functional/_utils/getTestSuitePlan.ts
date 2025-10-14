@@ -54,7 +54,7 @@ export function getTestSuitePlan(
 
 /**
  * This function takes a regular `testPlanEntry` and expands this into the
- * multiple compatible driver adapters that exist for a given provider. For
+ * multiple compatible drivers that exist for a given provider. For
  * example, postgres => [postgres (pg), postgres (neon)], put very simply. In
  * other words, a given test matrix is expanded with the provider adapters.
  * @param suiteConfig
@@ -84,9 +84,9 @@ function getExpandedTestSuitePlanWithProviderFlavors(suiteConfig: NamedTestSuite
 
 /**
  * Expands each suiteConfig entry to ensure we have separate entries for
- * client engine's remote executor which doesn't use driver adapters locally
+ * client engine's remote executor which doesn't use drivers locally
  * and needs to have matrix entries on its own to ensure the names of generated
- * tests don't collide with those using QE without driver adapters. We need
+ * tests don't collide with those using QE without drivers. We need
  * this to have different snapshots for, e.g., errors.
  */
 function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig) {
@@ -94,7 +94,7 @@ function getExpandedTestSuitePlanWithRemoteQpe(suiteConfig: NamedTestSuiteConfig
     suiteConfig.matrixOptions.clientEngineExecutor = 'local'
     return [suiteConfig]
   } else {
-    // For each suite config that doesn't use driver adapters, we need
+    // For each suite config that doesn't use drivers, we need
     // to clone it and create two separate configs:
     //  - one which doesn't require `ClientEngine` specifically and can
     //    be run with any engine type, but requires specifically a local
@@ -182,8 +182,8 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  // if this test can't use a driver adapter, and we run the tests for a specific
-  // driver adapter, skip it
+  // if this test can't use a driver, and we run the tests for a specific
+  // driver, skip it
   if (driverAdapter === undefined && includedProviderAdapters !== undefined) {
     return true
   }
