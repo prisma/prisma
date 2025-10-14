@@ -70,8 +70,8 @@ describe('loadConfigFromFile', () => {
       })
     })
 
-    describe.only('engine', () => {
-      test.only('if `engine === "js"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+    describe('engine', () => {
+      test('if `engine === "js"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
         ctx.fixture('loadConfigFromFile/engine/js')
 
         const { config, error, resolvedPath } = await loadConfigFromFile({})
