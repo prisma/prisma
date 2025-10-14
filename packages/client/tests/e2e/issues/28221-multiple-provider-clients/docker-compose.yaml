@@ -29,8 +29,6 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
       - MYSQL_PASSWORD=prisma
-    ports:
-      - '3306:3306'
     healthcheck:
       test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P3306']
       interval: 5s
