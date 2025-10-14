@@ -1,6 +1,5 @@
-/* eslint-disable import/no-duplicates */
 import { neonConfig } from '@neondatabase/serverless'
-import { PrismaNeon, PrismaNeonHTTP } from '@prisma/adapter-neon'
+import { PrismaNeon, PrismaNeonHttp } from '@prisma/adapter-neon'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 // @ts-ignore no types available
@@ -39,7 +38,7 @@ export const neonPrismaClient = new PrismaClient({
 void neonPrismaClient.user.findMany()
 
 export const neonHttpPrismaClient = new PrismaClient({
-  adapter: new PrismaNeonHTTP('postgresql://user:password@example.com/dbname', {
+  adapter: new PrismaNeonHttp('postgresql://user:password@example.com/dbname', {
     arrayMode: false,
     fullResults: true,
   }),

@@ -45,7 +45,7 @@ class BetterSQLite3Queryable<ClientT extends StdClient> implements SqlQueryable 
 
   constructor(
     protected readonly client: ClientT,
-    protected readonly adapterOptions?: PrismaBetterSQLite3Options,
+    protected readonly adapterOptions?: PrismaBetterSqlite3Options,
   ) {}
 
   /**
@@ -142,7 +142,7 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
   constructor(
     client: StdClient,
     readonly options: TransactionOptions,
-    adapterOptions: PrismaBetterSQLite3Options | undefined,
+    adapterOptions: PrismaBetterSqlite3Options | undefined,
     unlockParent: () => void,
   ) {
     super(client, adapterOptions)
@@ -162,10 +162,10 @@ class BetterSQLite3Transaction extends BetterSQLite3Queryable<StdClient> impleme
   }
 }
 
-export class PrismaBetterSQLite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
+export class PrismaBetterSqlite3Adapter extends BetterSQLite3Queryable<StdClient> implements SqlDriverAdapter {
   #mutex = new Mutex()
 
-  constructor(client: StdClient, adapterOptions?: PrismaBetterSQLite3Options) {
+  constructor(client: StdClient, adapterOptions?: PrismaBetterSqlite3Options) {
     super(client, adapterOptions)
   }
 
@@ -214,31 +214,31 @@ type BetterSQLite3InputParams = BetterSQLite3Options & {
   url: ':memory:' | (string & {})
 }
 
-export type PrismaBetterSQLite3Options = {
+export type PrismaBetterSqlite3Options = {
   shadowDatabaseUrl?: string
   timestampFormat?: 'iso8601' | 'unixepoch-ms'
 }
 
-export class PrismaBetterSQLite3AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
+export class PrismaBetterSqlite3AdapterFactory implements SqlMigrationAwareDriverAdapterFactory {
   readonly provider = 'sqlite'
   readonly adapterName = packageName
 
   readonly #config: BetterSQLite3InputParams
-  readonly #options?: PrismaBetterSQLite3Options
+  readonly #options?: PrismaBetterSqlite3Options
 
-  constructor(config: BetterSQLite3InputParams, options?: PrismaBetterSQLite3Options) {
+  constructor(config: BetterSQLite3InputParams, options?: PrismaBetterSqlite3Options) {
     this.#config = config
     this.#options = options
   }
 
   connect(): Promise<SqlDriverAdapter> {
-    return Promise.resolve(new PrismaBetterSQLite3Adapter(createBetterSQLite3Client(this.#config), this.#options))
+    return Promise.resolve(new PrismaBetterSqlite3Adapter(createBetterSQLite3Client(this.#config), this.#options))
   }
 
   connectToShadowDb(): Promise<SqlDriverAdapter> {
     const url = this.#options?.shadowDatabaseUrl ?? ':memory:'
     return Promise.resolve(
-      new PrismaBetterSQLite3Adapter(createBetterSQLite3Client({ ...this.#config, url }), this.#options),
+      new PrismaBetterSqlite3Adapter(createBetterSQLite3Client({ ...this.#config, url }), this.#options),
     )
   }
 }
