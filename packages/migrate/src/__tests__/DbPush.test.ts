@@ -262,10 +262,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = DbPush.new().parse(['--force-reset'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>

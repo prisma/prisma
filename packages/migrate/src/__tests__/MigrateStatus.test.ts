@@ -59,7 +59,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run prisma migrate dev.
 
       The failed migration(s) can be marked as rolled back or applied:
-            
+
       - If you rolled back the migration(s) manually:
       prisma migrate resolve --rolled-back "20201231000000_failed"
 
@@ -87,7 +87,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "The current database is not managed by Prisma Migrate.
-              
+
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
@@ -165,7 +165,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "The current database is not managed by Prisma Migrate.
-              
+
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
@@ -187,7 +187,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       "The current database is not managed by Prisma Migrate.
-              
+
       Read more about how to baseline an existing production database:
       https://pris.ly/d/migrate-baseline"
     `)
@@ -248,10 +248,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
       Please make sure your database server is running at \`doesnotexist:5432\`."
     `)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>

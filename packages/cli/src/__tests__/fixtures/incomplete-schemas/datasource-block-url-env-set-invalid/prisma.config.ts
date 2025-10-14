@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { defineConfig, env } from '@prisma/config'
+import { defineConfig } from '@prisma/config'
 
 const basePath = process.cwd()
 

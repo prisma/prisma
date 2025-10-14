@@ -3,7 +3,6 @@ import { Script } from 'node:vm'
 
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
-import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import { execa } from 'execa'
 import fs from 'fs-extra'
@@ -12,10 +11,10 @@ import { match } from 'ts-pattern'
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { buildPrismaConfig } from './config-builder'
+import type { NamedTestSuiteConfig, TestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
-import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
@@ -168,7 +167,7 @@ export async function setupTestSuiteDatabase({
         dbPushParams.push('--force-reset')
       }
 
-      const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+      const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
       await DbPush.new().parse(dbPushParams, runtimeConfig)
 
       if (
@@ -196,7 +195,7 @@ export async function setupTestSuiteDatabase({
         alterStatementCallback(provider),
       )
 
-      const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+      const runtimeConfig = buildPrismaConfig({ suiteMeta, suiteConfig, datasourceInfo })
       await DbExecute.new().parse(['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`], runtimeConfig)
     }
 
@@ -290,15 +289,13 @@ export async function dropTestSuiteDatabase({
   cfWorkerBindings?: { [key: string]: unknown }
   datasourceInfo: DatasourceInfo
 }) {
-  const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
-
   if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
     return await prepareD1Database({ cfWorkerBindings: cfWorkerBindings! })
   }
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+    const runtimeConfig = buildPrismaConfig({ suiteConfig, suiteMeta, datasourceInfo })
     await DbDrop.new().parse(['--force', '--preview-feature'], runtimeConfig)
     consoleInfoMock.mockRestore()
   } catch (e) {
@@ -316,30 +313,6 @@ export async function dropTestSuiteDatabase({
       }) // retry logic
     }
   }
-}
-
-function buildPrismaConfig(schemaPath: string, datasourceInfo: DatasourceInfo): PrismaConfigInternal {
-  const base = defaultTestConfig()
-
-  return {
-    ...base,
-    engine: 'classic',
-    schema: schemaPath,
-    datasource: {
-      url: absolutizeSqliteUrl({ schemaPath, databaseUrl: datasourceInfo.databaseUrl }),
-    },
-  }
-}
-
-const SQLITE_PROTOCOL = 'file:'
-
-function absolutizeSqliteUrl({ databaseUrl, schemaPath }: { databaseUrl: string; schemaPath: string }): string {
-  if (!databaseUrl.startsWith(SQLITE_PROTOCOL)) {
-    return databaseUrl
-  }
-  const relativePath = databaseUrl.slice(SQLITE_PROTOCOL.length)
-  const absolutePath = path.resolve(path.dirname(schemaPath), relativePath)
-  return SQLITE_PROTOCOL + absolutePath
 }
 
 async function prepareD1Database({ cfWorkerBindings }: { cfWorkerBindings: { [key: string]: unknown } }) {

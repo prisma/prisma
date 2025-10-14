@@ -6,8 +6,9 @@ import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import { AdapterProviders, GeneratorTypes, isDriverAdapterProviderLabel, Providers, RelationModes } from './providers'
-import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientEngineExecutor, ClientMeta, ClientRuntime, CliMeta } from './types'
+
+export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
 export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {

@@ -254,13 +254,6 @@ describe('validate', () => {
     )
   })
 
-  it('should throw if env var is not set', async () => {
-    ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'], defaultTestConfig())).rejects.toThrow(
-      'Environment variable not found',
-    )
-  })
-
   it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
     await expect(

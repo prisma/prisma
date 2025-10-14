@@ -824,10 +824,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
@@ -850,10 +847,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     ctx.setConfigFile('shadowdb.config.ts')
     const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
@@ -875,10 +869,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse([], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
@@ -956,11 +947,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await expect(applyResult).resolves.toMatchInlineSnapshot(`""`)
 
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
@@ -985,10 +972,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     const result = MigrateDev.new().parse(['--name=first'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
