@@ -36,6 +36,9 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper) {
   if (field.documentation) {
     property.setDocComment(ts.docComment(field.documentation))
   }
+  if (!field.isRequired) {
+    property.optional()
+  }
   return property
 }
 
