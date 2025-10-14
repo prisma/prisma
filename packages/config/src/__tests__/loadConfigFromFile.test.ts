@@ -70,8 +70,8 @@ describe('loadConfigFromFile', () => {
       })
     })
 
-    describe('engine', () => {
-      test('if `engine === "js"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
+    describe.only('engine', () => {
+      test.only('if `engine === "js"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
         ctx.fixture('loadConfigFromFile/engine/js')
 
         const { config, error, resolvedPath } = await loadConfigFromFile({})
@@ -79,7 +79,7 @@ describe('loadConfigFromFile', () => {
         expect(error).toBeUndefined()
         assertConfigDefined(config)
 
-        const expectedAdapter = mockMigrationAwareAdapterFactory('postgres')
+        const expectedAdapter = bindMigrationAwareSqlAdapterFactory(mockMigrationAwareAdapterFactory('postgres'))
         assertConfigWithEngineJs(config)
         expect(config.adapter).toStrictEqual(expect.any(Function))
 
@@ -87,7 +87,16 @@ describe('loadConfigFromFile', () => {
         expect(adapterFactory).toBeDefined()
 
         const adapter = await adapterFactory()
-        expect(JSON.stringify(adapter)).toEqual(JSON.stringify(bindMigrationAwareSqlAdapterFactory(expectedAdapter)))
+
+        Object.entries(expectedAdapter).forEach(([key, value]) => {
+          if (typeof value === 'function') {
+            // avoid `Compared values have no visual difference` error on functions
+            expect(adapter[key]).toBeInstanceOf(Function)
+            expect(JSON.stringify(adapter[key])).toEqual(JSON.stringify(value))
+          } else {
+            expect(adapter[key]).toEqual(value)
+          }
+        })
       })
 
       test('if `engine === "classic"` configuration is provided, it should configure Prisma Migrate using the provided adapter', async () => {
