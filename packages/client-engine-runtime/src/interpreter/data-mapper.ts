@@ -219,7 +219,6 @@ function mapValue(
       return { $type: 'Decimal', value }
 
     case 'datetime': {
-      console.log('Mapping datetime value:', { columnName, value, valueType: typeof value })
       if (typeof value === 'string') {
         return { $type: 'DateTime', value: normalizeDateTime(value) }
       }
