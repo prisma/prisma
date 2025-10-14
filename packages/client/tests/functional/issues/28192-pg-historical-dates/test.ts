@@ -7,7 +7,7 @@ declare let prisma: PrismaClient
 // See: https://github.com/prisma/prisma/issues/28192
 testMatrix.setupTestSuite(
   () => {
-    describe('[pg] historical dates with 2-digit years (00-99 AD)', () => {
+    describe('historical dates with 2-digit years (00-99 AD)', () => {
       const testData = [
         { label: '31 AD timestamp', timestampString: '0031-01-01T00:00:00.000Z' },
         { label: '32 AD timestamp', timestampString: '0032-01-01T00:00:00.000Z' },
