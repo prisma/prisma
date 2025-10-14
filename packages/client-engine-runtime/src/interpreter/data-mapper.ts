@@ -306,15 +306,18 @@ const TIME_TZ_PATTERN = /\d{2}:\d{2}:\d{2}(?:\.\d+)?(Z|[+-]\d{2}(:?\d{2})?)?$/
  * if there's no timezone specified, to prevent it from being interpreted as local time.
  */
 function normalizeDateTime(dt: string): string {
-  const matches = TIME_TZ_PATTERN.exec(dt)
-  if (matches === null) {
+  const timeTzMatches = TIME_TZ_PATTERN.exec(dt)
+  if (timeTzMatches === null) {
     // We found no time part, so we return it as a plain zulu date,
-    // e.g. '2023-10-01Z'.
-    return `${dt}Z`
+    // e.g. '2023-10-01T00:00Z'.
+    // We append the time because the JS Date constructor can't parse
+    // pre-1000 dates with a timezone, for example '0032-01-01Z' parses
+    // as '2032-01-01T00:00:00.000Z'.
+    return `${dt}T00:00:00Z`
   }
 
   let dtWithTz = dt
-  const [timeTz, tz, tzMinuteOffset] = matches
+  const [timeTz, tz, tzMinuteOffset] = timeTzMatches
   if (tz !== undefined && tz !== 'Z' && tzMinuteOffset === undefined) {
     // If the timezone is specified as +HH or -HH (without minutes),
     // we need to suffix it with ':00' to make it a valid Date input.
@@ -327,6 +330,12 @@ function normalizeDateTime(dt: string): string {
   if (timeTz.length === dt.length) {
     // If the entire datetime was just the time, we prepend the unix epoch date.
     return `1970-01-01T${dtWithTz}`
+  }
+
+  const timeSeparatorIndex = timeTzMatches.index - 1
+  // If the time part is preceded by a space, we replace it with 'T'.
+  if (dtWithTz[timeSeparatorIndex] === ' ') {
+    dtWithTz = `${dtWithTz.slice(0, timeSeparatorIndex)}T${dtWithTz.slice(timeSeparatorIndex + 1)}`
   }
 
   return dtWithTz
