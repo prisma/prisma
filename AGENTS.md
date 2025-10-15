@@ -1,154 +1,37 @@
-## Project Overview
+# Quick Reference for Agents
 
-This is **Refract** - a next-generation TypeScript-native ORM that is a fork of Prisma ORM. Refract maintains the beloved declarative `schema.prisma` syntax while replacing Prisma's Rust-based engine with a lightweight, extensible TypeScript implementation.
+## Project Snapshot
 
-**Key Differentiators from Prisma:**
+- **Name**: Refract ORM
+- **Goal**: Deliver a TypeScript-native fork of Prisma that keeps the `.prisma` schema language and Prisma-style client while delegating query execution to Kysely.
+- **Phase**: 0 (end-to-end prototype in progress). See `DELIVERY_ROADMAP.md` and `NEXT_STEPS.md`.
+- **Gospel Docs**: `EXECUTIVE_SUMMARY.md`, `REQUIREMENTS.md`, `DELIVERY_ROADMAP.md`.
 
-- **TypeScript-Native Engine**: No Rust binaries, runs anywhere Node.js runs
-- **Extensible Schema Language**: Custom directives like `@refract.validate(z.string().email())`
-- **Programmatic Migrations**: Methods like `await refract.migrate.diff()` and `await refract.migrate.apply()`
-- **Modern Architecture**: ESM-only, Kysely-based query builder, transparent codebase
+## Workspace Essentials
 
-**Current Development Status**: Phase 1 (MVP) - building foundational TypeScript components while maintaining compatibility with existing Prisma patterns. The project uses TaskMaster for task management (see `.taskmaster/` directory).
+- Install: `pnpm install`
+- Build: `pnpm build` or `pnpm -r build`
+- Watch: `pnpm watch`
+- Lint: `pnpm lint`
+- Test: `pnpm test` (database-backed suites require Docker per `docker/README.md`)
 
-The project is organized as a monorepo with packages being gradually migrated from Prisma's architecture to Refract's TypeScript-native approach.
+## Key Packages
 
-## Essential Commands
+- `@refract/client-refract`: Prisma-like client runtime backed by Kysely; exposes `$kysely`.
+- `@refract/schema-parser`: Pure TypeScript parser for `.prisma` files, produces AST for generators.
+- `@refract/migrate`: Programmatic migrations via Kysely (`diff`, `apply`, history APIs).
+- `@refract/config`: Config discovery and dialect creation (PostgreSQL, SQLite priority).
+- `unplugin-refract`: Build-tool integration that emits virtual `.refract/types` modules for IDE support.
+- `@refract/cli`: ESM-only CLI wrapping config, generation, and migrations (implementation in progress).
 
-### Development
+## Development Notes
 
-- `pnpm install` - Install all dependencies (required: Node.js >=20.0, pnpm >=9.14.4)
-- `pnpm build` - Build all packages
-- `pnpm watch` - Start development mode with file watching
-- `pnpm -r build` - Build packages in dependency order
+- Prioritize PostgreSQL and SQLite support while structuring code for additional Kysely dialects.
+- Keep schema parsing, client generation, and migrations TypeScript-native—no Rust engine integration.
+- Integrate with Vite via `unplugin-refract`; provide manual fallbacks for non-Vite environments.
+- Tests live alongside packages (`src/__tests__`) and as functional suites under `packages/client-refract`.
 
-### Testing
+## Context Links
 
-- `pnpm test` - Run test suite (requires database setup via Docker)
-- `pnpm test <pattern>` - Run specific test files matching pattern
-- `pnpm test <pattern> -t <testName>` - Run specific test by name
-- `pnpm test <pattern> -u` - Update snapshots
-- **Functional tests**: `pnpm test:functional` - Main test suite for client functionality
-- **Memory tests**: `pnpm test:memory` - Test for memory leaks
-
-### Linting & Formatting
-
-- `pnpm lint` - Run ESLint checks
-- `pnpm lint-fix` - Auto-fix ESLint issues
-- `pnpm format` - Format code with Prettier
-- `pnpm prettier-check` - Check formatting without changes
-
-### Package Management
-
-- `pnpm clean` - Clean build artifacts and dependencies
-- `pnpm publish-all-dryrun` - Test package publishing
-- `pnpm bump-engines` - Update Prisma engines to latest version
-
-## Architecture Overview
-
-### Monorepo Structure
-
-The project uses pnpm workspaces with packages in `/packages/`. Key packages:
-
-**Core Client & Generation** (being migrated to Refract):
-
-- `client/` - Main Prisma Client runtime and API (will become Refract Client)
-- `client-generator-js/` - JavaScript client code generation
-- `client-generator-ts/` - TypeScript client code generation
-- `cli/` - CLI commands (migrating from Prisma to Refract CLI)
-
-**Core Infrastructure** (transitioning to TypeScript-native):
-
-- `engines/` - Manages Prisma engines (being replaced with TypeScript engine)
-- `internals/` - Shared internal utilities and DMMF handling (evolving for Refract)
-- `migrate/` - Database migration functionality (becoming programmatic TypeScript API)
-- `generator-helper/` - Generator interface implementation
-
-**Build & Utilities**:
-
-- `get-platform/` - Platform detection for engine binaries
-- `fetch-engine/` - Downloads and manages engine binaries
-- `ts-builders/` - TypeScript code generation utilities
-
-### Key Concepts
-
-**DMMF (Data Model Meta Format)**: The AST representation of Prisma schemas in JSON format. In Refract, this will be generated by the TypeScript-native schema parser instead of Rust engines.
-
-**Refract TypeScript Engine**: Replaces Prisma's Rust-based binaries with TypeScript implementations for schema parsing, query execution, and migrations. Uses Kysely as the underlying query builder.
-
-**Functional Test Architecture**: Located in `packages/client/tests/functional/`, these tests generate actual clients and test against real databases. Each test has a `_matrix.ts` (test parameters), `prisma/_schema.ts` (schema template), and `tests.ts` (test suite).
-
-## Testing Guidelines
-
-### Database Setup
-
-Tests requiring databases need Docker containers started per `/docker/README.md`. Environment variables are in `.db.env` (auto-loaded).
-
-### Writing Tests
-
-- **Functional tests** (preferred): Use `pnpm new-test` to create new test in `packages/client/tests/functional/`
-- **Unit tests**: Place in `src/__tests__/` directories within packages
-- **Integration tests**: Use `packages/integration-tests/` for cross-package testing
-
-### Running Specific Tests
-
-```bash
-# Single test file
-pnpm test integration.sqlite
-
-# Specific test pattern
-pnpm jest integration.sqlite -t 'findOne where PK'
-
-# Update snapshots
-pnpm test schema-engine -u
-```
-
-## Engine Development
-
-### Using Custom Engines
-
-1. Edit `packages/fetch-engine/package.json`
-2. Add either:
-   - `"branch": "feat/branch-name"` - builds from prisma-engines branch
-   - `"folder": "/path/to/built/engines"` - uses local engines
-3. Run `pnpm install` to propagate changes
-
-### Engine Versions
-
-- Check current: `npm info @prisma/engines`
-- Update: `pnpm update -r @prisma/engines@version @prisma/engines-version@version`
-- Debug DMMF: Open `packages/client/sandbox/dmmf.ts` in VSCode debugger
-
-## Development Workflow
-
-1. **Setup**: `pnpm install`
-2. **Build**: `pnpm build` or `pnpm watch` for development
-3. **Test**: Start databases, run relevant test suites
-4. **Debug**: Use functional tests for client issues, unit tests for package-specific logic
-5. **DMMF Changes**: Test with exhaustive schema tests and check snapshots carefully
-
-## Important Notes
-
-- **Migration in Progress**: This codebase is transitioning from Prisma to Refract architecture
-- Legacy Prisma engine compatibility needed during transition phase
-- Functional tests are the primary way to test client behavior
-- **TaskMaster Integration**: Use `.taskmaster/` directory for project planning and task tracking
-- Focus on TypeScript-native implementations over Rust engines for new development
-- Use `pnpm -r` commands for operations across all packages
-- Database tests require Docker setup before running
-
-## Refract Development
-
-### TaskMaster Integration
-
-- Project uses TaskMaster for sophisticated task management
-- See `.taskmaster/` directory for current development priorities
-- Tasks are organized by phases (Phase 1: MVP, Phase 2: Differentiators, Phase 3: Advanced)
-
-### Future Refract Packages (in development)
-
-- `@refract/cli` - Main CLI interface
-- `@refract/schema-parser` - TypeScript-native schema parser
-- `@refract/migrate` - Programmatic migration engine
-- `@refract/client` - Enhanced client with schema extensions
-- `unplugin-refract` - Build tool integration
+- Phase goals and requirements: see the gospel docs.
+- Progress tracking: add actionable items to `NEXT_STEPS.md` as priorities evolve.
