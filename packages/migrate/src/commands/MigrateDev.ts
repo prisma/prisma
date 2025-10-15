@@ -30,7 +30,7 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
+import { executeSeedCommand } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -95,7 +95,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
@@ -313,10 +313,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
     // If database was created we want to run the seed if not skipped
     if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       try {
-        const seedCommandFromPrismaConfig = config.migrations?.seed
-        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-        const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+        const seedCommand = config.migrations?.seed
 
         if (seedCommand) {
           process.stdout.write('\n') // empty line

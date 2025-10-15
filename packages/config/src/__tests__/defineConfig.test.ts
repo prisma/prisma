@@ -13,7 +13,6 @@ describe('defineConfig', () => {
     const config = defaultConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "deprecatedPackageJson": null,
         "loadedFromFile": null,
       }
     `)
@@ -24,7 +23,6 @@ describe('defineConfig', () => {
     const config = defaultTestConfig() satisfies PrismaConfigInternal
     expect(config).toMatchInlineSnapshot(`
       {
-        "deprecatedPackageJson": null,
         "loadedFromFile": null,
       }
     `)
