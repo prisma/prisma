@@ -54,7 +54,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
