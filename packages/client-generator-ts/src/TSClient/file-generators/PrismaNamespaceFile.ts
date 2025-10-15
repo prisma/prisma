@@ -178,12 +178,6 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
     )
     .add(
       ts
-        .property('datasourceUrl', ts.stringType)
-        .optional()
-        .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
-    )
-    .add(
-      ts
         .property('errorFormat', ts.namedType('ErrorFormat'))
         .optional()
         .setDocComment(ts.docComment('@default "colorless"')),
