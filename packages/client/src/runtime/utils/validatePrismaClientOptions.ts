@@ -6,16 +6,7 @@ import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRender
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = [
-  'datasources',
-  'datasourceUrl',
-  'errorFormat',
-  'adapter',
-  'log',
-  'transactionOptions',
-  'omit',
-  '__internal',
-]
+const knownProperties = ['datasources', 'errorFormat', 'adapter', 'log', 'transactionOptions', 'omit', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -101,14 +92,6 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (getClientEngineType(config.generator) === ClientEngineType.Binary) {
       throw new PrismaClientConstructorValidationError(
         `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
-      )
-    }
-  },
-  datasourceUrl: (options) => {
-    if (typeof options !== 'undefined' && typeof options !== 'string') {
-      throw new PrismaClientConstructorValidationError(
-        `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
-Expected string or undefined.`,
       )
     }
   },
@@ -267,12 +250,6 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
       )
     }
     validators[key](value, config)
-  }
-
-  if (options.datasourceUrl && options.datasources) {
-    throw new PrismaClientConstructorValidationError(
-      'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',
-    )
   }
 }
 
