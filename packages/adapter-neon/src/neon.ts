@@ -247,7 +247,7 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   }
 }
 
-export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
+export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAdapter {
   private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
 
   constructor(client: neon.NeonQueryFunction<any, any>) {
@@ -292,7 +292,7 @@ export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAda
   async dispose(): Promise<void> {}
 }
 
-export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+export class PrismaNeonHttpAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -302,6 +302,6 @@ export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
   ) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
+    return new PrismaNeonHttpAdapter(neon.neon(this.connectionString, this.options))
   }
 }
