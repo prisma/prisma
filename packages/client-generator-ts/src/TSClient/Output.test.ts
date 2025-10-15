@@ -5,11 +5,48 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { DMMFHelper } from '../dmmf'
 import { buildModelOutputProperty } from './Output'
 
+function dmmf(inputObjectTypes: DMMF.InputType[] = [], models: DMMF.Model[] = []) {
+  return new DMMFHelper({
+    schema: {
+      inputObjectTypes: {
+        prisma: inputObjectTypes,
+      },
+      outputObjectTypes: {
+        prisma: [
+          { name: 'Query', fields: [] },
+          { name: 'Mutation', fields: [] },
+        ],
+        model: [],
+      },
+      enumTypes: {
+        prisma: [],
+      },
+      fieldRefTypes: {
+        prisma: [],
+      },
+    },
+    datamodel: {
+      models: models,
+      types: [],
+      enums: [],
+      indexes: [],
+    },
+
+    mappings: {
+      modelOperations: [],
+      otherOperations: {
+        read: [],
+        write: [],
+      },
+    },
+  })
+}
+
 describe('buildModelOutputProperty', () => {
-  let dmmf: DMMFHelper
+  let dmmfHelper: DMMFHelper
 
   beforeEach(() => {
-    dmmf = { isComposite: () => false } as DMMFHelper
+    dmmfHelper = dmmf()
   })
 
   test('should add optional modifier to non-required fields', () => {
@@ -30,7 +67,7 @@ describe('buildModelOutputProperty', () => {
       documentation: undefined,
     }
 
-    const property = buildModelOutputProperty(field, dmmf)
+    const property = buildModelOutputProperty(field, dmmfHelper)
 
     expect(property.isOptional).toBe(true)
     expect(ts.stringify(property.type)).toEqual('string | null')
