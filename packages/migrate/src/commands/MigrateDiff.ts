@@ -252,7 +252,7 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
+      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--from-schema-datasource'],
         schemaPathArgumentName: '--from-schema-datasource',
@@ -297,7 +297,7 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
+      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--to-schema-datasource'],
         schemaPathArgumentName: '--to-schema-datasource',

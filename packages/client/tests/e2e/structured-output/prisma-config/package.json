@@ -11,8 +11,5 @@
     "@types/node": "~20.19.0",
     "prisma": "/tmp/prisma-0.0.0.tgz",
     "vitest": "3.2.4"
-  },
-  "prisma": {
-    "schema": "./prisma/schema.prisma"
   }
 }
