@@ -4,10 +4,10 @@ import { loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestStdoutContext()).assemble()
 
-it('should read .env file in prisma folder when there is no schema', async () => {
+it('should read .env file in prisma folder when there is no schema', () => {
   ctx.fixture('dotenv-4-prisma-no-schema')
 
-  await loadEnvFile({ printMessage: true, config: defaultTestConfig() })
+  loadEnvFile({ printMessage: true, config: defaultTestConfig() })
 
   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`

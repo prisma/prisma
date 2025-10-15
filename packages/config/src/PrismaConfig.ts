@@ -7,7 +7,6 @@ import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
 import { defineConfig } from './defineConfig'
-import { PrismaConfigPackageJson, PrismaConfigPackageJsonShape } from './loadConfigFromPackageJson'
 import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
@@ -302,10 +301,7 @@ if (false) {
 // (Except for the internal only `loadedFromFile` property)
 // This prevents us from bugs caused by only updating one of the two types and shapes, without also updating the other one.
 declare const __testPrismaConfig: keyof (typeof PrismaConfigShape)['Type']
-declare const __testPrismaConfigInternal: keyof Omit<
-  (typeof PrismaConfigInternalShape)['Type'],
-  'loadedFromFile' | 'deprecatedPackageJson'
->
+declare const __testPrismaConfigInternal: keyof Omit<(typeof PrismaConfigInternalShape)['Type'], 'loadedFromFile'>
 
 // eslint-disable-next-line no-constant-condition
 if (false) {
@@ -450,38 +446,12 @@ const PrismaConfigInternalShape = Shape.extend(
     SchemaEngineConfigInternal,
     Shape.Struct({
       loadedFromFile: Shape.NullOr(Shape.String),
-      deprecatedPackageJson: Shape.NullOr(
-        Shape.Struct({
-          config: PrismaConfigPackageJsonShape,
-          loadedFromFile: Shape.String,
-        }),
-      ),
     }),
   ),
 )
 
 type _PrismaConfigInternal = Omit<PrismaConfig, 'engine' | 'datasource' | 'adapter'> & {
   loadedFromFile: string | null
-  /**
-   * The deprecated Prisma configuration from `package.json#prisma`.
-   * This is set to `null` if no `package.json#prisma` config was found.
-   * The configuration read from the Prisma config file (e.g., `prisma.config.ts`) takes precedence over
-   * this `package.json#prisma` config.
-   * @deprecated
-   */
-  deprecatedPackageJson: {
-    /**
-     * The Prisma configuration from `package.json#prisma`.
-     * @deprecated
-     */
-    config: PrismaConfigPackageJson
-
-    /**
-     * The path from where the `package.json` config was loaded.
-     * @deprecated
-     */
-    loadedFromFile: string
-  } | null
 } & (
     | {
         engine: 'classic'

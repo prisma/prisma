@@ -21,7 +21,7 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
+import { executeSeedCommand } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -77,7 +77,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
@@ -169,10 +169,7 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      const seedCommandFromPrismaConfig = config.migrations?.seed
-      const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-      const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+      const seedCommand = config.migrations?.seed
 
       if (seedCommand) {
         process.stdout.write('\n') // empty line
