@@ -132,6 +132,7 @@ Set composite types introspection depth to 2 levels
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
       printLoadMessage: false,
       allowNull: true,
     })
@@ -151,7 +152,7 @@ Set composite types introspection depth to 2 levels
       flags: ['--url', '--local-d1'],
     })
 
-    const adapter = await config.adapter?.()
+    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
@@ -302,7 +303,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      schemaEngineConfig: config,
       schemaContext: schemaContext ?? undefined,
       extensions: config['extensions'],
     })

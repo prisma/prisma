@@ -4,6 +4,11 @@ import { LogFormat } from './log/format'
 import { LogLevel } from './log/log-level'
 
 /**
+ * Log level options accepted by the console logger.
+ */
+export type ConsoleLogLevel = LogLevel | 'off'
+
+/**
  * Configuration options for the query plan executor server.
  */
 export interface Options {
@@ -31,7 +36,7 @@ export interface Options {
  */
 export interface LogOptions {
   /** Minimum log level to output */
-  logLevel: LogLevel
+  logLevel: ConsoleLogLevel
   /** Format of log output */
   logFormat: LogFormat
 }

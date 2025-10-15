@@ -65,12 +65,13 @@ describe('CLI', () => {
       process.env = { ...originalEnv }
     })
 
-    describe('with config.migrate.adapter, should not download schema-engine', () => {
+    describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
         experimental: {
           adapter: true,
         },
+        engine: 'js',
         // @ts-ignore: we don't need to import an actual adapter
         adapter: async () => {
           return Promise.resolve({})
