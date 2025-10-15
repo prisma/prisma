@@ -1,7 +1,10 @@
 import { defineConfig } from '@prisma/config'
 import fs from 'fs'
-
 export default defineConfig({
+  datasource: {
+    url: process.env.TEST_E2E_POSTGRES_URI,
+  },
+  engine: 'classic',
   experimental: {
     externalTables: true,
   },

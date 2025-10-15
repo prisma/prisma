@@ -1,6 +1,9 @@
 import { defineConfig } from '@prisma/config'
-
 export default defineConfig({
+  datasource: {
+    url: process.env.TEST_POSTGRES_URI_MIGRATE,
+  },
+  engine: 'classic',
   experimental: {
     externalTables: true,
   },
