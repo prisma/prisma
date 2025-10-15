@@ -28,13 +28,7 @@ describe('diagnostics related to prisma.config.ts should not influence structure
       "
     `)
     expect(stderr).toMatchInlineSnapshot(`
-      "warn The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
-      For more information, see: https://pris.ly/prisma-config
-
-      Loaded Prisma config from prisma.config.ts.
-
-      warn The Prisma config file in prisma.config.ts overrides the deprecated \`package.json#prisma\` property in package.json.
-        For more information, see: https://pris.ly/prisma-config
+      "Loaded Prisma config from prisma.config.ts.
 
       "
     `)
@@ -48,13 +42,7 @@ describe('diagnostics related to prisma.config.ts should not influence structure
     expect(() => JSON.parse(stdout)) /* .not */
       .toThrow()
     expect(stderr).toMatchInlineSnapshot(`
-      "warn The configuration property \`package.json#prisma\` is deprecated and will be removed in Prisma 7. Please migrate to a Prisma config file (e.g., \`prisma.config.ts\`).
-      For more information, see: https://pris.ly/prisma-config
-
-      Loaded Prisma config from prisma.config.ts.
-
-      warn The Prisma config file in prisma.config.ts overrides the deprecated \`package.json#prisma\` property in package.json.
-        For more information, see: https://pris.ly/prisma-config
+      "Loaded Prisma config from prisma.config.ts.
 
       Prisma config detected, skipping environment variable loading.
       "
