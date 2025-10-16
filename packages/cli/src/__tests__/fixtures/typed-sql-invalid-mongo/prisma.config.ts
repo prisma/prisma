@@ -1,8 +1,8 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: process.env.TEST_MONGO_URI,
+    url: env('TEST_MONGO_URI'),
   },
 })
