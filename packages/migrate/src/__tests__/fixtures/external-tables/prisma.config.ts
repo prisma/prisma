@@ -1,7 +1,7 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 export default defineConfig({
   datasource: {
-    url: process.env.TEST_POSTGRES_URI_MIGRATE,
+    url: env('TEST_POSTGRES_URI_MIGRATE'),
   },
   engine: 'classic',
   experimental: {
