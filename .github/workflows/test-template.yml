@@ -1117,6 +1117,10 @@ jobs:
         name: 'adapter-mssql'
         working-directory: packages/adapter-mssql
 
+      - run: pnpm run test
+        name: 'adapter-neon'
+        working-directory: packages/adapter-neon
+
   #
   # Query plan executor unit tests
   #

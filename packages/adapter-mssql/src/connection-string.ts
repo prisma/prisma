@@ -118,6 +118,12 @@ export function parseConnectionString(connectionString: string): sql.config {
     config.options.trustServerCertificate = trustServerCertificate.toLowerCase() === 'true'
   }
 
+  const multiSubnetFailover = firstKey(parameters, 'multiSubnetFailover')
+  if (multiSubnetFailover !== null) {
+    config.options = config.options || {}
+    config.options.multiSubnetFailover = multiSubnetFailover.toLowerCase() === 'true'
+  }
+
   const connectionLimit = firstKey(parameters, 'connectionLimit')
   if (connectionLimit !== null) {
     config.pool = config.pool || {}
@@ -293,6 +299,7 @@ const handledParameters = [
   'initial catalog',
   'isolationLevel',
   'loginTimeout',
+  'multiSubnetFailover',
   'password',
   'poolTimeout',
   'pwd',
