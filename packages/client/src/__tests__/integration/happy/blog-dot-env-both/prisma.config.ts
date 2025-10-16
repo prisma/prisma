@@ -1,8 +1,8 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: process.env.SQLITE_URL_FROM_DOT_ENV_FILE,
+    url: env('SQLITE_URL_FROM_DOT_ENV_FILE'),
   },
 })

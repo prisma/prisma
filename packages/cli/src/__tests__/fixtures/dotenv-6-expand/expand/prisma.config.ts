@@ -1,8 +1,8 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: process.env.DOTENV_PRISMA_EXPAND_DATABASE_URL_WITH_SCHEMA,
+    url: env('DOTENV_PRISMA_EXPAND_DATABASE_URL_WITH_SCHEMA'),
   },
 })
