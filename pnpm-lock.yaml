@@ -235,6 +235,49 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(@types/node@20.12.7)(@vitest/ui@3.2.4)(jiti@2.5.1)(terser@5.43.1)(tsx@4.19.3)(yaml@2.7.0)
 
+  examples/kysely:
+    dependencies:
+      '@refract/client':
+        specifier: workspace:*
+        version: link:../../packages/client-refract
+      '@refract/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@refract/migrate':
+        specifier: workspace:*
+        version: link:../../packages/migrate
+      '@refract/schema-parser':
+        specifier: workspace:*
+        version: link:../../packages/schema-parser
+      kysely:
+        specifier: ^0.27.4
+        version: 0.27.6
+      pg:
+        specifier: ^8.11.3
+        version: 8.14.1
+    devDependencies:
+      '@testcontainers/postgresql':
+        specifier: ^10.7.2
+        version: 10.28.0
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.12.7
+      '@types/pg':
+        specifier: ^8.11.0
+        version: 8.11.11
+      testcontainers:
+        specifier: ^10.7.2
+        version: 10.28.0
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ^5.4.5
+        version: 5.8.2
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@20.12.7)(@vitest/ui@3.2.4)(jiti@2.5.1)(terser@5.43.1)(tsx@4.19.3)(yaml@2.7.0)
+
   packages/cli:
     dependencies:
       '@refract/client':

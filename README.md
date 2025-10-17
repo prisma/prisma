@@ -2,9 +2,36 @@
 
 Refract is a TypeScript-native ORM that preserves the declarative Prisma schema language while replacing the Rust engine with a lean, transparent implementation built entirely in TypeScript. By composing around Kysely for query execution, Refract delivers the familiar Prisma-style client API with the flexibility of direct access to `$kysely` when needed.
 
-- **Why**: Simplify the ORM stack, remove binary friction, and keep developers in the TypeScript ecosystem they already trust. See `EXECUTIVE_SUMMARY.md`.
-- **What**: A Prisma-compatible schema workflow, auto-generated client, programmatic migrations, and modern tooling integrations. See `REQUIREMENTS.md`.
-- **How**: Phased delivery from an end-to-end MVP through feature parity and beyond. See `DELIVERY_ROADMAP.md`.
+## Vision
+
+Refract delivers a TypeScript-native ORM that retains the beloved Prisma developer experience while removing the complexity and vendor lock-in that have accrued around the original project. By reimagining the engine in TypeScript and standing on top of Kysely, Refract gives teams a transparent, extensible toolkit that runs anywhere JavaScript runs and keeps the Prisma schema language front and center.
+
+## Why Refract Exists
+
+- **Simplicity over binaries**: Refract's pure TypeScript approach removes platform-specific hurdles, shrinking the operational footprint without sacrificing capability.
+- **Focus on core workflows**: Refract strips the experience back to the essentials: schema, client, and migrations.
+- **Faster iteration**: Owning the engine in TypeScript unlocks rapid experimentation, easier debugging, and contributions from a broader community of web developers already fluent in the language.
+- **Leverage Kysely**: Kysely already solves the tough problems of query building and connection management. Refract embraces it as the execution engine, exposing `$kysely` for power users while keeping the Prisma-style API for day-to-day work.
+
+## Strategic Pillars
+
+- **Compatibility first**: Keep `.prisma` schemas and the higher-level Prisma client API so current apps can migrate with minimal code churn.
+- **TypeScript-native architecture**: Every core subsystem—schema parsing, client generation, migrations, and CLI—lives in TypeScript, enabling deep IDE insight and end-to-end type safety.
+- **Delightful developer experience**: Integrate generation with modern tooling (Vite via `unplugin-refract`), emphasize instant feedback, and make the "blessed path" obvious.
+- **Transparent extensibility**: Prioritize readable source, composable packages, and hooks for community-driven directives (`@refract.validate`, etc.) as the project matures.
+
+## What You Get
+
+- **Prisma schema compatibility**: Use your existing `.prisma` files without modification
+- **Type-safe client API**: Generated Prisma-like client with CRUD operations that map to Kysely queries
+- **Relation loading**: Support for `include` to fetch related records with proper typing
+- **Kysely integration**: Direct access via `$kysely` for advanced queries
+- **Programmatic migrations**: `diff()` and `apply()` APIs that work through Kysely
+- **Modern CLI**: `refract init`, `refract generate`, and `refract migrate` commands
+- **Vite-first generation**: `unplugin-refract` with hot module reloading for type updates
+- **Multi-database support**: PostgreSQL and SQLite today, with clear path to additional dialects
+
+For architectural details, see `ARCHITECTURE.md`. For the delivery timeline, see `DELIVERY_ROADMAP.md`.
 
 ## Project Status
 
