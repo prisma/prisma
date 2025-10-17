@@ -1,6 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
-import { EnvPaths, pathToPosix } from '@prisma/internals'
+import { EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'

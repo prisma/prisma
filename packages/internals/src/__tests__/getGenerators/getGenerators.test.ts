@@ -108,6 +108,7 @@ describe('getGenerators', () => {
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
+        "binaryTargets": [],
         "config": {},
         "name": "gen",
         "previewFeatures": [],

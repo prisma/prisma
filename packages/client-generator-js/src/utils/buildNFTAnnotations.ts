@@ -1,4 +1,4 @@
-import { ClientEngineType } from '@prisma/internals'
+import { ClientEngineType, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
