@@ -42,6 +42,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
+    "@refract/field-translator": "workspace:*",
     "@refract/schema-parser": "workspace:*",
     "kysely": "^0.27.0"
   },

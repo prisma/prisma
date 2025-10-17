@@ -22,7 +22,6 @@
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "demo": "tsx demo/demo.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

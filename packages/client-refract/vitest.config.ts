@@ -7,7 +7,6 @@ export default defineConfig({
     exclude: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/demo/**', // Exclude demo tests (they have separate dependencies)
       '**/.{idea,git,cache,output,temp}/**',
     ],
   },

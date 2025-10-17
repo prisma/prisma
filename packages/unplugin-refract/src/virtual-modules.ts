@@ -3,7 +3,7 @@
  * Provides clean .refract/types imports like Next.js patterns
  */
 
-import type { GeneratedTypes, VirtualModule, EnhancedClientCode } from './types.js'
+import type { GeneratedClientCode, GeneratedTypes, VirtualModule } from './types.js'
 
 export class VirtualModuleManager {
   private modules = new Map<string, VirtualModule>()
@@ -141,7 +141,7 @@ export class VirtualModuleResolver {
 }
 
 /**
- * Enhanced type generator for virtual modules
+ * Type generator for virtual modules
  */
 export class VirtualTypeGenerator {
   private debug: boolean
@@ -182,7 +182,7 @@ export type * from './generated'
   /**
    * Generate index module for the .refract directory
    */
-  generateIndexModule(generatedTypes: GeneratedTypes, hasEnhancedClient = false): string {
+  generateIndexModule(generatedTypes: GeneratedTypes, hasClientModule = false): string {
     const modelNames = this.extractModelNames(generatedTypes.interfaces)
 
     const baseExports = `// Generated index for .refract directory
@@ -192,10 +192,10 @@ export type { DatabaseSchema } from './types'
 // Model type exports
 ${modelNames.map((name) => `export type { ${name} } from './types'`).join('\n')}`
 
-    if (hasEnhancedClient) {
+    if (hasClientModule) {
       return `${baseExports}
 
-// Enhanced client exports (runtime + types)
+// Generated client exports (runtime + types)
 export * from './client'
 export type * from './client-types'
 `
@@ -258,29 +258,29 @@ export type { RefractClient, RefractClientOptions } from '@refract/client'
   }
 
   /**
-   * Generate enhanced client module with full client code
+   * Generate client module with full client code
    */
-  generateEnhancedClientModule(enhancedClientCode: EnhancedClientCode): string {
-    this.log(`Generating enhanced client module for ${enhancedClientCode.dialect} dialect`)
+  generateClientModule(generatedClientCode: GeneratedClientCode): string {
+    this.log(`Generating client module for ${generatedClientCode.dialect} dialect`)
 
-    return `// Generated Enhanced Refract Client - do not edit manually
-// This file provides the complete, pre-compiled Refract client
-// Database dialect: ${enhancedClientCode.dialect}
+    return `// Generated Refract Client - do not edit manually
+// This file provides the complete generated Refract client
+// Database dialect: ${generatedClientCode.dialect}
 
-${enhancedClientCode.clientCode}
+${generatedClientCode.clientCode}
 `
   }
 
   /**
    * Generate client types module (TypeScript declarations only)
    */
-  generateClientTypesModule(enhancedClientCode: EnhancedClientCode): string {
+  generateClientTypesModule(generatedClientCode: GeneratedClientCode): string {
     this.log('Generating client types module')
 
     return `// Generated Refract Client Types - do not edit manually
-// TypeScript declarations for the enhanced client
+// TypeScript declarations for the generated client
 
-${enhancedClientCode.declarations}
+${generatedClientCode.declarations}
 
 // Export types for external usage
 export type { RefractClient, RefractClientOptions } from '@refract/client'
@@ -293,7 +293,7 @@ export type { RefractClient, RefractClientOptions } from '@refract/client'
   generateFallbackClientModule(): string {
     this.log('Generating fallback client module')
 
-    return `// Fallback Refract Client - enhanced client generation failed
+    return `// Fallback Refract Client - client generation failed
 // Use manual setup: import { RefractClient } from '@refract/client'
 
 import { RefractClient } from '@refract/client'
@@ -304,7 +304,7 @@ export type { RefractClientOptions } from '@refract/client'
 
 // Create a note about manual setup needed
 export const __REFRACT_FALLBACK__ = true
-export const __REFRACT_SETUP_REQUIRED__ = 'Enhanced client generation failed. Use manual setup with RefractClient class.'
+export const __REFRACT_SETUP_REQUIRED__ = 'Client generation failed. Use manual setup with RefractClient class.'
 `
   }
 
@@ -315,7 +315,7 @@ export const __REFRACT_SETUP_REQUIRED__ = 'Enhanced client generation failed. Us
     this.log('Generating fallback client types module')
 
     return `// Fallback Refract Client Types
-// Enhanced client generation failed - using basic types
+// Client generation failed - using basic types
 
 export interface DatabaseSchema {
   [tableName: string]: any

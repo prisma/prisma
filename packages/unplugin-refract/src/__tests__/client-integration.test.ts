@@ -1,15 +1,15 @@
 /**
- * Integration test for enhanced client generation in unplugin-refract
+ * Integration test for generated client modules in unplugin-refract
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
 import { VirtualTypeGenerator } from '../virtual-modules.js'
-import type { EnhancedClientCode, GeneratedTypes } from '../types.js'
+import type { GeneratedClientCode, GeneratedTypes } from '../types.js'
 
-describe('Enhanced Client Integration', () => {
+describe('Client Module Integration', () => {
   let typeGenerator: VirtualTypeGenerator
   let mockGeneratedTypes: GeneratedTypes
-  let mockEnhancedClientCode: EnhancedClientCode
+  let mockClientModule: GeneratedClientCode
 
   beforeEach(() => {
     typeGenerator = new VirtualTypeGenerator(false)
@@ -36,21 +36,14 @@ export interface Post {
 }`
     }
 
-    mockEnhancedClientCode = {
-      clientCode: `// Enhanced client code with pre-compiled operations
-export class RefractClient {
-  constructor(dialect: any) {}
-  
-  readonly user = {
-    findMany: async () => [],
-    findUnique: async () => null,
-    create: async () => ({} as any)
-  }
-  
-  readonly post = {
-    findMany: async () => [],
-    findUnique: async () => null,
-    create: async () => ({} as any)
+    mockClientModule = {
+      clientCode: `// Generated client code with embedded operations
+export class RefractClient extends RefractClientBase<any> {
+  declare readonly user: any
+  declare readonly post: any
+
+  constructor(dialect: any) {
+    super(dialect)
   }
 }`,
       declarations: `export interface User {
@@ -69,21 +62,21 @@ export interface Post {
     }
   })
 
-  it('should generate enhanced client module with full client code', () => {
-    const clientModule = typeGenerator.generateEnhancedClientModule(mockEnhancedClientCode)
+  it('should generate client module with full client code', () => {
+    const clientModule = typeGenerator.generateClientModule(mockClientModule)
 
-    expect(clientModule).toContain('Generated Enhanced Refract Client')
+    expect(clientModule).toContain('Generated Refract Client')
     expect(clientModule).toContain('Database dialect: sqlite')
-    expect(clientModule).toContain('export class RefractClient')
-    expect(clientModule).toContain('readonly user')
-    expect(clientModule).toContain('readonly post')
+    expect(clientModule).toContain('export class RefractClient extends RefractClientBase')
+    expect(clientModule).toContain('declare readonly user')
+    expect(clientModule).toContain('declare readonly post')
     expect(clientModule).toContain('findMany')
     expect(clientModule).toContain('findUnique')
     expect(clientModule).toContain('create')
   })
 
   it('should generate client types module with TypeScript declarations', () => {
-    const clientTypesModule = typeGenerator.generateClientTypesModule(mockEnhancedClientCode)
+    const clientTypesModule = typeGenerator.generateClientTypesModule(mockClientModule)
 
     expect(clientTypesModule).toContain('Generated Refract Client Types')
     expect(clientTypesModule).toContain('interface User')
@@ -91,7 +84,7 @@ export interface Post {
     expect(clientTypesModule).toContain('export type { RefractClient, RefractClientOptions }')
   })
 
-  it('should generate fallback client module when enhanced generation fails', () => {
+  it('should generate fallback client module when generation fails', () => {
     const fallbackClient = typeGenerator.generateFallbackClientModule()
 
     expect(fallbackClient).toContain('Fallback Refract Client')
@@ -109,7 +102,7 @@ export interface Post {
     expect(fallbackTypes).toContain('export type { RefractClient, RefractClientOptions }')
   })
 
-  it('should generate comprehensive index module with enhanced client exports', () => {
+  it('should generate comprehensive index module with client exports', () => {
     const indexModule = typeGenerator.generateIndexModule(mockGeneratedTypes, true)
 
     expect(indexModule).toContain('Generated index for .refract directory')
@@ -121,7 +114,7 @@ export interface Post {
     expect(indexModule).toContain("export type * from './client-types'")
   })
 
-  it('should generate standard index module without enhanced client exports', () => {
+  it('should generate standard index module without client exports', () => {
     const indexModule = typeGenerator.generateIndexModule(mockGeneratedTypes, false)
 
     expect(indexModule).toContain('Generated index for .refract directory')

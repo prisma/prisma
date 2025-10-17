@@ -1,6 +1,6 @@
 # @refract/client-refract
 
-Unified TypeScript-native client for Refract ORM with two clean usage paths.
+TypeScript-native client runtime for Refract ORM with two clean usage paths.
 
 ## Usage Patterns
 
@@ -33,6 +33,33 @@ const client = new RefractClient<DatabaseSchema>(new PostgresJSDialect({ connect
 await client.user.findMany()
 ```
 
+## Relation Loading
+
+Load related data using the `include` option:
+
+```typescript
+// Load user with their posts
+const post = await client.post.findUnique({
+  where: { id: 1 },
+  include: { user: true }
+})
+// post.user is now populated with User data
+
+// Load multiple posts with their authors
+const posts = await client.post.findMany({
+  where: { published: true },
+  include: { user: true }
+})
+// Each post.user contains the related User
+```
+
+**Current Support (Phase 0)**:
+- ✅ Many-to-one relations (e.g., Post → User)
+- ✅ One-to-one relations
+- ⏳ One-to-many relations (e.g., User → Post[]) - Coming in Phase 1
+- ⏳ Nested includes - Coming in Phase 1
+- ⏳ Relation filters in `where` - Coming in Phase 1
+
 ## Direct Kysely Access
 
 Access the underlying Kysely instance for advanced queries:
@@ -48,3 +75,9 @@ const result = await client.$kysely.selectFrom('user').innerJoin('post', 'user.i
 npm install @refract/client-refract kysely
 npm install unplugin-refract # Recommended for best experience
 ```
+
+## Client Code Generation
+
+- Runtime usage imports `RefractClient` from this package and passes a Kysely dialect directly.
+- Build tools can emit client code ahead of time via the exported `ClientGenerator` class. This is what the CLI and `unplugin-refract` consume to bake CRUD operations and field translations ahead of time.
+- Lower-level type generation utilities remain available through `TypeGenerator` for bespoke workflows.

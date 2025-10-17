@@ -5,7 +5,7 @@
 
 import { getDefaultOutputDir, loadRefractConfig } from '@refract/config'
 import { parseSchema } from '@refract/schema-parser'
-import { EnhancedClientGeneratorWithTranslations } from '@refract/client'
+import { ClientGenerator } from '@refract/client'
 import { detectDialect, type DatabaseDialect } from '@refract/field-translator'
 import { watch } from 'chokidar'
 import { existsSync, readFileSync } from 'fs'
@@ -14,7 +14,7 @@ import { createUnplugin } from 'unplugin'
 
 import { DevOutput } from './dev-output.js'
 import { ProductionBuildManager } from './production-build.js'
-import type { BuildContext, GeneratedTypes, EnhancedClientCode, RefractPluginOptions } from './types.js'
+import type { BuildContext, GeneratedTypes, GeneratedClientCode, RefractPluginOptions } from './types.js'
 import { VirtualModuleManager, VirtualModuleResolver, VirtualTypeGenerator } from './virtual-modules.js'
 
 export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {}) => {
@@ -55,10 +55,10 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
   let regenerationTimer: NodeJS.Timeout | null = null
   const DEBOUNCE_DELAY = buildContext.isProduction ? 50 : 100 // Faster in production
 
-  // Enhanced client generation state
+  // Generated client state
   let detectedDialect: DatabaseDialect | null = null
   let refractConfig: any = null
-  let enhancedClientCode: EnhancedClientCode | null = null
+  let generatedClientCode: GeneratedClientCode | null = null
 
   // Legacy debug logging for backward compatibility
   const log = (message: string) => {
@@ -214,25 +214,25 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
     }
   }
 
-  const generateEnhancedClientFromSchema = async (schemaContent: string): Promise<EnhancedClientCode | null> => {
+  const generateClientModuleFromSchema = async (schemaContent: string): Promise<GeneratedClientCode | null> => {
     try {
       const parseResult = parseSchema(schemaContent)
 
       if (parseResult.errors.length > 0) {
-        devOutput.debug('Cannot generate enhanced client due to schema errors')
+        devOutput.debug('Cannot generate client module due to schema errors')
         return null
       }
 
       if (parseResult.ast.models.length === 0) {
-        devOutput.debug('Cannot generate enhanced client - no models found')
+        devOutput.debug('Cannot generate client module - no models found')
         return null
       }
 
       // Detect database dialect
       const dialect = await detectDatabaseDialect()
 
-      // Create enhanced client generator
-      const generator = new EnhancedClientGeneratorWithTranslations(parseResult.ast, {
+      // Create client generator
+      const generator = new ClientGenerator(parseResult.ast, {
         dialect,
         config: refractConfig?.config,
         includeTypes: true,
@@ -240,8 +240,8 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
         esModules: true,
       })
 
-      // Generate the enhanced client code
-      const clientCode = generator.generateEnhancedClient()
+      // Generate the client code
+      const clientCode = generator.generateClientModule()
 
       // Extract TypeScript declarations (types only)
       const declarationLines = clientCode.split('\n').filter(line => {
@@ -252,7 +252,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
       })
       const declarations = declarationLines.join('\n')
 
-      log(`Generated enhanced client code for ${parseResult.ast.models.length} models with ${dialect} dialect`)
+      log(`Generated client module for ${parseResult.ast.models.length} models with ${dialect} dialect`)
 
       return {
         clientCode,
@@ -261,7 +261,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error)
-      devOutput.debug(`Enhanced client generation error: ${errorMessage}`)
+      devOutput.debug(`Client generation error: ${errorMessage}`)
       return null
     }
   }
@@ -298,9 +298,9 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
     lastSchemaContent = schemaContent
     log(`Regenerating types from schema: ${schemaPath}`)
 
-    // Generate both traditional types and enhanced client code
+    // Generate both traditional types and the client module
     const generatedTypes = generateTypesFromSchema(schemaContent)
-    enhancedClientCode = await generateEnhancedClientFromSchema(schemaContent)
+    generatedClientCode = await generateClientModuleFromSchema(schemaContent)
 
     // Check if parsing was successful (errors are already shown by generateTypesFromSchema)
     const hasErrors =
@@ -318,7 +318,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
 
       // Generate error modules for development
       moduleManager.setModule('types', typeGenerator.generateErrorModule('Failed to parse schema'))
-      moduleManager.setModule('client', typeGenerator.generateErrorModule('Enhanced client unavailable due to schema errors'))
+      moduleManager.setModule('client', typeGenerator.generateErrorModule('Generated client unavailable due to schema errors'))
       moduleManager.setModule('client-types', typeGenerator.generateErrorModule('Client types unavailable due to schema errors'))
       return
     }
@@ -330,7 +330,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
           schemaPath,
           schemaContent,
           generatedTypes,
-          enhancedClientCode,
+          generatedClientCode,
         )
 
         moduleManager.updateModules(modules)
@@ -346,17 +346,17 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
         productionManager.handleBuildError(error as Error, schemaPath)
       }
     } else {
-      // Development build - generate enhanced client modules
+      // Development build - generate client modules
       const updates: Record<string, string> = {
         types: typeGenerator.generateTypesModule(generatedTypes),
-        index: typeGenerator.generateIndexModule(generatedTypes, !!enhancedClientCode),
+        index: typeGenerator.generateIndexModule(generatedTypes, !!generatedClientCode),
         generated: typeGenerator.generateGeneratedTypesModule(generatedTypes),
       }
 
-      // Add enhanced client modules if generation was successful
-      if (enhancedClientCode) {
-        updates.client = typeGenerator.generateEnhancedClientModule(enhancedClientCode)
-        updates['client-types'] = typeGenerator.generateClientTypesModule(enhancedClientCode)
+      // Add generated client modules if generation was successful
+      if (generatedClientCode) {
+        updates.client = typeGenerator.generateClientModule(generatedClientCode)
+        updates['client-types'] = typeGenerator.generateClientTypesModule(generatedClientCode)
       } else {
         // Fallback: generate basic client pointing to manual client setup
         updates.client = typeGenerator.generateFallbackClientModule()
@@ -367,7 +367,7 @@ export const unpluginRefract = createUnplugin<RefractPluginOptions>((options = {
 
       // Extract model count for success message
       const modelCount = (generatedTypes.interfaces.match(/export interface \w+ \{/g) || []).length
-      const clientStatus = enhancedClientCode ? ` (with enhanced client for ${enhancedClientCode.dialect})` : ' (types only)'
+      const clientStatus = generatedClientCode ? ` (with generated client for ${generatedClientCode.dialect})` : ' (types only)'
       devOutput.completeRegeneration(modelCount, Object.keys(updates).length)
       devOutput.debug(`Generated modules: ${Object.keys(updates).join(', ')}${clientStatus}`)
     }

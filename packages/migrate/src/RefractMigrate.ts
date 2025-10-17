@@ -1,5 +1,7 @@
 import type { AttributeAST, AttributeArgumentAST, EnumAST, FieldAST, ModelAST, SchemaAST } from '@refract/schema-parser'
 import { parseSchema } from '@refract/schema-parser'
+import type { DatabaseDialect } from '@refract/field-translator'
+import { transformationRegistry } from '@refract/field-translator'
 import { sql } from 'kysely'
 
 import type {
@@ -272,13 +274,23 @@ export class RefractMigrate {
    */
   async releaseMigrationLock(kyselyInstance: AnyKyselyDatabase, lock: MigrationLock): Promise<void> {
     try {
+      // Check if the lock table exists before trying to delete
+      const tables = await kyselyInstance.introspection.getTables()
+      const lockTableExists = tables.some((t) => t.name === '_refract_migration_locks')
+
+      if (!lockTableExists) {
+        // Table doesn't exist, so the lock is already gone (or was never created)
+        return
+      }
+
       await kyselyInstance
         .deleteFrom('_refract_migration_locks' as never)
         .where('id' as never, '=', lock.id as never)
         .where('processId' as never, '=', lock.processId as never)
         .execute()
     } catch (error) {
-      console.warn(`Failed to release migration lock: ${error instanceof Error ? error.message : String(error)}`)
+      // Silently handle errors during lock release - the lock will expire anyway
+      // Don't log as it may cause confusion when the database connection is closing
     }
   }
 
@@ -876,6 +888,9 @@ export class RefractMigrate {
     currentSchema: DatabaseSchema,
     targetSchemaAST: SchemaAST,
   ): MigrationDiff {
+    // Extract dialect from schema for type mapping
+    const dialect = this.getDialectFromSchema(targetSchemaAST)
+
     const summary: MigrationSummary = {
       tablesCreated: [],
       tablesModified: [],
@@ -906,7 +921,7 @@ export class RefractMigrate {
           summary.tablesCreated.push(modelName)
           tablesAffected.push(modelName)
 
-          const createStatement = this.generateCreateTableStatement(kyselyInstance, model)
+          const createStatement = this.generateCreateTableStatement(kyselyInstance, model, dialect)
           statements.push(createStatement)
 
           for (const field of model.fields || []) {
@@ -945,7 +960,7 @@ export class RefractMigrate {
       for (const [tableName, currentTable] of currentTables) {
         const targetModel = targetModels.get(tableName)
         if (targetModel) {
-          const tableDiff = this.compareTableStructure(kyselyInstance, currentTable, targetModel)
+          const tableDiff = this.compareTableStructure(kyselyInstance, currentTable, targetModel, dialect)
 
           if (tableDiff.hasChanges) {
             summary.tablesModified.push(tableName)
@@ -1050,7 +1065,7 @@ export class RefractMigrate {
     }
   }
 
-  private generateCreateTableStatement(kyselyInstance: AnyKyselyDatabase, model: ModelAST): string {
+  private generateCreateTableStatement(kyselyInstance: AnyKyselyDatabase, model: ModelAST, dialect: DatabaseDialect): string {
     try {
       const tableName = this.getTableName(model)
       let createTableBuilder = kyselyInstance.schema.createTable(tableName)
@@ -1059,16 +1074,18 @@ export class RefractMigrate {
       const databaseFields = model.fields.filter(field => this.shouldCreateDatabaseColumn(field))
 
       for (const field of databaseFields) {
-        const sqlType = this.mapFieldTypeToSQL(field.fieldType)
+        const sqlType = this.mapFieldTypeToSQL(field, dialect)
+        const isSerialType = sqlType.toLowerCase() === 'serial' || sqlType.toLowerCase() === 'bigserial'
 
         createTableBuilder = createTableBuilder.addColumn(field.name, sqlType as never, (col) => {
-          if (!field.isOptional) {
+          // SERIAL types are implicitly NOT NULL, so don't add it
+          if (!field.isOptional && !isSerialType) {
             col = col.notNull()
           }
 
           const isId = field.attributes?.some((attr: any) => attr.name === 'id')
-          const hasAutoIncrement = field.attributes?.some((attr: any) => 
-            attr.name === 'default' && 
+          const hasAutoIncrement = field.attributes?.some((attr: any) =>
+            attr.name === 'default' &&
             attr.args?.[0]?.value === 'autoincrement()'
           )
 
@@ -1081,11 +1098,18 @@ export class RefractMigrate {
             }
           }
 
+          // SERIAL types have built-in defaults, so skip @default(autoincrement())
           if (field.attributes?.some((attr: any) => attr.name === 'default')) {
             const defaultAttr = field.attributes.find((attr: any) => attr.name === 'default')
             if (defaultAttr?.args?.[0]) {
               // Extract the actual value from the AttributeArgumentAST object
               const defaultValue = defaultAttr.args[0].value || defaultAttr.args[0]
+
+              // Skip autoincrement for SERIAL types - they handle it internally
+              if (isSerialType && defaultValue === 'autoincrement()') {
+                return col
+              }
+
               const formattedDefault = this.formatDefaultValue(defaultValue)
               if (formattedDefault !== null) {
                 col = col.defaultTo(formattedDefault)
@@ -1192,6 +1216,7 @@ export class RefractMigrate {
     kyselyInstance: AnyKyselyDatabase,
     currentTable: DatabaseTable,
     targetModel: ModelAST,
+    dialect: DatabaseDialect,
   ): {
     hasChanges: boolean
     columnsAdded: string[]
@@ -1216,7 +1241,7 @@ export class RefractMigrate {
           result.hasChanges = true
           result.columnsAdded.push(fieldName)
 
-          const sqlType = this.mapFieldTypeToSQL(field.fieldType)
+          const sqlType = this.mapFieldTypeToSQL(field, dialect)
 
           const alterTableBuilder = kyselyInstance.schema
             .alterTable(currentTable.name)
@@ -1257,7 +1282,7 @@ export class RefractMigrate {
       for (const [columnName, currentColumn] of currentColumns) {
         const targetField = targetFields.get(columnName)
         if (targetField) {
-          const targetType = this.mapFieldTypeToSQL(targetField.fieldType)
+          const targetType = this.mapFieldTypeToSQL(targetField, dialect)
           const targetNullable = targetField.isOptional
 
           if (currentColumn.type !== targetType) {
@@ -1418,7 +1443,41 @@ export class RefractMigrate {
     return String(value)
   }
 
-  private mapFieldTypeToSQL(fieldType: string): string {
+  /**
+   * Extract database dialect from schema AST
+   */
+  private getDialectFromSchema(schemaAST: SchemaAST): DatabaseDialect {
+    const datasource = schemaAST.datasources[0]
+    if (!datasource) {
+      // Default to postgresql if no datasource specified
+      return 'postgresql'
+    }
+
+    const provider = datasource.provider.toLowerCase()
+    // Map Prisma provider names to field-translator dialects
+    if (provider === 'postgresql' || provider === 'postgres') return 'postgresql'
+    if (provider === 'mysql') return 'mysql'
+    if (provider === 'sqlite') return 'sqlite'
+    if (provider === 'sqlserver') return 'sqlserver'
+
+    // Default to postgresql for unknown providers
+    console.warn(`Unknown provider '${provider}', defaulting to postgresql`)
+    return 'postgresql'
+  }
+
+  private mapFieldTypeToSQL(field: FieldAST, dialect: DatabaseDialect): string {
+    try {
+      // Get the appropriate generator for this dialect
+      const generator = transformationRegistry.getGenerator(dialect)
+      if (generator) {
+        return generator.getDatabaseColumnType(field)
+      }
+    } catch (error) {
+      // Fall back to basic type mapping if field-translator fails
+      console.warn(`Failed to use field-translator for ${field.name}, falling back to basic type mapping:`, error)
+    }
+
+    // Fallback type mapping (should rarely be used)
     const typeMap: Record<string, string> = {
       String: 'text',
       Int: 'integer',
@@ -1431,7 +1490,7 @@ export class RefractMigrate {
       BigInt: 'bigint'
     }
 
-    return typeMap[fieldType] || 'text'
+    return typeMap[field.fieldType] || 'text'
   }
 
   private isTypeChangeDestructive(fromType: string, toType: string): boolean {
@@ -1458,6 +1517,9 @@ export class RefractMigrate {
 
   private detectMigrationConflicts(currentSchema: DatabaseSchema, targetSchema: SchemaAST): string[] {
     const conflicts: string[] = []
+
+    // Extract dialect for type mapping
+    const dialect = this.getDialectFromSchema(targetSchema)
 
     const reservedKeywords = ['user', 'order', 'group', 'table', 'index', 'key', 'value', 'select', 'from', 'where']
     for (const model of targetSchema.models) {
@@ -1496,7 +1558,7 @@ export class RefractMigrate {
     for (const model of targetSchema.models) {
       const currentTable = currentTables.get(model.name)
       if (currentTable) {
-        const typeConflicts = this.detectTypeConflicts(currentTable, model)
+        const typeConflicts = this.detectTypeConflicts(currentTable, model, dialect)
         conflicts.push(...typeConflicts)
       }
     }
@@ -1572,7 +1634,7 @@ export class RefractMigrate {
     return conflicts
   }
 
-  private detectTypeConflicts(currentTable: DatabaseTable, targetModel: ModelAST): string[] {
+  private detectTypeConflicts(currentTable: DatabaseTable, targetModel: ModelAST, dialect: DatabaseDialect): string[] {
     const conflicts: string[] = []
     const currentColumns = new Map(currentTable.columns.map((c) => [c.name, c]))
 
@@ -1580,7 +1642,7 @@ export class RefractMigrate {
     for (const field of targetModel.fields.filter(f => this.shouldCreateDatabaseColumn(f))) {
       const currentColumn = currentColumns.get(field.name)
       if (currentColumn) {
-        const targetSqlType = this.mapFieldTypeToSQL(field.fieldType)
+        const targetSqlType = this.mapFieldTypeToSQL(field, dialect)
 
         if (!this.areTypesCompatible(currentColumn.type, targetSqlType)) {
           conflicts.push(
@@ -1728,7 +1790,7 @@ export class RefractMigrate {
           .addColumn('id', 'varchar(255)', (col) => col.primaryKey())
           .addColumn('name', 'varchar(255)', (col) => col.notNull())
           .addColumn('checksum', 'varchar(255)', (col) => col.notNull())
-          .addColumn('appliedAt', 'timestamp', (col) => col.notNull().defaultTo('CURRENT_TIMESTAMP'))
+          .addColumn('appliedAt', 'timestamp', (col) => col.notNull().defaultTo(sql.raw('CURRENT_TIMESTAMP')))
           .addColumn('executionTime', 'integer', (col) => col.notNull())
           .addColumn('success', 'boolean', (col) => col.notNull())
           .addColumn('statements', 'text', (col) => col)
@@ -1736,7 +1798,7 @@ export class RefractMigrate {
           .addColumn('schemaVersion', 'varchar(255)', (col) => col)
           .addColumn('rollbackStatements', 'text', (col) => col)
           .addColumn('rollbackChecksum', 'varchar(255)', (col) => col)
-          .addColumn('canRollback', 'boolean', (col) => col.defaultTo(false))
+          .addColumn('canRollback', 'boolean', (col) => col.defaultTo(sql.raw('false')))
           .addColumn('rollbackWarnings', 'text', (col) => col)
           .execute()
       } else {
@@ -3178,19 +3240,6 @@ export class RefractMigrate {
     } catch (error) {
       throw new Error(`Failed to generate enum modification statements: ${error instanceof Error ? error.message : String(error)}`)
     }
-  }
-
-  /**
-   * Update field type mapping to handle enums
-   */
-  private mapFieldTypeToSQLWithEnums(fieldType: string, availableEnums: Set<string>): string {
-    // Check if this field type is a known enum
-    if (availableEnums.has(fieldType)) {
-      return fieldType // Use enum name as SQL type
-    }
-    
-    // Otherwise use the existing type mapping
-    return this.mapFieldTypeToSQL(fieldType)
   }
 
   /**

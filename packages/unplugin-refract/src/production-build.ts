@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname, resolve } from 'path'
 
 import { DevOutput } from './dev-output.js'
-import type { BuildCache, BuildContext, GeneratedTypes, EnhancedClientCode, ProductionBuildOptions } from './types.js'
+import type { BuildCache, BuildContext, GeneratedClientCode, GeneratedTypes, ProductionBuildOptions } from './types.js'
 
 export class ProductionBuildManager {
   private options: Required<ProductionBuildOptions>
@@ -36,7 +36,7 @@ export class ProductionBuildManager {
     schemaPath: string,
     schemaContent: string,
     generatedTypes: GeneratedTypes,
-    enhancedClientCode?: EnhancedClientCode | null,
+    clientModule?: GeneratedClientCode | null,
   ): Promise<{ modules: Record<string, string>; cached: boolean }> {
     const schemaHash = this.createSchemaHash(schemaContent)
 
@@ -51,7 +51,7 @@ export class ProductionBuildManager {
 
     // Generate fresh modules
     this.devOutput.debug('Generating fresh production modules')
-    const optimizedModules = this.createOptimizedModules(generatedTypes, enhancedClientCode)
+    const optimizedModules = this.createOptimizedModules(generatedTypes, clientModule)
 
     // Cache the results for future builds
     if (this.options.cache) {
@@ -64,22 +64,22 @@ export class ProductionBuildManager {
   /**
    * Create optimized virtual modules for production
    */
-  private createOptimizedModules(generatedTypes: GeneratedTypes, enhancedClientCode?: EnhancedClientCode | null): Record<string, string> {
+  private createOptimizedModules(generatedTypes: GeneratedTypes, clientModule?: GeneratedClientCode | null): Record<string, string> {
     const modules: Record<string, string> = {}
 
     // Main types module with production optimizations
     modules.types = this.createOptimizedTypesModule(generatedTypes)
 
     // Index module for re-exports
-    modules.index = this.createOptimizedIndexModule(generatedTypes, !!enhancedClientCode)
+    modules.index = this.createOptimizedIndexModule(generatedTypes, !!clientModule)
 
     // Generated types module (separate for better tree-shaking)
     modules.generated = this.createOptimizedGeneratedModule(generatedTypes)
 
-    // Add enhanced client modules if available
-    if (enhancedClientCode) {
-      modules.client = this.createOptimizedClientModule(enhancedClientCode)
-      modules['client-types'] = this.createOptimizedClientTypesModule(enhancedClientCode)
+    // Add generated client modules if available
+    if (clientModule) {
+      modules.client = this.createOptimizedClientModule(clientModule)
+      modules['client-types'] = this.createOptimizedClientTypesModule(clientModule)
     }
 
     // Add source maps if enabled
@@ -88,7 +88,7 @@ export class ProductionBuildManager {
       modules['index.map'] = this.createSourceMap('index', modules.index)
       modules['generated.map'] = this.createSourceMap('generated', modules.generated)
       
-      if (enhancedClientCode) {
+      if (clientModule) {
         modules['client.map'] = this.createSourceMap('client', modules.client)
         modules['client-types.map'] = this.createSourceMap('client-types', modules['client-types'])
       }
@@ -126,7 +126,7 @@ export type * from './generated'`
   /**
    * Create optimized index module
    */
-  private createOptimizedIndexModule(generatedTypes: GeneratedTypes, hasEnhancedClient = false): string {
+  private createOptimizedIndexModule(generatedTypes: GeneratedTypes, hasClientModule = false): string {
     const modelNames = this.extractModelNames(generatedTypes.interfaces)
 
     const baseContent = `// Generated index for .refract directory
@@ -137,9 +137,9 @@ export type { DatabaseSchema } from './types'
 // Model type exports for tree-shaking
 ${modelNames.map((name) => `export type { ${name} } from './types'`).join('\n')}`
 
-    const enhancedContent = hasEnhancedClient ? `
+    const enhancedContent = hasClientModule ? `
 
-// Enhanced client exports (runtime + types)
+// Generated client exports (runtime + types)
 export * from './client'
 export type * from './client-types'` : ''
 
@@ -160,16 +160,16 @@ ${generatedTypes.interfaces}`
   }
 
   /**
-   * Create optimized enhanced client module for production
+   * Create optimized client module for production
    */
-  private createOptimizedClientModule(enhancedClientCode: EnhancedClientCode): string {
-    const header = '// Generated Enhanced Refract Client - production build'
+  private createOptimizedClientModule(clientModule: GeneratedClientCode): string {
+    const header = '// Generated Refract Client - production build'
     
     const content = `${header}
 ${this.options.sourceMaps ? '//# sourceMappingURL=client.map' : ''}
-// Database dialect: ${enhancedClientCode.dialect}
+// Database dialect: ${clientModule.dialect}
 
-${enhancedClientCode.clientCode}`
+${clientModule.clientCode}`
 
     return this.options.optimize ? this.optimizeTypeScript(content) : content
   }
@@ -177,13 +177,13 @@ ${enhancedClientCode.clientCode}`
   /**
    * Create optimized client types module for production
    */
-  private createOptimizedClientTypesModule(enhancedClientCode: EnhancedClientCode): string {
+  private createOptimizedClientTypesModule(clientModule: GeneratedClientCode): string {
     const header = '// Generated Refract Client Types - production build'
     
     const content = `${header}
 ${this.options.sourceMaps ? '//# sourceMappingURL=client-types.map' : ''}
 
-${enhancedClientCode.declarations}
+${clientModule.declarations}
 
 // Export types for external usage
 export type { RefractClient, RefractClientOptions } from '@refract/client'`

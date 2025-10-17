@@ -17,6 +17,9 @@
 export type { ConfigLoadOptions, ConfigLoadResult, KyselyResult, RefractConfig } from './types.js'
 export { RefractConfigSchema } from './types.js'
 
+// Configuration helper
+export { defineConfig } from './define-config.js'
+
 // Constants
 export { type DatabaseProvider, PROVIDER_METADATA, PROVIDER_URL_PATTERNS, SUPPORTED_PROVIDERS } from './constants.js'
 

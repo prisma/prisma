@@ -180,7 +180,7 @@ ${interfaces.join('\n')}
   }
 
   /**
-   * Get table name for a model (defaults to model name in lowercase)
+   * Get table name for a model (defaults to the Prisma model name)
    */
   private getTableName(model: ModelAST): string {
     // Check for @@map attribute
@@ -189,8 +189,8 @@ ${interfaces.join('\n')}
       return String(mapAttribute.args[0].value)
     }
 
-    // Default to lowercase model name
-    return model.name.toLowerCase()
+    // Default to Prisma's table naming convention (model name as-is)
+    return model.name
   }
 
   /**

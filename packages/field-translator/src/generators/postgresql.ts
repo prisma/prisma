@@ -58,25 +58,33 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
   }
 
   getDatabaseColumnType(field: FieldAST): string {
+    // Check for autoincrement on integer types
+    const hasAutoIncrement = field.attributes?.some((attr: any) =>
+      attr.name === 'default' &&
+      attr.args?.[0]?.value === 'autoincrement()'
+    )
+
     switch (field.fieldType) {
       case 'String':
-        return 'TEXT'
+        return 'text'
       case 'Int':
-        return 'INTEGER'
+        // PostgreSQL uses serial for autoincrementing integers
+        return hasAutoIncrement ? 'serial' : 'integer'
       case 'BigInt':
-        return 'BIGINT'
+        // PostgreSQL uses bigserial for autoincrementing bigints
+        return hasAutoIncrement ? 'bigserial' : 'bigint'
       case 'Float':
-        return 'DOUBLE PRECISION'
+        return 'doublePrecision'
       case 'Decimal':
-        return 'DECIMAL'
+        return 'decimal'
       case 'Boolean':
-        return 'BOOLEAN' // PostgreSQL has native boolean support
+        return 'boolean' // PostgreSQL has native boolean support
       case 'DateTime':
-        return 'TIMESTAMP WITH TIME ZONE'
+        return 'timestamptz'
       case 'Json':
-        return 'JSONB' // PostgreSQL prefers JSONB over JSON
+        return 'jsonb' // PostgreSQL prefers JSONB over JSON
       default:
-        return 'TEXT'
+        return 'text'
     }
   }
 

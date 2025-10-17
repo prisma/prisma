@@ -93,10 +93,10 @@ export interface GeneratedTypes {
   augmentation: string
 }
 
-export interface EnhancedClientCode {
-  /** Complete enhanced client code with pre-compiled operations */
+export interface GeneratedClientCode {
+  /** Complete generated client code with embedded operations */
   clientCode: string
-  /** TypeScript declarations for the enhanced client */
+  /** TypeScript declarations for the generated client */
   declarations: string
   /** Database dialect used for generation */
   dialect: string
