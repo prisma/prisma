@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {},
   "dependencies": {
-    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz"
+    "@prisma/client": "/tmp/prisma-client-0.0.0.tgz",
+    "@prisma/client-runtime-utils": "/tmp/prisma-client-runtime-utils-0.0.0.tgz"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",

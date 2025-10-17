@@ -1,6 +1,6 @@
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 import type { GeneratorConfig } from '@prisma/generator'
 
-import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 import { checkPlatformCaching } from './checkPlatformCaching'
 
 const consoleMock = jest.spyOn(global.console, 'error').mockImplementation()

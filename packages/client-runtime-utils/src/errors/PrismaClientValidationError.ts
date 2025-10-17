@@ -1,4 +1,4 @@
-import { setClassName } from '@prisma/internals'
+import { setClassName } from './setClassName'
 
 type Options = {
   clientVersion: string

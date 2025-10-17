@@ -1,11 +1,13 @@
 import { QueryEngineInstance } from '@prisma/client-common'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { SqlDriverAdapter, SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { EventEmitter } from 'events'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
 import { LibraryLoader } from './types/Library'

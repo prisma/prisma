@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from '@prisma/client-runtime-utils'
 
 // Copied over to avoid the heavy dependency on `@prisma/internals` with its
 // transitive dependencies that are not needed for other query plan executor
