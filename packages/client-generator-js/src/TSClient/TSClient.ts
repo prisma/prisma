@@ -1,7 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
-import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { EnvPaths, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 import crypto from 'crypto'
@@ -77,7 +76,6 @@ export class TSClient implements Generable {
     const {
       edge,
       wasm,
-      binaryPaths,
       generator,
       outputDir,
       datamodel: inlineSchema,
@@ -101,11 +99,6 @@ export class TSClient implements Generable {
     // This ensures that any engine override is propagated to the generated clients config
     const clientEngineType = getClientEngineType(generator)
     generator.config.engineType = clientEngineType
-
-    const binaryTargets =
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
     const inlineSchemaHash = crypto
       .createHash('sha256')
@@ -168,7 +161,7 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(edge || !copyEngine, clientEngineType, relativeOutdir)}
 `
     return code
   }

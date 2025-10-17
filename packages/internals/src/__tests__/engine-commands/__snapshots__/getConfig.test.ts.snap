@@ -71,13 +71,7 @@ exports[`getConfig with generator and datasource 1`] = `
       },
       "output": null,
       "config": {},
-      "binaryTargets": [
-        {
-          "fromEnvVar": null,
-          "value": "TEST_PLATFORM",
-          "native": true
-        }
-      ],
+      "binaryTargets": [],
       "previewFeatures": [],
       "sourceFilePath": "schema.prisma"
     }

@@ -1,16 +1,11 @@
 import path from 'node:path'
 
-import { Debug } from '@prisma/debug'
-import { enginesVersion } from '@prisma/engines-version'
-import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
-import { match } from 'ts-pattern'
+import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
+import { parseEnvValue } from '@prisma/internals'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
 import { resolveOrInstallPrismaClient, resolvePrismaClient } from './resolvePrismaClient'
-
-const debug = Debug('prisma:client:generator')
 
 type PrismaClientJsGeneratorOptions = {
   shouldResolvePrismaClient?: boolean
@@ -42,14 +37,6 @@ export class PrismaClientJsGenerator implements Generator {
   }
 
   async getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
-    const requiresEngines = match<ClientEngineType, EngineType[]>(getClientEngineType(config))
-      .with(ClientEngineType.Library, () => ['libqueryEngine'])
-      .with(ClientEngineType.Binary, () => ['queryEngine'])
-      .with(ClientEngineType.Client, () => [])
-      .exhaustive()
-
-    debug('requiresEngines', requiresEngines)
-
     // TODO: warning disabled for now until we fixed issues around custom output paths - see ORM-976
     // if (!config.output) {
     //   console.warn(MISSING_CUSTOM_OUTPUT_PATH_WARNING)
@@ -80,8 +67,6 @@ export class PrismaClientJsGenerator implements Generator {
       defaultOutput,
       prettyName: 'Prisma Client',
       version: clientVersion,
-      requiresEngines,
-      requiresEngineVersion: enginesVersion,
     }
   }
 

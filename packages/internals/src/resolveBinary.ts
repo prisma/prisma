@@ -1,6 +1,6 @@
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType, engineEnvVarMap, getBinaryEnvVarPath } from '@prisma/fetch-engine'
-import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -15,10 +15,6 @@ export { BinaryType, engineEnvVarMap }
 async function getBinaryName(name: BinaryType): Promise<string> {
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const extension = binaryTarget === 'windows' ? '.exe' : ''
-
-  if (name === BinaryType.QueryEngineLibrary) {
-    return getNodeAPIName(binaryTarget, 'fs')
-  }
   return `${name}-${binaryTarget}${extension}`
 }
 

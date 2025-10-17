@@ -3,16 +3,10 @@ import path from 'node:path'
 import { promisify } from 'node:util'
 
 import Debug from '@prisma/debug'
-import {
-  assertNodeAPISupported,
-  BinaryTarget,
-  binaryTargets,
-  getNodeAPIName,
-  getPlatformInfo,
-} from '@prisma/get-platform'
+import { getPlatformInfo } from '@prisma/get-platform'
 import { execa } from 'execa'
 import { ensureDir } from 'fs-extra'
-import { bold, yellow } from 'kleur/colors'
+import { yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import tempDir from 'temp-dir'
 
@@ -40,12 +34,11 @@ export type BinaryDownloadConfiguration = {
 }
 
 export type BinaryPaths = {
-  [binary in BinaryType]?: { [binaryTarget in BinaryTarget]: string } // key: target, value: path
+  [binary in BinaryType]?: { [binaryTarget: string]: string } // key: target, value: path
 }
 
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
-  binaryTargets?: BinaryTarget[]
   showProgress?: boolean
   progressCb?: (progress: number) => void
   version?: string
@@ -58,7 +51,7 @@ export interface DownloadOptions {
 type BinaryDownloadJob = {
   binaryName: string
   targetFolder: string
-  binaryTarget: BinaryTarget
+  binaryTarget: string
   fileName: string
   targetFilePath: string
   envVarPath: string | undefined
@@ -95,34 +88,29 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled engine files are not available for ${binaryTarget}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
-  } else if (BinaryType.QueryEngineLibrary in options.binaries) {
-    assertNodeAPISupported()
   }
 
   // merge options
   const opts = {
     ...options,
-    binaryTargets: options.binaryTargets ?? [binaryTarget],
     version: options.version ?? 'latest',
     binaries: options.binaries,
   }
 
-  // creates a matrix of binaries x binary targets
-  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]) =>
-    opts.binaryTargets.map((binaryTarget) => {
-      const fileName = getBinaryName(binaryName as BinaryType, binaryTarget)
-      const targetFilePath = path.join(targetFolder, fileName)
-      return {
-        binaryName,
-        targetFolder,
-        binaryTarget,
-        fileName,
-        targetFilePath,
-        envVarPath: getBinaryEnvVarPath(binaryName as BinaryType)?.path,
-        skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
-      }
-    }),
-  )
+  // creates a matrix of binaries for the current platform
+  const binaryJobs = Object.entries(opts.binaries).map(([binaryName, targetFolder]) => {
+    const fileName = getBinaryName(binaryName as BinaryType, binaryTarget)
+    const targetFilePath = path.join(targetFolder, fileName)
+    return {
+      binaryName,
+      targetFolder,
+      binaryTarget,
+      fileName,
+      targetFilePath,
+      envVarPath: getBinaryEnvVarPath(binaryName as BinaryType)?.path,
+      skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
+    }
+  })
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
     debug(`process.env.BINARY_DOWNLOAD_VERSION is set to "${process.env.BINARY_DOWNLOAD_VERSION}"`)
@@ -136,14 +124,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
     const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, binaryTarget, opts.version)
-    const isSupported = binaryTargets.includes(job.binaryTarget as BinaryTarget)
     const shouldDownload =
-      isSupported &&
       !job.envVarPath && // this is for custom binaries
       needsToBeDownloaded
-    if (needsToBeDownloaded && !isSupported) {
-      throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
-    }
     return shouldDownload
   })
 
@@ -191,10 +174,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // this is necessary for pkg
   if (__dirname.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
-      const binaryTargets = binaryPaths[engineType]
-      for (const binaryTarget in binaryTargets) {
-        const binaryPath = binaryTargets[binaryTarget]
-        binaryTargets[binaryTarget] = await maybeCopyToTmp(binaryPath)
+      const platformBinaries = binaryPaths[engineType]
+      for (const binaryTarget in platformBinaries) {
+        const binaryPath = platformBinaries[binaryTarget]
+        platformBinaries[binaryTarget] = await maybeCopyToTmp(binaryPath)
       }
     }
   }
@@ -206,16 +189,11 @@ function getCollectiveBar(options: DownloadOptions): {
   finishBar: () => void
   setProgress: (sourcePath: string) => (progress: number) => void
 } {
-  const hasNodeAPI = 'libquery-engine' in options.binaries
-  const bar = getBar(
-    `Downloading Prisma engines${hasNodeAPI ? ' for Node-API' : ''} for ${options.binaryTargets
-      ?.map((p) => bold(p))
-      .join(' and ')}`,
-  )
+  const bar = getBar(`Downloading Prisma engines`)
 
   const progressMap: { [key: string]: number } = {}
   // Object.values is faster than Object.keys
-  const numDownloads = Object.values(options.binaries).length * Object.values(options?.binaryTargets ?? []).length
+  const numDownloads = Object.values(options.binaries).length
   const setProgress =
     (sourcePath: string) =>
     (progress): void => {
@@ -344,28 +322,16 @@ async function binaryNeedsToBeDownloaded(
   return false
 }
 
-export async function getVersion(enginePath: string, binaryName: string) {
+export async function getVersion(enginePath: string, _binaryName: string) {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    if (binaryName === BinaryType.QueryEngineLibrary) {
-      assertNodeAPISupported()
-
-      const commitHash = require(enginePath).version().commit
-      return `${BinaryType.QueryEngineLibrary} ${commitHash}`
-    } else {
-      const result = await execa(enginePath, ['--version'])
-
-      return result.stdout
-    }
+    const result = await execa(enginePath, ['--version'])
+    return result.stdout
   } catch {}
 
   return undefined
 }
 
-export function getBinaryName(binaryName: BinaryType, binaryTarget: BinaryTarget): string {
-  if (binaryName === BinaryType.QueryEngineLibrary) {
-    return `${getNodeAPIName(binaryTarget, 'fs')}`
-  }
+export function getBinaryName(binaryName: BinaryType, binaryTarget: string): string {
   const extension = binaryTarget === 'windows' ? '.exe' : ''
   return `${binaryName}-${binaryTarget}${extension}`
 }

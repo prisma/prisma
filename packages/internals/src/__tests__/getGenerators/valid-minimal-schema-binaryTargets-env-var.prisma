@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator gen_env {
-  provider      = "predefined-generator"
-  binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
+  provider = "predefined-generator"
 }
 
 model User {

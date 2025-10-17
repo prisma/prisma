@@ -1,81 +1,22 @@
-import type { BinaryTarget } from '@prisma/get-platform'
-import { getNodeAPIName } from '@prisma/get-platform'
-import { ClientEngineType, parseAWSNodejsRuntimeEnvVarVersion, pathToPosix } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
 
 /**
  * Build bundler-like annotations so that Vercel automatically uploads the
- * prisma schema as well as the query engine binaries to the deployments.
+ * prisma schema to the deployments.
+ * @param noEngine whether engine bundling is disabled
  * @param engineType the client engine in use
- * @param binaryTargets the targeted binaryTargets
  * @param relativeOutdir outdir relative to root
  * @returns
  */
-export function buildNFTAnnotations(
-  noEngine: boolean,
-  engineType: ClientEngineType,
-  binaryTargets: BinaryTarget[] | undefined,
-  relativeOutdir: string,
-) {
-  // We don't want to bundle engines when `--no-engine is enabled or for the edge runtime
+export function buildNFTAnnotations(noEngine: boolean, engineType: ClientEngineType, relativeOutdir: string) {
+  // We don't want to bundle when `--no-engine is enabled or for the edge runtime
   if (noEngine === true) return ''
 
-  if (binaryTargets === undefined) {
-    // TODO: should we still build the schema annotations in this case?
-    // Or, even better, make binaryTargets non-nullable in TSClientOptions to avoid this check.
-    return ''
-  }
-
-  // Add annotation for Netlify for a specific binaryTarget (depending on Node version and special env var)
-  if (process.env.NETLIFY) {
-    const isNodeMajor20OrUp = parseInt(process.versions.node.split('.')[0]) >= 20
-
-    // Netlify reads and changes the runtime version based on this env var
-    // https://docs.netlify.com/configure-builds/environment-variables/#netlify-configuration-variables
-    const awsRuntimeVersion = parseAWSNodejsRuntimeEnvVarVersion()
-    const isRuntimeEnvVar20OrUp = awsRuntimeVersion && awsRuntimeVersion >= 20
-    const isRuntimeEnvVar18OrDown = awsRuntimeVersion && awsRuntimeVersion <= 18
-
-    // Only set to 3.0.x if
-    // - current Node.js version is 20+ or env var is 20+
-    // - env var must not be 18-
-    if ((isNodeMajor20OrUp || isRuntimeEnvVar20OrUp) && !isRuntimeEnvVar18OrDown) {
-      binaryTargets = ['rhel-openssl-3.0.x']
-    } else {
-      binaryTargets = ['rhel-openssl-1.0.x']
-    }
-  }
-
-  const engineAnnotations = binaryTargets
-    .map((binaryTarget) => {
-      const engineFilename = getQueryEngineFilename(engineType, binaryTarget)
-      return engineFilename ? buildNFTAnnotation(engineFilename, relativeOutdir) : ''
-    })
-    .join('\n')
-
-  const schemaAnnotations = buildNFTAnnotation('schema.prisma', relativeOutdir)
-
-  return `${engineAnnotations}${schemaAnnotations}`
-}
-
-/**
- * Retrieve the location of the current query engine
- * @param engineType
- * @param binaryTarget
- * @returns
- */
-function getQueryEngineFilename(engineType: ClientEngineType, binaryTarget: BinaryTarget) {
-  if (engineType === ClientEngineType.Library) {
-    return getNodeAPIName(binaryTarget, 'fs')
-  }
-
-  if (engineType === ClientEngineType.Binary) {
-    return `query-engine-${binaryTarget}`
-  }
-
-  return undefined
+  // Client engine only needs schema.prisma annotation
+  return buildNFTAnnotation('schema.prisma', relativeOutdir)
 }
 
 /**

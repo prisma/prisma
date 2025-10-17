@@ -24,7 +24,7 @@ on:
       queryEngine:
         description: List of query engines to run tests on as JSON array
         type: string
-        default: '["library", "binary"]'
+        default: '["client"]'
       pnpmVersion:
         description: pnpm package manager version
         type: string
@@ -488,7 +488,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library'] # TODO: binary engine is leaking at the moment
+        queryEngine: ['client']
         node: ['20.19.0', '22.12.0', '24']
     steps:
       - uses: actions/checkout@v4

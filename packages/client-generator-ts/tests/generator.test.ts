@@ -3,13 +3,7 @@ import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
 import { omit } from '@prisma/client-common'
-import {
-  ClientEngineType,
-  GeneratorRegistry,
-  getClientEngineType,
-  getGenerator,
-  parseEnvValue,
-} from '@prisma/internals'
+import { GeneratorRegistry, getGenerator, parseEnvValue } from '@prisma/internals'
 import { describe, expect, test } from 'vitest'
 
 import { PrismaClientTsGenerator } from '../src/generator'
@@ -102,44 +96,16 @@ describe('generator', () => {
 
     const manifest = omit(generator.manifest!, ['version'])
 
-    if (manifest.requiresEngineVersion?.length !== 40) {
-      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
-    }
-    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
-
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "/project/node_modules/@prisma/client",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "queryEngine",
-          ],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        "binaryTargets": [
-          {
-            "fromEnvVar": null,
-            "native": true,
-            "value": "NATIVE_BINARY_TARGET",
-          },
-        ],
+        "binaryTargets": [],
         "config": {},
         "isCustomOutput": true,
         "name": "client",
@@ -245,44 +211,16 @@ describe('generator', () => {
 
     const manifest = omit(generator.manifest!, ['version'])
 
-    if (manifest.requiresEngineVersion?.length !== 40) {
-      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
-    }
-    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
-
-    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "queryEngine",
-          ],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        "binaryTargets": [
-          {
-            "fromEnvVar": null,
-            "native": true,
-            "value": "NATIVE_BINARY_TARGET",
-          },
-        ],
+        "binaryTargets": [],
         "config": {},
         "isCustomOutput": true,
         "name": "client",
@@ -316,42 +254,16 @@ describe('generator', () => {
 
     const manifest = omit(generator.manifest!, ['version'])
 
-    if (manifest.requiresEngineVersion?.length !== 40) {
-      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
-    }
-    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
-
-    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        "binaryTargets": [
-          {
-            "fromEnvVar": null,
-            "native": true,
-            "value": "NATIVE_BINARY_TARGET",
-          },
-        ],
+        "binaryTargets": [],
         "config": {
           "engineType": "client",
           "runtime": "workerd",

@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator'
-import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
@@ -143,10 +142,6 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     debug('config data retrieved without errors in getConfig Wasm')
     const { right: data } = configEither
 
-    for (const generator of data.generators) {
-      await resolveBinaryTargets(generator)
-    }
-
     return Promise.resolve(data)
   }
 
@@ -189,32 +184,6 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
 
   throw error
-}
-
-async function resolveBinaryTargets(generator: GeneratorConfig) {
-  for (const binaryTarget of generator.binaryTargets) {
-    // load the binaryTargets from the env var
-    if (binaryTarget.fromEnvVar && process.env[binaryTarget.fromEnvVar]) {
-      const value = JSON.parse(process.env[binaryTarget.fromEnvVar]!)
-
-      if (Array.isArray(value)) {
-        generator.binaryTargets = value.map((v) => ({ fromEnvVar: null, value: v }))
-        await resolveBinaryTargets(generator) // resolve again if we have native
-      } else {
-        binaryTarget.value = value
-      }
-    }
-
-    // resolve native to the current platform
-    if (binaryTarget.value === 'native') {
-      binaryTarget.value = await getBinaryTargetForCurrentPlatform()
-      binaryTarget.native = true
-    }
-  }
-
-  if (generator.binaryTargets.length === 0) {
-    generator.binaryTargets = [{ fromEnvVar: null, value: await getBinaryTargetForCurrentPlatform(), native: true }]
-  }
 }
 
 function formatErrors(errors: GetConfigValidationError[]) {

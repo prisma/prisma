@@ -1,16 +1,14 @@
 import { Debug } from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
-import { chmodPlusX, ClientEngineType } from '@prisma/internals'
+import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from './Engine'
-import { binaryTargetsWasIncorrectlyPinned } from './errors/engine-not-found/binaryTargetsWasIncorrectlyPinned'
 import { bundlerHasTamperedWithEngineCopy } from './errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
 import { EngineNotFoundErrorInput } from './errors/engine-not-found/EngineNotFoundErrorInput'
-import { nativeGeneratedOnDifferentPlatform } from './errors/engine-not-found/nativeGeneratedOnDifferentPlatform'
 import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/toolingHasTamperedWithEngineCopy'
 
 const debug = Debug('prisma:client:engines:resolveEnginePath')
@@ -19,20 +17,15 @@ const debug = Debug('prisma:client:engines:resolveEnginePath')
 const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${TARGET_BUILD_TYPE}\\.m?js$`)
 
 /**
- * Resolves the path of a given engine type (binary or library) and config. If
- * the engine could not be found, we will try to help the user by providing
- * helpful error messages.
+ * Resolves the path of the engine and config. If the engine could not be
+ * found, we will try to help the user by providing helpful error messages.
  * @param engineType
  * @param config
  * @returns
  */
 export async function resolveEnginePath(engineType: ClientEngineType, config: EngineConfig) {
   // if the user provided a custom path, or if engine previously found
-  const prismaPath =
-    {
-      binary: process.env.PRISMA_QUERY_ENGINE_BINARY,
-      library: process.env.PRISMA_QUERY_ENGINE_LIBRARY,
-    }[engineType] ?? config.prismaPath
+  const prismaPath = config.prismaPath
 
   if (prismaPath !== undefined) return prismaPath
 
@@ -41,20 +34,15 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
 
   debug('enginePath', enginePath)
 
-  // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === ClientEngineType.Binary) chmodPlusX(enginePath)
+  // if we find it, cache and return
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
-  const generatorBinaryTargets = config.generator?.binaryTargets ?? []
-  const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native)
-  const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === binaryTarget)
   const clientHasBeenBundled = __filename.match(runtimeFileRegex()) === null // runtime name
 
   const errorInput: EngineNotFoundErrorInput = {
     searchedLocations,
-    generatorBinaryTargets,
     generator: config.generator!,
     runtimeBinaryTarget: binaryTarget,
     queryEngineName: getQueryEngineName(engineType, binaryTarget),
@@ -63,11 +51,7 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
   }
 
   let errorMessage: string
-  if (hasNativeBinaryTarget && hasMissingBinaryTarget) {
-    errorMessage = nativeGeneratedOnDifferentPlatform(errorInput)
-  } else if (hasMissingBinaryTarget) {
-    errorMessage = binaryTargetsWasIncorrectlyPinned(errorInput)
-  } else if (clientHasBeenBundled) {
+  if (clientHasBeenBundled) {
     errorMessage = bundlerHasTamperedWithEngineCopy(errorInput)
   } else {
     errorMessage = toolingHasTamperedWithEngineCopy(errorInput)
@@ -114,16 +98,12 @@ async function findEnginePath(engineType: ClientEngineType, config: EngineConfig
 }
 
 /**
- * Utility function to get the name of the query engine file for a given engine
- * and a given binary target.
+ * Utility function to get the name of the query engine file for a given binary target.
  * @param engineType
  * @param binaryTarget
  * @returns
  */
 export function getQueryEngineName(engineType: ClientEngineType, binaryTarget: BinaryTarget) {
-  if (engineType === ClientEngineType.Library) {
-    return getNodeAPIName(binaryTarget, 'fs')
-  } else {
-    return `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`
-  }
+  const extension = binaryTarget === 'windows' ? '.exe' : ''
+  return `query-engine-${binaryTarget}${extension}`
 }

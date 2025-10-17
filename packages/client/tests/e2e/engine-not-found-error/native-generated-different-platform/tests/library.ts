@@ -18,13 +18,7 @@ Invalid \`prisma.user.create()\` invocation in
 → 6   const result = prisma.user.create(
 Prisma Client could not locate the Query Engine for runtime "debian-openssl-3.0.x".
 
-This happened because Prisma Client was generated for "netbsd", but the actual deployment required "debian-openssl-3.0.x".
-Add "debian-openssl-3.0.x" to \`binaryTargets\` in the "schema.prisma" file and run \`prisma generate\` after saving it:
-
-generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
-}
+This happened because Prisma Client was generated for a different platform, but the actual deployment required "debian-openssl-3.0.x".
 
 The following locations have been searched:
   /test/engine-not-found-error/native-generated-different-platform/prisma/client

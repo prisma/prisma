@@ -1,16 +1,13 @@
 import Debug from '@prisma/debug'
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion } from '@prisma/engines'
 import type {
-  BinaryTargetsEnvValue,
   EngineType,
   Generator as IGenerator,
   GeneratorConfig,
   GeneratorOptions,
   SqlQueryOutput,
 } from '@prisma/generator'
-import type { BinaryTarget } from '@prisma/get-platform'
-import { binaryTargets, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
-import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
+import { bold } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -21,14 +18,9 @@ import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
-import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
-import { pick } from '../utils/pick'
+import { parseEnvValue } from '../utils/parseEnvValue'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
-import { fixBinaryTargets } from './utils/fixBinaryTargets'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
-import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
-import { getOriginalBinaryTargetsValue, printGeneratorConfig } from './utils/printGeneratorConfig'
 
 const debug = Debug('prisma:getGenerators')
 
@@ -103,10 +95,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     schemaPath,
     registry,
     version,
-    printDownloadProgress,
     overrideGenerators,
-    skipDownload,
-    binaryPathsOverride,
     generatorNames = [],
     postinstall,
     noEngine,
@@ -146,8 +135,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   }
 
   const generatorConfigs = filterGenerators(overrideGenerators || schemaContext.generators, generatorNames)
-
-  await validateGenerators(generatorConfigs)
 
   const runningGenerators: Generator[] = []
   try {
@@ -255,86 +242,14 @@ generator gen {
       }
     }
 
-    // 3. Download all binaries and binary targets needed
+    // 3. Client engine no longer requires downloading binaries
     const neededVersions = Object.create(null)
-    for (const g of generators) {
-      if (
-        g.manifest &&
-        g.manifest.requiresEngines &&
-        Array.isArray(g.manifest.requiresEngines) &&
-        g.manifest.requiresEngines.length > 0
-      ) {
-        const neededVersion = getEngineVersionForGenerator(g.manifest, version)
-        if (!neededVersions[neededVersion]) {
-          neededVersions[neededVersion] = { engines: [], binaryTargets: [] }
-        }
-
-        for (const engine of g.manifest.requiresEngines) {
-          if (!neededVersions[neededVersion].engines.includes(engine)) {
-            neededVersions[neededVersion].engines.push(engine)
-          }
-        }
-
-        const generatorBinaryTargets = g.options?.generator?.binaryTargets
-
-        if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
-          for (const binaryTarget of generatorBinaryTargets) {
-            if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
-              neededVersions[neededVersion].binaryTargets.push(binaryTarget)
-            }
-          }
-        }
-      }
-    }
-
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
 
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
-    const { binaryPathsByVersion, binaryTarget } = await getBinaryPathsByVersion({
+    // No binary downloads needed - client engine is WASM-based
+    getBinaryPathsByVersion({
       neededVersions,
-      // We're lazily computing the binary target here, to avoid printing the
-      // `Prisma failed to detect the libssl/openssl version to use` warning
-      // on StackBlitz, where the binary target is not detected.
-      //
-      // On other platforms, it's safe and fast to call this function again,
-      // as its result is memoized anyway.
-      detectBinaryTarget: getBinaryTargetForCurrentPlatform,
-      version,
-      printDownloadProgress,
-      skipDownload,
-      binaryPathsOverride,
     })
-    for (const generator of generators) {
-      if (generator.manifest && generator.manifest.requiresEngines) {
-        const engineVersion = getEngineVersionForGenerator(generator.manifest, version)
-        const binaryPaths = binaryPathsByVersion[engineVersion]
-        // pick only the engines that we need for this generator
-        const generatorBinaryPaths = pick(binaryPaths ?? {}, generator.manifest.requiresEngines)
-        debug({ generatorBinaryPaths })
-        generator.setBinaryPaths(generatorBinaryPaths)
-
-        // in case cli engine version !== client engine version
-        // we need to re-generate the dmmf and pass it into the generator
-        if (
-          engineVersion !== version &&
-          generator.options &&
-          generator.manifest.requiresEngines.includes(queryEngineType) &&
-          generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[binaryTarget]
-        ) {
-          const customDmmf = await getDMMF({
-            datamodel: schemaContext.schemaFiles,
-            previewFeatures,
-          })
-          const options = { ...generator.options, dmmf: customDmmf }
-          debug('generator.manifest.prettyName', generator.manifest.prettyName)
-          debug('options', options)
-          debug('options.generator.binaryTargets', options.generator.binaryTargets)
-          generator.setOptions(options)
-        }
-      }
-    }
 
     return generators
   } catch (e) {
@@ -347,17 +262,11 @@ generator gen {
 type NeededVersions = {
   [key: string]: {
     engines: EngineType[]
-    binaryTargets: BinaryTargetsEnvValue[]
   }
 }
 
 export type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
-  detectBinaryTarget: () => Promise<BinaryTarget>
-  version?: string
-  printDownloadProgress?: boolean
-  skipDownload?: boolean
-  binaryPathsOverride?: BinaryPathsOverride
 }
 
 /**
@@ -374,85 +283,6 @@ export async function getGenerator(options: GetGeneratorOptions): Promise<Genera
 
 export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
-}
-
-export const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
-
-const oldToNewBinaryTargetsMapping = {
-  'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
-  'linux-glibc-libssl1.0.2': 'debian-openssl-1.0.x',
-  'linux-glibc-libssl1.1.0': 'debian-openssl1.1.x',
-}
-
-async function validateGenerators(generators: GeneratorConfig[]): Promise<void> {
-  const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-  for (const generator of generators) {
-    if (generator.config.platforms) {
-      throw new Error(
-        `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
-      )
-    }
-
-    if (generator.config.pinnedBinaryTargets) {
-      throw new Error(
-        `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
-Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
-      )
-    }
-
-    if (generator.binaryTargets) {
-      const binaryTargets =
-        generator.binaryTargets && generator.binaryTargets.length > 0
-          ? generator.binaryTargets
-          : [{ fromEnvVar: null, value: 'native' }]
-
-      const resolvedBinaryTargets: string[] = binaryTargets
-        .flatMap((object) => parseBinaryTargetsEnvValue(object))
-        .map((p) => (p === 'native' ? binaryTarget : p))
-
-      for (const resolvedBinaryTarget of resolvedBinaryTargets) {
-        if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
-          throw new Error(
-            `Binary target ${red(bold(resolvedBinaryTarget))} is deprecated. Please use ${green(
-              bold(oldToNewBinaryTargetsMapping[resolvedBinaryTarget]),
-            )} instead.`,
-          )
-        }
-        if (!knownBinaryTargets.includes(resolvedBinaryTarget as BinaryTarget)) {
-          throw new Error(
-            `Unknown binary target ${red(resolvedBinaryTarget)} in generator ${bold(generator.name)}.
-Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
-          )
-        }
-      }
-
-      // Only show warning if resolvedBinaryTargets
-      // is missing current platform
-      if (!resolvedBinaryTargets.includes(binaryTarget)) {
-        const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
-
-        console.log(`${yellow('Warning:')} Your current platform \`${bold(
-          binaryTarget,
-        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-          originalBinaryTargetsConfig,
-        )}.
-To fix it, use this generator config in your ${bold('schema.prisma')}:
-${green(
-  printGeneratorConfig({
-    ...generator,
-    binaryTargets: fixBinaryTargets(generator.binaryTargets, binaryTarget),
-  }),
-)}
-${gray(
-  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${binaryTarget}\`.
-Read more about deploying Prisma Client: ${underline(
-    'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
-  )}`,
-)}\n`)
-      }
-    }
-  }
 }
 
 function filterGenerators(generators: GeneratorConfig[], generatorNames: string[]) {

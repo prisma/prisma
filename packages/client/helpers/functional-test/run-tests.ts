@@ -1,11 +1,10 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { arg, BinaryType, getBinaryTargetForCurrentPlatform } from '@prisma/internals'
+import { arg, getBinaryTargetForCurrentPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import { execa, type ExecaChildProcess } from 'execa'
 
-import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { AdapterProviders, isDriverAdapterProviderLabel, Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
@@ -301,15 +300,12 @@ async function main(): Promise<number | void> {
 }
 
 async function getBinaryForMiniProxy(): Promise<string> {
-  if (process.env.PRISMA_QUERY_ENGINE_BINARY) {
-    return process.env.PRISMA_QUERY_ENGINE_BINARY
-  }
-
-  const paths = await setupQueryEngine()
+  const { getEnginesPath } = await import('@prisma/engines')
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
-  const qePath = paths[BinaryType.QueryEngineBinary]?.[binaryTarget]
+  const extension = binaryTarget === 'windows' ? '.exe' : ''
+  const qePath = path.join(getEnginesPath(), `query-engine-${binaryTarget}${extension}`)
 
-  if (!qePath) {
+  if (!fs.existsSync(qePath)) {
     throw new Error('Query Engine binary missing')
   }
 

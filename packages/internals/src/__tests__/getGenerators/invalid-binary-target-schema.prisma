@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator gen {
-  provider      = "predefined-generator"
-  binaryTargets = ["marvin"]
+  provider = "predefined-generator"
 }
 
 model User {

@@ -70,7 +70,7 @@ export class Version implements Command {
 
     const schemaPathFromArg = args['--schema']
 
-    const { engineType } = await getClientGeneratorInfo({
+    await getClientGeneratorInfo({
       schemaPathFromConfig: config.schema,
       schemaPathFromArg,
     }).catch((_) => {
@@ -107,36 +107,8 @@ export class Version implements Command {
         }
       })
 
-    const { queryEngineRows, queryEngineRetrievalErrors } = await match(engineType)
-      // eslint-disable-next-line @typescript-eslint/require-await
-      .with('client', async () => {
-        const engineRetrievalErrors = [] as Error[]
-        return {
-          queryEngineRows: [['Query Compiler', 'enabled']],
-          queryEngineRetrievalErrors: engineRetrievalErrors,
-        }
-      })
-      .with('library', async () => {
-        const name = BinaryType.QueryEngineLibrary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Node-API)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .with('binary', async () => {
-        const name = BinaryType.QueryEngineBinary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Binary)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .exhaustive()
+    const queryEngineRows = [['Query Engine', 'Client Engine (WASM)'] as const]
+    const queryEngineRetrievalErrors: Error[] = []
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
 

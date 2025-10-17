@@ -12,14 +12,11 @@ export interface GeneratorConfig {
     output?: never
     /** `provider` is a reserved name and will only be available directly at `generator.provider` */
     provider?: never
-    /** `binaryTargets` is a reserved name and will only be available directly at `generator.binaryTargets` */
-    binaryTargets?: never
     /** `previewFeatures` is a reserved name and will only be available directly at `generator.previewFeatures` */
     previewFeatures?: never
   } & {
     [key: string]: string | string[] | undefined
   }
-  binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
   envPaths?: EnvPaths
@@ -29,12 +26,6 @@ export interface GeneratorConfig {
 export interface EnvValue {
   fromEnvVar: null | string
   value: null | string
-}
-
-export interface BinaryTargetsEnvValue {
-  fromEnvVar: string | null
-  value: string
-  native?: boolean
 }
 
 export type ConnectorType =
@@ -62,8 +53,6 @@ export interface DataSource {
 
 export type BinaryPaths = {
   schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
-  queryEngine?: { [binaryTarget: string]: string }
-  libqueryEngine?: { [binaryTarget: string]: string }
 }
 
 export type EnvPaths = {
@@ -92,7 +81,7 @@ export type GeneratorOptions = {
   typedSql?: SqlQueryOutput[]
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
+export type EngineType = 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string
@@ -102,7 +91,5 @@ export type GeneratorManifest = {
     fields?: string[]
   }
   requiresGenerators?: string[]
-  requiresEngines?: EngineType[]
   version?: string
-  requiresEngineVersion?: string
 }

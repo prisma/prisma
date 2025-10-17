@@ -48,7 +48,6 @@ describe('getConfig', () => {
 
     generator gen {
       provider = "fancy-provider"
-      binaryTargets = ["native"]
     }
 
     model A {
@@ -125,13 +124,7 @@ describe('getConfig', () => {
             "config": {
               "engineType": "binary"
             },
-            "binaryTargets": [
-              {
-                "fromEnvVar": null,
-                "value": "TEST_PLATFORM",
-                "native": true
-              }
-            ],
+            "binaryTargets": [],
             "previewFeatures": [],
             "sourceFilePath": "schema.prisma"
           }
@@ -186,13 +179,7 @@ describe('getConfig', () => {
             "config": {
               "engineType": "library"
             },
-            "binaryTargets": [
-              {
-                "fromEnvVar": null,
-                "value": "TEST_PLATFORM",
-                "native": true
-              }
-            ],
+            "binaryTargets": [],
             "previewFeatures": [],
             "sourceFilePath": "schema.prisma"
           }

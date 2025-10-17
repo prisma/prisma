@@ -1,4 +1,4 @@
-import type { BinaryTargetsEnvValue, GeneratorConfig } from '@prisma/generator'
+import type { GeneratorConfig } from '@prisma/generator'
 import indent from 'indent-string'
 
 export function printGeneratorConfig(config: GeneratorConfig): string {
@@ -16,7 +16,6 @@ export class GeneratorConfigClass {
     const obj = JSON.parse(
       JSON.stringify({
         provider,
-        binaryTargets: getOriginalBinaryTargetsValue(config.binaryTargets),
       }),
     )
 
@@ -24,22 +23,6 @@ export class GeneratorConfigClass {
 ${indent(printDatamodelObject(obj), 2)}
 }`
   }
-}
-
-export function getOriginalBinaryTargetsValue(binaryTargets: BinaryTargetsEnvValue[]) {
-  let value: string | string[] | undefined
-  if (binaryTargets.length > 0) {
-    const binaryTargetsFromEnvVar = binaryTargets.find((object) => object.fromEnvVar !== null)
-    if (binaryTargetsFromEnvVar) {
-      value = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
-    } else {
-      value = binaryTargets.map((object) => (object.native ? 'native' : object.value))
-    }
-  } else {
-    value = undefined
-  }
-
-  return value
 }
 
 export function printDatamodelObject(obj): string {

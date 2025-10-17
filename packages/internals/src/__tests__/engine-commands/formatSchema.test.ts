@@ -123,8 +123,7 @@ describe('format', () => {
       }
       
       generator client {
-        provider      = "prisma-client-js"
-        binaryTargets = ["native"]
+        provider = "prisma-client-js"
       }
       
       model User {
