@@ -1494,9 +1494,6 @@ importers:
       cli-truncate:
         specifier: 4.0.0
         version: 4.0.0
-      dotenv:
-        specifier: 16.5.0
-        version: 16.5.0
       empathic:
         specifier: 2.0.0
         version: 2.0.0

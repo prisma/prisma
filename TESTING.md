@@ -68,7 +68,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Unit and integration tests for `migrate` and `db` commands
 - **`internals`**
   - Convert credentials to connection string and back
-  - Dotenv expansion
   - Engine commands (`getDMMF`, `getConfig`) (snapshots)
   - getGenerators (central function for generation)
   - introspection (snapshots)
@@ -253,12 +252,12 @@ export default testMatrix.setupSchema(({ provider }) => {
     generator client {
       provider = "prisma-client-js"
     }
-    
+
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
     }
-    
+
     model User {
       id ${idForProvider(provider)}
     }

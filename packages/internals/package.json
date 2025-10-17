@@ -38,7 +38,6 @@
     "archiver": "6.0.2",
     "checkpoint-client": "1.1.33",
     "cli-truncate": "4.0.0",
-    "dotenv": "16.5.0",
     "empathic": "2.0.0",
     "escape-string-regexp": "5.0.0",
     "execa": "8.0.1",
