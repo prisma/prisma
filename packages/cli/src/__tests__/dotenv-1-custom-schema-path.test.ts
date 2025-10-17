@@ -4,10 +4,10 @@ import { loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestStdoutContext()).assemble()
 
-it('should read .env file in root folder and custom-path', async () => {
+it('should read .env file in root folder and custom-path', () => {
   ctx.fixture('dotenv-1-custom-schema-path')
 
-  await loadEnvFile({ schemaPath: './custom-path/schema.prisma', printMessage: true, config: defaultTestConfig() })
+  loadEnvFile({ schemaPath: './custom-path/schema.prisma', printMessage: true, config: defaultTestConfig() })
   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
     "Environment variables loaded from .env

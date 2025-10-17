@@ -56,6 +56,7 @@ function nodeRuntimeBuildConfig(targetBuildType: typeof TARGET_BUILD_TYPE, forma
     minify: shouldMinify,
     sourcemap: 'linked',
     emitTypes: ['library', 'client'].includes(targetBuildType),
+    external: ['@prisma/client-runtime-utils'],
     define: {
       NODE_CLIENT: 'true',
       TARGET_BUILD_TYPE: JSON.stringify(targetBuildType),
@@ -105,6 +106,7 @@ function browserBuildConfigs(): BuildOptions[] {
     bundle: true,
     minify: shouldMinify,
     sourcemap: 'linked',
+    external: ['@prisma/client-runtime-utils'],
   }))
 }
 
@@ -143,6 +145,7 @@ const runtimesCommonBuildConfig = {
   },
   logLevel: 'error',
   legalComments: 'none',
+  external: ['@prisma/client-runtime-utils'],
 } satisfies BuildOptions
 
 // we define the config for edge

@@ -66,7 +66,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ printMessage: !args['--json'], config })
+    loadEnvFile({ printMessage: !args['--json'], config })
 
     const schemaPathFromArg = args['--schema']
 

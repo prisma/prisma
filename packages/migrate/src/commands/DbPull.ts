@@ -127,7 +127,7 @@ Set composite types introspection depth to 2 levels
 
     const url: string | undefined = args['--url']
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],

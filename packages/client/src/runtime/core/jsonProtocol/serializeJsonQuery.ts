@@ -1,4 +1,5 @@
 import { RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
+import { isAnyNull, isDbNull, isJsonNull, ObjectEnumValue } from '@prisma/client-runtime-utils'
 import { assertNever } from '@prisma/internals'
 
 import { ErrorFormat } from '../../getPrismaClient'
@@ -29,7 +30,6 @@ import {
   RawParameters,
   Selection,
 } from '../types/exported/JsApi'
-import { ObjectEnumValue, objectEnumValues } from '../types/exported/ObjectEnums'
 import { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
@@ -321,7 +321,7 @@ function serializeArgumentsValue(
   }
 
   if (jsValue instanceof ObjectEnumValue) {
-    if (jsValue !== objectEnumValues.instances[jsValue._getName()]) {
+    if (!isDbNull(jsValue) && !isJsonNull(jsValue) && !isAnyNull(jsValue)) {
       throw new Error('Invalid ObjectEnumValue')
     }
     return { $type: 'Enum', value: jsValue._getName() }

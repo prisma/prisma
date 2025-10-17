@@ -1,9 +1,9 @@
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 import { getPlatformInfo } from '@prisma/get-platform'
 import { ClientEngineType, handleLibraryLoadingErrors } from '@prisma/internals'
 import os from 'os'
 import path from 'path'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import { Library, LibraryLoader } from './types/Library'
@@ -49,11 +49,9 @@ export function load(libraryPath: string): Library {
     // system OpenSSL on Linux but the dynamic linker resolves the symbols from
     // the Node.js binary instead.
     //
-    // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
     flags = os.constants.dlopen.RTLD_LAZY | os.constants.dlopen.RTLD_DEEPBIND
   }
 
-  // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
   process.dlopen(libraryModule, fullLibraryPath, flags)
 
   cache[libraryPath] = libraryModule.exports

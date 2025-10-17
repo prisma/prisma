@@ -1,6 +1,6 @@
 import { ArgType, ColumnType, ColumnTypeEnum, Debug, ResultValue } from '@prisma/driver-adapter-utils'
 
-import { PrismaBetterSQLite3Options } from './better-sqlite3'
+import { PrismaBetterSqlite3Options } from './better-sqlite3'
 
 const debug = Debug('prisma:driver-adapter:better-sqlite3:conversion')
 
@@ -192,7 +192,7 @@ export function mapRow(row: Row, columnTypes: ColumnType[]): ResultValue[] {
 export function mapArg<A>(
   arg: A | Date,
   argType: ArgType,
-  options?: PrismaBetterSQLite3Options,
+  options?: PrismaBetterSqlite3Options,
 ): null | number | BigInt | Uint8Array | string | A {
   if (arg === null) {
     return null

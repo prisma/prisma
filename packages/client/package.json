@@ -164,7 +164,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18"
+    "node": "^20.19 || ^22.12 || ^24.0"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -271,12 +271,11 @@
     "@types/jest": "29.5.14",
     "@types/js-levenshtein": "1.1.3",
     "@types/mssql": "9.1.8",
-    "@types/node": "18.19.76",
+    "@types/node": "~20.19.0",
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "cookie-es": "2.0.0",
-    "decimal.js": "10.5.0",
     "execa": "8.0.1",
     "expect-type": "1.2.2",
     "fs-extra": "11.3.0",
@@ -301,7 +300,6 @@
     "simple-statistics": "7.8.8",
     "sort-keys": "5.1.0",
     "source-map-support": "0.5.21",
-    "sql-template-tag": "5.2.1",
     "stacktrace-parser": "0.1.11",
     "strip-ansi": "7.1.0",
     "strip-indent": "4.0.0",
@@ -312,9 +310,12 @@
     "undici": "7.4.0",
     "zx": "8.4.1"
   },
+  "dependencies": {
+    "@prisma/client-runtime-utils": "workspace:*"
+  },
   "peerDependencies": {
     "prisma": "*",
-    "typescript": ">=5.1.0"
+    "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "prisma": {

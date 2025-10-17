@@ -22,7 +22,7 @@ To help maintainers triage efficiently:
 
 ## General Prerequisites
 
-1. Install Node.js `>=18.18` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Install Node.js `>=20.19` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
 
 1. Install [`pnpm`](https://pnpm.io/) (for installing npm dependencies, using pnpm workspaces)

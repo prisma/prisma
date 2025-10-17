@@ -20,6 +20,7 @@
     "@prisma/adapter-d1": "workspace:*",
     "@prisma/adapter-mariadb": "workspace:*",
     "@prisma/client": "workspace:*",
+    "@prisma/client-runtime-utils": "workspace:*",
     "pg": "8.14.1",
     "prisma": "workspace:*"
   }

@@ -1,4 +1,4 @@
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import {
   OfficialDriverAdapterName,
   Provider,
@@ -22,7 +22,7 @@ const driverAdapters: Record<string, DriverAdapterTestConfig> = {
     adapter: (ctx: BaseContext) => () => {
       const url = 'file:' + path.join(ctx.tmpDir, 'dev.db')
       return Promise.resolve(
-        new PrismaLibSQL({
+        new PrismaLibSql({
           url,
         }),
       )

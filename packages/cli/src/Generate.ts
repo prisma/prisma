@@ -29,7 +29,6 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
-import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
@@ -69,7 +68,6 @@ ${bold('Options')}
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
           --no-hints   Hides the hint messages but still outputs errors and warnings
-   --allow-no-models   Allow generating a client without models (default)
     --require-models   Do not allow generating a client without models
 
 ${bold('Examples')}
@@ -126,20 +124,11 @@ ${bold('Examples')}
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
-      // TODO: no longer needed, remove in Prisma 7
-      '--allow-no-models': Boolean,
       '--require-models': Boolean,
       '--sql': Boolean,
     })
 
-    let allowNoModels = true
-
-    if (args['--require-models']) {
-      if (args['--allow-no-models']) {
-        return Error('Cannot use --allow-no-models and --require-models together')
-      }
-      allowNoModels = false
-    }
+    const allowNoModels = !args['--require-models']
 
     const postinstallCwd = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
@@ -156,7 +145,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
@@ -278,13 +267,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}`
         }
       }
 

@@ -4,7 +4,6 @@ import { findUpSync, Options as FindUpOptions, pathExistsSync } from 'find-up'
 import fs from 'fs'
 import path from 'path'
 
-import { getSchemaFromPackageJson } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
 const debug = Debug('prisma:loadEnv')
@@ -19,35 +18,16 @@ const debug = Debug('prisma:loadEnv')
  *
  * @returns `{ rootEnvPath, schemaEnvPath }`
  */
-export async function getEnvPaths(
-  schemaPath?: string | null,
-  opts: { cwd: string } = { cwd: process.cwd() },
-): Promise<EnvPaths> {
+export function getEnvPaths(schemaPath?: string | null, opts: { cwd: string } = { cwd: process.cwd() }): EnvPaths {
   const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
-  // NOTE: We intentionally do NOT check based on the schema path from `prisma.config.ts` as having a
-  // `prisma.config.ts` file disables automatic env loading anyway.
-  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(await readSchemaPathFromPkgJson())
   const schemaEnvPaths = [
     schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
-    schemaEnvPathFromPkgJson, // 2 - Check package.json schema directory for .env
-    './prisma/.env', // 3 - Check ./prisma directory for .env
-    './.env', // 4 - Check cwd for .env
+    './prisma/.env', // 2 - Check ./prisma directory for .env
+    './.env', // 3 - Check cwd for .env
   ]
   const schemaEnvPath = schemaEnvPaths.find(exists)
   return { rootEnvPath, schemaEnvPath }
-}
-
-async function readSchemaPathFromPkgJson(): Promise<string | null> {
-  try {
-    const pkgJsonSchema = await getSchemaFromPackageJson(process.cwd())
-    if (pkgJsonSchema.ok) {
-      pkgJsonSchema.schema.schemaPath
-    }
-    return null
-  } catch {
-    return null
-  }
 }
 
 function getProjectRootEnvPath(opts: FindUpOptions | undefined): string | null {

@@ -17,9 +17,9 @@ export default defineConfig({
   schema: path.join(__dirname, 'schema-c.prisma'),
   studio: {
     adapter: async () => {
-      const { PrismaLibSQL } = await import('@prisma/adapter-libsql')
+      const { PrismaLibSql } = await import('@prisma/adapter-libsql')
 
-      return new PrismaLibSQL({
+      return new PrismaLibSql({
         url: env.DOTENV_PRISMA_STUDIO_LIBSQL_DATABASE_URL,
       })
     },

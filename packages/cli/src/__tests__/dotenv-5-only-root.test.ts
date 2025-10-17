@@ -4,10 +4,10 @@ import { loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestStdoutContext()).assemble()
 
-it('should not load root .env file', async () => {
+it('should not load root .env file', () => {
   ctx.fixture('dotenv-5-only-root')
 
-  await loadEnvFile({ printMessage: true, config: defaultTestConfig() })
+  loadEnvFile({ printMessage: true, config: defaultTestConfig() })
 
   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`

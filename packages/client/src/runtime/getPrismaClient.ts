@@ -1,5 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
+import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { version as enginesVersion } from '@prisma/engines-version/package.json'
@@ -8,7 +9,6 @@ import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
-import { RawValue, Sql } from 'sql-template-tag'
 
 import {
   PrismaClientInitializationError,
@@ -92,10 +92,6 @@ export type Datasource = { url?: string }
 export type Datasources = { [name in string]: Datasource }
 
 export type PrismaClientOptions = {
-  /**
-   * Overwrites the primary datasource url from your schema.prisma file
-   */
-  datasourceUrl?: string
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
@@ -315,7 +311,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           )
         }
 
-        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
+        if (optionsArg.datasources) {
           throw new PrismaClientInitializationError(
             `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
             this._clientVersion,
@@ -387,7 +383,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
+          overrideDatasources: getDatasourceOverrides(options),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
