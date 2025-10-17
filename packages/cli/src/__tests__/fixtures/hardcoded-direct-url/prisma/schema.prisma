@@ -6,7 +6,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = "postgresql://xyz:xyz@localhost:5432/xyz"
 }
 
 model Post {
