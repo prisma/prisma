@@ -197,6 +197,9 @@ export async function buildClient({
     },
     version: clientVersion,
     sideEffects: false,
+    dependencies: {
+      '@prisma/client-runtime-utils': clientVersion,
+    },
   }
 
   // we store the generated contents here

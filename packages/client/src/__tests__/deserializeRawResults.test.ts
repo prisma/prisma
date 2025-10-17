@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from '@prisma/client-runtime-utils'
 
 import { deserializeRawResult } from '../runtime/utils/deserializeRawResults'
 

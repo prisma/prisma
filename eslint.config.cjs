@@ -124,6 +124,7 @@ module.exports = [
       'eslint-comments/no-unlimited-disable': 'off',
       'eslint-comments/disable-enable-pair': 'off',
       '@typescript-eslint/no-misused-promises': 'off',
+      '@typescript-eslint/no-redundant-type-constituents': 'warn',
       'jest/expect-expect': 'off',
       'no-empty': 'off',
 

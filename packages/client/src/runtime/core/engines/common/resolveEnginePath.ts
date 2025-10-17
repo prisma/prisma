@@ -1,3 +1,4 @@
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
@@ -5,7 +6,6 @@ import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from './Engine'
 import { bundlerHasTamperedWithEngineCopy } from './errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
 import { EngineNotFoundErrorInput } from './errors/engine-not-found/EngineNotFoundErrorInput'

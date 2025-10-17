@@ -1,9 +1,9 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
+import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
 import { warnOnce } from '@prisma/internals'
 
 import { ClientEngine, DataProxyEngine, Engine, EngineConfig } from '../engines'
 import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
-import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
