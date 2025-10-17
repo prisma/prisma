@@ -47,6 +47,7 @@ describe('validate', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           └── schema.prisma
           "
         `)
@@ -86,6 +87,7 @@ describe('validate', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           "
         `)
 
