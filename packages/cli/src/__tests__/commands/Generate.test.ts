@@ -1,13 +1,14 @@
 import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
-import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { BaseContext, vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { vi, type SpyInstance } from 'vitest'
 
 import { Generate } from '../../Generate'
 import { promotions, renderPromotion } from '../../utils/handlePromotions'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 describe('using cli', () => {
   // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
@@ -350,7 +351,7 @@ describe('using cli', () => {
 
   it('should call the survey handler when hints are not disabled', async () => {
     ctx.fixture('example-project')
-    const handler = jest.fn()
+    const handler = vi.fn()
     const generate = new Generate(handler)
     await generate.parse([], defaultTestConfig())
     expect(handler).toHaveBeenCalledTimes(1)
@@ -358,7 +359,7 @@ describe('using cli', () => {
 
   it('should not call the survey handler when hints are disabled', async () => {
     ctx.fixture('example-project')
-    const handler = jest.fn()
+    const handler = vi.fn()
     const generate = new Generate(handler)
     await generate.parse(['--no-hints'], defaultTestConfig())
     expect(handler).not.toHaveBeenCalled()
@@ -514,12 +515,14 @@ describe('using cli', () => {
 })
 
 describe('--schema from project directory', () => {
+  let randomSpy: SpyInstance
+
   beforeEach(() => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.1)
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.1)
   })
 
   afterEach(() => {
-    jest.spyOn(Math, 'random').mockRestore()
+    randomSpy.mockRestore()
   })
 
   it('--schema relative path: should work', async () => {
@@ -634,12 +637,14 @@ describe('in postinstall', () => {
 })
 
 describe('--schema from parent directory', () => {
+  let randomSpy: SpyInstance
+
   beforeEach(() => {
-    jest.spyOn(Math, 'random').mockReturnValue(0.1)
+    randomSpy = vi.spyOn(Math, 'random').mockReturnValue(0.1)
   })
 
   afterEach(() => {
-    jest.spyOn(Math, 'random').mockRestore()
+    randomSpy.mockRestore()
   })
   it('--schema relative path: should work', async () => {
     expect.assertions(1)

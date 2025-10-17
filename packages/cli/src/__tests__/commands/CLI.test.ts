@@ -1,13 +1,14 @@
 import { defaultTestConfig, defineConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { DbPull } from '@prisma/migrate'
+import { vi } from 'vitest'
 
 import { CLI } from '../../CLI'
 import { Validate } from '../../Validate'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
-function createCLI(download = jest.fn()) {
+function createCLI(download = vi.fn()) {
   return CLI.new(
     {
       // init: Init.new(),
@@ -43,7 +44,7 @@ function createCLI(download = jest.fn()) {
 }
 
 describe('CLI', () => {
-  const download = jest.fn()
+  const download = vi.fn()
   let cliInstance: CLI
 
   beforeEach(() => {
@@ -168,7 +169,7 @@ describe('CLI', () => {
   })
 
   it('no params should return help', async () => {
-    const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
     await cliInstance.parse([], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
@@ -176,7 +177,7 @@ describe('CLI', () => {
   })
 
   it('wrong flag', async () => {
-    const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
     await cliInstance.parse(['--something'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)
@@ -184,7 +185,7 @@ describe('CLI', () => {
   })
 
   it('help flag', async () => {
-    const spy = jest.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(cliInstance, 'help').mockImplementation(() => 'Help Me')
 
     await cliInstance.parse(['--help'], defaultTestConfig())
     expect(spy).toHaveBeenCalledTimes(1)

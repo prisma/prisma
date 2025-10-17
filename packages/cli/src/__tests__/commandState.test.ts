@@ -1,11 +1,12 @@
 import fs from 'fs'
+import { vi, type SpyInstance } from 'vitest'
 
 import { CommandState, daysSinceFirstCommand, loadOrInitializeCommandState } from '../utils/commandState'
 
 describe('command state', () => {
-  let mockRead: jest.SpyInstance
-  let mockWrite: jest.SpyInstance
-  let mockExists: jest.SpyInstance
+  let mockRead: SpyInstance
+  let mockWrite: SpyInstance
+  let mockExists: SpyInstance
 
   afterEach(() => {
     mockRead?.mockRestore()
@@ -14,8 +15,8 @@ describe('command state', () => {
   })
 
   it("initialize with the date when the state file doesn't exist", async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
     const state = await loadOrInitializeCommandState()
 
@@ -29,10 +30,10 @@ describe('command state', () => {
   it('return the date when the state file does exist', async () => {
     const date = new Date('2023-01-01T00:00:00Z')
 
-    mockRead = jest
+    mockRead = vi
       .spyOn(fs.promises, 'readFile')
       .mockResolvedValue(JSON.stringify({ firstCommandTimestamp: date.toISOString() }))
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
     const state = await loadOrInitializeCommandState()
 

@@ -1,8 +1,8 @@
 import { defaultTestConfig } from '@prisma/config'
-import { jestContext, jestStdoutContext } from '@prisma/get-platform'
+import { vitestContext, vitestStdoutContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { loadEnvFile } from '@prisma/internals'
 
-const ctx = jestContext.new().add(jestStdoutContext()).assemble()
+const ctx = vitestContext.new().add(vitestStdoutContext()).assemble()
 
 it('should not load root .env file', async () => {
   ctx.fixture('dotenv-5-only-root')

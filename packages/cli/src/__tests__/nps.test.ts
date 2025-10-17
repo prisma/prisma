@@ -1,6 +1,7 @@
 import fs from 'fs'
 import readline from 'readline'
 import { PassThrough } from 'stream'
+import { vi, type SpyInstance } from 'vitest'
 
 import { CommandState } from '../utils/commandState'
 import { createSafeReadlineProxy, handleNpsSurveyImpl } from '../utils/nps/survey'
@@ -15,9 +16,9 @@ const longTimeUserCommandState: CommandState = { firstCommandTimestamp: '2019-01
 describe('nps survey', () => {
   const originalEnv = { ...process.env }
 
-  let mockRead: jest.SpyInstance
-  let mockWrite: jest.SpyInstance
-  let mockExists: jest.SpyInstance
+  let mockRead: SpyInstance
+  let mockWrite: SpyInstance
+  let mockExists: SpyInstance
 
   beforeEach(() => {
     process.env = {}
@@ -34,15 +35,15 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in CI', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     process.env.CI = 'true'
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
@@ -55,19 +56,19 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in a Podman container', async () => {
-    mockExists = jest.spyOn(fs, 'existsSync').mockImplementation((path) => {
+    mockExists = vi.spyOn(fs, 'existsSync').mockImplementation((path) => {
       return path === '/run/.containerenv'
     })
 
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -79,19 +80,19 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in a Docker container', async () => {
-    mockExists = jest.spyOn(fs, 'existsSync').mockImplementation((path) => {
+    mockExists = vi.spyOn(fs, 'existsSync').mockImplementation((path) => {
       return path === '/.dockerenv'
     })
 
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -103,15 +104,15 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in a Kubernetes pod', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     process.env.KUBERNETES_SERVICE_HOST = '10.96.0.1'
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
@@ -124,15 +125,15 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in a pre-commit git hook', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     process.env.GIT_EXEC_PATH = '/nix/store/9z3jhc0rlj3zaw8nd1zka9vli6w0q11g-git-2.47.2/libexec/git-core'
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
@@ -145,15 +146,15 @@ describe('nps survey', () => {
   })
 
   it('should exit immediately if running in a post-install npm hook or similar', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockImplementation()
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     process.env.npm_command = 'install'
     process.env.npm_lifecycle_event = 'prepare'
@@ -167,19 +168,19 @@ describe('nps survey', () => {
   })
 
   it('should read the config and exit when the current survey has been acknowledged', async () => {
-    mockRead = jest
+    mockRead = vi
       .spyOn(fs.promises, 'readFile')
       .mockResolvedValue(
         JSON.stringify({ acknowledgedTimeframe: { start: earlierDate.toISOString(), end: laterDate.toISOString() } }),
       )
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn()
+    const status = vi.fn()
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -191,17 +192,17 @@ describe('nps survey', () => {
   })
 
   it('should check the status if there is no config and exit if there is no survey', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest
+    const status = vi
       .fn()
       .mockResolvedValue({ currentTimeframe: { start: evenEarlierDate.toISOString(), end: earlierDate.toISOString() } })
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -213,19 +214,19 @@ describe('nps survey', () => {
   })
 
   it('should check the status if the acknowledged survey has expired', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockResolvedValue(
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockResolvedValue(
       JSON.stringify({
         acknowledgedTimeframe: { start: evenEarlierDate.toISOString(), end: earlierDate.toISOString() },
       }),
     )
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn().mockResolvedValue({})
+    const status = vi.fn().mockResolvedValue({})
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn()
+    const capture = vi.fn()
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -237,15 +238,15 @@ describe('nps survey', () => {
   })
 
   it('should exit if the status is undefined', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
-    const status = jest.fn().mockResolvedValue({})
+    const status = vi.fn().mockResolvedValue({})
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn().mockReturnValue(Promise.resolve())
+    const capture = vi.fn().mockReturnValue(Promise.resolve())
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -257,12 +258,12 @@ describe('nps survey', () => {
   })
 
   it('should exit if this command is within 24 hours of the first command issued', async () => {
-    const status = jest.fn().mockResolvedValue({})
+    const status = vi.fn().mockResolvedValue({})
     const readline = {
-      question: jest.fn(),
-      write: jest.fn(),
+      question: vi.fn(),
+      write: vi.fn(),
     }
-    const capture = jest.fn().mockReturnValue(Promise.resolve())
+    const capture = vi.fn().mockReturnValue(Promise.resolve())
     const commandState = {
       firstCommandTimestamp: new Date(
         Date.now() - ((Math.random() * Number.MAX_SAFE_INTEGER) % (23 * 60 * 60 * 1000)),
@@ -277,16 +278,16 @@ describe('nps survey', () => {
   })
 
   it('should prompt the user if the survey is active and update the config', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
     const currentTimeframe = { start: earlierDate.toISOString(), end: laterDate.toISOString() }
-    const status = jest.fn().mockResolvedValue({ currentTimeframe })
+    const status = vi.fn().mockResolvedValue({ currentTimeframe })
     const readline = {
-      question: jest.fn().mockResolvedValueOnce('5').mockResolvedValueOnce('Great!'),
-      write: jest.fn(),
+      question: vi.fn().mockResolvedValueOnce('5').mockResolvedValueOnce('Great!'),
+      write: vi.fn(),
     }
-    const capture = jest.fn().mockReturnValue(Promise.resolve())
+    const capture = vi.fn().mockReturnValue(Promise.resolve())
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 
@@ -302,16 +303,16 @@ describe('nps survey', () => {
   })
 
   it('should allow the user to skip the survey and still update the config', async () => {
-    mockRead = jest.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
-    mockWrite = jest.spyOn(fs.promises, 'writeFile').mockImplementation()
+    mockRead = vi.spyOn(fs.promises, 'readFile').mockRejectedValue({ code: 'ENOENT' })
+    mockWrite = vi.spyOn(fs.promises, 'writeFile').mockImplementation()
 
     const currentTimeframe = { start: earlierDate.toISOString(), end: laterDate.toISOString() }
-    const status = jest.fn().mockResolvedValue({ currentTimeframe })
+    const status = vi.fn().mockResolvedValue({ currentTimeframe })
     const readline = {
-      question: jest.fn().mockResolvedValueOnce('no'),
-      write: jest.fn(),
+      question: vi.fn().mockResolvedValueOnce('no'),
+      write: vi.fn(),
     }
-    const capture = jest.fn().mockReturnValue(Promise.resolve())
+    const capture = vi.fn().mockReturnValue(Promise.resolve())
 
     await handleNpsSurveyImpl(currentDate, { status }, readline, { capture }, longTimeUserCommandState)
 

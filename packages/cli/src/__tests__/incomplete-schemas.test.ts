@@ -3,7 +3,7 @@
 import { stripVTControlCharacters } from 'node:util'
 
 import { defaultTestConfig } from '@prisma/config'
-import { jestContext } from '@prisma/get-platform'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
 import fs from 'fs'
@@ -11,7 +11,7 @@ import fs from 'fs'
 import { Format } from '../Format'
 import { Validate } from '../Validate'
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 /**
  * Commands:

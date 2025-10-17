@@ -2,16 +2,17 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import * as miniProxy from '@prisma/mini-proxy'
 import fetch from 'node-fetch'
+import { vi } from 'vitest'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
 
@@ -121,9 +122,8 @@ describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY
 )
 
 describe('studio with default schema.prisma filename', () => {
-  jest.setTimeout(20_000)
-
   beforeAll(async () => {
+    vi.setConfig({ testTimeout: 20_000 })
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rmSync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
@@ -154,6 +154,7 @@ describe('studio with default schema.prisma filename', () => {
 
   afterAll(() => {
     studio.instance!.stop()
+    vi.resetConfig()
   })
 
   test('can start up correctly', async () => {
@@ -307,9 +308,8 @@ describe('studio with default schema.prisma filename', () => {
 })
 
 describe('studio with custom schema.prisma filename', () => {
-  jest.setTimeout(20_000)
-
   beforeAll(async () => {
+    vi.setConfig({ testTimeout: 20_000 })
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rmSync(path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'))
@@ -340,6 +340,7 @@ describe('studio with custom schema.prisma filename', () => {
 
   afterAll(() => {
     studio.instance!.stop()
+    vi.resetConfig()
   })
 
   test('can start up correctly', async () => {
@@ -493,9 +494,8 @@ describe('studio with custom schema.prisma filename', () => {
 })
 
 describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with schema folder', () => {
-  jest.setTimeout(20_000)
-
   beforeAll(async () => {
+    vi.setConfig({ testTimeout: 20_000 })
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rmSync(path.join(__dirname, '../fixtures/studio-test-project-schema-folder/dev_tmp.db'))
@@ -526,6 +526,7 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
 
   afterAll(() => {
     studio.instance!.stop()
+    vi.resetConfig()
   })
 
   test('can start up correctly', async () => {
@@ -681,13 +682,12 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('studio with sche
 describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
   'studio with driver adapter from prisma.config.ts',
   () => {
-    jest.setTimeout(20_000)
-
     afterEach(() => {
       process.env = { ...originalEnv }
     })
 
     beforeAll(async () => {
+      vi.setConfig({ testTimeout: 20_000 })
       // Before every test, we'd like to reset the DB.
       // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
       rmSync(path.join(__dirname, '../fixtures/studio-test-project-driver-adapter/dev_tmp.db'))
@@ -712,6 +712,7 @@ describeIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
 
     afterAll(() => {
       studio.instance!.stop()
+      vi.resetConfig()
     })
 
     test('starts up correctly', async () => {

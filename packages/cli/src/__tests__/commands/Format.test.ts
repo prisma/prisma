@@ -2,13 +2,13 @@
 import fs from 'node:fs'
 
 import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { extractSchemaContent, getSchemaWithPath } from '@prisma/internals'
 
 import { Format } from '../../Format'
 import { Validate } from '../../Validate'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 const originalEnv = { ...process.env }
 
