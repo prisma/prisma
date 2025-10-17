@@ -3,8 +3,8 @@
 // that is also easy to integrate with our bundling.
 // import * as wasmBindgenRuntime from '@prisma/query-compiler-wasm/query_compiler_bg.js'
 import { QueryCompilerConstructor } from '@prisma/client-common'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { QueryCompilerLoader } from './types/QueryCompiler'
 
 // cache loaded wasm instances by provider
