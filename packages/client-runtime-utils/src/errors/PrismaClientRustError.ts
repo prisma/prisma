@@ -1,7 +1,10 @@
-import { setClassName } from '@prisma/internals'
+import { getBacktrace, isPanic, type RustLog } from './log'
+import { setClassName } from './setClassName'
 
-import { PrismaClientRustErrorArgs } from '../engines/common/types/PrismaClientRustErrorArgs'
-import { getBacktrace, isPanic } from '../engines/common/utils/log'
+export type PrismaClientRustErrorArgs = {
+  clientVersion: string
+  error: RustLog
+}
 
 /**
  * A generic Prisma Client Rust error.

@@ -1,4 +1,5 @@
-import { PrismaClientInitializationError } from '../../../errors/PrismaClientInitializationError'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
+
 import { EngineConfig } from '../..'
 
 export function checkForbiddenMetrics(engineConfig: EngineConfig) {

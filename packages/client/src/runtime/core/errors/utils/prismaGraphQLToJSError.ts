@@ -1,6 +1,6 @@
+import { PrismaClientKnownRequestError, PrismaClientUnknownRequestError } from '@prisma/client-runtime-utils'
+
 import { RequestError } from '../../engines/common/types/RequestError'
-import { PrismaClientKnownRequestError } from '../PrismaClientKnownRequestError'
-import { PrismaClientUnknownRequestError } from '../PrismaClientUnknownRequestError'
 
 const TOO_MANY_CONNECTIONS_ERROR = 'P2037'
 
