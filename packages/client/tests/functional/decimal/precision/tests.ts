@@ -1,5 +1,6 @@
 import { fc, test } from '@fast-check/jest'
 
+import { Providers } from '../../_utils/providers'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
@@ -65,6 +66,14 @@ testMatrix.setupTestSuite(
     skipDriverAdapter: {
       from: ['js_mssql'],
       reason: `The mssql driver appears to be losing precision even when receiving a stringified decimal`,
+    },
+    skip(when, { clientEngineExecutor, provider }) {
+      when(
+        clientEngineExecutor === 'remote' && provider === Providers.SQLSERVER,
+        `
+        QPE uses driver adapters internally, so the problem above applies as well.
+        `,
+      )
     },
   },
 )

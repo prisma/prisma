@@ -407,3 +407,27 @@ Invalid \`prisma.resource.create()\` invocation in
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`dbo.Resource\`"
 `;
+
+exports[`issues.11740-transaction-stored-query (provider=sqlserver, qpe=remote) stored query trigger .requestTransaction twice should fail 1`] = `
+"
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
+
+  XX })
+  XX 
+  XX testIf(engineType !== 'binary')('stored query trigger .requestTransaction twice should fail', async () => {
+→ XX   const query = prisma.resource.create(
+Unique constraint failed on the constraint: \`dbo.Resource\`"
+`;
+
+exports[`issues.11740-transaction-stored-query (provider=sqlserver, qpe=remote) stored query triggered twice should fail but not exit process 1`] = `
+"
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
+
+  XX testMatrix.setupTestSuite(
+  XX   ({ engineType }) => {
+  XX     testIf(engineType !== 'binary')('stored query triggered twice should fail but not exit process', async () => {
+→ XX       const query = prisma.resource.create(
+Unique constraint failed on the constraint: \`dbo.Resource\`"
+`;
