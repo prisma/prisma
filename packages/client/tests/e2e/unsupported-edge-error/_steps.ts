@@ -18,6 +18,8 @@ void executeSteps({
       }
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 1000))
+
     await $`pnpm exec jest`
 
     await wrangler.kill()

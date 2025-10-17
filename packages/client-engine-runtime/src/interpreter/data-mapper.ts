@@ -1,4 +1,4 @@
-import Decimal from 'decimal.js'
+import { Decimal } from '@prisma/client-runtime-utils'
 
 import { FieldScalarType, FieldType, ResultNode } from '../query-plan'
 import { assertNever, safeJsonStringify } from '../utils'

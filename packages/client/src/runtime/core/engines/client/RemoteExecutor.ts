@@ -1,10 +1,10 @@
 import type { QueryEngineLogLevel } from '@prisma/client-common'
 import type { TransactionOptions } from '@prisma/client-engine-runtime'
+import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
 import { type AccelerateHeaders, HeaderBuilder } from '../common/accelerate/HeaderBuilder'
 import type { AccelerateExtensionFetch, EngineConfig } from '../common/Engine'
