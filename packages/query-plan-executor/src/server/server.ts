@@ -86,6 +86,7 @@ function createHonoServer(app: App, options: Options) {
     })
     .post('/transaction/start', zValidator('json', TransactionStartRequestBody), async (c) => {
       const result = await app.startTransaction(c.req.valid('json'), c.get('resourceLimits'))
+      c.header('Prisma-Transaction-Id', result.id)
       return c.json(result satisfies TransactionStartResponseBody)
     })
     .post('/transaction/:txId/query', zValidator('json', QueryRequestBody), async (c) => {
