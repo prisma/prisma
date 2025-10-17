@@ -12,7 +12,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
 import { download, getBinaryName, getVersion } from '../download'
-import { getFiles } from './__utils__/getFiles'
+import { getAllFilesRecursively,getFiles } from './__utils__/getFiles'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
@@ -36,6 +36,7 @@ describeIf(!usesCustomEngines)('download', async () => {
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
   const baseDirBinaryTarget = path.posix.join(dirname, 'binaryTarget')
+  const baseCustomBinaryCache = path.posix.join(dirname, 'customCache')
   let binaryTarget: BinaryTarget
   const actualFetch = (await vi.importActual('node-fetch')).default as typeof fetch
 
@@ -857,6 +858,43 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       const files = getFiles(baseDirChecksum).map((f) => f.name)
       expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
       expect(await getVersion(queryEnginePath, BinaryType.QueryEngineLibrary)).toContain(CURRENT_ENGINES_HASH)
+    })
+  })
+
+  describe(`env.PRISMA_DOWNLOAD_CACHE_DIR=${baseCustomBinaryCache}`, () => {
+    beforeAll(() => {
+      process.env.PRISMA_DOWNLOAD_CACHE_DIR = baseCustomBinaryCache
+    })
+
+    afterAll(() => {
+      delete process.env.PRISMA_DOWNLOAD_CACHE_DIR
+    })
+
+    beforeEach(async () => {
+      await del(path.posix.join(baseCustomBinaryCache, '*engine*'))
+      if (fs.existsSync(path.posix.join(baseCustomBinaryCache, 'master'))) {
+        fs.rmSync(path.posix.join(baseCustomBinaryCache, 'master'), { recursive: true })
+      }
+    })
+
+    test('check schema-engine will be downloaded into user-specified directory', async () => {
+      // const files = getFiles(baseCustomBinaryCache).map((f) => f.name)
+      let allFiles = getAllFilesRecursively(baseCustomBinaryCache)
+      expect(allFiles.length).toBe(1)
+      expect(allFiles.filter(({ name }) => name.endsWith('.gitkeep')).length).toBe(1)
+
+      await download({
+        binaries: {
+          [BinaryType.SchemaEngineBinary]: baseCustomBinaryCache,
+        },
+        binaryTargets: ['debian-openssl-3.0.x'],
+        version: CURRENT_ENGINES_HASH,
+      })
+
+      allFiles = getAllFilesRecursively(baseCustomBinaryCache)
+      expect(allFiles.length).toBe(5) // .gitkeep, 2 schema-engine's, 2 sha256's
+      expect(fs.existsSync(path.posix.join(baseCustomBinaryCache, 'schema-engine-debian-openssl-3.0.x'))).toBeTruthy()
+      expect(fs.existsSync(path.posix.join(baseCustomBinaryCache, 'master', CURRENT_ENGINES_HASH, 'debian-openssl-3.0.x', 'schema-engine'))).toBeTruthy()
     })
   })
 })
