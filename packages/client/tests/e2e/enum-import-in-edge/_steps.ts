@@ -20,7 +20,7 @@ void executeSteps({
           if (line.includes('Ready')) break
         }
 
-        await timers.setTimeout(100)
+        await timers.setTimeout(1000)
 
         return await $`curl http://localhost:8787/ -s`
       } finally {

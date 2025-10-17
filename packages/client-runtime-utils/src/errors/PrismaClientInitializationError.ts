@@ -1,4 +1,4 @@
-import { setClassName } from '@prisma/internals'
+import { setClassName } from './setClassName'
 
 export class PrismaClientInitializationError extends Error {
   clientVersion: string
