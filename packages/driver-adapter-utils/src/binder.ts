@@ -33,6 +33,12 @@ class ErrorRegistryInternal implements ErrorRegistry {
   }
 }
 
+function copySymbolsFromSource<S extends object, T extends object>(source: S, target: T) {
+  const symbols = Object.getOwnPropertySymbols(source)
+  const symbolObject = Object.fromEntries(symbols.map((symbol) => [symbol, true]))
+  Object.assign(target, symbolObject)
+}
+
 export const bindMigrationAwareSqlAdapterFactory = (
   adapterFactory: SqlMigrationAwareDriverAdapterFactory,
 ): ErrorCapturingSqlMigrationAwareDriverAdapterFactory => {
@@ -52,6 +58,8 @@ export const bindMigrationAwareSqlAdapterFactory = (
     },
   }
 
+  copySymbolsFromSource(adapterFactory, boundFactory)
+
   return boundFactory
 }
 
@@ -69,6 +77,8 @@ export const bindSqlAdapterFactory = (
       return ctx.map((ctx) => bindAdapter(ctx, errorRegistry))
     },
   }
+
+  copySymbolsFromSource(adapterFactory, boundFactory)
 
   return boundFactory
 }

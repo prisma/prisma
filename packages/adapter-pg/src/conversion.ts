@@ -1,4 +1,3 @@
-// @ts-ignore: this is used to avoid the `Module '"<path>/node_modules/@types/pg/index"' has no default export.` error.
 import { ArgType, type ColumnType, ColumnTypeEnum } from '@prisma/driver-adapter-utils'
 import pg from 'pg'
 import { parse as parseArray } from 'postgres-array'
@@ -299,11 +298,11 @@ function normalize_date(date: string): string {
  */
 
 function normalize_timestamp(time: string): string {
-  return new Date(`${time}Z`).toISOString().replace(/(\.000)?Z$/, '+00:00')
+  return `${time.replace(' ', 'T')}+00:00`
 }
 
-function normalize_timestampz(time: string): string {
-  return new Date(time.replace(/[+-]\d{2}(:\d{2})?$/, 'Z')).toISOString().replace(/(\.000)?Z$/, '+00:00')
+function normalize_timestamptz(time: string): string {
+  return time.replace(' ', 'T').replace(/[+-]\d{2}(:\d{2})?$/, '+00:00')
 }
 
 /*
@@ -406,8 +405,8 @@ export const customParsers = {
   [ArrayColumnType.DATE_ARRAY]: normalize_array(normalize_date),
   [ScalarColumnType.TIMESTAMP]: normalize_timestamp,
   [ArrayColumnType.TIMESTAMP_ARRAY]: normalize_array(normalize_timestamp),
-  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestampz,
-  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestampz),
+  [ScalarColumnType.TIMESTAMPTZ]: normalize_timestamptz,
+  [ArrayColumnType.TIMESTAMPTZ_ARRAY]: normalize_array(normalize_timestamptz),
   [ScalarColumnType.MONEY]: normalize_money,
   [ArrayColumnType.MONEY_ARRAY]: normalize_array(normalize_money),
   [ScalarColumnType.JSON]: toJson,
