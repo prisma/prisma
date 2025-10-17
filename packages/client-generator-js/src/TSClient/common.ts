@@ -201,6 +201,7 @@ export const prismaVersion: PrismaVersion
  */
 
 
+export import Bytes = runtime.Bytes
 export import JsonObject = runtime.JsonObject
 export import JsonArray = runtime.JsonArray
 export import JsonValue = runtime.JsonValue

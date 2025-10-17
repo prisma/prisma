@@ -70,17 +70,18 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = await config.adapter?.()
+    const adapter = config.engine === 'js' ? await config.adapter() : undefined
     printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
@@ -88,7 +89,13 @@ ${bold('Examples')}
       externalEnums: config.enums?.external ?? [],
     }
 
-    const migrate = await Migrate.setup({ adapter, migrationsDirPath, schemaContext, schemaFilter })
+    const migrate = await Migrate.setup({
+      schemaEngineConfig: config,
+      migrationsDirPath,
+      schemaContext,
+      schemaFilter,
+      extensions: config['extensions'],
+    })
 
     // `ensureDatabaseExists` is not compatible with WebAssembly.
     if (!adapter) {

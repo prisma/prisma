@@ -140,6 +140,7 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   constructor(
     client: neon.PoolClient,
     readonly options: TransactionOptions,
+    readonly cleanup?: () => void,
   ) {
     super(client)
   }
@@ -147,12 +148,14 @@ class NeonTransaction extends NeonWsQueryable<neon.PoolClient> implements Transa
   async commit(): Promise<void> {
     debug(`[js::commit]`)
 
+    this.cleanup?.()
     this.client.release()
   }
 
   async rollback(): Promise<void> {
     debug(`[js::rollback]`)
 
+    this.cleanup?.()
     this.client.release()
   }
 }
@@ -186,13 +189,18 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
     debug('%s options: %O', tag, options)
 
     const conn = await this.client.connect().catch((error) => this.onError(error))
-    conn.on('error', (err) => {
+    const onError = (err: Error) => {
       debug(`Error from pool connection: ${err.message} %O`, err)
       this.options?.onConnectionError?.(err)
-    })
+    }
+    conn.on('error', onError)
+
+    const cleanup = () => {
+      conn.removeListener('error', onError)
+    }
 
     try {
-      const tx = new NeonTransaction(conn, options)
+      const tx = new NeonTransaction(conn, options, cleanup)
       await tx.executeRaw({ sql: 'BEGIN', args: [], argTypes: [] })
       if (isolationLevel) {
         await tx.executeRaw({
@@ -203,6 +211,7 @@ export class PrismaNeonAdapter extends NeonWsQueryable<neon.Pool> implements Sql
       }
       return tx
     } catch (error) {
+      cleanup()
       conn.release(error)
       this.onError(error)
     }
@@ -247,7 +256,7 @@ export class PrismaNeonAdapterFactory implements SqlDriverAdapterFactory {
   }
 }
 
-export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAdapter {
+export class PrismaNeonHttpAdapter extends NeonQueryable implements SqlDriverAdapter {
   private client: (sql: string, params: any[], opts: Record<string, any>) => neon.NeonQueryPromise<any, any>
 
   constructor(client: neon.NeonQueryFunction<any, any>) {
@@ -292,7 +301,7 @@ export class PrismaNeonHTTPAdapter extends NeonQueryable implements SqlDriverAda
   async dispose(): Promise<void> {}
 }
 
-export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
+export class PrismaNeonHttpAdapterFactory implements SqlDriverAdapterFactory {
   readonly provider = 'postgres'
   readonly adapterName = packageName
 
@@ -302,6 +311,6 @@ export class PrismaNeonHTTPAdapterFactory implements SqlDriverAdapterFactory {
   ) {}
 
   async connect(): Promise<SqlDriverAdapter> {
-    return new PrismaNeonHTTPAdapter(neon.neon(this.connectionString, this.options))
+    return new PrismaNeonHttpAdapter(neon.neon(this.connectionString, this.options))
   }
 }

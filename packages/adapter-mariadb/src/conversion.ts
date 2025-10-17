@@ -78,7 +78,12 @@ export function mapColumnType(field: mariadb.FieldInfo): ColumnType {
     case MariaDbColumnType.BLOB:
     case MariaDbColumnType.TINY_BLOB:
     case MariaDbColumnType.MEDIUM_BLOB:
-      if (field.flags.valueOf() & BINARY_FLAG) {
+    case MariaDbColumnType.LONG_BLOB:
+      // Special handling for MariaDB, the database returns JSON columns as BLOB
+      // https://github.com/mariadb-corporation/mariadb-connector-nodejs/blob/1bbbb41e92d2123948c2322a4dbb5021026f2d05/lib/cmd/column-definition.js#L27
+      if (field['dataTypeFormat'] === 'json') {
+        return ColumnTypeEnum.Json
+      } else if (field.flags.valueOf() & BINARY_FLAG) {
         return ColumnTypeEnum.Bytes
       } else {
         return ColumnTypeEnum.Text
@@ -178,7 +183,7 @@ function formatDateTime(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
   const ms = date.getUTCMilliseconds()
   return (
-    date.getUTCFullYear() +
+    pad(date.getUTCFullYear(), 4) +
     '-' +
     pad(date.getUTCMonth() + 1) +
     '-' +
@@ -195,7 +200,7 @@ function formatDateTime(date: Date): string {
 
 function formatDate(date: Date): string {
   const pad = (n: number, z = 2) => String(n).padStart(z, '0')
-  return date.getUTCFullYear() + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
+  return pad(date.getUTCFullYear(), 4) + '-' + pad(date.getUTCMonth() + 1) + '-' + pad(date.getUTCDate())
 }
 
 function formatTime(date: Date): string {

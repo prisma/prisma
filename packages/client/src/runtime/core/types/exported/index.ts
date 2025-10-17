@@ -1,4 +1,5 @@
 export * from './BackwardCompat'
+export * from './Bytes'
 export * from './DecimalJsLike'
 export * from './ExtensionArgs'
 export * from './Extensions'

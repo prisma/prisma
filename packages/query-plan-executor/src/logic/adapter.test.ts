@@ -63,23 +63,21 @@ describe('createAdapter', () => {
 })
 
 describe('PostgreSQL TLS parameters', () => {
-  test('default behavior (no SSL params) should disable SSL', () => {
+  test("SSL params aren't added if not originally present", () => {
     const url = 'postgresql://user:pass@localhost:5432/db'
     createAdapter(url)
 
     expect(PrismaPg).toHaveBeenCalledWith({
       connectionString: url,
-      ssl: false,
     })
   })
 
-  test('sslmode=disable should disable SSL', () => {
+  test("sslmode=disable isn't modified", () => {
     const url = 'postgresql://user:pass@localhost:5432/db?sslmode=disable'
     createAdapter(url)
 
     expect(PrismaPg).toHaveBeenCalledWith({
       connectionString: url,
-      ssl: false,
     })
   })
 
@@ -92,8 +90,7 @@ describe('PostgreSQL TLS parameters', () => {
       createAdapter(url)
 
       expect(PrismaPg).toHaveBeenCalledWith({
-        connectionString: url,
-        ssl: { rejectUnauthorized: false },
+        connectionString: 'postgresql://user:pass@localhost:5432/db?sslmode=no-verify',
       })
     }
   })
@@ -108,38 +105,7 @@ describe('PostgreSQL TLS parameters', () => {
 
       expect(PrismaPg).toHaveBeenCalledWith({
         connectionString: url,
-        ssl: true,
       })
-    }
-  })
-
-  test('ssl=true without sslmode should be treated as sslmode=require', () => {
-    const url = 'postgresql://user:pass@localhost:5432/db?ssl=true'
-    createAdapter(url)
-
-    expect(PrismaPg).toHaveBeenCalledWith({
-      connectionString: url,
-      ssl: { rejectUnauthorized: false },
-    })
-  })
-
-  test('ssl=true with sslmode should respect sslmode', () => {
-    const url = 'postgresql://user:pass@localhost:5432/db?ssl=true&sslmode=disable'
-    createAdapter(url)
-
-    // sslmode takes precedence over ssl parameter
-    expect(PrismaPg).toHaveBeenCalledWith({
-      connectionString: url,
-      ssl: false,
-    })
-  })
-
-  test('unsupported sslmode values should throw error', () => {
-    const unsupportedModes = ['allow', 'invalid-mode']
-
-    for (const mode of unsupportedModes) {
-      const url = `postgresql://user:pass@localhost:5432/db?sslmode=${mode}`
-      expect(() => createAdapter(url)).toThrowError(`Unsupported sslmode: ${mode}`)
     }
   })
 

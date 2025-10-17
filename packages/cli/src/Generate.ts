@@ -29,7 +29,6 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
 import { processSchemaResult } from '../../internals/src/cli/schemaContext'
-import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { introspectSql, sqlDirPath } from './generate/introspectSql'
 import { Watcher } from './generate/Watcher'
 import { breakingChangesMessage } from './utils/breakingChanges'
@@ -146,7 +145,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
@@ -268,13 +267,13 @@ Please make sure they have the same version.`
             : ''
 
         if (hideHints) {
-          hint = `${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
+          hint = `${breakingChangesStr}${versionsWarning}`
         } else {
           hint = `
 Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
 ${renderPromotion(promotion)}
-${getHardcodedUrlWarning(schemaContext.primaryDatasource)}${breakingChangesStr}${versionsWarning}`
+${breakingChangesStr}${versionsWarning}`
         }
       }
 

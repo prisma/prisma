@@ -30,7 +30,7 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand, getSeedCommandFromPackageJson } from '../utils/seed'
+import { executeSeedCommand } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -95,18 +95,19 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
+      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
     checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = await config.adapter?.()
+    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     printDatasource({ datasourceInfo, adapter })
 
@@ -132,11 +133,12 @@ ${bold('Examples')}
     }
 
     const migrate = await Migrate.setup({
-      adapter,
+      schemaEngineConfig: config,
       migrationsDirPath,
       schemaContext,
       schemaFilter,
       shadowDbInitScript: config.migrations?.initShadowDb,
+      extensions: config['extensions'],
     })
 
     let devDiagnostic: EngineResults.DevDiagnosticOutput
@@ -312,10 +314,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
     // If database was created we want to run the seed if not skipped
     if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       try {
-        const seedCommandFromPrismaConfig = config.migrations?.seed
-        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-        const seedCommand = seedCommandFromPrismaConfig ?? seedCommandFromPkgJson
+        const seedCommand = config.migrations?.seed
 
         if (seedCommand) {
           process.stdout.write('\n') // empty line

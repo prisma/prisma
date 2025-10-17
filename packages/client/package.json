@@ -164,7 +164,7 @@
   },
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18"
+    "node": "^20.19 || ^22.12 || ^24.0"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -225,11 +225,11 @@
     "@libsql/client": "0.8.1",
     "@neondatabase/serverless": "0.10.2",
     "@opentelemetry/api": "1.9.0",
-    "@opentelemetry/context-async-hooks": "2.0.0",
-    "@opentelemetry/instrumentation": "0.57.2",
-    "@opentelemetry/resources": "1.30.1",
-    "@opentelemetry/sdk-trace-base": "1.30.1",
-    "@opentelemetry/semantic-conventions": "1.30.0",
+    "@opentelemetry/context-async-hooks": "2.1.0",
+    "@opentelemetry/instrumentation": "0.206.0",
+    "@opentelemetry/resources": "2.1.0",
+    "@opentelemetry/sdk-trace-base": "2.1.0",
+    "@opentelemetry/semantic-conventions": "1.37.0",
     "@planetscale/database": "1.19.0",
     "@prisma/adapter-better-sqlite3": "workspace:*",
     "@prisma/adapter-d1": "workspace:*",
@@ -248,7 +248,7 @@
     "@prisma/dmmf": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/engines": "workspace:*",
-    "@prisma/engines-version": "6.17.0-10.297c68f876201799d7f27bcfc636364632386d0a",
+    "@prisma/engines-version": "6.18.0-7.d3fc122f88ca3ce86f67a797debfb179a39ccf48",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -257,8 +257,8 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.5",
-    "@prisma/query-compiler-wasm": "6.17.0-10.297c68f876201799d7f27bcfc636364632386d0a",
-    "@prisma/query-engine-wasm": "6.17.0-10.297c68f876201799d7f27bcfc636364632386d0a",
+    "@prisma/query-compiler-wasm": "6.18.0-7.d3fc122f88ca3ce86f67a797debfb179a39ccf48",
+    "@prisma/query-engine-wasm": "6.18.0-7.d3fc122f88ca3ce86f67a797debfb179a39ccf48",
     "@prisma/query-plan-executor": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",
@@ -271,7 +271,7 @@
     "@types/jest": "29.5.14",
     "@types/js-levenshtein": "1.1.3",
     "@types/mssql": "9.1.8",
-    "@types/node": "18.19.76",
+    "@types/node": "~20.19.0",
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
@@ -315,7 +315,7 @@
   },
   "peerDependencies": {
     "prisma": "*",
-    "typescript": ">=5.1.0"
+    "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "prisma": {

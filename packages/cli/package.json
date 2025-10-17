@@ -39,7 +39,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=18.18"
+    "node": "^20.19 || ^22.12 || ^24.0"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -109,11 +109,15 @@
     "@inquirer/prompts": "7.3.3",
     "@libsql/client": "0.8.1",
     "@modelcontextprotocol/sdk": "1.13.2",
+    "@opentelemetry/api": "1.9.0",
+    "@opentelemetry/context-async-hooks": "2.1.0",
+    "@opentelemetry/sdk-trace-base": "2.1.0",
     "@prisma/adapter-libsql": "workspace:*",
     "@prisma/client": "workspace:*",
     "@prisma/client-generator-registry": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/dmmf": "workspace:*",
+    "@prisma/driver-adapter-utils": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -126,7 +130,7 @@
     "@swc/jest": "0.2.37",
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
-    "@types/node": "18.19.76",
+    "@types/node": "~20.19.0",
     "async-listen": "3.1.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",
@@ -166,7 +170,7 @@
     "@prisma/engines": "workspace:*"
   },
   "peerDependencies": {
-    "typescript": ">=5.1.0"
+    "typescript": ">=5.4.0"
   },
   "peerDependenciesMeta": {
     "typescript": {

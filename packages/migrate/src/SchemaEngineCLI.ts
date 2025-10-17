@@ -1,3 +1,4 @@
+import type { SchemaEngineConfigClassicDatasource } from '@prisma/config'
 import Debug from '@prisma/debug'
 import {
   BinaryType,
@@ -15,6 +16,7 @@ import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
 
+import { Extension, SchemaExtensionConfig } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -38,9 +40,11 @@ setClassName(EngineError, 'EngineError')
 let messageId = 1
 
 interface SchemaEngineCLISetupInput {
+  datasource?: SchemaEngineConfigClassicDatasource
   debug?: boolean
   enabledPreviewFeatures?: string[]
   schemaContext?: SchemaContext
+  extensions?: Extension[]
 }
 
 export type SchemaEngineCLIOptions = SchemaEngineCLISetupInput
@@ -49,6 +53,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private debug: boolean
   private child?: ChildProcess
   private schemaContext?: SchemaContext
+  private datasource?: SchemaEngineConfigClassicDatasource
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
@@ -57,6 +62,7 @@ export class SchemaEngineCLI implements SchemaEngine {
   private lastError: SchemaEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
+  private extensionConfig?: SchemaExtensionConfig
 
   // `latestSchema` is set to the latest schema that was used in `introspect()`
   // TODO: remove, it's not used anywhere.
@@ -65,13 +71,21 @@ export class SchemaEngineCLI implements SchemaEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  private constructor({ debug = false, schemaContext, enabledPreviewFeatures }: SchemaEngineCLIOptions) {
+  private constructor({
+    debug = false,
+    schemaContext,
+    datasource,
+    enabledPreviewFeatures,
+    extensions,
+  }: SchemaEngineCLIOptions) {
     this.schemaContext = schemaContext
+    this.datasource = datasource
     if (debug) {
       Debug.enable('SchemaEngine*')
     }
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
+    this.extensionConfig = extensions ? { types: extensions.flatMap((ext) => ext.types) } : undefined
   }
 
   static setup(input: SchemaEngineCLISetupInput): Promise<SchemaEngineCLI> {
@@ -370,8 +384,13 @@ export class SchemaEngineCLI implements SchemaEngine {
         let projectDir: string = process.cwd()
         if (this.schemaContext) {
           projectDir = this.schemaContext.primaryDatasourceDirectory
-          const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['-d', path])
+          // list of paths to the schema files
+          const schemaArgs = this.schemaContext.schemaFiles.flatMap(([path]) => ['--datamodels', path])
           args.push(...schemaArgs)
+        }
+
+        if (this.datasource) {
+          args.push(...['--datasource', JSON.stringify(this.datasource)])
         }
 
         if (
@@ -381,6 +400,11 @@ export class SchemaEngineCLI implements SchemaEngine {
         ) {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
+
+        if (this.extensionConfig) {
+          args.push(...['--extension-types', JSON.stringify(this.extensionConfig)])
+        }
+
         this.child = spawn(binaryPath, args, {
           cwd: projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],

@@ -14,7 +14,7 @@
   "dependencies": {
     "c12": "3.1.0",
     "deepmerge-ts": "7.1.5",
-    "effect": "3.16.12",
+    "effect": "3.18.4",
     "empathic": "2.0.0"
   },
   "devDependencies": {

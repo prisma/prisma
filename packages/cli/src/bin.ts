@@ -1,5 +1,8 @@
 #!/usr/bin/env tsx
 
+import { context, trace } from '@opentelemetry/api'
+import { AsyncLocalStorageContextManager } from '@opentelemetry/context-async-hooks'
+import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import { InjectFormatters } from '@prisma/config'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
@@ -43,10 +46,12 @@ import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
-import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
+
+context.setGlobalContextManager(new AsyncLocalStorageContextManager())
+trace.setGlobalTracerProvider(new BasicTracerProvider())
 
 const debug = Debug('prisma:cli:bin')
 
@@ -81,8 +86,6 @@ const args = arg(
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-
-  detectPrisma1()
 
   const cli = CLI.new(
     {
@@ -142,10 +145,6 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      /**
-       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
-       */
-      introspect: DbPull.new(),
       studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
@@ -161,7 +160,7 @@ async function main(): Promise<number> {
       // TODO: add login subcommand to --help after it works.
       login: new SubCommand('@prisma/cli-login'),
     },
-    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'studio', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 

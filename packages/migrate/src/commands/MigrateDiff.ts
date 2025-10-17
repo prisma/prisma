@@ -252,10 +252,11 @@ ${bold('Examples')}
       }
     } else if (args['--from-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
+      loadEnvFile({ schemaPath: args['--from-schema-datasource'], printMessage: false, config })
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--from-schema-datasource'],
         schemaPathArgumentName: '--from-schema-datasource',
+        schemaEngineConfig: config,
         printLoadMessage: false,
       })
       checkUnsupportedDataProxy({ cmd: 'migrate diff', schemaContext })
@@ -296,7 +297,7 @@ ${bold('Examples')}
       }
     } else if (args['--to-schema-datasource']) {
       // Load .env file that might be needed
-      await loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
+      loadEnvFile({ schemaPath: args['--to-schema-datasource'], printMessage: false, config })
       const schemaContext = await loadSchemaContext({
         schemaPathFromArg: args['--to-schema-datasource'],
         schemaPathArgumentName: '--to-schema-datasource',
@@ -333,12 +334,15 @@ ${bold('Examples')}
       }
     }
 
-    const adapter = await config.adapter?.()
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
     }
-    const migrate = await Migrate.setup({ adapter, schemaFilter })
+    const migrate = await Migrate.setup({
+      schemaEngineConfig: config,
+      schemaFilter,
+      extensions: config['extensions'],
+    })
 
     // Capture stdout if --output is defined
     const captureStdout = new CaptureStdout()

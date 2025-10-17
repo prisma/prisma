@@ -630,7 +630,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -666,7 +666,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     const result = MigrateDev.new().parse(['--create-only'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-      "Prisma Migrate created the following migration without applying it 20201231000000_
+      "Prisma Migrate created the following migration without applying it 20201231000000
 
       You can now edit it and apply it by running prisma migrate dev."
     `)
@@ -706,7 +706,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -761,119 +761,6 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       Running seed command \`ts-node prisma/seed.ts\` ...
 
       The seed command has been executed.
-      "
-    `)
-  })
-
-  test('one seed.ts file in package.json', async () => {
-    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
-
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
-
-      Enter a name for the new migration:
-
-      The following migration(s) have been created and applied from new schema changes:
-
-      prisma/migrations/
-        └─ 20201231000000_y/
-          └─ migration.sql
-
-      Your database is now in sync with your schema.
-
-      Running seed command \`ts-node prisma/seed.ts\` ...
-
-      The seed command has been executed.
-      "
-    `)
-  })
-
-  it('one seed file in package.json --skip-seed ', async () => {
-    ctx.fixture('seed-from-package-json/seed-sqlite-ts')
-
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse(['--skip-seed'], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
-
-      Enter a name for the new migration:
-
-      The following migration(s) have been created and applied from new schema changes:
-
-      prisma/migrations/
-        └─ 20201231000000_y/
-          └─ migration.sql
-
-      Your database is now in sync with your schema.
-      "
-    `)
-  })
-
-  it('one broken seed.js file in package.json', async () => {
-    ctx.fixture('seed-from-package-json/seed-sqlite-js')
-    fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
-
-    prompt.inject(['y'])
-
-    const result = MigrateDev.new().parse([], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
-
-      Enter a name for the new migration:
-
-      The following migration(s) have been created and applied from new schema changes:
-
-      prisma/migrations/
-        └─ 20201231000000_y/
-          └─ migration.sql
-
-      Your database is now in sync with your schema.
-
-      Running seed command \`node prisma/seed.js\` ...
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('')).toContain(
-      `An error occurred while running the seed command:`,
-    )
-    expect(ctx.recordedExitCode()).toEqual(1)
-  })
-
-  it('legacy seed (no config in package.json)', async () => {
-    ctx.fixture('seed-from-package-json/seed-sqlite-legacy')
-    ctx.fs.remove('prisma/seed.js')
-    // ctx.fs.remove('prisma/seed.ts')
-    ctx.fs.remove('prisma/seed.sh')
-    prompt.inject(['y']) // simulate user yes input
-
-    const result = MigrateDev.new().parse([], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
-
-      Enter a name for the new migration:
-
-      The following migration(s) have been created and applied from new schema changes:
-
-      prisma/migrations/
-        └─ 20201231000000_y/
-          └─ migration.sql
-
-      Your database is now in sync with your schema.
       "
     `)
   })
@@ -948,7 +835,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -973,7 +860,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -998,7 +885,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1128,7 +1015,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
   //     Prisma Migrate applied the following migration(s):
 
   //     migrations/
-  //       └─ 20201231000000_/
+  //       └─ 20201231000000/
   //         └─ migration.sql
   //   `)
 
@@ -1222,7 +1109,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1356,7 +1243,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1377,7 +1264,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1398,7 +1285,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1531,7 +1418,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1552,7 +1439,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1573,7 +1460,7 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1736,7 +1623,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1757,7 +1644,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -1778,7 +1665,7 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       prisma/migrations/
-        └─ 20201231000000_/
+        └─ 20201231000000/
           └─ migration.sql
 
       Your database is now in sync with your schema.

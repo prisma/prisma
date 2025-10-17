@@ -93,10 +93,6 @@ export type Datasources = { [name in string]: Datasource }
 
 export type PrismaClientOptions = {
   /**
-   * Overwrites the primary datasource url from your schema.prisma file
-   */
-  datasourceUrl?: string
-  /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
   adapter?: SqlDriverAdapterFactory | null
@@ -315,7 +311,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           )
         }
 
-        if (optionsArg.datasources || optionsArg.datasourceUrl !== undefined) {
+        if (optionsArg.datasources) {
           throw new PrismaClientInitializationError(
             `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
             this._clientVersion,
@@ -387,7 +383,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
+          overrideDatasources: getDatasourceOverrides(options),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
