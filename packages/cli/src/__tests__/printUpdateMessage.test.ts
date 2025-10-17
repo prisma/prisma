@@ -1,3 +1,5 @@
+import { vi } from 'vitest'
+
 import { printUpdateMessage } from '../utils/printUpdateMessage'
 
 function printUpdateMessageFromTo(from: string, to: string): void {
@@ -24,7 +26,7 @@ function printUpdateMessageFromTo(from: string, to: string): void {
   })
 }
 
-const consoleErrorMock = jest.spyOn(console, 'error').mockImplementation()
+const consoleErrorMock = vi.spyOn(console, 'error').mockImplementation()
 
 let originalPrismaHideUpdateMessageEnv: string | undefined
 

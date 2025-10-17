@@ -1,12 +1,12 @@
 import { stripVTControlCharacters } from 'node:util'
 
 import { defaultTestConfig } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import path from 'path'
 
 import { DebugInfo } from '../../DebugInfo'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 const originalEnv = { ...process.env }
 

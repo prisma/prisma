@@ -1,8 +1,8 @@
-import { jestContext } from '@prisma/get-platform'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 
 import { redactCommandArray, SENSITIVE_CLI_OPTIONS, tryToReadDataFromSchema } from '../utils/checkpoint'
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 it('should redact --option [value]', () => {
   for (const option of SENSITIVE_CLI_OPTIONS) {

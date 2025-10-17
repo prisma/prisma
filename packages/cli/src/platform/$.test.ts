@@ -1,5 +1,6 @@
 import { defaultTestConfig } from '@prisma/config'
 import { isError } from '@prisma/internals'
+import { vi } from 'vitest'
 
 import { $ as platform } from './$'
 
@@ -14,7 +15,7 @@ describe('--early-access flag', () => {
 
   it('should output help if no subcommand or parameter is passed', async () => {
     const commandInstance = platform.new({})
-    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
     const result = await commandInstance.parse(['--early-access'], defaultTestConfig())
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()
@@ -24,7 +25,7 @@ describe('--early-access flag', () => {
 
   it('should output help if -h is passed', async () => {
     const commandInstance = platform.new({})
-    const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
+    const spy = vi.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
     const result = await commandInstance.parse(['--early-access', '-h'], defaultTestConfig())
     const resultIsError = isError(result)
     expect(resultIsError).toBeFalsy()

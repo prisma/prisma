@@ -1,6 +1,7 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
@@ -8,7 +9,7 @@ import { version as typeScriptVersion } from 'typescript'
 
 import packageJson from '../../../package.json'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const runLibraryTest =
   getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary && !process.env.PRISMA_QUERY_ENGINE_LIBRARY

@@ -23,15 +23,7 @@ export async function main() {
     process.env.NODE_EXTRA_CA_CERTS = miniProxy.defaultCertificatesConfig.caCert
   }
 
-  // We pass the --passWithNoTests flag to jest and vitest for them not to fail
-  // when the filter provided via CLI only matches tests in one of the two suites.
-
-  execa.sync('jest', ['--silent', '--passWithNoTests', ...process.argv.slice(2)], {
-    preferLocal: true,
-    stdio: 'inherit',
-    env: process.env,
-  })
-
+  // We pass the --passWithNoTests flag to vitest so filters that match no files don't fail the run.
   execa.sync('vitest', ['run', '--passWithNoTests', ...process.argv.slice(2)], {
     preferLocal: true,
     stdio: 'inherit',

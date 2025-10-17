@@ -1,11 +1,13 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { vi } from 'vitest'
+
+import { vitestConsoleContext, vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 
 import { printMessageAndExitIfUnsupportedNodeVersion } from '../../scripts/preinstall'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const ctx = vitestContext.new().add(vitestConsoleContext()).assemble()
 
 it('should exit 1 and print a message when Node.js minor version is lower than minimum - 18.0', () => {
-  const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+  const mockExit = vi.spyOn(process, 'exit').mockImplementation()
 
   printMessageAndExitIfUnsupportedNodeVersion('18.0.0')
 
@@ -21,7 +23,7 @@ it('should exit 1 and print a message when Node.js minor version is lower than m
 })
 
 it('should exit 1 and print a message when Node.js major version is lower than minimum - 16.18', () => {
-  const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+  const mockExit = vi.spyOn(process, 'exit').mockImplementation()
 
   printMessageAndExitIfUnsupportedNodeVersion('16.18.0')
 

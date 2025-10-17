@@ -1,5 +1,5 @@
 import { defaultTestConfig } from '@prisma/config'
-import { jestContext } from '@prisma/get-platform'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { getDMMF, isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
@@ -7,7 +7,7 @@ import { DbPull } from '@prisma/migrate'
 import { Format } from '../Format'
 import { Validate } from '../Validate'
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 /**
  * Note: under the hood, these artificial-panic tests uses the Wasm'd `getConfig` and `getDMMF` definitions

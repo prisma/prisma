@@ -1,15 +1,16 @@
 import { defaultTestConfig } from '@prisma/config'
+import { vi } from 'vitest'
 
 import { requestOrThrow } from '../../_lib/pdp'
 import { getTokenOrThrow } from '../../_lib/utils'
 import { Show } from '../show'
 
-jest.mock('../../_lib/pdp')
-jest.mock('../../_lib/utils')
+vi.mock('../../_lib/pdp')
+vi.mock('../../_lib/utils')
 
 describe('platform auth show', () => {
   test('should output token with --sensitive', async () => {
-    jest.mocked(requestOrThrow).mockResolvedValue(
+    vi.mocked(requestOrThrow).mockResolvedValue(
       Promise.resolve({
         me: {
           user: {
@@ -22,12 +23,12 @@ describe('platform auth show', () => {
       }),
     )
 
-    jest.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
+    vi.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
 
     await expect(Show.new().parse(['--sensitive'], defaultTestConfig())).resolves.toContain('testToken')
   })
   test('should not output token if --sensitive not given', async () => {
-    jest.mocked(requestOrThrow).mockResolvedValue(
+    vi.mocked(requestOrThrow).mockResolvedValue(
       Promise.resolve({
         me: {
           user: {
@@ -40,7 +41,7 @@ describe('platform auth show', () => {
       }),
     )
 
-    jest.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
+    vi.mocked(getTokenOrThrow).mockReturnValue(Promise.resolve('testToken'))
 
     await expect(Show.new().parse([], defaultTestConfig())).resolves.not.toContain('testToken')
   })

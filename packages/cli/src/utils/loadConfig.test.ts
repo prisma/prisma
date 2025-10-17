@@ -1,11 +1,11 @@
 import path from 'node:path'
 
-import { jestContext } from '@prisma/get-platform'
+import { vitestContext } from '@prisma/get-platform/src/test-utils/vitestContext'
 import { HelpError } from '@prisma/internals'
 
 import { loadConfig } from './loadConfig'
 
-const ctx = jestContext.new().assemble()
+const ctx = vitestContext.new().assemble()
 
 describe('loadConfig', () => {
   it('provides default config if no file config is found', async () => {

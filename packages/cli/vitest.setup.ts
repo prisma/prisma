@@ -1,6 +1,8 @@
-const path = require('node:path')
+import path from 'node:path'
 
-global.beforeEach(() => {
+import { afterEach, beforeEach } from 'vitest'
+
+beforeEach(() => {
   /**
    * Set up JITI aliasing for the test environment.
    * This allows us to load local modules in fixture tests using the `src/` and `test-utils/` aliases.
@@ -14,6 +16,6 @@ global.beforeEach(() => {
   })
 })
 
-global.afterEach(() => {
+afterEach(() => {
   delete process.env['JITI_ALIAS']
 })
