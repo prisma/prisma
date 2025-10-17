@@ -1,10 +1,12 @@
+import fs from 'node:fs'
+
 import { defineConfig, env } from '@prisma/config'
-import fs from 'fs'
+
 export default defineConfig({
+  engine: 'classic',
   datasource: {
     url: env('TEST_E2E_POSTGRES_URI'),
   },
-  engine: 'classic',
   experimental: {
     externalTables: true,
   },

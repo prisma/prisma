@@ -1,9 +1,10 @@
 import { defineConfig } from 'prisma/config'
+
 export default defineConfig({
+  engine: 'classic',
   datasource: {
     url: 'file:./dev.db',
   },
-  engine: 'classic',
   schema: './prisma/schema.prisma',
   typedSql: {
     path: './prisma/sql',
