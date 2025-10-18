@@ -144,6 +144,7 @@ describe('generator', () => {
   test('with custom output', async () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     await fsPromises.rm(prismaClientTarget, { recursive: true, force: true })
+    await getPackedPackage('@prisma/client', prismaClientTarget)
     await fsPromises.cp(path.join(__dirname, '../../client/runtime'), path.join(prismaClientTarget, 'runtime'), {
       recursive: true,
     })
