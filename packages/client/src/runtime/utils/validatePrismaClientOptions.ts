@@ -1,5 +1,4 @@
 import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
@@ -72,11 +71,9 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  adapter: (adapter, config) => {
-    if (!adapter && getClientEngineType(config.generator) === ClientEngineType.Client) {
-      throw new PrismaClientConstructorValidationError(
-        `Using engine type "client" requires a driver adapter to be provided to PrismaClient constructor.`,
-      )
+  adapter: (adapter, _config) => {
+    if (!adapter) {
+      throw new PrismaClientConstructorValidationError(`A driver adapter must be provided to PrismaClient constructor.`)
     }
 
     if (adapter === null) {
@@ -86,12 +83,6 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (adapter === undefined) {
       throw new PrismaClientConstructorValidationError(
         `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
-      )
-    }
-
-    if (getClientEngineType(config.generator) === ClientEngineType.Binary) {
-      throw new PrismaClientConstructorValidationError(
-        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
       )
     }
   },

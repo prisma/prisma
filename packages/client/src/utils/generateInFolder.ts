@@ -3,17 +3,9 @@ import path from 'node:path'
 
 import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
-import {
-  ClientEngineType,
-  extractPreviewFeatures,
-  getClientEngineType,
-  getConfig,
-  getDMMF,
-  getPackedPackage,
-} from '@prisma/internals'
+import { extractPreviewFeatures, getClientEngineType, getConfig, getDMMF, getPackedPackage } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import { performance } from 'perf_hooks'
 
@@ -24,14 +16,9 @@ const debug = Debug('prisma:generateInFolder')
 export interface GenerateInFolderOptions {
   projectDir: string
   packageSource?: string
-  overrideEngineType?: ClientEngineType
 }
 
-export async function generateInFolder({
-  projectDir,
-  packageSource,
-  overrideEngineType,
-}: GenerateInFolderOptions): Promise<number> {
+export async function generateInFolder({ projectDir, packageSource }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
     throw new Error(`Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`)
@@ -55,10 +42,6 @@ export async function generateInFolder({
 
   const { schemas, schemaPath } = schemaPathResult
 
-  if (overrideEngineType) {
-    process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
-  }
-
   const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config.generators)
   const clientEngineType = getClientEngineType(config.generators[0])
@@ -81,27 +64,10 @@ export async function generateInFolder({
 
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-  const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath =
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
-  const queryEngineBinaryPath =
-    process.env.PRISMA_QUERY_ENGINE_BINARY ??
-    path.join(enginesPath, `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`)
-
   await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
-  const binaryPaths =
-    clientEngineType === ClientEngineType.Library
-      ? {
-          libqueryEngine: {
-            [binaryTarget]: queryEngineLibraryPath,
-          },
-        }
-      : {
-          queryEngine: {
-            [binaryTarget]: queryEngineBinaryPath,
-          },
-        }
+  // Client engine no longer requires binary paths
+  const binaryPaths = {}
 
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({

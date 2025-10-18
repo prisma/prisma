@@ -37,7 +37,6 @@ export {
   getGenerator,
   getGenerators,
 } from './get-generators/getGenerators'
-export { fixBinaryTargets } from './get-generators/utils/fixBinaryTargets'
 export { printGeneratorConfig } from './get-generators/utils/printGeneratorConfig'
 export { getPackedPackage } from './getPackedPackage'
 export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highlight'
@@ -55,7 +54,6 @@ export * from './tracing/types'
 export type { DatabaseCredentials } from './types'
 export { assertAlways } from './utils/assertAlways'
 export { assertNever } from './utils/assertNever'
-export { binaryTargetRegex } from './utils/binaryTargetRegex'
 export { default as byline } from './utils/byline'
 export { callOnceOnSuccess } from './utils/callOnce'
 export { canPrompt } from './utils/canPrompt'
@@ -91,7 +89,7 @@ export { maxBy, maxWithComparator } from './utils/max'
 export { maybeInGitHook } from './utils/maybeInGitHook'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export { parseAWSNodejsRuntimeEnvVarVersion } from './utils/parseAWSNodejsRuntimeEnvVarVersion'
-export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue'
+export { parseEnvValue } from './utils/parseEnvValue'
 export { longestCommonPathPrefix, pathToPosix } from './utils/path'
 export { pick } from './utils/pick'
 export { printConfigWarnings } from './utils/printConfigWarnings'
@@ -113,5 +111,9 @@ export * as wasm from './wasm'
 export { wasmSchemaEngineLoader } from './WasmSchemaEngineLoader'
 export type { EnvPaths } from '@prisma/generator'
 export type { BinaryTarget } from '@prisma/get-platform'
-export { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
+export { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
+// Deprecated: kept for backward compatibility with @prisma/studio-pcw
+export function getNodeAPIName(): never {
+  throw new Error('getNodeAPIName is deprecated and no longer supported')
+}
 export type { GetSchemaResult } from '@prisma/schema-files-loader'

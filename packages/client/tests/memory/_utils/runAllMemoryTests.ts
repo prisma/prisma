@@ -3,7 +3,6 @@ import fs from 'fs/promises'
 import { bold, white } from 'kleur/colors'
 import path from 'path'
 
-import { setupQueryEngine } from '../../_utils/setupQueryEngine'
 import { generateMemoryUsageReport } from './generateMemoryUsageReport'
 import { MemoryTestDir } from './MemoryTestDir'
 import { runMemoryTest, TestResult } from './runMemoryTest'
@@ -34,8 +33,6 @@ export async function runAllMemoryTests(filter?: string) {
     process.exitCode = 1
     return
   }
-
-  await setupQueryEngine()
 
   const results = [] as TestResult[]
   for (const testDirName of allTests) {

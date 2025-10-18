@@ -4,6 +4,5 @@ datasource db {
 }
 
 generator gen {
-  provider      = "predefined-generator"
-  binaryTargets = ["darwin", "darwin-arm64"]
+  provider = "predefined-generator"
 }

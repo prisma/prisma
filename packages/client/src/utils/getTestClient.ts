@@ -2,7 +2,6 @@ import { dmmfToRuntimeDataModel, GetPrismaClientConfig } from '@prisma/client-co
 import { getDMMF } from '@prisma/client-generator-js'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
-  ClientEngineType,
   extractPreviewFeatures,
   getClientEngineType,
   getConfig,
@@ -37,7 +36,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const previewFeatures = extractPreviewFeatures(config.generators)
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
-  ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
+  ;(global as any).TARGET_BUILD_TYPE = 'client'
 
   await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
@@ -74,18 +73,12 @@ type GenerateTestClientOptions = {
    * Directory to search for the schema in and generate the client in.
    */
   projectDir?: string
-
-  /**
-   * Overrides the query engine type, if specified, and makes the client ignore
-   * the `PRISMA_CLIENT_ENGINE_TYPE` environment variable and `engineType` schema field.
-   */
-  engineType?: ClientEngineType
 }
 
 /**
  * Actually generates a test client with its own query-engine into ./@prisma/client
  */
-export async function generateTestClient({ projectDir, engineType }: GenerateTestClientOptions = {}): Promise<any> {
+export async function generateTestClient({ projectDir }: GenerateTestClientOptions = {}): Promise<any> {
   if (!projectDir) {
     const callsite = parse(new Error('').stack!)
     projectDir = path.dirname(callsite[1].file!)
@@ -93,6 +86,5 @@ export async function generateTestClient({ projectDir, engineType }: GenerateTes
 
   await generateInFolder({
     projectDir,
-    overrideEngineType: engineType,
   })
 }

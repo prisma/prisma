@@ -23,7 +23,6 @@ export function dmmfToTypes(dmmf: DMMF.Document) {
     activeProvider: '' as any,
     binaryPaths: {},
     generator: {
-      binaryTargets: [],
       config: {},
       name: 'prisma-client-js',
       output: null,

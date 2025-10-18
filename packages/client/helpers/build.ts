@@ -24,7 +24,7 @@ type ModuleFormat = (typeof MODULE_FORMATS)[number]
 const WASM_COMPONENTS = ['engine', 'compiler'] as const
 type WasmComponent = (typeof WASM_COMPONENTS)[number]
 
-const ENGINE_TYPES = [ClientEngineType.Binary, ClientEngineType.Library, ClientEngineType.Client]
+const ENGINE_TYPES = [ClientEngineType.Client]
 
 function getOutExtension(format: ModuleFormat): Record<string, string> {
   return {

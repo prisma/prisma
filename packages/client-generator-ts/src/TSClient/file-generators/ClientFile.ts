@@ -1,6 +1,6 @@
 import path from 'node:path'
 
-import { BinaryTarget, ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { getClientEngineType } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
 import { ModuleFormat } from '../../module-format'
@@ -67,13 +67,6 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
     ),
   ].map((e) => ts.stringify(e))
 
-  const binaryTargets =
-    clientEngineType === ClientEngineType.Library
-      ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-      : (Object.keys(options.binaryPaths.queryEngine ?? {}) as BinaryTarget[])
-
-  // get relative output dir for it to be preserved even after bundling, or
-  // being moved around as long as we keep the same project dir structure.
   const relativeOutdir = path.relative(process.cwd(), options.outputDir)
 
   return `${jsDocHeader}
@@ -83,7 +76,7 @@ ${imports.join('\n')}
 ${exports.join('\n')}
 export { Prisma }
 
-${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, relativeOutdir)}
 
 ${modelExports(context).join('\n')}
 `
