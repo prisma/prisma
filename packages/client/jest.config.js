@@ -31,4 +31,5 @@ module.exports = {
   testTimeout: 90_000,
   setupFiles: ['./helpers/jestSetup.js'],
   openHandlesTimeout: 10_000,
+  prettierPath: '../../node_modules/prettier2',
 }
