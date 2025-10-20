@@ -705,19 +705,7 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = [
-    // library.d.ts is always included, as it contains the actual runtime type
-    // definitions. Rest of the `runtime.d.ts` files just re-export everything
-    // from `library.d.ts`
-    'library.d.ts',
-    'index-browser.js',
-    'index-browser.d.ts',
-    'edge.js',
-    'edge-esm.js',
-    'react-native.js',
-    'wasm-engine-edge.js',
-    'wasm-compiler-edge.js',
-  ]
+  const files = ['index-browser.js', 'index-browser.d.ts', 'edge.js', 'edge-esm.js', 'wasm-compiler-edge.js']
 
   files.push(`${runtimeName}.js`)
   if (runtimeName !== 'library') {
