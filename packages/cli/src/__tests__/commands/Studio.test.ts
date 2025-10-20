@@ -2,31 +2,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fetch from 'node-fetch'
 
-import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
-
-function restoreEnv() {
-  for (const key of Object.keys(process.env)) {
-    if (!(key in originalEnv)) {
-      delete process.env[key]
-    }
-  }
-
-  for (const [key, value] of Object.entries(originalEnv)) {
-    if (value === undefined) {
-      delete process.env[key]
-    } else {
-      process.env[key] = value
-    }
-  }
-}
-
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
 
@@ -48,46 +28,6 @@ async function sendRequest(message: any): Promise<any> {
 // https://prisma-company.slack.com/archives/C058VM009HT/p1760982860816289
 describe.skip('studio', () => {
   let studio: Studio
-  describe('studio with alternative urls and prisma://', () => {
-    afterEach(() => {
-      restoreEnv()
-    })
-
-    test('queries work if url is prisma:// and directUrl is set', async () => {
-      process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
-      process.env.DATABASE_URL = process.env.TEST_POSTGRES_URI!.replace('tests', `tests-${Date.now()}-studio`)
-
-      ctx.fixture('schema-only-data-proxy-direct-url')
-
-      const studio = Studio.new()
-
-      await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'], defaultTestConfig())
-      const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'], defaultTestConfig())
-
-      await expect(result).resolves.not.toThrow()
-
-      const res = await sendRequest({
-        requestId: 1,
-        channel: 'prisma',
-        action: 'clientRequest',
-        payload: {
-          data: {
-            modelName: 'SomeUser',
-            operation: 'findMany',
-            args: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      })
-
-      expect(res).toMatchSnapshot()
-
-      studio.instance?.stop()
-    })
-  })
 
   describe('studio with default schema.prisma filename', () => {
     jest.setTimeout(20_000)
