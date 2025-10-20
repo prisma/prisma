@@ -83,6 +83,7 @@
     "p-reduce": "3.0.0",
     "p-retry": "4.6.2",
     "prettier": "3.6.2",
+    "prettier2": "npm:prettier@2.8.8",
     "regenerator-runtime": "0.14.1",
     "resolve": "1.22.10",
     "safe-buffer": "5.2.1",
