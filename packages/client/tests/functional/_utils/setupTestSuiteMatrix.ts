@@ -71,7 +71,22 @@ function setupTestSuiteMatrix(
   ) => void,
   options?: MatrixOptions,
 ) {
-  const originalEnv = process.env
+  const originalEnv = { ...process.env }
+  const restoreEnv = () => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in originalEnv)) {
+        delete process.env[key]
+      }
+    }
+
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+  }
   const suiteMeta = getTestSuiteMeta()
   const cliMeta = getTestSuiteCliMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
@@ -252,7 +267,7 @@ function setupTestSuiteMatrix(
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings })
         }
-        process.env = originalEnv
+        restoreEnv()
         delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']

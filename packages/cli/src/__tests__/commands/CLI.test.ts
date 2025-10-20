@@ -55,19 +55,31 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    const originalEnv = process.env
-    process.env = { ...originalEnv }
+    const originalEnv = { ...process.env }
+    const resetEnv = () => {
+      for (const key of Object.keys(process.env)) {
+        if (!(key in originalEnv)) {
+          delete process.env[key]
+        }
+      }
+
+      for (const [key, value] of Object.entries(originalEnv)) {
+        if (value === undefined) {
+          delete process.env[key]
+        } else {
+          process.env[key] = value
+        }
+      }
+    }
 
     beforeAll(() => {
-      process.env = {
-        ...originalEnv,
-        PRISMA_CLI_QUERY_ENGINE_TYPE: undefined,
-        PRISMA_CLIENT_ENGINE_TYPE: undefined,
-      }
+      resetEnv()
+      delete process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
+      delete process.env.PRISMA_CLIENT_ENGINE_TYPE
     })
 
     afterAll(() => {
-      process.env = { ...originalEnv }
+      resetEnv()
     })
 
     describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {

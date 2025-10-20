@@ -7,6 +7,22 @@ import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
 
+function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in snapshot)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 if (process.env.CI) {
   // 10s is not always enough for the "big schema" test on macOS CI.
   jest.setTimeout(60_000)
@@ -18,16 +34,18 @@ describe('getDMMF', () => {
   describe.skip('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
-    const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
 
     beforeEach(() => {
       // jest.resetModules()
-      process.env = { ...OLD_ENV_WITHOUT_NO_COLOR, FORCE_COLOR: '0', CI: '1' }
+      restoreEnvSnapshot(OLD_ENV)
+      delete process.env.NO_COLOR
+      process.env.FORCE_COLOR = '0'
+      process.env.CI = '1'
     })
 
     afterEach(() => {
       // reset env vars to backup state
-      process.env = { ...OLD_ENV }
+      restoreEnvSnapshot(OLD_ENV)
     })
 
     test('failures should have colors by default', async () => {

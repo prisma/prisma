@@ -44,9 +44,25 @@ jest.mock('../utils/getGitHubIssueUrl', () => ({
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
+function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in snapshot)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 describe('handlePanic', () => {
   // testing with env https://stackoverflow.com/a/48042799/1345244
-  const OLD_ENV = process.env
+  const OLD_ENV = { ...process.env }
 
   // mock for retrieving the database version
   const getDatabaseVersionSafe = () => Promise.resolve(undefined)
@@ -55,7 +71,8 @@ describe('handlePanic', () => {
     jest.resetModules() // most important - it clears the cache
     jest.clearAllMocks()
 
-    process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
+    restoreEnvSnapshot(OLD_ENV)
+    process.env.GITHUB_ACTIONS = 'true' // simulate CI environment
     process.cwd = () => testRootDir
 
     await ensureDir(testRootDir)
@@ -68,7 +85,7 @@ describe('handlePanic', () => {
   let io
   beforeAll(() => (io = stdin()))
   afterAll(() => {
-    process.env = OLD_ENV // restore old env
+    restoreEnvSnapshot(OLD_ENV) // restore old env
     io.restore()
   })
 
