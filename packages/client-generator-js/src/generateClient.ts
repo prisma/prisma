@@ -708,9 +708,7 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
   const files = ['index-browser.js', 'index-browser.d.ts', 'edge.js', 'edge-esm.js', 'wasm-compiler-edge.js']
 
   files.push(`${runtimeName}.js`)
-  if (runtimeName !== 'library') {
-    files.push(`${runtimeName}.d.ts`)
-  }
+  files.push(`${runtimeName}.d.ts`)
 
   if (sourceMaps) {
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
