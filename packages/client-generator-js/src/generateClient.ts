@@ -1,6 +1,5 @@
 import { Debug } from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
-import { overwriteFile } from '@prisma/fetch-engine'
 import type {
   ActiveConnectorType,
   BinaryPaths,
@@ -454,31 +453,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     })
   }
 
-  const enginePath =
-    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
-
-  if (copyEngine && enginePath) {
-    if (process.env.NETLIFY) {
-      await ensureDir('/tmp/prisma-engines')
-    }
-
-    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
-      const fileName = path.basename(filePath)
-      let target: string
-
-      // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda
-      // are moved to `/tmp/prisma-engines`
-      // They will be ignored and not included in the final build, reducing its size
-      if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
-        target = path.join('/tmp/prisma-engines', fileName)
-      } else {
-        target = path.join(outputDir, fileName)
-      }
-
-      await overwriteFile(filePath, target)
-    }
-  }
+  // Client engine no longer requires copying engine binaries
 
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
@@ -715,14 +690,6 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Binary) {
-    return 'binary'
-  }
-
-  if (engineType === ClientEngineType.Library) {
-    return 'library'
-  }
-
   if (engineType === ClientEngineType.Client) {
     return 'client'
   }
@@ -738,24 +705,10 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = [
-    // library.d.ts is always included, as it contains the actual runtime type
-    // definitions. Rest of the `runtime.d.ts` files just re-export everything
-    // from `library.d.ts`
-    'library.d.ts',
-    'index-browser.js',
-    'index-browser.d.ts',
-    'edge.js',
-    'edge-esm.js',
-    'react-native.js',
-    'wasm-engine-edge.js',
-    'wasm-compiler-edge.js',
-  ]
+  const files = ['index-browser.js', 'index-browser.d.ts', 'edge.js', 'edge-esm.js', 'wasm-compiler-edge.js']
 
   files.push(`${runtimeName}.js`)
-  if (runtimeName !== 'library') {
-    files.push(`${runtimeName}.d.ts`)
-  }
+  files.push(`${runtimeName}.d.ts`)
 
   if (sourceMaps) {
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))

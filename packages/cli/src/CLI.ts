@@ -5,7 +5,6 @@ import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
-import { match } from 'ts-pattern'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
 import { getClientGeneratorInfo } from './utils/client'
@@ -78,13 +77,7 @@ export class CLI implements Command {
     }).catch((e) => {
       debug('Failed to read schema information. Using default values: %o', e)
 
-      const id = <const T>(x: T): T => x
-      const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
-        .with('binary', id)
-        .with('library', id)
-        .otherwise(() => 'library' as const)
-
-      return { engineType }
+      return { engineType: 'client' as const }
     })
 
     if (args['--version']) {

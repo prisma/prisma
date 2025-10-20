@@ -44,7 +44,6 @@ test('generated on vercel with `prisma-client-js` + custom output', () => {
     },
     name: 'prisma-client-js',
     previewFeatures: [],
-    binaryTargets: [],
     config: {},
     sourceFilePath: '',
   } satisfies GeneratorConfig
@@ -67,7 +66,6 @@ test('generated on vercel with `prisma-client` + custom output', () => {
     },
     name: 'prisma-client',
     previewFeatures: [],
-    binaryTargets: [],
     config: {},
     sourceFilePath: '',
   } satisfies GeneratorConfig

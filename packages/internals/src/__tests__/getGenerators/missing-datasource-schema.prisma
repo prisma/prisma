@@ -1,6 +1,5 @@
 generator gen {
-  provider      = "predefined-generator"
-  binaryTargets = ["darwin"]
+  provider = "predefined-generator"
 }
 
 model User {

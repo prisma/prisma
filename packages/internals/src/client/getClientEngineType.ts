@@ -1,32 +1,41 @@
 import type { GeneratorConfig } from '@prisma/generator'
 
 export enum ClientEngineType {
-  Library = 'library',
-  Binary = 'binary',
   Client = 'client',
+}
+
+let hasWarnedAboutDeprecatedEngineType = false
+
+function warnDeprecatedEngineType(engineType: string) {
+  if (!hasWarnedAboutDeprecatedEngineType) {
+    console.warn(`Warning: engineType "${engineType}" is deprecated and will be removed. Using "client" instead.`)
+    hasWarnedAboutDeprecatedEngineType = true
+  }
 }
 
 export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEngineType {
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
-  if (generatorConfig?.config.engineType === ClientEngineType.Library) {
-    return ClientEngineType.Library
-  } else if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
-    return ClientEngineType.Binary
-  } else if (generatorConfig?.config.engineType === ClientEngineType.Client) {
+
+  const configuredEngineType = generatorConfig?.config.engineType
+  if (configuredEngineType === 'library' || configuredEngineType === 'binary') {
+    warnDeprecatedEngineType(configuredEngineType)
     return ClientEngineType.Client
-  } else {
-    return getDefaultEngineType()
   }
+
+  if (configuredEngineType === ClientEngineType.Client) {
+    return ClientEngineType.Client
+  }
+
+  return getDefaultEngineType()
 }
 
 function getEngineTypeFromEnvVar() {
   const engineType = process.env.PRISMA_CLIENT_ENGINE_TYPE
-  if (engineType === ClientEngineType.Library) {
-    return ClientEngineType.Library
-  } else if (engineType === ClientEngineType.Binary) {
-    return ClientEngineType.Binary
-  } else if (engineType === ClientEngineType.Client) {
+  if (engineType === ClientEngineType.Client) {
+    return ClientEngineType.Client
+  } else if (engineType === 'library' || engineType === 'binary') {
+    warnDeprecatedEngineType(engineType)
     return ClientEngineType.Client
   } else {
     return undefined
@@ -34,5 +43,5 @@ function getEngineTypeFromEnvVar() {
 }
 
 function getDefaultEngineType(): ClientEngineType {
-  return ClientEngineType.Library
+  return ClientEngineType.Client
 }

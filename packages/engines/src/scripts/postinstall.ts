@@ -1,11 +1,8 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryDownloadConfiguration, BinaryType, download } from '@prisma/fetch-engine'
-import type { BinaryTarget } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
-
-import { getCliQueryEngineBinaryType } from '..'
 
 const debug = Debug('prisma:download')
 
@@ -19,14 +16,8 @@ async function main() {
     debug(`Lock file already exists, so we're skipping the download of the prisma binaries`)
   } else {
     createLockFile()
-    let binaryTargets: string[] | undefined
-    if (process.env.PRISMA_CLI_BINARY_TARGETS) {
-      binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS.split(',')
-    }
-    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const binaries: BinaryDownloadConfiguration = {
-      [cliQueryEngineBinaryType]: baseDir,
       [BinaryType.SchemaEngineBinary]: baseDir,
     }
 
@@ -35,7 +26,6 @@ async function main() {
       version: enginesVersion,
       showProgress: true,
       failSilent: true,
-      binaryTargets: binaryTargets as BinaryTarget[],
     }).catch((e) => debug(e))
 
     cleanupLockFile()
