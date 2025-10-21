@@ -30,6 +30,7 @@ import { bold, dim, red, yellow } from 'kleur/colors'
 
 import { Bootstrap } from './bootstrap/Bootstrap'
 import { CLI } from './CLI'
+import { Completions } from './completions'
 import { DebugInfo } from './DebugInfo'
 import { Format } from './Format'
 import { Generate } from './Generate'
@@ -124,6 +125,7 @@ async function main(): Promise<number> {
       format: Format.new(),
       telemetry: Telemetry.new(),
       debug: DebugInfo.new(),
+      complete: Completions.new(),
       dev: new SubCommand('@prisma/cli-dev'),
       studio: Studio.new(),
       platform: Platform.$.new({ status: Status.new() }),
