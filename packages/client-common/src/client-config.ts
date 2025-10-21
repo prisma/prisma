@@ -1,5 +1,4 @@
 import { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator'
-import { LoadedEnv } from '@prisma/internals'
 
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
 import { EngineWasmLoadingConfig } from './QueryEngine'
@@ -16,10 +15,6 @@ export type GetPrismaClientConfig = {
   // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
-  relativeEnvPaths?: {
-    rootEnvPath?: string | null
-    schemaEnvPath?: string | null
-  }
   relativePath: string
   dirname: string
   clientVersion: string
