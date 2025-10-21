@@ -118,12 +118,6 @@
       "import": "./runtime/wasm-compiler-edge.mjs",
       "default": "./runtime/wasm-compiler-edge.mjs"
     },
-    "./runtime/edge": {
-      "types": "./runtime/edge.d.ts",
-      "require": "./runtime/edge.js",
-      "import": "./runtime/edge-esm.js",
-      "default": "./runtime/edge-esm.js"
-    },
     "./runtime/react-native": {
       "types": "./runtime/react-native.d.ts",
       "require": "./runtime/react-native.js",

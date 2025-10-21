@@ -53,8 +53,6 @@ export class EnabledCallSite implements CallSite {
         !posixFile.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
         !posixFile.endsWith('/runtime/binary.js') && // Bundled runtimes
         !posixFile.endsWith('/runtime/library.js') &&
-        !posixFile.endsWith('/runtime/edge.js') &&
-        !posixFile.endsWith('/runtime/edge-esm.js') &&
         !posixFile.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module
