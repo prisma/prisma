@@ -36,6 +36,10 @@ ${bold('Options')}
     --config   Custom path to your Prisma config file
     --schema   Custom path to your Prisma schema
 
+${bold('Flags')}
+
+  --check   Check if the schema is formatted without modifying it
+
 ${bold('Examples')}
 
 With an existing Prisma schema

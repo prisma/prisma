@@ -61,14 +61,18 @@ ${bold('Usage')}
   ${dim('$')} prisma generate [options]
 
 ${bold('Options')}
-          -h, --help   Display this help message
-            --config   Custom path to your Prisma config file
-            --schema   Custom path to your Prisma schema
-               --sql   Generate typed sql module
-             --watch   Watch the Prisma schema and rerun after a change
-         --generator   Generator to use (may be provided multiple times)
-         --no-engine   Generate a client for use with Accelerate only
-          --no-hints   Hides the hint messages but still outputs errors and warnings
+
+    -h, --help   Display this help message
+      --config   Custom path to your Prisma config file
+      --schema   Custom path to your Prisma schema
+   --generator   Generator to use (may be provided multiple times)
+
+${bold('Flags')}
+
+           --sql   Generate typed sql module
+         --watch   Watch the Prisma schema and rerun after a change
+     --no-engine   Generate a client for use with Accelerate only
+      --no-hints   Hides the hint messages but still outputs errors and warnings
    --allow-no-models   Allow generating a client without models (default)
     --require-models   Do not allow generating a client without models
 
