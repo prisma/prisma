@@ -278,7 +278,7 @@ export async function buildClient({
   fileMap['wasm.d.ts'] = TS(wasmClient)
 
   if (typedSql && typedSql.length > 0) {
-    const edgeRuntimeName = usesClientEngine ? 'wasm-compiler-edge' : 'edge'
+    const edgeRuntimeName = 'wasm-compiler-edge'
     const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
     const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
     pkgJson.exports['./sql'] = {

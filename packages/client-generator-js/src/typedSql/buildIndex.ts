@@ -17,7 +17,7 @@ export function buildIndexTs(queries: SqlQueryOutput[], enums: DbEnumsList) {
 
 export function buildIndexCjs(
   queries: SqlQueryOutput[],
-  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | 'edge' | undefined,
+  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | undefined,
 ) {
   const writer = new Writer(0, undefined)
   writer.writeLine('"use strict"')
@@ -30,7 +30,7 @@ export function buildIndexCjs(
 
 export function buildIndexEsm(
   queries: SqlQueryOutput[],
-  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | 'edge' | undefined,
+  edgeRuntimeSuffix?: 'wasm-engine-edge' | 'wasm-compiler-edge' | undefined,
 ) {
   const writer = new Writer(0, undefined)
   for (const { name } of queries) {

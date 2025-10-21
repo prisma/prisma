@@ -123,7 +123,7 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    edge: (['edge', 'wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    edge: (['wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
     generatedFileExtension,

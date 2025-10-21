@@ -600,7 +600,7 @@ testMatrix.setupTestSuite(
   },
   {
     skipDataProxy: {
-      runtimes: ['node', 'edge'],
+      runtimes: ['node'],
       reason: 'Metrics are not supported with Data Proxy yet',
     },
     skip(when, { clientRuntime }) {
