@@ -309,15 +309,14 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('--force-reset should succeed and display a log', async () => {
@@ -408,15 +407,14 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('multiSchema: --force-reset should succeed and display a log', async () => {

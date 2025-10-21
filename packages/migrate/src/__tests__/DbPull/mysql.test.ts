@@ -34,14 +34,14 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   test('basic introspection', async () => {

@@ -16,7 +16,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
-  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace(
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-cockroachdb',
   )
@@ -38,15 +38,14 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     await setupCockroach(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   test('basic introspection (with cockroachdb provider)', async () => {

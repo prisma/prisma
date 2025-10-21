@@ -8,8 +8,9 @@ type Datasource = (PrismaConfigInternal & { engine: 'classic' })['datasource']
 
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
-  setDatasource: (ds: Datasource) => void
-  resetDatasource: () => void
+  setDatasource: (ds: Datasource) => void;
+  resetDatasource: () => void;
+  getDatasource: () => Promise<Datasource | undefined>
 }
 
 /**
@@ -31,6 +32,14 @@ export const configContextContributor =
           ...(await loadFixtureConfig(ctx)), // custom fixture config overwrites any defaults
           ...(overrideDatasource ? { engine: 'classic', datasource: overrideDatasource } : {}),
         } as PrismaConfigInternal
+      }
+
+      ctx.getDatasource = async () => {
+        const config = await ctx.config()
+        if (config.engine !== 'classic') {
+          return undefined
+        }
+        return config.datasource
       }
 
       ctx.setDatasource = (ds) => {

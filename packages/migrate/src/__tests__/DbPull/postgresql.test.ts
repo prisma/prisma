@@ -35,14 +35,14 @@ describeMatrix(postgresOnly, 'postgresql', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   test('basic introspection', async () => {
@@ -88,16 +88,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
   })
 
   describe('empty or incomplete schema', () => {
-    beforeEach(() => {
-      ctx.setDatasource({
-        url: setupParams.connectionString,
-      })
-    })
-
-    afterEach(() => {
-      ctx.resetDatasource()
-    })
-
     test('basic introspection config + empty schema', async () => {
       ctx.fixture('empty-schema')
       const introspect = new DbPull()

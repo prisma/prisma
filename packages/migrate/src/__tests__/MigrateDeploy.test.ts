@@ -159,19 +159,22 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('should fail if url is prisma://', async () => {
     ctx.fixture('schema-only-data-proxy')
+    ctx.setDatasource({
+      url: 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY',
+    })
+
     const result = MigrateDeploy.new().parse([], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
@@ -183,16 +186,17 @@ describeMatrix(postgresOnly, 'postgres', () => {
     `)
   })
 
-  it('should work if directUrl is set as an env var', async () => {
+  it('should work if direct URL is set via config', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
+    ctx.setDatasource({
+      url: connectionString,
+    })
+
+    const result = MigrateDeploy.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from .env
-      "
-    `)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
+      "Prisma schema loaded from schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" <location placeholder>
 
       No migration found in prisma/migrations
