@@ -87,17 +87,10 @@ const args = arg(
     // Restrict the list of providers (does not run --adapter by default)
     '--provider': [String],
     '-p': '--provider',
-    // Generate Data Proxy client and run tests using Mini-Proxy
-    '--data-proxy': Boolean,
     // Force using a specific client runtime under the hood
     '--client-runtime': String,
     // Force using a specific generator type (prisma-client-js or prisma-client-ts)
     '--generator-type': String,
-    // Don't start the Mini-Proxy server and don't override NODE_EXTRA_CA_CERTS. You need to start the Mini-Proxy server
-    // externally on the default port and run `eval $(mini-proxy env)` in your shell before starting the tests.
-    '--no-mini-proxy-server': Boolean,
-    // Enable debug logs in the bundled Mini-Proxy server
-    '--mini-proxy-debug': Boolean,
     // Since `relationMode-in-separate-gh-action` tests need to be run with 2 different values
     // `foreignKeys` and `prisma`
     // We run them separately in a GitHub Action matrix for now
@@ -185,8 +178,8 @@ function main(): number | void {
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
 
-      if (args['--data-proxy'] || args['--engine-type'] === 'binary') {
-        throw new Error('Driver adapters are not compatible with --data-proxy or --engine-type=binary')
+      if (args['--engine-type'] === 'binary') {
+        throw new Error('Driver adapters are not compatible with or --engine-type=binary')
       }
     }
 
@@ -204,10 +197,6 @@ function main(): number | void {
 
   if (args['--generator-type']) {
     jestCli = jestCli.withEnv({ TEST_GENERATOR_TYPE: args['--generator-type'] })
-  }
-
-  if (args['--client-runtime'] === 'edge' && !args['--data-proxy']) {
-    throw new Error('--client-runtime=edge is only available when --data-proxy is used')
   }
 
   if (args['--remote-executor']) {
