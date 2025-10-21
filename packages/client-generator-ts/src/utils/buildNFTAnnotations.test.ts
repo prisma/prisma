@@ -101,11 +101,26 @@ describe('dataproxy', () => {
 
 describe('special cases for Netlify', () => {
   const originalEnv = { ...process.env }
+  const restoreEnv = () => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in originalEnv)) {
+        delete process.env[key]
+      }
+    }
+
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+  }
   beforeEach(() => {
-    process.env = { ...originalEnv }
+    restoreEnv()
   })
   afterAll(() => {
-    process.env = { ...originalEnv }
+    restoreEnv()
   })
 
   /**
