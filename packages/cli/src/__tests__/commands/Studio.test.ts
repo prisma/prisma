@@ -11,6 +11,22 @@ import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
 
+function restoreEnv() {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
@@ -37,8 +53,7 @@ describeIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY
   'studio with alternative urls and prisma://',
   () => {
     afterEach(() => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
+      restoreEnv()
     })
 
     test('queries work if url is prisma:// and directUrl is set', async () => {

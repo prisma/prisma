@@ -9,6 +9,22 @@ import { promotions, renderPromotion } from '../../utils/handlePromotions'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
+function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in snapshot)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 describe('using cli', () => {
   // Replace any possible entry in `promotions`'s texts with a fixed string to make the snapshot stable
   function sanitiseStdout(stdout: string): string {
@@ -491,7 +507,7 @@ describe('in postinstall', () => {
   })
 
   afterEach(() => {
-    process.env = { ...oldEnv }
+    restoreEnvSnapshot(oldEnv)
   })
 
   it('should not throw errors if prisma schema not found', async () => {

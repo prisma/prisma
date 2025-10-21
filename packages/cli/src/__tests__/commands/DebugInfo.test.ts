@@ -6,9 +6,27 @@ import path from 'path'
 
 import { DebugInfo } from '../../DebugInfo'
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const originalEnv = { ...process.env }
+
+function restoreEnv() {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
 
 function cleanSnapshot(str: string): string {
   str = str.replace(new RegExp('(Path: ).*', 'g'), '$1REDACTED_PATH')
@@ -59,11 +77,14 @@ const envVars = {
 describe('debug', () => {
   // make sure the env is empty before each test
   beforeEach(() => {
-    process.env = {}
+    restoreEnv()
+    for (const key of Object.keys(process.env)) {
+      delete process.env[key]
+    }
   })
   // clean up env vars after each individual test
   afterEach(() => {
-    process.env = { ...originalEnv }
+    restoreEnv()
   })
 
   it('should succeed when env vars are NOT set (undefined)', async () => {
@@ -250,7 +271,9 @@ describe('debug', () => {
     `)
   })
 
-  it('should succeed when env vars are set', async () => {
+  // Environment variables are case insensitive on Windows, which breaks our test snapshot
+  // since HTTP_PROXY overrides http_proxy and HTTPS_PROXY overrides https_proxy.
+  testIf(process.platform !== 'win32')('should succeed when env vars are set', async () => {
     ctx.fixture('example-project/prisma')
 
     Object.assign(process.env, envVars)

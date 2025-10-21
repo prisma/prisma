@@ -14,13 +14,31 @@ const longTimeUserCommandState: CommandState = { firstCommandTimestamp: '2019-01
 
 describe('nps survey', () => {
   const originalEnv = { ...process.env }
+  const restoreEnv = () => {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in originalEnv)) {
+        delete process.env[key]
+      }
+    }
+
+    for (const [key, value] of Object.entries(originalEnv)) {
+      if (value === undefined) {
+        delete process.env[key]
+      } else {
+        process.env[key] = value
+      }
+    }
+  }
 
   let mockRead: jest.SpyInstance
   let mockWrite: jest.SpyInstance
   let mockExists: jest.SpyInstance
 
   beforeEach(() => {
-    process.env = {}
+    restoreEnv()
+    for (const key of Object.keys(process.env)) {
+      delete process.env[key]
+    }
   })
 
   afterEach(() => {
@@ -30,7 +48,7 @@ describe('nps survey', () => {
   })
 
   afterAll(() => {
-    process.env = originalEnv
+    restoreEnv()
   })
 
   it('should exit immediately if running in CI', async () => {
