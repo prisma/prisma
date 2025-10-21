@@ -734,8 +734,6 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'library.d.ts',
     'index-browser.js',
     'index-browser.d.ts',
-    'edge.js',
-    'edge-esm.js',
     'react-native.js',
     'wasm-engine-edge.js',
     'wasm-compiler-edge.js',
