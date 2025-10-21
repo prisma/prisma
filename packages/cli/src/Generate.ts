@@ -116,7 +116,6 @@ ${bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--config': String,
-      '--data-proxy': Boolean,
       '--accelerate': Boolean,
       '--no-engine': Boolean,
       '--no-hints': Boolean,
@@ -174,7 +173,6 @@ ${bold('Examples')}
         typedSql,
         noEngine:
           Boolean(args['--no-engine']) ||
-          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
           Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
