@@ -1,8 +1,8 @@
 import { isPrismaPostgresDev, PRISMA_POSTGRES_PROTOCOL } from '@prisma/internals'
 
-import { resolveDatasourceUrl } from '../../../init/resolveDatasourceUrl'
-import { InvalidDatasourceError } from '../../data-proxy/errors/InvalidDatasourceError'
-import { EngineConfig } from '../Engine'
+import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
+import { EngineConfig } from '../common/Engine'
+import { InvalidDatasourceError } from './errors/invalid-datasource-error'
 
 export interface GetUrlAndApiKeyOptions {
   clientVersion: string

@@ -37,7 +37,6 @@ type RuntimeName =
   | 'library'
   | 'wasm-engine-edge'
   | 'wasm-compiler-edge'
-  | 'edge'
   | 'edge-esm'
   | 'index-browser'
   | 'react-native'

@@ -6,7 +6,7 @@ cycle does not follow SemVer, which means we might release breaking changes
 
 ## Purpose
 
-Accelerate has ownership of the `DataProxyEngine` (now `AccelerateEngine`). This
+Accelerate has ownership of the `AccelerateEngine`. This
 engine is handed over to the Client by the Accelerate extension. The Client uses
 the engine to communicate with the Accelerate service. Accelerate uses the
 Client to formulate and execute queries. This means we need some kind of

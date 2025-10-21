@@ -160,14 +160,14 @@ export interface EngineConfig {
 
   /**
    * The contents of the datasource url saved in a string
-   * @remarks only used by DataProxyEngine.ts
+   * @remarks only used by RemoteExecutor.ts
    * @remarks this field is used internally by Policy, do not rename or remove
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
   /**
    * The string hash that was produced for a given schema
-   * @remarks only used by DataProxyEngine.ts
+   * @remarks only used by AccelerateEngine.ts
    */
   inlineSchemaHash: string
 

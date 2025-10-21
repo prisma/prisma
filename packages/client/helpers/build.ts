@@ -148,24 +148,6 @@ const runtimesCommonBuildConfig = {
   external: ['@prisma/client-runtime-utils'],
 } satisfies BuildOptions
 
-// we define the config for edge
-const edgeRuntimeBuildConfig: BuildOptions = {
-  ...runtimesCommonBuildConfig,
-  name: 'edge',
-  outfile: 'runtime/edge',
-  emitTypes: true,
-  define: {
-    ...runtimesCommonBuildConfig.define,
-    // tree shake the Library and Binary engines out
-    TARGET_BUILD_TYPE: '"edge"',
-  },
-  plugins: [
-    fillPlugin({
-      fillerOverrides: commonRuntimesOverrides,
-    }),
-  ],
-}
-
 function wasmFileToBase64(wasmBuffer: Buffer, format: ModuleFormat = 'esm'): string {
   const base64 = wasmBuffer.toString('base64')
   const moduleExports = format === 'esm' ? 'export { wasm }' : 'module.exports = { wasm }'
@@ -246,15 +228,6 @@ const reactNativeBuildConfig: BuildOptions = {
   ],
 }
 
-// we define the config for edge in esm format
-const edgeEsmRuntimeBuildConfig: BuildOptions = {
-  ...edgeRuntimeBuildConfig,
-  name: 'edge-esm',
-  outfile: 'runtime/edge-esm',
-  format: 'esm',
-  emitTypes: false,
-}
-
 // old-style generator compatiblity shim for studio
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
@@ -316,8 +289,6 @@ void build([
   generatorBuildConfig,
   ...allNodeRuntimeBuildConfigs(),
   ...browserBuildConfigs(),
-  edgeRuntimeBuildConfig,
-  edgeEsmRuntimeBuildConfig,
   ...allWasmEdgeRuntimeConfigs(),
   ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,

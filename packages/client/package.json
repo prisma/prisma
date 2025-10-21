@@ -54,12 +54,6 @@
       },
       "default": "./default.js"
     },
-    "./edge": {
-      "types": "./edge.d.ts",
-      "require": "./edge.js",
-      "import": "./edge.js",
-      "default": "./edge.js"
-    },
     "./react-native": {
       "types": "./react-native.d.ts",
       "require": "./react-native.js",

@@ -33,9 +33,7 @@ export function resolveDatasourceUrl({
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
     if (
-      (TARGET_BUILD_TYPE === 'edge' ||
-        TARGET_BUILD_TYPE === 'wasm-engine-edge' ||
-        TARGET_BUILD_TYPE === 'wasm-compiler-edge') &&
+      (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') &&
       getRuntime().id === 'workerd'
     ) {
       throw new PrismaClientInitializationError(

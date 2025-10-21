@@ -141,15 +141,6 @@ export async function buildClient({
     reusedJs: '.',
   })
 
-  // we create a client that is fit for edge runtimes
-  const edgeClient = new TSClient({
-    ...baseClientOptions,
-    runtimeNameJs: 'edge',
-    runtimeNameTs: 'library.js',
-    reusedTs: 'default',
-    edge: true,
-  })
-
   // we create a client that is fit for react native runtimes
   const rnTsClient = new TSClient({
     ...baseClientOptions,
@@ -210,8 +201,6 @@ export async function buildClient({
   fileMap['default.js'] = JS(defaultClient)
   fileMap['default.d.ts'] = TS(defaultClient)
   fileMap['index-browser.js'] = BrowserJS(nodeClient)
-  fileMap['edge.js'] = JS(edgeClient)
-  fileMap['edge.d.ts'] = TS(edgeClient)
   fileMap['client.js'] = JS(defaultClient)
   fileMap['client.d.ts'] = TS(defaultClient)
 

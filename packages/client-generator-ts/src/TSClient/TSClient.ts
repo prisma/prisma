@@ -21,7 +21,6 @@ export type RuntimeName =
   | 'library'
   | 'wasm-engine-edge'
   | 'wasm-compiler-edge'
-  | 'edge'
   | 'react-native'
   | 'client'
   | (string & {})

@@ -20,12 +20,7 @@ testMatrix.setupTestSuite(
       test('imports correct runtime', async () => {
         const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')
 
-        if (clientMeta.dataProxy && clientRuntime === 'edge') {
-          expect(generatedClientContents).toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(libraryRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
+        if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
           expect(generatedClientContents).toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(edgeRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
@@ -48,11 +43,6 @@ testMatrix.setupTestSuite(
         } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
-          expect(generatedClientContents).toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
           expect(generatedClientContents).not.toContain(wasmRuntime)
         } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
@@ -68,10 +58,7 @@ testMatrix.setupTestSuite(
       test('imported files have the expected annotations', async () => {
         const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')
 
-        if (clientMeta.dataProxy && clientRuntime === 'edge') {
-          expect(generatedClientContents).not.toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
+        if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
           expect(generatedClientContents).not.toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
@@ -85,9 +72,6 @@ testMatrix.setupTestSuite(
           expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'edge') {
-          expect(generatedClientContents).not.toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
           expect(generatedClientContents).not.toContain(nftAnnotation)
