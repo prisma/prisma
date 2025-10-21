@@ -5,10 +5,10 @@ export class PrismaConfigEnvError extends Error {
   }
 }
 
-export function env<Env extends Record<string, string>>(name: keyof Env): string {
-  const value = (process.env as Env)[name]
+export function env<Env extends Record<string, string | undefined>>(name: keyof Env & string): string {
+  const value = process.env[name]
   if (!value) {
-    throw new PrismaConfigEnvError(name as string)
+    throw new PrismaConfigEnvError(name)
   }
   return value
 }
