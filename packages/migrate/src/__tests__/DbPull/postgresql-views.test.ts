@@ -114,7 +114,13 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         // Empty dir should be deleted along the views dir
         await ctx.fs.dirAsync('views/empty-dir')
 
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
         const { engine } = await Migrate.setup({})
@@ -134,14 +140,20 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
         // The views folder is deleted
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'prisma.config.ts', 'schema.prisma', 'setup.sql'])
       })
 
       it('`views` is [] and a non-empty existing views folder is kept', async () => {
         ctx.fixture(path.join(fixturePath))
 
         ctx.fs.write('views/README.md', 'Some readme markdown')
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
         const { engine } = await Migrate.setup({})
@@ -160,7 +172,13 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
 
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(['README.md'])
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync()).toEqual([
+          'node_modules',
+          'prisma.config.ts',
+          'schema.prisma',
+          'setup.sql',
+          'views',
+        ])
       })
     })
   })
