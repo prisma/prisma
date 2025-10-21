@@ -39,15 +39,15 @@ testMatrix.setupTestSuite(
         prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } }),
       ])
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
         "
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          36 const newEmail = faker.internet.email()
-          37 const result = prisma.$transaction([
-          38   prisma.user.create({ data: { email: newEmail } }),
-        → 39   prisma.user.findUniqueOrThrow(
+          XX const newEmail = faker.internet.email()
+          XX const result = prisma.$transaction([
+          XX   prisma.user.create({ data: { email: newEmail } }),
+        → XX   prisma.user.findUniqueOrThrow(
         An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 
@@ -62,15 +62,15 @@ testMatrix.setupTestSuite(
         await prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
         "
         Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
         /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-          59 const newEmail = faker.internet.email()
-          60 const result = prisma.$transaction(async (prisma) => {
-          61   await prisma.user.create({ data: { email: newEmail } })
-        → 62   await prisma.user.findUniqueOrThrow(
+          XX const newEmail = faker.internet.email()
+          XX const result = prisma.$transaction(async (prisma) => {
+          XX   await prisma.user.create({ data: { email: newEmail } })
+        → XX   await prisma.user.findUniqueOrThrow(
         An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 

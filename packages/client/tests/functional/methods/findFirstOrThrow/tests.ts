@@ -40,15 +40,15 @@ testMatrix.setupTestSuite(
         prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } }),
       ])
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
         "
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          39 const newEmail = faker.internet.email()
-          40 const result = prisma.$transaction([
-          41   prisma.user.create({ data: { email: newEmail } }),
-        → 42   prisma.user.findFirstOrThrow(
+          XX const newEmail = faker.internet.email()
+          XX const result = prisma.$transaction([
+          XX   prisma.user.create({ data: { email: newEmail } }),
+        → XX   prisma.user.findFirstOrThrow(
         An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 
@@ -63,15 +63,15 @@ testMatrix.setupTestSuite(
         await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
       })
 
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
         "
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-          65 const newEmail = faker.internet.email()
-          66 const result = prisma.$transaction(async (prisma) => {
-          67   await prisma.user.create({ data: { email: newEmail } })
-        → 68   await prisma.user.findFirstOrThrow(
+          XX const newEmail = faker.internet.email()
+          XX const result = prisma.$transaction(async (prisma) => {
+          XX   await prisma.user.create({ data: { email: newEmail } })
+        → XX   await prisma.user.findFirstOrThrow(
         An operation failed because it depends on one or more records that were required but not found. No record was found for a query."
       `)
 
