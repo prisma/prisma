@@ -38,9 +38,12 @@ ${bold('Usage')}
 
 ${bold('Options')}
 
-           -h, --help   Display this help message
-             --config   Custom path to your Prisma config file
-             --schema   Custom path to your Prisma schema
+  -h, --help   Display this help message
+    --config   Custom path to your Prisma config file
+    --schema   Custom path to your Prisma schema
+
+${bold('Flags')}
+
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
       --skip-generate   Skip triggering generators (e.g. Prisma Client)
