@@ -84,136 +84,85 @@ describeMatrix(postgresOnly, 'postgresql', () => {
 
       "
     `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
   })
 
-  test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+  describe('empty or incomplete schema', () => {
+    beforeEach(() => {
+      ctx.setDatasource({
+        url: setupParams.connectionString,
+      })
+    })
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
-      }
+    afterEach(() => {
+      ctx.resetDatasource()
+    })
 
-      model Post {
-        id        String    @id
-        createdAt DateTime  @default(now())
-        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
-        published Boolean   @default(false)
-        title     String
-        content   String?
-        authorId  String?
-        jsonData  Json?
-        coinflips Boolean[]
-        User      User?     @relation(fields: [authorId], references: [id])
-      }
+    test('basic introspection config + empty schema', async () => {
+      ctx.fixture('empty-schema')
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'], await ctx.config())
+      await expect(result).rejects.toMatchInlineSnapshot(`
+        "There is no datasource in the schema.
 
-      model User {
-        id    String  @id
-        email String  @unique(map: "User.email")
-        name  String?
-        Post  Post[]
-      }
+        "
+      `)
 
-      enum Role {
-        USER
-        ADMIN
-      }
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        "
+      `)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    })
 
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
+    test('basic introspection config + schema with no linebreak after generator block', async () => {
+      ctx.fixture('generator-only')
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'], await ctx.config())
+      await expect(result).rejects.toMatchInlineSnapshot(`
+        "There is no datasource in the schema.
 
-  test('basic introspection --url + empty schema', async () => {
-    ctx.fixture('empty-schema')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        "
+      `)
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
-      }
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        "
+      `)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+    })
 
-      model Post {
-        id        String    @id
-        createdAt DateTime  @default(now())
-        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
-        published Boolean   @default(false)
-        title     String
-        content   String?
-        authorId  String?
-        jsonData  Json?
-        coinflips Boolean[]
-        User      User?     @relation(fields: [authorId], references: [id])
-      }
+    test('introspection with postgresql provider but schema has a sqlite provider should fail', async () => {
+      ctx.fixture('schema-only-sqlite')
 
-      model User {
-        id    String  @id
-        email String  @unique(map: "User.email")
-        name  String?
-        Post  Post[]
-      }
+      // TODO: this error is not entirely correct: the invalid URL is in the config file,
+      // not in the datasource block. The message needs to be updated when removing the
+      // `url` property from the PSL.
+      await expect(DbPull.new().parse(['--print'], await ctx.config())).rejects.toMatchInlineSnapshot(`
+        "P1012
 
-      enum Role {
-        USER
-        ADMIN
-      }
+        error: Error validating datasource \`my_db\`: the URL must start with the protocol \`file:\`.
+          -->  prisma/schema.prisma:3
+           | 
+         2 |   provider = "sqlite"
+         3 |   url      = "file:../dev.db"
+           | 
 
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
 
-  test('basic introspection --url + schema with no linebreak after generator block', async () => {
-    ctx.fixture('generator-only')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
+        Introspection failed as your current Prisma schema file is invalid
 
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "generator client {
-        provider = "prisma-client-js"
-      }
+        Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+        Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+        "
+      `)
 
-      datasource db {
-        provider = "postgresql"
-        url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
-      }
-
-      model Post {
-        id        String    @id
-        createdAt DateTime  @default(now())
-        updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
-        published Boolean   @default(false)
-        title     String
-        content   String?
-        authorId  String?
-        jsonData  Json?
-        coinflips Boolean[]
-        User      User?     @relation(fields: [authorId], references: [id])
-      }
-
-      model User {
-        id    String  @id
-        email String  @unique(map: "User.email")
-        name  String?
-        Post  Post[]
-      }
-
-      enum Role {
-        USER
-        ADMIN
-      }
-
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        "
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
   })
 
   test('introspection should load .env file with --print', async () => {
@@ -252,28 +201,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       - Introspecting based on datasource defined in prisma/using-dotenv.prisma
       ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('introspection --url with postgresql provider but schema has a sqlite provider should fail', async () => {
-    ctx.fixture('schema-only-sqlite')
-    expect.assertions(5)
-
-    try {
-      await DbPull.new().parse(['--url', setupParams.connectionString], await ctx.config())
-    } catch (e) {
-      expect(e.code).toEqual(undefined)
-      expect(e.message).toMatchInlineSnapshot(
-        `"The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite)."`,
-      )
-    }
-
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" <location placeholder>
       "
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
