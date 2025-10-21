@@ -20,7 +20,7 @@ testMatrix.setupTestSuite((_0, _1) => {
       /client/tests/functional/extended-where/validation.ts:0:0
 
          XX // arbitrarily chose delete operation to test errors for invalid inputs
-        XX testMatrix.setupTestSuite((_0, _1, { runtime }) => {
+        XX testMatrix.setupTestSuite((_0, _1) => {
         XX   test('where and no keys provided', async () => {
       → XX     const result = prisma.user.delete({
                  where: {

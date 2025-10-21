@@ -18,8 +18,8 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/query-validation/tests.ts:0:0
 
-           XX (suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
-          XX   test('include and select are used at the same time', async () => {
+           XX testMatrix.setupTestSuite((suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
+           XX   test('include and select are used at the same time', async () => {
           XX     // @ts-expect-error
         → XX     const result = prisma.user.findMany({
                    select: {},
