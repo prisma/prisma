@@ -183,8 +183,6 @@
     "runtime",
     "scripts",
     "generator-build",
-    "edge.js",
-    "edge.d.ts",
     "wasm.js",
     "wasm.d.ts",
     "index.js",
