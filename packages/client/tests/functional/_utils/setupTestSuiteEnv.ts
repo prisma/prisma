@@ -16,7 +16,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta } from './types'
+import { AlterStatementCallback } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -366,7 +366,6 @@ export function setupTestSuiteDbURI({
   suiteConfig,
 }: {
   suiteConfig: NamedTestSuiteConfig['matrixOptions']
-  clientMeta: ClientMeta
 }): DatasourceInfo {
   const { provider, driverAdapter } = suiteConfig
 

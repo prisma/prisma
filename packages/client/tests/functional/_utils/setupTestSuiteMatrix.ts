@@ -98,7 +98,7 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
+      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions })
       let server: { qpe: QueryPlanExecutor.Server; net: ServerType } | undefined
 
       // we inject modified env vars, and make the client available as globals
