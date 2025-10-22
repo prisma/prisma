@@ -17,9 +17,9 @@ testMatrix.setupTestSuite(() => {
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
 
-           XX () => {
+           XX testMatrix.setupTestSuite(() => {
            XX   test('throws on invalid date (json)', async () => {
-          XX     await expect(
+           XX     await expect(
         → XX       prisma.user.findMany({
                      where: {
                        date: new Date("Invalid Date")
