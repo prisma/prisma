@@ -804,18 +804,15 @@ describeMatrix(postgresOnly, 'postgres', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1072,24 +1069,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
     // expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
   })
 
-  it('should work if directUrl is set as env var', async () => {
-    ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from .env
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
-
-      Already in sync, no schema change or pending migration was found.
-      "
-    `)
-  })
-
   it('regression: enum array column type is introspected properly (gh-22456)', async () => {
     ctx.fixture('enum-array-type-introspection')
 
@@ -1143,8 +1122,9 @@ describeMatrix(postgresOnly, 'postgres', () => {
       "
     `)
     // Create external table in actual database so it can be referenced later
+    const { url } = (await ctx.getDatasource())!
     await runQueryPostgres(
-      { connectionString: process.env.TEST_POSTGRES_URI_MIGRATE! },
+      { connectionString: url },
       `
       CREATE TABLE "User" (
         "id" SERIAL PRIMARY KEY,
@@ -1198,7 +1178,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
-  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-dev')
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams = {
     connectionString: connectionString!,
@@ -1216,18 +1196,15 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-    process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1391,18 +1368,15 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-    process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1593,21 +1567,19 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
-    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    const shadowDatabaseUrl = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
       'tests-migrate-shadowdb',
       `${databaseName}-shadowdb`,
     )
+    ctx.setDatasource({ url, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
