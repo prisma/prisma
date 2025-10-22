@@ -46,7 +46,6 @@ const envVars = {
   PRISMA_GENERATE_SKIP_AUTOINSTALL: 'true',
   PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
   PRISMA_GENERATE_IN_POSTINSTALL: 'true',
-  PRISMA_GENERATE_DATAPROXY: 'true',
   PRISMA_GENERATE_NO_ENGINE: 'true',
   PRISMA_SHOW_ALL_TRACES: 'true',
   PRISMA_CLIENT_NO_RETRY: 'true',
@@ -134,7 +133,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL:
 
       For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY:
       - PRISMA_GENERATE_NO_ENGINE:
 
       For Prisma Client
@@ -226,7 +224,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL: \`\`
 
       For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`\`
       - PRISMA_GENERATE_NO_ENGINE: \`\`
 
       For Prisma Client
@@ -313,7 +310,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL: \`true\`
 
       For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`true\`
       - PRISMA_GENERATE_NO_ENGINE: \`true\`
 
       For Prisma Client
@@ -405,7 +401,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL: \`from_env_file\`
 
       For "prisma generate"
-      - PRISMA_GENERATE_DATAPROXY: \`from_env_file\`
       - PRISMA_GENERATE_NO_ENGINE: \`from_env_file\`
 
       For Prisma Client
