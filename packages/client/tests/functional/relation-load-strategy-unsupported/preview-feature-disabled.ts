@@ -411,8 +411,8 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, _clientMeta, cliMeta) => {
             Invalid \`prisma.user.createMany()\` invocation in
             /client/tests/functional/relation-load-strategy-unsupported/preview-feature-disabled.ts:0:0
 
-              XX 'createMany (sqlserver, mongodb)',
-              XX async () => {
+              XX 
+              XX testIf([Providers.SQLSERVER, Providers.MONGODB].includes(provider))('createMany (sqlserver, mongodb)', async () => {
               XX   await expect(
             → XX     prisma.user.createMany({
                         relationLoadStrategy: "query",
