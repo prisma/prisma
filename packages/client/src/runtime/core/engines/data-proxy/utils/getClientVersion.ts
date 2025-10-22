@@ -12,13 +12,6 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   const engineVersion = dependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
-  // Internal override for testing and manual version overrides.
-  // Automated tests should set this to "0.0.0" when using mini-proxy.
-  // Edge client does not have access to process.env, so we use globalThis.
-  if (process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION || globalThis.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION) {
-    return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION || globalThis.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION
-  }
-
   // for data proxy v2, or accelerate, resolution isn't needed
   if (host.includes('accelerate') && clientVersion !== '0.0.0' && clientVersion !== 'in-memory') {
     return clientVersion
@@ -46,14 +39,13 @@ async function _getClientVersion(host: string, config: EngineConfig) {
       throw new Error(
         `Failed to fetch stable Prisma version, unpkg.com status ${res.status} ${
           res.statusText
-          // eslint-disable-next-line @typescript-eslint/await-thenable
         }, response body: ${(await res.text()) || '<empty body>'}`,
       )
     }
 
     // we need to await for edge workers
     // because it's using the global "fetch"
-    // eslint-disable-next-line @typescript-eslint/await-thenable
+
     const bodyAsText = await res.text()
     debug('length of body fetched from unpkg.com', bodyAsText.length)
 
