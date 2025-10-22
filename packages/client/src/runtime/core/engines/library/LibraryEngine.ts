@@ -20,7 +20,6 @@ import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
-  QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   RustRequestError,
   SyncRustError,
@@ -40,13 +39,6 @@ const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
-}
-function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
-  if ('level' in event) {
-    return event.level === 'error' && event['message'] === 'PANIC'
-  } else {
-    return false
-  }
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
@@ -101,8 +93,6 @@ export class LibraryEngine implements Engine<undefined> {
       if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
-    } else if (TARGET_BUILD_TYPE === 'wasm-engine-edge') {
-      this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
@@ -353,15 +343,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
-      // The error built is saved to be thrown later
-      this.loggerRustPanic = new PrismaClientRustPanicError(
-        getErrorMessageWithLink(
-          this,
-          `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
-        ),
-        this.config.clientVersion!,
-      )
     } else {
       this.logEmitter.emit(event.level as LogEventType, {
         timestamp: new Date(),
@@ -543,7 +524,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
         throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
@@ -606,7 +587,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError, registry?: ErrorRegistry) {
-    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
+    if (error.user_facing_error.is_panic) {
       return new PrismaClientRustPanicError(
         getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,

@@ -136,10 +136,6 @@ export async function setupTestSuiteClient({
       client: 'generated/prisma/client',
       sql: path.join(outputPath, 'sql'),
     },
-    'wasm-engine-edge': {
-      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
-      sql: path.join(outputPath, 'sql', 'index.edge.js'),
-    },
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
       sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
@@ -312,19 +308,7 @@ export function getPrismaClientInternalArgs({
   const provider = suiteConfig.matrixOptions.provider
   const __internal: PrismaClientOptions['__internal'] = {}
 
-  if (clientMeta.runtime === 'wasm-engine-edge') {
-    __internal.configOverride = (config) => {
-      config.engineWasm = {
-        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
-        getQueryEngineWasmModule: () => {
-          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm-base64.js`)
-          const wasmBase64: string = require(queryEngineWasmFilePath).wasm
-          return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
-        },
-      }
-      return config
-    }
-  } else if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
+  if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),

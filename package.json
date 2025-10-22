@@ -129,11 +129,6 @@
       "brotli": false
     },
     {
-      "path": "packages/client/runtime/wasm-engine-edge.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
       "path": "packages/client/runtime/index-browser.js",
       "gzip": false,
       "brotli": false

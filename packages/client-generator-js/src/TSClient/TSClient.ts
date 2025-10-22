@@ -35,7 +35,6 @@ import { PrismaClientClass } from './PrismaClient'
 type RuntimeName =
   | 'binary'
   | 'library'
-  | 'wasm-engine-edge'
   | 'wasm-compiler-edge'
   | 'edge-esm'
   | 'index-browser'

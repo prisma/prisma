@@ -123,7 +123,7 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    edge: (['wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    edge: (['wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
     generatedFileExtension,
@@ -412,7 +412,7 @@ function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: Clie
 
     case 'workerd':
     case 'vercel-edge':
-      return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
+      return 'wasm-compiler-edge'
 
     case 'react-native':
       return 'react-native'

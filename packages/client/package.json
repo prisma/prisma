@@ -106,12 +106,6 @@
       "import": "./runtime/binary.mjs",
       "default": "./runtime/binary.mjs"
     },
-    "./runtime/wasm-engine-edge": {
-      "types": "./runtime/wasm-engine-edge.d.ts",
-      "require": "./runtime/wasm-engine-edge.js",
-      "import": "./runtime/wasm-engine-edge.mjs",
-      "default": "./runtime/wasm-engine-edge.mjs"
-    },
     "./runtime/wasm-compiler-edge": {
       "types": "./runtime/wasm-compiler-edge.d.ts",
       "require": "./runtime/wasm-compiler-edge.js",

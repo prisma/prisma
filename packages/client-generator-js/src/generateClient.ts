@@ -267,7 +267,7 @@ export async function buildClient({
 
   const wasmClient = new TSClient({
     ...baseClientOptions,
-    runtimeNameJs: usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge',
+    runtimeNameJs: 'wasm-compiler-edge',
     runtimeNameTs: 'library.js',
     reusedTs: 'default',
     edge: true,
@@ -735,7 +735,6 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'index-browser.js',
     'index-browser.d.ts',
     'react-native.js',
-    'wasm-engine-edge.js',
     'wasm-compiler-edge.js',
   ]
 

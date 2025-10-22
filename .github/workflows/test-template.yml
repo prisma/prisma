@@ -183,7 +183,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clientRuntime: ['node', 'wasm-engine-edge']
+        clientRuntime: ['node']
         flavor:
           [
             'js_pg',

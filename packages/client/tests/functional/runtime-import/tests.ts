@@ -45,11 +45,6 @@ testMatrix.setupTestSuite(
           expect(generatedClientContents).not.toContain(edgeRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
           expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
-          expect(generatedClientContents).toContain(wasmRuntime)
-          expect(generatedClientContents).not.toContain(libraryRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(edgeRuntime)
         } else {
           throw new Error('Unhandled case')
         }
@@ -73,9 +68,6 @@ testMatrix.setupTestSuite(
         } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'wasm-engine-edge') {
-          expect(generatedClientContents).not.toContain(nftAnnotation)
-          expect(generatedClientContents).toContain(wasmFileUsage)
         } else {
           throw new Error('Unhandled case')
         }
