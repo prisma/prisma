@@ -862,14 +862,14 @@ describe('migrate diff', () => {
         console.error(e)
       })
 
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+      ctx.setDatasource({ url: connectionString! })
     })
 
     afterEach(async () => {
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
+      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -891,23 +891,6 @@ describe('migrate diff', () => {
         "
       `)
     }, 10_000)
-
-    it('should use env var from .env file with --from-schema-datasource', async () => {
-      ctx.fixture('schema-only-cockroachdb')
-
-      const result = MigrateDiff.new().parse(
-        ['--from-schema-datasource=./prisma/using-dotenv.prisma', '--to-schema-datamodel=./prisma/schema.prisma'],
-        await ctx.config(),
-      )
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1001
-
-        Can't reach database server at \`fromdotenvdoesnotexist:26257\`
-
-        Please make sure your database server is running at \`fromdotenvdoesnotexist:26257\`.
-        "
-      `)
-    })
 
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -936,15 +919,14 @@ describe('migrate diff', () => {
       await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+      ctx.setDatasource({ url: connectionString })
     })
 
     afterEach(async () => {
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
+      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -967,23 +949,6 @@ describe('migrate diff', () => {
       `)
     })
 
-    it('should use env var from .env file with --from-schema-datasource', async () => {
-      ctx.fixture('schema-only-postgresql')
-
-      const result = MigrateDiff.new().parse(
-        ['--from-schema-datasource=./prisma/using-dotenv.prisma', '--to-schema-datamodel=./prisma/schema.prisma'],
-        await ctx.config(),
-      )
-      await expect(result).rejects.toMatchInlineSnapshot(`
-        "P1001
-
-        Can't reach database server at \`fromdotenvdoesnotexist:5432\`
-
-        Please make sure your database server is running at \`fromdotenvdoesnotexist:5432\`.
-        "
-      `)
-    })
-
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
@@ -996,20 +961,6 @@ describe('migrate diff', () => {
         Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
         "
       `)
-    })
-
-    it('should work if directUrl is set as an env var', async () => {
-      ctx.fixture('schema-only-data-proxy')
-      const result = MigrateDiff.new().parse(
-        ['--from-schema-datasource', 'with-directUrl-env.prisma', '--to-empty'],
-        await ctx.config(),
-      )
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "No difference detected.
-        "
-      `)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
 
     it('should exclude external tables from diff', async () => {
@@ -1048,14 +999,14 @@ describe('migrate diff', () => {
         console.error(e)
       })
 
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+      ctx.setDatasource({ url: connectionString })
     })
 
     afterEach(async () => {
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
+      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -1116,21 +1067,18 @@ describe('migrate diff', () => {
         console.error(e)
       })
 
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-        'tests-migrate',
-        databaseName,
-      )
-      process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+      const shadowDatabaseUrl = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
         'tests-migrate-shadowdb',
         `${databaseName}-shadowdb`,
       )
+      ctx.setDatasource({ url: jdbcConnectionString!, shadowDatabaseUrl })
     })
 
     afterEach(async () => {
       await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
+      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
