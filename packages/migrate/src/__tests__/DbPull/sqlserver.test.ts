@@ -95,29 +95,6 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
-
-  test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', process.env.TEST_MSSQL_JDBC_URI_MIGRATE!], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "datasource db {
-        provider = "sqlserver"
-        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-      }
-
-      model jobs {
-        job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
-        customer_id Int?
-        description String?   @db.VarChar(200)
-        created_at  DateTime?
-      }
-
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
 })
 
 describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
@@ -163,6 +140,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
+    ctx.resetDatasource()
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
@@ -218,16 +196,16 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                // *** WARNING ***
-                                                // 
-                                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                                                //   - transactional_some_table
-                                                // 
-                                                // These items were renamed due to their names being duplicates in the Prisma schema:
-                                                //   - type: model, name: base_some_table
-                                                //   - type: model, name: transactional_some_table
-                                                // 
-                                `)
+                                                      // *** WARNING ***
+                                                      //
+                                                      // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                                      //   - transactional_some_table
+                                                      //
+                                                      // These items were renamed due to their names being duplicates in the Prisma schema:
+                                                      //   - type: model, name: base_some_table
+                                                      //   - type: model, name: transactional_some_table
+                                                      //
+                                    `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
@@ -320,24 +298,32 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+  test('url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver')
+    ctx.setDatasource({
+      url: `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`,
+    })
+
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).rejects.toThrow(`P4001`)
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('--url with `?schema=base` should succeed', async () => {
+  test('url with `?schema=base` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver')
+    ctx.setDatasource({
+      url: `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`,
+    })
+
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multischema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
       }
 
       model some_table {

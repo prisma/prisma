@@ -15,9 +15,21 @@ describeMatrix(postgresOnly, 'postgresql - missing database', () => {
   // replace database name, e.g., 'tests-migrate', with 'unknown-database'
   const connectionString = defaultConnectionString.split('/').slice(0, -1).join('/') + '/unknown-database'
 
-  test('basic introspection --url', async () => {
+  beforeEach(() => {
+    ctx.setDatasource({
+      url: connectionString,
+    })
+  })
+
+  afterEach(() => {
+    ctx.resetDatasource()
+  })
+
+  test('basic introspection', async () => {
+    ctx.fixture('introspection/postgresql')
+
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', connectionString], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       P1003 The introspected database does not exist:
@@ -29,7 +41,7 @@ describeMatrix(postgresOnly, 'postgresql - missing database', () => {
       - manually create a database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 
