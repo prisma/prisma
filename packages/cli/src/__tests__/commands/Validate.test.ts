@@ -10,12 +10,28 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const originalEnv = { ...process.env }
 
+function restoreEnv() {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in originalEnv)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 describe('validate', () => {
   beforeEach(() => {
-    process.env = { ...originalEnv }
+    restoreEnv()
   })
   afterAll(() => {
-    process.env = { ...originalEnv }
+    restoreEnv()
   })
 
   describe('multi-schema-files', () => {

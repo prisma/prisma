@@ -9,6 +9,22 @@ import { Validate } from '../Validate'
 
 const ctx = jestContext.new().assemble()
 
+function restoreEnvSnapshot(snapshot: NodeJS.ProcessEnv) {
+  for (const key of Object.keys(process.env)) {
+    if (!(key in snapshot)) {
+      delete process.env[key]
+    }
+  }
+
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (value === undefined) {
+      delete process.env[key]
+    } else {
+      process.env[key] = value
+    }
+  }
+}
+
 /**
  * Note: under the hood, these artificial-panic tests uses the Wasm'd `getConfig` and `getDMMF` definitions
  */
@@ -19,7 +35,7 @@ describe('artificial-panic introspection', () => {
 
   afterEach(() => {
     // reset env vars to backup state
-    process.env = { ...OLD_ENV }
+    restoreEnvSnapshot(OLD_ENV)
   })
 
   it('schema-engine', async () => {
@@ -49,7 +65,7 @@ describe('artificial-panic formatter', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
-    process.env = { ...OLD_ENV }
+    restoreEnvSnapshot(OLD_ENV)
   })
 
   it('formatter', async () => {
@@ -75,7 +91,7 @@ describe('artificial-panic get-config', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
-    process.env = { ...OLD_ENV }
+    restoreEnvSnapshot(OLD_ENV)
   })
 
   it('get-config', async () => {
@@ -101,7 +117,7 @@ describe('artificial-panic validate', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
-    process.env = { ...OLD_ENV }
+    restoreEnvSnapshot(OLD_ENV)
   })
 
   it('validate', async () => {
@@ -145,7 +161,7 @@ describe('artificial-panic getDMMF', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
-    process.env = { ...OLD_ENV }
+    restoreEnvSnapshot(OLD_ENV)
   })
 
   it('getDMMF', async () => {
