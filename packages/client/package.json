@@ -256,7 +256,6 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/mini-proxy": "0.9.5",
     "@prisma/query-compiler-wasm": "6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f",
     "@prisma/query-engine-wasm": "6.18.0-8.34b5a692b7bd79939a9a2c3ef97d816e749cda2f",
     "@prisma/query-plan-executor": "workspace:*",
