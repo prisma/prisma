@@ -474,9 +474,6 @@ importers:
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
-      '@prisma/mini-proxy':
-        specifier: 0.9.5
-        version: 0.9.5
       '@prisma/studio':
         specifier: 0.511.0
         version: 0.511.0
@@ -697,9 +694,6 @@ importers:
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
-      '@prisma/mini-proxy':
-        specifier: 0.9.5
-        version: 0.9.5
       '@prisma/query-compiler-wasm':
         specifier: 6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab
         version: 6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab
@@ -3241,11 +3235,6 @@ packages:
 
   '@prisma/engines-version@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab':
     resolution: {integrity: sha512-kfws8Fd1MMKukJGHPCOcHZVGLOpPEcGSNCTr/0VQPLxCbZU48Ue4N0aA1ghUj1N5K4Tr1y9fDF2mMPJEuXRxWQ==}
-
-  '@prisma/mini-proxy@0.9.5':
-    resolution: {integrity: sha512-0MLaxUjGbZGJGx9fIy1kbAH65hcZHCP6yes8xCTVcWumo64uzAxuvZdf5l1EPCZrDnj+iZNAy0U364oOAN+gXQ==}
-    engines: {node: '>=16'}
-    hasBin: true
 
   '@prisma/ppg@1.0.1':
     resolution: {integrity: sha512-rRRXuPPerXwNWjSA3OE0e/bqXSTfsE82EsMvoiluc0fN0DizQSe3937/Tnl5+DPbxY5rdAOlYjWXG0A2wwTbKA==}
@@ -9572,8 +9561,6 @@ snapshots:
       prettier: 3.5.3
 
   '@prisma/engines-version@6.20.0-5.46b83975fec203f6665832b932ab3dc58be23eab': {}
-
-  '@prisma/mini-proxy@0.9.5': {}
 
   '@prisma/ppg@1.0.1':
     dependencies:

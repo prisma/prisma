@@ -116,8 +116,6 @@ ${bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--config': String,
-      '--data-proxy': Boolean,
-      '--accelerate': Boolean,
       '--no-engine': Boolean,
       '--no-hints': Boolean,
       '--generator': [String],
@@ -172,13 +170,7 @@ ${bold('Examples')}
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
         typedSql,
-        noEngine:
-          Boolean(args['--no-engine']) ||
-          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
-          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
-          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
+        noEngine: Boolean(args['--no-engine']) || Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
         allowNoModels,
         registry: defaultRegistry.toInternal(),
       })

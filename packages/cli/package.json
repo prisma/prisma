@@ -123,7 +123,6 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/mini-proxy": "0.9.5",
     "@prisma/studio": "0.511.0",
     "@prisma/studio-server": "0.511.0",
     "@swc/core": "1.11.5",
