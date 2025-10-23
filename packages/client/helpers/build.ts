@@ -4,10 +4,11 @@ import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { fillPlugin, smallBuffer, smallDecimal } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { nodeProtocolPlugin } from '../../../helpers/compile/plugins/nodeProtocolPlugin'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
+const wasmQueryCompilerDir = path.dirname(require.resolve('@prisma/query-compiler-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
 const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
@@ -19,7 +20,7 @@ type DriverAdapterSupportedProvider = (typeof DRIVER_ADAPTER_SUPPORTED_PROVIDERS
 const MODULE_FORMATS = ['esm', 'cjs'] as const
 type ModuleFormat = (typeof MODULE_FORMATS)[number]
 
-const WASM_COMPONENTS = ['engine', 'compiler'] as const
+const WASM_COMPONENTS = ['compiler'] as const
 type WasmComponent = (typeof WASM_COMPONENTS)[number]
 
 const ENGINE_TYPES = [ClientEngineType.Binary, ClientEngineType.Library, ClientEngineType.Client]
@@ -146,6 +147,68 @@ const runtimesCommonBuildConfig = {
   external: ['@prisma/client-runtime-utils'],
 } satisfies BuildOptions
 
+function wasmFileToBase64(wasmBuffer: Buffer, format: ModuleFormat = 'esm'): string {
+  const base64 = wasmBuffer.toString('base64')
+  const moduleExports = format === 'esm' ? 'export { wasm }' : 'module.exports = { wasm }'
+  const encodedWasmContent = `const wasm = "${base64}";\n${moduleExports}\n`
+  return encodedWasmContent
+}
+
+// we define the config for wasm
+function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, name: string): BuildOptions {
+  return {
+    ...runtimesCommonBuildConfig,
+    format,
+    target: 'ES2022',
+    name,
+    outfile: `runtime/${name}`,
+    outExtension: getOutExtension(format),
+    define: {
+      ...runtimesCommonBuildConfig.define,
+      TARGET_BUILD_TYPE: `"${name}"`,
+    },
+    plugins: [
+      fillPlugin({
+        // not yet enabled in edge build while driverAdapters is not GA
+        fillerOverrides: { ...commonRuntimesOverrides, ...smallBuffer, ...smallDecimal },
+      }),
+      {
+        name: 'wasm-base64-encoder',
+        setup(build) {
+          build.onEnd(() => {
+            for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
+              const wasmFilePath = path.join(
+                { compiler: wasmQueryCompilerDir }[type],
+                provider,
+                `query_${type}_bg.wasm`,
+              )
+
+              const extToModuleFormatMap = {
+                esm: 'mjs',
+                cjs: 'js',
+              } satisfies Record<ModuleFormat, string>
+
+              for (const [moduleFormat, extension] of Object.entries(extToModuleFormatMap)) {
+                const base64FilePath = path.join(runtimeDir, `query_${type}_bg.${provider}.wasm-base64.${extension}`)
+
+                try {
+                  const wasmBuffer = fs.readFileSync(wasmFilePath)
+                  const base64Content = wasmFileToBase64(wasmBuffer, moduleFormat as ModuleFormat)
+                  fs.writeFileSync(base64FilePath, base64Content)
+                } catch (error) {
+                  throw new Error(`Failed to create base64 encoded WASM file for ${provider}`, {
+                    cause: error,
+                  })
+                }
+              }
+            }
+          })
+        },
+      },
+    ],
+  }
+}
+
 // React Native is similar to edge in the sense it doesn't have the node API/libraries
 // and also not all the browser APIs, therefore it needs to polyfill the same things as edge
 const reactNativeBuildConfig: BuildOptions = {
@@ -194,12 +257,18 @@ function* allNodeRuntimeBuildConfigs(): Generator<BuildOptions> {
   }
 }
 
+function* allWasmEdgeRuntimeConfigs(): Generator<BuildOptions> {
+  const component = 'compiler' as const
+  for (const format of MODULE_FORMATS) {
+    yield wasmEdgeRuntimeBuildConfig(component, format, `wasm-${component}-edge`)
+  }
+}
+
 function* allWasmBindgenRuntimeConfigs(): Generator<BuildOptions> {
-  for (const component of WASM_COMPONENTS) {
-    for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
-      for (const format of MODULE_FORMATS) {
-        yield wasmBindgenRuntimeConfig(component, provider, format)
-      }
+  const component = 'compiler' as const
+  for (const provider of DRIVER_ADAPTER_SUPPORTED_PROVIDERS) {
+    for (const format of MODULE_FORMATS) {
+      yield wasmBindgenRuntimeConfig(component, provider, format)
     }
   }
 }
@@ -208,6 +277,7 @@ void build([
   generatorBuildConfig,
   ...allNodeRuntimeBuildConfigs(),
   ...browserBuildConfigs(),
+  ...allWasmEdgeRuntimeConfigs(),
   ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,
   reactNativeBuildConfig,
