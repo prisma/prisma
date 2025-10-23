@@ -155,47 +155,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
     })
   })
 
-  test('introspection should load .env file with --print', async () => {
-    ctx.fixture('schema-only-postgresql')
-    expect.assertions(3)
-
-    try {
-      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'], await ctx.config())
-    } catch (e) {
-      expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
-    }
-
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('introspection should load .env file without --print', async () => {
-    ctx.fixture('schema-only-postgresql')
-    expect.assertions(5)
-
-    try {
-      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'], await ctx.config())
-    } catch (e) {
-      expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
-    }
-
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from prisma/.env
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/using-dotenv.prisma
-      Datasource "my_db": PostgreSQL database "mydb", schema "public" <location placeholder>
-
-      - Introspecting based on datasource defined in prisma/using-dotenv.prisma
-      ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
-
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
