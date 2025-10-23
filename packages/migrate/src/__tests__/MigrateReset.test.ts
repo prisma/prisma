@@ -94,7 +94,9 @@ describe('reset', () => {
   it('should work with folder (--force)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
 
-    const result = MigrateReset.new().parse(['--force', '--schema=./prisma'], await ctx.config())
+    ctx.setConfigFile('folder.config.ts')
+
+    const result = MigrateReset.new().parse(['--force'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma

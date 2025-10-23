@@ -49,10 +49,9 @@ describe('common', () => {
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/empty.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    ctx.setConfigFile('empty.config.ts')
+
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -114,10 +113,9 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   it('--applied should work on a failed migration (schema folder)', async () => {
     ctx.fixture('schema-folder-sqlite-migration-failed')
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma', '--applied', '20240527130802_init'],
-      await ctx.config(),
-    )
+    ctx.setConfigFile('folder.config.ts')
+
+    const result = MigrateResolve.new().parse(['--applied', '20240527130802_init'], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma
@@ -193,12 +191,10 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
+    ctx.setConfigFile('invalid-url.config.ts')
     jest.setTimeout(10_000)
 
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
 
@@ -220,11 +216,9 @@ describeMatrix(postgresOnly, 'postgres', () => {
 describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
+    ctx.setConfigFile('invalid-url.config.ts')
 
-    const result = MigrateResolve.new().parse(
-      ['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'],
-      await ctx.config(),
-    )
+    const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`something.cockroachlabs.cloud:26257\`
 
