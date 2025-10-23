@@ -1,7 +1,14 @@
 import { Debug } from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
-import type { ActiveConnectorType, BinaryPaths, DataSource, GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
+import type {
+  ActiveConnectorType,
+  BinaryPaths,
+  ConnectorType,
+  DataSource,
+  GeneratorConfig,
+  SqlQueryOutput,
+} from '@prisma/generator'
 import {
   assertNever,
   ClientEngineType,
@@ -223,7 +230,7 @@ export async function buildClient({
   pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
   pkgJson['imports'] = {
     // when `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
-    ['#wasm-compiler-loader']: {
+    '#wasm-compiler-loader': {
       // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
 
       /**
@@ -390,6 +397,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     typedSql,
   })
 
+  const provider = datasources[0].provider
+
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
@@ -456,6 +465,26 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
+  const runtimeNeedsWasmEngine = clientEngineType === ClientEngineType.Client || copyEngine
+
+  // copy the necessary engine files needed for the wasm/driver-adapter engine
+  if (runtimeNeedsWasmEngine && isWasmEngineSupported(provider) && !testMode) {
+    const suffix = provider === 'postgres' ? 'postgresql' : provider
+    const filename = 'query_compiler_bg'
+
+    // Despite the `!testMode` condition above, we can't assume we are
+    // necessarily inside the bundled Prisma CLI because the `prisma-client-js`
+    // generator has a legacy entrypoint inside `@prisma/client/generator-build`
+    // which is still used by Studio, some e2e tests and possibly more. This means
+    // we can only rely on what's shipped in the `@prisma/client` package here,
+    // and we have to decode the WebAssembly binaries from base64.
+    const wasmJsBundlePath = path.join(runtimeSourcePath, `${filename}.${suffix}.wasm-base64.js`)
+    const wasmBase64: string = require(wasmJsBundlePath).wasm
+
+    await fs.writeFile(path.join(outputDir, `${filename}.wasm`), Buffer.from(wasmBase64, 'base64'))
+    await fs.copyFile(path.join(runtimeSourcePath, `${filename}.${suffix}.js`), path.join(outputDir, `${filename}.js`))
+  }
+
   try {
     // we tell our vscode extension to reload the types by modifying this file
     const prismaCache = paths('prisma').cache
@@ -481,6 +510,16 @@ function writeFileMap(outputDir: string, fileMap: FileMap) {
         await writeFileMap(absolutePath, content)
       }
     }),
+  )
+}
+
+function isWasmEngineSupported(provider: ConnectorType) {
+  return (
+    provider === 'postgresql' ||
+    provider === 'postgres' ||
+    provider === 'mysql' ||
+    provider === 'sqlite' ||
+    provider === 'sqlserver'
   )
 }
 
