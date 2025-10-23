@@ -181,6 +181,8 @@ export type InternalRequestParams = {
   middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
   customDataProxyFetch?: AccelerateExtensionFetchDecorator
+  /** PostgreSQL schema override for dynamic schema switching */
+  schemaOverride?: string
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
@@ -259,6 +261,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
+    _schemaOverride?: string
 
     constructor(optionsArg?: PrismaClientOptions) {
       config = optionsArg?.__internal?.configOverride?.(config) ?? config
@@ -787,6 +790,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     _request(internalParams: InternalRequestParams): Promise<any> {
       // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = this._tracingHelper.getActiveContext()
+      // pass schema override from client instance if set
+      if (!internalParams.schemaOverride && this._schemaOverride) {
+        internalParams.schemaOverride = this._schemaOverride
+      }
       const middlewareArgsMapper = internalParams.middlewareArgsMapper ?? noopMiddlewareArgsMapper
 
       // make sure that we don't leak extra properties to users
@@ -867,6 +874,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       unpacker,
       otelParentCtx,
       customDataProxyFetch,
+      schemaOverride,
     }: InternalRequestParams) {
       try {
         // execute argument transformation before execution
@@ -921,6 +929,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           otelChildCtx: this._tracingHelper.getActiveContext(),
           globalOmit: this._globalOmit,
           customDataProxyFetch,
+          schemaOverride,
         })
       } catch (e) {
         e.clientVersion = this._clientVersion
@@ -941,6 +950,60 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     $applyPendingMigrations(): Promise<void> {
       return this._engine.applyPendingMigrations()
+    }
+
+    /**
+     * Switch PostgreSQL schema context for query execution.
+     * Returns a new client instance that shares the same database connection
+     * but operates in a different schema using SET search_path.
+     *
+     * **Multi-Tenant Use Case:**
+     * This is particularly useful for multi-tenant applications where each tenant
+     * has isolated data in separate PostgreSQL schemas. By using `.schema()`, you can
+     * dynamically switch between tenant schemas while reusing the same connection pool,
+     * ensuring data isolation and optimal resource usage.
+     *
+     * Available only for PostgreSQL and CockroachDB providers.
+     *
+     * @param schemaName The PostgreSQL schema name to switch to
+     * @returns A new PrismaClient instance with schema context
+     *
+     * @example
+     * ```typescript
+     * // Multi-tenant application with isolated tenant data
+     * const prisma = new PrismaClient()
+     *
+     * // Each tenant has their own schema with isolated data
+     * const tenant1Client = prisma.schema('tenant_1')
+     * const tenant2Client = prisma.schema('tenant_2')
+     *
+     * // Queries are automatically scoped to the tenant's schema
+     * await tenant1Client.user.findMany() // Only returns tenant_1 users
+     * await tenant2Client.user.findMany() // Only returns tenant_2 users
+     *
+     * // All clients share the same connection pool for efficiency
+     * ```
+     */
+    schema?(schemaName: string): Client {
+      if (config.activeProvider !== 'postgresql' && config.activeProvider !== 'cockroachdb') {
+        throw new Error(
+          `The schema() method is only available for PostgreSQL and CockroachDB providers. Current provider: ${config.activeProvider}`,
+        )
+      }
+
+      const schemaClient = createCompositeProxy(
+        applyModelsAndClientExtensions(
+          createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+            addProperty('_schemaOverride', () => schemaName),
+            addProperty('_engine', () => this._originalClient._engine),
+            addProperty('_appliedParent', () => this._appliedParent.schema!(schemaName)),
+          ]),
+        ),
+        [],
+      )
+
+      // Return client with schema override via middleware
+      return schemaClient
     }
 
     $extends = $extends

@@ -574,7 +574,6 @@ export class PrismaClient<
    */
   $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
 
-
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
@@ -592,7 +591,35 @@ export class PrismaClient<
 
   $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
 
-
+  /**
+   * Switch PostgreSQL schema context for query execution.
+   * Returns a new client instance that shares the same database connection but operates in a different schema.
+   * 
+   * **Multi-Tenant Use Case:**
+   * This is particularly useful for multi-tenant applications where each tenant has isolated data
+   * in separate PostgreSQL schemas. By using \`.schema()\`, you can dynamically switch between
+   * tenant schemas while reusing the same connection pool, ensuring data isolation and optimal
+   * resource usage.
+   * 
+   * @param schemaName - The PostgreSQL schema name to switch to
+   * @returns A new PrismaClient instance with schema context
+   * @example
+   * \`\`\`ts
+   * // Multi-tenant application with isolated tenant data
+   * const prisma = new PrismaClient()
+   * 
+   * // Each tenant has their own schema with isolated data
+   * const tenant1Client = prisma.schema('tenant_1')
+   * const tenant2Client = prisma.schema('tenant_2')
+   * 
+   * // Queries are automatically scoped to the tenant's schema
+   * await tenant1Client.user.findMany() // Only returns tenant_1 users
+   * await tenant2Client.user.findMany() // Only returns tenant_2 users
+   * 
+   * // All clients share the same connection pool for efficiency
+   * \`\`\`
+   */
+  schema(schemaName: string): PrismaClient<ClientOptions>
   $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
     extArgs: ExtArgs
   }>>
