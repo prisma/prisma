@@ -31,7 +31,9 @@ describe('common', () => {
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
+    ctx.setConfigFile('empty.config.ts')
+
+    const result = MigrateDeploy.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -89,7 +91,9 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     ctx.fixture('schema-folder-sqlite-migration-exists')
     fs.remove('dev.db')
 
-    const result = MigrateDeploy.new().parse(['--schema=./prisma'], await ctx.config())
+    ctx.setConfigFile('folder.config.ts')
+
+    const result = MigrateDeploy.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`
       "The following migration(s) have been applied:
 
@@ -101,7 +105,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
     `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse(['--schema=./prisma'], await ctx.config())
+    const resultBis = MigrateDeploy.new().parse([], await ctx.config())
     await expect(resultBis).resolves.toMatchInlineSnapshot(`"No pending migrations to apply."`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
