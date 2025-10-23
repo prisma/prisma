@@ -8,9 +8,13 @@ type Datasource = (PrismaConfigInternal & { engine: 'classic' })['datasource']
 
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
-  setDatasource: (ds: Datasource) => void;
-  resetDatasource: () => void;
-  getDatasource: () => Promise<Datasource | undefined>
+  datasource: () => Promise<Datasource | undefined>
+  configFileName: () => string
+
+  setDatasource: (ds: Datasource) => void
+  resetDatasource: () => void
+  setConfigFile: (fileName: string | undefined) => void
+  resetConfigFile: () => void
 }
 
 /**
@@ -24,6 +28,7 @@ export const configContextContributor =
   (c: C) => {
     const ctx = c as C & ConfigContext
     let overrideDatasource: Datasource | undefined
+    let overrideConfigFile: string | undefined
 
     beforeEach(() => {
       ctx.config = async () => {
@@ -34,7 +39,7 @@ export const configContextContributor =
         } as PrismaConfigInternal
       }
 
-      ctx.getDatasource = async () => {
+      ctx.datasource = async () => {
         const config = await ctx.config()
         if (config.engine !== 'classic') {
           return undefined
@@ -49,6 +54,21 @@ export const configContextContributor =
       ctx.resetDatasource = () => {
         overrideDatasource = undefined
       }
+
+      ctx.setConfigFile = (fileName) => {
+        overrideConfigFile = fileName
+      }
+
+      ctx.configFileName = () => overrideConfigFile ?? 'prisma.config.ts'
+
+      ctx.resetConfigFile = () => {
+        overrideConfigFile = undefined
+      }
+    })
+
+    afterEach(() => {
+      overrideDatasource = undefined
+      overrideConfigFile = undefined
     })
 
     return ctx
@@ -78,12 +98,12 @@ function defaultTestConfig(ctx: BaseContext): PrismaConfigInternal {
   })
 }
 
-async function loadFixtureConfig(ctx: BaseContext) {
+async function loadFixtureConfig(ctx: BaseContext & ConfigContext) {
   // Note: This is a workaround to avoid issues with jest's module resolution.
   // If you used `loadConfigFromFile` directly, you'd observe the following error:
   // ```
   // [ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG]: A dynamic import callback was invoked without --experimental-vm-modules
   // ```
-  if (!ctx.fs.exists(`${ctx.fs.cwd()}/prisma.config.ts`)) return undefined
-  return (await import(`${ctx.fs.cwd()}/prisma.config.ts`)).default as PrismaConfigInternal
+  if (!ctx.fs.exists(`${ctx.fs.cwd()}/${ctx.configFileName()}`)) return undefined
+  return (await import(`${ctx.fs.cwd()}/${ctx.configFileName()}`)).default as PrismaConfigInternal
 }

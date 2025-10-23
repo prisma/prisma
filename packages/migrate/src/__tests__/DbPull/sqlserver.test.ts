@@ -162,10 +162,10 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  with-schemas-in-datasource-0-value.prisma:4
-         | 
+         |
        3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
        4 |   schemas  = []
-         | 
+         |
 
       Validation Error Count: 1
       [Context: getConfig]
@@ -299,7 +299,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   test('url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     ctx.fixture('introspection/sqlserver')
     ctx.setDatasource({
-      url: `${(await ctx.getDatasource())?.url}schema=does-not-exist`,
+      url: `${(await ctx.datasource())?.url}schema=does-not-exist`,
     })
 
     const introspect = new DbPull()
@@ -312,7 +312,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   test('url with `?schema=base` should succeed', async () => {
     ctx.fixture('introspection/sqlserver')
     ctx.setDatasource({
-      url: `${(await ctx.getDatasource())?.url}schema=base`,
+      url: `${(await ctx.datasource())?.url}schema=base`,
     })
 
     const introspect = new DbPull()
