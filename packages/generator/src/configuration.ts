@@ -56,6 +56,7 @@ export interface DataSource {
   activeProvider: ActiveConnectorType
   url: EnvValue
   directUrl?: EnvValue
+  shadowDatabaseUrl?: EnvValue
   schemas: string[] | []
   sourceFilePath: string
 }
