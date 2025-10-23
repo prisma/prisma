@@ -32,7 +32,7 @@ runs:
     - run: pnpm install
       shell: bash
 
-    - run: pnpm run dev
+    - run: pnpm -r run dev
       if: inputs.skip-tsc == 'true' && inputs.skip-build != 'true'
       shell: bash
 
