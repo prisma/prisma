@@ -210,12 +210,6 @@ importers:
         specifier: 8.4.1
         version: 8.4.1
 
-  packages/accelerate-contract:
-    devDependencies:
-      '@prisma/client':
-        specifier: workspace:*
-        version: link:../client
-
   packages/adapter-better-sqlite3:
     dependencies:
       '@prisma/driver-adapter-utils':
