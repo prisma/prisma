@@ -126,7 +126,8 @@ export class Completions implements Command {
       complete('cockroachdb', 'CockroachDB')
     })
     init.option('generator-provider', 'Define the generator provider', (complete) => {
-      complete('prisma-client-js', 'Prisma Client for JavaScript/TypeScript')
+      complete('prisma-client', '')
+      complete('prisma-client-js', '')
     })
 
     // dev options (for Prisma Postgres local database)
