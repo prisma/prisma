@@ -7,7 +7,7 @@ const basePath = process.cwd()
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: 'postgres://user:password@something.cockroachlabs.cloud:26257/clustername.defaultdb?sslmode=verify-full&sslrootcert=$HOME/.postgresql/root.crt&options=--cluster%3Dclustername',
+    url: 'postgres://user:password@cockroach.invalid:26257/clustername.defaultdb?sslmode=verify-full&sslrootcert=$HOME/.postgresql/root.crt&options=--cluster%3Dclustername',
   },
   schema: path.join(basePath, 'prisma', 'invalid-url.prisma'),
 })

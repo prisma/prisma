@@ -220,9 +220,9 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
 
     const result = MigrateResolve.new().parse(['--applied=something_applied'], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
-      "P1001: Can't reach database server at \`something.cockroachlabs.cloud:26257\`
+      "P1001: Can't reach database server at \`cockroach.invalid:26257\`
 
-      Please make sure your database server is running at \`something.cockroachlabs.cloud:26257\`."
+      Please make sure your database server is running at \`cockroach.invalid:26257\`."
     `)
 
     expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
