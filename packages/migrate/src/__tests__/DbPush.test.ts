@@ -72,11 +72,11 @@ describe('push', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate" <location placeholder>
+      Datasource "db": PostgreSQL database "tests-migrate-prisma-config-extensions" <location placeholder>
 
-      PostgreSQL database tests-migrate created at localhost:5432
+      PostgreSQL database tests-migrate-prisma-config-extensions created at localhost:5432
 
-      The PostgreSQL database "tests-migrate" at "localhost:5432" was successfully reset.
+      The PostgreSQL database "tests-migrate-prisma-config-extensions" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
