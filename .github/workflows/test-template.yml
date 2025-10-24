@@ -1194,7 +1194,6 @@ jobs:
         os: [macos-14, windows-latest]
         node: [18]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        shard: ['1/2', '2/2']
     if: |
       contains(inputs.jobsToRun, '-all-') ||
       contains(inputs.jobsToRun, '-client-')
@@ -1227,7 +1226,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --engine-type ${{ matrix.queryEngine }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
