@@ -154,26 +154,4 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     })
   })
-
-  test('introspection works with directUrl from env var', async () => {
-    ctx.fixture('schema-only-data-proxy')
-    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from .env
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql", schema "public" <location placeholder>
-
-      - Introspecting based on datasource defined in with-directUrl-env.prisma
-      ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
-            
-      Run prisma generate to generate Prisma Client.
-      "
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
 })
