@@ -307,7 +307,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate(datasourceInfo)
+      await migrate.tryToRunGenerate()
       process.stdout.write('\n') // empty line
     }
 
