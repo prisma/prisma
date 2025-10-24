@@ -36,7 +36,6 @@ export type QueryEngineInstance = {
   commitTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
   rollbackTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
   metrics?(options: string): Promise<string>
-  applyPendingMigrations?(): Promise<void>
   trace(requestId: string): Promise<string | null>
 }
 
