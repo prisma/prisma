@@ -20,6 +20,7 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
     'tests-migrate',
     'tests-migrate-db-pull-postgresql-views',
   )
+  process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
 
   type ViewVariant =
     | 'no-views' // No views in the database
