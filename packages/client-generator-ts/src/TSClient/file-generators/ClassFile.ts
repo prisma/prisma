@@ -1,4 +1,3 @@
-import crypto from 'node:crypto'
 import path from 'node:path'
 
 import { GetPrismaClientConfig } from '@prisma/client-common'
@@ -67,11 +66,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   const clientEngineType = getClientEngineType(generator)
   generator.config.engineType = clientEngineType
 
-  const inlineSchemaHash = crypto
-    .createHash('sha256')
-    .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
-    .digest('hex')
-
   const datasourceFilePath = datasources[0].sourceFilePath
   const config: GetPrismaClientConfig = {
     generator,
@@ -84,7 +78,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     ciName: ciInfo.name ?? undefined,
     inlineDatasources: buildInlineDatasources(datasources),
     inlineSchema,
-    inlineSchemaHash,
     copyEngine,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
     dirname: '',

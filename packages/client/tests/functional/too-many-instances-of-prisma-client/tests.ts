@@ -39,7 +39,7 @@ testMatrix.setupTestSuite(
   },
   {
     skipDataProxy: {
-      runtimes: ['node', 'edge'],
+      runtimes: ['node'],
       reason: '"Too many instances" warning is not implemented for Data Proxy client',
     },
   },

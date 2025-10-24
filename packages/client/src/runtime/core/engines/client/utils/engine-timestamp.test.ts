@@ -1,4 +1,4 @@
-import { convertEngineTimestamp, dateFromEngineTimestamp } from './EngineTimestamp'
+import { convertEngineTimestamp, dateFromEngineTimestamp } from './engine-timestamp'
 
 test('convertEngineTimestamp', () => {
   expect(convertEngineTimestamp([1701962387, 551813333])).toEqual(1701962387551.8132)
