@@ -107,7 +107,7 @@
   },
   "devDependencies": {
     "@inquirer/prompts": "7.3.3",
-    "@libsql/client": "0.8.1",
+    "@libsql/client": "0.15.15",
     "@modelcontextprotocol/sdk": "1.13.2",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/context-async-hooks": "2.1.0",
