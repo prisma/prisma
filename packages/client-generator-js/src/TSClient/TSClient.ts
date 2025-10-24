@@ -73,7 +73,6 @@ export class TSClient implements Generable {
       runtimeBase,
       runtimeNameJs,
       datasources,
-      copyEngine = true,
       reusedJs,
       envPaths,
     } = this.options
@@ -109,7 +108,6 @@ export class TSClient implements Generable {
       ciName: ciInfo.name ?? undefined,
       inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
-      copyEngine,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -143,7 +141,7 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryEngineWasmModule(wasm, copyEngine, runtimeNameJs)}
+${buildQueryEngineWasmModule(runtimeNameJs)}
 ${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
@@ -151,7 +149,7 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(edge, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }

@@ -116,7 +116,6 @@ export async function setupTestSuiteClient({
     activeProvider: suiteConfig.matrixOptions.provider,
     runtimeBase,
     runtimeSourcePath: path.join(__dirname, '../../../runtime'),
-    copyEngine: !clientMeta.dataProxy,
     typedSql,
     target: 'nodejs',
     generatedFileExtension: 'ts',

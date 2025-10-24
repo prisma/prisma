@@ -56,7 +56,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     runtimeBase,
     runtimeName,
     datasources,
-    copyEngine = true,
     target,
     activeProvider,
     moduleFormat,
@@ -78,7 +77,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     ciName: ciInfo.name ?? undefined,
     inlineDatasources: buildInlineDatasources(datasources),
     inlineSchema,
-    copyEngine,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
     dirname: '',
   }

@@ -58,8 +58,6 @@ export interface GenerateClientOptions {
   envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
-  /** False when --no-engine is passed via CLI */
-  copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
   target: RuntimeTargetInternal
   generatedFileExtension: GeneratedFileExtension
@@ -91,7 +89,6 @@ export function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  copyEngine,
   envPaths,
   typedSql,
   target,
@@ -121,7 +118,6 @@ export function buildClient({
     engineVersion,
     activeProvider,
     postinstall,
-    copyEngine,
     datamodel,
     edge: (['wasm-compiler-edge'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
@@ -198,7 +194,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     envPaths,
-    copyEngine = true,
     typedSql,
     target,
     generatedFileExtension,
@@ -224,7 +219,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    copyEngine,
     envPaths,
     typedSql,
     target,
@@ -258,7 +252,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
-  if (copyEngine && enginePath) {
+  if (enginePath) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }

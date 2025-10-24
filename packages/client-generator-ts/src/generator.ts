@@ -94,7 +94,6 @@ export class PrismaClientTsGenerator implements Generator {
       clientVersion,
       activeProvider: options.datasources[0]?.activeProvider,
       postinstall: options.postinstall,
-      copyEngine: !options.noEngine,
       typedSql: options.typedSql,
       target,
       generatedFileExtension,

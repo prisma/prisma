@@ -25,9 +25,7 @@ function formatVersion(generator: Generator): string | undefined {
     const engineType = getClientEngineType(generator.config)
 
     let engineHint = ''
-    if (generator.options?.noEngine) {
-      engineHint = ', engine=none'
-    } else if (engineType === ClientEngineType.Binary) {
+    if (engineType === ClientEngineType.Binary) {
       engineHint = ', engine=binary'
     } else if (engineType === ClientEngineType.Library) {
       engineHint = ''
