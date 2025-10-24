@@ -327,7 +327,6 @@ ${[
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
   metricDefinition(this.context),
-  this.applyPendingMigrationsDefinition(),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)
@@ -358,20 +357,5 @@ get ${methodName}(): Prisma.${m.model}Delegate<${generics.join(', ')}>;`
       2,
     )}
 }`
-  }
-
-  private applyPendingMigrationsDefinition(this: PrismaClientClass) {
-    if (this.runtimeName !== 'react-native') {
-      return null
-    }
-
-    const method = ts
-      .method('$applyPendingMigrations')
-      .setReturnType(tsx.promise(ts.voidType))
-      .setDocComment(
-        ts.docComment`Tries to apply pending migrations one by one. If a migration fails to apply, the function will stop and throw an error. You are responsible for informing the user and possibly blocking the app as we cannot guarantee the state of the database.`,
-      )
-
-    return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
   }
 }

@@ -155,10 +155,6 @@ export class ClientEngine implements Engine {
     }
   }
 
-  applyPendingMigrations(): Promise<void> {
-    throw new Error('Cannot call applyPendingMigrations on engine type client.')
-  }
-
   async #ensureStarted(): Promise<ConnectedEngine> {
     switch (this.#state.type) {
       case 'disconnected': {
