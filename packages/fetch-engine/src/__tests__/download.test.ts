@@ -107,6 +107,7 @@ describeIf(!usesCustomEngines)('download', async () => {
           "libquery_engine-rhel-openssl-1.0.x.so.node",
           "libquery_engine-rhel-openssl-1.1.x.so.node",
           "libquery_engine-rhel-openssl-3.0.x.so.node",
+          "query_engine-windows.dll.node",
           "schema-engine-darwin",
           "schema-engine-darwin-arm64",
           "schema-engine-debian-openssl-1.0.x",
@@ -243,6 +244,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           {
             "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
             "size": 14671240,
+          },
+          {
+            "name": "query_engine-windows.dll.node",
+            "size": 17260544,
           },
           {
             "name": "schema-engine-darwin",

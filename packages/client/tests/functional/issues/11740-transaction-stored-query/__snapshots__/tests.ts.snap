@@ -18,7 +18,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -42,7 +42,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -66,7 +66,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
@@ -90,7 +90,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
@@ -114,7 +114,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
@@ -138,7 +138,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
@@ -162,7 +162,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`"
@@ -186,7 +186,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -210,7 +210,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -234,7 +234,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -258,7 +258,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -282,7 +282,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -306,7 +306,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -330,7 +330,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -354,7 +354,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)"
@@ -378,7 +378,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`dbo.Resource\`"
@@ -402,7 +402,7 @@ Invalid \`prisma.resource.create()\` invocation in
 /client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
 
   XX testMatrix.setupTestSuite(
-  XX   ({ engineType }) => {
+  XX   () => {
   XX     test('stored query triggered twice should fail but not exit process', async () => {
 → XX       const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`dbo.Resource\`"
