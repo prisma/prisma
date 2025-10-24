@@ -20,7 +20,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
     'tests-migrate',
     'tests-migrate-db-pull-postgresql-views',
   )
-  process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
 
   type ViewVariant =
     | 'no-views' // No views in the database
@@ -68,9 +67,12 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -90,9 +92,11 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -123,9 +127,11 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         ])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
@@ -156,9 +162,11 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
         ])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const { engine } = await Migrate.setup({})
-
         const schemaContext = await loadSchemaContext()
+        const { engine } = await Migrate.setup({
+          schemaContext,
+          schemaEngineConfig: await ctx.config(),
+        })
 
         const introspectionResult = await engine.introspect({
           schema: toSchemasContainer(schemaContext.schemaFiles),
