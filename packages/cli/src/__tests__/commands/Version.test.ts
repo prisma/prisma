@@ -114,7 +114,7 @@ describe('version', () => {
       failSilent: false,
     })
     // This Omits query-engine from the map
-    const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
+    const envVarMap = engineEnvVarMap
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
