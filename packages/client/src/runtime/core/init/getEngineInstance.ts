@@ -57,8 +57,7 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   // Accelerate or PPg URL in the schema file.
   const clientEngineUsesRemoteExecutor = (isUsing.accelerate || isUsing.ppg) && !isUsing.driverAdapters
 
-  if (TARGET_BUILD_TYPE === 'react-native') return new LibraryEngine(engineConfig)
-  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client')
+  if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client')
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)

@@ -117,8 +117,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   ): Promise<void>
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
-  // Methods dedicated for the C/RN engine, other versions should throw error
-  applyPendingMigrations(): Promise<void>
 }
 
 export interface EngineConfig {
