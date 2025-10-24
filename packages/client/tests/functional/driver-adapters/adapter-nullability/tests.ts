@@ -12,15 +12,16 @@ testMatrix.setupTestSuite(({ clientRuntime, engineType }, _suiteMeta, clientMeta
   })
 
   // TODO: Fails with PrismaClientValidationError: Invalid client engine type, please use `library` or `binary`
-  skipTestIf(
-    clientRuntime === 'wasm-engine-edge' || clientRuntime === 'wasm-compiler-edge' || clientRuntime === 'client',
-  )('does not throw if adapter is set to null', async () => {
-    const prisma = newPrismaClient({ adapter: null })
+  skipTestIf(clientRuntime === 'wasm-compiler-edge' || clientRuntime === 'client')(
+    'does not throw if adapter is set to null',
+    async () => {
+      const prisma = newPrismaClient({ adapter: null })
 
-    if (!clientMeta.driverAdapter) {
-      await prisma.user.findMany()
-    }
-  })
+      if (!clientMeta.driverAdapter) {
+        await prisma.user.findMany()
+      }
+    },
+  )
 
   skipTestIf(engineType === 'client')('throws if adapter is explicitly set to undefined', () => {
     expect(() => newPrismaClient({ adapter: undefined })).toThrowErrorMatchingInlineSnapshot(`

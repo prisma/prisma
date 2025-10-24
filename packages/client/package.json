@@ -54,12 +54,6 @@
       },
       "default": "./default.js"
     },
-    "./edge": {
-      "types": "./edge.d.ts",
-      "require": "./edge.js",
-      "import": "./edge.js",
-      "default": "./edge.js"
-    },
     "./react-native": {
       "types": "./react-native.d.ts",
       "require": "./react-native.js",
@@ -112,23 +106,11 @@
       "import": "./runtime/binary.mjs",
       "default": "./runtime/binary.mjs"
     },
-    "./runtime/wasm-engine-edge": {
-      "types": "./runtime/wasm-engine-edge.d.ts",
-      "require": "./runtime/wasm-engine-edge.js",
-      "import": "./runtime/wasm-engine-edge.mjs",
-      "default": "./runtime/wasm-engine-edge.mjs"
-    },
     "./runtime/wasm-compiler-edge": {
       "types": "./runtime/wasm-compiler-edge.d.ts",
       "require": "./runtime/wasm-compiler-edge.js",
       "import": "./runtime/wasm-compiler-edge.mjs",
       "default": "./runtime/wasm-compiler-edge.mjs"
-    },
-    "./runtime/edge": {
-      "types": "./runtime/edge.d.ts",
-      "require": "./runtime/edge.js",
-      "import": "./runtime/edge-esm.js",
-      "default": "./runtime/edge-esm.js"
     },
     "./runtime/react-native": {
       "types": "./runtime/react-native.d.ts",
@@ -195,8 +177,6 @@
     "runtime",
     "scripts",
     "generator-build",
-    "edge.js",
-    "edge.d.ts",
     "wasm.js",
     "wasm.d.ts",
     "index.js",

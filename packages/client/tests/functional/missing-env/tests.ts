@@ -45,50 +45,6 @@ testMatrix.setupTestSuite(
           expect.hasAssertions()
         })
 
-        testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
-          'PrismaClientInitializationError for missing env on edge',
-          async () => {
-            const prisma = newPrismaClient()
-
-            try {
-              await prisma.$connect()
-            } catch (e) {
-              const message = stripVTControlCharacters(e.message as string)
-              expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-              expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
-            }
-
-            expect.hasAssertions()
-          },
-        )
-
-        testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
-          'PrismaClientInitializationError for missing env on edge on cloudflare',
-          async () => {
-            const originalNavigator = globalThis.navigator
-            globalThis.navigator = { ...originalNavigator, userAgent: 'Cloudflare-Workers' }
-
-            const prisma = newPrismaClient()
-
-            try {
-              await prisma.$connect()
-            } catch (e) {
-              const message = stripVTControlCharacters(e.message as string)
-              expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-              expect(message).toMatchInlineSnapshot(`
-              "error: Environment variable not found: DATABASE_URI.
-
-              In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
-              To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url"
-            `)
-            }
-
-            expect.hasAssertions()
-
-            globalThis.navigator = { ...originalNavigator }
-          },
-        )
-
         testIf(clientMeta.dataProxy && clientMeta.runtime === 'node')(
           'PrismaClientInitializationError for missing env with --no-engine on node',
           async () => {

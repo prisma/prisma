@@ -227,7 +227,7 @@ function buildClientOptions(context: GenerateContext, options: TSClientOptions) 
           `),
   )
 
-  if (['library', 'client', 'wasm-compiler-edge', 'wasm-engine-edge'].includes(options.runtimeName)) {
+  if (['library', 'client', 'wasm-compiler-edge'].includes(options.runtimeName)) {
     clientOptions.add(
       ts
         .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))

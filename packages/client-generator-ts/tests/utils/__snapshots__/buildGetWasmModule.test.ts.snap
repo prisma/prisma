@@ -180,14 +180,6 @@ config.compilerWasm = {
 }"
 `;
 
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-vercel-edge-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-vercel-edge-esm.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-workerd-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > compiler-edge-workerd-esm.ts 1`] = `"config.compilerWasm = undefined"`;
-
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-deno-cjs.ts 1`] = `"config.compilerWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > compiler-library-deno-esm.ts 1`] = `"config.compilerWasm = undefined"`;
@@ -271,14 +263,6 @@ exports[`buildGetWasmModule > generates valid TypeScript > engine-client-vercel-
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-client-workerd-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-vercel-edge-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-vercel-edge-esm.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-workerd-cjs.ts 1`] = `"config.engineWasm = undefined"`;
-
-exports[`buildGetWasmModule > generates valid TypeScript > engine-edge-workerd-esm.ts 1`] = `"config.engineWasm = undefined"`;
 
 exports[`buildGetWasmModule > generates valid TypeScript > engine-library-deno-cjs.ts 1`] = `"config.engineWasm = undefined"`;
 
