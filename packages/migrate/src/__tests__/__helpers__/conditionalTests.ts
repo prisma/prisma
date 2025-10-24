@@ -1,10 +1,6 @@
 import { Provider } from '@prisma/driver-adapter-utils'
 
-import driverAdapters, {
-  currentDriverAdapterName,
-  DriverAdapterName,
-  providerOfCurrentDriverAdapter,
-} from './driverAdapters'
+import { currentDriverAdapterName, DriverAdapterName, providerOfCurrentDriverAdapter } from './driverAdapters'
 
 // We have some tests for providers that are not supported by driver adapters yet.
 // TODO: D1 is also a special case as its tests have to be transformed to driver adapter tests.
