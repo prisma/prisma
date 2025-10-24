@@ -20,6 +20,7 @@ import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
+  QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   RustRequestError,
   SyncRustError,
@@ -39,6 +40,14 @@ const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
+}
+
+function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
+  if ('level' in event) {
+    return event.level === 'error' && event['message'] === 'PANIC'
+  } else {
+    return false
+  }
 }
 
 const knownBinaryTargets: BinaryTarget[] = [...binaryTargets, 'native']
@@ -343,6 +352,15 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
+    } else if (isPanicEvent(event)) {
+      // The error built is saved to be thrown later
+      this.loggerRustPanic = new PrismaClientRustPanicError(
+        getErrorMessageWithLink(
+          this,
+          `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
+        ),
+        this.config.clientVersion!,
+      )
     } else {
       this.logEmitter.emit(event.level as LogEventType, {
         timestamp: new Date(),
