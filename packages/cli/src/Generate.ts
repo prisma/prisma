@@ -66,7 +66,6 @@ ${bold('Options')}
                --sql   Generate typed sql module
              --watch   Watch the Prisma schema and rerun after a change
          --generator   Generator to use (may be provided multiple times)
-         --no-engine   Generate a client for use with Accelerate only
           --no-hints   Hides the hint messages but still outputs errors and warnings
     --require-models   Do not allow generating a client without models
 
@@ -116,7 +115,6 @@ ${bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--config': String,
-      '--no-engine': Boolean,
       '--no-hints': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
@@ -170,7 +168,6 @@ ${bold('Examples')}
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
         typedSql,
-        noEngine: Boolean(args['--no-engine']) || Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
         allowNoModels,
         registry: defaultRegistry.toInternal(),
       })

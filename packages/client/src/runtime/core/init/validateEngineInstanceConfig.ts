@@ -2,10 +2,6 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { isPrismaPostgres } from '@prisma/internals'
 
 /**
- * - `copyEngine === false` implies Prisma Accelerate usage
- * - If we detect Prisma Accelerate usage, we want to recommend using `--no-engine` in production.
- * - Driver Adapters should NOT be used with `prisma generate `--no-engine`
- * - Driver Adapters should NOT be imported from `@prisma/client/edge` endpoint
  * - Accelerate should NOT be used with Driver Adapters
  * - Prisma Postgres can be used with either Accelerate or Driver Adapters
  */
@@ -16,8 +12,6 @@ type ErrorDiagnostic = { _tag: 'error'; value: string }
 type ValidateEngineInstanceConfigParams = {
   url?: string
   adapter?: SqlDriverAdapterFactory
-  copyEngine: boolean
-  targetBuildType: string // typeof TARGET_BUILD_TYPE
 }
 
 type WithDiagnostics =
@@ -50,21 +44,14 @@ type ValidateEngineInstanceConfigOutput = WithDiagnostics & {
  * Validates the engine instance configuration, without side effects.
  * @param url The URL passed to the Prisma Client constructor
  * @param adapter The driver adapter passed to the Prisma Client constructor
- * @param copyEngine Whether the engine was copied. `prisma generate --no-engine` implies `copyEngine: false`
  * @param targetBuildType The target build type
  */
 export function validateEngineInstanceConfig({
   url,
   adapter,
-  copyEngine,
-  targetBuildType,
 }: ValidateEngineInstanceConfigParams): ValidateEngineInstanceConfigOutput {
   const warnings = [] as WarningDiagnostic[]
   const errors = [] as ErrorDiagnostic[]
-
-  const pushWarning = (input: WarningDiagnostic['value']) => {
-    warnings.push({ _tag: 'warning', value: input })
-  }
 
   const pushError = (input: string[]) => {
     const value = input.join('\n')
@@ -76,31 +63,13 @@ export function validateEngineInstanceConfig({
   const isUsingDriverAdapters = Boolean(adapter)
   const isAccelerateUrlScheme = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
-  if (
-    !isUsingDriverAdapters &&
-    copyEngine &&
-    isAccelerateUrlScheme &&
-    targetBuildType !== 'client' &&
-    targetBuildType !== 'wasm-compiler-edge'
-  ) {
-    pushWarning([
-      'recommend--no-engine',
-      'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
-    ])
-  }
-
-  const isAccelerateConfigured = isAccelerateUrlScheme || !copyEngine
+  const isAccelerateConfigured = isAccelerateUrlScheme
 
   if (isUsingDriverAdapters && isAccelerateConfigured) {
     if (isAccelerateUrlScheme) {
       pushError([
         `You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
         `Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter.`,
-      ])
-    } else if (!copyEngine) {
-      pushError([
-        `Prisma Client was configured to use the \`adapter\` option but \`prisma generate\` was run with \`--no-engine\`.`,
-        `Please run \`prisma generate\` without \`--no-engine\` to be able to use Prisma Client with the adapter.`,
       ])
     }
   }

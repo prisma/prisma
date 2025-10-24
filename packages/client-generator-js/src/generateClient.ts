@@ -1,4 +1,3 @@
-import { Debug } from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type {
@@ -34,8 +33,6 @@ import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 import { addPreamble, addPreambleToJSFiles } from './utils/addPreamble'
 
-const debug = Debug('prisma:client:generateClient')
-
 type OutputDeclaration = {
   content: string
   lineNumber: number
@@ -70,8 +67,6 @@ export interface GenerateClientOptions {
   envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
-  /** When --no-engine is passed via CLI */
-  copyEngine?: boolean
   typedSql?: SqlQueryOutput[]
 }
 
@@ -99,7 +94,6 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  copyEngine,
   envPaths,
   typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
@@ -119,7 +113,6 @@ export async function buildClient({
     engineVersion,
     activeProvider,
     postinstall,
-    copyEngine,
     datamodel,
     browser: false,
     edge: false,
@@ -356,7 +349,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     envPaths,
-    copyEngine = true,
     typedSql,
   } = options
 
@@ -378,7 +370,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    copyEngine,
     testMode,
     envPaths,
     typedSql,
@@ -402,10 +393,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  if (!copyEngine) {
-    await deleteOutputDir(outputDir)
-  }
-
   await ensureDir(outputDir)
 
   await writeFileMap(outputDir, fileMap)
@@ -426,7 +413,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
-  if (copyEngine && enginePath) {
+  if (enginePath) {
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -452,7 +439,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
-  const runtimeNeedsWasmEngine = clientEngineType === ClientEngineType.Client || copyEngine
+  const runtimeNeedsWasmEngine = clientEngineType === ClientEngineType.Client
 
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (runtimeNeedsWasmEngine && isWasmEngineSupported(provider) && !testMode) {
@@ -739,24 +726,6 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
       }
     }),
   )
-}
-
-/**
- * Attempts to delete the output directory.
- * @param outputDir
- */
-async function deleteOutputDir(outputDir: string) {
-  try {
-    debug(`attempting to delete ${outputDir} recursively`)
-    // we want to make sure that if we delete, we delete the right directory
-    if (require(`${outputDir}/package.json`).name?.startsWith(GENERATED_PACKAGE_NAME_PREFIX)) {
-      await fs.rmdir(outputDir, { recursive: true }).catch(() => {
-        debug(`failed to delete ${outputDir} recursively`)
-      })
-    }
-  } catch {
-    debug(`failed to delete ${outputDir} recursively, not found`)
-  }
 }
 
 /**

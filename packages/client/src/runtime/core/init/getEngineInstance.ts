@@ -14,7 +14,7 @@ import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
  * @param engineConfig
  * @returns
  */
-export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
+export function getEngineInstance(_: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
   let url: string | undefined
 
   try {
@@ -32,8 +32,6 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
     url,
     adapter: engineConfig.adapter,
-    copyEngine,
-    targetBuildType: TARGET_BUILD_TYPE,
   })
 
   for (const warning of diagnostics.warnings) {
