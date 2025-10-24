@@ -162,10 +162,10 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  with-schemas-in-datasource-0-value.prisma:4
-         |
+         | 
        3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
        4 |   schemas  = []
-         |
+         | 
 
       Validation Error Count: 1
       [Context: getConfig]
@@ -194,16 +194,16 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                          // *** WARNING ***
-                          //
-                          // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                          //   - transactional_some_table
-                          //
-                          // These items were renamed due to their names being duplicates in the Prisma schema:
-                          //   - type: model, name: base_some_table
-                          //   - type: model, name: transactional_some_table
-                          //
-    `)
+                                // *** WARNING ***
+                                //
+                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                //   - transactional_some_table
+                                //
+                                // These items were renamed due to their names being duplicates in the Prisma schema:
+                                //   - type: model, name: base_some_table
+                                //   - type: model, name: transactional_some_table
+                                //
+        `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {

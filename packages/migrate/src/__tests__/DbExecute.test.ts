@@ -421,10 +421,10 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           "P1001
 
-            Can't reach database server at \`doesnotexist:5432\`
+          Can't reach database server at \`doesnotexist:5432\`
 
-            Please make sure your database server is running at \`doesnotexist:5432\`.
-            "
+          Please make sure your database server is running at \`doesnotexist:5432\`.
+          "
         `)
       }
     })
@@ -612,13 +612,13 @@ COMMIT;`,
       } catch (e) {
         expect(e.code).toEqual('P1001')
         expect(e.message).toMatchInlineSnapshot(`
-                  "P1001
+          "P1001
 
-                    Can't reach database server at \`doesnotexist:5432\`
+          Can't reach database server at \`doesnotexist:5432\`
 
-                    Please make sure your database server is running at \`doesnotexist:5432\`.
-                    "
-                `)
+          Please make sure your database server is running at \`doesnotexist:5432\`.
+          "
+        `)
       }
     })
 
@@ -766,13 +766,13 @@ COMMIT;`,
       } catch (e) {
         expect(e.code).toEqual('P1001')
         expect(e.message).toMatchInlineSnapshot(`
-                  "P1001
+          "P1001
 
-                    Can't reach database server at \`doesnotexist:3306\`
+          Can't reach database server at \`doesnotexist:3306\`
 
-                    Please make sure your database server is running at \`doesnotexist:3306\`.
-                    "
-                `)
+          Please make sure your database server is running at \`doesnotexist:3306\`.
+          "
+        `)
       }
     })
 
@@ -962,13 +962,13 @@ COMMIT;`,
       } catch (e) {
         expect(e.code).toEqual('P1001')
         expect(e.message).toMatchInlineSnapshot(`
-                  "P1001
+          "P1001
 
-                    Can't reach database server at \`doesnotexist:1433\`
+          Can't reach database server at \`doesnotexist:1433\`
 
-                    Please make sure your database server is running at \`doesnotexist:1433\`.
-                    "
-                `)
+          Please make sure your database server is running at \`doesnotexist:1433\`.
+          "
+        `)
       }
     })
 
