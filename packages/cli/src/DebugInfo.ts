@@ -54,7 +54,7 @@ export class DebugInfo implements Command {
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
@@ -129,7 +129,6 @@ ${formatEnvValue('PRISMA_SKIP_POSTINSTALL_GENERATE')}
 ${formatEnvValue('PRISMA_GENERATE_IN_POSTINSTALL')}
 
 For "prisma generate"
-${formatEnvValue('PRISMA_GENERATE_DATAPROXY')}
 ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client

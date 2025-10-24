@@ -23,10 +23,7 @@ export type BuildWasmModuleOptions = {
 const debug = Debug('prisma:client-generator-ts:wasm')
 
 function usesEdgeWasmRuntime(component: 'engine' | 'compiler', runtimeName: RuntimeName) {
-  return (
-    (runtimeName === 'wasm-engine-edge' && component === 'engine') ||
-    (runtimeName === 'wasm-compiler-edge' && component === 'compiler')
-  )
+  return runtimeName === 'wasm-compiler-edge' && component === 'compiler'
 }
 
 export function buildGetWasmModule({

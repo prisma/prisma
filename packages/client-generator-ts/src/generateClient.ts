@@ -123,17 +123,13 @@ export function buildClient({
     postinstall,
     copyEngine,
     datamodel,
-    edge: (['edge', 'wasm-engine-edge', 'wasm-compiler-edge', 'react-native'] as RuntimeName[]).includes(runtimeName),
+    edge: (['wasm-compiler-edge'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
     target,
     generatedFileExtension,
     importFileExtension,
     moduleFormat,
     tsNoCheckPreamble,
-  }
-
-  if (runtimeName === 'react-native' && !generator.previewFeatures.includes('reactNative')) {
-    throw new Error(`Using the "react-native" runtime requires the "reactNative" preview feature to be enabled.`)
   }
 
   const client = new TSClient(clientOptions)
@@ -412,10 +408,7 @@ function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: Clie
 
     case 'workerd':
     case 'vercel-edge':
-      return engineType === ClientEngineType.Client ? 'wasm-compiler-edge' : 'wasm-engine-edge'
-
-    case 'react-native':
-      return 'react-native'
+      return 'wasm-compiler-edge'
 
     default:
       assertNever(target, 'Unknown runtime target')

@@ -24,7 +24,6 @@ import {
   setupTestSuiteClientDriverAdapter,
 } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
@@ -114,7 +113,7 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions, clientMeta })
+      const datasourceInfo = setupTestSuiteDbURI({ suiteConfig: suiteConfig.matrixOptions })
       let server: { qpe: QueryPlanExecutor.Server; net: ServerType } | undefined
 
       // we inject modified env vars, and make the client available as globals
@@ -243,13 +242,6 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
-
-          if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine({
-              client: client as Client,
-              datasourceInfo: globalThis['datasourceInfo'] as DatasourceInfo,
-            })
-          }
         }
         clients.length = 0
 

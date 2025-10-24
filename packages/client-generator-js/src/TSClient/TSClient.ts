@@ -1,16 +1,14 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
-import { datamodelEnumToSchemaEnum } from '@prisma/dmmf'
+import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
-import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
 
 import { DMMFHelper } from '../dmmf'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- used in jsdoc
 import { GenerateClientOptions } from '../generateClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
@@ -33,17 +31,7 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm-engine-edge'
-  | 'wasm-compiler-edge'
-  | 'edge'
-  | 'edge-esm'
-  | 'index-browser'
-  | 'react-native'
-  | 'client'
-  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+type RuntimeName = 'binary' | 'library' | 'wasm-compiler-edge' | 'index-browser' | 'client' | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */
@@ -108,11 +96,6 @@ export class TSClient implements Generable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchemaHash = crypto
-      .createHash('sha256')
-      .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
-      .digest('hex')
-
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
@@ -126,7 +109,6 @@ export class TSClient implements Generable {
       ciName: ciInfo.name ?? undefined,
       inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
-      inlineSchemaHash,
       copyEngine,
     }
 
@@ -140,7 +122,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
 ${this.dmmf.datamodel.enums
   .map((datamodelEnum) => new Enum(datamodelEnumToSchemaEnum(datamodelEnum), false).toJS())
   .join('\n\n')}
@@ -148,7 +130,10 @@ ${this.dmmf.datamodel.enums
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toJS()}
@@ -205,7 +190,9 @@ ${buildNFTAnnotations(edge || !copyEngine, clientEngineType, binaryTargets, rela
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma?.map((type) =>
+      new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toTS(),
+    )
 
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
@@ -257,7 +244,10 @@ ${indent(
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toTS()}
@@ -350,13 +340,16 @@ export const dmmf: runtime.BaseDMMF
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(datamodelSchemaEnumToSchemaEnum(type), false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
     name: 'ModelName',
-    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+    data: this.dmmf.mappings.modelOperations.map((m) => ({
+      key: m.model,
+      value: m.model,
+    })),
   },
   true,
 ).toJS()}

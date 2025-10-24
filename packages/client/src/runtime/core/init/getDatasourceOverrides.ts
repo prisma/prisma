@@ -1,9 +1,6 @@
 import { Datasources, PrismaClientOptions } from '../../getPrismaClient'
 
-export function getDatasourceOverrides(
-  options: PrismaClientOptions | undefined,
-  datasourceNames: string[],
-): Datasources {
+export function getDatasourceOverrides(options: PrismaClientOptions | undefined): Datasources {
   if (!options) {
     return {}
   }
@@ -12,9 +9,5 @@ export function getDatasourceOverrides(
     return options.datasources
   }
 
-  if (options.datasourceUrl) {
-    const primaryDatasource = datasourceNames[0]
-    return { [primaryDatasource]: { url: options.datasourceUrl } }
-  }
   return {}
 }

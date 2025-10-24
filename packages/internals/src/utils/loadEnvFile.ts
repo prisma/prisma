@@ -7,7 +7,7 @@ import { tryLoadEnvs } from './tryLoadEnvs'
  * Read .env file only if next to schema.prisma
  * .env found: print to console its relative path
  */
-export async function loadEnvFile({
+export function loadEnvFile({
   schemaPath,
   config,
   printMessage = false,
@@ -21,7 +21,7 @@ export async function loadEnvFile({
     return
   }
 
-  const envPaths = await getEnvPaths(schemaPath)
+  const envPaths = getEnvPaths(schemaPath)
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
 
   if (printMessage && envData && envData.message) {

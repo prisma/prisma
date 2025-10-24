@@ -54,7 +54,7 @@ testMatrix.setupTestSuite(
       reason: 'Client engine cannot be used with native drivers but requires driver adapters / wasm.',
     },
     skipDataProxy: {
-      runtimes: ['node', 'edge'],
+      runtimes: ['node'],
       reason: `
         The test needs direct access to database, and is only important to run with driver adapters,
         which are not supported with data proxy.

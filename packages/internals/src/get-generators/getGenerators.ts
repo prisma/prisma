@@ -202,7 +202,7 @@ You need to define \`output\` in the generator block in the schema file.`,
         }
 
         const datamodel = mergeSchemas({ schemas: schemaContext.schemaFiles })
-        const envPaths = await getEnvPaths(schemaContext.schemaPath, { cwd: generatorConfig.output.value! })
+        const envPaths = getEnvPaths(schemaContext.schemaPath, { cwd: generatorConfig.output.value! })
 
         const options: GeneratorOptions = {
           datamodel,

@@ -53,10 +53,6 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: 'Skipped because of the error snapshots on edge client',
-    },
     skipDriverAdapter: {
       from: [AdapterProviders.JS_LIBSQL],
       reason: 'js_libsql: SIGABRT due to panic in libsql (not yet implemented: unsupported type)', // TODO: ORM-867

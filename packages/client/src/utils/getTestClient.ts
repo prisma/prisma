@@ -46,7 +46,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     previewFeatures,
   })
   const outputDir = absSchemaDir
-  const relativeEnvPaths = await getEnvPaths(schemaPath, { cwd: absSchemaDir })
+  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
@@ -60,7 +60,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
     inlineSchema: datamodel[0][1], // TODO: merge schemas
-    inlineSchemaHash: '',
   }
 
   return getPrismaClient(options)

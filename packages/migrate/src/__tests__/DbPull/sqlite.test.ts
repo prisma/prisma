@@ -75,27 +75,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
 
 describeMatrix(sqliteOnly, 'common/sqlite', () => {
   describe('using Prisma Config', () => {
-    it('--url is not supported', async () => {
-      ctx.fixture('prisma-config-validation/sqlite-d1')
-
-      try {
-        await DbPull.new().parse(['--url', 'file:./dev.db'], await ctx.config())
-      } catch (error) {
-        const e = error as Error & { code?: number }
-
-        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`
-          "
-          Passing the --url flag to the prisma db pull command is not supported when
-          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
-
-          More information about this limitation: https://pris.ly/d/schema-engine-limitations
-          "
-        `)
-      }
-    })
-
     it('--local-d1 is not supported', async () => {
       ctx.fixture('prisma-config-validation/sqlite-d1')
       try {
@@ -207,11 +186,19 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     `)
   })
 
-  describeMatrix(noDriverAdapters, 'using --url', () => {
-    test('basic introspection with --url', async () => {
+  describeMatrix(noDriverAdapters, 'using classic engine', () => {
+    afterEach(() => {
+      ctx.resetDatasource()
+    })
+
+    test('basic introspection with config', async () => {
       ctx.fixture('introspection/sqlite')
+      ctx.setDatasource({
+        url: 'file:./dev.db',
+      })
+
       const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'file:./dev.db'], await ctx.config())
+      const result = introspect.parse(['--print'], await ctx.config())
       await expect(result).resolves.toBe('')
 
       expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -221,7 +208,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
         datasource db {
           provider = "sqlite"
-          url      = "file:./dev.db"
+          url      = "file:dev.db"
         }
 
         model Post {
@@ -253,102 +240,40 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       `)
     })
 
-    test('basic introspection with schema and --url missing file: prefix should fail', async () => {
+    test('basic introspection with schema missing file: prefix should fail', async () => {
       ctx.fixture('introspection/sqlite')
+      ctx.setDatasource({
+        url: 'withoutfileprefix.db',
+      })
+
       const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
+      const result = introspect.parse(['--print'], await ctx.config())
 
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
-    })
-
-    test('basic introspection without schema and with --url missing "file:" prefix should fail', async () => {
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol withoutfileprefix.db:"`)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
-    })
-
-    test('basic introspection with invalid --url if schema is unspecified', async () => {
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'invalidstring'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`"Unknown protocol invalidstring:"`)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`""`)
-    })
-
-    test('should succeed when schema and db do match using --url', async () => {
-      ctx.fixture('introspect')
-      const result = DbPull.new().parse(['--url=file:../dev.db'], await ctx.config())
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-              "Prisma schema loaded from prisma/schema.prisma
-              Datasource "db": SQLite database "dev.db" <location placeholder>
-
-              - Introspecting
-              ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
-                    
-              Run prisma generate to generate Prisma Client.
-              "
-          `)
-    })
-
-    test('when both --url and --schema are used, --url is relative to schema', async () => {
-      ctx.fixture('empty-schema-db-subfolder')
-      const result = DbPull.new().parse(
-        ['--url=file:../db/dev.db', '--schema=schema/schema.prisma', '--print'],
-        await ctx.config(),
-      )
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(`""`)
-
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-              "datasource db {
-                provider = "sqlite"
-                url      = "file:../db/dev.db"
-              }
-
-              model Post {
-                authorId  Int
-                content   String?
-                createdAt DateTime @default(now())
-                id        Int      @id @default(autoincrement())
-                published Boolean  @default(false)
-                title     String
-                User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
-              }
-
-              model Profile {
-                bio    String?
-                id     Int     @id @default(autoincrement())
-                userId Int     @unique(map: "Profile.userId")
-                User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-              }
-
-              model User {
-                email   String   @unique(map: "User.email")
-                id      Int      @id @default(autoincrement())
-                name    String?
-                Post    Post[]
-                Profile Profile?
-              }
-
-              "
-          `)
-    })
-
-    test('basic introspection with invalid --url - empty host', async () => {
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'], await ctx.config())
+      // TODO: this error is not entirely correct: the invalid URL is in the config file,
+      // not in the datasource block. The message needs to be updated when removing the
+      // `url` property from the PSL.
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              "P1013
+        "P1012
 
-              The provided database string is invalid. empty host in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
-              "
-          `)
+        error: Error validating datasource \`db\`: the URL must start with the protocol \`file:\`.
+          -->  schema.prisma:7
+           | 
+         6 |   provider = "sqlite"
+         7 |   url      = "file:dev.db"
+           | 
+
+
+        Introspection failed as your current Prisma schema file is invalid
+
+        Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+        Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+        "
+      `)
+
+      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+        "
+        "
+      `)
     })
   })
 
@@ -533,7 +458,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       - manually create a database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 
@@ -562,7 +487,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
       - manually create a table in your database.
       - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+      Then you can run prisma db pull again.
       "
     `)
 
@@ -615,7 +540,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       - Introspecting based on datasource defined in prisma/invalid.prisma
       ✖ Introspecting based on datasource defined in prisma/invalid.prisma
-      
+
       "
     `)
   })

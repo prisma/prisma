@@ -1,6 +1,13 @@
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator'
 import type { BinaryTarget } from '@prisma/get-platform'
@@ -13,11 +20,6 @@ import pRetry from 'p-retry'
 import type { Readable } from 'stream'
 import { temporaryFile } from 'tempy'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -974,10 +976,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       clientVersion: this.clientVersion as string,
       meta: response.meta as Record<string, unknown>,
     })
-  }
-
-  applyPendingMigrations(): Promise<void> {
-    throw new Error('Method not implemented.')
   }
 }
 

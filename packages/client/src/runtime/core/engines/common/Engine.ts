@@ -1,12 +1,14 @@
 import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
 import { Datasources } from '../../../getPrismaClient'
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type { LogEmitter } from './types/Events'
@@ -115,8 +117,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
   ): Promise<void>
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
-  // Methods dedicated for the C/RN engine, other versions should throw error
-  applyPendingMigrations(): Promise<void>
 }
 
 export interface EngineConfig {
@@ -158,16 +158,10 @@ export interface EngineConfig {
 
   /**
    * The contents of the datasource url saved in a string
-   * @remarks only used by DataProxyEngine.ts
+   * @remarks only used by RemoteExecutor.ts
    * @remarks this field is used internally by Policy, do not rename or remove
    */
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
-
-  /**
-   * The string hash that was produced for a given schema
-   * @remarks only used by DataProxyEngine.ts
-   */
-  inlineSchemaHash: string
 
   /**
    * The helper for interaction with OTEL tracing

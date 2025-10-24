@@ -4,8 +4,12 @@ import type { BaseContext } from '@prisma/get-platform'
 
 import driverAdapters, { currentDriverAdapterName } from './driverAdapters'
 
+type Datasource = (PrismaConfigInternal & { engine: 'classic' })['datasource']
+
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
+  setDatasource: (ds: Datasource) => void
+  resetDatasource: () => void
 }
 
 /**
@@ -18,13 +22,23 @@ export const configContextContributor =
   <C extends BaseContext>() =>
   (c: C) => {
     const ctx = c as C & ConfigContext
+    let overrideDatasource: Datasource | undefined
 
     beforeEach(() => {
       ctx.config = async () => {
         return {
           ...defaultTestConfig(ctx),
           ...(await loadFixtureConfig(ctx)), // custom fixture config overwrites any defaults
-        }
+          ...(overrideDatasource ? { engine: 'classic', datasource: overrideDatasource } : {}),
+        } as PrismaConfigInternal
+      }
+
+      ctx.setDatasource = (ds) => {
+        overrideDatasource = ds
+      }
+
+      ctx.resetDatasource = () => {
+        overrideDatasource = undefined
       }
     })
 

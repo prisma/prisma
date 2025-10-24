@@ -1,5 +1,5 @@
-import { PrismaBetterSQLite3 } from '@prisma/adapter-better-sqlite3'
-import { PrismaLibSQL } from '@prisma/adapter-libsql'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+import { PrismaLibSql } from '@prisma/adapter-libsql'
 import { randomUUID } from 'crypto'
 
 import { AdapterProviders } from '../_utils/providers'
@@ -123,7 +123,7 @@ testMatrix.setupTestSuite(
 )
 
 function createClient(info: DatasourceInfo, driverAdapter?: `${AdapterProviders}`) {
-  const constructor = driverAdapter === AdapterProviders.JS_BETTER_SQLITE3 ? PrismaBetterSQLite3 : PrismaLibSQL
+  const constructor = driverAdapter === AdapterProviders.JS_BETTER_SQLITE3 ? PrismaBetterSqlite3 : PrismaLibSql
 
   return newPrismaClient({
     // @ts-test-if: driverAdapter !== undefined

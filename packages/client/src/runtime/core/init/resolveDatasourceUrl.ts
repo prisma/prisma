@@ -1,8 +1,8 @@
 import { GetPrismaClientConfig } from '@prisma/client-common'
+import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 
 import { Datasources } from '../../getPrismaClient'
 import { getRuntime } from '../../utils/getRuntime'
-import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 export function resolveDatasourceUrl({
   inlineDatasources,
@@ -32,12 +32,7 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
-    if (
-      (TARGET_BUILD_TYPE === 'edge' ||
-        TARGET_BUILD_TYPE === 'wasm-engine-edge' ||
-        TARGET_BUILD_TYPE === 'wasm-compiler-edge') &&
-      getRuntime().id === 'workerd'
-    ) {
+    if (TARGET_BUILD_TYPE === 'wasm-compiler-edge' && getRuntime().id === 'workerd') {
       throw new PrismaClientInitializationError(
         `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
 

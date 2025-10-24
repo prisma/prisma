@@ -136,14 +136,6 @@ export async function setupTestSuiteClient({
       client: 'generated/prisma/client',
       sql: path.join(outputPath, 'sql'),
     },
-    edge: {
-      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/edge',
-      sql: path.join(outputPath, 'sql', 'index.edge.js'),
-    },
-    'wasm-engine-edge': {
-      client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
-      sql: path.join(outputPath, 'sql', 'index.edge.js'),
-    },
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
       sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
@@ -226,10 +218,10 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_LIBSQL) {
-    const { PrismaLibSQL } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
+    const { PrismaLibSql } = require('@prisma/adapter-libsql') as typeof import('@prisma/adapter-libsql')
 
     return {
-      adapter: new PrismaLibSQL({
+      adapter: new PrismaLibSql({
         url: datasourceInfo.databaseUrl,
         intMode: 'bigint',
       }),
@@ -244,11 +236,11 @@ export function setupTestSuiteClientDriverAdapter({
   }
 
   if (driverAdapter === AdapterProviders.JS_BETTER_SQLITE3) {
-    const { PrismaBetterSQLite3 } =
+    const { PrismaBetterSqlite3 } =
       require('@prisma/adapter-better-sqlite3') as typeof import('@prisma/adapter-better-sqlite3')
 
     return {
-      adapter: new PrismaBetterSQLite3({
+      adapter: new PrismaBetterSqlite3({
         // Workaround to avoid the Prisma validation error:
         // ```
         // Error validating datasource `db`: the URL must start with the protocol `file:`
@@ -316,19 +308,7 @@ export function getPrismaClientInternalArgs({
   const provider = suiteConfig.matrixOptions.provider
   const __internal: PrismaClientOptions['__internal'] = {}
 
-  if (clientMeta.runtime === 'wasm-engine-edge') {
-    __internal.configOverride = (config) => {
-      config.engineWasm = {
-        getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_engine_bg.${provider}.js`))),
-        getQueryEngineWasmModule: () => {
-          const queryEngineWasmFilePath = path.join(runtimeBase, `query_engine_bg.${provider}.wasm-base64.js`)
-          const wasmBase64: string = require(queryEngineWasmFilePath).wasm
-          return Promise.resolve(new WebAssembly.Module(Buffer.from(wasmBase64, 'base64')))
-        },
-      }
-      return config
-    }
-  } else if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
+  if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),

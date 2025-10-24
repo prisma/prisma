@@ -41,12 +41,11 @@ import { Platform } from './platform/_Platform'
   prisma:cli Require stack:
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
-import { Studio } from './Studio'
+// import { Studio } from './Studio'
 import { SubCommand } from './SubCommand'
 import { Telemetry } from './Telemetry'
 import { redactCommandArray } from './utils/checkpoint'
 import { loadOrInitializeCommandState } from './utils/commandState'
-import { detectPrisma1 } from './utils/detectPrisma1'
 import { loadConfig } from './utils/loadConfig'
 import { Validate } from './Validate'
 import { Version } from './Version'
@@ -87,8 +86,6 @@ const args = arg(
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-
-  detectPrisma1()
 
   const cli = CLI.new(
     {
@@ -148,11 +145,7 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      /**
-       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
-       */
-      introspect: DbPull.new(),
-      studio: Studio.new(),
+      // studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
@@ -167,7 +160,7 @@ async function main(): Promise<number> {
       // TODO: add login subcommand to --help after it works.
       login: new SubCommand('@prisma/cli-login'),
     },
-    ['version', 'init', 'migrate', 'db', 'introspect', 'studio', 'generate', 'validate', 'format', 'telemetry'],
+    ['version', 'init', 'migrate', 'db', 'studio', 'generate', 'validate', 'format', 'telemetry'],
     download,
   )
 

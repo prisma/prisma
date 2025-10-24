@@ -71,31 +71,11 @@ it('throws error if schema is not found', async () => {
   `)
 })
 
-it('reads from --schema args first even if package.json is provided', async () => {
-  const res = await testSchemaPath({
-    fixtureName: 'pkg-json-with-schema-args',
-    schemaPathFromArgs: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
-  })
-
-  expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/pkg-json-with-schema-args/schema.prisma"`)
-})
-
-it('throws if schema args path is invalid', async () => {
-  const res = await testSchemaPath({
-    fixtureName: 'pkg-json-with-schema-args',
-    schemaPathFromArgs: path.resolve(FIXTURE_CWD, 'wrong_path'),
-  })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load \`--schema\` from provided path \`../wrong_path\`: file or directory not found]`,
-  )
-})
-
 it('reads from --schema args first even if path is provided in Prisma config file (e.g., `prisma.config.ts`)', async () => {
   const res = await testSchemaPath({
     fixtureName: 'unconventional-path',
     schemaPathFromArgs: path.resolve(FIXTURE_CWD, 'unconventional-path', 'db', 'schema.prisma'),
-    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'pkg-json-with-schema-args', 'schema.prisma'),
+    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'unconventional-path-folder', 'db', 'schema.prisma'),
   })
 
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/unconventional-path/db/schema.prisma"`)
@@ -108,17 +88,6 @@ it('reads from path provided by prisma.config.ts', async () => {
   })
 
   expect(res).toMatchInlineSnapshot(`"src/__tests__/__fixtures__/getSchema/unconventional-path/db/schema.prisma"`)
-})
-
-it('reads from path provided by prisma.config.ts even if package.json is provided', async () => {
-  const res = await testSchemaPath({
-    fixtureName: 'pkg-json-with-prisma-config',
-    schemaPathFromConfig: path.resolve(FIXTURE_CWD, 'pkg-json-with-prisma-config', 'config', 'schema.prisma'),
-  })
-
-  expect(res).toMatchInlineSnapshot(
-    `"src/__tests__/__fixtures__/getSchema/pkg-json-with-prisma-config/config/schema.prisma"`,
-  )
 })
 
 it('reads from directory provided by prisma.config.ts', async () => {
@@ -149,38 +118,6 @@ it('throws error if prisma.config.ts with folder is used but schema files cannot
 
   expect(res).toMatchInlineSnapshot(
     `[Error: Could not load schema from \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts"\`: file or directory not found]`,
-  )
-})
-
-it('reads relative schema path from the nearest package.json', async () => {
-  const res = await testSchemaPath({ fixtureName: 'pkg-json-valid-relative-path' })
-
-  expect(res).toMatchInlineSnapshot(
-    `"src/__tests__/__fixtures__/getSchema/pkg-json-valid-relative-path/db/schema.prisma"`,
-  )
-})
-
-it('reads schema path from the nearest package.json and throws if path does not exist', async () => {
-  const res = await testSchemaPath({ fixtureName: 'pkg-json-invalid-path' })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from \`wrong-path\` provided by "prisma.schema" config of \`package.json\`: file or directory not found]`,
-  )
-})
-
-it('reads schema path from the nearest package.json and throws if path is not of type string', async () => {
-  const res = await testSchemaPath({ fixtureName: 'pkg-json-invalid-path-not-string' })
-
-  expect(res).toMatchInlineSnapshot(
-    `[Error: Provided schema path \`123\` from \`package.json\` must be of type string]`,
-  )
-})
-
-it('reads from the nearest package.json of the cwd', async () => {
-  const res = await testSchemaPath({ fixtureName: 'pkg-json-nearest/packages/a' })
-
-  expect(res).toMatchInlineSnapshot(
-    `"src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages/a/db/schema.prisma"`,
   )
 })
 

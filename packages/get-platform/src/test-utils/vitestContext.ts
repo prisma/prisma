@@ -253,7 +253,7 @@ export const vitestProcessExitContext =
       ctx.mocked['process.exit'] = vi.spyOn(process, 'exit').mockImplementation((number) => {
         throw new Error('process.exit: ' + number)
       })
-      ctx.recordedExitCode = () => ctx.mocked['process.exit'].mock.calls[0]?.[0] ?? 0
+      ctx.recordedExitCode = () => Number(ctx.mocked['process.exit'].mock.calls[0]?.[0] ?? 0)
     })
 
     afterEach(() => {

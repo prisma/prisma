@@ -3,8 +3,8 @@ import { Debug } from '@prisma/debug'
 import { ensureNeededBinariesExist } from '@prisma/engines'
 import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
-import { arg, drawBox, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
-import { bold, dim, green, red, underline } from 'kleur/colors'
+import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '@prisma/internals'
+import { bold, dim, green, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
@@ -101,16 +101,6 @@ export class CLI implements Command {
     // Throw if "lift"
     if (cmdName === 'lift') {
       throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
-    }
-    // warn if "introspect"
-    else if (cmdName === 'introspect') {
-      logger.warn('')
-      logger.warn(
-        `${bold(
-          `The ${underline('prisma introspect')} command is deprecated. Please use ${green('prisma db pull')} instead.`,
-        )}`,
-      )
-      logger.warn('')
     }
 
     const cmd = this.cmds[cmdName]

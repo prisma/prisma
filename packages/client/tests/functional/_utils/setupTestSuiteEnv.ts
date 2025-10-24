@@ -5,7 +5,6 @@ import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-t
 import { faker } from '@faker-js/faker'
 import { defaultTestConfig } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
-import * as miniProxy from '@prisma/mini-proxy'
 import { execa } from 'execa'
 import fs from 'fs-extra'
 import { match } from 'ts-pattern'
@@ -17,7 +16,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath, testSuiteHasTypedSql } from './getTestSuiteInfo'
 import { AdapterProviders, Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { AlterStatementCallback, ClientMeta } from './types'
+import { AlterStatementCallback } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -365,10 +364,8 @@ export type DatasourceInfo = {
  */
 export function setupTestSuiteDbURI({
   suiteConfig,
-  clientMeta,
 }: {
   suiteConfig: NamedTestSuiteConfig['matrixOptions']
-  clientMeta: ClientMeta
 }): DatasourceInfo {
   const { provider, driverAdapter } = suiteConfig
 
@@ -387,20 +384,11 @@ export function setupTestSuiteDbURI({
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
 
-  let accelerateUrl: string | undefined
-  if (clientMeta.dataProxy) {
-    accelerateUrl = miniProxy.generateConnectionString({
-      databaseUrl,
-      envVar: envVarName,
-      port: miniProxy.defaultServerConfig.port,
-    })
-  }
-
   return {
     directEnvVarName,
     envVarName,
     databaseUrl,
-    accelerateUrl,
+    accelerateUrl: undefined,
   }
 }
 

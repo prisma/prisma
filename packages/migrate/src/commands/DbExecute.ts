@@ -111,7 +111,7 @@ ${bold('Examples')}
       return this.help()
     }
 
-    await loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
+    loadEnvFile({ schemaPath: args['--schema'], printMessage: false, config })
 
     const cmd = 'db execute'
 

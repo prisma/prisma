@@ -350,11 +350,7 @@ testMatrix.setupTestSuite(
     }
 
     function detectPlatform() {
-      if (
-        clientRuntime === 'wasm-engine-edge' ||
-        clientRuntime === 'wasm-compiler-edge' ||
-        engineType === ClientEngineType.Client
-      ) {
+      if (clientRuntime === 'wasm-compiler-edge' || engineType === ClientEngineType.Client) {
         return []
       }
       return [{ name: 'prisma:client:detect_platform' }]

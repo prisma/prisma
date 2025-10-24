@@ -1,4 +1,5 @@
-import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
+import type { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './generated/prisma/client'
@@ -33,7 +34,7 @@ testMatrix.setupTestSuite(
       `,
     },
     skipDataProxy: {
-      runtimes: ['node', 'edge'],
+      runtimes: ['node'],
       reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
     },
     skipDriverAdapter: {

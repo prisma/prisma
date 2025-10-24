@@ -1,4 +1,10 @@
 import { QueryEngineConstructor, QueryEngineInstance, QueryEngineLogLevel } from '@prisma/client-common'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { bindAdapter, ErrorCapturingSqlDriverAdapter, ErrorRecord, ErrorRegistry } from '@prisma/driver-adapter-utils'
 import type { BinaryTarget } from '@prisma/get-platform'
@@ -6,10 +12,6 @@ import { assertNodeAPISupported, binaryTargets, getBinaryTargetForCurrentPlatfor
 import { assertAlways, EngineTrace, TracingHelper } from '@prisma/internals'
 import { bold, green, red } from 'kleur/colors'
 
-import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
-import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
-import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -29,7 +31,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
-import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
@@ -39,6 +40,7 @@ const debug = Debug('prisma:client:libraryEngine')
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
+
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   if ('level' in event) {
     return event.level === 'error' && event['message'] === 'PANIC'
@@ -90,17 +92,13 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      this.libraryLoader = reactNativeLibraryLoader
-    } else if (TARGET_BUILD_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
       if (config.engineWasm !== undefined) {
         this.libraryLoader = libraryLoader ?? wasmLibraryLoader
       }
-    } else if (TARGET_BUILD_TYPE === 'wasm-engine-edge') {
-      this.libraryLoader = libraryLoader ?? wasmLibraryLoader
     } else {
       throw new Error(`Invalid TARGET_BUILD_TYPE: ${TARGET_BUILD_TYPE}`)
     }
@@ -129,7 +127,6 @@ export class LibraryEngine implements Engine<undefined> {
 
   private wrapEngine(engine: QueryEngineInstance) {
     return {
-      applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
       commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
       connect: this.withRequestId(engine.connect.bind(engine)),
       disconnect: this.withRequestId(engine.disconnect.bind(engine)),
@@ -159,15 +156,6 @@ export class LibraryEngine implements Engine<undefined> {
           }
         }
       }
-    }
-  }
-
-  async applyPendingMigrations(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      await this.start()
-      await this.engine?.applyPendingMigrations!()
-    } else {
-      throw new Error('Cannot call this method from this type of engine instance')
     }
   }
 
@@ -351,7 +339,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         duration: Number(event.duration_ms),
         target: event.module_path,
       })
-    } else if (isPanicEvent(event) && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
+    } else if (isPanicEvent(event)) {
       // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         getErrorMessageWithLink(
@@ -541,7 +529,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }
-      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:') && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
         throw new PrismaClientRustPanicError(getErrorMessageWithLink(this, e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
@@ -604,7 +592,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private buildQueryError(error: RequestError, registry?: ErrorRegistry) {
-    if (error.user_facing_error.is_panic && TARGET_BUILD_TYPE !== 'wasm-engine-edge') {
+    if (error.user_facing_error.is_panic) {
       return new PrismaClientRustPanicError(
         getErrorMessageWithLink(this, error.user_facing_error.message),
         this.config.clientVersion!,

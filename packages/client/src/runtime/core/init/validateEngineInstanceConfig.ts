@@ -17,14 +17,7 @@ type ValidateEngineInstanceConfigParams = {
   url?: string
   adapter?: SqlDriverAdapterFactory
   copyEngine: boolean
-
-  /**
-   * The type indicates that {@link validateEngineInstanceConfig} only cares about
-   * the {@link targetBuildType} being `edge`. If all other input options are fixed,
-   * changing the value of this param to something else will exhibit no different
-   * validation behavior.
-   */
-  targetBuildType: 'edge' | (string & {}) // typeof TARGET_BUILD_TYPE
+  targetBuildType: string // typeof TARGET_BUILD_TYPE
 }
 
 type WithDiagnostics =
@@ -98,13 +91,8 @@ export function validateEngineInstanceConfig({
 
   const isAccelerateConfigured = isAccelerateUrlScheme || !copyEngine
 
-  if (isUsingDriverAdapters && (isAccelerateConfigured || targetBuildType === 'edge')) {
-    if (targetBuildType === 'edge') {
-      pushError([
-        `Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.`,
-        `Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor.`,
-      ])
-    } else if (isAccelerateUrlScheme) {
+  if (isUsingDriverAdapters && isAccelerateConfigured) {
+    if (isAccelerateUrlScheme) {
       pushError([
         `You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
         `Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter.`,
