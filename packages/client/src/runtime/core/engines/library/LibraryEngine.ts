@@ -31,7 +31,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink as genericGetErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { defaultLibraryLoader } from './DefaultLibraryLoader'
-import { reactNativeLibraryLoader } from './ReactNativeLibraryLoader'
 import type { Library, LibraryLoader } from './types/Library'
 import { wasmLibraryLoader } from './WasmLibraryLoader'
 
@@ -93,9 +92,7 @@ export class LibraryEngine implements Engine<undefined> {
   }
 
   constructor(config: EngineConfig, libraryLoader?: LibraryLoader) {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      this.libraryLoader = reactNativeLibraryLoader
-    } else if (TARGET_BUILD_TYPE === 'library') {
+    if (TARGET_BUILD_TYPE === 'library') {
       this.libraryLoader = libraryLoader ?? defaultLibraryLoader
 
       // this can only be true if PRISMA_CLIENT_FORCE_WASM=true
@@ -130,7 +127,6 @@ export class LibraryEngine implements Engine<undefined> {
 
   private wrapEngine(engine: QueryEngineInstance) {
     return {
-      applyPendingMigrations: engine.applyPendingMigrations?.bind(engine),
       commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
       connect: this.withRequestId(engine.connect.bind(engine)),
       disconnect: this.withRequestId(engine.disconnect.bind(engine)),
@@ -160,15 +156,6 @@ export class LibraryEngine implements Engine<undefined> {
           }
         }
       }
-    }
-  }
-
-  async applyPendingMigrations(): Promise<void> {
-    if (TARGET_BUILD_TYPE === 'react-native') {
-      await this.start()
-      await this.engine?.applyPendingMigrations!()
-    } else {
-      throw new Error('Cannot call this method from this type of engine instance')
     }
   }
 

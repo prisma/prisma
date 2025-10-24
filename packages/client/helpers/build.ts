@@ -110,7 +110,7 @@ function browserBuildConfigs(): BuildOptions[] {
 }
 
 /**
- * Overrides meant for edge, wasm and react-native builds
+ * Overrides meant for edge and wasm builds
  * If at some point they diverge feel free to split them
  */
 const commonRuntimesOverrides = {
@@ -209,24 +209,6 @@ function wasmEdgeRuntimeBuildConfig(type: WasmComponent, format: ModuleFormat, n
   }
 }
 
-// React Native is similar to edge in the sense it doesn't have the node API/libraries
-// and also not all the browser APIs, therefore it needs to polyfill the same things as edge
-const reactNativeBuildConfig: BuildOptions = {
-  ...runtimesCommonBuildConfig,
-  name: 'react-native',
-  outfile: 'runtime/react-native',
-  emitTypes: true,
-  define: {
-    NODE_CLIENT: 'false',
-    TARGET_BUILD_TYPE: '"react-native"',
-  },
-  plugins: [
-    fillPlugin({
-      fillerOverrides: { ...commonRuntimesOverrides },
-    }),
-  ],
-}
-
 // old-style generator compatiblity shim for studio
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
@@ -280,7 +262,6 @@ void build([
   ...allWasmEdgeRuntimeConfigs(),
   ...allWasmBindgenRuntimeConfigs(),
   defaultIndexConfig,
-  reactNativeBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
   writeDtsRexport('wasm-compiler-edge.d.ts')
