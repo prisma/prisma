@@ -53,49 +53,6 @@ describe('library', () => {
   })
 })
 
-describe('binary', () => {
-  it('generates annotations for a schema and a single engine', () => {
-    const annotations = buildNFTAnnotations(false, ClientEngineType.Binary, ['debian-openssl-1.1.x'], 'out')
-
-    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-      "
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-debian-openssl-1.1.x");
-      path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")"
-    `)
-  })
-
-  it('generates annotations for a schema and multiple engines', () => {
-    const annotations = buildNFTAnnotations(
-      false,
-      ClientEngineType.Binary,
-      ['debian-openssl-1.1.x', 'darwin', 'windows'],
-      'out',
-    )
-
-    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
-      "
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-debian-openssl-1.1.x");
-      path.join(process.cwd(), "out/query-engine-debian-openssl-1.1.x")
-
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-darwin");
-      path.join(process.cwd(), "out/query-engine-darwin")
-
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "query-engine-windows");
-      path.join(process.cwd(), "out/query-engine-windows")
-      // file annotations for bundling tools to include these files
-      path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")"
-    `)
-  })
-})
-
 describe('special cases for Netlify', () => {
   const originalEnv = { ...process.env }
   const restoreEnv = () => {

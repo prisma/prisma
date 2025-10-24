@@ -17,7 +17,7 @@ const ctx = jestContext.new().assemble()
  * Commands:
  * - wasm engine
  *   - format
- * - library/binary engine
+ * - library engine
  *   - validate
  *   - db push
  *   - db pull

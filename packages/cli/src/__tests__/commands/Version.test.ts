@@ -1,5 +1,5 @@
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import { enginesVersion } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
@@ -9,16 +9,10 @@ import { version as typeScriptVersion } from 'typescript'
 import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-const runLibraryTest =
-  getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary && !process.env.PRISMA_QUERY_ENGINE_LIBRARY
-
-const runBinaryTest =
-  getCliQueryEngineBinaryType() === BinaryType.QueryEngineBinary && !process.env.PRISMA_QUERY_ENGINE_BINARY
 
 describe('version', () => {
   describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
-    testIf(runLibraryTest)('shows query-engine library when queryCompiler is turned off', async () => {
+    test('shows query-engine library when queryCompiler is turned off', async () => {
       ctx.fixture('prisma-config-dont-download-schema-engine')
       const data = await ctx.cli('version')
       expect(data.exitCode).toBe(0)
@@ -65,7 +59,6 @@ describe('version', () => {
 
       beforeAll(() => {
         resetEnv()
-        delete process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
         delete process.env.PRISMA_CLIENT_ENGINE_TYPE
       })
 
@@ -104,89 +97,41 @@ describe('version', () => {
 
   // Node-API Tests
 
-  testIf(runLibraryTest)('basic version (Node-API)', async () => {
+  test('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(runLibraryTest)(
-    'version with custom binaries (Node-API)',
-    async () => {
-      const enginesDir = path.join(__dirname, 'version-test-engines')
-      await ensureDir(enginesDir)
-      const binaryPaths = await download({
-        binaries: {
-          'schema-engine': enginesDir,
-          'libquery-engine': enginesDir,
-        },
-        version: enginesVersion,
-        failSilent: false,
-      })
-      // This Omits query-engine from the map
-      const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
+  test('version with custom binaries (Node-API)', async () => {
+    const enginesDir = path.join(__dirname, 'version-test-engines')
+    await ensureDir(enginesDir)
+    const binaryPaths = await download({
+      binaries: {
+        'schema-engine': enginesDir,
+        'libquery-engine': enginesDir,
+      },
+      version: enginesVersion,
+      failSilent: false,
+    })
+    // This Omits query-engine from the map
+    const envVarMap = engineEnvVarMap
 
-      const binaryTarget = await getBinaryTargetForCurrentPlatform()
+    const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-      for (const engine in envVarMap) {
-        const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][binaryTarget]
-      }
+    for (const engine in envVarMap) {
+      const envVar = envVarMap[engine]
+      process.env[envVar] = binaryPaths[engine][binaryTarget]
+    }
 
-      const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
+    const data = await ctx.cli('--version')
+    expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
 
-      // cleanup
-      for (const engine in envVarMap) {
-        const envVar = envVarMap[engine]
-        delete process[envVar]
-      }
-    },
-    50_000,
-  )
-
-  // Binary Tests
-
-  testIf(runBinaryTest)(
-    'basic version',
-    async () => {
-      const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
-    },
-    10_000,
-  )
-
-  testIf(runBinaryTest)(
-    'version with custom binaries',
-    async () => {
-      const enginesDir = path.join(__dirname, 'version-test-engines')
-      await ensureDir(enginesDir)
-      const binaryPaths = await download({
-        binaries: {
-          'schema-engine': enginesDir,
-          'query-engine': enginesDir,
-        },
-        version: enginesVersion,
-        failSilent: false,
-      })
-
-      const binaryTarget = await getBinaryTargetForCurrentPlatform()
-      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
-      for (const engine in envVarMap) {
-        const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][binaryTarget]
-      }
-
-      const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
-
-      // cleanup
-      for (const engine in envVarMap) {
-        const envVar = envVarMap[engine]
-        delete process[envVar]
-      }
-    },
-    50_000,
-  )
+    // cleanup
+    for (const engine in envVarMap) {
+      const envVar = envVarMap[engine]
+      delete process[envVar]
+    }
+  }, 50_000)
 })
 
 function cleanSnapshot(str: string, versionOverride?: string): string {

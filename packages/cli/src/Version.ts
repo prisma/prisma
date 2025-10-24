@@ -74,13 +74,7 @@ export class Version implements Command {
       schemaPathFromConfig: config.schema,
       schemaPathFromArg,
     }).catch((_) => {
-      const id = <const T>(x: T): T => x
-      const engineType = match(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE ?? process.env.PRISMA_QUERY_ENGINE_TYPE)
-        .with('binary', id)
-        .with('library', id)
-        .otherwise(() => 'library' as const)
-
-      return { engineType }
+      return { engineType: 'library' as const }
     })
 
     const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config)
@@ -123,16 +117,6 @@ export class Version implements Command {
 
         return {
           queryEngineRows: [['Query Engine (Node-API)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .with('binary', async () => {
-        const name = BinaryType.QueryEngineBinary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Binary)', enginesInfo] as const],
           queryEngineRetrievalErrors: enginesRetrievalErrors,
         }
       })

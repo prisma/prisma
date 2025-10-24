@@ -37,7 +37,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const previewFeatures = extractPreviewFeatures(config.generators)
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
   const clientEngineType = getClientEngineType(generator!)
-  ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
+  ;(global as any).TARGET_BUILD_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'client'
 
   await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 

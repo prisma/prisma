@@ -2,7 +2,7 @@ import { PrismaClientInitializationError } from '@prisma/client-runtime-utils'
 import { Debug } from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
-import { chmodPlusX, ClientEngineType } from '@prisma/internals'
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -41,8 +41,6 @@ export async function resolveEnginePath(engineType: ClientEngineType, config: En
 
   debug('enginePath', enginePath)
 
-  // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === ClientEngineType.Binary) chmodPlusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages

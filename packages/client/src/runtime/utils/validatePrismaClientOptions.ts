@@ -88,12 +88,6 @@ It should have this form: { url: "CONNECTION_STRING" }`,
         `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
       )
     }
-
-    if (getClientEngineType(config.generator) === ClientEngineType.Binary) {
-      throw new PrismaClientConstructorValidationError(
-        `Cannot use a driver adapter with the "binary" Query Engine. Please use the "library" Query Engine.`,
-      )
-    }
   },
   errorFormat: (options) => {
     if (!options) {

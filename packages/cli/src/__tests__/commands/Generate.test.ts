@@ -48,27 +48,15 @@ describe('using cli', () => {
 
     const { main } = await import(ctx.fs.path('main.ts'))
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
-      `)
-    } else {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
+      Tip: MOCKED RANDOM TIP"
+    `)
 
     await expect(main()).resolves.toMatchInlineSnapshot(`
       [
@@ -86,27 +74,15 @@ describe('using cli', () => {
     const data = await ctx.cli('generate', '--schema=./prisma/schema')
     const stdout = sanitiseStdout(data.stdout)
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema
+    expect(stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema
 
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./prisma/client in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
-      `)
-    } else {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema
-
-        ✔ Generated Prisma Client (v0.0.0) to ./prisma/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
+      Tip: MOCKED RANDOM TIP"
+    `)
 
     const { main } = await import(ctx.fs.path('main.ts'))
     await expect(main()).resolves.toMatchInlineSnapshot(`
@@ -297,23 +273,12 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    const engineType = getClientEngineType()
+    expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-    if (engineType === ClientEngineType.Binary) {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
-        "
-      `)
-    } else {
-      expect(data.stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-        "
-      `)
-    }
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      "
+    `)
   })
 
   it('should call the survey handler when hints are not disabled', async () => {
@@ -363,27 +328,15 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const result = await Generate.new().parse(['--schema=./schema.prisma'], defaultTestConfig())
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    }
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -399,27 +352,15 @@ describe('--schema from project directory', () => {
     const absoluteSchemaPath = path.resolve('./schema.prisma')
     const output = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(output).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
+    expect(output).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    } else {
-      expect(output).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    }
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
@@ -482,27 +423,15 @@ describe('--schema from parent directory', () => {
     ctx.fixture('generate-from-parent-dir')
     const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'], defaultTestConfig())
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    }
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -520,27 +449,15 @@ describe('--schema from parent directory', () => {
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
     const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`], defaultTestConfig())
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    }
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
@@ -560,31 +477,17 @@ describe('--schema from parent directory', () => {
       defaultTestConfig(),
     )
 
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+    expect(result).toMatchInlineSnapshot(`
+      "
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    } else {
-      expect(result).toMatchInlineSnapshot(`
-        "
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
-        "
-      `)
-    }
+      Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+      "
+    `)
   })
 
   it('--generator: should fail - single invalid generator name', async () => {

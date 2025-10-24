@@ -14,11 +14,6 @@ void executeSteps({
     await $`rm -f ./prisma/client/libquery_engine*`
     await $`pnpm exec esbuild src/index.ts --bundle --outdir=dist --platform=node`
     await $`pnpm jest library`
-
-    await $`PRISMA_CLIENT_ENGINE_TYPE=binary pnpm prisma generate`
-    await $`rm -f ./prisma/client/query-engine*`
-    await $`pnpm exec esbuild src/index.ts --bundle --outdir=dist --platform=node`
-    await $`pnpm jest binary`
   },
   finish: async () => {
     await $`echo "done"`

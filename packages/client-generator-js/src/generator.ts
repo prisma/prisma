@@ -44,7 +44,6 @@ export class PrismaClientJsGenerator implements Generator {
   async getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
     const requiresEngines = match<ClientEngineType, EngineType[]>(getClientEngineType(config))
       .with(ClientEngineType.Library, () => ['libqueryEngine'])
-      .with(ClientEngineType.Binary, () => ['queryEngine'])
       .with(ClientEngineType.Client, () => [])
       .exhaustive()
 

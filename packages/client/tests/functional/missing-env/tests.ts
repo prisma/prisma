@@ -75,9 +75,5 @@ testMatrix.setupTestSuite(
   {
     skipDb: true,
     skipDefaultClientInstance: true,
-    skipEngine: {
-      from: ['binary'],
-      reason: 'TODO: fails with timeout on CI: https://github.com/prisma/team-orm/issues/638',
-    },
   },
 )

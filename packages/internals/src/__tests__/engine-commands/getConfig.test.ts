@@ -92,67 +92,7 @@ describe('getConfig', () => {
 
     expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
-  test('with engineType="binary"', async () => {
-    const binaryConfig = await getConfig({
-      ignoreEnvVarErrors: false,
-      datamodel: `
-      datasource db {
-        provider = "sqlite"
-        url      = "file:../hello.db"
-      }
 
-      generator gen {
-        provider = "fancy-provider"
-        engineType = "binary"
-      }
-
-      model A {
-        id Int @id
-        name String
-      }`,
-    })
-
-    expect(serialize(JSON.stringify(binaryConfig, null, 2))).toMatchInlineSnapshot(`
-      ""{
-        "generators": [
-          {
-            "name": "gen",
-            "provider": {
-              "fromEnvVar": null,
-              "value": "fancy-provider"
-            },
-            "output": null,
-            "config": {
-              "engineType": "binary"
-            },
-            "binaryTargets": [
-              {
-                "fromEnvVar": null,
-                "value": "TEST_PLATFORM",
-                "native": true
-              }
-            ],
-            "previewFeatures": [],
-            "sourceFilePath": "schema.prisma"
-          }
-        ],
-        "datasources": [
-          {
-            "name": "db",
-            "provider": "sqlite",
-            "activeProvider": "sqlite",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:../hello.db"
-            },
-            "schemas": [],
-            "sourceFilePath": "schema.prisma"
-          }
-        ],
-        "warnings": []
-      }""
-    `)
-  })
   test('with engineType="library"', async () => {
     const libraryConfig = await getConfig({
       ignoreEnvVarErrors: false,

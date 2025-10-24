@@ -177,10 +177,6 @@ function main(): number | void {
       jestCli = jestCli.withArgs(['--runInBand'])
       jestCli = jestCli.withEnv({ PRISMA_DISABLE_QUAINT_EXECUTORS: 'true' })
       jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
-
-      if (args['--engine-type'] === 'binary') {
-        throw new Error('Driver adapters are not compatible with or --engine-type=binary')
-      }
     }
 
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })

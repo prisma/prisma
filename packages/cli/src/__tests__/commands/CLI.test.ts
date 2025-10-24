@@ -69,7 +69,6 @@ describe('CLI', () => {
 
     beforeAll(() => {
       resetEnv()
-      delete process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
       delete process.env.PRISMA_CLIENT_ENGINE_TYPE
     })
 
@@ -113,20 +112,6 @@ describe('CLI', () => {
           }),
         )
       })
-
-      it('should download query-engine when engineType = "binary"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-binary.prisma'], config)
-
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'query-engine': expect.any(String),
-            },
-          }),
-        )
-      })
     })
 
     describe('without config.migrate.adapter, should download schema-engine', () => {
@@ -151,21 +136,6 @@ describe('CLI', () => {
           expect.objectContaining({
             binaries: {
               'libquery-engine': expect.any(String),
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "binary"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-binary.prisma'], defaultTestConfig())
-
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'query-engine': expect.any(String),
               'schema-engine': expect.any(String),
             },
           }),

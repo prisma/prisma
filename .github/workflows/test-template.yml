@@ -24,7 +24,7 @@ on:
       queryEngine:
         description: List of query engines to run tests on as JSON array
         type: string
-        default: '["library", "binary"]'
+        default: '["library"]'
       pnpmVersion:
         description: pnpm package manager version
         type: string
@@ -120,10 +120,6 @@ jobs:
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Set Client Engine Type
         run: |
@@ -651,10 +647,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
@@ -704,10 +696,6 @@ jobs:
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
 
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
@@ -751,10 +739,6 @@ jobs:
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate cockroachdb
 
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
-
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
@@ -797,10 +781,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Set Client Engine Type
         run: |
@@ -1055,7 +1035,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_SKIP_VITESS=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
             echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
@@ -1121,7 +1100,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_NO_DOCKER=true"
-            echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}"
             echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 

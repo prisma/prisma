@@ -104,7 +104,7 @@ export async function setupTestSuiteClient({
   const clientGenOptions: GenerateClientLegacyOptions & GenerateClientESMOptions = {
     datamodel: schema,
     schemaPath,
-    binaryPaths: { libqueryEngine: {}, queryEngine: {} },
+    binaryPaths: { libqueryEngine: {} },
     datasources: schemaContext.datasources,
     outputDir: path.join(suiteFolderPath, outputPath),
     copyRuntime: false,
