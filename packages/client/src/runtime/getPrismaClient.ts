@@ -367,7 +367,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchema: config.inlineSchema,
           overrideDatasources: getDatasourceOverrides(options),
           inlineDatasources: config.inlineDatasources,
-          inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           transactionOptions: {
             maxWait: options.transactionOptions?.maxWait ?? 2000,

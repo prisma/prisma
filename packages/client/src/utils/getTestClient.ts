@@ -60,7 +60,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },
     inlineSchema: datamodel[0][1], // TODO: merge schemas
-    inlineSchemaHash: '',
   }
 
   return getPrismaClient(options)

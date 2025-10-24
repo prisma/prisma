@@ -166,12 +166,6 @@ export interface EngineConfig {
   inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
   /**
-   * The string hash that was produced for a given schema
-   * @remarks only used by AccelerateEngine.ts
-   */
-  inlineSchemaHash: string
-
-  /**
    * The helper for interaction with OTEL tracing
    * @remarks enabling is determined by the client and @prisma/instrumentation package
    */
