@@ -3,7 +3,7 @@ import { Script } from 'node:vm'
 
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
-import { PrismaConfigInternal, defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import { execa } from 'execa'
 import fs from 'fs-extra'
