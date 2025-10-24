@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 
-import { defineConfig, env } from '@prisma/config'
+import { defineConfig, env } from 'prisma/config'
 
 export default defineConfig({
   engine: 'classic',
