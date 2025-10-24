@@ -81,7 +81,13 @@ export async function setupTestSuiteClient({
   process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
 
   if (skipDb !== true) {
-    await setupTestSuiteDatabase({ suiteMeta, suiteConfig, alterStatementCallback, cfWorkerBindings })
+    await setupTestSuiteDatabase({
+      suiteMeta,
+      suiteConfig,
+      alterStatementCallback,
+      cfWorkerBindings,
+      datasourceInfo,
+    })
   }
 
   let typedSql: SqlQueryOutput[] | undefined

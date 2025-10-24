@@ -3,7 +3,7 @@ import { Script } from 'node:vm'
 
 import { D1Database, D1PreparedStatement, D1Result } from '@cloudflare/workers-types'
 import { faker } from '@faker-js/faker'
-import { defaultTestConfig } from '@prisma/config'
+import { defaultTestConfig, PrismaConfigInternal } from '@prisma/config'
 import { assertNever } from '@prisma/internals'
 import { execa } from 'execa'
 import fs from 'fs-extra'
@@ -145,12 +145,14 @@ export async function setupTestSuiteDatabase({
   errors = [],
   alterStatementCallback,
   cfWorkerBindings,
+  datasourceInfo,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   errors?: Error[]
   alterStatementCallback?: AlterStatementCallback
   cfWorkerBindings?: { [key: string]: unknown }
+  datasourceInfo: DatasourceInfo
 }) {
   const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
   const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
@@ -159,14 +161,15 @@ export async function setupTestSuiteDatabase({
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
       await setupTestSuiteDatabaseD1({ schemaPath, cfWorkerBindings: cfWorkerBindings!, alterStatementCallback })
     } else {
-      const dbPushParams = ['--schema', schemaPath, '--skip-generate']
+      const dbPushParams = ['--skip-generate']
 
       // we reuse and clean the db when it is explicitly required
       if (process.env.TEST_REUSE_DATABASE === 'true') {
         dbPushParams.push('--force-reset')
       }
 
-      await DbPush.new().parse(dbPushParams, defaultTestConfig())
+      const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+      await DbPush.new().parse(dbPushParams, runtimeConfig)
 
       if (
         suiteConfig.matrixOptions.driverAdapter === AdapterProviders.VITESS_8 ||
@@ -177,7 +180,7 @@ export async function setupTestSuiteDatabase({
       }
     }
 
-    if (alterStatementCallback) {
+    if (alterStatementCallback && suiteConfig.matrixOptions.driverAdapter !== AdapterProviders.JS_D1) {
       const { provider } = suiteConfig.matrixOptions
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
@@ -193,10 +196,8 @@ export async function setupTestSuiteDatabase({
         alterStatementCallback(provider),
       )
 
-      await DbExecute.new().parse(
-        ['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`, '--schema', `${schemaPath}`],
-        defaultTestConfig(),
-      )
+      const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+      await DbExecute.new().parse(['--file', `${prismaDir}/migrations/${timestamp}/migration.sql`], runtimeConfig)
     }
 
     consoleInfoMock.mockRestore()
@@ -212,6 +213,7 @@ export async function setupTestSuiteDatabase({
         errors,
         alterStatementCallback: undefined,
         cfWorkerBindings,
+        datasourceInfo,
       }) // retry logic
     }
   }
@@ -280,11 +282,13 @@ export async function dropTestSuiteDatabase({
   suiteConfig,
   errors = [],
   cfWorkerBindings,
+  datasourceInfo,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   errors?: Error[]
   cfWorkerBindings?: { [key: string]: unknown }
+  datasourceInfo: DatasourceInfo
 }) {
   const schemaPath = getTestSuiteSchemaPath({ suiteMeta, suiteConfig })
 
@@ -294,7 +298,8 @@ export async function dropTestSuiteDatabase({
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'], defaultTestConfig())
+    const runtimeConfig = buildPrismaConfig(schemaPath, datasourceInfo)
+    await DbDrop.new().parse(['--force', '--preview-feature'], runtimeConfig)
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)
@@ -302,9 +307,39 @@ export async function dropTestSuiteDatabase({
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors, cfWorkerBindings }) // retry logic
+      await dropTestSuiteDatabase({
+        suiteMeta,
+        suiteConfig,
+        errors,
+        cfWorkerBindings,
+        datasourceInfo,
+      }) // retry logic
     }
   }
+}
+
+function buildPrismaConfig(schemaPath: string, datasourceInfo: DatasourceInfo): PrismaConfigInternal {
+  const base = defaultTestConfig()
+
+  return {
+    ...base,
+    engine: 'classic',
+    schema: schemaPath,
+    datasource: {
+      url: absolutizeSqliteUrl({ schemaPath, databaseUrl: datasourceInfo.databaseUrl }),
+    },
+  }
+}
+
+const SQLITE_PROTOCOL = 'file:'
+
+function absolutizeSqliteUrl({ databaseUrl, schemaPath }: { databaseUrl: string; schemaPath: string }): string {
+  if (!databaseUrl.startsWith(SQLITE_PROTOCOL)) {
+    return databaseUrl
+  }
+  const relativePath = databaseUrl.slice(SQLITE_PROTOCOL.length)
+  const absolutePath = path.resolve(path.dirname(schemaPath), relativePath)
+  return SQLITE_PROTOCOL + absolutePath
 }
 
 async function prepareD1Database({ cfWorkerBindings }: { cfWorkerBindings: { [key: string]: unknown } }) {

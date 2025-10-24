@@ -29,7 +29,9 @@ describe('Baselining', () => {
       fs.copy('dev.db', 'prod.db')
 
       // Start with the dev database
-      process.env.DATABASE_URL = 'file:../dev.db'
+      ctx.setDatasource({
+        url: `file:${ctx.fs.path('dev.db')}`,
+      })
 
       // db pull
       const dbPull = DbPull.new().parse([], await ctx.config())
@@ -102,7 +104,9 @@ describe('Baselining', () => {
       ctx.clearCapturedStdout()
 
       // Switch to PROD database
-      process.env.DATABASE_URL = 'file:../prod.db'
+      ctx.setDatasource({
+        url: `file:${ctx.fs.path('prod.db')}`,
+      })
 
       // migrate resolve --applied migration_name
       const migrationName = fs.list('prisma/migrations')![0]

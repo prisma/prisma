@@ -1,4 +1,4 @@
-import { defaultTestConfig } from '@prisma/config'
+import { loadConfigFromFile, PrismaConfigInternal } from '@prisma/config'
 import { DbDrop, DbPush } from '@prisma/migrate'
 
 import { MemoryTestDir } from './MemoryTestDir'
@@ -9,11 +9,10 @@ import { MemoryTestDir } from './MemoryTestDir'
  * @returns
  */
 export async function setupMemoryTestDatabase(testDir: MemoryTestDir) {
+  const config = await getMemoryTestConfig(testDir)
+
   return withNoOutput(async () => {
-    await DbPush.new().parse(
-      ['--schema', testDir.schemaFilePath, '--force-reset', '--skip-generate'],
-      defaultTestConfig(),
-    )
+    await DbPush.new().parse(['--force-reset', '--skip-generate'], config)
   })
 }
 
@@ -23,8 +22,10 @@ export async function setupMemoryTestDatabase(testDir: MemoryTestDir) {
  * @returns
  */
 export async function dropMemoryTestDatabase(testDir: MemoryTestDir) {
+  const config = await getMemoryTestConfig(testDir)
+
   return withNoOutput(async () => {
-    await DbDrop.new().parse(['--schema', testDir.schemaFilePath, '--force', '--preview-feature'], defaultTestConfig())
+    await DbDrop.new().parse(['--force', '--preview-feature'], config)
   })
 }
 
@@ -36,4 +37,15 @@ async function withNoOutput(callback: () => Promise<void>) {
   } finally {
     console.info = originalInfo
   }
+}
+
+async function getMemoryTestConfig(testDir: MemoryTestDir): Promise<PrismaConfigInternal> {
+  const { config, error } = await loadConfigFromFile({ configRoot: testDir.basePath })
+
+  if (error || !config) {
+    const reason = error?._tag ?? 'unknown error'
+    throw new Error(`Failed to load prisma.config.ts for memory test ${testDir.testName} (${reason}).`)
+  }
+
+  return config
 }

@@ -27,8 +27,9 @@ describe('common', () => {
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
+    ctx.setConfigFile('empty.config.ts')
 
-    const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"P1003: Database \`dev.db\` does not exist"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -74,11 +75,11 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
   it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
 
-    const result = MigrateStatus.new().parse(['--schema=./prisma/using-file-as-url.prisma'], await ctx.config())
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/using-file-as-url.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
@@ -111,7 +112,9 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   it('schema-folder-db-exists', async () => {
     ctx.fixture('schema-folder-sqlite-db-exists')
-    const result = MigrateStatus.new().parse(['--schema=./prisma'], await ctx.config())
+    ctx.setConfigFile('folder.config.ts')
+
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`"Database schema is up to date!"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -238,7 +241,8 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 describeMatrix(postgresOnly, 'postgres', () => {
   it('should fail if cannot connect', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateStatus.new().parse(['--schema=./prisma/invalid-url.prisma'], await ctx.config())
+    ctx.setConfigFile('invalid-url.config.ts')
+    const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       "P1001: Can't reach database server at \`doesnotexist:5432\`
 

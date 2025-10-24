@@ -64,6 +64,11 @@ export const mongodbOnly = {
   driverAdapters: {},
 } satisfies Matrix
 
+export const mysqlOnly = {
+  providers: { mysql: true },
+  driverAdapters: {},
+} satisfies Matrix
+
 /**
  * Drop in replacement for `describe` that executes only if the given matrix condition is true.
  * This is mostly to exclude tests from for specific driver adapters.

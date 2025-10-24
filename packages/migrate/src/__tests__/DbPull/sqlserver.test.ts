@@ -55,15 +55,12 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
-    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    const shadowDatabaseUrl = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
       'tests-migrate-shadowdb',
       `${databaseName}-shadowdb`,
     )
+    ctx.setDatasource({ url, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -108,6 +105,9 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+  }
 
   // Note that this needs to be exactly the same as the one in the setup.sql file
   const databaseName = 'tests-migrate-db-pull-sqlserver-multischema'
@@ -129,18 +129,14 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    ctx.setDatasource({ url })
   })
 
   afterEach(async () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
@@ -196,16 +192,16 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                      // *** WARNING ***
-                                                      //
-                                                      // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
-                                                      //   - transactional_some_table
-                                                      //
-                                                      // These items were renamed due to their names being duplicates in the Prisma schema:
-                                                      //   - type: model, name: base_some_table
-                                                      //   - type: model, name: transactional_some_table
-                                                      //
-                                    `)
+                                // *** WARNING ***
+                                //
+                                // The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
+                                //   - transactional_some_table
+                                //
+                                // These items were renamed due to their names being duplicates in the Prisma schema:
+                                //   - type: model, name: base_some_table
+                                //   - type: model, name: transactional_some_table
+                                //
+        `)
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
@@ -301,7 +297,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   test('url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     ctx.fixture('introspection/sqlserver')
     ctx.setDatasource({
-      url: `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`,
+      url: `${(await ctx.datasource())?.url}schema=does-not-exist`,
     })
 
     const introspect = new DbPull()
@@ -314,7 +310,7 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
   test('url with `?schema=base` should succeed', async () => {
     ctx.fixture('introspection/sqlserver')
     ctx.setDatasource({
-      url: `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`,
+      url: `${(await ctx.datasource())?.url}schema=base`,
     })
 
     const introspect = new DbPull()
