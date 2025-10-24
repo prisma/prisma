@@ -74,6 +74,8 @@ describe('push', () => {
       "Prisma schema loaded from schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate" <location placeholder>
 
+      PostgreSQL database tests-migrate created at localhost:5432
+
       The PostgreSQL database "tests-migrate" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
