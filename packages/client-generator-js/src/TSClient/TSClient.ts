@@ -31,15 +31,7 @@ import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
-type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm-compiler-edge'
-  | 'edge-esm'
-  | 'index-browser'
-  | 'react-native'
-  | 'client'
-  | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
+type RuntimeName = 'binary' | 'library' | 'wasm-compiler-edge' | 'index-browser' | 'client' | (string & {}) // workaround to also allow other strings while keeping auto-complete intact
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** More granular way to define JS runtime name */

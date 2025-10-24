@@ -141,14 +141,6 @@ export async function buildClient({
     reusedJs: '.',
   })
 
-  // we create a client that is fit for react native runtimes
-  const rnTsClient = new TSClient({
-    ...baseClientOptions,
-    runtimeNameJs: 'react-native',
-    runtimeNameTs: 'react-native',
-    edge: true,
-  })
-
   const trampolineTsClient = new TSClient({
     ...nodeClientOptions,
     reusedTs: 'index',
@@ -203,11 +195,6 @@ export async function buildClient({
   fileMap['index-browser.js'] = BrowserJS(nodeClient)
   fileMap['client.js'] = JS(defaultClient)
   fileMap['client.d.ts'] = TS(defaultClient)
-
-  if (generator.previewFeatures.includes('reactNative')) {
-    fileMap['react-native.js'] = JS(rnTsClient)
-    fileMap['react-native.d.ts'] = TS(rnTsClient)
-  }
 
   // The trampoline client points to #main-entry-point (see below).  We use
   // imports similar to an exports map to ensure correct imports.❗ Before
@@ -727,7 +714,6 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'library.d.ts',
     'index-browser.js',
     'index-browser.d.ts',
-    'react-native.js',
     'wasm-compiler-edge.js',
   ]
 
