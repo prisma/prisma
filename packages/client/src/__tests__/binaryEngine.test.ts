@@ -27,7 +27,6 @@ describe('BinaryEngine', () => {
         engineVersion: '0000000000000000000000000000000000000000',
         inlineDatasources: {},
         inlineSchema: await fs.readFile(path.join(__dirname, 'runtime-tests/blog/schema.prisma'), 'utf8'),
-        inlineSchemaHash: '',
         overrideDatasources: {},
         transactionOptions: {},
       })

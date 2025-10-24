@@ -50,12 +50,6 @@ export type GetPrismaClientConfig = {
   inlineDatasources: { [name in string]: { url: EnvValue } }
 
   /**
-   * The string hash that was produced for a given schema
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineSchemaHash: string
-
-  /**
    * A marker to indicate that the client was not generated via `prisma
    * generate` but was generated via `generate --postinstall` script instead.
    * @remarks used to error for Vercel/Netlify for schema caching issues

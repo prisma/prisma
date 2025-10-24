@@ -16,15 +16,7 @@ import { createPrismaNamespaceBrowserFile } from './file-generators/PrismaNamesp
 import { createPrismaNamespaceFile } from './file-generators/PrismaNamespaceFile'
 import { GenerateContext } from './GenerateContext'
 
-export type RuntimeName =
-  | 'binary'
-  | 'library'
-  | 'wasm-engine-edge'
-  | 'wasm-compiler-edge'
-  | 'edge'
-  | 'react-native'
-  | 'client'
-  | (string & {})
+export type RuntimeName = 'binary' | 'library' | 'wasm-compiler-edge' | 'react-native' | 'client' | (string & {})
 
 export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> & {
   /** The name of the runtime bundle to use */
