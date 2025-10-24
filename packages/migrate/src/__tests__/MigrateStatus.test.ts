@@ -74,13 +74,12 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   it('should error when database needs to be baselined', async () => {
     ctx.fixture('baseline-sqlite')
-    ctx.setConfigFile('using-file-as-url.config.ts')
 
     const result = MigrateStatus.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`"process.exit: 1"`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/using-file-as-url.prisma
+      "Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" <location placeholder>
 
       No migration found in prisma/migrations
