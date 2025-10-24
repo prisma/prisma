@@ -183,25 +183,6 @@ describe('validateEngineInstanceConfig', () => {
   })
 
   describe('using Driver Adapters', () => {
-    it('error when the target build type is `edge`', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.pgPlain,
-        targetBuildType: 'edge',
-        copyEngine: true,
-        adapter: mockAdapter,
-      })
-
-      expectFalse(ok)
-      expect(diagnostics.errors).toHaveLength(1)
-      expect(diagnostics.errors[0].value).toMatchInlineSnapshot(`
-        "Prisma Client was configured to use the \`adapter\` option but it was imported via its \`/edge\` endpoint.
-        Please either remove the \`/edge\` endpoint or remove the \`adapter\` from the Prisma Client constructor."
-      `)
-      expect(isUsing.accelerate).toBe(false)
-      expect(isUsing.driverAdapters).toBe(true)
-      expect(isUsing.ppg).toBe(false)
-    })
-
     it('error when using `--no-engine`', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url: URLS.pgPlain,
@@ -304,21 +285,6 @@ describe('validateEngineInstanceConfig', () => {
           },
         ]
       `)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(true)
-    })
-
-    it('works with /edge endpoint', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.ppg,
-        targetBuildType: 'edge',
-        copyEngine: false,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(true)

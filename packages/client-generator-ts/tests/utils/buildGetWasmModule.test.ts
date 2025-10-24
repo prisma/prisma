@@ -42,9 +42,7 @@ function makeTypeScriptFiles({ component, output }: MakeTypeScriptFilesInput) {
  */
 
 const components = ['engine', 'compiler'] as const satisfies Array<Options['component']>
-const runtimeNames = ['library', 'client', 'wasm-compiler-edge', 'edge'] as const satisfies Array<
-  Options['runtimeName']
->
+const runtimeNames = ['library', 'client', 'wasm-compiler-edge'] as const satisfies Array<Options['runtimeName']>
 const targets = supportedInternalRuntimes
 const moduleFormats = ['cjs', 'esm'] as const satisfies Array<Options['moduleFormat']>
 
@@ -58,7 +56,7 @@ function makeTestCombinations() {
     for (const runtimeName of runtimeNames) {
       for (const target of targets) {
         // Skip impossible combinations
-        if (['edge', 'wasm-compiler-edge'].includes(runtimeName) && !['vercel-edge', 'workerd'].includes(target)) {
+        if (['wasm-compiler-edge'].includes(runtimeName) && !['vercel-edge', 'workerd'].includes(target)) {
           continue
         }
 

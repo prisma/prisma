@@ -141,15 +141,6 @@ export async function buildClient({
     reusedJs: '.',
   })
 
-  // we create a client that is fit for edge runtimes
-  const edgeClient = new TSClient({
-    ...baseClientOptions,
-    runtimeNameJs: 'edge',
-    runtimeNameTs: 'library.js',
-    reusedTs: 'default',
-    edge: true,
-  })
-
   // we create a client that is fit for react native runtimes
   const rnTsClient = new TSClient({
     ...baseClientOptions,
@@ -210,8 +201,6 @@ export async function buildClient({
   fileMap['default.js'] = JS(defaultClient)
   fileMap['default.d.ts'] = TS(defaultClient)
   fileMap['index-browser.js'] = BrowserJS(nodeClient)
-  fileMap['edge.js'] = JS(edgeClient)
-  fileMap['edge.d.ts'] = TS(edgeClient)
   fileMap['client.js'] = JS(defaultClient)
   fileMap['client.d.ts'] = TS(defaultClient)
 
@@ -219,8 +208,6 @@ export async function buildClient({
     fileMap['react-native.js'] = JS(rnTsClient)
     fileMap['react-native.d.ts'] = TS(rnTsClient)
   }
-
-  const usesClientEngine = clientEngineType === ClientEngineType.Client
 
   // The trampoline client points to #main-entry-point (see below).  We use
   // imports similar to an exports map to ensure correct imports.❗ Before
@@ -237,18 +224,13 @@ export async function buildClient({
   // In short: A lot can be simplified, but can only happen in GA & P6.
   fileMap['default.js'] = JS(trampolineTsClient)
   fileMap['default.d.ts'] = TS(trampolineTsClient)
-  if (usesClientEngine) {
-    fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
-    fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
-  } else {
-    fileMap['wasm-worker-loader.mjs'] = `export default import('./query_engine_bg.wasm')`
-    fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_engine_bg.wasm?module')`
-  }
+  fileMap['wasm-worker-loader.mjs'] = `export default import('./query_compiler_bg.wasm')`
+  fileMap['wasm-edge-light-loader.mjs'] = `export default import('./query_compiler_bg.wasm?module')`
 
   pkgJson['browser'] = 'default.js' // also point to the trampoline client otherwise it is picked up by cfw
   pkgJson['imports'] = {
-    // when `import('#wasm-engine-loader')` or `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
-    [usesClientEngine ? '#wasm-compiler-loader' : '#wasm-engine-loader']: {
+    // when `import('#wasm-compiler-loader')` is called, it will be resolved to the correct file
+    '#wasm-compiler-loader': {
       // Keys reference: https://runtime-keys.proposal.wintercg.org/#keys
 
       /**
@@ -278,7 +260,7 @@ export async function buildClient({
 
   const wasmClient = new TSClient({
     ...baseClientOptions,
-    runtimeNameJs: usesClientEngine ? 'wasm-compiler-edge' : 'wasm-engine-edge',
+    runtimeNameJs: 'wasm-compiler-edge',
     runtimeNameTs: 'library.js',
     reusedTs: 'default',
     edge: true,
@@ -289,7 +271,7 @@ export async function buildClient({
   fileMap['wasm.d.ts'] = TS(wasmClient)
 
   if (typedSql && typedSql.length > 0) {
-    const edgeRuntimeName = usesClientEngine ? 'wasm-compiler-edge' : 'edge'
+    const edgeRuntimeName = 'wasm-compiler-edge'
     const cjsEdgeIndex = `./sql/index.${edgeRuntimeName}.js`
     const esmEdgeIndex = `./sql/index.${edgeRuntimeName}.mjs`
     pkgJson.exports['./sql'] = {
@@ -488,7 +470,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // copy the necessary engine files needed for the wasm/driver-adapter engine
   if (runtimeNeedsWasmEngine && isWasmEngineSupported(provider) && !testMode) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
-    const filename = clientEngineType === ClientEngineType.Client ? 'query_compiler_bg' : 'query_engine_bg'
+    const filename = 'query_compiler_bg'
 
     // Despite the `!testMode` condition above, we can't assume we are
     // necessarily inside the bundled Prisma CLI because the `prisma-client-js`
@@ -745,10 +727,7 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'library.d.ts',
     'index-browser.js',
     'index-browser.d.ts',
-    'edge.js',
-    'edge-esm.js',
     'react-native.js',
-    'wasm-engine-edge.js',
     'wasm-compiler-edge.js',
   ]
 

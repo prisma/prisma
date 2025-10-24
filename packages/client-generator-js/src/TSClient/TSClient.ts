@@ -4,7 +4,6 @@ import type { BinaryTarget } from '@prisma/get-platform'
 import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
-import crypto from 'crypto'
 import indent from 'indent-string'
 import path from 'path'
 import type { O } from 'ts-toolbelt'
@@ -35,9 +34,7 @@ import { PrismaClientClass } from './PrismaClient'
 type RuntimeName =
   | 'binary'
   | 'library'
-  | 'wasm-engine-edge'
   | 'wasm-compiler-edge'
-  | 'edge'
   | 'edge-esm'
   | 'index-browser'
   | 'react-native'
@@ -107,11 +104,6 @@ export class TSClient implements Generable {
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
 
-    const inlineSchemaHash = crypto
-      .createHash('sha256')
-      .update(Buffer.from(inlineSchema, 'utf8').toString('base64'))
-      .digest('hex')
-
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
@@ -125,7 +117,6 @@ export class TSClient implements Generable {
       ciName: ciInfo.name ?? undefined,
       inlineDatasources: buildInlineDatasources(datasources),
       inlineSchema,
-      inlineSchemaHash,
       copyEngine,
     }
 

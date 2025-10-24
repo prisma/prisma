@@ -3,28 +3,19 @@ import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import { version as enginesVersion } from '@prisma/engines-version/package.json'
 import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientValidationError,
-} from '.'
+import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateEngineConfig } from './core/engines/accelerate/AccelerateEngine'
 import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
-import { getBatchRequestPayload } from './core/engines/common/utils/getBatchRequestPayload'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
-import { prismaGraphQLToJSError } from './core/errors/utils/prismaGraphQLToJSError'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
@@ -33,7 +24,6 @@ import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
-import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -73,14 +63,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_BUILD_TYPE:
-    | 'binary'
-    | 'library'
-    | 'edge'
-    | 'wasm-engine-edge'
-    | 'wasm-compiler-edge'
-    | 'react-native'
-    | 'client'
+  const TARGET_BUILD_TYPE: 'binary' | 'library' | 'wasm-compiler-edge' | 'react-native' | 'client'
 }
 
 // used by esbuild for tree-shaking
@@ -237,7 +220,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
-    _accelerateEngineConfig: AccelerateEngineConfig
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
@@ -385,7 +367,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchema: config.inlineSchema,
           overrideDatasources: getDatasourceOverrides(options),
           inlineDatasources: config.inlineDatasources,
-          inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           transactionOptions: {
             maxWait: options.transactionOptions?.maxWait ?? 2000,
@@ -395,22 +376,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           isBundled: config.isBundled,
           adapter,
-        }
-
-        this._accelerateEngineConfig = {
-          ...this._engineConfig,
-          // share runtime utils to accelerate
-          accelerateUtils: {
-            resolveDatasourceUrl,
-            getBatchRequestPayload,
-            prismaGraphQLToJSError,
-            PrismaClientUnknownRequestError,
-            PrismaClientInitializationError,
-            PrismaClientKnownRequestError,
-            debug: Debug('prisma:client:accelerateEngine'),
-            engineVersion: enginesVersion,
-            clientVersion: config.clientVersion,
-          },
         }
 
         debug('clientVersion', config.clientVersion)

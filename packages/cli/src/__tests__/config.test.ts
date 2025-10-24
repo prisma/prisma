@@ -14,7 +14,8 @@ const COMMANDS = [
   ['db', 'pull'],
   ['db', 'push'],
   ['db', 'seed'],
-  ['studio'],
+  // TODO: restore test when `prisma studio` command is re-enabled
+  // ['studio'],
   ['generate'],
   ['version'],
   ['validate'],
