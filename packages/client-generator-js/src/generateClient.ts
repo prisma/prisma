@@ -439,10 +439,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
   await fs.writeFile(schemaTargetPath, datamodel, { encoding: 'utf-8' })
 
-  const runtimeNeedsWasmEngine = clientEngineType === ClientEngineType.Client
-
   // copy the necessary engine files needed for the wasm/driver-adapter engine
-  if (runtimeNeedsWasmEngine && isWasmEngineSupported(provider) && !testMode) {
+  if (isWasmEngineSupported(provider) && !testMode) {
     const suffix = provider === 'postgres' ? 'postgresql' : provider
     const filename = 'query_compiler_bg'
 
