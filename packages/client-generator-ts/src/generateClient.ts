@@ -410,10 +410,6 @@ function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: Clie
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Binary) {
-    return 'binary'
-  }
-
   if (engineType === ClientEngineType.Library) {
     return 'library'
   }

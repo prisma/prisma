@@ -298,7 +298,7 @@ testMatrix.setupTestSuite(
     }
 
     function engineSerializeFinalResponse() {
-      if (clientMeta.dataProxy || engineType === ClientEngineType.Binary || engineType === ClientEngineType.Client) {
+      if (clientMeta.dataProxy || engineType === ClientEngineType.Client) {
         return []
       }
       return [{ name: 'prisma:engine:response_json_serialization' }]
@@ -341,10 +341,6 @@ testMatrix.setupTestSuite(
       }
 
       const connectSpan = { name: 'prisma:engine:connect', children: engineConnection() }
-
-      if (engineType === 'binary') {
-        return [{ name: 'prisma:client:start_engine', children: [connectSpan] }]
-      }
 
       return [connectSpan]
     }

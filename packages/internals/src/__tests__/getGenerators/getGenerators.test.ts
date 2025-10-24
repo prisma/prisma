@@ -1,6 +1,5 @@
 import { stripVTControlCharacters } from 'node:util'
 
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
@@ -601,8 +600,7 @@ describe('getGenerators', () => {
   testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)('inject engines', async () => {
     const schemaEngine = await resolveBinary(BinaryType.SchemaEngineBinary)
 
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
+    const queryEnginePath = await resolveBinary(BinaryType.QueryEngineLibrary)
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),

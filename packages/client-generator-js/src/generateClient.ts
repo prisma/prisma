@@ -671,10 +671,6 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Binary) {
-    return 'binary'
-  }
-
   if (engineType === ClientEngineType.Library) {
     return 'library'
   }

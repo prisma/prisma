@@ -1,13 +1,11 @@
-import fs from 'node:fs'
 import path from 'node:path'
-import { stripVTControlCharacters } from 'node:util'
 
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryTarget, getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import del from 'del'
 import { default as fetch, type Response } from 'node-fetch'
 import timeoutSignal from 'timeout-signal'
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
@@ -35,7 +33,6 @@ describeIf(!usesCustomEngines)('download', async () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
-  const baseDirBinaryTarget = path.posix.join(dirname, 'binaryTarget')
   let binaryTarget: BinaryTarget
   const actualFetch = (await vi.importActual('node-fetch')).default as typeof fetch
 
@@ -55,13 +52,11 @@ describeIf(!usesCustomEngines)('download', async () => {
 
     test('download all current engines', async () => {
       const binaryTarget = await getBinaryTargetForCurrentPlatform()
-      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
       const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       await download({
         binaries: {
           [BinaryType.QueryEngineLibrary]: baseDirAll,
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: [
@@ -87,7 +82,6 @@ describeIf(!usesCustomEngines)('download', async () => {
 
       await download({
         binaries: {
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
@@ -113,25 +107,6 @@ describeIf(!usesCustomEngines)('download', async () => {
           "libquery_engine-rhel-openssl-1.0.x.so.node",
           "libquery_engine-rhel-openssl-1.1.x.so.node",
           "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "query-engine-darwin",
-          "query-engine-darwin-arm64",
-          "query-engine-debian-openssl-1.0.x",
-          "query-engine-debian-openssl-1.1.x",
-          "query-engine-debian-openssl-3.0.x",
-          "query-engine-linux-arm64-openssl-1.0.x",
-          "query-engine-linux-arm64-openssl-1.1.x",
-          "query-engine-linux-arm64-openssl-3.0.x",
-          "query-engine-linux-musl",
-          "query-engine-linux-musl-arm64-openssl-1.1.x",
-          "query-engine-linux-musl-arm64-openssl-3.0.x",
-          "query-engine-linux-musl-openssl-3.0.x",
-          "query-engine-linux-static-arm64",
-          "query-engine-linux-static-x64",
-          "query-engine-rhel-openssl-1.0.x",
-          "query-engine-rhel-openssl-1.1.x",
-          "query-engine-rhel-openssl-3.0.x",
-          "query-engine-windows.exe",
-          "query_engine-windows.dll.node",
           "schema-engine-darwin",
           "schema-engine-darwin-arm64",
           "schema-engine-debian-openssl-1.0.x",
@@ -154,19 +129,16 @@ describeIf(!usesCustomEngines)('download', async () => {
       `)
 
       // Check that all engines hashes are the same
-      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toContain(CURRENT_ENGINES_HASH)
       expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toContain(CURRENT_ENGINES_HASH)
     })
 
     test('download all engines & cache them', async () => {
-      const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
       const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       const before0 = Math.round(performance.now())
       await download({
         binaries: {
           [BinaryType.QueryEngineLibrary]: baseDirAll,
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: [
@@ -192,7 +164,6 @@ describeIf(!usesCustomEngines)('download', async () => {
 
       await download({
         binaries: {
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
@@ -274,82 +245,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
             "size": 14671240,
           },
           {
-            "name": "query-engine-darwin",
-            "size": 17840936,
-          },
-          {
-            "name": "query-engine-darwin-arm64",
-            "size": 16655984,
-          },
-          {
-            "name": "query-engine-debian-openssl-1.0.x",
-            "size": 19278912,
-          },
-          {
-            "name": "query-engine-debian-openssl-1.1.x",
-            "size": 16799880,
-          },
-          {
-            "name": "query-engine-debian-openssl-3.0.x",
-            "size": 16799880,
-          },
-          {
-            "name": "query-engine-linux-arm64-openssl-1.0.x",
-            "size": 16714408,
-          },
-          {
-            "name": "query-engine-linux-arm64-openssl-1.1.x",
-            "size": 17450568,
-          },
-          {
-            "name": "query-engine-linux-arm64-openssl-3.0.x",
-            "size": 18776304,
-          },
-          {
-            "name": "query-engine-linux-musl",
-            "size": 16652352,
-          },
-          {
-            "name": "query-engine-linux-musl-arm64-openssl-1.1.x",
-            "size": 17704632,
-          },
-          {
-            "name": "query-engine-linux-musl-arm64-openssl-3.0.x",
-            "size": 19116296,
-          },
-          {
-            "name": "query-engine-linux-musl-openssl-3.0.x",
-            "size": 16767120,
-          },
-          {
-            "name": "query-engine-linux-static-arm64",
-            "size": 15976176,
-          },
-          {
-            "name": "query-engine-linux-static-x64",
-            "size": 19270816,
-          },
-          {
-            "name": "query-engine-rhel-openssl-1.0.x",
-            "size": 19278912,
-          },
-          {
-            "name": "query-engine-rhel-openssl-1.1.x",
-            "size": 16799880,
-          },
-          {
-            "name": "query-engine-rhel-openssl-3.0.x",
-            "size": 16799880,
-          },
-          {
-            "name": "query-engine-windows.exe",
-            "size": 19473408,
-          },
-          {
-            "name": "query_engine-windows.dll.node",
-            "size": 17260544,
-          },
-          {
             "name": "schema-engine-darwin",
             "size": 21350168,
           },
@@ -424,9 +319,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         ]
       `)
 
-      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toMatchInlineSnapshot(
-        `"query-engine bb8e7aae27ce478f586df41260253876ccb5b390"`,
-      )
       expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toMatchInlineSnapshot(
         `"schema-engine-cli bb8e7aae27ce478f586df41260253876ccb5b390"`,
       )
@@ -445,7 +337,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
-          'query-engine': baseDirAll,
           'schema-engine': baseDirAll,
         },
         binaryTargets: [
@@ -471,7 +362,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
 
       await download({
         binaries: {
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
@@ -494,7 +384,6 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
-          'query-engine': baseDirAll,
           'schema-engine': baseDirAll,
         },
         binaryTargets: [
@@ -520,7 +409,6 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
 
       await download({
         binaries: {
-          [BinaryType.QueryEngineBinary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
@@ -541,108 +429,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Using cache should be faster
       expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)
       expect(timeInMsToDownloadAllFromCache2).toBeLessThan(timeInMsToDownloadAll)
-    })
-
-    test('auto heal corrupt engine binary', async () => {
-      const targetPath = path.join(baseDirCorruption, getBinaryName(BinaryType.QueryEngineBinary, binaryTarget))
-      if (fs.existsSync(targetPath)) {
-        try {
-          fs.unlinkSync(targetPath)
-        } catch (e) {
-          console.error(e)
-        }
-      }
-
-      await download({
-        binaries: {
-          'query-engine': baseDirCorruption,
-        },
-        version: CURRENT_ENGINES_HASH,
-      })
-
-      fs.writeFileSync(targetPath, 'incorrect-binary')
-
-      // please heal it
-      await download({
-        binaries: {
-          'query-engine': baseDirCorruption,
-        },
-        version: CURRENT_ENGINES_HASH,
-      })
-
-      expect(fs.existsSync(targetPath)).toBe(true)
-
-      expect(await getVersion(targetPath, BinaryType.QueryEngineBinary)).not.toBe(undefined)
-    })
-  })
-
-  describe('binaryTarget', () => {
-    beforeEach(async () => {
-      // Make sure to not mix forward and backward slashes in the path
-      // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirBinaryTarget, '*engine*'))
-    })
-
-    afterEach(() => {
-      vi.unstubAllEnvs()
-    })
-
-    test('handle nonexistent "binaryTarget"', async () => {
-      await expect(
-        download({
-          binaries: {
-            'query-engine': baseDirBinaryTarget,
-          },
-          version: CURRENT_ENGINES_HASH,
-          binaryTargets: ['darwin', 'marvin'] as any,
-        }),
-      ).rejects.toThrowErrorMatchingInlineSnapshot(
-        `[Error: Unknown binaryTarget marvin and no custom engine files were provided]`,
-      )
-    })
-
-    test('handle nonexistent "binaryTarget" with missing custom engine binary', async () => {
-      expect.assertions(1)
-      vi.stubEnv('PRISMA_QUERY_ENGINE_BINARY', '../query-engine')
-      try {
-        await download({
-          binaries: {
-            'query-engine': baseDirBinaryTarget,
-          },
-          version: CURRENT_ENGINES_HASH,
-          binaryTargets: ['darwin', 'marvin'] as any,
-        })
-      } catch (err: any) {
-        expect(stripVTControlCharacters(err.message)).toMatchInlineSnapshot(
-          `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
-        )
-      }
-    })
-
-    test('handle nonexistent "binaryTarget" with custom engine binary', async () => {
-      const e = await download({
-        binaries: {
-          'query-engine': baseDirBinaryTarget,
-        },
-        version: CURRENT_ENGINES_HASH,
-      })
-      const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
-      const targetPath = path.join(
-        baseDirBinaryTarget,
-        // @ts-ignore
-        getBinaryName('query-engine', 'marvin'),
-      )
-      fs.copyFileSync(dummyPath, targetPath)
-      vi.stubEnv('PRISMA_QUERY_ENGINE_BINARY', targetPath)
-
-      const testResult = await download({
-        binaries: {
-          'query-engine': baseDirBinaryTarget,
-        },
-        version: CURRENT_ENGINES_HASH,
-        binaryTargets: ['marvin'] as any,
-      })
-      expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
     })
   })
 
