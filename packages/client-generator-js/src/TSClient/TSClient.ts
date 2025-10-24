@@ -93,7 +93,7 @@ export class TSClient implements Generable {
     const binaryTargets =
       clientEngineType === ClientEngineType.Library
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : (Object.keys(binaryPaths.queryEngine ?? {}) as BinaryTarget[])
+        : []
 
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {

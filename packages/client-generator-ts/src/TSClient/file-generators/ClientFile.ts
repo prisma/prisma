@@ -70,7 +70,7 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
   const binaryTargets =
     clientEngineType === ClientEngineType.Library
       ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-      : (Object.keys(options.binaryPaths.queryEngine ?? {}) as BinaryTarget[])
+      : []
 
   // get relative output dir for it to be preserved even after bundling, or
   // being moved around as long as we keep the same project dir structure.
