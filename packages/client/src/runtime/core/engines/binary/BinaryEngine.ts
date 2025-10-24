@@ -977,10 +977,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       meta: response.meta as Record<string, unknown>,
     })
   }
-
-  applyPendingMigrations(): Promise<void> {
-    throw new Error('Method not implemented.')
-  }
 }
 
 function hookProcess(handler: string, exit = false) {
