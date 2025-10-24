@@ -251,7 +251,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('--force-reset should succeed and display a log', async () => {
@@ -322,7 +321,6 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('multiSchema: --force-reset should succeed and display a log', async () => {

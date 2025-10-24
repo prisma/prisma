@@ -45,7 +45,6 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('basic introspection (with cockroachdb provider)', async () => {

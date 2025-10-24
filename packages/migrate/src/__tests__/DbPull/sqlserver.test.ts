@@ -67,7 +67,6 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('basic introspection', async () => {
@@ -138,7 +137,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {

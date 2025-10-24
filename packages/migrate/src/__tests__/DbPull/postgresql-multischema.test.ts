@@ -42,7 +42,6 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {

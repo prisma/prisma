@@ -67,8 +67,8 @@ export const configContextContributor =
     })
 
     afterEach(() => {
-      overrideDatasource = undefined
-      overrideConfigFile = undefined
+      ctx.resetDatasource()
+      ctx.resetConfigFile()
     })
 
     return ctx

@@ -42,7 +42,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('basic introspection', async () => {

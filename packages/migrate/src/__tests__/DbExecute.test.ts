@@ -88,7 +88,6 @@ describe('db execute', () => {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`"Provided --file at ./doesnotexists.sql doesn't exist."`)
       }
-      ctx.resetDatasource()
     })
   })
 
@@ -170,12 +169,8 @@ COMMIT;`,
         fs.writeFileSync('script.sql', sqlScript)
 
         ctx.setDatasource({ url: 'file:./dev.db' })
-        try {
-          const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-          await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-        } finally {
-          ctx.resetDatasource()
-        }
+        const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
       it('should pass with datasource pointing to file:dev.db', async () => {
@@ -183,12 +178,8 @@ COMMIT;`,
         fs.writeFileSync('script.sql', sqlScript)
 
         ctx.setDatasource({ url: 'file:dev.db' })
-        try {
-          const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-          await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-        } finally {
-          ctx.resetDatasource()
-        }
+        const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
       it('should pass with empty script', async () => {
@@ -196,12 +187,8 @@ COMMIT;`,
         fs.writeFileSync('script.sql', '')
 
         ctx.setDatasource({ url: 'file:dev.db' })
-        try {
-          const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-          await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-        } finally {
-          ctx.resetDatasource()
-        }
+        const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
 
       it('should fail with P1013 error when datasource URL is invalid', async () => {
@@ -221,8 +208,6 @@ COMMIT;`,
                       The provided database string is invalid. The scheme is not recognized in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
                       "
                   `)
-        } finally {
-          ctx.resetDatasource()
         }
       })
 
@@ -231,12 +216,8 @@ COMMIT;`,
         fs.writeFileSync('script.sql', sqlScript)
 
         ctx.setDatasource({ url: 'file:doesnotexists.db' })
-        try {
-          const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-          await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
-        } finally {
-          ctx.resetDatasource()
-        }
+        const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+        await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
       })
     })
 
@@ -293,7 +274,6 @@ COMMIT;`,
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     const sqlScript = `-- Drop & Create & Drop
@@ -494,7 +474,6 @@ COMMIT;`,
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     const sqlScript = `-- Drop & Create & Drop
@@ -664,7 +643,6 @@ COMMIT;`,
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     const sqlScript = `-- Drop & Create & Drop
@@ -839,7 +817,6 @@ COMMIT;`,
       await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     const sqlScript = `-- Drop & Create & Drop

@@ -817,7 +817,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1209,7 +1208,6 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1382,7 +1380,6 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
@@ -1586,7 +1583,6 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('schema only', async () => {
