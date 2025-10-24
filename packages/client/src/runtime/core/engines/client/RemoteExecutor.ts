@@ -5,14 +5,14 @@ import { Debug } from '@prisma/debug'
 import type { EngineTraceEvent, TracingHelper } from '@prisma/internals'
 import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 
-import { getUrlAndApiKey } from '../common/accelerate/getUrlAndApiKey'
-import { type AccelerateHeaders, HeaderBuilder } from '../common/accelerate/HeaderBuilder'
+import { getUrlAndApiKey } from '../accelerate/getUrlAndApiKey'
+import { type AccelerateHeaders, HeaderBuilder } from '../accelerate/HeaderBuilder'
 import type { AccelerateExtensionFetch, EngineConfig } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
 import type { QueryEngineResultExtensions } from '../common/types/QueryEngine'
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
-import { dateFromEngineTimestamp } from '../data-proxy/utils/EngineTimestamp'
 import type { ExecutePlanParams, Executor, ProviderAndConnectionInfo } from './Executor'
+import { dateFromEngineTimestamp } from './utils/engine-timestamp'
 
 const debug = Debug('prisma:client:clientEngine:remoteExecutor')
 

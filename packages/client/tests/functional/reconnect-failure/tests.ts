@@ -31,7 +31,7 @@ testMatrix.setupTestSuite(
     skipDb: true, // So we can manually spawn the database
     skipDefaultClientInstance: true, // So we can manually call connect for this test
     skipDataProxy: {
-      runtimes: ['node', 'edge'],
+      runtimes: ['node'],
       reason: `
         Fails with Data Proxy: error is an instance of InvalidDatasourceError
         instead of Prisma.PrismaClientInitializationError.

@@ -2,8 +2,7 @@ import { GetPrismaClientConfig } from '@prisma/client-common'
 import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
-import { BinaryEngine, ClientEngine, DataProxyEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
-import { AccelerateEngine } from '../engines/accelerate/AccelerateEngine'
+import { BinaryEngine, ClientEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
@@ -52,12 +51,6 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
   const binaryEngineConfigured = engineType === ClientEngineType.Binary
   const clientEngineConfigured = engineType === ClientEngineType.Client
 
-  // TODO: one day we may want to completely deprecate `@prisma/client/edge` in favor of wasm build
-  // TODO: After having moved the DataProxyEngine to Accelerate
-  // - Replace DataProxyEngine with AccelerateEngine via `@prisma/extension-accelerate`
-  // - Delete DataProxyEngine and all related files
-  // - Update the DataProxy tests to use the /wasm endpoint, but keep ecosystem-tests as they are
-
   // When a local driver adapter is configured, the URL from the datasource
   // block in the Prisma schema is no longer relevant as driver adapters don't
   // use it. Therefore, a configured driver adapter takes precedence over the
@@ -69,18 +62,14 @@ export function getEngineInstance({ copyEngine = true }: GetPrismaClientConfig, 
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
-  else if (isUsing.accelerate && TARGET_BUILD_TYPE !== 'wasm-engine-edge') return new DataProxyEngine(engineConfig)
-  else if (isUsing.driverAdapters && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new LibraryEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
-  else if (isUsing.accelerate && TARGET_BUILD_TYPE === 'wasm-engine-edge') return new AccelerateEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
-  else if (TARGET_BUILD_TYPE === 'edge') return new DataProxyEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
-  else if (TARGET_BUILD_TYPE === 'wasm-engine-edge' || TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
+  else if (TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
     return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion }) as Engine
   }
 
