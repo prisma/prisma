@@ -41,7 +41,6 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('basic introspection', async () => {

@@ -43,7 +43,6 @@ describeMatrix(postgresOnly, 'postgresql-extensions', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {

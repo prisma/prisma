@@ -55,7 +55,6 @@ describeMatrix(postgresOnly, 'postgresql-views', () => {
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     return { setupParams, fixturePath }

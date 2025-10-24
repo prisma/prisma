@@ -869,7 +869,6 @@ describe('migrate diff', () => {
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -926,7 +925,6 @@ describe('migrate diff', () => {
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -1006,7 +1004,6 @@ describe('migrate diff', () => {
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
@@ -1078,7 +1075,6 @@ describe('migrate diff', () => {
       await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
-      ctx.resetDatasource()
     })
 
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {

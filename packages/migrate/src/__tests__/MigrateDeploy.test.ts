@@ -170,7 +170,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-    ctx.resetDatasource()
   })
 
   it('should fail if url is prisma://', async () => {
