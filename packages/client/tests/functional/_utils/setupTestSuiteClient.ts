@@ -307,7 +307,7 @@ export function getPrismaClientInternalArgs({
   const provider = suiteConfig.matrixOptions.provider
   const __internal: PrismaClientOptions['__internal'] = {}
 
-  if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
+  if (clientMeta.runtime === 'node' || clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),
