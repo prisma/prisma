@@ -1,7 +1,7 @@
 import path from 'node:path'
 
 import { GetPrismaClientConfig } from '@prisma/client-common'
-import { getClientEngineType, pathToPosix } from '@prisma/internals'
+import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 
@@ -62,8 +62,7 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   } = options
 
   // This ensures that any engine override is propagated to the generated clients config
-  const clientEngineType = getClientEngineType(generator)
-  generator.config.engineType = clientEngineType
+  generator.config.engineType = 'client'
 
   const datasourceFilePath = datasources[0].sourceFilePath
   const config: GetPrismaClientConfig = {

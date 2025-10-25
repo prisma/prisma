@@ -117,7 +117,6 @@ For configuring the Query Engine Type
 ${formatEnvValue('PRISMA_CLIENT_ENGINE_TYPE')}
 
 For custom engines
-${formatEnvValue('PRISMA_QUERY_ENGINE_LIBRARY')}
 ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 

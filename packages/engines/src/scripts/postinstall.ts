@@ -23,7 +23,6 @@ async function main() {
     }
 
     const binaries: BinaryDownloadConfiguration = {
-      [BinaryType.QueryEngineLibrary]: baseDir,
       [BinaryType.SchemaEngineBinary]: baseDir,
     }
 

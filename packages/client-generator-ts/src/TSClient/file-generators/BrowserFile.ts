@@ -1,5 +1,3 @@
-import { getClientEngineType } from '@prisma/internals'
-
 import { GenerateContext } from '../GenerateContext'
 import { modelExports } from '../ModelExports'
 import { TSClientOptions } from '../TSClient'
@@ -16,8 +14,7 @@ const jsDocHeader = `/*
 `
 
 export function createBrowserFile(context: GenerateContext, options: TSClientOptions): string {
-  const clientEngineType = getClientEngineType(options.generator)
-  options.generator.config.engineType = clientEngineType
+  options.generator.config.engineType = 'client'
 
   return `${jsDocHeader}
 import * as Prisma from '${context.importFileName('./internal/prismaNamespaceBrowser')}'

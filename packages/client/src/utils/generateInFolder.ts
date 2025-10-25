@@ -3,21 +3,10 @@ import path from 'node:path'
 
 import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import { getBinaryTargetForCurrentPlatform, getNodeAPIName } from '@prisma/get-platform'
 import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
-import {
-  ClientEngineType,
-  extractPreviewFeatures,
-  getClientEngineType,
-  getConfig,
-  getDMMF,
-  getPackedPackage,
-} from '@prisma/internals'
+import { ClientEngineType, extractPreviewFeatures, getConfig, getDMMF, getPackedPackage } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import { performance } from 'perf_hooks'
-
-import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 
 const debug = Debug('prisma:generateInFolder')
 
@@ -61,7 +50,6 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config.generators)
-  const clientEngineType = getClientEngineType(config.generators[0])
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')
 
@@ -79,20 +67,6 @@ export async function generateInFolder({
     await getPackedPackage('@prisma/client', outputDir)
   }
 
-  const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-  const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath =
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
-
-  await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
-
-  const binaryPaths = {
-    libqueryEngine: {
-      [binaryTarget]: queryEngineLibraryPath,
-    },
-  }
-
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({
     datamodel: schemas,
@@ -102,7 +76,7 @@ export async function generateInFolder({
   const schema = mergeSchemas({ schemas })
 
   await generateClient({
-    binaryPaths,
+    binaryPaths: {},
     datamodel: schema,
     dmmf,
     ...config,

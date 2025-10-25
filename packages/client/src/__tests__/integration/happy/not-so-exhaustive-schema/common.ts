@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -9,7 +8,8 @@ if (isMacOrWindowsCI) {
   jest.setTimeout(80_000)
 }
 
-export const testGeneratedClient = (engineType: ClientEngineType) => async () => {
+export const testGeneratedClient = () => async () => {
+  const engineType = 'client'
   const clientDir = path.join(__dirname, 'test-clients', engineType)
   await fs.promises.mkdir(clientDir, { recursive: true })
   await fs.promises.copyFile(path.join(__dirname, 'schema.prisma'), path.join(clientDir, 'schema.prisma'))

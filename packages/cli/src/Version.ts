@@ -1,6 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import { enginesVersion } from '@prisma/engines'
-import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import {
   arg,
   BinaryType,
@@ -20,7 +19,6 @@ import { bold, dim, red } from 'kleur/colors'
 import os from 'os'
 import { match } from 'ts-pattern'
 
-import { getClientGeneratorInfo } from './utils/client'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json')
@@ -68,15 +66,6 @@ export class Version implements Command {
 
     loadEnvFile({ printMessage: !args['--json'], config })
 
-    const schemaPathFromArg = args['--schema']
-
-    const { engineType } = await getClientGeneratorInfo({
-      schemaPathFromConfig: config.schema,
-      schemaPathFromArg,
-    }).catch((_) => {
-      return { engineType: 'library' as const }
-    })
-
     const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config)
       .with({ engine: 'js' }, async ({ adapter: adapterFn }) => {
         const adapter = await adapterFn()
@@ -101,28 +90,8 @@ export class Version implements Command {
         }
       })
 
-    const { queryEngineRows, queryEngineRetrievalErrors } = await match(engineType)
-      // eslint-disable-next-line @typescript-eslint/require-await
-      .with('client', async () => {
-        const engineRetrievalErrors = [] as Error[]
-        return {
-          queryEngineRows: [['Query Compiler', 'enabled']],
-          queryEngineRetrievalErrors: engineRetrievalErrors,
-        }
-      })
-      .with('library', async () => {
-        const name = BinaryType.QueryEngineLibrary
-        const engineResult = await resolveEngine(name)
-        const [enginesInfo, enginesRetrievalErrors] = getEnginesInfo(engineResult)
-
-        return {
-          queryEngineRows: [['Query Engine (Node-API)', enginesInfo] as const],
-          queryEngineRetrievalErrors: enginesRetrievalErrors,
-        }
-      })
-      .exhaustive()
-
-    const binaryTarget = await getBinaryTargetForCurrentPlatform()
+    const queryEngineRows = [['Query Compiler', 'enabled']]
+    const queryEngineRetrievalErrors: Error[] = []
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
@@ -130,7 +99,6 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Computed binaryTarget', binaryTarget],
       ['Operating System', os.platform()],
       ['Architecture', os.arch()],
       ['Node.js', process.version],
