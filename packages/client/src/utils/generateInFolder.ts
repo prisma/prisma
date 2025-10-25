@@ -4,7 +4,7 @@ import path from 'node:path'
 import { generateClient } from '@prisma/client-generator-js'
 import Debug from '@prisma/debug'
 import { type GetSchemaResult, getSchemaWithPath, mergeSchemas } from '@prisma/internals'
-import { ClientEngineType, extractPreviewFeatures, getConfig, getDMMF, getPackedPackage } from '@prisma/internals'
+import { extractPreviewFeatures, getConfig, getDMMF, getPackedPackage } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import { performance } from 'perf_hooks'
 
@@ -13,14 +13,9 @@ const debug = Debug('prisma:generateInFolder')
 export interface GenerateInFolderOptions {
   projectDir: string
   packageSource?: string
-  overrideEngineType?: ClientEngineType
 }
 
-export async function generateInFolder({
-  projectDir,
-  packageSource,
-  overrideEngineType,
-}: GenerateInFolderOptions): Promise<number> {
+export async function generateInFolder({ projectDir, packageSource }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
     throw new Error(`Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`)
@@ -43,10 +38,6 @@ export async function generateInFolder({
   }
 
   const { schemas, schemaPath } = schemaPathResult
-
-  if (overrideEngineType) {
-    process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
-  }
 
   const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
   const previewFeatures = extractPreviewFeatures(config.generators)
