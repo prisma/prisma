@@ -38,7 +38,6 @@ export function getTestSuitePlan(
     .flatMap(getExpandedTestSuitePlanWithRemoteQpe)
 
   expandedSuiteConfigs.forEach((config) => {
-    config.matrixOptions.engineType ??= testCliMeta.engineType
     config.matrixOptions.clientRuntime ??= testCliMeta.runtime
     config.matrixOptions.previewFeatures ??= testCliMeta.previewFeatures
     config.matrixOptions.generatorType ??= testCliMeta.generatorType
@@ -127,8 +126,7 @@ function shouldSkipSuiteConfig(
   cliMeta: CliMeta,
   options?: MatrixOptions,
 ): boolean {
-  const { provider, driverAdapter, relationMode, engineType, clientRuntime, clientEngineExecutor } =
-    config.matrixOptions
+  const { provider, driverAdapter, relationMode, clientRuntime, clientEngineExecutor } = config.matrixOptions
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
@@ -149,11 +147,6 @@ function shouldSkipSuiteConfig(
   }, config.matrixOptions)
 
   if (isSkipped) {
-    return true
-  }
-
-  // if the test doesn't support the engine type, skip
-  if (options?.skipEngine?.from.includes(engineType!)) {
     return true
   }
 

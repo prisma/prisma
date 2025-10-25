@@ -16,8 +16,6 @@ export type NamedTestSuiteConfig = {
     generatorType?: GeneratorTypes
     driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
-    // TODO: remove
-    engineType?: 'client'
     clientRuntime?: `${ClientRuntime}`
     previewFeatures?: string[]
     clientEngineExecutor?: ClientEngineExecutor
@@ -289,7 +287,6 @@ export function getTestSuiteCliMeta(): CliMeta {
   return {
     dataProxy,
     runtime: runtime ?? 'node',
-    engineType: 'client',
     previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
     generatorType,
     clientEngineExecutor,
