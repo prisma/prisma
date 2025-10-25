@@ -22,10 +22,7 @@ const FIXED_ENGINES_HASH = 'bb8e7aae27ce478f586df41260253876ccb5b390'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const usesCustomEngines =
-  process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
-  process.env.PRISMA_QUERY_ENGINE_BINARY ||
-  process.env.PRISMA_SCHEMA_ENGINE_BINARY
+const usesCustomEngines = process.env.PRISMA_SCHEMA_ENGINE_BINARY
 
 vi.setConfig({ testTimeout: 300_000 })
 
@@ -56,7 +53,6 @@ describeIf(!usesCustomEngines)('download', async () => {
 
       await download({
         binaries: {
-          [BinaryType.QueryEngineLibrary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: [
@@ -92,22 +88,6 @@ describeIf(!usesCustomEngines)('download', async () => {
       expect(files).toMatchInlineSnapshot(`
         [
           ".gitkeep",
-          "libquery_engine-darwin-arm64.dylib.node",
-          "libquery_engine-darwin.dylib.node",
-          "libquery_engine-debian-openssl-1.0.x.so.node",
-          "libquery_engine-debian-openssl-1.1.x.so.node",
-          "libquery_engine-debian-openssl-3.0.x.so.node",
-          "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-          "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-          "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-          "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
-          "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
-          "libquery_engine-linux-musl-openssl-3.0.x.so.node",
-          "libquery_engine-linux-musl.so.node",
-          "libquery_engine-rhel-openssl-1.0.x.so.node",
-          "libquery_engine-rhel-openssl-1.1.x.so.node",
-          "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "query_engine-windows.dll.node",
           "schema-engine-darwin",
           "schema-engine-darwin-arm64",
           "schema-engine-debian-openssl-1.0.x",
@@ -139,7 +119,6 @@ describeIf(!usesCustomEngines)('download', async () => {
       const before0 = Math.round(performance.now())
       await download({
         binaries: {
-          [BinaryType.QueryEngineLibrary]: baseDirAll,
           [BinaryType.SchemaEngineBinary]: baseDirAll,
         },
         binaryTargets: [
@@ -184,70 +163,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           {
             "name": ".gitkeep",
             "size": 0,
-          },
-          {
-            "name": "libquery_engine-darwin-arm64.dylib.node",
-            "size": 14795656,
-          },
-          {
-            "name": "libquery_engine-darwin.dylib.node",
-            "size": 15943464,
-          },
-          {
-            "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-            "size": 17137992,
-          },
-          {
-            "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-            "size": 14667144,
-          },
-          {
-            "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-            "size": 14671240,
-          },
-          {
-            "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-            "size": 14806960,
-          },
-          {
-            "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-            "size": 15543112,
-          },
-          {
-            "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-            "size": 16856552,
-          },
-          {
-            "name": "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
-            "size": 15821840,
-          },
-          {
-            "name": "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
-            "size": 17233504,
-          },
-          {
-            "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
-            "size": 14659016,
-          },
-          {
-            "name": "libquery_engine-linux-musl.so.node",
-            "size": 14519848,
-          },
-          {
-            "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-            "size": 17137992,
-          },
-          {
-            "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-            "size": 14667144,
-          },
-          {
-            "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-            "size": 14671240,
-          },
-          {
-            "name": "query_engine-windows.dll.node",
-            "size": 17260544,
           },
           {
             "name": "schema-engine-darwin",
@@ -341,7 +256,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       const before = Math.round(performance.now())
       await download({
         binaries: {
-          'libquery-engine': baseDirAll,
           'schema-engine': baseDirAll,
         },
         binaryTargets: [
@@ -388,7 +302,6 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
       const before2 = Math.round(performance.now())
       await download({
         binaries: {
-          'libquery-engine': baseDirAll,
           'schema-engine': baseDirAll,
         },
         binaryTargets: [
@@ -438,6 +351,10 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
   })
 
   describe('retries', { retry: 3 }, () => {
+    beforeEach(async () => {
+      await del(path.posix.join(baseDirChecksum, '*engine*'))
+    })
+
     test('if fetching of checksums fails with a non 200 code it retries it 2 more times', async () => {
       vi.mocked(fetch).mockImplementation((url, opts) => {
         if (String(url).endsWith('.sha256')) {
@@ -453,13 +370,13 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: ['rhel-openssl-3.0.x'],
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256 - 500 KO`,
+        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/schema-engine.gz.sha256 - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files
@@ -483,13 +400,13 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: ['rhel-openssl-3.0.x'],
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz - 500 KO`,
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/schema-engine.gz - 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
@@ -509,7 +426,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
@@ -535,7 +452,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
@@ -565,25 +482,25 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test('if checksum downloads and matches, does not throw', async () => {
-      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, binaryTarget))
+      const schemaEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
-        'libquery-engine': {
-          [binaryTarget]: queryEnginePath,
+        'schema-engine': {
+          [binaryTarget]: schemaEnginePath,
         },
       })
 
       const files = getFiles(baseDirChecksum).map((f) => f.name)
-      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
-      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineLibrary)).toContain(CURRENT_ENGINES_HASH)
+      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(schemaEnginePath)])
+      expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toContain(CURRENT_ENGINES_HASH)
     })
 
     // This tests is skipped on Windows because it errors out with
@@ -606,7 +523,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
@@ -629,25 +546,25 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, binaryTarget))
+      const schemaEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.SchemaEngineBinary, binaryTarget))
 
       await expect(
         download({
           binaries: {
-            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+            [BinaryType.SchemaEngineBinary]: baseDirChecksum,
           },
           binaryTargets: [binaryTarget],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
-        'libquery-engine': {
-          [binaryTarget]: queryEnginePath,
+        'schema-engine': {
+          [binaryTarget]: schemaEnginePath,
         },
       })
 
       const files = getFiles(baseDirChecksum).map((f) => f.name)
-      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
-      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineLibrary)).toContain(CURRENT_ENGINES_HASH)
+      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(schemaEnginePath)])
+      expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toContain(CURRENT_ENGINES_HASH)
     })
   })
 })

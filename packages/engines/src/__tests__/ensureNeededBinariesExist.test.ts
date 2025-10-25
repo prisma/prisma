@@ -10,31 +10,12 @@ describe('ensureNeededBinariesExist', () => {
       it('should not download query engine', async () => {
         const download = vi.fn()
         await ensureNeededBinariesExist({
-          clientEngineType: 'client',
           download,
           hasMigrateAdapterInConfig,
         })
         expect(download).toHaveBeenCalledWith(
           expect.objectContaining({
             binaries: {},
-          }),
-        )
-      })
-    })
-
-    describe('clientEngineType = library', () => {
-      it('should download library query engine', async () => {
-        const download = vi.fn()
-        await ensureNeededBinariesExist({
-          clientEngineType: 'library',
-          download,
-          hasMigrateAdapterInConfig,
-        })
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'libquery-engine': expect.any(String),
-            },
           }),
         )
       })
@@ -48,7 +29,6 @@ describe('ensureNeededBinariesExist', () => {
       it('should not download query engine', async () => {
         const download = vi.fn()
         await ensureNeededBinariesExist({
-          clientEngineType: 'client',
           download,
           hasMigrateAdapterInConfig,
         })
@@ -56,25 +36,6 @@ describe('ensureNeededBinariesExist', () => {
           expect.objectContaining({
             binaries: {
               'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-    })
-
-    describe('clientEngineType = library', () => {
-      it('should download library query engine', async () => {
-        const download = vi.fn()
-        await ensureNeededBinariesExist({
-          clientEngineType: 'library',
-          download,
-          hasMigrateAdapterInConfig,
-        })
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'schema-engine': expect.any(String),
-              'libquery-engine': expect.any(String),
             },
           }),
         )

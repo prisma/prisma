@@ -2,16 +2,8 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import type * as DMMF from '@prisma/dmmf'
-import { overwriteFile } from '@prisma/fetch-engine'
 import type { ActiveConnectorType, BinaryPaths, DataSource, GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
-import {
-  assertNever,
-  ClientEngineType,
-  EnvPaths,
-  getClientEngineType,
-  pathToPosix,
-  setClassName,
-} from '@prisma/internals'
+import { assertNever, EnvPaths, pathToPosix, setClassName } from '@prisma/internals'
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
@@ -98,9 +90,7 @@ export function buildClient({
   tsNoCheckPreamble,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): BuildClientResult {
   // we define the basic options for the client generation
-  const clientEngineType = getClientEngineType(generator)
-
-  const runtimeName = getRuntimeNameForTarget(target, clientEngineType)
+  const runtimeName = getRuntimeNameForTarget(target)
 
   const outputName = generatedFileNameMapper(generatedFileExtension)
   const importName = importFileNameMapper(importFileExtension)
@@ -202,8 +192,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     tsNoCheckPreamble,
   } = options
 
-  const clientEngineType = getClientEngineType(generator)
-
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = buildClient({
@@ -248,31 +236,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   await ensureDir(outputDir)
 
   await writeFileMap(outputDir, fileMap)
-
-  const enginePath = clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : undefined
-
-  if (enginePath) {
-    if (process.env.NETLIFY) {
-      await ensureDir('/tmp/prisma-engines')
-    }
-
-    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
-      const fileName = path.basename(filePath)
-      let target: string
-
-      // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda
-      // are moved to `/tmp/prisma-engines`
-      // They will be ignored and not included in the final build, reducing its size
-      if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
-        target = path.join('/tmp/prisma-engines', fileName)
-      } else {
-        target = path.join(outputDir, fileName)
-      }
-
-      await overwriteFile(filePath, target)
-    }
-  }
 }
 
 function writeFileMap(outputDir: string, fileMap: FileMap) {
@@ -393,11 +356,11 @@ async function getGenerationDirs({ runtimeBase, outputDir }: GenerateClientOptio
   }
 }
 
-function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: ClientEngineType): RuntimeName {
+function getRuntimeNameForTarget(target: RuntimeTargetInternal): RuntimeName {
   switch (target) {
     case 'nodejs':
     case 'deno':
-      return getNodeRuntimeName(engineType)
+      return 'client'
 
     case 'workerd':
     case 'vercel-edge':
@@ -406,18 +369,6 @@ function getRuntimeNameForTarget(target: RuntimeTargetInternal, engineType: Clie
     default:
       assertNever(target, 'Unknown runtime target')
   }
-}
-
-function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Library) {
-    return 'library'
-  }
-
-  if (engineType === ClientEngineType.Client) {
-    return 'client'
-  }
-
-  assertNever(engineType, 'Unknown engine type')
 }
 
 async function deleteOutputDir(outputDir: string) {

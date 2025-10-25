@@ -55,14 +55,11 @@ const envVars = {
   PRISMA_BINARIES_MIRROR: 'http://localhost',
   PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: 'true',
   BINARY_DOWNLOAD_VERSION: 'true',
-  PRISMA_CLIENT_ENGINE_TYPE: 'library',
-  PRISMA_QUERY_ENGINE_LIBRARY: 'some/path',
   PRISMA_SCHEMA_ENGINE_BINARY: 'some/path',
   PRISMA_MIGRATION_ENGINE_BINARY: 'true',
   PRISMA_GENERATE_SKIP_AUTOINSTALL: 'true',
   PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
   PRISMA_GENERATE_IN_POSTINSTALL: 'true',
-  PRISMA_GENERATE_NO_ENGINE: 'true',
   PRISMA_SHOW_ALL_TRACES: 'true',
   PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: 'true',
   PRISMA_MIGRATE_SKIP_GENERATE: 'true',
@@ -135,11 +132,7 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
       - BINARY_DOWNLOAD_VERSION:
 
-      For configuring the Query Engine Type
-      - PRISMA_CLIENT_ENGINE_TYPE:
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_LIBRARY:
       - PRISMA_SCHEMA_ENGINE_BINARY:
       - PRISMA_MIGRATION_ENGINE_BINARY:
 
@@ -223,11 +216,7 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`\`
       - BINARY_DOWNLOAD_VERSION: \`\`
 
-      For configuring the Query Engine Type
-      - PRISMA_CLIENT_ENGINE_TYPE: \`\`
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`\`
       - PRISMA_SCHEMA_ENGINE_BINARY: \`\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`\`
 
@@ -237,7 +226,7 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL: \`\`
 
       For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE: \`\`
+      - PRISMA_GENERATE_NO_ENGINE:
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`\`
@@ -308,11 +297,7 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
       - BINARY_DOWNLOAD_VERSION: \`true\`
 
-      For configuring the Query Engine Type
-      - PRISMA_CLIENT_ENGINE_TYPE: \`library\`
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`some/path\`
       - PRISMA_SCHEMA_ENGINE_BINARY: \`some/path\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`true\`
 
@@ -322,7 +307,7 @@ describe('debug', () => {
       - PRISMA_GENERATE_IN_POSTINSTALL: \`true\`
 
       For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE: \`true\`
+      - PRISMA_GENERATE_NO_ENGINE:
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`true\`
@@ -396,11 +381,7 @@ describe('debug', () => {
       - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`from_env_file\`
       - BINARY_DOWNLOAD_VERSION: \`from_env_file\`
 
-      For configuring the Query Engine Type
-      - PRISMA_CLIENT_ENGINE_TYPE: \`from_env_file\`
-
       For custom engines
-      - PRISMA_QUERY_ENGINE_LIBRARY: \`from_env_file\`
       - PRISMA_SCHEMA_ENGINE_BINARY: \`from_env_file\`
       - PRISMA_MIGRATION_ENGINE_BINARY: \`from_env_file\`
 

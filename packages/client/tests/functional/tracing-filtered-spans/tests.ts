@@ -63,21 +63,7 @@ testMatrix.setupTestSuite(
 
       const spans = inMemorySpanExporter.getFinishedSpans()
 
-      const expectedSpans = [
-        'prisma:client:detect_platform',
-        'prisma:client:load_engine',
-        // 'prisma:engine:connection',                  <-- Filtered out individually
-        'prisma:engine:connect',
-        'prisma:client:connect',
-        'prisma:client:serialize',
-        // 'prisma:engine:compile',                     <-- Filtered out individually
-        // 'prisma:engine:connection',                  <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:db_query',                    <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:serialize',                   <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:response_json_serialization', <-- Child span of filtered out parent span 'prisma:engine:query'
-        // 'prisma:engine:query',                       <-- Child span of filtered out parent span 'prisma:client:operation'
-        // 'prisma:client:operation',                   <-- Filtered out parent span (by regex)
-      ]
+      const expectedSpans = ['prisma:client:connect', 'prisma:client:serialize']
 
       if (engineType === 'client') {
         expectedSpans.splice(0, 3) // Client engine performs no binary engine related spans

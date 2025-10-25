@@ -113,11 +113,7 @@ ${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
-For configuring the Query Engine Type
-${formatEnvValue('PRISMA_CLIENT_ENGINE_TYPE')}
-
 For custom engines
-${formatEnvValue('PRISMA_QUERY_ENGINE_LIBRARY')}
 ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 

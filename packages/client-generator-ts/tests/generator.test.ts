@@ -3,13 +3,7 @@ import path from 'node:path'
 import { stripVTControlCharacters } from 'node:util'
 
 import { omit } from '@prisma/client-common'
-import {
-  ClientEngineType,
-  GeneratorRegistry,
-  getClientEngineType,
-  getGenerator,
-  parseEnvValue,
-} from '@prisma/internals'
+import { GeneratorRegistry, getGenerator, parseEnvValue } from '@prisma/internals'
 import { describe, expect, test } from 'vitest'
 
 import { PrismaClientTsGenerator } from '../src/generator'
@@ -112,9 +106,7 @@ describe('generator', () => {
         "defaultOutput": "./generated",
         "prettyName": "Prisma Client",
         "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [
-          "libqueryEngine",
-        ],
+        "requiresEngines": [],
       }
     `)
 
@@ -242,9 +234,7 @@ describe('generator', () => {
         "defaultOutput": "./generated",
         "prettyName": "Prisma Client",
         "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [
-          "libqueryEngine",
-        ],
+        "requiresEngines": [],
       }
     `)
 
@@ -295,27 +285,14 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+        "requiresEngineVersion": "ENGINE_VERSION_TEST",
+        "requiresEngines": [],
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {

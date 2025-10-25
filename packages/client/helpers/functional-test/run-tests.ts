@@ -99,8 +99,6 @@ const args = arg(
     '--relation-mode-tests-only': Boolean,
     // Run tests for specific provider adapters (and excludes regular provider tests)
     '--adapter': [String],
-    // Forces any given test to be run with `engineType=` binary, library, or client
-    '--engine-type': String,
     // Use client engine's remote executor
     '--remote-executor': Boolean,
     // Forces any given test to be run with an *added* set of preview features, comma-separated
@@ -182,11 +180,6 @@ function main(): number | void {
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_ADAPTERS: adapterProviders.join(',') })
   }
 
-  if (args['--engine-type']) {
-    jestCli = jestCli.withEnv({ TEST_ENGINE_TYPE: args['--engine-type'] })
-    jestCli = jestCli.withEnv({ PRISMA_CLIENT_ENGINE_TYPE: '' })
-  }
-
   if (args['--client-runtime']) {
     jestCli = jestCli.withEnv({ TEST_CLIENT_RUNTIME: args['--client-runtime'] })
   }
@@ -196,10 +189,6 @@ function main(): number | void {
   }
 
   if (args['--remote-executor']) {
-    if (args['--engine-type'] !== 'client') {
-      throw new Error('--remote-executor requires --engine-type=client')
-    }
-
     jestCli = jestCli.withEnv({
       TEST_CLIENT_ENGINE_REMOTE_EXECUTOR: 'true',
     })
@@ -212,10 +201,6 @@ function main(): number | void {
     jestCli = jestCli.withEnv({ TEST_REUSE_DATABASE: 'true' })
   } else {
     jestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'relationMode-in-separate-gh-action'])
-  }
-
-  if (process.env.PRISMA_CLIENT_ENGINE_TYPE && !args['--engine-type']) {
-    throw new Error('Functional tests expect --engine-type to be explicitly set, not via env var')
   }
 
   try {

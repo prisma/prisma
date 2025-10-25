@@ -62,7 +62,6 @@ export interface DataSource {
 
 export type BinaryPaths = {
   schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
-  libqueryEngine?: { [binaryTarget: string]: string }
 }
 
 export type EnvPaths = {
@@ -90,7 +89,7 @@ export type GeneratorOptions = {
   typedSql?: SqlQueryOutput[]
 }
 
-export type EngineType = 'libqueryEngine' | 'schemaEngine'
+export type EngineType = 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

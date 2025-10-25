@@ -59,14 +59,11 @@ runs:
       run: |
         RELEASE_DIR="$(pwd)/target/release"
         if [ -f "$RELEASE_DIR/libquery_engine.so" ]; then
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.so" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
         elif [ -f "$RELEASE_DIR/query_engine.dll" ]; then
           WIN_RELEASE_DIR=$(cygpath -w $RELEASE_DIR)
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$WIN_RELEASE_DIR\\\query_engine.dll" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$WIN_RELEASE_DIR\\\schema-engine.exe" >> $GITHUB_ENV
         elif [ -f "$RELEASE_DIR/libquery_engine.dylib" ]; then
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dylib" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
         else
           echo "Something went wrong. Build cache for engines exists, but no binaries for current OS found"

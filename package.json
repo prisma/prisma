@@ -109,16 +109,6 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.js",
-      "gzip": false,
-      "brotli": false
-    },
-    {
-      "path": "packages/client/runtime/library.d.ts",
-      "gzip": false,
-      "brotli": false
-    },
-    {
       "path": "packages/client/runtime/index-browser.js",
       "gzip": false,
       "brotli": false

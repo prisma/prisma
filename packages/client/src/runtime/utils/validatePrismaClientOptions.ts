@@ -1,5 +1,4 @@
 import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
@@ -72,8 +71,8 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  adapter: (adapter, config) => {
-    if (!adapter && getClientEngineType(config.generator) === ClientEngineType.Client) {
+  adapter: (adapter) => {
+    if (!adapter) {
       throw new PrismaClientConstructorValidationError(
         `Using engine type "client" requires a driver adapter to be provided to PrismaClient constructor.`,
       )

@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -12,7 +11,7 @@ const nftAnnotation = '// file annotations for bundling tools'
 const wasmFileUsage = '#wasm-engine-loader'
 
 testMatrix.setupTestSuite(
-  ({ engineType, clientRuntime, generatorType }, suiteMeta, clientMeta) => {
+  ({ clientRuntime, generatorType }, suiteMeta, clientMeta) => {
     const clientEntrypoint = `generated/prisma/client/${clientRuntime === 'node' ? 'index' : clientRuntime}.js`
     const clientEntrypointPath = path.join(suiteMeta.generatedFolder, clientEntrypoint)
 
@@ -20,17 +19,7 @@ testMatrix.setupTestSuite(
       test('imports correct runtime', async () => {
         const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')
 
-        if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
-          expect(generatedClientContents).toContain(libraryRuntime)
-          expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
-          expect(generatedClientContents).toContain(libraryRuntime)
-          expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
+        if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(edgeRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
@@ -43,13 +32,7 @@ testMatrix.setupTestSuite(
       test('imported files have the expected annotations', async () => {
         const generatedClientContents = await fs.readFile(clientEntrypointPath, 'utf-8')
 
-        if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
-          expect(generatedClientContents).not.toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
-          expect(generatedClientContents).toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
+        if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else {

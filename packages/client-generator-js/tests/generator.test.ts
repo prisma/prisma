@@ -109,9 +109,7 @@ describe('generator', () => {
         "defaultOutput": "/project/node_modules/@prisma/client",
         "prettyName": "Prisma Client",
         "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [
-          "libqueryEngine",
-        ],
+        "requiresEngines": [],
       }
     `)
 
@@ -184,9 +182,7 @@ describe('generator', () => {
         "defaultOutput": "/project/node_modules/@prisma/client",
         "prettyName": "Prisma Client",
         "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [
-          "libqueryEngine",
-        ],
+        "requiresEngines": [],
       }
     `)
 
@@ -346,9 +342,7 @@ describe('generator', () => {
         "defaultOutput": "/project/node_modules/@prisma/client",
         "prettyName": "Prisma Client",
         "requiresEngineVersion": "ENGINE_VERSION_TEST",
-        "requiresEngines": [
-          "libqueryEngine",
-        ],
+        "requiresEngines": [],
       }
     `)
 

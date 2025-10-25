@@ -71,7 +71,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -152,7 +151,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -241,7 +239,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -330,7 +327,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -420,7 +416,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -524,7 +519,6 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "libqueryEngine",
             "schemaEngine",
           ],
         },
