@@ -8,32 +8,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('version', () => {
   describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
-    test('shows query-engine library when queryCompiler is turned off', async () => {
-      ctx.fixture('prisma-config-dont-download-schema-engine')
-      const data = await ctx.cli('version')
-      expect(data.exitCode).toBe(0)
-      expect(cleanSnapshot(data.stdout)).toMatchInlineSnapshot(`
-        "Prisma schema loaded from schema.prisma
-        prisma                : 0.0.0
-        @prisma/client        : 0.0.0
-        Operating System      : OS
-        Architecture          : ARCHITECTURE
-        Node.js               : NODEJS_VERSION
-        TypeScript            : TYPESCRIPT_VERSION
-        Query Compiler        : enabled
-        PSL                   : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine         : @prisma/schema-engine-wasm CLI_VERSION.ENGINE_VERSION
-        Schema Engine Adapter : @prisma/adapter-mock
-        Default Engines Hash  : ENGINE_VERSION
-        Studio                : STUDIO_VERSION"
-      `)
-      expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
-        "Loaded Prisma config from prisma.config.ts.
-
-        Prisma config detected, skipping environment variable loading."
-      `)
-    })
-
     describe('bypassing query engine env vars', () => {
       const originalEnv = { ...process.env }
       const resetEnv = () => {
@@ -54,7 +28,6 @@ describe('version', () => {
 
       beforeAll(() => {
         resetEnv()
-        delete process.env.PRISMA_CLIENT_ENGINE_TYPE
       })
 
       afterAll(() => {

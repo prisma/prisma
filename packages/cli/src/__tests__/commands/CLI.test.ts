@@ -69,7 +69,6 @@ describe('CLI', () => {
 
     beforeAll(() => {
       resetEnv()
-      delete process.env.PRISMA_CLIENT_ENGINE_TYPE
     })
 
     afterAll(() => {

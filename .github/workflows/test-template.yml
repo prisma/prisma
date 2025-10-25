@@ -9,7 +9,6 @@ on:
           flaky tests detection or "daily-test" for scheduled full builds,
           "CI" for normal pushes/PRs
         type: string
-        required: false
         default: CI
       jobTimeout:
         description: Timeout for the jobs. Default is 35 minutes
@@ -21,10 +20,6 @@ on:
         type: string
         default: '-all-'
         required: false
-      queryEngine:
-        description: List of query engines to run tests on as JSON array
-        type: string
-        default: '["library"]'
       pnpmVersion:
         description: pnpm package manager version
         type: string
@@ -101,7 +96,7 @@ jobs:
   # CLIENT (functional and legacy tests without types test)
   #
   client:
-    name: Client Legacy ${{ matrix.queryEngine }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    name: Client Legacy ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -111,7 +106,6 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         node: ['20.19.0', '22.12.0', '24']
         previewFeatures: ['', 'relationJoins']
     env:
@@ -120,10 +114,6 @@ jobs:
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -142,7 +132,7 @@ jobs:
           skip-tsc: false
 
       # Run the functional test suite
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }} --preview-features "${{ matrix.previewFeatures }}"
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --preview-features "${{ matrix.previewFeatures }}"
         if: |
           contains(inputs.jobsToRun, '-all-') ||
           contains(inputs.jobsToRun, '-client-')
@@ -334,7 +324,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --engine-type client --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -389,7 +379,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime client --engine-type client --remote-executor --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime client --remote-executor --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -397,7 +387,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: 'client/functional-qpe'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_CLIENT_ENGINE_TYPE: client
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
@@ -642,14 +631,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         node: ['20.19.0']
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Start Docker Compose Services
         uses: nick-fields/retry@v3
@@ -682,7 +666,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
@@ -695,10 +678,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -723,7 +702,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
         # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
@@ -738,10 +716,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres mysql mssql mongodb_migrate cockroachdb
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -768,7 +742,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
     steps:
@@ -781,10 +754,6 @@ jobs:
           max_attempts: 5
           retry_wait_seconds: 120
           command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> "$GITHUB_ENV"
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -1019,7 +988,6 @@ jobs:
       matrix:
         os: [macos-14, windows-latest]
         node: ['20.19.0']
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
     if: |
       contains(inputs.jobsToRun, '-all-') ||
@@ -1035,7 +1003,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_SKIP_VITESS=true"
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
@@ -1052,7 +1019,7 @@ jobs:
           skip-tsc: true
 
       - name: Test packages/client
-        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --engine-type ${{ matrix.queryEngine }}
+        run: pnpm run test:functional:code ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
@@ -1088,7 +1055,6 @@ jobs:
       matrix:
         os: [macos-14, windows-latest]
         node: ['20.19.0']
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -1100,7 +1066,6 @@ jobs:
             echo "TEST_SKIP_MONGODB=true"
             echo "TEST_SKIP_COCKROACHDB=true"
             echo "TEST_NO_DOCKER=true"
-            echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}"
           } >> "$GITHUB_ENV"
 
       - name: Set up PostgreSQL
