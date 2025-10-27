@@ -85,7 +85,6 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   postinstall?: boolean
-  noEngine?: boolean
   noHints?: boolean
   allowNoModels?: boolean
   envPaths?: EnvPaths
