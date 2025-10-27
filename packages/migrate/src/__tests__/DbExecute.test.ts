@@ -848,7 +848,7 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    it('should pass using a transaction with --file', async () => {
+    it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync(
@@ -856,7 +856,7 @@ DROP DATABASE "test-dbexecute";`
         `-- start a transaction
 BEGIN TRANSACTION;
 
-${sqlScript}
+SELECT 1
 
 -- commit changes
 COMMIT;`,
@@ -865,7 +865,9 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`"Script executed successfully."`)
     })
 
-    it('should fail if DROP DATABASE is executed inside a transaction', async () => {
+    // Limitation of sqlserver
+    // DROP DATABASE statement cannot be used inside a user transaction.
+    it('should fail if DROP DATABASE in a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync(
