@@ -107,29 +107,16 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "/project/node_modules/@prisma/client",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "queryEngine",
-          ],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+        "requiresEngineVersion": "ENGINE_VERSION_TEST",
+        "requiresEngines": [
+          "libqueryEngine",
+        ],
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
@@ -250,29 +237,16 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "libqueryEngine",
-          ],
-        }
-      `)
-    } else {
-      expect(manifest).toMatchInlineSnapshot(`
-        {
-          "defaultOutput": "./generated",
-          "prettyName": "Prisma Client",
-          "requiresEngineVersion": "ENGINE_VERSION_TEST",
-          "requiresEngines": [
-            "queryEngine",
-          ],
-        }
-      `)
-    }
+    expect(manifest).toMatchInlineSnapshot(`
+      {
+        "defaultOutput": "./generated",
+        "prettyName": "Prisma Client",
+        "requiresEngineVersion": "ENGINE_VERSION_TEST",
+        "requiresEngines": [
+          "libqueryEngine",
+        ],
+      }
+    `)
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {

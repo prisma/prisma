@@ -25,20 +25,10 @@ testMatrix.setupTestSuite(
           expect(generatedClientContents).not.toContain(edgeRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
           expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
-          expect(generatedClientContents).toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(libraryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
         } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(edgeRuntime)
           expect(generatedClientContents).not.toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(wasmRuntime)
-        } else if (engineType === ClientEngineType.Binary && clientRuntime === 'node') {
-          expect(generatedClientContents).toContain(binaryRuntime)
-          expect(generatedClientContents).not.toContain(edgeRuntime)
-          expect(generatedClientContents).not.toContain(libraryRuntime)
           expect(generatedClientContents).not.toContain(wasmRuntime)
         } else if (clientMeta.driverAdapter && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(libraryRuntime)
@@ -56,13 +46,7 @@ testMatrix.setupTestSuite(
         if (clientMeta.dataProxy && engineType === ClientEngineType.Library) {
           expect(generatedClientContents).not.toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (clientMeta.dataProxy && engineType === ClientEngineType.Binary) {
-          expect(generatedClientContents).not.toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else if (engineType === ClientEngineType.Library && clientRuntime === 'node') {
-          expect(generatedClientContents).toContain(nftAnnotation)
-          expect(generatedClientContents).not.toContain(wasmFileUsage)
-        } else if (engineType === ClientEngineType.Binary && clientRuntime === 'node') {
           expect(generatedClientContents).toContain(nftAnnotation)
           expect(generatedClientContents).not.toContain(wasmFileUsage)
         } else if (clientMeta.driverAdapter && clientRuntime === 'node') {

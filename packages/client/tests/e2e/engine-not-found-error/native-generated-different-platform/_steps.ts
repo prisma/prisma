@@ -25,11 +25,6 @@ void executeSteps({
     replaceNativeBinaryTarget()
     await $`rm -f ./prisma/client/libquery_engine*`
     await $`pnpm jest library`
-
-    await $`PRISMA_CLIENT_ENGINE_TYPE=binary pnpm prisma generate`
-    replaceNativeBinaryTarget()
-    await $`rm -f ./prisma/client/query-engine*`
-    await $`pnpm jest binary`
   },
   finish: async () => {
     await $`echo "done"`
