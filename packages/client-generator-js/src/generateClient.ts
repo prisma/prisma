@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import type * as DMMF from '@prisma/dmmf'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type {
@@ -32,6 +33,8 @@ import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import { TSClientOptions } from './TSClient/TSClient'
 import { buildTypedSql } from './typedSql/typedSql'
 import { addPreamble, addPreambleToJSFiles } from './utils/addPreamble'
+
+const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
   content: string
@@ -393,6 +396,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
+  await deleteOutputDir(outputDir)
   await ensureDir(outputDir)
 
   await writeFileMap(outputDir, fileMap)
@@ -724,6 +728,24 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
       }
     }),
   )
+}
+
+/**
+ * Attempts to delete the output directory.
+ * @param outputDir
+ */
+async function deleteOutputDir(outputDir: string) {
+  try {
+    debug(`attempting to delete ${outputDir} recursively`)
+    // we want to make sure that if we delete, we delete the right directory
+    if (require(`${outputDir}/package.json`).name?.startsWith(GENERATED_PACKAGE_NAME_PREFIX)) {
+      await fs.rmdir(outputDir, { recursive: true }).catch(() => {
+        debug(`failed to delete ${outputDir} recursively`)
+      })
+    }
+  } catch {
+    debug(`failed to delete ${outputDir} recursively, not found`)
+  }
 }
 
 /**
