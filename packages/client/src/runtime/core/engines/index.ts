@@ -1,4 +1,3 @@
-export { BinaryEngine } from './binary/BinaryEngine'
 export { ClientEngine } from './client/ClientEngine'
 export {
   type AccelerateExtensionFetchDecorator,

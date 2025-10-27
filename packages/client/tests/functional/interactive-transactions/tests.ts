@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import { copycat } from '@snaplet/copycat'
 
 import { AdapterProviders, Providers } from '../_utils/providers'
@@ -14,7 +13,7 @@ declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider, engineType, driverAdapter }, _suiteMeta) => {
+  ({ provider, driverAdapter }, _suiteMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -329,7 +328,7 @@ testMatrix.setupTestSuite(
      * A bad batch should rollback using the interactive transaction logic
      * // TODO: skipped because output differs from binary to library
      */
-    testIf(engineType !== ClientEngineType.Binary)('batching rollback', async () => {
+    test('batching rollback', async () => {
       const result = prisma.$transaction([
         prisma.user.create({
           data: {
@@ -388,46 +387,43 @@ testMatrix.setupTestSuite(
      * A bad batch should rollback using the interactive transaction logic
      * // TODO: skipped because output differs from binary to library
      */
-    testIf(engineType !== ClientEngineType.Binary && provider !== Providers.MONGODB)(
-      'batching raw rollback',
-      async () => {
-        await prisma.user.create({
-          data: {
-            id: '1',
-            email: 'user_1@website.com',
-          },
-        })
+    testIf(provider !== Providers.MONGODB)('batching raw rollback', async () => {
+      await prisma.user.create({
+        data: {
+          id: '1',
+          email: 'user_1@website.com',
+        },
+      })
 
-        const result =
-          provider === Providers.MYSQL
-            ? prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM User`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
-            : prisma.$transaction([
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$queryRaw`DELETE FROM "User"`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== Providers.MONGODB
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
+      const result =
+        provider === Providers.MYSQL
+          ? prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM User`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
+          : prisma.$transaction([
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$queryRaw`DELETE FROM "User"`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== Providers.MONGODB
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
 
-        await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-        const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany()
 
-        expect(users.length).toBe(1)
-      },
-    )
+      expect(users.length).toBe(1)
+    })
 
     /**
      * Two concurrent transactions should work
