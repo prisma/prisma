@@ -410,8 +410,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     })
   }
 
-  const enginePath =
-    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
+  const enginePath = clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : undefined
 
   if (enginePath) {
     if (process.env.NETLIFY) {
@@ -669,10 +668,6 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
 }
 
 function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Binary) {
-    return 'binary'
-  }
-
   if (engineType === ClientEngineType.Library) {
     return 'library'
   }

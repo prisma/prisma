@@ -69,10 +69,6 @@ function getQueryEngineFilename(engineType: ClientEngineType, binaryTarget: Bina
     return getNodeAPIName(binaryTarget, 'fs')
   }
 
-  if (engineType === ClientEngineType.Binary) {
-    return `query-engine-${binaryTarget}`
-  }
-
   return undefined
 }
 

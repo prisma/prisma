@@ -236,14 +236,6 @@ function runCommandRawDefinition(context: GenerateContext) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(runtimeName: TSClientOptions['runtimeName']) {
-  if (runtimeName === 'binary') {
-    return `$on<V extends (LogOpts | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => runtime.Types.Utils.JsPromise<void> : Prisma.LogEvent) => void): PrismaClient;`
-  } else {
-    return `$on<V extends LogOpts>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;`
-  }
-}
-
 export function getPrismaClientClassDocComment({ dmmf }: GenerateContext): ts.DocComment {
   let example: DMMF.ModelMapping
 
@@ -307,7 +299,7 @@ export interface PrismaClient<
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
-  ${eventRegistrationMethodDeclaration(this.runtimeName)}
+  $on<V extends LogOpts>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
 
   /**
    * Connect with the database

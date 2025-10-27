@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion } from '@prisma/engines'
 import type {
   BinaryTargetsEnvValue,
   EngineType,
@@ -15,7 +15,7 @@ import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { getDMMF, getEnvPaths, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
+import { BinaryType, getDMMF, getEnvPaths, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -284,8 +284,7 @@ generator gen {
       }
     }
 
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
+    const queryEngineType = binaryTypeToEngineType(BinaryType.QueryEngineLibrary)
 
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
     const { binaryPathsByVersion, binaryTarget } = await getBinaryPathsByVersion({
@@ -385,19 +384,6 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
   for (const generator of generators) {
-    if (generator.config.platforms) {
-      throw new Error(
-        `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
-      )
-    }
-
-    if (generator.config.pinnedBinaryTargets) {
-      throw new Error(
-        `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
-Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
-      )
-    }
-
     if (generator.binaryTargets) {
       const binaryTargets =
         generator.binaryTargets && generator.binaryTargets.length > 0

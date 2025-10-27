@@ -39,24 +39,6 @@ describe('ensureNeededBinariesExist', () => {
         )
       })
     })
-
-    describe('clientEngineType = binary', () => {
-      it('should download binary query engine', async () => {
-        const download = vi.fn()
-        await ensureNeededBinariesExist({
-          clientEngineType: 'binary',
-          download,
-          hasMigrateAdapterInConfig,
-        })
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'query-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-    })
   })
 
   describe('with hasMigrateAdapterInConfig = false, it should download schema-engine', () => {
@@ -93,25 +75,6 @@ describe('ensureNeededBinariesExist', () => {
             binaries: {
               'schema-engine': expect.any(String),
               'libquery-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-    })
-
-    describe('clientEngineType = binary', () => {
-      it('should download binary query engine', async () => {
-        const download = vi.fn()
-        await ensureNeededBinariesExist({
-          clientEngineType: 'binary',
-          download,
-          hasMigrateAdapterInConfig,
-        })
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'schema-engine': expect.any(String),
-              'query-engine': expect.any(String),
             },
           }),
         )

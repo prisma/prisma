@@ -84,24 +84,14 @@ export async function generateInFolder({
   const enginesPath = getEnginesPath()
   const queryEngineLibraryPath =
     process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? path.join(enginesPath, getNodeAPIName(binaryTarget, 'fs'))
-  const queryEngineBinaryPath =
-    process.env.PRISMA_QUERY_ENGINE_BINARY ??
-    path.join(enginesPath, `query-engine-${binaryTarget}${binaryTarget === 'windows' ? '.exe' : ''}`)
 
   await ensureTestClientQueryEngine(clientEngineType, binaryTarget)
 
-  const binaryPaths =
-    clientEngineType === ClientEngineType.Library
-      ? {
-          libqueryEngine: {
-            [binaryTarget]: queryEngineLibraryPath,
-          },
-        }
-      : {
-          queryEngine: {
-            [binaryTarget]: queryEngineBinaryPath,
-          },
-        }
+  const binaryPaths = {
+    libqueryEngine: {
+      [binaryTarget]: queryEngineLibraryPath,
+    },
+  }
 
   // TODO: use engine.getDmmf()
   const dmmf = await getDMMF({
