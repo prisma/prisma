@@ -1,18 +1,14 @@
 import { stripVTControlCharacters } from 'node:util'
 
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
 import { getBinaryTargetForCurrentPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { loadSchemaContext } from '../../cli/schemaContext'
 import { GeneratorRegistry, getGenerators } from '../../get-generators/getGenerators'
-import { resolveBinary } from '../../resolveBinary'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 if (process.env.CI) {
   // 20s is often not enough on CI, especially on macOS.
@@ -75,7 +71,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -156,7 +152,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -245,7 +241,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -334,7 +330,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -424,7 +420,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -528,7 +524,7 @@ describe('getGenerators', () => {
           ],
           "prettyName": "This is a pretty name",
           "requiresEngines": [
-            "queryEngine",
+            "libqueryEngine",
             "schemaEngine",
           ],
         },
@@ -598,35 +594,6 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  testIf(!process.env.PRISMA_SCHEMA_ENGINE_BINARY)('inject engines', async () => {
-    const schemaEngine = await resolveBinary(BinaryType.SchemaEngineBinary)
-
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
-
-    const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'valid-minimal-schema.prisma'),
-    })
-    const generators = await getGenerators({
-      schemaContext,
-      registry,
-      binaryPathsOverride: {
-        queryEngine: queryEnginePath,
-      },
-    })
-
-    const options = generators.map((g) => g.options?.binaryPaths)
-
-    const binaryTarget = await getBinaryTargetForCurrentPlatform()
-
-    // we override queryEngine, so its paths should be equal to the one of the generator
-    expect(options[0]?.queryEngine?.[binaryTarget]).toBe(queryEnginePath)
-    // we did not override the schemaEngine, so their paths should not be equal
-    expect(options[0]?.schemaEngine?.[binaryTarget]).not.toBe(schemaEngine)
-
-    generators.forEach((g) => g.stop())
-  })
-
   test('filter generator names', async () => {
     const registry = {
       'predefined-generator-1': {
@@ -659,19 +626,6 @@ describe('getGenerators', () => {
     expect(generators[1].getProvider()).toEqual('predefined-generator-3')
 
     generators.forEach((g) => g.stop())
-  })
-
-  test('fail on platforms', async () => {
-    const schemaContext = await loadSchemaContext({
-      schemaPathFromArg: path.join(__dirname, 'invalid-platforms-schema.prisma'),
-    })
-
-    await expect(
-      getGenerators({
-        schemaContext,
-        registry,
-      }),
-    ).rejects.toThrow('deprecated')
   })
 
   test('fail on invalid binaryTarget', async () => {
