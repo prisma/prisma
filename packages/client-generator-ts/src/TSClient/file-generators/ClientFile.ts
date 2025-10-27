@@ -83,7 +83,7 @@ ${imports.join('\n')}
 ${exports.join('\n')}
 export { Prisma }
 
-${buildNFTAnnotations(options.edge || !options.copyEngine, clientEngineType, binaryTargets, relativeOutdir)}
+${buildNFTAnnotations(options.edge, clientEngineType, binaryTargets, relativeOutdir)}
 
 ${modelExports(context).join('\n')}
 `
