@@ -13,14 +13,10 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY_ENG
 
     const binaryTarget = await getBinaryTargetForCurrentPlatform()
 
-    let binaryFileName =
+    const binaryFileName =
       getClientEngineType() === ClientEngineType.Library
         ? getNodeAPIName(binaryTarget, 'fs')
         : `query-engine-${binaryTarget}`
-
-    if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
-      binaryFileName += '.exe'
-    }
 
     const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
     const customBinaryPath = path.join(__dirname, binaryFileName)
@@ -39,10 +35,6 @@ testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY && !process.env.PRISMA_QUERY_ENG
     })
 
     expect(prisma._engineConfig.prismaPath).toBe(customBinaryPath)
-
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(prisma._engine.config.prismaPath).toBe(customBinaryPath)
-    }
 
     const users = await prisma.user.findMany()
     expect(users).toEqual([])

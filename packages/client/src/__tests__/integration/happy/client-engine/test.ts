@@ -57,13 +57,12 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 function buildTests() {
-  const engineTypes = [ClientEngineType.Binary, ClientEngineType.Library, undefined]
+  const engineTypes = [ClientEngineType.Library, undefined]
   const envVars = {
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
 
   const skipEnvVars = {
-    binary: process.env.PRISMA_QUERY_ENGINE_BINARY,
     library: process.env.PRISMA_QUERY_ENGINE_LIBRARY,
   }
   for (const engineType of engineTypes) {

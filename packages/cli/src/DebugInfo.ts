@@ -114,11 +114,9 @@ ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
 For configuring the Query Engine Type
-${formatEnvValue('PRISMA_CLI_QUERY_ENGINE_TYPE')}
 ${formatEnvValue('PRISMA_CLIENT_ENGINE_TYPE')}
 
 For custom engines
-${formatEnvValue('PRISMA_QUERY_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_QUERY_ENGINE_LIBRARY')}
 ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
@@ -133,7 +131,6 @@ ${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
-${formatEnvValue('PRISMA_CLIENT_NO_RETRY', '(Binary engine only)')}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}

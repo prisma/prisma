@@ -2,7 +2,7 @@ import { GetPrismaClientConfig } from '@prisma/client-common'
 import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
 import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
-import { BinaryEngine, ClientEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
+import { ClientEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
@@ -46,7 +46,6 @@ export function getEngineInstance(_: GetPrismaClientConfig, engineConfig: Engine
   const engineType = getClientEngineType(engineConfig.generator!)
 
   const libraryEngineConfigured = engineType === ClientEngineType.Library
-  const binaryEngineConfigured = engineType === ClientEngineType.Binary
   const clientEngineConfigured = engineType === ClientEngineType.Client
 
   // When a local driver adapter is configured, the URL from the datasource
@@ -60,10 +59,8 @@ export function getEngineInstance(_: GetPrismaClientConfig, engineConfig: Engine
   else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
     return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
-  else if (binaryEngineConfigured && TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
-  else if (TARGET_BUILD_TYPE === 'binary') return new BinaryEngine(engineConfig)
   else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-compiler-edge') {

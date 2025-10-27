@@ -75,11 +75,7 @@ jobs:
       - id: enginesOutput
         name: Decide on which engine types to run the next workflow
         run: |
-          if [ -z "${{ steps.findTestAllComment.outputs.comment-id }}" ]; then
-            echo 'queryEngine=["library"]' >> "$GITHUB_OUTPUT"
-          else
-            echo 'queryEngine=["library","binary"]' >> "$GITHUB_OUTPUT"
-          fi
+          echo 'queryEngine=["library"]' >> "$GITHUB_OUTPUT"
 
       - name: Trigger npm release workflow for integration release
         env:
