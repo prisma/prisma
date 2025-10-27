@@ -164,7 +164,7 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate(datasourceInfo)
+      await migrate.tryToRunGenerate()
     }
 
     // Run if not skipped
