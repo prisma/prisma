@@ -4,7 +4,6 @@ import { enginesVersion } from '@prisma/engines-version'
 import {
   getGenerators,
   getGeneratorSuccessMessage,
-  isPrismaPostgres,
   MigrateTypes,
   SchemaContext,
   toSchemasContainer,
@@ -18,7 +17,6 @@ import { SchemaEngineCLI } from './SchemaEngineCLI'
 import { SchemaEngineWasm } from './SchemaEngineWasm'
 import type { EngineArgs, EngineResults } from './types'
 import { createMigration, writeMigrationLockfile, writeMigrationScript } from './utils/createMigration'
-import { DatasourceInfo } from './utils/ensureDatabaseExists'
 import { listMigrations } from './utils/listMigrations'
 import { warnDatasourceDriverAdapter } from './utils/warnDatasourceDriverAdapter'
 
@@ -232,11 +230,8 @@ export class Migrate {
     }
   }
 
-  public async tryToRunGenerate(datasourceInfo: DatasourceInfo): Promise<void> {
+  public async tryToRunGenerate(): Promise<void> {
     if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
-
-    // Auto-append the `--no-engine` flag to the `prisma generate` command when a Prisma Postgres URL is used.
-    const skipEngines = isPrismaPostgres(datasourceInfo.url)
 
     const message: string[] = []
 
@@ -247,7 +242,6 @@ export class Migrate {
       schemaContext: this.schemaContext,
       printDownloadProgress: true,
       version: enginesVersion,
-      noEngine: skipEngines,
       registry: defaultRegistry.toInternal(),
     })
 

@@ -74,7 +74,6 @@ export type GetGeneratorOptions = {
   binaryPathsOverride?: BinaryPathsOverride
   generatorNames?: string[]
   postinstall?: boolean
-  noEngine?: boolean
   allowNoModels?: boolean
   typedSql?: SqlQueryOutput[]
   extensions?: {}
@@ -109,7 +108,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     binaryPathsOverride,
     generatorNames = [],
     postinstall,
-    noEngine,
     allowNoModels = true,
     typedSql,
   } = options
@@ -213,7 +211,6 @@ You need to define \`output\` in the generator block in the schema file.`,
           schemaPath: schemaContext.schemaPath, // TODO:(schemaPath) can we get rid of schema path passing here?
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           postinstall,
-          noEngine,
           allowNoModels,
           envPaths,
           typedSql,

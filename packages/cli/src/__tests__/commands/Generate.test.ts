@@ -289,38 +289,6 @@ describe('using cli', () => {
     })
   })
 
-  it('should work with --no-engine', async () => {
-    ctx.fixture('example-project')
-    const data = await ctx.cli('generate', '--no-engine')
-    const stdout = sanitiseStdout(data.stdout)
-
-    if (typeof data.signal === 'number' && data.signal !== 0) {
-      throw new Error(data.stderr + data.stdout)
-    }
-
-    if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    } else {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
-  })
-
   it('should hide hints with --no-hints', async () => {
     ctx.fixture('example-project')
     const data = await ctx.cli('generate', '--no-hints')
@@ -346,22 +314,6 @@ describe('using cli', () => {
         "
       `)
     }
-  })
-
-  it('should work and not show hints with --no-hints and --no-engine', async () => {
-    ctx.fixture('example-project')
-    const data = await ctx.cli('generate', '--no-hints', '--no-engine')
-
-    if (typeof data.signal === 'number' && data.signal !== 0) {
-      throw new Error(data.stderr + data.stdout)
-    }
-
-    expect(data.stdout).toMatchInlineSnapshot(`
-      "Prisma schema loaded from prisma/schema.prisma
-
-      ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
-      "
-    `)
   })
 
   it('should call the survey handler when hints are not disabled', async () => {
