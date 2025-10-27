@@ -63,58 +63,6 @@ describe('validateEngineInstanceConfig', () => {
   describe('using Prisma Accelerate', () => {
     const url = URLS.accelerate
 
-    test('do not recommend using `--no-engine` for ClientEngine', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(false)
-    })
-
-    test('do not recommend using `--no-engine` for edge build of ClientEngine', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(false)
-    })
-
-    test('recommend using `--no-engine` for LibraryEngine if it was not run already', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(false)
-    })
-
-    test('do not recommend using `--no-engine` if it was run already', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(false)
-    })
-
     test('error when using Driver Adapters', () => {
       const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
         url,
@@ -162,45 +110,6 @@ describe('validateEngineInstanceConfig', () => {
       expectTrue(ok)
       expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(diagnostics.errors).toBe(undefined)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(true)
-    })
-
-    test('do not recommend using `--no-engine` for ClientEngine', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.ppg,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(true)
-    })
-
-    test('do not recommend using `--no-engine` for edge build of ClientEngine', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.ppg,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
-      expect(isUsing.accelerate).toBe(true)
-      expect(isUsing.driverAdapters).toBe(false)
-      expect(isUsing.ppg).toBe(true)
-    })
-
-    test('recommend using `--no-engine` for LibraryEngine if it was not run already', () => {
-      const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-        url: URLS.ppg,
-      })
-
-      expectTrue(ok)
-      expect(diagnostics.errors).toBe(undefined)
-      expect(diagnostics.warnings).toMatchInlineSnapshot(`[]`)
       expect(isUsing.accelerate).toBe(true)
       expect(isUsing.driverAdapters).toBe(false)
       expect(isUsing.ppg).toBe(true)
