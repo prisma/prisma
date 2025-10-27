@@ -96,21 +96,6 @@ describe('binary', () => {
   })
 })
 
-describe('dataproxy', () => {
-  it('generates no annotations', () => {
-    const annotations = buildNFTAnnotations(
-      true,
-      ClientEngineType.Library,
-      ['debian-openssl-1.1.x', 'darwin', 'windows'],
-      'out',
-    )
-
-    // TODO: when using .toMatchInlineSnapshot(), this fails after updating snapshots.
-    // Probably an issue with the snapshot serializer?
-    expect(normalizePaths(annotations)).toBe(``)
-  })
-})
-
 describe('special cases for Netlify', () => {
   const originalEnv = { ...process.env }
   const restoreEnv = () => {

@@ -9,7 +9,7 @@ declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ driverAdapter, clientEngineExecutor }, _suiteMeta, clientMeta) => {
+  ({ driverAdapter, clientEngineExecutor }) => {
     describeIf(driverAdapter === undefined && clientEngineExecutor !== 'remote')(
       'default case: no Driver Adapter',
       () => {
@@ -44,23 +44,6 @@ testMatrix.setupTestSuite(
 
           expect.hasAssertions()
         })
-
-        testIf(clientMeta.dataProxy && clientMeta.runtime === 'node')(
-          'PrismaClientInitializationError for missing env with --no-engine on node',
-          async () => {
-            const prisma = newPrismaClient()
-
-            try {
-              await prisma.$connect()
-            } catch (e) {
-              const message = stripVTControlCharacters(e.message as string)
-              expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-              expect(message).toMatchInlineSnapshot(`"error: Environment variable not found: DATABASE_URI."`)
-            }
-
-            expect.hasAssertions()
-          },
-        )
       },
     )
 
