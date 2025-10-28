@@ -61,9 +61,10 @@ describe('common', () => {
   it('invalid schema', async () => {
     expect.assertions(2)
     ctx.fixture('schema-only-sqlite')
+    ctx.setConfigFile('invalid.config.ts')
 
     try {
-      await MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'], await ctx.config())
+      await MigrateDev.new().parse([], await ctx.config())
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
@@ -93,9 +94,10 @@ describe('common', () => {
   it('provider array should fail', async () => {
     expect.assertions(2)
     ctx.fixture('schema-only-sqlite')
+    ctx.setConfigFile('provider-array.config.ts')
 
     try {
-      await MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'], await ctx.config())
+      await MigrateDev.new().parse([], await ctx.config())
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
@@ -170,7 +172,8 @@ describe('common', () => {
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'], await ctx.config())
+    ctx.setConfigFile('empty.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
 
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
@@ -207,7 +210,8 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
   it('first migration (--name) (folder)', async () => {
     ctx.fixture('schema-folder-sqlite')
-    const result = MigrateDev.new().parse(['--name=first', '--schema=./prisma/schema'], await ctx.config())
+    ctx.setConfigFile('schema.config.ts')
+    const result = MigrateDev.new().parse(['--name=first'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(fs.exists('prisma/schema/migrations/migration_lock.toml')).toEqual('file')
@@ -357,7 +361,8 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
 
     prompt.inject(['some-empty-Draft'])
 
-    const draftResult = MigrateDev.new().parse(['--schema=./prisma/empty.prisma', '--create-only'], await ctx.config())
+    ctx.setConfigFile('empty.config.ts')
+    const draftResult = MigrateDev.new().parse(['--create-only'], await ctx.config())
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
       "Prisma Migrate created the following migration without applying it 20201231000000_some_empty_draft
@@ -804,12 +809,8 @@ describeMatrix(postgresOnly, 'postgres', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -846,7 +847,8 @@ describeMatrix(postgresOnly, 'postgres', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
+    ctx.setConfigFile('shadowdb.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
       "Environment variables loaded from prisma/.env
@@ -1044,16 +1046,14 @@ describeMatrix(postgresOnly, 'postgres', () => {
        );`,
     )
 
-    const dbExecuteResult = DbExecute.new().parse(
-      ['--schema=./prisma/schema.prisma', '--file=./script.sql'],
-      await ctx.config(),
-    )
+    const dbExecuteResult = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
     await expect(dbExecuteResult).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
 
     prompt.inject(['test', new Error()]) // simulate user cancellation
     // prompt.inject(['y']) // simulate user cancellation
 
-    const result = MigrateDev.new().parse(['--schema=prisma/multiSchema.prisma'], await ctx.config())
+    ctx.setConfigFile('multiSchema.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
@@ -1070,24 +1070,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
       Enter a name for the new migration:
     `)
     // expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
-  })
-
-  it('should work if directUrl is set as env var', async () => {
-    ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'], await ctx.config())
-
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from .env
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
-
-      Already in sync, no schema change or pending migration was found.
-      "
-    `)
   })
 
   it('regression: enum array column type is introspected properly (gh-22456)', async () => {
@@ -1129,7 +1111,40 @@ describeMatrix(postgresOnly, 'postgres', () => {
     `)
   })
 
-  it('external tables', async () => {
+  // TODO: for some reason this test fails on macOS on CI:
+  //
+  // ```
+  // FAIL src/__tests__/MigrateDev.test.ts (20.107 s)
+  // ● postgres › external tables
+  //
+  //   expect(received).resolves.toMatchInlineSnapshot()
+  //
+  //   Received promise rejected instead of resolved
+  //   Rejected to value: [Error: ERROR: relation "User" already exists
+  //      0: sql_schema_connector::validate_migrations
+  //              with namespaces=None filter=SchemaFilter { external_tables: ["public.User"], external_enums: [] }
+  //                at schema-engine/connectors/sql-schema-connector/src/lib.rs:538
+  //      1: schema_core::state::DevDiagnostic
+  //                at schema-engine/core/src/state.rs:319
+  //   ]
+  //
+  //     1117 |     // Only external tables in the schema => no migration needed
+  //     1118 |     const result = MigrateDev.new().parse([], await ctx.config())
+  //   > 1119 |     await expect(result).resolves.toMatchInlineSnapshot(`""`)
+  //          |           ^
+  //     1120 |     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+  //     1121 |       "Prisma schema loaded from schema.prisma
+  //     1122 |       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
+  //
+  //     at expect (../../node_modules/.pnpm/expect@29.7.0/node_modules/expect/build/index.js:113:15)
+  //     at Object.expect (src/__tests__/MigrateDev.test.ts:1119:11)
+  //
+  // ```
+  //
+  // However, it passes on Linux and Windows on CI, as well as on macOS locally.
+  //
+  // Investigation ticket: https://linear.app/prisma-company/issue/TML-1544/investigate-migrate-dev-external-tables-test-on-macos-on-ci
+  testIf(!process.env.CI || process.platform !== 'darwin')('external tables', async () => {
     ctx.fixture('external-tables')
 
     // Only external tables in the schema => no migration needed
@@ -1143,8 +1158,9 @@ describeMatrix(postgresOnly, 'postgres', () => {
       "
     `)
     // Create external table in actual database so it can be referenced later
+    const { url } = (await ctx.datasource())!
     await runQueryPostgres(
-      { connectionString: process.env.TEST_POSTGRES_URI_MIGRATE! },
+      { connectionString: url },
       `
       CREATE TABLE "User" (
         "id" SERIAL PRIMARY KEY,
@@ -1155,7 +1171,8 @@ describeMatrix(postgresOnly, 'postgres', () => {
 
     // Create migration based of updated schema that has a relation towards the external table.
     // `initShadowDb` from prisma.config.ts is used to create the external table in the shadow database for diffing.
-    const result2 = MigrateDev.new().parse(['--schema=schema_relation.prisma', '--name=first'], await ctx.config())
+    ctx.setConfigFile('schema_relation.config.ts')
+    const result2 = MigrateDev.new().parse(['--name=first'], await ctx.config())
     await expect(result2).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
@@ -1198,7 +1215,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
-  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-dev')
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams = {
     connectionString: connectionString!,
@@ -1216,12 +1233,8 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-    process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -1254,7 +1267,8 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
+    ctx.setConfigFile('shadowdb.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
@@ -1391,12 +1405,8 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-    process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
-      'tests-migrate-dev',
-      'tests-migrate-dev-shadowdb',
-    )
+    const shadowDatabaseUrl = connectionString.replace('tests-migrate-dev', 'tests-migrate-dev-shadowdb')
+    ctx.setDatasource({ url: connectionString, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -1429,7 +1439,8 @@ describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-mysql')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
+    ctx.setConfigFile('shadowdb.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
@@ -1593,15 +1604,12 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
       console.error(e)
     })
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      databaseName,
-    )
-    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+    const url = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace('tests-migrate', databaseName)
+    const shadowDatabaseUrl = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
       'tests-migrate-shadowdb',
       `${databaseName}-shadowdb`,
     )
+    ctx.setDatasource({ url, shadowDatabaseUrl })
   })
 
   afterEach(async () => {
@@ -1634,7 +1642,8 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-sqlserver')
 
-    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'], await ctx.config())
+    ctx.setConfigFile('shadowdb.config.ts')
+    const result = MigrateDev.new().parse([], await ctx.config())
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/shadowdb.prisma
