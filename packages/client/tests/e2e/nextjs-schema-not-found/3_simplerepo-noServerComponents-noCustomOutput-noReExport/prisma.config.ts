@@ -4,6 +4,6 @@ export default defineConfig({
   schema: './prisma/schema.prisma',
   engine: 'classic',
   datasource: {
-    url: env('TEST_E2E_POSTGRES_URI'),
+    url: env('TEST_E2E_POSTGRES_URI')
   },
 })
