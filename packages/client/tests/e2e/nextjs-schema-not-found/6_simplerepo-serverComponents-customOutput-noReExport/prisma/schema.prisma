@@ -2,8 +2,9 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
-  output = "client"
+  provider = "prisma-client"
+  moduleFormat = "cjs"
+  output = "../generated/prisma"
 }
 
 datasource db {
