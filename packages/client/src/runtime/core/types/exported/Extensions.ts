@@ -431,7 +431,6 @@ export type { UserArgs }
 //   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
 //   $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
 //   $use(cb: Prisma.Middleware): void
-//   ${metricDefinition.bind(this)()}
 // }
 // export interface PrismaClient<
 //   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
