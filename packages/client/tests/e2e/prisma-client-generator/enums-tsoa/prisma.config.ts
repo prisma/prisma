@@ -4,6 +4,6 @@ export default defineConfig({
   schema: './prisma/schema.prisma',
   engine: 'classic',
   datasource: {
-    url: 'file:./prisma/dev.db',
+    url: 'file:./dev.db',
   },
 })

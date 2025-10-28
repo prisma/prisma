@@ -6,8 +6,8 @@ void executeSteps({
   setup: async () => {
     await $`pnpm install`
     for (const provider of ['mysql', 'postgres']) {
-      await $`pnpm exec prisma generate --schema=./prisma/${provider}/schema.prisma`
-      await $`pnpm exec prisma db push --force-reset --skip-generate --schema=./prisma/${provider}/schema.prisma`
+      await $`pnpm exec prisma generate --config=./prisma/${provider}/prisma.config.ts`
+      await $`pnpm exec prisma db push --force-reset --skip-generate --config=./prisma/${provider}/prisma.config.ts`
     }
   },
   test: async () => {

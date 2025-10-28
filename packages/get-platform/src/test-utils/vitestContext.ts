@@ -91,6 +91,7 @@ ${[...generateDirectoryTree(children, indent)].join('\n')}
         })
         // symlink to local client version in tmp dir
         c.fs.symlink(path.join(originalCwd, '..', 'client'), path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'))
+        c.fs.symlink(path.join(originalCwd, '..', 'config'), path.join(c.fs.cwd(), 'node_modules', '@prisma', 'config'))
       }
 
       c.cli = (...input) => {
