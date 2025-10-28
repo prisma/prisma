@@ -1111,7 +1111,40 @@ describeMatrix(postgresOnly, 'postgres', () => {
     `)
   })
 
-  it('external tables', async () => {
+  // TODO: for some reason this test fails on macOS on CI:
+  //
+  // ```
+  // FAIL src/__tests__/MigrateDev.test.ts (20.107 s)
+  // ● postgres › external tables
+  //
+  //   expect(received).resolves.toMatchInlineSnapshot()
+  //
+  //   Received promise rejected instead of resolved
+  //   Rejected to value: [Error: ERROR: relation "User" already exists
+  //      0: sql_schema_connector::validate_migrations
+  //              with namespaces=None filter=SchemaFilter { external_tables: ["public.User"], external_enums: [] }
+  //                at schema-engine/connectors/sql-schema-connector/src/lib.rs:538
+  //      1: schema_core::state::DevDiagnostic
+  //                at schema-engine/core/src/state.rs:319
+  //   ]
+  //
+  //     1117 |     // Only external tables in the schema => no migration needed
+  //     1118 |     const result = MigrateDev.new().parse([], await ctx.config())
+  //   > 1119 |     await expect(result).resolves.toMatchInlineSnapshot(`""`)
+  //          |           ^
+  //     1120 |     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
+  //     1121 |       "Prisma schema loaded from schema.prisma
+  //     1122 |       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" <location placeholder>
+  //
+  //     at expect (../../node_modules/.pnpm/expect@29.7.0/node_modules/expect/build/index.js:113:15)
+  //     at Object.expect (src/__tests__/MigrateDev.test.ts:1119:11)
+  //
+  // ```
+  //
+  // However, it passes on Linux and Windows on CI, as well as on macOS locally.
+  //
+  // Investigation ticket: https://linear.app/prisma-company/issue/TML-1544/investigate-migrate-dev-external-tables-test-on-macos-on-ci
+  testIf(!process.env.CI || process.platform !== 'darwin')('external tables', async () => {
     ctx.fixture('external-tables')
 
     // Only external tables in the schema => no migration needed
