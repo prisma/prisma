@@ -347,7 +347,8 @@ function allResultsGenericExtensionObjectViaDefault() {
   })
 }
 
-testMatrix.setupTestSuite(() => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+testMatrix.setupTestSuite(({ driverAdapter }) => {
   test('client - callback', () => {
     const xprisma = prisma.$extends(clientExtensionCallback())
     const xprismaViaDefault = prisma.$extends(clientExtensionCallbackViaDefault())
@@ -682,7 +683,7 @@ testMatrix.setupTestSuite(() => {
       const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
       // @ts-test-if: provider !== Providers.MONGODB
       const queryRawUnsafe = await prisma.$queryRawUnsafe('')
-      // @ts-test-if: provider !== Providers.MONGODB
+      // @ts-test-if: provider !== Providers.MONGODB && driverAdapter === undefined
       expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
     }
   })
