@@ -544,7 +544,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test src/__tests__/types/types.test.ts
+      - run: pnpm run test-notypes
         working-directory: packages/client
 
   #
