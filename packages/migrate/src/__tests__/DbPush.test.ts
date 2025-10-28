@@ -4,7 +4,7 @@ import prompt from 'prompts'
 import { DbPush } from '../commands/DbPush'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { describeMatrix, mongodbOnly, noDriverAdapters, postgresOnly } from './__helpers__/conditionalTests'
+import { describeMatrix, mongodbOnly, postgresOnly } from './__helpers__/conditionalTests'
 import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
@@ -72,78 +72,15 @@ describe('push', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate" <location placeholder>
+      Datasource "db": PostgreSQL database "tests-migrate-prisma-config-extensions" <location placeholder>
 
-      PostgreSQL database tests-migrate created at localhost:5432
+      PostgreSQL database tests-migrate-prisma-config-extensions created at localhost:5432
 
-      The PostgreSQL database "tests-migrate" at "localhost:5432" was successfully reset.
+      The PostgreSQL database "tests-migrate-prisma-config-extensions" at "localhost:5432" was successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
     `)
-  })
-
-  // Not relevant for driver adapters as the file location comes from prisma.config.ts then.
-  describeMatrix(noDriverAdapters, 'SQLite file placements', () => {
-    it('missing SQLite db should be created relative to the schema.prisma file', async () => {
-      ctx.fixture('reset')
-      ctx.fs.remove('dev.db')
-      const schemaPath = 'prisma/schema.prisma'
-
-      const result = DbPush.new().parse([], await ctx.config())
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
-
-        Your database is now in sync with your Prisma schema. Done in XXXms
-        "
-      `)
-      expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), '../dev.db'))?.size).toBeGreaterThan(0)
-    })
-
-    it('missing SQLite db should be created relative to the schema file with the datasource', async () => {
-      ctx.fixture('schema-folder-sqlite')
-      ctx.fs.remove('prisma/schema/dev.db')
-      const schemaPath = 'prisma/schema'
-
-      const result = DbPush.new().parse([`--schema=${schemaPath}`], await ctx.config())
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
-
-        Your database is now in sync with your Prisma schema. Done in XXXms
-        "
-      `)
-      expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-    })
-
-    it('missing SQLite db should be created relative to the --schema path', async () => {
-      ctx.fixture('reset')
-      ctx.fs.remove('dev.db')
-
-      const oldSchemaPath = 'prisma/schema.prisma'
-      const newSchemaPath = 'some/thing/schema.prisma'
-      ctx.fs.move(oldSchemaPath, newSchemaPath)
-
-      const result = DbPush.new().parse(['--schema', newSchemaPath], await ctx.config())
-      await expect(result).resolves.toMatchInlineSnapshot(`""`)
-      expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-        "Prisma schema loaded from some/thing/schema.prisma
-        Datasource "my_db": SQLite database "dev.db" <location placeholder>
-
-        Your database is now in sync with your Prisma schema. Done in XXXms
-        "
-      `)
-      expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
-      expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), '../dev.db'))?.size).toBeUndefined()
-      expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), '../dev.db'))?.size).toBeGreaterThan(0)
-      expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
-    })
   })
 
   it('should ask for --accept-data-loss if not provided in CI', async () => {
@@ -309,9 +246,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {
@@ -336,33 +271,6 @@ describeMatrix(postgresOnly, 'postgres', () => {
       Datasource "my_db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
 
       The PostgreSQL database "tests-migrate-db-push" schema "public" at "localhost:5432" was successfully reset.
-
-      Your database is now in sync with your Prisma schema. Done in XXXms
-      "
-    `)
-  })
-
-  it('should work if url is prisma:// and directUrl defined', async () => {
-    ctx.fixture('schema-only-data-proxy')
-
-    prompt.inject(['n'])
-
-    const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'], await ctx.config())
-    await expect(result).resolves.toMatchInlineSnapshot(`""`)
-    expect(ctx.normalizedCapturedStderr()).toMatchInlineSnapshot(`
-      "Environment variables loaded from .env
-      "
-    `)
-    expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
-      "Prisma schema loaded from with-directUrl-env.prisma
-      Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" <location placeholder>
-
-      ⚠️  There might be data loss when applying the changes:
-
-        • You are about to drop the \`User\` table, which is not empty (1 rows).
-
-
-
 
       Your database is now in sync with your Prisma schema. Done in XXXms
       "
@@ -408,9 +316,7 @@ describeMatrix(postgresOnly, 'postgres-multischema', () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
     })
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    ctx.setDatasource({ url: connectionString })
   })
 
   afterEach(async () => {

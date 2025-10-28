@@ -227,8 +227,12 @@ function setupTestSuiteMatrix(
               suiteConfig,
               alterStatementCallback: options?.alterStatementCallback,
               cfWorkerBindings,
+              datasourceInfo,
             }),
-          dropDb: () => dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings }).catch(() => {}),
+          dropDb: () =>
+            dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings, datasourceInfo }).catch(
+              () => {},
+            ),
         }
       })
 
@@ -257,7 +261,7 @@ function setupTestSuiteMatrix(
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
-          await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings })
+          await dropTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], cfWorkerBindings, datasourceInfo })
         }
         restoreEnv()
         delete globalThis['datasourceInfo']
