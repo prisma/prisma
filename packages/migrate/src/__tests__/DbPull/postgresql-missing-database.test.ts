@@ -21,10 +21,6 @@ describeMatrix(postgresOnly, 'postgresql - missing database', () => {
     })
   })
 
-  afterEach(() => {
-    ctx.resetDatasource()
-  })
-
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
 

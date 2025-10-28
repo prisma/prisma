@@ -10,7 +10,7 @@ generator min {
 
 datasource db {
   provider = "sqlite"
-  url      = env("ENV_VAR_DOES_NOT_EXIST")
+  url      = "file:dev.db"
 }
 
 model Post {

@@ -187,10 +187,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
   })
 
   describeMatrix(noDriverAdapters, 'using classic engine', () => {
-    afterEach(() => {
-      ctx.resetDatasource()
-    })
-
     test('basic introspection with config', async () => {
       ctx.fixture('introspection/sqlite')
       ctx.setDatasource({
