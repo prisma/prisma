@@ -95,7 +95,7 @@ jobs:
   #
   # CLIENT (functional and legacy tests without types test)
   #
-  client:
+  client-legacy:
     name: Client Legacy ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
@@ -160,7 +160,7 @@ jobs:
   # CLIENT (functional tests with driver adapters)
   #
   client-driveradapters:
-    name: DA ${{ matrix.flavor }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    name: DA ${{ matrix.flavor }} ${{ matrix.generatorType }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -169,7 +169,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        clientRuntime: ['node']
+        clientRuntime: ['client', 'wasm-compiler-edge']
+        generatorType: ['prisma-client-js', 'prisma-client-ts']
         flavor:
           [
             'js_pg',
@@ -203,7 +204,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type ${{ matrix.generatorType }} --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -224,126 +225,6 @@ jobs:
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
-  #
-  # CLIENT (functional tests with TS aka ESM client)
-  #
-  client-ts-client:
-    name: TS-Client ${{ matrix.provider }} [v${{ matrix.node }}] ${{ matrix.shard }}
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        provider: ['postgresql'] # TODO: test on all providers once it becomes stable
-        clientRuntime: ['node'] # TODO: test on wasm
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: ['20.19.0'] # TODO: test on all node versions once it becomes stable
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: false
-
-      - run: pnpm run test:functional --generator-type=prisma-client-ts --provider ${{ matrix.provider }} --shard ${{ matrix.shard }} --client-runtime ${{ matrix.clientRuntime }} --runInBand
-        working-directory: packages/client
-        env:
-          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: 'client/functional'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where we have access to secrets.
-        # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
-        with:
-          account: 17219288
-          repository: 192925833
-          path: packages/*/junit*.xml
-          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-
-  #
-  # CLIENT (functional tests with client engine, query compiler and driver adapters)
-  #
-  client-query-compiler:
-    name: QC ${{ matrix.flavor }} [v${{ matrix.node }}] ${{ matrix.shard }}
-    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
-    runs-on: ubuntu-latest
-    if: |
-      contains(inputs.jobsToRun, '-all-') ||
-      contains(inputs.jobsToRun, '-client-')
-    strategy:
-      fail-fast: false
-      matrix:
-        flavor:
-          [
-            'js_pg',
-            'js_libsql',
-            'js_d1',
-            'js_better_sqlite3',
-            'js_planetscale',
-            'js_mssql',
-            'js_neon',
-            'js_mariadb',
-            'js_pg_cockroachdb',
-          ]
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: ['20.19.0']
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start Docker Compose Services
-        uses: nick-fields/retry@v3
-        with:
-          timeout_minutes: 10
-          max_attempts: 5
-          retry_wait_seconds: 120
-          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres planetscale_proxy mssql neon_wsproxy mysql cockroachdb
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          engine-hash: ${{ inputs.engineHash }}
-          skip-tsc: false
-
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --client-runtime client --runInBand
-        working-directory: packages/client
-        env:
-          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
-          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: 'client/functional'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where we have access to secrets.
-        # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
-        uses: buildpulse/buildpulse-action@v0.11.0
-        with:
-          account: 17219288
-          repository: 192925833
-          path: packages/*/junit*.xml
-          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
   #
   # CLIENT (functional tests with client engine, query compiler, driver adapters and Accelerate)
   #
