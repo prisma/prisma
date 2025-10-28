@@ -1,67 +1,23 @@
-import { GetPrismaClientConfig } from '@prisma/client-common'
 import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
-import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { ClientEngine, Engine, EngineConfig, LibraryEngine } from '../engines'
-import { resolveDatasourceUrl } from './resolveDatasourceUrl'
-import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
 /**
- * Get the engine instance based on the engine type and the target engine type
- * (binary, library, data proxy). If the URL is a prisma:// URL, it will always
- * use the DataProxyEngine. Basically decides which engine to load.
- * @param clientConfig
- * @param engineConfig
- * @returns
+ * Get the engine instance based on the runtime bundle type and engine configuration.
  */
-export function getEngineInstance(_: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
-  let url: string | undefined
-
-  try {
-    url = resolveDatasourceUrl({
-      inlineDatasources: engineConfig.inlineDatasources,
-      overrideDatasources: engineConfig.overrideDatasources,
-      env: { ...engineConfig.env, ...process.env },
-      clientVersion: engineConfig.clientVersion,
-    })
-  } catch {
-    // the error does not matter, but that means we don't have a valid url which
-    // means we can't use the DataProxyEngine and will default to LibraryEngine
-  }
-
-  const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-    url,
-    adapter: engineConfig.adapter,
-  })
-
-  for (const warning of diagnostics.warnings) {
-    warnOnce(...warning.value)
-  }
-
-  if (!ok) {
-    const error = diagnostics.errors[0]
-    throw new PrismaClientValidationError(error.value, { clientVersion: engineConfig.clientVersion })
-  }
-
+export function getEngineInstance(engineConfig: EngineConfig): Engine {
   const engineType = getClientEngineType(engineConfig.generator!)
 
   const libraryEngineConfigured = engineType === ClientEngineType.Library
   const clientEngineConfigured = engineType === ClientEngineType.Client
 
-  // When a local driver adapter is configured, the URL from the datasource
-  // block in the Prisma schema is no longer relevant as driver adapters don't
-  // use it. Therefore, a configured driver adapter takes precedence over the
-  // Accelerate or PPg URL in the schema file.
-  const clientEngineUsesRemoteExecutor = (isUsing.accelerate || isUsing.ppg) && !isUsing.driverAdapters
-
-  if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client')
-    return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
-  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge')
-    return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
+  if (clientEngineConfigured && TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
+  else if (clientEngineConfigured && TARGET_BUILD_TYPE === 'wasm-compiler-edge') return new ClientEngine(engineConfig)
   else if (libraryEngineConfigured && TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
   // reasonable fallbacks in case the conditions above aren't met, we should still try the correct engine
   else if (TARGET_BUILD_TYPE === 'library') return new LibraryEngine(engineConfig)
-  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
+  else if (TARGET_BUILD_TYPE === 'client') return new ClientEngine(engineConfig)
   // if either accelerate or wasm library could not be loaded for some reason, we throw an error
   else if (TARGET_BUILD_TYPE === 'wasm-compiler-edge') {
     return new MisconfiguredEngine({ clientVersion: engineConfig.clientVersion }) as Engine
