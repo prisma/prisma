@@ -2,5 +2,5 @@
 
 datasource db {
   provider = "postgresql"
-  url      = env("SOME_DEFINED_INVALID_URL")
+  url      = "invalid-url"
 }

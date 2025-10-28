@@ -49,6 +49,7 @@ describe('format', () => {
               └── custom.prisma
               └── schema.prisma
           └── custom.prisma
+          └── prisma.config.ts
           └── schema.prisma
           "
         `)
