@@ -93,9 +93,9 @@ jobs:
         working-directory: ./
 
   #
-  # CLIENT (functional and legacy tests without types test)
+  # CLIENT (legacy tests without types test)
   #
-  client-legacy:
+  client-unit:
     name: Client Legacy ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
@@ -131,13 +131,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      # Run the functional test suite
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }} --preview-features "${{ matrix.previewFeatures }}"
-        if: |
-          contains(inputs.jobsToRun, '-all-') ||
-          contains(inputs.jobsToRun, '-client-')
-        working-directory: packages/client
-      # And run  all the other tests (except the types tests)
+      # And run all non functional, non e2e tests (except the types tests)
       - run: pnpm run test-notypes ${{ env.FUNCTIONAL_TEST_OPTIONS }} --silent --shard ${{ matrix.shard }}
         if: |
           contains(inputs.jobsToRun, '-all-') ||
@@ -156,11 +150,8 @@ jobs:
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
-  #
-  # CLIENT (functional tests with driver adapters)
-  #
-  client-driveradapters:
-    name: DA ${{ matrix.flavor }} ${{ matrix.generatorType }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+  client-generator-prisma-client-js:
+    name: Client Generator Prisma Client JS [v${{ matrix.node }}] ${{ matrix.shard }}
     timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
     runs-on: ubuntu-latest
     if: |
@@ -169,8 +160,63 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        node: ['20.19.0', '22.12.0', '24']
+        flavor: ['js_pg']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Start Docker Compose Services
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 10
+          max_attempts: 5
+          retry_wait_seconds: 120
+          command: docker compose -f docker/docker-compose.yml up --wait --detach postgres
+
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          engine-hash: ${{ inputs.engineHash }}
+          skip-tsc: false
+
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-js --client-runtime client --runInBand
+        working-directory: packages/client
+        env:
+          PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
+          NODE_NO_WARNINGS: 1 # hides undici websocket warnings
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: 'client/functional'
+          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        # Only run this step for branches where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse' && github.repository == 'prisma/prisma'
+        uses: buildpulse/buildpulse-action@v0.11.0
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/*/junit*.xml
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+  #
+  # CLIENT (functional tests with driver adapters)
+  #
+  client-driveradapters:
+    name: DA ${{ matrix.flavor }} ${{ matrix.clientRuntime }} ${{ matrix.previewFeatures }} [v${{ matrix.node }}] ${{ matrix.shard }}
+    timeout-minutes: ${{ inputs.driverAdapterTestJobTimeout }}
+    runs-on: ubuntu-latest
+    if: |
+      contains(inputs.jobsToRun, '-all-') ||
+      contains(inputs.jobsToRun, '-client-')
+    strategy:
+      fail-fast: false
+      # Note: the maximum number of matrix configurations on Github Actions is 256
+      matrix:
         clientRuntime: ['client', 'wasm-compiler-edge']
-        generatorType: ['prisma-client-js', 'prisma-client-ts']
         flavor:
           [
             'js_pg',
@@ -183,7 +229,7 @@ jobs:
             'js_mariadb',
             'js_pg_cockroachdb',
           ]
-        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
+        shard: ['1/4', '2/4', '3/4', '4/4']
         node: ['20.19.0']
         previewFeatures: ['', 'relationJoins']
     steps:
@@ -204,7 +250,7 @@ jobs:
           engine-hash: ${{ inputs.engineHash }}
           skip-tsc: false
 
-      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type ${{ matrix.generatorType }} --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
+      - run: pnpm run test:functional ${{ env.FUNCTIONAL_TEST_OPTIONS }} --adapter ${{ matrix.flavor }} --shard ${{ matrix.shard }} --generator-type prisma-client-ts --client-runtime ${{ matrix.clientRuntime }} --preview-features "${{ matrix.previewFeatures }}" --runInBand
         working-directory: packages/client
         env:
           PRISMA_DISABLE_QUAINT_EXECUTORS: true, # ensures quaint runs no queries
@@ -425,7 +471,7 @@ jobs:
           # Fails if set to true
           skip-tsc: false
 
-      - run: pnpm run test-notypes
+      - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
 
   #
