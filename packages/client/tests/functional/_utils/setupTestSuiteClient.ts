@@ -131,10 +131,6 @@ export async function setupTestSuiteClient({
   }
 
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
-    node: {
-      client: 'generated/prisma/client',
-      sql: path.join(outputPath, 'sql'),
-    },
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
       sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),
@@ -307,7 +303,7 @@ export function getPrismaClientInternalArgs({
   const provider = suiteConfig.matrixOptions.provider
   const __internal: PrismaClientOptions['__internal'] = {}
 
-  if (clientMeta.runtime === 'node' || clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
+  if (clientMeta.runtime === 'client' || clientMeta.runtime === 'wasm-compiler-edge') {
     __internal.configOverride = (config) => {
       config.compilerWasm = {
         getRuntime: () => Promise.resolve(require(path.join(runtimeBase, `query_compiler_bg.${provider}.js`))),

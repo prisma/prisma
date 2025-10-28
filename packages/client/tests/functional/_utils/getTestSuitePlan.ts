@@ -206,8 +206,8 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  // if client runtime is 'node' (which uses client engine that requires driver adapter) and there's no adapter, skip
-  if (cliMeta.runtime === 'node' && driverAdapter === undefined && cliMeta.clientEngineExecutor === 'local') {
+  // if there's no adapter, skip
+  if (driverAdapter === undefined && cliMeta.clientEngineExecutor === 'local') {
     return true
   }
 

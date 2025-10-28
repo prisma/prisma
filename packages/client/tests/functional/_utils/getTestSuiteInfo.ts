@@ -286,7 +286,7 @@ export function getTestSuiteCliMeta(): CliMeta {
 
   return {
     dataProxy,
-    runtime: runtime ?? 'node',
+    runtime: runtime ?? 'client',
     previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
     generatorType,
     clientEngineExecutor,

@@ -32,7 +32,7 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'wasm-compiler-edge' | 'client'
+export type ClientRuntime = 'wasm-compiler-edge' | 'client'
 
 export type ClientEngineExecutor = 'local' | 'remote'
 
