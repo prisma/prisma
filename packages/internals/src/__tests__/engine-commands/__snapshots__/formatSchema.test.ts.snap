@@ -16,7 +16,7 @@ model User {
   email String  @unique
   name  String?
   posts Post[]
-  Like  Like[]
+  likes Like[]
 }
 
 model Post {
@@ -28,7 +28,7 @@ model Post {
   content   String?
   authorId  String?
   author    User?    @relation(fields: [authorId], references: [id])
-  Like      Like[]
+  likes     Like[]
 }
 
 model Like {
@@ -58,7 +58,7 @@ model User {
   email String  @unique
   name  String?
   posts Post[]
-  Like  Like[]
+  likes Like[]
 }
 
 model Post {
@@ -70,7 +70,7 @@ model Post {
   content   String?
   authorId  String?
   author    User?    @relation(fields: [authorId], references: [id])
-  Like      Like[]
+  likes     Like[]
 }
 
 model Like {
