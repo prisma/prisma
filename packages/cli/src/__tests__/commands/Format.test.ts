@@ -240,7 +240,7 @@ describe('format', () => {
             email     String    @unique
             date      DateTime?
             // missing Link[]
-            Link      Link[]
+            links     Link[]
           }
           ",
             "model Link {
