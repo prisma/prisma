@@ -54,7 +54,7 @@
     "@prisma/config": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "@prisma/engines-version": "6.19.0-16.a964551b989543683858a5aa93090e8b48577879",
+    "@prisma/engines-version": "6.19.0-22.integration-aijeyomah-feature-support-enum-ignore-directive-a33c542ee31e90995b9fcadac76fd478110e58ef",
     "@prisma/generator": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
