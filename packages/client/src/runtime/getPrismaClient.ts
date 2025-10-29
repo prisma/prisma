@@ -25,7 +25,6 @@ import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
-import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
@@ -888,8 +887,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         throw e
       }
     }
-
-    $metrics = new MetricsClient(this)
 
     /**
      * Shortcut for checking a preview flag

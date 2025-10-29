@@ -32,7 +32,6 @@ function setupMockLibraryEngine() {
     commitTransaction: jest.fn().mockResolvedValue('{}'),
     rollbackTransaction: jest.fn().mockResolvedValue('{}'),
     trace: jest.fn().mockResolvedValue('{}'),
-    metrics: jest.fn().mockResolvedValue('{}'),
     free: jest.fn(),
   } satisfies QueryEngineInstance
 
