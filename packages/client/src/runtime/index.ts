@@ -8,13 +8,6 @@ export { Public }
 
 export { type JsonBatchQuery, type JsonQuery } from './core/engines'
 export { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
-export {
-  type Metric,
-  type MetricHistogram,
-  type MetricHistogramBucket,
-  type Metrics,
-  MetricsClient,
-} from './core/metrics/MetricsClient'
 export { createParam } from './core/model/Param'
 export { defineDmmfProperty } from './core/runtimeDataModel'
 export type * from './core/types/exported'
