@@ -13,7 +13,6 @@ import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJ
 import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
-import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
@@ -115,8 +114,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
     headers: Transaction.TransactionHeaders,
     info: Transaction.InteractiveTransactionInfo<unknown>,
   ): Promise<void>
-  metrics(options: MetricsOptionsJson): Promise<Metrics>
-  metrics(options: MetricsOptionsPrometheus): Promise<string>
 }
 
 export interface EngineConfig {
