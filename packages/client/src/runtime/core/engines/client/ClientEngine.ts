@@ -24,7 +24,6 @@ import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, Request
 import { Engine } from '../common/Engine'
 import { LogEmitter, QueryEvent as ClientQueryEvent } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { RustRequestError, SyncRustError } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -582,12 +581,6 @@ export class ClientEngine implements Engine {
     } catch (e: any) {
       throw this.#transformRequestError(e, request)
     }
-  }
-
-  metrics(options: MetricsOptionsJson): Promise<Metrics>
-  metrics(options: MetricsOptionsPrometheus): Promise<string>
-  metrics(_options: EngineMetricsOptions): Promise<Metrics | string> {
-    throw new Error('Method not implemented.')
   }
 
   /**

@@ -17,7 +17,6 @@ import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, Request
 import { Engine } from '../common/Engine'
 import { LogEmitter, LogEventType } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
   QueryEnginePanicEvent,
@@ -130,7 +129,6 @@ export class LibraryEngine implements Engine<undefined> {
       commitTransaction: this.withRequestId(engine.commitTransaction.bind(engine)),
       connect: this.withRequestId(engine.connect.bind(engine)),
       disconnect: this.withRequestId(engine.disconnect.bind(engine)),
-      metrics: engine.metrics?.bind(engine),
       query: this.withRequestId(engine.query.bind(engine)),
       rollbackTransaction: this.withRequestId(engine.rollbackTransaction.bind(engine)),
       sdlSchema: engine.sdlSchema?.bind(engine),
@@ -618,19 +616,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       return errorRecord
     }
     return undefined
-  }
-
-  async metrics(options: MetricsOptionsJson): Promise<Metrics>
-  async metrics(options: MetricsOptionsPrometheus): Promise<string>
-  async metrics(options: EngineMetricsOptions): Promise<Metrics | string> {
-    await this.start()
-    // TODO: add `metrics` method stub in c-abi engine and make it non-optional.
-    // The stub should return an error like in WASM so we handle this gracefully.
-    const responseString = await this.engine!.metrics!(JSON.stringify(options))
-    if (options.format === 'prometheus') {
-      return responseString
-    }
-    return this.parseEngineResponse(responseString)
   }
 }
 
