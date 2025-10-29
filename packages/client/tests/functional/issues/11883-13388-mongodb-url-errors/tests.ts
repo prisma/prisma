@@ -47,7 +47,7 @@ testMatrix.setupTestSuite(
       reason: 'Test for MongoDB-specific errors',
     },
     skipDataProxy: {
-      runtimes: ['node'],
+      runtimes: ['client'],
       reason: `
         The test is not relevant for the Data Proxy. It is not possible to
         create a project with invalid connection string via PDP UI. If an

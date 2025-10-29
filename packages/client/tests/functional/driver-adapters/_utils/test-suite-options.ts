@@ -14,7 +14,7 @@ export const optOutFromProvidersWithNoMatchingDriverAdapters: MatrixOptions['opt
  * Default `skipDataProxy` option for driver adapters tests.
  */
 export const skipDataProxy: MatrixOptions['skipDataProxy'] = {
-  runtimes: ['node'],
+  runtimes: ['client'],
   reason: "driver adapters don't work with data proxy",
 }
 

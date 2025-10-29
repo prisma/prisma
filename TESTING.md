@@ -304,7 +304,7 @@ testMatrix.setupTestSuite(
       // similarly, you can opt out of testing with the Data Proxy
       // client (either completely or for certain runtimes) and
       // specify the reason
-      runtimes: ['node'],
+      runtimes: ['client'],
       reason: "This test doesn't work with Data Proxy",
     },
   },

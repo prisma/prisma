@@ -16,7 +16,7 @@ testMatrix.setupTestSuite(
     skipDb: true,
     skipDefaultClientInstance: true,
     skipDataProxy: {
-      runtimes: ['node'],
+      runtimes: ['client'],
       reason: 'Data proxy embeds full DMMF',
     },
   },
