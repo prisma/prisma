@@ -216,7 +216,8 @@ jobs:
       fail-fast: false
       # Note: the maximum number of matrix configurations on Github Actions is 256
       matrix:
-        clientRuntime: ['client', 'wasm-compiler-edge']
+        # TODO: add `wasm-compiler-edge` to `clientRuntime` once Prisma 7 is ready
+        clientRuntime: ['client']
         flavor:
           [
             'js_pg',

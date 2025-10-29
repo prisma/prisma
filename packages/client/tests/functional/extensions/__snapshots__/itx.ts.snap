@@ -190,13 +190,9 @@ Unique constraint failed on the fields: (\`email\`)"
 
 exports[`extensions.itx (provider=postgresql, js_pg) extended client in itx can rollback via normal call 1`] = `
 "
-Invalid \`tx.user.create()\` invocation in
-/client/tests/functional/extensions/itx.ts:0:0
+Invalid \`prisma.user.create()\` invocation:
 
-  XX   },
-  XX })
-  XX 
-→ XX await tx.user.create(
+
 Unique constraint failed on the fields: (\`email\`)"
 `;
 
