@@ -14,7 +14,7 @@ import {
   getModelArgName,
   getPayloadName,
 } from '../utils'
-import { runtimeImport, runtimeImportedType } from '../utils/runtimeImport'
+import { runtimeImportedType } from '../utils/runtimeImport'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generable } from './Generable'
@@ -347,30 +347,6 @@ function queryRawTypedDefinition(context: GenerateContext) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function metricDefinition(context: GenerateContext) {
-  if (!context.isPreviewFeatureOn('metrics')) {
-    return ''
-  }
-
-  const property = ts
-    .property('$metrics', ts.namedType(`runtime.${runtimeImport('MetricsClient')}`))
-    .setDocComment(
-      ts.docComment`
-        Gives access to the client metrics in json or prometheus format.
-
-        @example
-        \`\`\`
-        const metrics = await prisma.$metrics.json()
-        // or
-        const metrics = await prisma.$metrics.prometheus()
-        \`\`\`
-    `,
-    )
-    .readonly()
-
-  return ts.stringify(property, { indentLevel: 1, newLine: 'leading' })
-}
-
 function runCommandRawDefinition(context: GenerateContext) {
   // we do not generate `$runCommandRaw` definitions if not supported
   if (!context.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
@@ -476,7 +452,6 @@ ${[
   batchingTransactionDefinition(this.context),
   interactiveTransactionDefinition(this.context),
   runCommandRawDefinition(this.context),
-  metricDefinition(this.context),
   extendsPropertyDefinition(),
 ]
   .filter((d) => d !== null)

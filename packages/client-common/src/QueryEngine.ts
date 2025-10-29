@@ -35,7 +35,6 @@ export type QueryEngineInstance = {
   startTransaction(options: string, traceHeaders: string, requestId: string): Promise<string>
   commitTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
   rollbackTransaction(id: string, traceHeaders: string, requestId: string): Promise<string>
-  metrics?(options: string): Promise<string>
   trace(requestId: string): Promise<string | null>
 }
 
