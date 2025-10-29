@@ -120,15 +120,15 @@ testMatrix.setupTestSuite(() => {
         XX 
         XX test('throws on nested include', async () => {
       → XX   const result = prisma.user.findFirst({
-                include: {
-                  posts: {
-                    include: {
-                      author: undefined
-                              ~~~~~~~~~
-                    }
-                  }
-                }
-              })
+               include: {
+                 posts: {
+                   include: {
+                     author: undefined
+                             ~~~~~~~~~
+                   }
+                 }
+               }
+             })
 
       Invalid value for selection field \`author\`: explicitly \`undefined\` values are not allowed"
     `)
@@ -145,15 +145,15 @@ testMatrix.setupTestSuite(() => {
         XX 
         XX test('throws on nested select', async () => {
       → XX   const result = prisma.user.findFirst({
-                select: {
-                  posts: {
-                    select: {
-                      author: undefined
-                              ~~~~~~~~~
-                    }
-                  }
-                }
-              })
+               select: {
+                 posts: {
+                   select: {
+                     author: undefined
+                             ~~~~~~~~~
+                   }
+                 }
+               }
+             })
 
       Invalid value for selection field \`author\`: explicitly \`undefined\` values are not allowed"
     `)
@@ -170,15 +170,15 @@ testMatrix.setupTestSuite(() => {
         XX 
         XX test('throws on nested omit', async () => {
       → XX   const result = prisma.user.findFirst({
-                select: {
-                  posts: {
-                    omit: {
-                      id: undefined
-                          ~~~~~~~~~
-                    }
-                  }
-                }
-              })
+               select: {
+                 posts: {
+                   omit: {
+                     id: undefined
+                         ~~~~~~~~~
+                   }
+                 }
+               }
+             })
 
       Invalid value for selection field \`id\`: explicitly \`undefined\` values are not allowed"
     `)

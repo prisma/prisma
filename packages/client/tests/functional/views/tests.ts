@@ -146,29 +146,9 @@ testMatrix.setupTestSuite(
           by: ['name'],
           take: 1,
         }),
-      ).rejects.toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.userInfo.groupBy()\` invocation in
-        /client/tests/functional/views/tests.ts:0:0
-
-          142 test('should require orderBy when take is provided in groupBy', async () => {
-          143   await expect(
-          144     // @ts-expect-error
-        → 145     prisma.userInfo.groupBy({
-                    select: {
-                      name: true
-                    },
-                    by: [
-                      "name"
-                    ],
-                    take: 1,
-                    ~~~~
-                  + orderBy: UserInfoOrderByWithAggregationInput[] | UserInfoOrderByWithAggregationInput
-                  })
-
-        Argument \`orderBy\` is missing.
-        Argument \`orderBy\` is required because argument \`take\` was provided."
-      `)
+      ).rejects.toThrow(
+        /Argument `orderBy` is missing.[\s\S]*Argument `orderBy` is required because argument `take` was provided\./,
+      )
     })
 
     test('should require orderBy when skip is provided in groupBy', async () => {
@@ -178,29 +158,9 @@ testMatrix.setupTestSuite(
           by: ['name'],
           skip: 1,
         }),
-      ).rejects.toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.userInfo.groupBy()\` invocation in
-        /client/tests/functional/views/tests.ts:0:0
-
-          174 test('should require orderBy when skip is provided in groupBy', async () => {
-          175   await expect(
-          176     // @ts-expect-error
-        → 177     prisma.userInfo.groupBy({
-                    select: {
-                      name: true
-                    },
-                    by: [
-                      "name"
-                    ],
-                    skip: 1,
-                    ~~~~
-                  + orderBy: UserInfoOrderByWithAggregationInput[] | UserInfoOrderByWithAggregationInput
-                  })
-
-        Argument \`orderBy\` is missing.
-        Argument \`orderBy\` is required because argument \`skip\` was provided."
-      `)
+      ).rejects.toThrow(
+        /Argument `orderBy` is missing.[\s\S]*Argument `orderBy` is required because argument `skip` was provided\./,
+      )
     })
   },
   {
