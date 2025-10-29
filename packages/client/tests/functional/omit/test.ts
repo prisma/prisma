@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(({ provider, generatorType }) => {
         Invalid \`prisma.user.findFirstOrThrow()\` invocation in
         /client/tests/functional/omit/test.ts:0:0
 
-           XX 
+          XX // Alternatively, stop testing this on \`prisma-client-js\` altogether.
           XX testMatrix.setupTestSuite(({ provider, generatorType }) => {
           XX   test('non-existing true field in omit throw validation error', async () => {
         → XX     const result = prisma.user.findFirstOrThrow({
@@ -146,15 +146,15 @@ testMatrix.setupTestSuite(({ provider, generatorType }) => {
           XX test('omit + select throws validation error', async () => {
           XX   // @ts-expect-error
         → XX   const result = prisma.user.findFirstOrThrow({
-                 select: {
-                 ~~~~~~
-                   name: true
-                 },
-                 omit: {
-                 ~~~~
-                   password: true
-                 }
-               })
+                  select: {
+                  ~~~~~~
+                    name: true
+                  },
+                  omit: {
+                  ~~~~
+                    password: true
+                  }
+                })
 
         Please either use \`omit\` or \`select\`, but not both at the same time."
       `)
@@ -204,20 +204,20 @@ testMatrix.setupTestSuite(({ provider, generatorType }) => {
           XX 
           XX test('deeply nested omit + select throws validation error', async () => {
         → XX   const result = prisma.user.findFirstOrThrow({
-                 select: {
-                   name: true,
-                   posts: {
-                     select: {
-                     ~~~~~~
-                       id: true
-                     },
-                     omit: {
-                     ~~~~
-                       title: true
-                     }
-                   }
-                 }
-               })
+                  select: {
+                    name: true,
+                    posts: {
+                      select: {
+                      ~~~~~~
+                        id: true
+                      },
+                      omit: {
+                      ~~~~
+                        title: true
+                      }
+                    }
+                  }
+                })
 
         Please either use \`omit\` or \`select\`, but not both at the same time."
       `)
@@ -271,15 +271,15 @@ testMatrix.setupTestSuite(({ provider, generatorType }) => {
           XX 
           XX test('excluding all fields of a model throws validation error', async () => {
         → XX   const result = prisma.user.findFirstOrThrow({
-                 omit: {
-               ?   id?: false,
-               ?   name?: false,
-               ?   password?: false,
-               ?   email?: false,
-               ?   posts?: false,
-               ?   _count?: false
-                 }
-               })
+                  omit: {
+                ?   id?: false,
+                ?   name?: false,
+                ?   password?: false,
+                ?   email?: false,
+                ?   posts?: false,
+                ?   _count?: false
+                  }
+                })
 
         The omit statement includes every field of the model User. At least one field must be included in the result"
       `)
