@@ -1,9 +1,7 @@
-const { PrismaPg } = require('@prisma/adapter-pg')
 const { PrismaClient } = require('db')
 
 async function doPrismaQuery() {
-  const adapter = new PrismaPg({ connectionString: process.env.TEST_E2E_POSTGRES_URI })
-  const prisma = new PrismaClient({ adapter })
+  const prisma = new PrismaClient()
 
   await prisma.user.deleteMany()
   const user = await prisma.user.create({

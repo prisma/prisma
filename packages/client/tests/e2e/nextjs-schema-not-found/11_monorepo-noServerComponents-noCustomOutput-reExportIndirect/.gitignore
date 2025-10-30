@@ -4,4 +4,3 @@
 client
 node_modules
 /packages/database/prisma/client
-generated/

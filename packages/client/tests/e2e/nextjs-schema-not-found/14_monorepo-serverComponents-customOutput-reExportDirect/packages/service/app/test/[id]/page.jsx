@@ -1,4 +1,3 @@
-const { PrismaPg } = require('@prisma/adapter-pg')
 const { PrismaClient } = require('db')
 
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -9,8 +8,7 @@ export async function generateStaticParams() {
 async function doPrismaQuery(params) {
   if (params.id === '1') return JSON.stringify({})
 
-  const adapter = new PrismaPg({ connectionString: process.env.TEST_E2E_POSTGRES_URI })
-  const prisma = new PrismaClient({ adapter })
+  const prisma = new PrismaClient()
 
   const result = await prisma.$queryRaw`SELECT 1`
   return JSON.stringify(result)
