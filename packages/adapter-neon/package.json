@@ -36,9 +36,9 @@
   "license": "Apache-2.0",
   "sideEffects": false,
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "@prisma/driver-adapter-utils": "workspace:*",
-    "postgres-array": "3.0.4",
-    "@neondatabase/serverless": ">0.6.0 <2"
+    "postgres-array": "3.0.4"
   },
   "devDependencies": {
     "@prisma/debug": "workspace:*"
