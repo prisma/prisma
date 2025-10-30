@@ -44,11 +44,6 @@ runs:
         path: |
           target/release/schema-engine
           target/release/schema-engine.exe
-          target/release/query-engine
-          target/release/query-engine.exe
-          target/release/libquery_engine.so
-          target/release/libquery_engine.dylib
-          target/release/query_engine.dll
           target/prisma-schema-wasm
           query-compiler/query-compiler-wasm/pkg
           schema-engine/schema-engine-wasm/pkg
