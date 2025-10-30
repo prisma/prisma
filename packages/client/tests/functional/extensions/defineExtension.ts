@@ -683,7 +683,7 @@ testMatrix.setupTestSuite(({ driverAdapter }) => {
       const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
       // @ts-test-if: provider !== Providers.MONGODB
       const queryRawUnsafe = await prisma.$queryRawUnsafe('')
-      // @ts-test-if: provider !== Providers.MONGODB && driverAdapter === undefined
+      // @ts-test-if: provider !== Providers.MONGODB || driverAdapter !== undefined
       expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
     }
   })
