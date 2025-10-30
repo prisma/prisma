@@ -9,7 +9,7 @@ on:
           flaky tests detection or "daily-test" for scheduled full builds,
           "CI" for normal pushes/PRs
         type: string
-        required: true
+        required: false
         default: CI
       jobTimeout:
         description: Timeout for the jobs. Default is 35 minutes
