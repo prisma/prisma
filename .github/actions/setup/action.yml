@@ -58,18 +58,12 @@ runs:
       if: steps.custom-engine.outputs.cache-hit == 'true'
       run: |
         RELEASE_DIR="$(pwd)/target/release"
-        if [ -f "$RELEASE_DIR/libquery_engine.so" ]; then
+        if [ -f "$RELEASE_DIR/schema-engine" ]; then
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
-        elif [ -f "$RELEASE_DIR/query_engine.dll" ]; then
+        elif [ -f "$RELEASE_DIR/schema-engine.exe" ]; then
           WIN_RELEASE_DIR=$(cygpath -w $RELEASE_DIR)
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$WIN_RELEASE_DIR\\\schema-engine.exe" >> $GITHUB_ENV
-        elif [ -f "$RELEASE_DIR/libquery_engine.dylib" ]; then
-          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
         else
-          echo "Something went wrong. Build cache for engines exists, but no binaries for current OS found"
-          ls -la "$RELEASE_DIR"
-          exit 1
-        fi
       shell: bash
 
     - name: Override WASM modules
