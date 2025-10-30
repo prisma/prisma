@@ -90,9 +90,6 @@ export class Version implements Command {
         }
       })
 
-    const queryEngineRows = [['Query Compiler', 'enabled']]
-    const queryEngineRetrievalErrors: Error[] = []
-
     const prismaClientVersion = await getInstalledPrismaClientVersion()
     const typescriptVersion = await getTypescriptVersion()
 
@@ -103,7 +100,7 @@ export class Version implements Command {
       ['Architecture', os.arch()],
       ['Node.js', process.version],
       ['TypeScript', typescriptVersion],
-      ...queryEngineRows,
+      ['Query Compiler', 'enabled'],
       ['PSL', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
       ...schemaEngineRows,
 
@@ -116,7 +113,7 @@ export class Version implements Command {
      * and let Node.js exit naturally, but with error code 1.
      */
 
-    const enginesMetaInfoErrors = [...queryEngineRetrievalErrors, ...schemaEngineRetrievalErrors]
+    const enginesMetaInfoErrors = [...schemaEngineRetrievalErrors]
 
     if (enginesMetaInfoErrors.length > 0) {
       process.exitCode = 1
