@@ -9,31 +9,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 describe('version', () => {
   describe('shows @prisma/schema-engine-wasm when config.migrate.adapter is set', () => {
     describe('bypassing query engine env vars', () => {
-      const originalEnv = { ...process.env }
-      const resetEnv = () => {
-        for (const key of Object.keys(process.env)) {
-          if (!(key in originalEnv)) {
-            delete process.env[key]
-          }
-        }
-
-        for (const [key, value] of Object.entries(originalEnv)) {
-          if (value === undefined) {
-            delete process.env[key]
-          } else {
-            process.env[key] = value
-          }
-        }
-      }
-
-      beforeAll(() => {
-        resetEnv()
-      })
-
-      afterAll(() => {
-        resetEnv()
-      })
-
       test('does not download query-engine when engine type is client', async () => {
         ctx.fixture('prisma-config-dont-download-engines')
         const data = await ctx.cli('version')
