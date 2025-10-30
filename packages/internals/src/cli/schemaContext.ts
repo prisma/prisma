@@ -58,6 +58,7 @@ type LoadSchemaContextOptions = {
   allowNull?: boolean
   schemaPathArgumentName?: string
   cwd?: string
+  configFilePath?: string
 }
 
 export async function loadSchemaContext(
@@ -76,6 +77,7 @@ export async function loadSchemaContext({
   allowNull = false,
   schemaPathArgumentName = '--schema',
   cwd = process.cwd(),
+  configFilePath,
 }: LoadSchemaContextOptions = {}): Promise<SchemaContext | null> {
   let schemaResult: GetSchemaResult | null = null
 
@@ -92,7 +94,14 @@ export async function loadSchemaContext({
     })
   }
 
-  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, ignoreEnvVarErrors, cwd })
+  return processSchemaResult({
+    schemaResult,
+    schemaEngineConfig,
+    printLoadMessage,
+    ignoreEnvVarErrors,
+    cwd,
+    configFilePath,
+  })
 }
 
 export async function processSchemaResult({
@@ -101,12 +110,16 @@ export async function processSchemaResult({
   printLoadMessage = true,
   ignoreEnvVarErrors = false,
   cwd = process.cwd(),
+  // TODO: wire it up all the way to the top so that we have the correct file path
+  // passed here when `--config` CLI argument is used.
+  configFilePath = path.join(cwd, 'prisma.config.ts'),
 }: {
   schemaResult: GetSchemaResult
   schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
   ignoreEnvVarErrors?: boolean
   cwd?: string
+  configFilePath?: string
 }): Promise<SchemaContext> {
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
   const schemaRootDir = schemaResult.schemaRootDir || cwd
@@ -125,6 +138,7 @@ export async function processSchemaResult({
 
       const primaryDatasource = {
         ...datasourceFromPsl,
+        sourceFilePath: configFilePath,
         url: { fromEnvVar: null, value: url },
         directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
         shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
@@ -135,7 +149,7 @@ export async function processSchemaResult({
     })
     .otherwise(() => datasourceFromPsl)
 
-  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(datasourceFromPsl) || schemaRootDir
+  const primaryDatasourceDirectory = getPrimaryDatasourceDirectory(primaryDatasource) ?? schemaRootDir
 
   return {
     schemaFiles: schemaResult.schemas,
