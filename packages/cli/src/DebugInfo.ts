@@ -122,9 +122,6 @@ ${formatEnvValue('PRISMA_GENERATE_SKIP_AUTOINSTALL')}
 ${formatEnvValue('PRISMA_SKIP_POSTINSTALL_GENERATE')}
 ${formatEnvValue('PRISMA_GENERATE_IN_POSTINSTALL')}
 
-For "prisma generate"
-${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
-
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
 

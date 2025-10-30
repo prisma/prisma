@@ -141,9 +141,6 @@ describe('debug', () => {
       - PRISMA_SKIP_POSTINSTALL_GENERATE:
       - PRISMA_GENERATE_IN_POSTINSTALL:
 
-      For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE:
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES:
 
@@ -225,9 +222,6 @@ describe('debug', () => {
       - PRISMA_SKIP_POSTINSTALL_GENERATE: \`\`
       - PRISMA_GENERATE_IN_POSTINSTALL: \`\`
 
-      For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE:
-
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`\`
 
@@ -305,9 +299,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`true\`
       - PRISMA_SKIP_POSTINSTALL_GENERATE: \`true\`
       - PRISMA_GENERATE_IN_POSTINSTALL: \`true\`
-
-      For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE:
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`true\`
@@ -389,9 +380,6 @@ describe('debug', () => {
       - PRISMA_GENERATE_SKIP_AUTOINSTALL: \`from_env_file\`
       - PRISMA_SKIP_POSTINSTALL_GENERATE: \`from_env_file\`
       - PRISMA_GENERATE_IN_POSTINSTALL: \`from_env_file\`
-
-      For "prisma generate"
-      - PRISMA_GENERATE_NO_ENGINE: \`from_env_file\`
 
       For Prisma Client
       - PRISMA_SHOW_ALL_TRACES: \`from_env_file\`
