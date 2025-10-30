@@ -1,5 +1,185 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`extensions.itx (provider=cockroachdb) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=cockroachdb) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=cockroachdb, js_pg_cockroachdb) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=cockroachdb, js_pg_cockroachdb) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=mongodb) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mongodb) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, js_mariadb) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, js_mariadb) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, js_planetscale) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, qpe=remote) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=mysql, qpe=remote) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`"
+`;
+
+exports[`extensions.itx (provider=postgresql) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=postgresql) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=postgresql, js_neon) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=postgresql, js_neon) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
 exports[`extensions.itx (provider=postgresql, js_pg) extended client in itx can rollback via custom call 1`] = `
 "
 Invalid \`prisma.user.create()\` invocation:
@@ -38,4 +218,104 @@ Invalid \`tx.user.create()\` invocation in
   XX 
 → XX await tx.user.create(
 Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite, js_better_sqlite3) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite, js_better_sqlite3) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite, js_libsql) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlite, js_libsql) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the fields: (\`email\`)"
+`;
+
+exports[`extensions.itx (provider=sqlserver) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`dbo.User\`"
+`;
+
+exports[`extensions.itx (provider=sqlserver) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`dbo.User\`"
+`;
+
+exports[`extensions.itx (provider=sqlserver, js_mssql) extended client in itx can rollback via custom call 1`] = `
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`dbo.User\`"
+`;
+
+exports[`extensions.itx (provider=sqlserver, js_mssql) extended client in itx can rollback via normal call 1`] = `
+"
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/extensions/itx.ts:0:0
+
+  XX   },
+  XX })
+  XX 
+→ XX await tx.user.create(
+Unique constraint failed on the constraint: \`dbo.User\`"
 `;
