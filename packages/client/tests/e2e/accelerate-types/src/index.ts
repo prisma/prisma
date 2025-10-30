@@ -1,6 +1,7 @@
-import { PrismaClient } from '@prisma/client'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { expectTypeOf } from 'expect-type'
+
+import { PrismaClient } from './generated/prisma/client'
 
 async function main() {
   const prisma = new PrismaClient().$extends(withAccelerate())
