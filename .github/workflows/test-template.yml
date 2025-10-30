@@ -551,7 +551,7 @@ jobs:
 
   #
   # INTEGRATION-TESTS
-  # TODO: re-enable once they're ported to the functional test suite.
+  # TODO: re-enable once they're ported to the Query Compiler architecture.
   #
   # integration-tests:
   #   name: Integration tests
