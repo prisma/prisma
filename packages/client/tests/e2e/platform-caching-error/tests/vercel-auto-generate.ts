@@ -1,5 +1,9 @@
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { PrismaClient } from '@prisma/client'
 
+const adapter = new PrismaBetterSqlite3({
+  url: './prisma/dev.db',
+})
 const consoleMock = jest.spyOn(global.console, 'error').mockImplementation()
 
 beforeEach(() => {
@@ -8,7 +12,7 @@ beforeEach(() => {
 
 test('vercel env var + auto generate', () => {
   try {
-    const prisma = new PrismaClient()
+    const prisma = new PrismaClient({ adapter })
     prisma.$connect()
   } catch (e) {
     expect(e).toMatchInlineSnapshot(`
