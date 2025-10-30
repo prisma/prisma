@@ -8,10 +8,6 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
     reason: string
   }
   skipDefaultClientInstance?: boolean
-  skipDataProxy?: {
-    runtimes: ClientRuntime[]
-    reason: string
-  }
   skipDriverAdapter?: {
     from: `${AdapterProviders}`[]
     reason: string

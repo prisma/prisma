@@ -74,9 +74,5 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
-    skipDataProxy: {
-      runtimes: ['wasm-compiler-edge', 'client'],
-      reason: 'Data proxy creates different traces',
-    },
   },
 )

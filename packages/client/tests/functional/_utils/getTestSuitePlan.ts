@@ -150,11 +150,6 @@ function shouldSkipSuiteConfig(
     return true
   }
 
-  // if the test needs to skip the dataproxy test, skip
-  if (cliMeta.dataProxy && options?.skipDataProxy?.runtimes.includes(cliMeta.runtime)) {
-    return true
-  }
-
   // if the client doesn't support the provider, skip
   if (cliMeta.dataProxy && provider === Providers.SQLITE) {
     return true
