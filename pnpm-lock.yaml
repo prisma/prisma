@@ -290,6 +290,9 @@ importers:
       '@prisma/debug':
         specifier: workspace:*
         version: link:../debug
+      '@types/pg':
+        specifier: 8.11.11
+        version: 8.11.11
 
   packages/adapter-pg:
     dependencies:
@@ -3668,9 +3671,6 @@ packages:
 
   '@types/pg@8.11.6':
     resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
-
-  '@types/pg@8.15.6':
-    resolution: {integrity: sha512-NoaMtzhxOrubeL/7UZuNTrejB4MPAJ0RpxZqXQf2qXuVlTPuG6Y8p4u9dKRaue4yjmC7ZhzVO2/Yyyn25znrPQ==}
 
   '@types/pluralize@0.0.33':
     resolution: {integrity: sha512-JOqsl+ZoCpP4e8TDke9W79FDcSgPAR0l6pixx2JHkhnRjvShyYiAYw2LVsnA7K08Y6DeOnaU6ujmENO4os/cYg==}
@@ -9248,7 +9248,7 @@ snapshots:
   '@neondatabase/serverless@1.0.2':
     dependencies:
       '@types/node': 22.18.13
-      '@types/pg': 8.15.6
+      '@types/pg': 8.11.11
 
   '@noble/hashes@1.8.0': {}
 
@@ -9896,21 +9896,15 @@ snapshots:
 
   '@types/pg@8.11.11':
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
       pg-protocol: 1.10.3
       pg-types: 4.1.0
 
   '@types/pg@8.11.6':
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
       pg-protocol: 1.10.3
       pg-types: 4.1.0
-
-  '@types/pg@8.15.6':
-    dependencies:
-      '@types/node': 22.18.13
-      pg-protocol: 1.10.3
-      pg-types: 2.2.0
 
   '@types/pluralize@0.0.33': {}
 
@@ -9925,7 +9919,7 @@ snapshots:
 
   '@types/readable-stream@4.0.22':
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
 
   '@types/resolve@1.20.6': {}
 
@@ -9945,7 +9939,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -12388,7 +12382,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -14064,7 +14058,7 @@ snapshots:
       '@azure/identity': 4.13.0
       '@azure/keyvault-keys': 4.10.0
       '@js-joda/core': 5.6.5
-      '@types/node': 24.9.2
+      '@types/node': 20.19.24
       bl: 6.1.4
       iconv-lite: 0.6.3
       js-md4: 0.3.2

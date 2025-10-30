@@ -41,6 +41,7 @@
     "postgres-array": "3.0.4"
   },
   "devDependencies": {
-    "@prisma/debug": "workspace:*"
+    "@prisma/debug": "workspace:*",
+    "@types/pg": "8.11.11"
   }
 }
