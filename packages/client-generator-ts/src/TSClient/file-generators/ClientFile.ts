@@ -15,8 +15,6 @@ const jsDocHeader = `/*
 `
 
 export function createClientFile(context: GenerateContext, options: TSClientOptions): string {
-  options.generator.config.engineType = 'client'
-
   const imports = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),

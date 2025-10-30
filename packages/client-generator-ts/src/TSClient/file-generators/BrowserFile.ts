@@ -13,9 +13,7 @@ const jsDocHeader = `/*
  */
 `
 
-export function createBrowserFile(context: GenerateContext, options: TSClientOptions): string {
-  options.generator.config.engineType = 'client'
-
+export function createBrowserFile(context: GenerateContext, _options: TSClientOptions): string {
   return `${jsDocHeader}
 import * as Prisma from '${context.importFileName('./internal/prismaNamespaceBrowser')}'
 export { Prisma }

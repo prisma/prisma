@@ -83,9 +83,6 @@ export class TSClient implements Generable {
       schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
     }
 
-    // This ensures that any engine override is propagated to the generated clients config
-    generator.config.engineType = 'client'
-
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,

@@ -61,9 +61,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     moduleFormat,
   } = options
 
-  // This ensures that any engine override is propagated to the generated clients config
-  generator.config.engineType = 'client'
-
   const datasourceFilePath = datasources[0].sourceFilePath
   const config: GetPrismaClientConfig = {
     generator,
