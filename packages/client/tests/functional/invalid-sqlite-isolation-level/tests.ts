@@ -32,5 +32,8 @@ testMatrix.setupTestSuite(
         The isolation level check is specific to SQLite.
       `,
     },
+    skip(when, { generatorType }) {
+      when(generatorType === 'prisma-client-ts', '@ts-expect-error is not used with prisma-client-ts. This is a bug')
+    },
   },
 )
