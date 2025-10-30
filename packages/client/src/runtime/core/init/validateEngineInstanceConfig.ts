@@ -61,17 +61,14 @@ export function validateEngineInstanceConfig({
   const isUsingPrismaAccelerate = Boolean(url?.startsWith('prisma://'))
   const isUsingPrismaPostgres = isPrismaPostgres(url)
   const isUsingDriverAdapters = Boolean(adapter)
-  const isAccelerateUrlScheme = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
-  const isAccelerateConfigured = isAccelerateUrlScheme
+  const isAccelerateConfigured = isUsingPrismaAccelerate || isUsingPrismaPostgres
 
   if (isUsingDriverAdapters && isAccelerateConfigured) {
-    if (isAccelerateUrlScheme) {
-      pushError([
-        `You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
-        `Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter.`,
-      ])
-    }
+    pushError([
+      `You've provided both a driver adapter and an Accelerate database URL. Driver adapters currently cannot connect to Accelerate.`,
+      `Please provide either a driver adapter with a direct database URL or an Accelerate URL and no driver adapter.`,
+    ])
   }
 
   const isUsing = {

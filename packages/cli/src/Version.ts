@@ -113,11 +113,9 @@ export class Version implements Command {
      * and let Node.js exit naturally, but with error code 1.
      */
 
-    const enginesMetaInfoErrors = [...schemaEngineRetrievalErrors]
-
-    if (enginesMetaInfoErrors.length > 0) {
+    if (schemaEngineRetrievalErrors.length > 0) {
       process.exitCode = 1
-      enginesMetaInfoErrors.forEach((e) => console.error(e))
+      schemaEngineRetrievalErrors.forEach((e) => console.error(e))
     }
 
     const featureFlags = await this.getFeatureFlags(config.schema)
