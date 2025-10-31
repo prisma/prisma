@@ -9,8 +9,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './generated/prisma/client'
 
-let prisma: PrismaClient<PrismaNamespace.PrismaClientOptions, 'query'>
-declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
+let prisma: PrismaClient<'query'>
+declare const newPrismaClient: NewPrismaClient<typeof prisma, typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   (suiteConfig, _suiteMeta, _clientMeta, cliMeta) => {
@@ -85,9 +85,6 @@ testMatrix.setupTestSuite(
           })
 
           prisma.$on('query', (event) => {
-            // When `strategy=join`, this fails with: Argument of type 'LogEvent' is not assignable to parameter of type 'QueryEvent'.
-            // I tried using `@ts-test-if: suiteConfig.strategy !== 'join'`, but it broke apart with `ReferenceError: newPrismaClient is not define`.
-            // @ts-ignore
             logs.push(event)
           })
 
