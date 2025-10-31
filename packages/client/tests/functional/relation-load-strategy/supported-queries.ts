@@ -85,8 +85,8 @@ testMatrix.setupTestSuite(
           })
 
           prisma.$on('query', (event) => {
-            // On `js_neon`/`js_pg` + `strategy=join`, this fails with: Argument of type 'LogEvent' is not assignable to parameter of type 'QueryEvent'.
-            // @ts-test-if: suiteConfig.provider !== Providers.POSTGRESQL
+            // When `strategy=join`, this fails with: Argument of type 'LogEvent' is not assignable to parameter of type 'QueryEvent'.
+            // @ts-test-if: suiteConfig.strategy !== 'join'
             logs.push(event)
           })
 
