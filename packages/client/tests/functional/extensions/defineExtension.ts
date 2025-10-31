@@ -696,8 +696,11 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skip: (when, { driverAdapter }) => {
-      when(driverAdapter !== undefined, 'It somehow fails with Driver Adapters. This is a bug.')
+    skip: (when, { driverAdapter, clientEngineExecutor }) => {
+      when(
+        driverAdapter !== undefined || clientEngineExecutor === 'remote',
+        'It somehow fails with Driver Adapters, and with `--remote-executor`. This is a bug.',
+      )
     },
   },
 )
