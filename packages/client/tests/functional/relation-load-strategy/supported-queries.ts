@@ -86,7 +86,8 @@ testMatrix.setupTestSuite(
 
           prisma.$on('query', (event) => {
             // When `strategy=join`, this fails with: Argument of type 'LogEvent' is not assignable to parameter of type 'QueryEvent'.
-            // @ts-test-if: suiteConfig.strategy !== 'join'
+            // I tried using `@ts-test-if: suiteConfig.strategy !== 'join'`, but it broke apart with `ReferenceError: newPrismaClient is not define`.
+            // @ts-ignore
             logs.push(event)
           })
 
