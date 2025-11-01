@@ -19,6 +19,9 @@ const Docs = {
   aggregations: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}`,
   distinct: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}`,
   sorting: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}`,
+  filtering: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/filtering-and-sorting Filtering Docs}`,
+  select: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/select-fields Select fields}`,
+  include: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-reads Relation queries}`,
 }
 
 type JSDocsType = {
@@ -218,7 +221,44 @@ const ${uncapitalize(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}O
           }: true } })`
         : ''
 
+      const whereExample = ctx.firstScalar
+        ? `
+
+// Get all ${ctx.plural} that match the filter
+const filtered${capitalize(ctx.mapping.plural)} = await ${ctx.method}({
+  where: {
+    ${ctx.firstScalar.name}: {
+      contains: "search term",
+    }
+  }
+})`
+        : ''
+
+      const paginationExample = `
+
+// Paginate through ${ctx.plural}
+const paginatedResults = await ${ctx.method}({
+  skip: 0,
+  take: 10,
+})
+
+// Cursor-based pagination
+const cursorResults = await ${ctx.method}({
+  cursor: {
+    // ... cursor position
+  },
+  take: 10,
+})`
+
       return `Find zero or more ${ctx.plural} that matches the filter.
+Returns a list of ${ctx.plural} that match your query criteria. Use \`where\` to filter results,
+\`orderBy\` to sort them, and pagination options (\`skip\`, \`take\`, \`cursor\`) to control
+which records are returned.
+
+${Docs.filtering}
+${Docs.sorting}
+${Docs.pagination}
+
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter and select certain fields only.
 @example
@@ -228,14 +268,18 @@ const ${ctx.mapping.plural} = await ${ctx.method}()
 // Get first 10 ${ctx.plural}
 const ${ctx.mapping.plural} = await ${ctx.method}({ take: 10 })
 ${onlySelect}
+${whereExample}
+${paginationExample}
 `
     },
     fields: {
-      where: (singular, plural) => `Filter, which ${plural} to fetch.`,
+      where: (singular, plural) => addLinkToDocs(`Filter, which ${plural} to fetch.`, 'filtering'),
       orderBy: JSDocFields.orderBy,
       skip: JSDocFields.skip,
       cursor: (singular, plural) => addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
       take: JSDocFields.take,
+      select: (singular, plural) => addLinkToDocs(`Choose, which fields to find`, 'select'),
+      distinct: JSDocFields.distinct,
     },
   },
   update: {
