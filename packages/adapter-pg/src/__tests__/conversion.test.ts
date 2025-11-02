@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest'
 
-import { mapArg } from '../conversion'
+import { fieldToColumnType, mapArg } from '../conversion'
+import { ColumnTypeEnum } from '@prisma/driver-adapter-utils'
+
+describe('fieldToColumnType', () => {
+  it('detects pgvector type by typename', () => {
+    // pgvector has a dynamic OID (>= 16384), so we test with a sample OID
+    const result = fieldToColumnType(16385, 'vector')
+    expect(result).toBe(ColumnTypeEnum.Vector)
+  })
+
+  it('falls back to Text for unknown custom types', () => {
+    // Custom type without typename should fall back to Text
+    const result = fieldToColumnType(16386, undefined)
+    expect(result).toBe(ColumnTypeEnum.Text)
+  })
+})
 
 describe('mapArg', () => {
   it('converts a date with a 4-digit year (value >= 1000-01-01) to the correct date', () => {

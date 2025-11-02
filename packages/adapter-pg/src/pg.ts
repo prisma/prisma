@@ -44,13 +44,16 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
     const tag = '[js::query_raw]'
     debug(`${tag} %O`, query)
 
-    const { fields, rows } = await this.performIO(query)
+    const { fields, rows, oidToTypename } = await this.performIO(query)
 
     const columnNames = fields.map((field) => field.name)
     let columnTypes: ColumnType[] = []
 
     try {
-      columnTypes = fields.map((field) => fieldToColumnType(field.dataTypeID))
+      columnTypes = fields.map((field) => {
+        const typname = oidToTypename?.[field.dataTypeID]
+        return fieldToColumnType(field.dataTypeID, typname)
+      })
     } catch (e) {
       if (e instanceof UnsupportedNativeDataType) {
         throw new DriverAdapterError({
@@ -98,7 +101,9 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
    * Should the query fail due to a connection error, the connection is
    * marked as unhealthy.
    */
-  private async performIO(query: SqlQuery): Promise<pg.QueryArrayResult<any>> {
+  private async performIO(
+    query: SqlQuery,
+  ): Promise<pg.QueryArrayResult<any> & { oidToTypename?: Record<number, string> }> {
     const { sql, args } = query
     const values = args.map((arg, i) => mapArg(arg, query.argTypes[i]))
 
@@ -133,7 +138,59 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
         values,
       )
 
-      return result
+      // Resolve type names for user-defined OIDs (OIDs >= FIRST_NORMAL_OBJECT_ID)
+      // This allows us to detect pgvector and other extension types by their typename
+      const fields = result.fields
+      const oidToTypename: Record<number, string> = {}
+
+      // Only resolve type names if we have fields (some queries like BEGIN don't return fields)
+      if (fields && fields.length > 0) {
+        const userDefinedOids = Array.from(
+          new Set(fields.map((f) => f.dataTypeID).filter((oid) => oid >= FIRST_NORMAL_OBJECT_ID)),
+        )
+
+        if (userDefinedOids.length > 0) {
+          try {
+            const typeQuery = await this.client.query({
+              text: `SELECT oid, typname FROM pg_type WHERE oid = ANY($1::oid[])`,
+              values: [userDefinedOids],
+              rowMode: 'array',
+            })
+
+            for (const row of typeQuery.rows) {
+              oidToTypename[row[0] as number] = row[1] as string
+            }
+
+            // Parse vector columns
+            for (let i = 0; i < fields.length; i++) {
+              const field = fields[i]
+              const typname = oidToTypename[field.dataTypeID]
+              if (typname === 'vector') {
+                for (let j = 0; j < result.rows.length; j++) {
+                  const value = result.rows[j][i]
+                  if (value !== null && value !== undefined) {
+                    // Parse vector text format: '[0.1,0.2,0.3]'
+                    if (typeof value === 'string') {
+                      const trimmed = value.trim()
+                      if (trimmed === '[]' || trimmed === '') {
+                        result.rows[j][i] = []
+                      } else {
+                        const inner = trimmed.replace(/^\[|\]$/g, '')
+                        result.rows[j][i] = inner === '' ? [] : inner.split(',').map((s) => Number(s.trim()))
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } catch (e) {
+            // If querying pg_type fails, we'll fall back to treating these as Text
+            debug('Failed to query pg_type for custom type names: %O', e)
+          }
+        }
+      }
+
+      return { ...result, oidToTypename }
     } catch (e) {
       this.onError(e)
     }

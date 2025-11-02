@@ -104,6 +104,22 @@ function serializeRawValue(value: unknown, type: ColumnType): unknown {
       }
       return value.map((v) => serializeRawValue(v, ColumnTypeEnum.Boolean))
 
+    case ColumnTypeEnum.Vector:
+      if (Array.isArray(value)) {
+        // Vector is already parsed as number[], return as-is
+        return value
+      } else if (typeof value === 'string') {
+        // Fallback: parse vector text format if needed
+        const trimmed = value.trim()
+        if (trimmed === '[]' || trimmed === '') {
+          return []
+        }
+        const inner = trimmed.replace(/^\[|\]$/g, '')
+        return inner === '' ? [] : inner.split(',').map((s) => Number(s.trim()))
+      } else {
+        throw new Error(`Cannot serialize value of type ${typeof value} as Vector`)
+      }
+
     default:
       return value // For all other types, return the value as is
   }
@@ -174,6 +190,8 @@ function serializeColumnType(columnType: ColumnType): string {
       return 'time-array'
     case ColumnTypeEnum.UnknownNumber:
       return 'unknown'
+    case ColumnTypeEnum.Vector:
+      return 'float-array'
     /// The following PlanetScale type IDs are mapped into Set:
     /// - SET (SET) -> e.g. `"foo,bar"` (String-encoded, comma-separated)
     case ColumnTypeEnum.Set:

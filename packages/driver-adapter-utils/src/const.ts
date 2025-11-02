@@ -20,6 +20,7 @@ export const ColumnTypeEnum = {
   Bytes: 13,
   Set: 14,
   Uuid: 15,
+  Vector: 16,
 
   // Arrays
   Int32Array: 64,

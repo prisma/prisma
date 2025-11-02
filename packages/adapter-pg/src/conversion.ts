@@ -173,7 +173,12 @@ export class UnsupportedNativeDataType extends Error {
  * module to see how other attributes of the field packet such as the field length are used to infer
  * the correct quaint::Value variant.
  */
-export function fieldToColumnType(fieldTypeId: number): ColumnType {
+export function fieldToColumnType(fieldTypeId: number, typname?: string): ColumnType {
+  // Handle pgvector extension type
+  if (typname === 'vector') {
+    return ColumnTypeEnum.Vector
+  }
+
   switch (fieldTypeId) {
     case ScalarColumnType.INT2:
     case ScalarColumnType.INT4:
