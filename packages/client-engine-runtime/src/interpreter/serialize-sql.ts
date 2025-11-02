@@ -115,7 +115,17 @@ function serializeRawValue(value: unknown, type: ColumnType): unknown {
           return []
         }
         const inner = trimmed.replace(/^\[|\]$/g, '')
-        return inner === '' ? [] : inner.split(',').map((s) => Number(s.trim()))
+        if (inner === '') {
+          return []
+        }
+        const elements = inner.split(',').map((s) => {
+          const num = parseFloat(s.trim())
+          if (Number.isNaN(num)) {
+            throw new Error(`Cannot parse vector element "${s}" as number in "${value}"`)
+          }
+          return num
+        })
+        return elements
       } else {
         throw new Error(`Cannot serialize value of type ${typeof value} as Vector`)
       }

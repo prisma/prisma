@@ -176,7 +176,18 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
                         result.rows[j][i] = []
                       } else {
                         const inner = trimmed.replace(/^\[|\]$/g, '')
-                        result.rows[j][i] = inner === '' ? [] : inner.split(',').map((s) => Number(s.trim()))
+                         result.rows[j][i] = inner === ''  
+                          ? []
+                          : inner.split(',').map((s) => {
+                              const num = parseFloat(s.trim());
+                              if (isNaN(num)) {
+                                throw new DriverAdapterError({
+                                  kind: 'InconsistentColumnData',
+                                  cause: `Invalid numeric value in vector column: "${s}"`,
+                                })
+                              }
+                              return num;
+                            });
                       }
                     }
                   }
