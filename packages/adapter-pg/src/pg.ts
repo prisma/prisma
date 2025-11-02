@@ -168,38 +168,42 @@ class PgQueryable<ClientT extends StdClient | TransactionClient> implements SqlQ
             }
           }
 
-          // Parse vector columns
-          for (let i = 0; i < fields.length; i++) {
-            const field = fields[i]
-            const typname = oidToTypename[field.dataTypeID]
-            if (typname === 'vector') {
-              for (let j = 0; j < result.rows.length; j++) {
-                const value = result.rows[j][i]
-                if (value !== null && value !== undefined) {
-                  // Parse vector text format: '[0.1,0.2,0.3]'
-                  if (typeof value === 'string') {
-                    const trimmed = value.trim()
-                    if (trimmed === '[]' || trimmed === '') {
-                      result.rows[j][i] = []
-                    } else {
-                      const inner = trimmed.replace(/^\[|\]$/g, '')
-                       result.rows[j][i] = inner === ''  
-                        ? []
-                        : inner.split(',').map((s) => {
-                            const num = parseFloat(s.trim());
-                            if (isNaN(num)) {
-                              throw new DriverAdapterError({
-                                kind: 'InconsistentColumnData',
-                                cause: `Invalid numeric value in vector column: "${s}"`,
-                              })
-                            }
-                            return num;
-                          });
+            // Parse vector columns
+            for (let i = 0; i < fields.length; i++) {
+              const field = fields[i]
+              const typname = oidToTypename[field.dataTypeID]
+              if (typname === 'vector') {
+                for (let j = 0; j < result.rows.length; j++) {
+                  const value = result.rows[j][i]
+                  if (value !== null && value !== undefined) {
+                    // Parse vector text format: '[0.1,0.2,0.3]'
+                    if (typeof value === 'string') {
+                      const trimmed = value.trim()
+                      if (trimmed === '[]' || trimmed === '') {
+                        result.rows[j][i] = []
+                      } else {
+                        const inner = trimmed.replace(/^\[|\]$/g, '')
+                         result.rows[j][i] = inner === ''  
+                          ? []
+                          : inner.split(',').map((s) => {
+                              const num = parseFloat(s.trim());
+                              if (isNaN(num)) {
+                                throw new DriverAdapterError({
+                                  kind: 'InconsistentColumnData',
+                                  cause: `Invalid numeric value in vector column: "${s}"`,
+                                })
+                              }
+                              return num
+                            });
+                      }
                     }
                   }
                 }
               }
             }
+          } catch (e) {
+            // If querying pg_type fails, we'll fall back to treating these as Text
+            debug('Failed to query pg_type for custom type names: %O', e)
           }
         }
       }
