@@ -10,7 +10,6 @@ import {
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
 } from '@prisma/internals'
@@ -80,8 +79,6 @@ ${bold('Examples')}
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],

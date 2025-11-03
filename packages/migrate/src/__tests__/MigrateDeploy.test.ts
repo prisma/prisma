@@ -60,7 +60,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
-            
+
       All migrations have been successfully applied."
     `)
 
@@ -100,7 +100,7 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
-            
+
       All migrations have been successfully applied."
     `)
 

@@ -44,7 +44,6 @@ describe('diagnostics related to prisma.config.ts should not influence structure
     expect(stderr).toMatchInlineSnapshot(`
       "Loaded Prisma config from prisma.config.ts.
 
-      Prisma config detected, skipping environment variable loading.
       "
     `)
   })

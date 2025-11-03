@@ -24,7 +24,7 @@
     - Some packages already use Vitest, `packages/cli` uses both for different tests as it's in the process of transition, older packages still use Jest.
   - Inline snapshots can be sensitive to formatting; prefer concise expectations unless the exact message matters.
 
-- **Environment loading**: Prisma 7 removes automatic `.env` loading. Avoid calling `loadEnvFile` unless the command explicitly still depends on it; favour reading from `prisma.config.ts`.
+- **Environment loading**: Prisma 7 removes automatic `.env` loading.
 
 - **Codebase helpers to know**:
   - `@prisma/internals` exports CLI utilities: `arg`, `checkUnsupportedDataProxy`, `loadSchemaContext` (less used now).

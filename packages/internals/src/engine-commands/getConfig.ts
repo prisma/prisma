@@ -39,7 +39,6 @@ interface GetConfigValidationError {
 
 export type GetConfigOptions = {
   datamodel: SchemaFileInput
-  ignoreEnvVarErrors?: boolean
 }
 
 export class GetConfigError extends Error {
@@ -99,15 +98,9 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           prismaSchemaWasm.debug_panic()
         }
 
-        const params = JSON.stringify({
-          prismaSchema: options.datamodel,
-          datasourceOverrides: {},
-          ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
-          env: process.env,
-        })
+        const params = JSON.stringify({ prismaSchema: options.datamodel })
 
-        const data = prismaSchemaWasm.get_config(params)
-        return data
+        return prismaSchemaWasm.get_config(params)
       },
       (e) => ({
         type: 'wasm-error' as const,

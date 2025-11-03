@@ -123,7 +123,6 @@ export async function ensureCanConnectToDatabase(datasource: DataSource | undefi
   const schemaDir = path.dirname(datasource.sourceFilePath)
   const url = getConnectionUrl(datasource)
 
-  // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
   const canConnect = await canConnectToDatabase(url, schemaDir)
 
   if (canConnect === true) {
