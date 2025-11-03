@@ -16,6 +16,7 @@ import {
   getTestSuiteConfigs,
   getTestSuiteFolderPath,
   getTestSuiteMeta,
+  TestSuiteMeta,
 } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import {
@@ -26,7 +27,6 @@ import {
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { ClientMeta, CliMeta, MatrixOptions } from './types'
 
-export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**

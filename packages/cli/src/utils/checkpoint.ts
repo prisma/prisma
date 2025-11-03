@@ -120,7 +120,6 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: schemaPath,
       schemaPathFromConfig,
-      ignoreEnvVarErrors: true,
       printLoadMessage: false,
     })
 

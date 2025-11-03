@@ -59,7 +59,7 @@ export async function generateInFolder({
     process.env.PRISMA_CLIENT_ENGINE_TYPE = overrideEngineType
   }
 
-  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel: schemas })
   const previewFeatures = extractPreviewFeatures(config.generators)
   const clientEngineType = getClientEngineType(config.generators[0])
 

@@ -12,7 +12,6 @@ import {
   HelpError,
   inferDirectoryConfig,
   link,
-  loadEnvFile,
   loadSchemaContext,
   locateLocalCloudflareD1,
   type MultipleSchemas,
@@ -123,8 +122,6 @@ Set composite types introspection depth to 2 levels
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: !args['--print'], config })
-
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
@@ -179,16 +176,12 @@ Set composite types introspection depth to 2 levels
             ]
             const config = await getConfig({
               datamodel: schema,
-              ignoreEnvVarErrors: true,
             })
 
             return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
           } else {
-            // Use getConfig with ignoreEnvVarErrors
-            // It will  throw an error if the env var is not set or if it is invalid
             await getConfig({
               datamodel: input.schemaContext.schemaFiles,
-              ignoreEnvVarErrors: false,
             })
           }
 
@@ -210,7 +203,6 @@ ${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
           const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
           const config = await getConfig({
             datamodel: schema,
-            ignoreEnvVarErrors: true,
           })
 
           return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
