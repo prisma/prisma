@@ -8,7 +8,7 @@ import { BasicTracerProvider } from '@opentelemetry/sdk-trace-base'
 import * as QueryPlanExecutor from '@prisma/query-plan-executor'
 import path from 'path'
 
-import type { Client } from '../../../src/runtime/getPrismaClient'
+import type { Client, PrismaClientOptions } from '../../../src/runtime/getPrismaClient'
 import { checkMissingProviders } from './checkMissingProviders'
 import {
   getTestSuiteClientMeta,
@@ -203,7 +203,13 @@ function setupTestSuiteMatrix(
         globalThis['newPrismaClient'] = (args: any) => {
           const { PrismaClient, Prisma } = clientModule
 
-          const options = { ...internalArgs(), ...newDriverAdapter(), ...args }
+          const options: PrismaClientOptions = {
+            ...internalArgs(),
+            ...newDriverAdapter(),
+            accelerateUrl: datasourceInfo.accelerateUrl,
+            ...args,
+          }
+
           const client = new PrismaClient(options)
 
           globalThis['Prisma'] = Prisma

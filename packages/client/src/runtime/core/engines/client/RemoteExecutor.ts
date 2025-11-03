@@ -7,7 +7,7 @@ import { parseSetCookie, serialize as serializeCookie } from 'cookie-es'
 
 import { getUrlAndApiKey } from '../accelerate/getUrlAndApiKey'
 import { type AccelerateHeaders, HeaderBuilder } from '../accelerate/HeaderBuilder'
-import type { AccelerateExtensionFetch, EngineConfig } from '../common/Engine'
+import type { AccelerateExtensionFetch } from '../common/Engine'
 import type { LogEmitter } from '../common/types/Events'
 import type { QueryEngineResultExtensions } from '../common/types/QueryEngine'
 import type { InteractiveTransactionInfo } from '../common/types/Transaction'
@@ -22,9 +22,7 @@ export interface RemoteExecutorOptions {
   logLevel: QueryEngineLogLevel
   logQueries: boolean
   tracingHelper: TracingHelper
-  inlineDatasources: EngineConfig['inlineDatasources']
-  overrideDatasources: EngineConfig['overrideDatasources']
-  env: Record<string, string | undefined>
+  accelerateUrl: string
 }
 
 export class RemoteExecutor implements Executor {
@@ -41,9 +39,7 @@ export class RemoteExecutor implements Executor {
 
     const { url, apiKey } = getUrlAndApiKey({
       clientVersion: options.clientVersion,
-      env: options.env,
-      inlineDatasources: options.inlineDatasources,
-      overrideDatasources: options.overrideDatasources,
+      accelerateUrl: options.accelerateUrl,
     })
 
     this.#httpClient = new HttpClient(url)
