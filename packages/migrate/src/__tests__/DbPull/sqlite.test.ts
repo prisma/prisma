@@ -12,11 +12,11 @@ const ctx = createDefaultTestContext()
 describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
   const urlValueRegex = /url\s*=\s*".*"/
 
-  test('should succeed when --local-d1 and a single local Cloudflare D1 database exists', async () => {
+  test('should succeed with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
     ctx.fixture('cloudflare-d1-one-db')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--local-d1', '--print'], await ctx.config())
+    const result = introspect.parse(['--print'], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     // Example values:
@@ -53,16 +53,16 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
     `)
   })
 
-  test('should succeed when reintrospecting with --local-d1 and a single local Cloudflare D1 database exists', async () => {
+  test('should succeed when reintrospecting with listLocalDatabases() when a single local Cloudflare D1 database exists', async () => {
     ctx.fixture('re-introspection/sqlite/cloudflare-d1-one-db')
 
     const introspect = new DbPull()
-    const result = introspect.parse(['--local-d1'], await ctx.config())
+    const result = introspect.parse([], await ctx.config())
 
     await expect(result).resolves.toMatchInlineSnapshot(`""`)
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
-      Datasource "db": SQLite database "dev.db" <location placeholder>
+      Datasource "db": SQLite database "5d11bcce386042472d19a6a4f58e40041ebc5932c972e1449cbf404f3e3c4a7a.sqlite" <location placeholder>
 
       - Introspecting based on datasource defined in prisma/schema.prisma
       ✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
@@ -74,28 +74,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
 })
 
 describeMatrix(sqliteOnly, 'common/sqlite', () => {
-  describe('using Prisma Config', () => {
-    it('--local-d1 is not supported', async () => {
-      ctx.fixture('prisma-config-validation/sqlite-d1')
-      try {
-        await DbPull.new().parse(['--local-d1'], await ctx.config())
-      } catch (error) {
-        const e = error as Error & { code?: number }
-
-        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`
-          "
-          Passing the --local-d1 flag to the prisma db pull command is not supported when
-          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
-
-          More information about this limitation: https://pris.ly/d/schema-engine-limitations
-          "
-        `)
-      }
-    })
-  })
-
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()

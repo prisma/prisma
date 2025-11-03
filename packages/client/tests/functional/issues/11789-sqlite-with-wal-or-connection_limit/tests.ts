@@ -5,7 +5,7 @@ import type { PrismaClient } from './generated/prisma/client'
 
 declare const newPrismaClient: NewPrismaClient<PrismaClient, typeof PrismaClient>
 
-// the rest is from npx prisma migrate diff --from-empty --to-schema-datamodel=...
+// the rest is from npx prisma migrate diff --from-empty --to-schema=...
 const sqlDef = `CREATE TABLE "User" (
    "id" TEXT NOT NULL PRIMARY KEY,
    "email" TEXT NOT NULL
