@@ -9,6 +9,7 @@
       "@prisma/client-generator-js": ["./packages/client-generator-js/src"],
       "@prisma/client-generator-ts": ["./packages/client-generator-ts/src"],
       "@prisma/client-generator-registry": ["./packages/client-generator-registry/src"],
+      "@prisma/client-runtime-utils": ["./packages/client-runtime-utils/src"],
       "@prisma/config": ["./packages/config/src"],
       "@prisma/dmmf": ["./packages/dmmf/src"],
       "@prisma/internals": ["./packages/internals/src"],

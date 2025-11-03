@@ -84,7 +84,6 @@ export class PrismaClientTsGenerator implements Generator {
       schemaPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
       datasources: options.datasources,
-      envPaths: options.envPaths,
       outputDir,
       runtimeBase: '@prisma/client/runtime',
       dmmf: options.dmmf,

@@ -8,7 +8,6 @@ import {
   getDirectUrl,
   HelpError,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   mergeSchemas,
   resolveUrl,
@@ -67,7 +66,7 @@ ${bold('Examples')}
 
   Specify a schema
     ${dim('$')} prisma studio --schema=./schema.prisma
-    
+
   Specify a custom prisma config file
     ${dim('$')} prisma studio --config=./prisma.config.ts
 `)
@@ -101,13 +100,10 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
       schemaEngineConfig: config,
-      ignoreEnvVarErrors: true,
     })
 
     const hostname = args['--hostname']
