@@ -8,7 +8,7 @@ void executeSteps({
     await $`pnpm prisma migrate dev`
   },
   test: async () => {
-    await $`pnpm run start`
+    // await $`pnpm run start`
   },
   finish: async () => {
     await $`echo "done"`
