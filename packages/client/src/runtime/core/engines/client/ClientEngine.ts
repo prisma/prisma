@@ -84,7 +84,10 @@ type ExecutorKind =
       remote: false
       driverAdapterFactory: SqlDriverAdapterFactory
     }
-  | { remote: true }
+  | {
+      remote: true
+      accelerateUrl: string
+    }
 
 export class ClientEngine implements Engine {
   name = 'ClientEngine' as const
@@ -104,9 +107,9 @@ export class ClientEngine implements Engine {
 
   #emitQueryEvent?: (event: QueryEvent) => void
 
-  constructor(config: EngineConfig, remote: boolean, queryCompilerLoader?: QueryCompilerLoader) {
-    if (remote) {
-      this.#executorKind = { remote: true }
+  constructor(config: EngineConfig, queryCompilerLoader?: QueryCompilerLoader) {
+    if (config.accelerateUrl !== undefined) {
+      this.#executorKind = { remote: true, accelerateUrl: config.accelerateUrl }
     } else if (config.adapter) {
       this.#executorKind = { remote: false, driverAdapterFactory: config.adapter }
       debug('Using driver adapter: %O', config.adapter)
@@ -205,12 +208,10 @@ export class ClientEngine implements Engine {
     if (this.#executorKind.remote) {
       return new RemoteExecutor({
         clientVersion: this.config.clientVersion,
-        env: this.config.env,
-        inlineDatasources: this.config.inlineDatasources,
+        accelerateUrl: this.#executorKind.accelerateUrl,
         logEmitter: this.logEmitter,
         logLevel: this.logLevel,
         logQueries: this.logQueries,
-        overrideDatasources: this.config.overrideDatasources,
         tracingHelper: this.tracingHelper,
       })
     } else {

@@ -1,21 +1,13 @@
 import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-} from '@prisma/client-runtime-utils'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
 import { Datasources } from '../../../getPrismaClient'
-import type { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { QueryEngineResultData } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
-import type { getBatchRequestPayload } from './utils/getBatchRequestPayload'
 
 export type BatchTransactionOptions = {
   isolationLevel?: Transaction.IsolationLevel
@@ -149,6 +141,11 @@ export interface EngineConfig {
   adapter?: SqlDriverAdapterFactory
 
   /**
+   * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+   */
+  accelerateUrl?: string
+
+  /**
    * The contents of the schema encoded into a string
    */
   inlineSchema: string
@@ -178,21 +175,19 @@ export interface EngineConfig {
    */
   engineWasm?: EngineWasmLoadingConfig
   compilerWasm?: CompilerWasmLoadingConfig
+}
 
+/**
+ * Used by `@prisma/extension-accelerate` until we migrate it to a better API.
+ */
+export interface AccelerateEngineConfig extends EngineConfig {
   /**
    * Allows Accelerate to use runtime utilities from the client. These are
-   * necessary for the AccelerateEngine to function correctly.
+   * necessary for `@prisma/extension-accelerate` to function correctly.
+   * See <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L518>
    */
-  accelerateUtils?: {
-    resolveDatasourceUrl: typeof resolveDatasourceUrl
-    getBatchRequestPayload: typeof getBatchRequestPayload
-    prismaGraphQLToJSError: typeof prismaGraphQLToJSError
-    PrismaClientUnknownRequestError: typeof PrismaClientUnknownRequestError
-    PrismaClientInitializationError: typeof PrismaClientInitializationError
-    PrismaClientKnownRequestError: typeof PrismaClientKnownRequestError
-    debug: (...args: any[]) => void
-    engineVersion: string
-    clientVersion: string
+  accelerateUtils: {
+    resolveDatasourceUrl: () => string
   }
 }
 

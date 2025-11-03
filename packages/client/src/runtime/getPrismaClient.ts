@@ -12,7 +12,7 @@ import path from 'path'
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, Options } from './core/engines'
-import { AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
+import { AccelerateEngineConfig, AccelerateExtensionFetchDecorator } from './core/engines/common/Engine'
 import { EngineEvent, LogEmitter } from './core/engines/common/types/Events'
 import type * as Transaction from './core/engines/common/types/Transaction'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
@@ -77,7 +77,11 @@ export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  adapter?: SqlDriverAdapterFactory | null
+  adapter?: SqlDriverAdapterFactory
+  /**
+   * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+   */
+  accelerateUrl?: string
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -219,6 +223,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
+    _accelerateEngineConfig: AccelerateEngineConfig
     _clientVersion: string
     _errorFormat: ErrorFormat
     _tracingHelper: TracingHelper
@@ -375,11 +380,32 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter,
           isBundled: config.isBundled,
           adapter,
+          accelerateUrl: options.accelerateUrl,
+        }
+
+        // Used in <https://github.com/prisma/prisma-extension-accelerate/blob/b6ffa853f038780f5ab2fc01bff584ca251f645b/src/extension.ts#L514>
+        this._accelerateEngineConfig = Object.create(this._engineConfig)
+        this._accelerateEngineConfig.accelerateUtils = {
+          resolveDatasourceUrl: () => {
+            if (options.accelerateUrl) {
+              return options.accelerateUrl
+            }
+            throw new PrismaClientInitializationError(
+              `\
+\`accelerateUrl\` is required when using \`@prisma/extension-accelerate\`:
+
+new PrismaClient({
+  accelerateUrl: "prisma://...",
+}).$extends(withAccelerate())
+`,
+              config.clientVersion,
+            )
+          },
         }
 
         debug('clientVersion', config.clientVersion)
 
-        this._engine = getEngineInstance(config, this._engineConfig)
+        this._engine = getEngineInstance(this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {

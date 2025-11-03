@@ -626,13 +626,24 @@ export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClie
     ) {
       clientOptions.add(
         ts
-          .property('adapter', ts.unionType([ts.namedType('runtime.SqlDriverAdapterFactory'), ts.namedType('null')]))
+          .property('adapter', ts.namedType('runtime.SqlDriverAdapterFactory'))
           .optional()
           .setDocComment(
             ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
           ),
       )
     }
+
+    clientOptions.add(
+      ts
+        .property('accelerateUrl', ts.stringType)
+        .optional()
+        .setDocComment(
+          ts.docComment(
+            'Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.',
+          ),
+        ),
+    )
 
     clientOptions.add(
       ts.property('omit', ts.namedType('Prisma.GlobalOmitConfig')).optional().setDocComment(ts.docComment`
