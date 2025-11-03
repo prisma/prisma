@@ -9,7 +9,6 @@ import {
   HelpError,
   isError,
   link,
-  loadEnvFile,
   loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, red, yellow } from 'kleur/colors'
@@ -82,8 +81,6 @@ ${bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
@@ -122,8 +119,11 @@ ${bold('Examples')}
 
     aiAgentConfirmationCheckpoint()
 
-    // Url exists because we set `ignoreEnvVarErrors: false` when calling `loadSchemaContext`
-    if (await dropDatabase(datasourceInfo.url!, datasourceInfo.configDir!)) {
+    if (datasourceInfo.url === undefined) {
+      throw new Error('Datasource URL is undefined')
+    }
+
+    if (await dropDatabase(datasourceInfo.url, datasourceInfo.configDir!)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`

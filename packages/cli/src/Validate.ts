@@ -11,7 +11,6 @@ import {
   handleLintPanic,
   HelpError,
   lintSchema,
-  loadEnvFile,
   logger,
   printSchemaLoadedMessage,
   validate,
@@ -69,8 +68,6 @@ ${bold('Examples')}
       return this.help()
     }
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const { schemaPath, schemas } = await getSchemaWithPath(args['--schema'], config.schema)
     printSchemaLoadedMessage(schemaPath)
 
@@ -90,10 +87,8 @@ ${bold('Examples')}
       schemas,
     })
 
-    // We could have a CLI flag to ignore env var validation
     await getConfig({
       datamodel: schemas,
-      ignoreEnvVarErrors: false,
     })
 
     const schemaRelativePath = path.relative(process.cwd(), schemaPath)

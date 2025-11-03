@@ -3,7 +3,7 @@ import { GetPrismaClientConfig, RuntimeDataModel } from '@prisma/client-common'
 import { RawValue, Sql } from '@prisma/client-runtime-utils'
 import { clearLogs, Debug } from '@prisma/debug'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
-import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
+import { ExtendedSpanOptions, logger, TracingHelper } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
 import fs from 'fs'
@@ -260,12 +260,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._activeProvider = config.activeProvider
       this._globalOmit = optionsArg?.omit
       this._tracingHelper = getTracingHelper()
-      const envPaths = config.relativeEnvPaths && {
-        rootEnvPath:
-          config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
-        schemaEnvPath:
-          config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
-      }
 
       /**
        * Initialise and validate the Driver Adapter, if provided.
@@ -304,10 +298,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           )
         }
       }
-
-      const loadedEnv = // for node we load the env from files, for edge only via env injections
-        (NODE_CLIENT && !adapter && envPaths && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) ||
-        config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -360,7 +350,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          env: loadedEnv?.parsed ?? {},
           flags: [],
           engineWasm: config.engineWasm,
           compilerWasm: config.compilerWasm,

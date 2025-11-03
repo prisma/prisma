@@ -9,7 +9,6 @@ import {
   inferDirectoryConfig,
   isError,
   link,
-  loadEnvFile,
   loadSchemaContext,
 } from '@prisma/internals'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -24,7 +23,7 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-Resolve issues with database migrations in deployment databases: 
+Resolve issues with database migrations in deployment databases:
 - recover from failed migrations
 - baseline databases when starting to use Prisma Migrate on existing databases
 - reconcile hotfixes done manually on databases with your migration history
@@ -32,11 +31,11 @@ Resolve issues with database migrations in deployment databases:
 Run "prisma migrate status" to identify if you need to use resolve.
 
 Read more about resolving migration history issues: ${link('https://pris.ly/d/migrate-resolve')}
- 
+
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate resolve [options]
-  
+
 ${bold('Options')}
 
     -h, --help   Display this help message
@@ -47,7 +46,7 @@ ${bold('Options')}
 
 ${bold('Examples')}
 
-  Update migrations table, recording a specific migration as applied 
+  Update migrations table, recording a specific migration as applied
   ${dim('$')} prisma migrate resolve --applied 20201231000000_add_users_table
 
   Update migrations table, recording a specific migration as rolled back
@@ -79,8 +78,6 @@ ${bold('Examples')}
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],

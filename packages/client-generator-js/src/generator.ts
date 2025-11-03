@@ -92,7 +92,6 @@ export class PrismaClientJsGenerator implements Generator {
       schemaPath: options.schemaPath,
       binaryPaths: options.binaryPaths!,
       datasources: options.datasources,
-      envPaths: options.envPaths,
       outputDir,
       copyRuntime: Boolean(options.generator.config.copyRuntime),
       copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),

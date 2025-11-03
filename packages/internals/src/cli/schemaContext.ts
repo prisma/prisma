@@ -54,7 +54,6 @@ type LoadSchemaContextOptions = {
   schemaPathFromConfig?: string
   schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   allowNull?: boolean
   schemaPathArgumentName?: string
   cwd?: string
@@ -72,7 +71,6 @@ export async function loadSchemaContext({
   schemaPathFromConfig,
   schemaEngineConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
   allowNull = false,
   schemaPathArgumentName = '--schema',
   cwd = process.cwd(),
@@ -92,20 +90,18 @@ export async function loadSchemaContext({
     })
   }
 
-  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, ignoreEnvVarErrors, cwd })
+  return processSchemaResult({ schemaResult, schemaEngineConfig, printLoadMessage, cwd })
 }
 
 export async function processSchemaResult({
   schemaResult,
   schemaEngineConfig,
   printLoadMessage = true,
-  ignoreEnvVarErrors = false,
   cwd = process.cwd(),
 }: {
   schemaResult: GetSchemaResult
   schemaEngineConfig?: SchemaEngineConfigInternal
   printLoadMessage?: boolean
-  ignoreEnvVarErrors?: boolean
   cwd?: string
 }): Promise<SchemaContext> {
   const loadedFromPathForLogMessages = path.relative(cwd, schemaResult.schemaPath)
@@ -115,7 +111,7 @@ export async function processSchemaResult({
     printSchemaLoadedMessage(loadedFromPathForLogMessages)
   }
 
-  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas, ignoreEnvVarErrors })
+  const configFromPsl = await getConfig({ datamodel: schemaResult.schemas })
 
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 

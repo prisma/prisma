@@ -34,8 +34,7 @@ describe('version', () => {
       `)
       expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
         "Loaded Prisma config from prisma.config.ts.
-
-        Prisma config detected, skipping environment variable loading."
+        "
       `)
     })
 
@@ -88,8 +87,7 @@ describe('version', () => {
         `)
         expect(cleanSnapshot(data.stderr)).toMatchInlineSnapshot(`
           "Loaded Prisma config from prisma.config.ts.
-
-          Prisma config detected, skipping environment variable loading."
+          "
         `)
       })
     })

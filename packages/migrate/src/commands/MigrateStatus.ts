@@ -10,7 +10,6 @@ import {
   inferDirectoryConfig,
   isError,
   link,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
 } from '@prisma/internals'
@@ -34,7 +33,7 @@ Check the status of your database migrations
   ${bold('Usage')}
 
     ${dim('$')} prisma migrate status [options]
-    
+
   ${bold('Options')}
 
   -h, --help   Display this help message
@@ -70,8 +69,6 @@ Check the status of your database migrations
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
@@ -176,7 +173,7 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`)
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         console.error(`The current database is not managed by Prisma Migrate.
-        
+
 Read more about how to baseline an existing production database:
 ${link('https://pris.ly/d/migrate-baseline')}`)
         // Exit 1 to signal that the status is not in sync
@@ -210,7 +207,7 @@ During development if the failed migration(s) have not been deployed to a produc
       )
 
       console.error(`The failed migration(s) can be marked as rolled back or applied:
-      
+
 - If you rolled back the migration(s) manually:
 ${bold(green(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`)))}
 

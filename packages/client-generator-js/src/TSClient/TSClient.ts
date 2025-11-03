@@ -1,7 +1,7 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
 import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, EnvPaths, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
@@ -20,7 +20,6 @@ import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
-import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
@@ -48,9 +47,6 @@ export type TSClientOptions = O.Required<GenerateClientOptions, 'runtimeBase'> &
   reusedTs?: string // the entrypoint to reuse
   /** When js doesn't need to be regenerated */
   reusedJs?: string // the entrypoint to reuse
-
-  /** result of getEnvPaths call */
-  envPaths: EnvPaths
 }
 
 export class TSClient implements Generable {
@@ -70,20 +66,13 @@ export class TSClient implements Generable {
       generator,
       outputDir,
       datamodel: inlineSchema,
-      runtimeBase,
       runtimeNameJs,
       datasources,
       reusedJs,
-      envPaths,
     } = this.options
 
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
-    }
-
-    const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
-      schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
@@ -98,7 +87,6 @@ export class TSClient implements Generable {
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
-      relativeEnvPaths,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
@@ -144,7 +132,6 @@ ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryEngineWasmModule(runtimeNameJs)}
 ${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeBase, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

@@ -14,10 +14,8 @@ import {
   getSchemaWithPath,
   getSchemaWithPathOptional,
   HelpError,
-  inferDirectoryConfig,
   isError,
   link,
-  loadEnvFile,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
@@ -141,16 +139,12 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
-
     const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
 
-    // Using typed sql requires env vars to be set during generate to connect to the database. Regular generate doesn't need that.
-    const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
-    const directoryConfig = inferDirectoryConfig(schemaContext, config)
+    const schemaContext = await processSchemaResult({ schemaResult })
 
     // TODO Extract logic from here
     let hasJsClient = false
@@ -158,7 +152,7 @@ ${bold('Examples')}
     let clientGeneratorVersion: string | null = null
     let typedSql: SqlQueryOutput[] | undefined
     if (args['--sql']) {
-      typedSql = await introspectSql(directoryConfig, schemaContext)
+      typedSql = await introspectSql(config, schemaContext)
     }
     try {
       generators = await getGenerators({
@@ -297,13 +291,12 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, Boolean(postinstallCwd))
         if (!schemaResult) return ''
 
-        const schemaContext = await processSchemaResult({ schemaResult, ignoreEnvVarErrors: !args['--sql'] })
-        const directoryConfig = inferDirectoryConfig(schemaContext, config)
+        const schemaContext = await processSchemaResult({ schemaResult })
 
         let generatorsWatch: Generator[] | undefined
         try {
           if (args['--sql']) {
-            typedSql = await introspectSql(directoryConfig, schemaContext)
+            typedSql = await introspectSql(config, schemaContext)
           }
 
           generatorsWatch = await getGenerators({
