@@ -240,7 +240,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
   },
 }
 
-function validateDependentOptions(options: PrismaClientOptions, config: ClientConfig) {
+function validateDependentOptions(options: PrismaClientOptions) {
   const adapterProvided = options.adapter !== undefined
   const accelerateUrlProvided = options.accelerateUrl !== undefined
 
