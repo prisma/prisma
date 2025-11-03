@@ -1,5 +1,5 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { arg, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, Command, format, HelpError, isError } from '@prisma/internals'
 import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
@@ -53,8 +53,6 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const seedCommand = config.migrations?.seed
 

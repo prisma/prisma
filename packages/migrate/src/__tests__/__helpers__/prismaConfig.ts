@@ -35,8 +35,8 @@ export const configContextContributor =
         return {
           ...defaultTestConfig(ctx),
           ...(await loadFixtureConfig(ctx)), // custom fixture config overwrites any defaults
-          ...(overrideDatasource ? { engine: 'classic', datasource: overrideDatasource } : {}),
-        } as PrismaConfigInternal
+          ...(overrideDatasource ? defineConfig({ engine: 'classic', datasource: overrideDatasource }) : {}),
+        }
       }
 
       ctx.datasource = async () => {

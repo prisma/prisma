@@ -12,7 +12,6 @@ import {
   HelpError,
   inferDirectoryConfig,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   MigrateTypes,
   validate,
@@ -43,7 +42,7 @@ export class MigrateDev implements Command {
 ${
   process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
- 
+
 ${bold('Usage')}
 
   ${dim('$')} prisma migrate dev [options]
@@ -94,8 +93,6 @@ ${bold('Examples')}
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],

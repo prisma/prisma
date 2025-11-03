@@ -124,8 +124,6 @@ const commonRuntimesOverrides = {
   WeakRef: {
     globals: weakrefPolyfillPath,
   },
-  // these can not be exported anymore
-  './warnEnvConflicts': { contents: '' },
 }
 
 const runtimesCommonBuildConfig = {

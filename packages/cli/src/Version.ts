@@ -11,7 +11,6 @@ import {
   getTypescriptVersion,
   HelpError,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   resolveEngine,
   wasm,
@@ -65,8 +64,6 @@ export class Version implements Command {
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ printMessage: !args['--json'], config })
 
     const schemaPathFromArg = args['--schema']
 

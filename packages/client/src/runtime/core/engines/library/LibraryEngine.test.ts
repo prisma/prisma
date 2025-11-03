@@ -68,7 +68,6 @@ function setupMockLibraryEngine() {
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
       adapter: adapterFactoryMock,
-      env: {},
       cwd: process.cwd(),
       transactionOptions: {
         maxWait: 2000,
@@ -146,7 +145,6 @@ test('responds to initialization error with PrismaClientInitializationError', as
       dirname: __dirname,
       logEmitter: new EventEmitter(),
       tracingHelper: disabledTracingHelper,
-      env: {},
       cwd: process.cwd(),
       transactionOptions: {
         maxWait: 2000,

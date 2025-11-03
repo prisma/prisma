@@ -1,16 +1,6 @@
 import type { PrismaConfigInternal } from '@prisma/config'
 import type { Command } from '@prisma/internals'
-import {
-  arg,
-  format,
-  getSchemaWithPath,
-  HelpError,
-  isCi,
-  isError,
-  isInteractive,
-  link,
-  loadEnvFile,
-} from '@prisma/internals'
+import { arg, format, getSchemaWithPath, HelpError, isCi, isError, isInteractive, link } from '@prisma/internals'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 import { getRootCacheDir } from '../../fetch-engine/src/utils'
@@ -53,8 +43,6 @@ export class DebugInfo implements Command {
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ schemaPath: args['--schema'], printMessage: true, config })
 
     const formatEnvValue = (name: string, text?: string) => {
       const value = process.env[name]
