@@ -1,14 +1,10 @@
 import { isPrismaPostgresDev, PRISMA_POSTGRES_PROTOCOL } from '@prisma/internals'
 
-import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
-import { EngineConfig } from '../common/Engine'
 import { InvalidDatasourceError } from './errors/invalid-datasource-error'
 
 export interface GetUrlAndApiKeyOptions {
   clientVersion: string
-  inlineDatasources: EngineConfig['inlineDatasources']
-  overrideDatasources: EngineConfig['overrideDatasources']
-  env: Record<string, string | undefined>
+  accelerateUrl: string
 }
 
 export interface UrlAndApiKey {
@@ -20,20 +16,14 @@ export type HttpUrl = URL & { protocol: 'http' | 'https' }
 
 export function getUrlAndApiKey(options: GetUrlAndApiKeyOptions): UrlAndApiKey {
   const errorInfo = { clientVersion: options.clientVersion }
-  const dsName = Object.keys(options.inlineDatasources)[0]
-  const serviceURL = resolveDatasourceUrl({
-    inlineDatasources: options.inlineDatasources,
-    overrideDatasources: options.overrideDatasources,
-    clientVersion: options.clientVersion,
-    env: { ...options.env, ...(typeof process !== 'undefined' ? process.env : {}) },
-  })
 
   let url: URL
   try {
-    url = new URL(serviceURL)
-  } catch {
+    url = new URL(options.accelerateUrl)
+  } catch (err) {
+    const message = (err as TypeError).message
     throw new InvalidDatasourceError(
-      `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\``,
+      `Error validating \`accelerateUrl\`, the URL cannot be parsed, reason: ${message}`,
       errorInfo,
     )
   }
@@ -42,7 +32,7 @@ export function getUrlAndApiKey(options: GetUrlAndApiKeyOptions): UrlAndApiKey {
 
   if (protocol !== 'prisma:' && protocol !== PRISMA_POSTGRES_PROTOCOL) {
     throw new InvalidDatasourceError(
-      `Error validating datasource \`${dsName}\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,
+      `Error validating \`accelerateUrl\`: the URL must start with the protocol \`prisma://\` or \`prisma+postgres://\``,
       errorInfo,
     )
   }
@@ -50,7 +40,7 @@ export function getUrlAndApiKey(options: GetUrlAndApiKeyOptions): UrlAndApiKey {
   const apiKey = searchParams.get('api_key')
   if (apiKey === null || apiKey.length < 1) {
     throw new InvalidDatasourceError(
-      `Error validating datasource \`${dsName}\`: the URL must contain a valid API key`,
+      `Error validating \`accelerateUrl\`: the URL must contain a valid API key`,
       errorInfo,
     )
   }

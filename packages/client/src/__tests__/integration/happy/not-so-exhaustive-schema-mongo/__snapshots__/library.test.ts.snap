@@ -2259,6 +2259,10 @@ export namespace Prisma {
       timeout?: number
     }
     /**
+     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
+     */
+    accelerateUrl?: string
+    /**
      * Global configuration for omitting model fields by default.
      * 
      * @example
