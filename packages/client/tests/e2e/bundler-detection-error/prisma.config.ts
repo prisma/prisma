@@ -1,8 +1,8 @@
-import { defineConfig } from 'prisma/config'
+import { defineConfig, env } from 'prisma/config'
 
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: 'file:./db',
+    url: env('TEST_E2E_POSTGRES_URI'),
   },
 })
