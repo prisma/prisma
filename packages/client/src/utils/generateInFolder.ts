@@ -39,7 +39,7 @@ export async function generateInFolder({ projectDir, packageSource }: GenerateIn
 
   const { schemas, schemaPath } = schemaPathResult
 
-  const config = await getConfig({ datamodel: schemas, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel: schemas })
   const previewFeatures = extractPreviewFeatures(config.generators)
 
   const outputDir = path.join(projectDir, 'node_modules/@prisma/client')

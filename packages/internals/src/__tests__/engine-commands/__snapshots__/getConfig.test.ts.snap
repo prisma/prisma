@@ -1,25 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
-""{
-  "generators": [],
-  "datasources": [
-    {
-      "name": "db",
-      "provider": "postgresql",
-      "activeProvider": "postgresql",
-      "url": {
-        "fromEnvVar": "SOMETHING-SOMETHING-1234",
-        "value": null
-      },
-      "schemas": [],
-      "sourceFilePath": "schema.prisma"
-    }
-  ],
-  "warnings": []
-}""
-`;
-
 exports[`getConfig datasource with env var 1`] = `
 ""{
   "generators": [],
@@ -30,7 +10,7 @@ exports[`getConfig datasource with env var 1`] = `
       "activeProvider": "postgresql",
       "url": {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-        "value": "postgres://user:password@something:5432/db"
+        "value": null
       },
       "schemas": [],
       "sourceFilePath": "schema.prisma"

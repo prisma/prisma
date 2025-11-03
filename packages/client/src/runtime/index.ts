@@ -19,7 +19,6 @@ export { getPrismaClient } from './getPrismaClient'
 export { makeStrictEnum } from './strictEnum'
 export { deserializeRawResult } from './utils/deserializeRawResults'
 export { getRuntime } from './utils/getRuntime'
-export { warnEnvConflicts } from './warnEnvConflicts'
 export {
   type BaseDMMF,
   dmmfToRuntimeDataModel,

@@ -196,26 +196,26 @@ packages:
     engines: {node: '>= 8'}
 
   '@prisma/config@file:../../../tmp/prisma-config-0.0.0.tgz':
-    resolution: {integrity: sha512-AzjcWZO8+HytagpO1ShUDxv5b4+qdzod6VlwabkcQkgjxn8A3xn67UEUorErsvoLBbvXooYCIFkqBp/o+FY8uw==, tarball: file:../../../tmp/prisma-config-0.0.0.tgz}
+    resolution: {integrity: sha512-vMvbnb0jzh85KZEAKuIXP34ZAsTqejqwVmi+SPbl0WkuyqdDhSKgscf9kAZUKnN2LZo9hXmdNQSxOWhzGxmNxQ==, tarball: file:../../../tmp/prisma-config-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/debug@file:../../../tmp/prisma-debug-0.0.0.tgz':
     resolution: {integrity: sha512-zHvroKTHICJzI+ehqo2Dor+oEoUKiDCZzc7J4FinftNJtC27M/FEGHGfjNkd5bRgqSyYsK50uw/IqVzmW3blQw==, tarball: file:../../../tmp/prisma-debug-0.0.0.tgz}
     version: 0.0.0
 
-  '@prisma/engines-version@6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57':
-    resolution: {integrity: sha512-HFuGB+Tqa4ZKfGxLGa1gd7AZU6Tgr7+q2LoDkmLxisjfFSeoVU3wgd7We97kHGvcntVPQfihdzO5ajy4xQQfaw==}
+  '@prisma/engines-version@6.19.0-21.next-3ab778d6c5a8df0d39fd88ffd67461d3395af732':
+    resolution: {integrity: sha512-byDR7wIUl8xDmiCCvekS7/xNWXVToHyN5VLw4ZK6ZoRWbuLO215HBsO4WhrnS8q9iPt2fyu5MkqEP5zSQgHU9A==}
 
   '@prisma/engines@file:../../../tmp/prisma-engines-0.0.0.tgz':
-    resolution: {integrity: sha512-GwvSb4VYEiuhA+ob861AcZEfyqOGDgUs0qxsCRHllkvEjjmqVHwn4XuQb4czX/OcNOoVi3IGedKqSu1j4UdCtg==, tarball: file:../../../tmp/prisma-engines-0.0.0.tgz}
+    resolution: {integrity: sha512-Vafz72Y8aiQNwc3rXrbvAELMGPYRATdhjMn7VGoAQbISaGyhFWVP/4jg4FCJuWx4kGRIrwHAQ5xsyiP/Ga66oA==, tarball: file:../../../tmp/prisma-engines-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/fetch-engine@file:../../../tmp/prisma-fetch-engine-0.0.0.tgz':
-    resolution: {integrity: sha512-q8tKRPhVFkkg2q/nbeQj87hdf3ADC6o5i2hlIlUIV3dZ8RpwrfaWEx2rqNQelu64QToPOid4NioD18cgtCFotA==, tarball: file:../../../tmp/prisma-fetch-engine-0.0.0.tgz}
+    resolution: {integrity: sha512-pkZTyx3Rj4yWMVOyT1MrPhQLpC0IfzRah8vL+yrcaPqAHaBUqhy+Y+OXeECD01jaquCZ+L6I8SpbApCYZ2I7xA==, tarball: file:../../../tmp/prisma-fetch-engine-0.0.0.tgz}
     version: 0.0.0
 
   '@prisma/get-platform@file:../../../tmp/prisma-get-platform-0.0.0.tgz':
-    resolution: {integrity: sha512-gZeFf/VOfRKmn2dVWV4bZj2plVeDGLehxnArU5kGWlFxdEcAC9FGyxM+gPmVFEWV72Ems8FIwFPmfzjuhcIAlw==, tarball: file:../../../tmp/prisma-get-platform-0.0.0.tgz}
+    resolution: {integrity: sha512-mDu4lchUmm07yr3R8na3jBdYZhLyMRxq1BJdV2eW3qiIojLPpvvUABmdHoqtY44Tk0EKSJOtUrtdhBXnDYlJMA==, tarball: file:../../../tmp/prisma-get-platform-0.0.0.tgz}
     version: 0.0.0
 
   '@rollup/rollup-android-arm-eabi@4.45.1':
@@ -464,8 +464,8 @@ packages:
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
 
-  effect@3.16.12:
-    resolution: {integrity: sha512-N39iBk0K71F9nb442TLbTkjl24FLUzuvx2i1I2RsEAQsdAdUTuUoW0vlfUXgkMTUOnYqKnWcFfqw4hK4Pw27hg==}
+  effect@3.18.4:
+    resolution: {integrity: sha512-b1LXQJLe9D11wfnOKAk3PKxuqYshQ0Heez+y5pnkd3jLj1yx9QhM72zZ9uUrOQyNvrs2GZZd/3maL0ZV18YuDA==}
 
   empathic@2.0.0:
     resolution: {integrity: sha512-i6UzDscO/XfAcNYD75CfICkmfLedpyPDdozrLMmQc5ORaQcdMoc21OnlEylMIqI7U8eniKrPMxxtj8k0vhmJhA==}
@@ -667,7 +667,7 @@ packages:
     engines: {node: ^10 || ^12 || >=14}
 
   prisma@file:../../../tmp/prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-WqvsEKt6s2/s5TSMGA5un6JP8oxG8SvnokAxYwRlQrPvhj8axhyGLt8W6w2ltOR4ToumHH/4lhP6n87FVmi/Fg==, tarball: file:../../../tmp/prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-Z38fQKOEAHdsWWa/mNJ7Hc9LbDw100nE/ovWbr0asEuZGZe9G9DlldkmeFFruoonVXlFD7eyre/HSlwdb9LwOQ==, tarball: file:../../../tmp/prisma-0.0.0.tgz}
     version: 0.0.0
     engines: {node: ^20.19 || ^22.12 || ^24.0}
     hasBin: true
@@ -971,26 +971,26 @@ snapshots:
     dependencies:
       c12: 3.1.0
       deepmerge-ts: 7.1.5
-      effect: 3.16.12
+      effect: 3.18.4
       empathic: 2.0.0
     transitivePeerDependencies:
       - magicast
 
   '@prisma/debug@file:../../../tmp/prisma-debug-0.0.0.tgz': {}
 
-  '@prisma/engines-version@6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57': {}
+  '@prisma/engines-version@6.19.0-21.next-3ab778d6c5a8df0d39fd88ffd67461d3395af732': {}
 
   '@prisma/engines@file:../../../tmp/prisma-engines-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      '@prisma/engines-version': 6.19.0-21.next-3ab778d6c5a8df0d39fd88ffd67461d3395af732
       '@prisma/fetch-engine': file:../../../tmp/prisma-fetch-engine-0.0.0.tgz
       '@prisma/get-platform': file:../../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/fetch-engine@file:../../../tmp/prisma-fetch-engine-0.0.0.tgz':
     dependencies:
       '@prisma/debug': file:../../../tmp/prisma-debug-0.0.0.tgz
-      '@prisma/engines-version': 6.18.0-2.ba2627112b75424f26505fb83167ce78db40fc57
+      '@prisma/engines-version': 6.19.0-21.next-3ab778d6c5a8df0d39fd88ffd67461d3395af732
       '@prisma/get-platform': file:../../../tmp/prisma-get-platform-0.0.0.tgz
 
   '@prisma/get-platform@file:../../../tmp/prisma-get-platform-0.0.0.tgz':
@@ -1201,7 +1201,7 @@ snapshots:
 
   duplexer@0.1.2: {}
 
-  effect@3.16.12:
+  effect@3.18.4:
     dependencies:
       '@standard-schema/spec': 1.0.0
       fast-check: 3.23.2

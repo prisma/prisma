@@ -3,7 +3,7 @@ import path from 'node:path'
 
 import type * as DMMF from '@prisma/dmmf'
 import type { ActiveConnectorType, BinaryPaths, DataSource, GeneratorConfig, SqlQueryOutput } from '@prisma/generator'
-import { assertNever, EnvPaths, pathToPosix, setClassName } from '@prisma/internals'
+import { assertNever, pathToPosix, setClassName } from '@prisma/internals'
 import { glob } from 'fast-glob'
 import { ensureDir } from 'fs-extra'
 import { bold, red } from 'kleur/colors'
@@ -47,7 +47,6 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: ActiveConnectorType
-  envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
   typedSql?: SqlQueryOutput[]
@@ -81,7 +80,6 @@ export function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  envPaths,
   typedSql,
   target,
   generatedFileExtension,
@@ -97,7 +95,6 @@ export function buildClient({
 
   const clientOptions: TSClientOptions = {
     dmmf: getPrismaClientDMMF(dmmf),
-    envPaths: envPaths ?? { rootEnvPath: null, schemaEnvPath: undefined },
     datasources,
     generator,
     binaryPaths,
@@ -183,7 +180,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    envPaths,
     typedSql,
     target,
     generatedFileExtension,
@@ -207,7 +203,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    envPaths,
     typedSql,
     target,
     generatedFileExtension,

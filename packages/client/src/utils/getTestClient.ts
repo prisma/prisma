@@ -3,7 +3,6 @@ import { getDMMF } from '@prisma/client-generator-js'
 import {
   extractPreviewFeatures,
   getConfig,
-  getEnvPaths,
   getSchemaWithPath,
   parseEnvValue,
   printConfigWarnings,
@@ -22,9 +21,9 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
 
-  const { schemaPath, schemas: datamodel } = (await getSchemaWithPath(undefined, undefined, { cwd: absSchemaDir }))!
+  const { schemas: datamodel } = (await getSchemaWithPath(undefined, undefined, { cwd: absSchemaDir }))!
 
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({ datamodel })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
   }
@@ -38,7 +37,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     previewFeatures,
   })
   const outputDir = absSchemaDir
-  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
@@ -47,7 +45,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativePath: path.relative(outputDir, absSchemaDir),
     clientVersion: '0.0.0',
     engineVersion: '0000000000000000000000000000000000000000',
-    relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     inlineDatasources: { db: { url: config.datasources[0].url } },

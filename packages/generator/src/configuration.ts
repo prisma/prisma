@@ -22,7 +22,6 @@ export interface GeneratorConfig {
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
-  envPaths?: EnvPaths
   sourceFilePath: string
 }
 
@@ -64,11 +63,6 @@ export type BinaryPaths = {
   schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
 }
 
-export type EnvPaths = {
-  rootEnvPath: string | null
-  schemaEnvPath: string | undefined
-}
-
 /** The options passed to the generator implementations */
 export type GeneratorOptions = {
   generator: GeneratorConfig
@@ -85,7 +79,6 @@ export type GeneratorOptions = {
   postinstall?: boolean
   noHints?: boolean
   allowNoModels?: boolean
-  envPaths?: EnvPaths
   typedSql?: SqlQueryOutput[]
 }
 

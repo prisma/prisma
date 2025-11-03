@@ -5,7 +5,16 @@ import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRender
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'errorFormat', 'adapter', 'log', 'transactionOptions', 'omit', '__internal']
+const knownProperties = [
+  'datasources',
+  'errorFormat',
+  'adapter',
+  'accelerateUrl',
+  'log',
+  'transactionOptions',
+  'omit',
+  '__internal',
+]
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -20,14 +29,10 @@ type OmitValidationError =
  * Feel free to allow more properties when necessary but don't forget to add
  * them in the mock config in `validatePrismaClientOptions.test.ts`.
  */
-type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator' | 'runtimeDataModel'>
+export type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'generator' | 'runtimeDataModel'>
 
 const validators: {
-  [K in keyof PrismaClientOptions]-?: (
-    option: PrismaClientOptions[K],
-    config: ClientConfig,
-    dataModel: RuntimeDataModel,
-  ) => void
+  [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void
 } = {
   datasources: (options, { datasourceNames }) => {
     if (!options) {
@@ -71,20 +76,21 @@ It should have this form: { url: "CONNECTION_STRING" }`,
       }
     }
   },
-  adapter: (adapter) => {
-    if (!adapter) {
-      throw new PrismaClientConstructorValidationError(
-        `Using engine type "client" requires a driver adapter to be provided to PrismaClient constructor.`,
-      )
-    }
-
-    if (adapter === null) {
+  adapter: () => {},
+  accelerateUrl: (accelerateUrl) => {
+    if (accelerateUrl === undefined) {
       return
     }
 
-    if (adapter === undefined) {
+    if (typeof accelerateUrl !== 'string') {
       throw new PrismaClientConstructorValidationError(
-        `"adapter" property must not be undefined, use null to conditionally disable driver adapters.`,
+        `Invalid value ${JSON.stringify(accelerateUrl)} for "accelerateUrl" provided to PrismaClient constructor.`,
+      )
+    }
+
+    if (accelerateUrl.trim().length === 0) {
+      throw new PrismaClientConstructorValidationError(
+        `"accelerateUrl" provided to PrismaClient constructor must be a non-empty string.`,
       )
     }
   },
@@ -234,6 +240,23 @@ It should have this form: { url: "CONNECTION_STRING" }`,
   },
 }
 
+function validateDependentOptions(options: PrismaClientOptions, config: ClientConfig) {
+  const adapterProvided = options.adapter !== undefined
+  const accelerateUrlProvided = options.accelerateUrl !== undefined
+
+  if (adapterProvided && accelerateUrlProvided) {
+    throw new PrismaClientConstructorValidationError(
+      `The "adapter" and "accelerateUrl" options are mutually exclusive. Please provide only one of them.`,
+    )
+  }
+
+  if (!adapterProvided && !accelerateUrlProvided) {
+    throw new PrismaClientConstructorValidationError(
+      `Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.`,
+    )
+  }
+}
+
 export function validatePrismaClientOptions(options: PrismaClientOptions, config: ClientConfig) {
   for (const [key, value] of Object.entries(options)) {
     if (!knownProperties.includes(key)) {
@@ -244,6 +267,8 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
     }
     validators[key](value, config)
   }
+
+  validateDependentOptions(options, config)
 }
 
 function getDidYouMean(str: string, options: string[]): string {

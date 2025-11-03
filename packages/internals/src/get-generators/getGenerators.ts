@@ -15,7 +15,7 @@ import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { getDMMF, getEnvPaths, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
+import { getDMMF, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -113,7 +113,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   // Fallback logic for prisma studio which still only passes a schema path
   const schemaContext =
     !options.schemaContext && schemaPath
-      ? await loadSchemaContext({ schemaPathFromArg: schemaPath, ignoreEnvVarErrors: true })
+      ? await loadSchemaContext({ schemaPathFromArg: schemaPath })
       : options.schemaContext
 
   if (!schemaContext) {
@@ -199,7 +199,6 @@ You need to define \`output\` in the generator block in the schema file.`,
         }
 
         const datamodel = mergeSchemas({ schemas: schemaContext.schemaFiles })
-        const envPaths = getEnvPaths(schemaContext.schemaPath, { cwd: generatorConfig.output.value! })
 
         const options: GeneratorOptions = {
           datamodel,
@@ -211,7 +210,6 @@ You need to define \`output\` in the generator block in the schema file.`,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           postinstall,
           allowNoModels,
-          envPaths,
           typedSql,
         }
 

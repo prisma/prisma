@@ -1,52 +1,8 @@
-import { GetPrismaClientConfig } from '@prisma/client-common'
-import { PrismaClientValidationError } from '@prisma/client-runtime-utils'
-import { warnOnce } from '@prisma/internals'
-
 import { ClientEngine, Engine, EngineConfig } from '../engines'
-import { resolveDatasourceUrl } from './resolveDatasourceUrl'
-import { validateEngineInstanceConfig } from './validateEngineInstanceConfig'
 
 /**
- * Get the engine instance based on the engine type and the target engine type
- * (binary, library, data proxy). If the URL is a prisma:// URL, it will always
- * use the DataProxyEngine. Basically decides which engine to load.
- * @param clientConfig
- * @param engineConfig
- * @returns
+ * Get the engine instance based on the runtime bundle type and engine configuration.
  */
-export function getEngineInstance(_: GetPrismaClientConfig, engineConfig: EngineConfig): Engine {
-  let url: string | undefined
-
-  try {
-    url = resolveDatasourceUrl({
-      inlineDatasources: engineConfig.inlineDatasources,
-      overrideDatasources: engineConfig.overrideDatasources,
-      env: { ...engineConfig.env, ...process.env },
-      clientVersion: engineConfig.clientVersion,
-    })
-  } catch {
-    // the error does not matter, but that means we don't have a valid url which
-    // means we can't use the DataProxyEngine and will default to LibraryEngine
-  }
-
-  const { ok, isUsing, diagnostics } = validateEngineInstanceConfig({
-    url,
-    adapter: engineConfig.adapter,
-  })
-
-  for (const warning of diagnostics.warnings) {
-    warnOnce(...warning.value)
-  }
-
-  if (!ok) {
-    const error = diagnostics.errors[0]
-    throw new PrismaClientValidationError(error.value, { clientVersion: engineConfig.clientVersion })
-  }
-
-  // When a local driver adapter is configured, the URL from the datasource
-  // block in the Prisma schema is no longer relevant as driver adapters don't
-  // use it. Therefore, a configured driver adapter takes precedence over the
-  // Accelerate or PPg URL in the schema file.
-  const clientEngineUsesRemoteExecutor = (isUsing.accelerate || isUsing.ppg) && !isUsing.driverAdapters
-  return new ClientEngine(engineConfig, clientEngineUsesRemoteExecutor)
+export function getEngineInstance(engineConfig: EngineConfig): Engine {
+   return new ClientEngine(engineConfig)
 }

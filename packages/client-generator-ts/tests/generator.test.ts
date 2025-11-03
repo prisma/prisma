@@ -345,7 +345,7 @@ describe('generator', () => {
     expect(
       allFiles(clientDir)
         .filter((f) => f.endsWith('.ts'))
-        .some((f) => /adapter\?: runtime.SqlDriverAdapterFactory \| null/g.test(fs.readFileSync(f, 'utf8'))),
+        .some((f) => /adapter\?: runtime.SqlDriverAdapterFactory/g.test(fs.readFileSync(f, 'utf8'))),
     ).toBe(true)
   })
 

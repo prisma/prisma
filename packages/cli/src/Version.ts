@@ -10,7 +10,6 @@ import {
   getTypescriptVersion,
   HelpError,
   isError,
-  loadEnvFile,
   loadSchemaContext,
   resolveEngine,
   wasm,
@@ -45,6 +44,14 @@ export class Version implements Command {
         --json     Output JSON
 `)
 
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
+    }
+
+    return Version.help
+  }
+
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -63,9 +70,6 @@ export class Version implements Command {
     if (args['--help']) {
       return this.help()
     }
-
-    loadEnvFile({ printMessage: !args['--json'], config })
-
     const { schemaEngineRows, schemaEngineRetrievalErrors } = await match(config)
       .with({ engine: 'js' }, async ({ adapter: adapterFn }) => {
         const adapter = await adapterFn()
@@ -138,13 +142,5 @@ export class Version implements Command {
       // console.error(e)
     }
     return []
-  }
-
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
-    }
-
-    return Version.help
   }
 }

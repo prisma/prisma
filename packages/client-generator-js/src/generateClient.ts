@@ -7,7 +7,7 @@ import type {
   GeneratorConfig,
   SqlQueryOutput,
 } from '@prisma/generator'
-import { EnvPaths, pathToPosix, setClassName } from '@prisma/internals'
+import { pathToPosix, setClassName } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
@@ -56,7 +56,6 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: ActiveConnectorType
-  envPaths?: EnvPaths
   /** When --postinstall is passed via CLI */
   postinstall?: boolean
   typedSql?: SqlQueryOutput[]
@@ -86,12 +85,10 @@ export async function buildClient({
   clientVersion,
   activeProvider,
   postinstall,
-  envPaths,
   typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
     dmmf: getPrismaClientDMMF(dmmf),
-    envPaths: envPaths ?? { rootEnvPath: null, schemaEnvPath: undefined },
     datasources,
     generator,
     binaryPaths,
@@ -338,7 +335,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     postinstall,
-    envPaths,
     typedSql,
   } = options
 
@@ -359,7 +355,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     postinstall,
     testMode,
-    envPaths,
     typedSql,
   })
 
