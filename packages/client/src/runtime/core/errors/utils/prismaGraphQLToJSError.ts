@@ -4,6 +4,7 @@ import { RequestError } from '../../engines/common/types/RequestError'
 
 const TOO_MANY_CONNECTIONS_ERROR = 'P2037'
 
+// TODO: delete after removing `LibraryEngine`
 export function prismaGraphQLToJSError(
   { error, user_facing_error }: RequestError,
   clientVersion: string,
