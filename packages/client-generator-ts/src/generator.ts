@@ -1,18 +1,14 @@
-import { Debug } from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { EngineType, Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
-import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
+import { Generator, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator'
+import { parseEnvValue } from '@prisma/internals'
 import { getTsconfig } from 'get-tsconfig'
 import { bold, dim, green } from 'kleur/colors'
-import { match } from 'ts-pattern'
 
 import { version as clientVersion } from '../package.json'
 import { inferImportFileExtension, parseGeneratedFileExtension, parseImportFileExtension } from './file-extensions'
 import { generateClient } from './generateClient'
 import { inferModuleFormat, parseModuleFormatFromUnknown } from './module-format'
 import { parseRuntimeTargetFromUnknown } from './runtime-targets'
-
-const debug = Debug('prisma:client:generator')
 
 const missingOutputErrorMessage = `An output path is required for the \`prisma-client\` generator. Please provide an output path in your schema file:
 
@@ -35,18 +31,11 @@ export class PrismaClientTsGenerator implements Generator {
   readonly name = 'prisma-client-ts'
 
   getManifest(config: GeneratorConfig): Promise<GeneratorManifest> {
-    const requiresEngines = match<ClientEngineType, EngineType[]>(getClientEngineType(config))
-      .with(ClientEngineType.Library, () => ['libqueryEngine'])
-      .with(ClientEngineType.Client, () => [])
-      .exhaustive()
-
-    debug('requiresEngines', requiresEngines)
-
     return Promise.resolve({
       defaultOutput: getOutputPath(config),
       prettyName: 'Prisma Client',
       version: clientVersion,
-      requiresEngines,
+      requiresEngines: [],
       requiresEngineVersion: enginesVersion,
     })
   }

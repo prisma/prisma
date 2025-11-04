@@ -299,13 +299,6 @@ testMatrix.setupTestSuite(
       from: [Providers.MONGODB],
       reason: 'The test is for SQL databases only',
     },
-    skipDataProxy: {
-      // similarly, you can opt out of testing with the Data Proxy
-      // client (either completely or for certain runtimes) and
-      // specify the reason
-      runtimes: ['node'],
-      reason: "This test doesn't work with Data Proxy",
-    },
   },
 )
 ```

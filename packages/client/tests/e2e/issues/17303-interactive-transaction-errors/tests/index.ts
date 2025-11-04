@@ -1,6 +1,10 @@
+import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
 
-const prisma = new PrismaClient()
+const adapter = new PrismaPg({
+  connectionString: process.env['TEST_E2E_POSTGRES_URI']!,
+})
+const prisma = new PrismaClient({ adapter })
 
 test('should not create a Foo record because the database trigger always throws an exception', async () => {
   await expect(

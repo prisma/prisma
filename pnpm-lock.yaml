@@ -51,7 +51,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/resolve':
         specifier: 1.20.6
@@ -204,8 +204,8 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.25)(jiti@2.4.2)(terser@5.27.0)(tsx@4.19.3)(yaml@2.7.0)
       wrangler:
-        specifier: 3.114.14
-        version: 3.114.14(@cloudflare/workers-types@4.20250903.0)
+        specifier: 3.114.15
+        version: 3.114.15(@cloudflare/workers-types@4.20251117.0)
       zx:
         specifier: 8.4.1
         version: 8.4.1
@@ -216,7 +216,7 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       better-sqlite3:
-        specifier: ^11.9.0
+        specifier: ^11.10.0
         version: 11.10.0
     devDependencies:
       '@types/better-sqlite3':
@@ -229,8 +229,8 @@ importers:
   packages/adapter-d1:
     dependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20250408.0
-        version: 4.20250903.0
+        specifier: ^4.20251014.0
+        version: 4.20251117.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
         version: link:../driver-adapter-utils
@@ -241,7 +241,7 @@ importers:
   packages/adapter-libsql:
     dependencies:
       '@libsql/client':
-        specifier: ^0.3.5 || ^0.4.0 || ^0.5.0 || ^0.6.0 || ^0.7.0 || ^0.8.0
+        specifier: ^0.8.1
         version: 0.8.1
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
@@ -297,8 +297,8 @@ importers:
         specifier: workspace:*
         version: link:../driver-adapter-utils
       pg:
-        specifier: ^8.11.3
-        version: 8.14.1
+        specifier: ^8.16.3
+        version: 8.16.3
       postgres-array:
         specifier: 3.0.4
         version: 3.0.4
@@ -313,7 +313,7 @@ importers:
   packages/adapter-planetscale:
     dependencies:
       '@planetscale/database':
-        specifier: ^1.15.0
+        specifier: ^1.19.0
         version: 1.19.0
       '@prisma/driver-adapter-utils':
         specifier: workspace:*
@@ -392,7 +392,7 @@ importers:
     devDependencies:
       wrangler:
         specifier: 4.45.0
-        version: 4.45.0(@cloudflare/workers-types@4.20250903.0)
+        version: 4.45.0(@cloudflare/workers-types@4.20251117.0)
 
   packages/bundled-js-drivers:
     dependencies:
@@ -491,7 +491,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       async-listen:
         specifier: 3.1.0
@@ -564,8 +564,8 @@ importers:
         version: link:../client-runtime-utils
     devDependencies:
       '@cloudflare/workers-types':
-        specifier: ^4.20250408.0
-        version: 4.20250903.0
+        specifier: ^4.20251014.0
+        version: 4.20251117.0
       '@codspeed/benchmark.js-plugin':
         specifier: 4.0.0
         version: 4.0.0(benchmark@2.1.4)
@@ -735,7 +735,7 @@ importers:
         specifier: 9.1.8
         version: 9.1.8
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/pg':
         specifier: 8.11.11
@@ -901,7 +901,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       jest:
         specifier: 29.7.0
@@ -1107,7 +1107,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       jest:
         specifier: 29.7.0
@@ -1159,7 +1159,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       execa:
         specifier: 5.1.1
@@ -1184,7 +1184,7 @@ importers:
         version: link:../get-platform
     devDependencies:
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/progress':
         specifier: 2.0.7
@@ -1269,7 +1269,7 @@ importers:
         specifier: 6.0.6
         version: 6.0.6
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       cross-spawn:
         specifier: 7.0.6
@@ -1300,7 +1300,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       benchmark:
         specifier: 2.1.4
@@ -1342,8 +1342,8 @@ importers:
   packages/instrumentation:
     dependencies:
       '@opentelemetry/instrumentation':
-        specifier: '>=0.52.0 <1'
-        version: 0.57.2(@opentelemetry/api@1.9.0)
+        specifier: ^0.207.0
+        version: 0.207.0(@opentelemetry/api@1.9.0)
     devDependencies:
       '@opentelemetry/api':
         specifier: 1.9.0
@@ -1352,7 +1352,7 @@ importers:
         specifier: workspace:*
         version: link:../internals
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       typescript:
         specifier: 5.4.5
@@ -1388,7 +1388,7 @@ importers:
         specifier: 9.1.8
         version: 9.1.8
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/pg':
         specifier: 8.11.11
@@ -1494,7 +1494,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/resolve':
         specifier: 1.20.6
@@ -1654,7 +1654,7 @@ importers:
         specifier: 29.5.14
         version: 29.5.14
       '@types/node':
-        specifier: ~20.19.0
+        specifier: ~20.19.24
         version: 20.19.25
       '@types/pg':
         specifier: 8.11.11
@@ -2176,8 +2176,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@cloudflare/workers-types@4.20250903.0':
-    resolution: {integrity: sha512-F6G3MG7EZxsJ2Fgsy3eed+U2fU/XGfKqDlyY/vCL/zUqI8KuaNx8GVnxttqzktBY55HK3xe82Zpj8xujW6PfXw==}
+  '@cloudflare/workers-types@4.20251117.0':
+    resolution: {integrity: sha512-4U6phQE/qbmWuJX/0cTk3iOx9KyhWmo34okKb2BSS09UMRWLCwML+P3dnHxCHnSQij8c0orvdzMr9hyqgJGNgw==}
 
   '@codspeed/benchmark.js-plugin@4.0.0':
     resolution: {integrity: sha512-1nzkRfvsA2rI1NsqYmkXEnQ/P3NL2JlAqRs/RLWLyeGtmE+4JN8w4ndgUpeb3g9Q+Kki/njmPUf7YsHUAQpUXA==}
@@ -3298,9 +3298,9 @@ packages:
     resolution: {integrity: sha512-yIVDu9jX//nV5wSMLZLdHdb1SKHIMj9k+wQVFtln5Flcgdldz9BkHtavvExQiJqBZg2OpEEJEZmzQazYztdz2A==}
     engines: {node: '>=8.0.0'}
 
-  '@opentelemetry/api-logs@0.57.2':
-    resolution: {integrity: sha512-uIX52NnTM0iBh84MShlpouI7UKqkZ7MrUszTmaypHBu4r7NofznSnQRfJ+uUeDtQDj6w8eFGg5KBLDAwAPz1+A==}
-    engines: {node: '>=14'}
+  '@opentelemetry/api-logs@0.207.0':
+    resolution: {integrity: sha512-lAb0jQRVyleQQGiuuvCOTDVspc14nx6XJjP4FspJ1sNARo3Regq4ZZbrc3rN4b1TYSuUCvgH+UXUPug4SLOqEQ==}
+    engines: {node: '>=8.0.0'}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -3324,9 +3324,9 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.3.0
 
-  '@opentelemetry/instrumentation@0.57.2':
-    resolution: {integrity: sha512-BdBGhQBh8IjZ2oIIX6F2/Q3LKm/FDDKi6ccYKcBTeilh6SNdNKveDOLk73BkSJjQLJk6qe4Yh+hHw1UPhCDdrg==}
-    engines: {node: '>=14'}
+  '@opentelemetry/instrumentation@0.207.0':
+    resolution: {integrity: sha512-y6eeli9+TLKnznrR8AZlQMSJT7wILpXH+6EYq5Vf/4Ao+huI7EedxQHwRgVUOMLFbe7VFDvHJrX9/f4lcwnJsA==}
+    engines: {node: ^18.19.0 || >=20.6.0}
     peerDependencies:
       '@opentelemetry/api': ^1.3.0
 
@@ -3891,9 +3891,6 @@ packages:
 
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
-
-  '@types/shimmer@1.2.0':
-    resolution: {integrity: sha512-UE7oxhQLLd9gub6JKIAhDq06T0F6FnztwMNRvYgjeQSBeMc1ZG/tA47EwfduvkuQS8apbkM/lpLpWsaCeYsXVg==}
 
   '@types/sqlite3@3.1.11':
     resolution: {integrity: sha512-KYF+QgxAnnAh7DWPdNDroxkDI3/MspH1NMx6m/N/6fT1G6+jvsw4/ZePt8R8cr7ta58aboeTfYFBDxTJ5yv15w==}
@@ -5649,6 +5646,9 @@ packages:
   import-in-the-middle@1.13.0:
     resolution: {integrity: sha512-YG86SYDtrL/Yu8JgfWb7kjQ0myLeT1whw6fs/ZHFkXFcbk9zJU9lOCsSJHpvaPumU11nN3US7NW6x1YTk+HrUA==}
 
+  import-in-the-middle@2.0.0:
+    resolution: {integrity: sha512-yNZhyQYqXpkT0AKq3F3KLasUSK4fHvebNH5hOsKQw2dhGSALvQ4U0BqUc5suziKvydO5u5hgN2hy1RJaho8U5A==}
+
   import-lazy@4.0.0:
     resolution: {integrity: sha512-rKtvo6a868b5Hu3heneU+L4yEQ4jYKLtjpnPeUdK7h0yzXGmyBTypknlkCvHFBqfX9YlorEiMM6Dnq/5atfHkw==}
     engines: {node: '>=8'}
@@ -6357,8 +6357,8 @@ packages:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
 
-  miniflare@3.20250718.1:
-    resolution: {integrity: sha512-9QAOHVKIVHmnQ1dJT9Fls8aVA8R5JjEizzV889Dinq/+bEPltqIepCvm9Z+fbNUgLvV7D/H1NUk8VdlLRgp9Wg==}
+  miniflare@3.20250718.2:
+    resolution: {integrity: sha512-cW/NQPBKc+fb0FwcEu+z/v93DZd+/6q/AF0iR0VFELtNPOsCvLalq6ndO743A7wfZtFxMxvuDQUXNx3aKQhOwA==}
     engines: {node: '>=16.13'}
     hasBin: true
 
@@ -6823,8 +6823,14 @@ packages:
   pg-cloudflare@1.1.1:
     resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
 
+  pg-cloudflare@1.2.7:
+    resolution: {integrity: sha512-YgCtzMH0ptvZJslLM1ffsY4EuGaU0cx4XSdXLRFae8bPP4dS5xL1tNB3k2o/N64cHJpwU7dxKli/nZ2lUa5fLg==}
+
   pg-connection-string@2.7.0:
     resolution: {integrity: sha512-PI2W9mv53rXJQEOb8xNR8lH7Hr+EKa6oJa38zsK0S/ky2er16ios1wLKhZyxzD7jUReiWokc9WK5nxSnC7W1TA==}
+
+  pg-connection-string@2.9.1:
+    resolution: {integrity: sha512-nkc6NpDcvPVpZXxrreI/FOtX3XemeLl8E0qFr6F2Lrm/I8WOnaWNhIPK2Z7OHpw7gh5XJThi6j6ppgNoaT1w4w==}
 
   pg-int8@1.0.1:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
@@ -6834,10 +6840,18 @@ packages:
     resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
     engines: {node: '>=4'}
 
+  pg-pool@3.10.1:
+    resolution: {integrity: sha512-Tu8jMlcX+9d8+QVzKIvM/uJtp07PKr82IUOYEphaWcoBhIYkoHpLXN3qO59nAI11ripznDsEzEv8nUxBVWajGg==}
+    peerDependencies:
+      pg: '>=8.0'
+
   pg-pool@3.8.0:
     resolution: {integrity: sha512-VBw3jiVm6ZOdLBTIcXLNdSotb6Iy3uOCwDGFAksZCXmi10nyRvnP2v3jl4d+IsLYRyXf6o9hIm/ZtUzlByNUdw==}
     peerDependencies:
       pg: '>=8.0'
+
+  pg-protocol@1.10.3:
+    resolution: {integrity: sha512-6DIBgBQaTKDJyxnXaLiLR8wBpQQcGWuAESkRBX/t6OwA8YsqP+iVSiond2EDy6Y/dsGk8rh/jtax3js5NeV7JQ==}
 
   pg-protocol@1.6.1:
     resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
@@ -6859,6 +6873,15 @@ packages:
   pg@8.14.1:
     resolution: {integrity: sha512-0TdbqfjwIun9Fm/r89oB7RFQ0bLgduAhiIqIXOsyKoiC/L54DbuAAzIEN/9Op0f1Po9X7iCPXGoa/Ah+2aI8Xw==}
     engines: {node: '>= 8.0.0'}
+    peerDependencies:
+      pg-native: '>=3.0.1'
+    peerDependenciesMeta:
+      pg-native:
+        optional: true
+
+  pg@8.16.3:
+    resolution: {integrity: sha512-enxc1h0jA/aq5oSDMvqyW3q89ra6XIIDZgCX9vkMrnz5DFTw/Ny3Li2lFQ+pt3L6MCgm/5o2o8HW9hiJji+xvw==}
+    engines: {node: '>= 16.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
     peerDependenciesMeta:
@@ -7133,10 +7156,6 @@ packages:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
 
-  require-in-the-middle@7.5.2:
-    resolution: {integrity: sha512-gAZ+kLqBdHarXB64XpAe2VCjB7rIRv+mU8tfRWziHRJ5umKsIHN2tLLv6EtMw7WCdP19S0ERVMldNvxYCHnhSQ==}
-    engines: {node: '>=8.6.0'}
-
   require-in-the-middle@8.0.0:
     resolution: {integrity: sha512-9s0pnM5tH8G4dSI3pms2GboYOs25LwOGnRMxN/Hx3TYT1K0rh6OjaWf4dI0DAQnMyaEXWoGVnSTPQasqwzTTAA==}
     engines: {node: '>=9.3.0 || >=8.10.0 <9.0.0'}
@@ -7289,9 +7308,6 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
-
-  shimmer@1.2.1:
-    resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
 
   side-channel-list@1.0.0:
     resolution: {integrity: sha512-FCLHtRD/gnpCiCHEiJLOwdmFP+wzCmDEkc9y7NsYxeF4u7Btsn1ZuwgwJGxImImHicJArLP4R0yX4c2KCrMrTA==}
@@ -8146,8 +8162,8 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
-  wrangler@3.114.14:
-    resolution: {integrity: sha512-zytHJn5+S47sqgUHi71ieSSP44yj9mKsj0sTUCsY+Tw5zbH8EzB1d9JbRk2KHg7HFM1WpoTI7518EExPGenAmg==}
+  wrangler@3.114.15:
+    resolution: {integrity: sha512-OpGikaV6t7AGXZImtGnVXI8WUnqBMFBCQcZzqKmQi0T/pZ5h8iSKhEZf7ItVB8bAG56yswHnWWYyANWF/Jj/JA==}
     engines: {node: '>=16.17.0'}
     hasBin: true
     peerDependencies:
@@ -8753,7 +8769,7 @@ snapshots:
   '@cloudflare/workerd-windows-64@1.20251011.0':
     optional: true
 
-  '@cloudflare/workers-types@4.20250903.0': {}
+  '@cloudflare/workers-types@4.20251117.0': {}
 
   '@codspeed/benchmark.js-plugin@4.0.0(benchmark@2.1.4)':
     dependencies:
@@ -9814,7 +9830,7 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.0
 
-  '@opentelemetry/api-logs@0.57.2':
+  '@opentelemetry/api-logs@0.207.0':
     dependencies:
       '@opentelemetry/api': 1.9.0
 
@@ -9838,15 +9854,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0)':
+  '@opentelemetry/instrumentation@0.207.0(@opentelemetry/api@1.9.0)':
     dependencies:
       '@opentelemetry/api': 1.9.0
-      '@opentelemetry/api-logs': 0.57.2
-      '@types/shimmer': 1.2.0
-      import-in-the-middle: 1.13.0
-      require-in-the-middle: 7.5.2
-      semver: 7.7.0
-      shimmer: 1.2.1
+      '@opentelemetry/api-logs': 0.207.0
+      import-in-the-middle: 2.0.0
+      require-in-the-middle: 8.0.0
     transitivePeerDependencies:
       - supports-color
 
@@ -10384,8 +10397,6 @@ snapshots:
   '@types/resolve@1.20.6': {}
 
   '@types/retry@0.12.0': {}
-
-  '@types/shimmer@1.2.0': {}
 
   '@types/sqlite3@3.1.11':
     dependencies:
@@ -12428,6 +12439,13 @@ snapshots:
       cjs-module-lexer: 1.4.3
       module-details-from-path: 1.0.3
 
+  import-in-the-middle@2.0.0:
+    dependencies:
+      acorn: 8.14.1
+      acorn-import-attributes: 1.9.5(acorn@8.14.1)
+      cjs-module-lexer: 1.4.3
+      module-details-from-path: 1.0.3
+
   import-lazy@4.0.0: {}
 
   import-local@3.1.0:
@@ -13347,7 +13365,7 @@ snapshots:
 
   min-indent@1.0.1: {}
 
-  miniflare@3.20250718.1:
+  miniflare@3.20250718.2:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       acorn: 8.14.0
@@ -13830,15 +13848,26 @@ snapshots:
   pg-cloudflare@1.1.1:
     optional: true
 
+  pg-cloudflare@1.2.7:
+    optional: true
+
   pg-connection-string@2.7.0: {}
+
+  pg-connection-string@2.9.1: {}
 
   pg-int8@1.0.1: {}
 
   pg-numeric@1.0.2: {}
 
+  pg-pool@3.10.1(pg@8.16.3):
+    dependencies:
+      pg: 8.16.3
+
   pg-pool@3.8.0(pg@8.14.1):
     dependencies:
       pg: 8.14.1
+
+  pg-protocol@1.10.3: {}
 
   pg-protocol@1.6.1: {}
 
@@ -13873,6 +13902,16 @@ snapshots:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.1.1
+
+  pg@8.16.3:
+    dependencies:
+      pg-connection-string: 2.9.1
+      pg-pool: 3.10.1(pg@8.16.3)
+      pg-protocol: 1.10.3
+      pg-types: 2.2.0
+      pgpass: 1.0.5
+    optionalDependencies:
+      pg-cloudflare: 1.2.7
 
   pgpass@1.0.5:
     dependencies:
@@ -14125,14 +14164,6 @@ snapshots:
 
   require-from-string@2.0.2: {}
 
-  require-in-the-middle@7.5.2:
-    dependencies:
-      debug: 4.4.1
-      module-details-from-path: 1.0.3
-      resolve: 1.22.10
-    transitivePeerDependencies:
-      - supports-color
-
   require-in-the-middle@8.0.0:
     dependencies:
       debug: 4.4.1
@@ -14351,8 +14382,6 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
-
-  shimmer@1.2.1: {}
 
   side-channel-list@1.0.0:
     dependencies:
@@ -15315,7 +15344,7 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20251011.0
       '@cloudflare/workerd-windows-64': 1.20251011.0
 
-  wrangler@3.114.14(@cloudflare/workers-types@4.20250903.0):
+  wrangler@3.114.15(@cloudflare/workers-types@4.20251117.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.3.4
       '@cloudflare/unenv-preset': 2.0.2(unenv@2.0.0-rc.14)(workerd@1.20250718.0)
@@ -15323,19 +15352,19 @@ snapshots:
       '@esbuild-plugins/node-modules-polyfill': 0.2.2(esbuild@0.17.19)
       blake3-wasm: 2.1.5
       esbuild: 0.17.19
-      miniflare: 3.20250718.1
+      miniflare: 3.20250718.2
       path-to-regexp: 6.3.0
       unenv: 2.0.0-rc.14
       workerd: 1.20250718.0
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20250903.0
+      '@cloudflare/workers-types': 4.20251117.0
       fsevents: 2.3.3
       sharp: 0.33.5
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  wrangler@4.45.0(@cloudflare/workers-types@4.20250903.0):
+  wrangler@4.45.0(@cloudflare/workers-types@4.20251117.0):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.0
       '@cloudflare/unenv-preset': 2.7.8(unenv@2.0.0-rc.21)(workerd@1.20251011.0)
@@ -15346,7 +15375,7 @@ snapshots:
       unenv: 2.0.0-rc.21
       workerd: 1.20251011.0
     optionalDependencies:
-      '@cloudflare/workers-types': 4.20250903.0
+      '@cloudflare/workers-types': 4.20251117.0
       fsevents: 2.3.3
     transitivePeerDependencies:
       - bufferutil

@@ -27,6 +27,14 @@ export class DebugInfo implements Command {
     --schema       Custom path to your Prisma schema
 `)
 
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DebugInfo.help}`)
+    }
+
+    return DebugInfo.help
+  }
+
   async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -101,11 +109,7 @@ ${formatEnvValue('PRISMA_BINARIES_MIRROR', '(deprecated)')}
 ${formatEnvValue('PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING')}
 ${formatEnvValue('BINARY_DOWNLOAD_VERSION')}
 
-For configuring the Query Engine Type
-${formatEnvValue('PRISMA_CLIENT_ENGINE_TYPE')}
-
 For custom engines
-${formatEnvValue('PRISMA_QUERY_ENGINE_LIBRARY')}
 ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 
@@ -113,9 +117,6 @@ For the "postinstall" npm hook
 ${formatEnvValue('PRISMA_GENERATE_SKIP_AUTOINSTALL')}
 ${formatEnvValue('PRISMA_SKIP_POSTINSTALL_GENERATE')}
 ${formatEnvValue('PRISMA_GENERATE_IN_POSTINSTALL')}
-
-For "prisma generate"
-${formatEnvValue('PRISMA_GENERATE_NO_ENGINE')}
 
 For Prisma Client
 ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
@@ -134,13 +135,5 @@ ${isInteractive()}
 ${underline('-- CI detected? --')}
 ${isCi()}
 `
-  }
-
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DebugInfo.help}`)
-    }
-
-    return DebugInfo.help
   }
 }
