@@ -9,9 +9,4 @@ describe('getEngineVersion', () => {
     const schemaEngineVersion = await getEngineVersion(undefined, BinaryType.SchemaEngineBinary)
     expect(schemaEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
-
-  testIf(!process.env.PRISMA_QUERY_ENGINE_LIBRARY)('Query Engine (Node-API)', async () => {
-    const libqueryEngineVersion = await getEngineVersion(undefined, BinaryType.QueryEngineLibrary)
-    expect(libqueryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
 })

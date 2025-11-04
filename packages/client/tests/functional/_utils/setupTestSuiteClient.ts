@@ -104,7 +104,7 @@ export async function setupTestSuiteClient({
   const clientGenOptions: GenerateClientLegacyOptions & GenerateClientESMOptions = {
     datamodel: schema,
     schemaPath,
-    binaryPaths: { libqueryEngine: {} },
+    binaryPaths: {},
     datasources: schemaContext.datasources,
     outputDir: path.join(suiteFolderPath, outputPath),
     copyRuntime: false,
@@ -131,10 +131,6 @@ export async function setupTestSuiteClient({
   }
 
   const clientPathForRuntime: Record<ClientRuntime, { client: string; sql: string }> = {
-    node: {
-      client: 'generated/prisma/client',
-      sql: path.join(outputPath, 'sql'),
-    },
     'wasm-compiler-edge': {
       client: generatorType === 'prisma-client-ts' ? 'generated/prisma/client' : 'generated/prisma/client/wasm',
       sql: path.join(outputPath, 'sql', 'index.wasm-compiler-edge.js'),

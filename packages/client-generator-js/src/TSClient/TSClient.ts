@@ -1,7 +1,6 @@
 import type { GetPrismaClientConfig } from '@prisma/client-common'
 import { datamodelEnumToSchemaEnum, datamodelSchemaEnumToSchemaEnum } from '@prisma/dmmf'
-import type { BinaryTarget } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
+import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
@@ -18,7 +17,6 @@ import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasm
 import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasources } from '../utils/buildInlineDatasources'
-import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
@@ -62,7 +60,6 @@ export class TSClient implements Generable {
     const {
       edge,
       wasm,
-      binaryPaths,
       generator,
       outputDir,
       datamodel: inlineSchema,
@@ -74,15 +71,6 @@ export class TSClient implements Generable {
     if (reusedJs) {
       return `module.exports = { ...require('${reusedJs}') }`
     }
-
-    // This ensures that any engine override is propagated to the generated clients config
-    const clientEngineType = getClientEngineType(generator)
-    generator.config.engineType = clientEngineType
-
-    const binaryTargets =
-      clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-        : []
 
     const datasourceFilePath = datasources[0].sourceFilePath
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
@@ -136,7 +124,6 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(edge, clientEngineType, binaryTargets, relativeOutdir)}
 `
     return code
   }

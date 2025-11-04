@@ -1,7 +1,6 @@
 import path from 'node:path'
 
 import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { Generate } from '../../Generate'
 import { promotions, renderPromotion } from '../../utils/handlePromotions'
@@ -46,8 +45,6 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    const { main } = await import(ctx.fs.path('main.ts'))
-
     expect(stdout).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
 
@@ -56,16 +53,6 @@ describe('using cli', () => {
       Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
       Tip: MOCKED RANDOM TIP"
-    `)
-
-    await expect(main()).resolves.toMatchInlineSnapshot(`
-      [
-        {
-          "email": "bob@bob.bob",
-          "id": 1,
-          "name": "Bobby Brown Sqlite",
-        },
-      ]
     `)
   }, 60_000) // timeout
 
@@ -83,15 +70,6 @@ describe('using cli', () => {
 
       Tip: MOCKED RANDOM TIP"
     `)
-
-    const { main } = await import(ctx.fs.path('main.ts'))
-    await expect(main()).resolves.toMatchInlineSnapshot(`
-      [
-        {
-          "id": "123",
-        },
-      ]
-    `)
   })
 
   it('should display the right yarn command for custom outputs', async () => {
@@ -103,17 +81,15 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
+      Tip: MOCKED RANDOM TIP"
+    `)
   })
 
   it('should display the right npm command for custom outputs', async () => {
@@ -125,17 +101,15 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
+      Tip: MOCKED RANDOM TIP"
+    `)
   })
 
   it('should display the right pnpm command for custom outputs', async () => {
@@ -147,17 +121,15 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
+    expect(stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
 
-        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
 
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
+      Tip: MOCKED RANDOM TIP"
+    `)
   })
 
   it('displays basic instructions in default outputs', async () => {
@@ -173,146 +145,134 @@ describe('using cli', () => {
     let stdout = sanitiseStdout(data.stdout)
     stdout = stdout.replace(outputLocation!, '<output>')
 
-    if (getClientEngineType() === ClientEngineType.Library) {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    } else {
-      expect(stdout).toMatchInlineSnapshot(`
-        "Prisma schema loaded from prisma/schema.prisma
-
-        ✔ Generated Prisma Client (v0.0.0, engine=binary) to <output> in XXXms
-
-        Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
-
-        Tip: MOCKED RANDOM TIP"
-      `)
-    }
-  })
-
-  describe('prisma-client-js should work with no models', () => {
-    const generateWithNoModels = async (ctx: BaseContext) => {
-      const data = await ctx.cli('generate')
-
-      if (typeof data.signal === 'number' && data.signal !== 0) {
-        throw new Error(data.stderr + data.stdout)
-      }
-
-      return data
-    }
-
-    test('with sqlite', async () => {
-      ctx.fixture('no-models-prisma-client-js/sqlite')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with mysql', async () => {
-      ctx.fixture('no-models-prisma-client-js/mysql')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with postgresql', async () => {
-      ctx.fixture('no-models-prisma-client-js/postgresql')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with sqlserver', async () => {
-      ctx.fixture('no-models-prisma-client-js/sqlserver')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with mongo', async () => {
-      ctx.fixture('no-models-prisma-client-js/mongo')
-      await generateWithNoModels(ctx)
-    })
-  })
-
-  describe('prisma-client should work with no models', () => {
-    const generateWithNoModels = async (ctx: BaseContext) => {
-      const data = await ctx.cli('generate')
-
-      if (typeof data.signal === 'number' && data.signal !== 0) {
-        throw new Error(data.stderr + data.stdout)
-      }
-
-      return data
-    }
-
-    test('with sqlite', async () => {
-      ctx.fixture('no-models-prisma-client/sqlite')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with mysql', async () => {
-      ctx.fixture('no-models-prisma-client/mysql')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with postgresql', async () => {
-      ctx.fixture('no-models-prisma-client/postgresql')
-      await generateWithNoModels(ctx)
-    })
-
-    test('with sqlserver', async () => {
-      ctx.fixture('no-models-prisma-client/sqlserver')
-      await generateWithNoModels(ctx)
-    })
-  })
-
-  it('should hide hints with --no-hints', async () => {
-    ctx.fixture('example-project')
-    const data = await ctx.cli('generate', '--no-hints')
-
-    if (typeof data.signal === 'number' && data.signal !== 0) {
-      throw new Error(data.stderr + data.stdout)
-    }
-
-    expect(data.stdout).toMatchInlineSnapshot(`
+    expect(stdout).toMatchInlineSnapshot(`
       "Prisma schema loaded from prisma/schema.prisma
 
-      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
-      "
+      ✔ Generated Prisma Client (v0.0.0) to <output> in XXXms
+
+      Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+      Tip: MOCKED RANDOM TIP"
     `)
   })
+})
 
-  it('should call the survey handler when hints are not disabled', async () => {
-    ctx.fixture('example-project')
-    const handler = jest.fn()
-    const generate = new Generate(handler)
-    await generate.parse([], await ctx.config())
-    expect(handler).toHaveBeenCalledTimes(1)
-  })
-
-  it('should not call the survey handler when hints are disabled', async () => {
-    ctx.fixture('example-project')
-    const handler = jest.fn()
-    const generate = new Generate(handler)
-    await generate.parse(['--no-hints'], await ctx.config())
-    expect(handler).not.toHaveBeenCalled()
-  })
-
-  it('should error with exit code 1 with incorrect schema', async () => {
-    ctx.fixture('broken-example-project')
-    await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(1)
-  })
-
-  it('should work with a custom generator', async () => {
-    ctx.fixture('custom-generator')
+describe('prisma-client-js should work with no models', () => {
+  const generateWithNoModels = async (ctx: BaseContext) => {
     const data = await ctx.cli('generate')
 
     if (typeof data.signal === 'number' && data.signal !== 0) {
       throw new Error(data.stderr + data.stdout)
     }
 
-    expect(data.stdout).toContain(`I am a minimal generator`)
-  }, 75_000) // timeout
+    return data
+  }
+
+  test('with sqlite', async () => {
+    ctx.fixture('no-models-prisma-client-js/sqlite')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with mysql', async () => {
+    ctx.fixture('no-models-prisma-client-js/mysql')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with postgresql', async () => {
+    ctx.fixture('no-models-prisma-client-js/postgresql')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with sqlserver', async () => {
+    ctx.fixture('no-models-prisma-client-js/sqlserver')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with mongo', async () => {
+    ctx.fixture('no-models-prisma-client-js/mongo')
+    await generateWithNoModels(ctx)
+  })
 })
+
+describe('prisma-client should work with no models', () => {
+  const generateWithNoModels = async (ctx: BaseContext) => {
+    const data = await ctx.cli('generate')
+
+    if (typeof data.signal === 'number' && data.signal !== 0) {
+      throw new Error(data.stderr + data.stdout)
+    }
+
+    return data
+  }
+
+  test('with sqlite', async () => {
+    ctx.fixture('no-models-prisma-client/sqlite')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with mysql', async () => {
+    ctx.fixture('no-models-prisma-client/mysql')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with postgresql', async () => {
+    ctx.fixture('no-models-prisma-client/postgresql')
+    await generateWithNoModels(ctx)
+  })
+
+  test('with sqlserver', async () => {
+    ctx.fixture('no-models-prisma-client/sqlserver')
+    await generateWithNoModels(ctx)
+  })
+})
+
+it('should hide hints with --no-hints', async () => {
+  ctx.fixture('example-project')
+  const data = await ctx.cli('generate', '--no-hints')
+
+  if (typeof data.signal === 'number' && data.signal !== 0) {
+    throw new Error(data.stderr + data.stdout)
+  }
+
+  expect(data.stdout).toMatchInlineSnapshot(`
+      "Prisma schema loaded from prisma/schema.prisma
+
+      ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+      "
+    `)
+})
+
+it('should call the survey handler when hints are not disabled', async () => {
+  ctx.fixture('example-project')
+  const handler = jest.fn()
+  const generate = new Generate(handler)
+  await generate.parse([], await ctx.config())
+  expect(handler).toHaveBeenCalledTimes(1)
+})
+
+it('should not call the survey handler when hints are disabled', async () => {
+  ctx.fixture('example-project')
+  const handler = jest.fn()
+  const generate = new Generate(handler)
+  await generate.parse(['--no-hints'], await ctx.config())
+  expect(handler).not.toHaveBeenCalled()
+})
+
+it('should error with exit code 1 with incorrect schema', async () => {
+  ctx.fixture('broken-example-project')
+  await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(1)
+})
+
+it('should work with a custom generator', async () => {
+  ctx.fixture('custom-generator')
+  const data = await ctx.cli('generate')
+
+  if (typeof data.signal === 'number' && data.signal !== 0) {
+    throw new Error(data.stderr + data.stdout)
+  }
+
+  expect(data.stdout).toContain(`I am a minimal generator`)
+}, 75_000) // timeout
 
 describe('--schema from project directory', () => {
   beforeEach(() => {

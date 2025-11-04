@@ -50,32 +50,6 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    const originalEnv = { ...process.env }
-    const resetEnv = () => {
-      for (const key of Object.keys(process.env)) {
-        if (!(key in originalEnv)) {
-          delete process.env[key]
-        }
-      }
-
-      for (const [key, value] of Object.entries(originalEnv)) {
-        if (value === undefined) {
-          delete process.env[key]
-        } else {
-          process.env[key] = value
-        }
-      }
-    }
-
-    beforeAll(() => {
-      resetEnv()
-      delete process.env.PRISMA_CLIENT_ENGINE_TYPE
-    })
-
-    afterAll(() => {
-      resetEnv()
-    })
-
     describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {
       // prisma.config.ts
       const config = defineConfig({
@@ -99,19 +73,6 @@ describe('CLI', () => {
           }),
         )
       })
-
-      it('should download query-engine when engineType = "library"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-library.prisma'], config)
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'libquery-engine': expect.any(String),
-            },
-          }),
-        )
-      })
     })
 
     describe('without config.migrate.adapter, should download schema-engine', () => {
@@ -122,20 +83,6 @@ describe('CLI', () => {
         expect(download).toHaveBeenCalledWith(
           expect.objectContaining({
             binaries: {
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
-
-      it('should download query-engine when engineType = "library"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-engine-library.prisma'], defaultTestConfig())
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'libquery-engine': expect.any(String),
               'schema-engine': expect.any(String),
             },
           }),
