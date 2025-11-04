@@ -105,11 +105,13 @@ it('should read data from Prisma schema', async () => {
   await expect(tryToReadDataFromSchema('./schema.prisma')).resolves.toMatchInlineSnapshot(`
     {
       "schemaGeneratorsProviders": [
+        "prisma-client",
         "prisma-client-js",
         "something",
       ],
       "schemaPreviewFeatures": [
         "extendedIndexes",
+        "fullTextSearch",
       ],
       "schemaProvider": "sqlite",
     }
