@@ -21,7 +21,6 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
-import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
@@ -82,11 +81,6 @@ export type PrismaClientOptions = {
    * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
    */
   accelerateUrl?: string
-
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
 
   /**
    * @default "colorless"
@@ -290,13 +284,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             this._clientVersion,
           )
         }
-
-        if (optionsArg.datasources) {
-          throw new PrismaClientInitializationError(
-            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
-            this._clientVersion,
-          )
-        }
       }
 
       try {
@@ -358,7 +345,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDatasourceOverrides(options),
+          overrideDatasources: {},
           inlineDatasources: config.inlineDatasources,
           tracingHelper: this._tracingHelper,
           transactionOptions: {
