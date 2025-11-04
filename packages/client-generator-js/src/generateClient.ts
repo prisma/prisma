@@ -1,5 +1,4 @@
 import type * as DMMF from '@prisma/dmmf'
-import { overwriteFile } from '@prisma/fetch-engine'
 import type {
   ActiveConnectorType,
   BinaryPaths,
@@ -8,7 +7,7 @@ import type {
   GeneratorConfig,
   SqlQueryOutput,
 } from '@prisma/generator'
-import { assertNever, ClientEngineType, getClientEngineType, pathToPosix, setClassName } from '@prisma/internals'
+import { pathToPosix, setClassName } from '@prisma/internals'
 import { createHash } from 'crypto'
 import paths from 'env-paths'
 import { existsSync } from 'fs'
@@ -88,8 +87,6 @@ export async function buildClient({
   postinstall,
   typedSql,
 }: O.Required<GenerateClientOptions, 'runtimeBase'>): Promise<BuildClientResult> {
-  // we define the basic options for the client generation
-  const clientEngineType = getClientEngineType(generator)
   const baseClientOptions: Omit<TSClientOptions, `runtimeName${'Js' | 'Ts'}`> = {
     dmmf: getPrismaClientDMMF(dmmf),
     datasources,
@@ -111,8 +108,8 @@ export async function buildClient({
 
   const nodeClientOptions = {
     ...baseClientOptions,
-    runtimeNameJs: getNodeRuntimeName(clientEngineType),
-    runtimeNameTs: `${getNodeRuntimeName(clientEngineType)}.js`,
+    runtimeNameJs: 'client',
+    runtimeNameTs: 'client.js',
   }
 
   // we create a regular client that is fit for Node.js
@@ -266,7 +263,7 @@ export async function buildClient({
     fileMap['sql'] = buildTypedSql({
       dmmf,
       runtimeBase: getTypedSqlRuntimeBase(runtimeBase),
-      mainRuntimeName: getNodeRuntimeName(clientEngineType),
+      mainRuntimeName: 'client',
       queries: typedSql,
       edgeRuntimeName,
     })
@@ -341,8 +338,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     typedSql,
   } = options
 
-  const clientEngineType = getClientEngineType(generator)
-
   const { runtimeBase, outputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -394,33 +389,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       from: runtimeSourcePath,
       to: copiedRuntimeDir,
       sourceMaps: copyRuntimeSourceMaps,
-      runtimeName: getNodeRuntimeName(clientEngineType),
+      runtimeName: 'client',
     })
-  }
-
-  const enginePath = clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : undefined
-
-  if (enginePath) {
-    if (process.env.NETLIFY) {
-      await ensureDir('/tmp/prisma-engines')
-    }
-
-    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
-      const fileName = path.basename(filePath)
-      let target: string
-
-      // Introduced in https://github.com/prisma/prisma/pull/6527
-      // The engines that are not needed for the runtime deployment on AWS Lambda
-      // are moved to `/tmp/prisma-engines`
-      // They will be ignored and not included in the final build, reducing its size
-      if (process.env.NETLIFY && !['rhel-openssl-1.0.x', 'rhel-openssl-3.0.x'].includes(binaryTarget)) {
-        target = path.join('/tmp/prisma-engines', fileName)
-      } else {
-        target = path.join(outputDir, fileName)
-      }
-
-      await overwriteFile(filePath, target)
-    }
   }
 
   const schemaTargetPath = path.join(outputDir, 'schema.prisma')
@@ -655,18 +625,6 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
   return null
 }
 
-function getNodeRuntimeName(engineType: ClientEngineType) {
-  if (engineType === ClientEngineType.Library) {
-    return 'library'
-  }
-
-  if (engineType === ClientEngineType.Client) {
-    return 'client'
-  }
-
-  assertNever(engineType, 'Unknown engine type')
-}
-
 type CopyRuntimeOptions = {
   from: string
   to: string
@@ -675,20 +633,10 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = [
-    // library.d.ts is always included, as it contains the actual runtime type
-    // definitions. Rest of the `runtime.d.ts` files just re-export everything
-    // from `library.d.ts`
-    'library.d.ts',
-    'index-browser.js',
-    'index-browser.d.ts',
-    'wasm-compiler-edge.js',
-  ]
+  const files = ['index-browser.js', 'index-browser.d.ts', 'wasm-compiler-edge.js']
 
   files.push(`${runtimeName}.js`)
-  if (runtimeName !== 'library') {
-    files.push(`${runtimeName}.d.ts`)
-  }
+  files.push(`${runtimeName}.d.ts`)
 
   if (sourceMaps) {
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))

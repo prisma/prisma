@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -22,8 +21,6 @@ type ModuleFormat = (typeof MODULE_FORMATS)[number]
 
 const WASM_COMPONENTS = ['compiler'] as const
 type WasmComponent = (typeof WASM_COMPONENTS)[number]
-
-const ENGINE_TYPES = [ClientEngineType.Library, ClientEngineType.Client]
 
 function getOutExtension(format: ModuleFormat): Record<string, string> {
   return {
@@ -230,10 +227,8 @@ function writeDtsRexport(fileName: string) {
 }
 
 function* allNodeRuntimeBuildConfigs(): Generator<BuildOptions> {
-  for (const engineType of ENGINE_TYPES) {
-    for (const format of MODULE_FORMATS) {
-      yield nodeRuntimeBuildConfig(engineType, format)
-    }
+  for (const format of MODULE_FORMATS) {
+    yield nodeRuntimeBuildConfig('client', format)
   }
 }
 

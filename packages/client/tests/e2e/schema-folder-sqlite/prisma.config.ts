@@ -9,6 +9,6 @@ export default defineConfig({
   engine: 'classic',
   schema: path.join(__dirname, 'prisma', 'schema'),
   datasource: {
-    url: `file:${path.join(__dirname, 'prisma', 'test.db')}`,
+    url: `file:${path.join(__dirname, 'prisma', 'dev.db')}`,
   },
 })

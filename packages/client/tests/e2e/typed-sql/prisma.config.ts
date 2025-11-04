@@ -3,6 +3,6 @@ import { defineConfig, env } from 'prisma/config'
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: env('POSTGRES_URL'),
+    url: env('TEST_E2E_POSTGRES_URI'),
   },
 })

@@ -1,5 +1,4 @@
 import { GetPrismaClientConfig, RuntimeDataModel, RuntimeModel, uncapitalize } from '@prisma/client-common'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
 import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRendering/ArgumentsRenderingTree'
@@ -241,8 +240,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
   },
 }
 
-function validateDependentOptions(options: PrismaClientOptions, config: ClientConfig) {
-  const engineType = getClientEngineType(config.generator)
+function validateDependentOptions(options: PrismaClientOptions) {
   const adapterProvided = options.adapter !== undefined
   const accelerateUrlProvided = options.accelerateUrl !== undefined
 
@@ -252,7 +250,7 @@ function validateDependentOptions(options: PrismaClientOptions, config: ClientCo
     )
   }
 
-  if (engineType === ClientEngineType.Client && !adapterProvided && !accelerateUrlProvided) {
+  if (!adapterProvided && !accelerateUrlProvided) {
     throw new PrismaClientConstructorValidationError(
       `Using engine type "client" requires either "adapter" or "accelerateUrl" to be provided to PrismaClient constructor.`,
     )
@@ -270,7 +268,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
     validators[key](value, config)
   }
 
-  validateDependentOptions(options, config)
+  validateDependentOptions(options)
 }
 
 function getDidYouMean(str: string, options: string[]): string {

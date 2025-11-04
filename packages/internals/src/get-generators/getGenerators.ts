@@ -15,7 +15,7 @@ import pMap from 'p-map'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { BinaryType, getDMMF, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
+import { getDMMF, loadSchemaContext, mergeSchemas, SchemaContext } from '..'
 import { Generator, InProcessGenerator, JsonRpcGenerator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -24,7 +24,6 @@ import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missin
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { fixBinaryTargets } from './utils/fixBinaryTargets'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
@@ -282,10 +281,8 @@ generator gen {
       }
     }
 
-    const queryEngineType = binaryTypeToEngineType(BinaryType.QueryEngineLibrary)
-
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
-    const { binaryPathsByVersion, binaryTarget } = await getBinaryPathsByVersion({
+    const { binaryPathsByVersion } = await getBinaryPathsByVersion({
       neededVersions,
       // We're lazily computing the binary target here, to avoid printing the
       // `Prisma failed to detect the libssl/openssl version to use` warning
@@ -307,26 +304,6 @@ generator gen {
         const generatorBinaryPaths = pick(binaryPaths ?? {}, generator.manifest.requiresEngines)
         debug({ generatorBinaryPaths })
         generator.setBinaryPaths(generatorBinaryPaths)
-
-        // in case cli engine version !== client engine version
-        // we need to re-generate the dmmf and pass it into the generator
-        if (
-          engineVersion !== version &&
-          generator.options &&
-          generator.manifest.requiresEngines.includes(queryEngineType) &&
-          generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[binaryTarget]
-        ) {
-          const customDmmf = await getDMMF({
-            datamodel: schemaContext.schemaFiles,
-            previewFeatures,
-          })
-          const options = { ...generator.options, dmmf: customDmmf }
-          debug('generator.manifest.prettyName', generator.manifest.prettyName)
-          debug('options', options)
-          debug('options.generator.binaryTargets', options.generator.binaryTargets)
-          generator.setOptions(options)
-        }
       }
     }
 

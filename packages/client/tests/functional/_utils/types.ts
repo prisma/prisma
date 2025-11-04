@@ -1,5 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
-
 import { TestsFactoryFnParams } from './defineMatrix'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { AdapterProviders, GeneratorTypes, Providers } from './providers'
@@ -9,15 +7,7 @@ export type MatrixOptions<MatrixT extends TestSuiteMatrix = []> = {
     from: `${Providers}`[]
     reason: string
   }
-  skipEngine?: {
-    from: `${ClientEngineType}`[]
-    reason: string
-  }
   skipDefaultClientInstance?: boolean
-  skipDataProxy?: {
-    runtimes: ClientRuntime[]
-    reason: string
-  }
   skipDriverAdapter?: {
     from: `${AdapterProviders}`[]
     reason: string
@@ -38,7 +28,7 @@ export type Db = {
   dropDb: () => Promise<void>
 }
 
-export type ClientRuntime = 'node' | 'wasm-compiler-edge' | 'client'
+export type ClientRuntime = 'wasm-compiler-edge' | 'client'
 
 export type ClientEngineExecutor = 'local' | 'remote'
 
@@ -46,7 +36,6 @@ export type CliMeta = {
   dataProxy: boolean
   runtime: ClientRuntime
   previewFeatures: string[]
-  engineType: `${ClientEngineType}` | undefined
   generatorType: `${GeneratorTypes}` | undefined
   clientEngineExecutor: ClientEngineExecutor
 }
