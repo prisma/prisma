@@ -427,8 +427,8 @@ importers:
   packages/cli:
     dependencies:
       '@bomb.sh/tab':
-        specifier: 0.0.6
-        version: 0.0.6(commander@13.1.0)
+        specifier: 0.0.9
+        version: 0.0.9(commander@13.1.0)
       '@prisma/config':
         specifier: workspace:*
         version: link:../config
@@ -2201,8 +2201,8 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@bomb.sh/tab@0.0.6':
-    resolution: {integrity: sha512-EK9Ssulo5Ju/N8o9qV35MTA7F5210ehEoHvWzBxtiHrpUEmGk7NYeW0E8BH0scR6BbzdxjDQqHLK4PK/ifjREw==}
+  '@bomb.sh/tab@0.0.9':
+    resolution: {integrity: sha512-HUJ0b+LkZpLsyn0u7G/H5aJioAdSLqWMWX5ryuFS6n70MOEFu+SGrF8d8u6HzI1gINVQTvsfoxDLcjWkmI0AWg==}
     hasBin: true
     peerDependencies:
       cac: ^6.7.14
@@ -9210,7 +9210,7 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@bomb.sh/tab@0.0.6(commander@13.1.0)':
+  '@bomb.sh/tab@0.0.9(commander@13.1.0)':
     optionalDependencies:
       commander: 13.1.0
 
