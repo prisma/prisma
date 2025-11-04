@@ -10,8 +10,6 @@ import { getTestClient } from '../../../../client/src/utils/getTestClient'
 
 process.setMaxListeners(200)
 
-process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
-
 /**
  * A potentially async value
  */
