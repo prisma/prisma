@@ -268,7 +268,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, config
     validators[key](value, config)
   }
 
-  validateDependentOptions(options, config)
+  validateDependentOptions(options)
 }
 
 function getDidYouMean(str: string, options: string[]): string {
