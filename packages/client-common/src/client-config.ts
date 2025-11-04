@@ -37,13 +37,6 @@ export type GetPrismaClientConfig = {
   inlineDatasources: { [name in string]: { url: EnvValue } }
 
   /**
-   * A marker to indicate that the client was not generated via `prisma
-   * generate` but was generated via `generate --postinstall` script instead.
-   * @remarks used to error for Vercel/Netlify for schema caching issues
-   */
-  postinstall?: boolean
-
-  /**
    * Information about the CI where the Prisma Client has been generated. The
    * name of the CI environment is stored at generation time because CI
    * information is not always available at runtime. Moreover, the edge client

@@ -47,8 +47,6 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: ActiveConnectorType
-  /** When --postinstall is passed via CLI */
-  postinstall?: boolean
   typedSql?: SqlQueryOutput[]
   target: RuntimeTargetInternal
   generatedFileExtension: GeneratedFileExtension
@@ -79,7 +77,6 @@ export function buildClient({
   engineVersion,
   clientVersion,
   activeProvider,
-  postinstall,
   typedSql,
   target,
   generatedFileExtension,
@@ -104,7 +101,6 @@ export function buildClient({
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     datamodel,
     edge: (['wasm-compiler-edge'] as RuntimeName[]).includes(runtimeName),
     runtimeName: runtimeName,
@@ -179,7 +175,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     typedSql,
     target,
     generatedFileExtension,
@@ -202,7 +197,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     clientVersion,
     engineVersion,
     activeProvider,
-    postinstall,
     typedSql,
     target,
     generatedFileExtension,
