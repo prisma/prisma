@@ -1,6 +1,6 @@
-import { defineConfig } from '@prisma/config'
+import { defineConfig, env } from '@prisma/config'
 
-const connectionString = process.env.TEST_POSTGRES_URI!.replace('tests', 'tests-insensitive-postgresql')
+const connectionString = env('TEST_POSTGRES_URI').replace('tests', 'tests-insensitive-postgresql')
 
 export default defineConfig({
   engine: 'classic',
