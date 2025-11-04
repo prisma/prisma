@@ -91,77 +91,21 @@ jobs:
       - name: Create a tag on prisma repository
         id: tag-prisma
         if: ${{ steps.publish.outputs.prismaVersion != '' && github.event.inputs.dryRun != 'true' }}
-        uses: actions/github-script@v7
-        env:
-          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
-          COMMIT_HASH: '${{ github.sha }}'
+        uses: ./.github/actions/create-git-tag
         with:
-          result-encoding: string
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/')
-            const tagName = process.env.TAG_NAME
-            const commitHash = process.env.COMMIT_HASH
+          token: ${{ secrets.BOT_TOKEN }}
+          tag-name: ${{ steps.publish.outputs.prismaVersion }}
+          commit-sha: ${{ github.sha }}
 
-            try {
-              await github.rest.git.getRef({
-                owner,
-                repo,
-                ref: `tags/${tagName}`,
-              })
-              core.info(`Tag ${tagName} already exists on ${owner}/${repo}, skipping.`)
-              return
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error
-              }
-            }
-
-            const tag = await github.rest.git.createTag({
-              owner,
-              repo,
-              tag: tagName,
-              message: tagName,
-              object: commitHash,
-              type: 'commit',
-            })
-
-            await github.rest.git.createRef({
-              owner,
-              repo,
-              ref: `refs/tags/${tagName}`,
-              sha: tag.data.sha,
-            })
-
-      # TODO de-duplicate (currently duplicated in release-*.yml)
-      # Docs https://octokit.github.io/rest.js/v20#git-create-tag
       - name: Create a tag on prisma-engines repository
-        uses: actions/github-script@v7
+        uses: ./.github/actions/create-git-tag
         id: tag-prisma-engines
-        env:
-          REPO_NAME: 'prisma-engines'
-          TAG_NAME: '${{ steps.publish.outputs.prismaVersion }}'
-          MESSAGE: '${{ steps.publish.outputs.changelogSanitized }}'
-          COMMIT_HASH: '${{ steps.publish.outputs.enginesCommitHash }}'
         with:
-          result-encoding: string
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const commitNewTag = await github.rest.git.createTag({
-              owner: 'prisma',
-              repo: '${{ env.REPO_NAME }}',
-              tag: '${{ env.TAG_NAME }}',
-              message: '${{ env.TAG_NAME }}',
-              object: '${{ env.COMMIT_HASH }}',
-              type: 'commit',
-            })
-
-            await github.rest.git.createRef({
-              owner: 'prisma',
-              repo: '${{ env.REPO_NAME }}',
-              ref: `refs/tags/${{ env.TAG_NAME }}`,
-              sha: commitNewTag.data.sha,
-            })
+          token: ${{ secrets.BOT_TOKEN }}
+          repository: prisma/prisma-engines
+          tag-name: ${{ steps.publish.outputs.prismaVersion }}
+          commit-sha: ${{ steps.publish.outputs.enginesCommitHash }}
+          message: ${{ steps.publish.outputs.changelogSanitized }}
 
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
