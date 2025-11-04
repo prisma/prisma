@@ -20,7 +20,6 @@ import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
@@ -244,8 +243,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     constructor(optionsArg?: PrismaClientOptions) {
       config = optionsArg?.__internal?.configOverride?.(config) ?? config
-
-      checkPlatformCaching(config)
 
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config)
