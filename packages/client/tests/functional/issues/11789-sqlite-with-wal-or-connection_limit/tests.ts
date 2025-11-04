@@ -1,3 +1,5 @@
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
+
 import { Db, NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -84,13 +86,10 @@ testMatrix.setupTestSuite(
       test('5 concurrent upsert should succeed with journal_mode = WAL', async () => {
         await db.dropDb()
 
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {
-              url: 'file:./concurrent-upsert-wal.db',
-            },
-          },
+        const adapter = new PrismaBetterSqlite3({
+          url: './concurrent-upsert-wal.db',
         })
+        const prisma = newPrismaClient({ adapter })
 
         await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
 
@@ -112,13 +111,10 @@ testMatrix.setupTestSuite(
       test('5 concurrent upsert should succeed with connection_limit=1 & journal_mode = WAL', async () => {
         await db.dropDb()
 
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {
-              url: 'file:./concurrent-upsert-conn-wal.db?connection_limit=1',
-            },
-          },
+        const adapter = new PrismaBetterSqlite3({
+          url: './concurrent-upsert-conn-wal.db?connection_limit=1',
         })
+        const prisma = newPrismaClient({ adapter })
 
         await expect(prisma.$queryRaw`PRAGMA journal_mode = WAL`).resolves.toEqual([{ journal_mode: 'wal' }])
 
@@ -140,13 +136,10 @@ testMatrix.setupTestSuite(
       test('5 concurrent upsert should succeed with connection_limit=1', async () => {
         await db.dropDb()
 
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {
-              url: 'file:./concurrent-upsert.db?connection_limit=1',
-            },
-          },
+        const adapter = new PrismaBetterSqlite3({
+          url: './concurrent-upsert.db?connection_limit=1',
         })
+        const prisma = newPrismaClient({ adapter })
 
         const ddlQueries: any = []
         sqlDef.split(';').forEach((sql) => {
@@ -166,13 +159,10 @@ testMatrix.setupTestSuite(
       test('5 concurrent delete should succeed with connection_limit=1', async () => {
         await db.dropDb()
 
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {
-              url: 'file:./concurrent-delete.db?connection_limit=1',
-            },
-          },
+        const adapter = new PrismaBetterSqlite3({
+          url: './concurrent-delete.db?connection_limit=1',
         })
+        const prisma = newPrismaClient({ adapter })
 
         const ddlQueries: any = []
         sqlDef.split(';').forEach((sql) => {
@@ -196,6 +186,9 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['sqlserver', 'mongodb', 'postgresql', 'cockroachdb', 'mysql'],
       reason: 'Test is made for SQLite only',
+    },
+    skip: (when, { driverAdapter }) => {
+      when(driverAdapter !== 'js_better_sqlite3', 'We only need to test it on `js_better_sqlite3`')
     },
   },
 )
