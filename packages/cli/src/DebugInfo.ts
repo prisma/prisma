@@ -114,7 +114,6 @@ ${formatEnvValue('PRISMA_SCHEMA_ENGINE_BINARY')}
 ${formatEnvValue('PRISMA_MIGRATION_ENGINE_BINARY')}
 
 For the "postinstall" npm hook
-${formatEnvValue('PRISMA_GENERATE_SKIP_AUTOINSTALL')}
 ${formatEnvValue('PRISMA_SKIP_POSTINSTALL_GENERATE')}
 ${formatEnvValue('PRISMA_GENERATE_IN_POSTINSTALL')}
 

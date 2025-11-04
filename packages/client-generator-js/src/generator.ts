@@ -114,7 +114,7 @@ export class PrismaClientJsGenerator implements Generator {
   }
 
   async #resolveOrInstallPrismaClient(baseDir: string): Promise<string> {
-    if (this.#shouldInstallMissingPackages && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
+    if (this.#shouldInstallMissingPackages) {
       return await resolveOrInstallPrismaClient(baseDir, clientVersion)
     } else {
       return await resolvePrismaClient(baseDir)
