@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import { Debug } from '@prisma/debug'
 import {
   arg,
   getCLIPathHash,
@@ -133,16 +133,23 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
       .filter((generator) => generator && generator.provider)
       .map((generator) => parseEnvValue(generator.provider))
 
-    // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-    // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-    // TODO: we should normalize how `previewFeatures` are extracted, since we currently support
-    // multiple generators (`prisma-client-js`, `prisma-client`), and each generator can occur
-    // more than once.
-    const prismaClientJSGenerator = schemaContext.generators.find(
-      (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
-    )
-    if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
-      schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
+    const clientGeneratorProviders = new Set(['prisma-client', 'prisma-client-js'])
+    const previewFeatures = schemaContext.generators
+      .filter((generator) => {
+        const provider = generator?.provider ? parseEnvValue(generator.provider) : undefined
+        return provider && clientGeneratorProviders.has(provider)
+      })
+      .flatMap((generator) => generator.previewFeatures ?? [])
+
+    if (previewFeatures.length > 0) {
+      const seen = new Set<string>()
+      schemaPreviewFeatures = []
+      for (const feature of previewFeatures) {
+        if (!seen.has(feature)) {
+          seen.add(feature)
+          schemaPreviewFeatures.push(feature)
+        }
+      }
     }
   } catch (e) {
     debug(
