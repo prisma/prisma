@@ -224,18 +224,6 @@ testMatrix.setupTestSuite(
       return { name: 'prisma:client:serialize' }
     }
 
-    function engineSerializeQueryResult() {
-      return []
-    }
-
-    function engineSerializeFinalResponse() {
-      return []
-    }
-
-    function engineSerialize() {
-      return [...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]
-    }
-
     function dbSystemExpectation() {
       return expect.toSatisfy((dbSystem) => {
         if (provider === Providers.SQLSERVER) {
@@ -245,20 +233,8 @@ testMatrix.setupTestSuite(
       })
     }
 
-    function engineConnection() {
-      return []
-    }
-
     function engineConnect() {
       return undefined
-    }
-
-    function detectPlatform() {
-      return []
-    }
-
-    function loadEngine() {
-      return []
     }
 
     function findManyDbQuery() {
@@ -309,11 +285,11 @@ testMatrix.setupTestSuite(
 
       if (operation === 'start') {
         children = isMongoDb
-          ? engineConnection()
+          ? []
           : isSqlServer && !usesJsDrivers
-            ? [...engineConnection(), txSetIsolationLevel(), txBegin()]
+            ? [txSetIsolationLevel(), txBegin()]
             : !usesJsDrivers
-              ? [...engineConnection(), txBegin()]
+              ? [txBegin()]
               : undefined
       } else if (operation === 'commit') {
         children = isMongoDb ? undefined : [txCommit()]
@@ -341,7 +317,7 @@ testMatrix.setupTestSuite(
           operation('User', 'create', [
             ...clientCompile('createOne', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+            ...engine([...createDbQueries()]),
           ]),
         )
       })
@@ -357,7 +333,7 @@ testMatrix.setupTestSuite(
           operation('User', 'findMany', [
             ...clientCompile('findMany', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+            ...engine([findManyDbQuery()]),
           ]),
         )
       })
@@ -407,7 +383,7 @@ testMatrix.setupTestSuite(
           operation('User', 'update', [
             ...clientCompile('updateOne', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...expectedDbQueries]),
           ]),
         )
       })
@@ -441,7 +417,7 @@ testMatrix.setupTestSuite(
           operation('User', 'delete', [
             ...clientCompile('deleteOne', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...expectedDbQueries]),
           ]),
         )
       })
@@ -484,7 +460,7 @@ testMatrix.setupTestSuite(
           operation('User', 'deleteMany', [
             ...clientCompile('deleteMany', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), ...expectedDbQueries, ...engineSerialize()]),
+            ...engine([...expectedDbQueries]),
           ]),
         )
       })
@@ -501,11 +477,9 @@ testMatrix.setupTestSuite(
             ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
-              ...engineConnection(),
               isMongoDb
                 ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT COUNT')),
-              ...engineSerialize(),
             ]),
           ]),
         )
@@ -526,11 +500,9 @@ testMatrix.setupTestSuite(
             ...clientCompile('aggregate', 'User'),
             clientSerialize(),
             ...engine([
-              ...engineConnection(),
               isMongoDb
                 ? dbQuery(expect.stringContaining('db.User.aggregate'))
                 : dbQuery(expect.stringContaining('SELECT MAX')),
-              ...engineSerialize(),
             ]),
           ]),
         )
@@ -580,13 +552,7 @@ testMatrix.setupTestSuite(
             operation('User', 'create', [
               ...clientCompileBatch(['createOne', 'findMany'], ['User', 'User']),
               clientSerialize(),
-              ...engine([
-                ...engineConnection(),
-                ...expectedDbQueries,
-                ...engineSerializeFinalResponse(),
-                ...engineSerializeQueryResult(),
-                ...engineSerializeQueryResult(),
-              ]),
+              ...engine([...expectedDbQueries]),
             ]),
             operation('User', 'findMany', [clientSerialize()]),
           ],
@@ -618,16 +584,12 @@ testMatrix.setupTestSuite(
             operation('User', 'create', [
               ...clientCompile('createOne', 'User'),
               clientSerialize(),
-              ...engine([
-                ...createDbQueries(false),
-                ...engineSerializeFinalResponse(),
-                ...engineSerializeQueryResult(),
-              ]),
+              ...engine([...createDbQueries(false)]),
             ]),
             operation('User', 'findMany', [
               ...clientCompile('findMany', 'User'),
               clientSerialize(),
-              ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
+              ...engine([findManyDbQuery()]),
             ]),
             itxOperation('commit'),
             itxOperation('start'),
@@ -663,16 +625,12 @@ testMatrix.setupTestSuite(
             operation('User', 'create', [
               ...clientCompile('createOne', 'User'),
               clientSerialize(),
-              ...engine([
-                ...createDbQueries(false),
-                ...engineSerializeFinalResponse(),
-                ...engineSerializeQueryResult(),
-              ]),
+              ...engine([...createDbQueries(false)]),
             ]),
             operation('User', 'findMany', [
               ...clientCompile('findMany', 'User'),
               clientSerialize(),
-              ...engine([findManyDbQuery(), ...engineSerializeFinalResponse(), ...engineSerializeQueryResult()]),
+              ...engine([findManyDbQuery()]),
             ]),
             itxOperation('rollback'),
             itxOperation('start'),
@@ -689,7 +647,7 @@ testMatrix.setupTestSuite(
           operation(undefined, 'queryRaw', [
             ...clientCompile('queryRaw'),
             clientSerialize(),
-            ...engine([...engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
+            ...engine([dbQuery('SELECT 1 + 1;')]),
           ]),
         )
       })
@@ -707,7 +665,7 @@ testMatrix.setupTestSuite(
           operation(undefined, 'executeRaw', [
             ...clientCompile('executeRaw'),
             clientSerialize(),
-            ...engine([...engineConnection(), dbQuery('SELECT 1 + 1;'), ...engineSerialize()]),
+            ...engine([dbQuery('SELECT 1 + 1;')]),
           ]),
         )
       })
@@ -735,7 +693,7 @@ testMatrix.setupTestSuite(
           operation('User', 'create', [
             ...clientCompile('createOne', 'User'),
             clientSerialize(),
-            ...engine([...engineConnection(), ...createDbQueries(), ...engineSerialize()]),
+            ...engine([...createDbQueries()]),
           ]),
         ],
       })
@@ -763,8 +721,6 @@ testMatrix.setupTestSuite(
         })
 
         await waitForSpanTree([
-          ...detectPlatform(),
-          ...loadEngine(),
           operation('User', 'findMany', [
             ...clientCompile('findMany', 'User'),
             {
@@ -772,7 +728,7 @@ testMatrix.setupTestSuite(
               children: engineConnect(),
             },
             clientSerialize(),
-            ...engine([...engineConnection(), findManyDbQuery(), ...engineSerialize()]),
+            ...engine([findManyDbQuery()]),
           ]),
         ])
       })
@@ -785,8 +741,6 @@ testMatrix.setupTestSuite(
             name: 'prisma:client:connect',
             children: engineConnect(),
           },
-          ...detectPlatform(),
-          ...loadEngine(),
         ])
       })
     })
