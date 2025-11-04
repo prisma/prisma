@@ -6,9 +6,5 @@ export function engineTypeToBinaryType(engineType: EngineType): BinaryType {
     return BinaryType.SchemaEngineBinary
   }
 
-  if (engineType === 'libqueryEngine') {
-    return BinaryType.QueryEngineLibrary
-  }
-
   throw new Error(`Could not convert engine type ${engineType}`)
 }

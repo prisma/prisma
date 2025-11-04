@@ -1,5 +1,4 @@
 import type { PrismaConfigInternal } from '@prisma/config'
-import { Debug } from '@prisma/debug'
 import { ensureNeededBinariesExist } from '@prisma/engines'
 import type { BinaryPaths, DownloadOptions } from '@prisma/fetch-engine'
 import type { Command, Commands } from '@prisma/internals'
@@ -7,11 +6,8 @@ import { arg, drawBox, format, HelpError, isError, link, unknownCommand } from '
 import { bold, dim, green, red } from 'kleur/colors'
 
 import { runCheckpointClientCheck } from './utils/checkpoint'
-import { getClientGeneratorInfo } from './utils/client'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Version } from './Version'
-
-const debug = Debug('prisma:cli')
 
 /**
  * CLI command
@@ -56,33 +52,8 @@ export class CLI implements Command {
 
     const hasMigrateAdapterInConfig = config.engine === 'js'
 
-    // We pre-parse the optional custom schema path from `prisma [cmd] --schema ...`,
-    // which we use to inspect the client generator to determine whether we should
-    // download the Prisma binaries or not.
-    // Note: a probably cleaner way of doing this would be to:
-    // - change the `Command` interface so that `parse` merely parses the CLI arguments,
-    //   returning a `RunnableCommand` instance, which can then be executed via `.run()`.
-    // - call `this.cmds[cmdName].parse(...)` and access the parse `--schema` argument.
-    const cmdArgs = arg(args._.slice(1), {
-      '--schema': String,
-    })
-    const schemaPathFromArg = isError(cmdArgs) ? undefined : cmdArgs['--schema']
-
-    // Extract client generator info once, use it for either `prisma --version`, or
-    // for any other supported command. If no client generator is successfully found,
-    // use sensible default values.
-    const { engineType } = await getClientGeneratorInfo({
-      schemaPathFromConfig: config.schema,
-      schemaPathFromArg,
-    }).catch((e) => {
-      debug('Failed to read schema information. Using default values: %o', e)
-
-      return { engineType: 'library' as const }
-    })
-
     if (args['--version']) {
       await ensureNeededBinariesExist({
-        clientEngineType: engineType,
         download: this.download,
         hasMigrateAdapterInConfig,
       })
@@ -106,7 +77,6 @@ export class CLI implements Command {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
         await ensureNeededBinariesExist({
-          clientEngineType: engineType,
           download: this.download,
           hasMigrateAdapterInConfig,
         })

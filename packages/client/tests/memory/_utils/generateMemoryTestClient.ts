@@ -18,7 +18,7 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
   await generateClient({
     datamodel: schema,
     schemaPath: testDir.schemaFilePath,
-    binaryPaths: { libqueryEngine: {} },
+    binaryPaths: {},
     datasources: config.datasources,
     outputDir: path.join(testDir.generatedDir, 'node_modules/@prisma/client'),
     copyRuntime: false,

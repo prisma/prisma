@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -18,7 +17,6 @@ export type NamedTestSuiteConfig = {
     generatorType?: GeneratorTypes
     driverAdapter?: `${AdapterProviders}`
     relationMode?: `${RelationModes}`
-    engineType?: `${ClientEngineType}`
     clientRuntime?: `${ClientRuntime}`
     previewFeatures?: string[]
     clientEngineExecutor?: ClientEngineExecutor
@@ -283,15 +281,13 @@ export function getTestSuiteMeta() {
 export function getTestSuiteCliMeta(): CliMeta {
   const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
   const runtime = process.env.TEST_CLIENT_RUNTIME as ClientRuntime | undefined
-  const engineType = process.env.TEST_ENGINE_TYPE as ClientEngineType | undefined
   const previewFeatures = process.env.TEST_PREVIEW_FEATURES ?? ''
   const generatorType = process.env.TEST_GENERATOR_TYPE as GeneratorTypes | undefined
   const clientEngineExecutor = process.env.TEST_CLIENT_ENGINE_REMOTE_EXECUTOR ? 'remote' : 'local'
 
   return {
     dataProxy,
-    runtime: runtime ?? 'node',
-    engineType: engineType ?? ClientEngineType.Library,
+    runtime: runtime ?? 'client',
     previewFeatures: previewFeatures.split(',').filter((feature) => feature !== ''),
     generatorType,
     clientEngineExecutor,

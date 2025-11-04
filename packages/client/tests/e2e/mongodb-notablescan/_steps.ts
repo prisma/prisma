@@ -10,7 +10,8 @@ void executeSteps({
     await $`pnpm prisma db push --force-reset --skip-generate`
   },
   test: async () => {
-    await $`pnpm jest`
+    // Skipped until MongoDB support is added to Prisma 7
+    // await $`pnpm jest`
   },
   finish: async () => {
     await $`echo "done"`

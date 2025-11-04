@@ -87,18 +87,6 @@
       "import": "./runtime/client.mjs",
       "default": "./runtime/client.mjs"
     },
-    "./runtime/library": {
-      "types": "./runtime/library.d.ts",
-      "require": "./runtime/library.js",
-      "import": "./runtime/library.mjs",
-      "default": "./runtime/library.mjs"
-    },
-    "./runtime/binary": {
-      "types": "./runtime/binary.d.ts",
-      "require": "./runtime/binary.js",
-      "import": "./runtime/binary.mjs",
-      "default": "./runtime/binary.mjs"
-    },
     "./runtime/wasm-compiler-edge": {
       "types": "./runtime/wasm-compiler-edge.d.ts",
       "require": "./runtime/wasm-compiler-edge.js",
@@ -149,7 +137,7 @@
     "test": "dotenv -e ../../.db.env -- jest --silent",
     "test:e2e": "dotenv -e ../../.db.env -- tsx tests/e2e/_utils/run.ts",
     "test:functional": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts",
-    "test:functional:client": "pnpm run test:functional --client-runtime client --engine-type client",
+    "test:functional:client": "pnpm run test:functional --client-runtime client",
     "test:memory": "dotenv -e ../../.db.env -- tsx helpers/memory-tests.ts",
     "test:functional:code": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --types-only",
@@ -178,7 +166,7 @@
     "sql.mjs"
   ],
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250408.0",
+    "@cloudflare/workers-types": "^4.20251014.0",
     "@codspeed/benchmark.js-plugin": "4.0.0",
     "@faker-js/faker": "9.6.0",
     "@fast-check/jest": "2.0.3",
@@ -235,7 +223,7 @@
     "@types/jest": "29.5.14",
     "@types/js-levenshtein": "1.1.3",
     "@types/mssql": "9.1.8",
-    "@types/node": "~20.19.0",
+    "@types/node": "~20.19.24",
     "@types/pg": "8.11.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",

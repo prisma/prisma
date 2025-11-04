@@ -44,13 +44,7 @@ runs:
         path: |
           target/release/schema-engine
           target/release/schema-engine.exe
-          target/release/query-engine
-          target/release/query-engine.exe
-          target/release/libquery_engine.so
-          target/release/libquery_engine.dylib
-          target/release/query_engine.dll
           target/prisma-schema-wasm
-          query-engine/query-engine-wasm/pkg
           query-compiler/query-compiler-wasm/pkg
           schema-engine/schema-engine-wasm/pkg
 
@@ -58,21 +52,12 @@ runs:
       if: steps.custom-engine.outputs.cache-hit == 'true'
       run: |
         RELEASE_DIR="$(pwd)/target/release"
-        if [ -f "$RELEASE_DIR/libquery_engine.so" ]; then
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.so" >> $GITHUB_ENV
+        if [ -f "$RELEASE_DIR/schema-engine" ]; then
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
-        elif [ -f "$RELEASE_DIR/query_engine.dll" ]; then
+        elif [ -f "$RELEASE_DIR/schema-engine.exe" ]; then
           WIN_RELEASE_DIR=$(cygpath -w $RELEASE_DIR)
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$WIN_RELEASE_DIR\\\query_engine.dll" >> $GITHUB_ENV
           echo "PRISMA_SCHEMA_ENGINE_BINARY=$WIN_RELEASE_DIR\\\schema-engine.exe" >> $GITHUB_ENV
-        elif [ -f "$RELEASE_DIR/libquery_engine.dylib" ]; then
-          echo "PRISMA_QUERY_ENGINE_LIBRARY=$RELEASE_DIR/libquery_engine.dylib" >> $GITHUB_ENV
-          echo "PRISMA_SCHEMA_ENGINE_BINARY=$RELEASE_DIR/schema-engine" >> $GITHUB_ENV
         else
-          echo "Something went wrong. Build cache for engines exists, but no binaries for current OS found"
-          ls -la "$RELEASE_DIR"
-          exit 1
-        fi
       shell: bash
 
     - name: Override WASM modules
@@ -81,7 +66,6 @@ runs:
       run: |
         ENGINE_PATH="$(pwd)/target"
 
-        mv query-engine/query-engine-wasm/pkg "$ENGINE_PATH/query-engine-wasm"
         mv query-compiler/query-compiler-wasm/pkg "$ENGINE_PATH/query-compiler-wasm"
         mv schema-engine/schema-engine-wasm/pkg "$ENGINE_PATH/schema-engine-wasm"
 
@@ -90,7 +74,6 @@ runs:
         fi
 
         pnpm update -r "@prisma/prisma-schema-wasm@$ENGINE_PATH/prisma-schema-wasm"
-        pnpm update -r "@prisma/query-engine-wasm@$ENGINE_PATH/query-engine-wasm"
         pnpm update -r "@prisma/query-compiler-wasm@$ENGINE_PATH/query-compiler-wasm"
         pnpm update -r "@prisma/schema-engine-wasm@$ENGINE_PATH/schema-engine-wasm"
 

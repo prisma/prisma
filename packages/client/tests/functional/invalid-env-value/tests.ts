@@ -52,14 +52,6 @@ testMatrix.setupTestSuite(
           expect(e.name).toEqual('PrismaClientInitializationError')
           expect(message).toContain('Error validating datasource `db`: the URL must start with the protocol')
         })
-      } else if (['node'].includes(clientMeta.runtime)) {
-        await promise.catch((e) => {
-          const message = stripVTControlCharacters(e.message)
-          expect(e.name).toEqual('InvalidDatasourceError')
-          expect(message).toContain(
-            'Error validating datasource `db`: the URL must start with the protocol `prisma://`',
-          )
-        })
       } else {
         throw new Error('Unhandled case')
       }
