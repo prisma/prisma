@@ -6,13 +6,18 @@ import { link } from './link'
 export const missingGeneratorMessage = `\n${blue('info')} You don't have any generators defined in your ${bold(
   'schema.prisma',
 )}, so nothing will be generated.
-You can define them like this:
+Add the Prisma Client generator like this:
 
 ${bold(
   highlightDatamodel(`generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }`),
-)}`
+)}
+
+More information in our documentation:
+${link('https://pris.ly/d/prisma-schema')}
+`
 
 export const missingModelMessage = `\nYou don't have any ${bold('models')} defined in your ${bold(
   'schema.prisma',
