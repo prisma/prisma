@@ -129,7 +129,7 @@
     "@swc/jest": "0.2.37",
     "@types/fs-extra": "11.0.4",
     "@types/jest": "29.5.14",
-    "@types/node": "~20.19.0",
+    "@types/node": "~20.19.24",
     "async-listen": "3.1.0",
     "checkpoint-client": "1.1.33",
     "chokidar": "4.0.3",

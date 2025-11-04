@@ -3,11 +3,9 @@ import os from 'node:os'
 import path from 'node:path'
 
 import Debug from '@prisma/debug'
-import { BinaryTarget, getNodeAPIName } from '@prisma/get-platform'
+import { BinaryTarget } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import { ensureDir } from 'fs-extra'
-
-import { BinaryType } from './BinaryType'
 
 const debug = Debug('prisma:fetch-engine:cache-dir')
 
@@ -71,14 +69,7 @@ export function getDownloadUrl({
     process.env.PRISMA_ENGINES_MIRROR ||
     'https://binaries.prisma.sh'
 
-  const finalExtension =
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-    binaryTarget === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
-  if (binaryName === BinaryType.QueryEngineLibrary) {
-    binaryName = getNodeAPIName(binaryTarget, 'url')
-  }
+  const finalExtension = binaryTarget === 'windows' ? `.exe${extension}` : extension
 
   return `${baseUrl}/${channel}/${version}/${binaryTarget}/${binaryName}${finalExtension}`
 }

@@ -1,10 +1,6 @@
-import path from 'node:path'
-
-import { BinaryTarget, ClientEngineType, getClientEngineType } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
 
 import { ModuleFormat } from '../../module-format'
-import { buildNFTAnnotations } from '../../utils/buildNFTAnnotations'
 import { GenerateContext } from '../GenerateContext'
 import { modelExports } from '../ModelExports'
 import { getPrismaClientClassDocComment } from '../PrismaClient'
@@ -19,9 +15,6 @@ const jsDocHeader = `/*
 `
 
 export function createClientFile(context: GenerateContext, options: TSClientOptions): string {
-  const clientEngineType = getClientEngineType(options.generator)
-  options.generator.config.engineType = clientEngineType
-
   const imports = [
     ts.moduleImport(context.runtimeImport).asNamespace('runtime'),
     ts.moduleImport(context.importFileName('./enums')).asNamespace('$Enums'),
@@ -67,23 +60,12 @@ export function createClientFile(context: GenerateContext, options: TSClientOpti
     ),
   ].map((e) => ts.stringify(e))
 
-  const binaryTargets =
-    clientEngineType === ClientEngineType.Library
-      ? (Object.keys(options.binaryPaths.libqueryEngine ?? {}) as BinaryTarget[])
-      : []
-
-  // get relative output dir for it to be preserved even after bundling, or
-  // being moved around as long as we keep the same project dir structure.
-  const relativeOutdir = path.relative(process.cwd(), options.outputDir)
-
   return `${jsDocHeader}
 ${buildPreamble(options.edge, options.moduleFormat)}
 ${imports.join('\n')}
 
 ${exports.join('\n')}
 export { Prisma }
-
-${buildNFTAnnotations(options.edge, clientEngineType, binaryTargets, relativeOutdir)}
 
 ${modelExports(context).join('\n')}
 `

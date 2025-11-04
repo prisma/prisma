@@ -44,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
-      queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
       - uses: actions/checkout@v4
 
@@ -72,10 +71,6 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: 'ci test all'
-      - id: enginesOutput
-        name: Decide on which engine types to run the next workflow
-        run: |
-          echo 'queryEngine=["library"]' >> "$GITHUB_OUTPUT"
 
       - name: Trigger npm release workflow for integration release
         env:
@@ -160,6 +155,5 @@ jobs:
     uses: ./.github/workflows/test-template.yml
     with:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
-      queryEngine: ${{ needs.detect_jobs_to_run.outputs.queryEngine }}
       engineHash: ${{ needs.build_custom_engine.outputs.engineHash }}
     secrets: inherit

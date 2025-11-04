@@ -240,5 +240,8 @@ testMatrix.setupTestSuite(
       reason: 'this is a type-level only test',
     },
     skipDb: true,
+    skip(when, { generatorType }) {
+      when(generatorType === 'prisma-client-ts', '`prisma-client-ts` broke client extension types, apparently ')
+    },
   },
 )

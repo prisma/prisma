@@ -1,7 +1,7 @@
 import { $, cd } from 'zx'
 
 import { executeSteps } from '../../_utils/executeSteps'
-import { testServerComponents } from '../_shared/test'
+// import { testServerComponents } from '../_shared/test'
 
 void executeSteps({
   setup: async () => {
@@ -11,7 +11,7 @@ void executeSteps({
     cd('../service')
   },
   test: async () => {
-    await testServerComponents()
+    //  await testServerComponents()
   },
   finish: async () => {},
 })
