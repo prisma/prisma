@@ -121,7 +121,6 @@ describe('validate', () => {
         const schema = `
           datasource db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }
           model User {
             id        Int      @default(autoincrement())
@@ -164,7 +163,6 @@ describe('validate', () => {
         const schema = `
           datasource db {
             provider = "mysql"
-            url      = env("MY_MYSQL_DB")
           }
           model User {
             id        Int      @default(autoincrement())
@@ -218,7 +216,6 @@ describe('validate', () => {
         
         datasource my_db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
         
         model User {
@@ -338,7 +335,6 @@ describe('validate', () => {
 
           datasource my_db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }
 
           model User {
@@ -454,7 +450,6 @@ describe('validate', () => {
     test('simple model, sqlite', () => {
       const schema /* prisma */ = `datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
       model A {
         id Int @id

@@ -53,7 +53,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "datasource db {
         provider = "postgres"
-        url      = env("TEST_POSTGRES_URI_MIGRATE")
       }
 
       model Post {
@@ -134,7 +133,6 @@ describeMatrix(postgresOnly, 'postgresql', () => {
           -->  prisma/schema.prisma:3
            | 
          2 |   provider = "sqlite"
-         3 |   url      = "file:../dev.db"
            | 
 
 

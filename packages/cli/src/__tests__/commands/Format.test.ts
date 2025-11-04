@@ -229,7 +229,6 @@ describe('format', () => {
 
           datasource db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }
 
           model User {

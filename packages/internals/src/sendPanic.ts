@@ -30,7 +30,7 @@ export async function sendPanic({
 }: SendPanic): Promise<number> {
   let dbVersion: string | undefined
   if (error.area === ErrorArea.LIFT_CLI) {
-    // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
+    // For a SQLite datasource configured as `file:dev.db` only schema will be defined
     const getDatabaseVersionParams: MigrateTypes.GetDatabaseVersionParams | undefined = match({
       introspectionUrl: error.introspectionUrl,
     })

@@ -115,7 +115,6 @@ describe('getDMMF', () => {
       const datamodel = `
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
         model User {
           id        Int      @default(autoincrement())
@@ -157,7 +156,6 @@ describe('getDMMF', () => {
       const datamodel = `
         datasource db {
           provider = "mysql"
-          url      = env("MY_MYSQL_DB")
         }
         model User {
           id        Int      @default(autoincrement())
@@ -195,7 +193,6 @@ describe('getDMMF', () => {
       
       datasource my_db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
       
       model User {
@@ -298,7 +295,6 @@ describe('getDMMF', () => {
         
         datasource my_db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
       `
 
@@ -331,7 +327,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
         model A {
           id Int @id
@@ -349,7 +344,6 @@ describe('getDMMF', () => {
           'ds.prisma',
           `datasource db {
             provider = "sqlite"
-            url      = "file:dev.db"
           }`,
         ],
         [
@@ -376,7 +370,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgresql"
-          url      = env("MY_POSTGRESQL_DB")
         }
         model A {
           id Int @id
@@ -393,7 +386,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "mysql"
-          url      = env("MY_MYSQL_DB")
         }
         model A {
           id Int @id
@@ -410,7 +402,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "sqlserver"
-          url      = env("MY_SQLSERVER_DB")
         }
         model A {
           id Int @id
@@ -427,7 +418,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "mongodb"
-          url      = "MY_MONGODB_DB"
         }
         model A {
           id Int @id @map("_id")
@@ -444,7 +434,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgresql"
-          url      = env("MY_POSTGRESQL_DB")
         }
         model User {
           id        Int      @default(autoincrement())
@@ -461,7 +450,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgres"
-          url      = env("MY_POSTGRES_DB")
         }
   
         // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
@@ -509,7 +497,6 @@ describe('getDMMF', () => {
         datamodel: `
         datasource db {
           provider = "postgres"
-          url      = env("MY_POSTGRES_DB")
         }
         generator client {
           provider = "prisma-client-js"

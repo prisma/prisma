@@ -285,12 +285,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   const datasourceBlock =
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
-      : makeDatasourceBlock(
-          input.database.datasource.provider ?? input.database.name,
-          typeof input.database.datasource.url === 'function'
-            ? input.database.datasource.url(ctx)
-            : input.database.datasource.url,
-        )
+      : makeDatasourceBlock(input.database.datasource.provider ?? input.database.name)
 
   const schemaBase = `
     generator client {
@@ -370,11 +365,10 @@ function getScenariosDir(databaseName: string, testKind: string) {
 /**
  * Create a Prisma schema datasource block.
  */
-function makeDatasourceBlock(providerName: string, url: string) {
+function makeDatasourceBlock(providerName: string) {
   return `
     datasource ${providerName} {
       provider = "${providerName}"
-      url      = "${url}"
     }
   `
 }

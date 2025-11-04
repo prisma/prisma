@@ -78,7 +78,6 @@ describeMatrix(sqlServerOnly, 'SQL Server', () => {
     expect(ctx.normalizedCapturedStdout()).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
       }
 
       model jobs {
@@ -159,10 +158,9 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
       "Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
-        -->  with-schemas-in-datasource-0-value.prisma:4
+        -->  with-schemas-in-datasource-0-value.prisma:3
          | 
-       3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
-       4 |   schemas  = []
+       3 |   schemas  = []
          | 
 
       Validation Error Count: 1
@@ -219,7 +217,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
       datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
         schemas  = ["base"]
       }
 
@@ -270,7 +267,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
 
       datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
         schemas  = ["base", "does-not-exist"]
       }
 
@@ -319,7 +315,6 @@ describeMatrix(sqlServerOnly, 'sqlserver-multischema', () => {
     expect(sanitizeSQLServerIdName(ctx.normalizedCapturedStdout())).toMatchInlineSnapshot(`
       "datasource db {
         provider = "sqlserver"
-        url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
       }
 
       model some_table {

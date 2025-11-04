@@ -20,7 +20,6 @@ describe('getConfig', () => {
       datamodel: `
       datasource db {
         provider = "sqlite"
-        url      = "file:../hello.db"
       }
 
       model A {
@@ -40,7 +39,6 @@ describe('getConfig', () => {
     const config = await getConfig({
       datamodel: `
     datasource db {
-      url = "file:dev.db"
       provider = "sqlite"
     }
 
@@ -68,7 +66,6 @@ describe('getConfig', () => {
       datamodel: `
       datasource db {
         provider = "postgresql"
-        url      = env("TEST_POSTGRES_URI_FOR_DATASOURCE")
       }
       `,
     })
@@ -81,7 +78,6 @@ describe('getConfig', () => {
       datamodel: `
       datasource db {
         provider = "sqlite"
-        url      = "file:../hello.db"
       }
 
       generator gen {

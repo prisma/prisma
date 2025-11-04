@@ -15,7 +15,6 @@ describe('lint valid schema with a deprecated preview feature', () => {
 
     datasource db {
       provider = "cockroachdb"
-      url      = env("TEST_POSTGRES_URI")
     }
 
     model SomeUser {
@@ -54,7 +53,6 @@ describe('lint invalid schema with a deprecated preview feature', () => {
 
     datasource db {
       provider = "cockroachdb"
-      url      = env("TEST_POSTGRES_URI")
     }
 
     model SomeUser {

@@ -31,7 +31,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
 
       datasource db {
         provider = "sqlite"
-        url = "REPLACED_BY_TEST"
       }
 
       model Post {
@@ -87,7 +86,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
 
       model Post {
@@ -132,7 +130,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:dev.db"
       }
 
       model Post {
@@ -182,7 +179,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
         datasource db {
           provider = "sqlite"
-          url      = "file:dev.db"
         }
 
         model Post {
@@ -233,7 +229,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
           -->  schema.prisma:7
            | 
          6 |   provider = "sqlite"
-         7 |   url      = "file:dev.db"
            | 
 
 
@@ -300,7 +295,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model AwesomeUser {
@@ -350,7 +344,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model AwesomeUser {
@@ -544,7 +537,6 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
 
       datasource db {
         provider = "sqlite"
-        url      = "file:../dev.db"
       }
 
       model Post {
