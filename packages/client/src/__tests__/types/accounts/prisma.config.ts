@@ -1,8 +1,8 @@
-import { defineConfig, env } from '@prisma/config'
+import { defineConfig } from '@prisma/config'
 
 export default defineConfig({
   engine: 'classic',
   datasource: {
-    url: env('SOME_URL'),
+    url: 'file:dev.db',
   },
 })
