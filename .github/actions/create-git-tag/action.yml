@@ -31,5 +31,8 @@ runs:
         result-encoding: string
         # Docs https://octokit.github.io/rest.js/v20#git-create-tag
         script: |
-          const { createGitTag } = await import('./.github/scripts/create-git-tag.mjs')
+          const { join } = await import('node:path')
+          const { pathToFileURL } = await import('node:url')
+          const scriptPath = join(process.env.GITHUB_WORKSPACE, '.github', 'scripts', 'create-git-tag.mjs')
+          const { createGitTag } = await import(pathToFileURL(scriptPath).href)
           await createGitTag({ github, core, context })
