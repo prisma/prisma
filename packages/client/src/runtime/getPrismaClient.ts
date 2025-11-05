@@ -116,11 +116,6 @@ export type PrismaClientOptions = {
    */
   __internal?: {
     debug?: boolean
-    engine?: {
-      cwd?: string
-      binaryPath?: string
-      endpoint?: string
-    }
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
@@ -302,8 +297,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         debug('relativePath', config.relativePath)
         debug('cwd', cwd)
 
-        const engineConfig = internal.engine || {}
-
         if (options.errorFormat) {
           this._errorFormat = options.errorFormat
         } else if (process.env.NODE_ENV === 'production') {
@@ -320,7 +313,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:

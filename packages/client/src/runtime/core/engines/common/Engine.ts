@@ -117,7 +117,6 @@ export interface EngineConfig {
   clientVersion: string
   engineVersion: string
   previewFeatures?: string[]
-  engineEndpoint?: string
   activeProvider?: string
   logEmitter: LogEmitter
   transactionOptions: Transaction.Options
