@@ -40,11 +40,6 @@ describe('valid options', () => {
     validatePrismaClientOptions(
       {
         adapter: {} as any,
-        datasources: {
-          db: {
-            url: '',
-          },
-        },
         errorFormat: 'pretty',
         log: ['error'],
       },
@@ -54,11 +49,6 @@ describe('valid options', () => {
     validatePrismaClientOptions(
       {
         adapter: {} as any,
-        datasources: {
-          db: {
-            url: '',
-          },
-        },
         errorFormat: 'pretty',
         log: [
           {
@@ -101,37 +91,6 @@ describe('invalid options', () => {
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
       "Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
-      Read more at https://pris.ly/d/client-constructor"
-    `)
-    expect(() =>
-      validatePrismaClientOptions(
-        {
-          adapter: {} as any,
-          errorFormat: 'minimal',
-          datasources: {
-            asd: {},
-          },
-        },
-        config,
-      ),
-    ).toThrowErrorMatchingInlineSnapshot(`
-      "Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
-      Read more at https://pris.ly/d/client-constructor"
-    `)
-    expect(() =>
-      validatePrismaClientOptions(
-        {
-          adapter: {} as any,
-          errorFormat: 'minimal',
-          datasources: {
-            db: { murl: '' },
-          },
-        } as PrismaClientOptions,
-        config,
-      ),
-    ).toThrowErrorMatchingInlineSnapshot(`
-      "Invalid value {"db":{"murl":""}} for datasource "db" provided to PrismaClient constructor.
-      It should have this form: { url: "CONNECTION_STRING" }
       Read more at https://pris.ly/d/client-constructor"
     `)
     expect(() =>
