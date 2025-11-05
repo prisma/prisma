@@ -50,5 +50,5 @@ You can also observe more logs by specifying the environment variable `DEBUG="pr
 In the current directory:
 
 - Run `pnpm planetscale` to run smoke tests against the PlanetScale database
-- Run `pnpm neon` to run smoke tests against the PlanetScale database
+- Run `pnpm neon` to run smoke tests against the Neon database
 - Run `pnpm ppg` to run smoke tests against the Prisma Postgres database
