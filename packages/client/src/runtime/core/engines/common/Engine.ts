@@ -116,7 +116,6 @@ export interface EngineConfig {
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
-  flags?: string[]
   clientVersion: string
   engineVersion: string
   previewFeatures?: string[]
