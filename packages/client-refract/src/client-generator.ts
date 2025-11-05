@@ -972,7 +972,7 @@ ${includeFields}
           return prepared
         }
 
-        private prepareUpdateData(data: Record<string, unknown>): Record<string, unknown> {
+        private prepareUpdateData(data: Partial<${model.name}>): Record<string, unknown> {
           const prepared: Record<string, unknown> = {}
           
           ${this.generateFieldTransformationMethods(model, 'update')}
