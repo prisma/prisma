@@ -1,8 +1,4 @@
-import {
-  Debug,
-  ErrorCapturingSqlMigrationAwareDriverAdapterFactory,
-  SqlMigrationAwareDriverAdapterFactory,
-} from '@prisma/driver-adapter-utils'
+import { Debug, SqlMigrationAwareDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { Either, identity, Schema as Shape } from 'effect'
 import { pipe } from 'effect/Function'
 
@@ -17,21 +13,6 @@ const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   },
   {
     identifier: 'SqlMigrationAwareDriverAdapterFactory',
-    encode: identity,
-    decode: identity,
-  },
-)
-
-export type SqlMigrationAwareDriverAdapterFactoryShape =
-  | undefined
-  | (() => Promise<SqlMigrationAwareDriverAdapterFactory>)
-
-const ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
-  (input: any): input is () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory> => {
-    return typeof input === 'function'
-  },
-  {
-    identifier: 'ErrorCapturingSqlMigrationAwareDriverAdapterFactory',
     encode: identity,
     decode: identity,
   },
@@ -56,8 +37,7 @@ export type ExperimentalConfig = {
   extensions?: boolean
 }
 
-const SchemaEngineConfigClassicShape = Shape.Struct({
-  engine: Shape.Literal('classic'),
+const SchemaEngineConfigShape = Shape.Struct({
   datasource: Shape.Struct({
     url: Shape.String,
     directUrl: Shape.optional(Shape.String),
@@ -65,81 +45,22 @@ const SchemaEngineConfigClassicShape = Shape.Struct({
   }),
 })
 
-const SchemaEngineConfigJsShape = Shape.Struct({
-  engine: Shape.Literal('js'),
-  adapter: SqlMigrationAwareDriverAdapterFactoryShape,
-})
-
-const SchemaEngineConfigAbsentShape = Shape.Struct({
-  engine: Shape.optional(Shape.Never),
-})
-
-const SchemaEngineConfigShape = Shape.Union(
-  SchemaEngineConfigClassicShape,
-  SchemaEngineConfigJsShape,
-  SchemaEngineConfigAbsentShape,
-)
-
-type SchemaEngineConfigJs = {
-  /**
-   * Uses the new, unstable JavaScript based Schema Engine.
-   */
-  engine: 'js'
-  /**
-   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
-   */
-  adapter: () => Promise<SqlMigrationAwareDriverAdapterFactory>
-}
-
-type SchemaEngineConfigJsInternal = {
-  /**
-   * Uses the new, unstable JavaScript based Schema Engine.
-   */
-  engine: 'js'
-  /**
-   * The function that instantiates the driver adapter to use for the JavaScript based Schema Engine.
-   */
-  adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
-}
-
 export type SchemaEngineConfigClassicDatasource = {
   url: string
   directUrl?: string
   shadowDatabaseUrl?: string
 }
 
-type SchemaEngineConfigClassic = {
-  /**
-   * Uses the "old classic" Schema Engine binary
-   */
-  engine: 'classic'
+type SchemaEngineConfig = {
   /**
    * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
    */
   datasource: SchemaEngineConfigClassicDatasource
 }
 
-type SchemaEngineConfigAbsent = {
-  engine?: never
-}
+export type SchemaEngineConfigInternal = SchemaEngineConfig
 
-type SchemaEngineConfig = SchemaEngineConfigJs | SchemaEngineConfigClassic | SchemaEngineConfigAbsent
-
-export type SchemaEngineConfigInternal =
-  | SchemaEngineConfigJsInternal
-  | SchemaEngineConfigClassic
-  | SchemaEngineConfigAbsent
-
-const SchemaEngineConfigJsInternal = Shape.Struct({
-  engine: Shape.Literal('js'),
-  adapter: ErrorCapturingSqlMigrationAwareDriverAdapterFactoryShape,
-})
-
-const SchemaEngineConfigInternal = Shape.Union(
-  SchemaEngineConfigClassicShape,
-  SchemaEngineConfigJsInternal,
-  SchemaEngineConfigAbsentShape,
-)
+const SchemaEngineConfigInternal = SchemaEngineConfigShape
 
 const ExperimentalConfigShape = Shape.Struct({
   adapter: Shape.optional(Shape.Boolean),
@@ -379,13 +300,6 @@ if (false) {
 function validateExperimentalFeatures(config: PrismaConfig): Either.Either<PrismaConfig, Error> {
   const experimental = config.experimental || {}
 
-  // Check adapter configuration
-  if (config.engine === 'js' && !experimental.adapter) {
-    return Either.left(
-      new Error("The `engine === 'js'` configuration requires `experimental.adapter` to be set to `true`."),
-    )
-  }
-
   // Check studio configuration
   if (config.studio && !experimental.studio) {
     return Either.left(new Error('The `studio` configuration requires `experimental.studio` to be set to `true`.'))
@@ -450,24 +364,14 @@ const PrismaConfigInternalShape = Shape.extend(
   ),
 )
 
-type _PrismaConfigInternal = Omit<PrismaConfig, 'engine' | 'datasource' | 'adapter'> & {
+type _PrismaConfigInternal = Omit<PrismaConfig, 'datasource' | 'adapter'> & {
   loadedFromFile: string | null
-} & (
-    | {
-        engine: 'classic'
-        datasource: {
-          url: string
-          shadowDatabaseUrl?: string
-        }
-      }
-    | {
-        engine: 'js'
-        adapter: () => Promise<ErrorCapturingSqlMigrationAwareDriverAdapterFactory>
-      }
-    | {
-        engine?: never
-      }
-  )
+} & {
+  datasource: {
+    url: string
+    shadowDatabaseUrl?: string
+  }
+}
 
 /**
  * The configuration for the Prisma Development Kit, after it has been parsed and processed

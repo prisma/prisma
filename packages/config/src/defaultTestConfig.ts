@@ -6,5 +6,8 @@ import { makePrismaConfigInternal, type PrismaConfigInternal } from './PrismaCon
 export function defaultTestConfig(): PrismaConfigInternal {
   return makePrismaConfigInternal({
     loadedFromFile: null,
+    datasource: {
+      url: '<default_datasource_url>',
+    },
   })
 }
