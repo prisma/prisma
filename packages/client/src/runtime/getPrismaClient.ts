@@ -69,9 +69,6 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type Datasource = { url?: string }
-export type Datasources = { [name in string]: Datasource }
-
 export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
@@ -123,7 +120,6 @@ export type PrismaClientOptions = {
       cwd?: string
       binaryPath?: string
       endpoint?: string
-      allowTriggerPanic?: boolean
     }
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
@@ -324,7 +320,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          allowTriggerPanic: engineConfig.allowTriggerPanic,
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
@@ -345,7 +340,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: {},
           inlineDatasources: config.inlineDatasources,
           tracingHelper: this._tracingHelper,
           transactionOptions: {
