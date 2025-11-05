@@ -114,7 +114,6 @@ export interface EngineConfig {
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
   clientVersion: string
-  engineVersion: string
   previewFeatures?: string[]
   activeProvider?: string
   logEmitter: LogEmitter

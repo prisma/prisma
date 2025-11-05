@@ -314,7 +314,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           engineWasm: config.engineWasm,
           compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
-          engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
