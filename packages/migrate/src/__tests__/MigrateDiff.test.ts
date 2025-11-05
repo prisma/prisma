@@ -208,6 +208,22 @@ describe('migrate diff', () => {
         `)
       }
     })
+
+    it.each([
+      '--from-url=localhost',
+      '--to-url=localhost',
+      '--from-schema-datasource=schema.prisma',
+      '--to-schema-datasource=schema.prisma',
+      '--from-schema-datamodel=schema.prisma',
+      '--to-schema-datamodel=schema.prisma',
+      '--from-local-d1',
+      '--to-local-d1',
+    ])('should fail with a hint when providing a %s parameter', async (param) => {
+      ctx.fixture('schema-only')
+
+      const result = MigrateDiff.new().parse([param], await ctx.config())
+      await expect(result).rejects.toThrowErrorMatchingSnapshot()
+    })
   })
 
   describe('sqlite', () => {
@@ -573,22 +589,6 @@ describe('migrate diff', () => {
 
         "
       `)
-    })
-
-    it.each([
-      '--from-url=localhost',
-      '--to-url=localhost',
-      '--from-schema-datasource=schema.prisma',
-      '--to-schema-datasource=schema.prisma',
-      '--from-schema-datamodel=schema.prisma',
-      '--to-schema-datamodel=schema.prisma',
-      '--from-local-d1',
-      '--to-local-d1',
-    ])('should fail with a hint when providing a %s parameter', async (param) => {
-      ctx.fixture('schema-only')
-
-      const result = MigrateDiff.new().parse([param], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingSnapshot()
     })
   })
 
