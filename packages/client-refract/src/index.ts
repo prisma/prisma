@@ -4,13 +4,11 @@
  * Type precedence:
  * Manual types > Generated types > Any types
  *
- * Architecture: Accept explicit Kysely dialects directly
  */
 
-// Main client (class-based approach)
-export type { ModelFactory, RefractClientOptions } from './client.js'
-export { RefractClientBase } from './client.js'
-export { RefractClientBase as RefractClient } from './client.js'
+export type { ModelFactory, RefractClientOptions } from './client'
+export { RefractClientBase } from './client'
+export { RefractClientBase as RefractClient } from './client'
 
 // Core types
 export type {
@@ -23,12 +21,11 @@ export type {
   PRISMA_TO_TS_TYPES,
   RefractClientConfig,
   RefractDatasourceConfig,
-} from './types.js'
-export { PRISMA_PROVIDER_TO_DRIVER_PROVIDER, translateDatasourceConfig } from './types.js'
+} from './types'
+export { PRISMA_PROVIDER_TO_DRIVER_PROVIDER, translateDatasourceConfig } from './types'
 
 // Generator classes (for CLI generation)
-export { TypeGenerator } from './type-generator.js'
-export { ClientGenerator } from './client-generator.js'
+export { ClientGenerator } from './client-generator'
 
 // Schema parser types
 export type {
@@ -54,4 +51,4 @@ export type {
 } from 'kysely'
 
 // Convenience factory using shared config
-export { createRefractClientFromConfig } from './client-factory.js'
+export { createRefractClientFromConfig } from './client-factory'

@@ -1,6 +1,6 @@
 /**
  * Build-time field metadata analysis system
- * 
+ *
  * Maps Prisma schema types to transformation code generators and maintains
  * generation state for optimal code output.
  */
@@ -14,17 +14,14 @@ import type {
   TransformationOperation,
   FieldTransformationGenerator,
   FieldTransformContext,
-  GeneratedTransformation
+  GeneratedTransformation,
 } from './types.js'
 
 /**
  * Analyzes fields and generates transformation metadata
  */
 export class FieldAnalyzer {
-  constructor(
-    private generator: FieldTransformationGenerator,
-    private dialect: DatabaseDialect
-  ) {}
+  constructor(private generator: FieldTransformationGenerator, private dialect: DatabaseDialect) {}
 
   /**
    * Analyze a single field and generate transformation metadata
@@ -39,7 +36,7 @@ export class FieldAnalyzer {
         field,
         dialect: this.dialect,
         operation,
-        variableName: `data.${field.name}`
+        variableName: `data.${field.name}`,
       }
 
       try {
@@ -55,7 +52,7 @@ export class FieldAnalyzer {
       field,
       transformations,
       columnType: this.generator.getDatabaseColumnType(field),
-      specialHandling: this.detectSpecialHandling(field)
+      specialHandling: this.detectSpecialHandling(field),
     }
   }
 
@@ -79,7 +76,7 @@ export class FieldAnalyzer {
       tableName: this.getTableName(model),
       fields,
       dialect: this.dialect,
-      generatedAt: new Date()
+      generatedAt: new Date(),
     }
   }
 
@@ -129,7 +126,7 @@ export class FieldAnalyzer {
    * Get table name for model (respecting @@map)
    */
   private getTableName(model: ModelAST): string {
-    const mapAttribute = model.attributes.find(attr => attr.name === 'map')
+    const mapAttribute = model.attributes.find((attr) => attr.name === 'map')
     if (mapAttribute && mapAttribute.args[0]) {
       return String(mapAttribute.args[0].value)
     }
@@ -177,7 +174,7 @@ export class ModelTransformationRegistry {
   getFieldTransformation(
     modelName: string,
     fieldName: string,
-    operation: TransformationOperation
+    operation: TransformationOperation,
   ): GeneratedTransformation | undefined {
     const model = this.getModel(modelName)
     if (!model) return undefined
@@ -191,11 +188,7 @@ export class ModelTransformationRegistry {
   /**
    * Check if field has special handling requirements
    */
-  hasSpecialHandling(
-    modelName: string,
-    fieldName: string,
-    handling: SpecialFieldHandling
-  ): boolean {
+  hasSpecialHandling(modelName: string, fieldName: string, handling: SpecialFieldHandling): boolean {
     const model = this.getModel(modelName)
     if (!model) return false
 
@@ -216,10 +209,10 @@ export class ModelTransformationRegistry {
 
     for (const model of models) {
       totalFields += model.fields.size
-      
+
       for (const [, field] of model.fields) {
         totalTransformations += field.transformations.size
-        
+
         // Count missing transformations as errors
         const expectedOps = 4 // create, update, where, select
         if (field.transformations.size < expectedOps) {
@@ -233,7 +226,7 @@ export class ModelTransformationRegistry {
       fieldCount: totalFields,
       transformationCount: totalTransformations,
       errorCount,
-      dialect: models[0]?.dialect || 'unknown'
+      dialect: models[0]?.dialect || 'unknown',
     }
   }
 }

@@ -52,13 +52,12 @@ describe('ClientGenerator', () => {
   it('should generate client with SQLite transformations by default', () => {
     const generator = new ClientGenerator(mockSchema)
     const output = generator.generateClientModule()
-    
+
     expect(output).toContain('Database dialect: sqlite')
-    expect(output).toContain('Generated transformations with zero runtime overhead')
-    
+
     // Should contain SQLite boolean transformations (? 1 : 0)
     expect(output).toContain('? 1 : 0')
-    
+
     // Should contain DateTime transformations
     expect(output).toContain('toISOString()')
   })

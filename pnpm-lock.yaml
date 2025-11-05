@@ -363,6 +363,9 @@ importers:
       '@refract/schema-parser':
         specifier: workspace:*
         version: link:../schema-parser
+      dedent:
+        specifier: 1.7.0
+        version: 1.7.0
       kysely:
         specifier: ^0.27.4
         version: 0.27.6
@@ -370,12 +373,21 @@ importers:
       '@swc/core':
         specifier: 1.11.5
         version: 1.11.5
+      '@testcontainers/postgresql':
+        specifier: ^10.18.0
+        version: 10.28.0
       '@types/node':
         specifier: ^20.0.0
         version: 20.12.7
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.11.11
       '@vitest/ui':
         specifier: 3.2.4
         version: 3.2.4(vitest@3.2.4)
+      pg:
+        specifier: ^8.13.1
+        version: 8.14.1
       tsup:
         specifier: ^8.3.5
         version: 8.5.0(@microsoft/api-extractor@7.52.1(@types/node@20.12.7))(@swc/core@1.11.5)(jiti@2.5.1)(postcss@8.5.3)(tsx@4.19.3)(typescript@5.4.5)(yaml@2.7.0)
@@ -2734,6 +2746,14 @@ packages:
       babel-plugin-macros:
         optional: true
 
+  dedent@1.7.0:
+    resolution: {integrity: sha512-HGFtf8yhuhGhqO07SV79tRp+br4MnbdjeVxotpn1QBl30pcLLCQjX5b2295ll0fv8RKDKsmWYrl05usHM9CewQ==}
+    peerDependencies:
+      babel-plugin-macros: ^3.1.0
+    peerDependenciesMeta:
+      babel-plugin-macros:
+        optional: true
+
   deep-eql@4.1.4:
     resolution: {integrity: sha512-SUwdGfqdKOwxCPeVYjwSyRpJ7Z+fhpwIAtmCUdZIWZ/YP5R9WAsyuSgpLVDi9bjWoN2LXHNss/dk3urXtdQxGg==}
     engines: {node: '>=6'}
@@ -4460,6 +4480,7 @@ packages:
   source-map@0.8.0-beta.0:
     resolution: {integrity: sha512-2ymg6oRBpebeZi9UUNsgQ89bhx01TcTkmNTGnNO88imTmbSgy4nfujrgVEFKWpMTEGA11EDkTt7mqObTPdigIA==}
     engines: {node: '>= 8'}
+    deprecated: The work that was done in this beta branch won't be included in future versions
 
   spdx-exceptions@2.5.0:
     resolution: {integrity: sha512-PiU42r+xO4UbUS1buo3LPJkjlO7430Xn5SVAhdpzzsPHsjbYVflnnFdATgabnLude+Cqu25p6N+g2lw/PFsa4w==}
@@ -7391,6 +7412,8 @@ snapshots:
       mimic-response: 3.1.0
 
   dedent@1.5.1: {}
+
+  dedent@1.7.0: {}
 
   deep-eql@4.1.4:
     dependencies:

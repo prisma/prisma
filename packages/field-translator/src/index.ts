@@ -1,10 +1,10 @@
 /**
  * @refract/field-translator - Build-time database-specific field transformation code generators
- * 
+ *
  * This package provides build-time code generators that produce database-specific
  * transformation code with ZERO runtime overhead. All translators are build-time
  * only tools that generate inline transformation code.
- * 
+ *
  * Key Features:
  * - Zero runtime dependencies or overhead
  * - Database-specific type transformations (SQLite, PostgreSQL, MySQL)
@@ -24,21 +24,14 @@ export type {
   TransformationGeneratorRegistry,
   FieldAnalysisResult,
   ModelTransformationMetadata,
-  SpecialFieldHandling
+  SpecialFieldHandling,
 } from './types.js'
 
 // Error types
-export {
-  TransformationGenerationError,
-  UnsupportedFieldTypeError,
-  UnsupportedDialectError
-} from './types.js'
+export { TransformationGenerationError, UnsupportedFieldTypeError, UnsupportedDialectError } from './types.js'
 
 // Core registry implementation
-export {
-  DefaultTransformationGeneratorRegistry,
-  transformationRegistry
-} from './registry.js'
+export { DefaultTransformationGeneratorRegistry, transformationRegistry } from './registry.js'
 
 // Database-specific generators
 export {
@@ -48,24 +41,15 @@ export {
   postgresqlGenerator,
   MySQLTransformationGenerator,
   mysqlGenerator,
-  generators
+  generators,
 } from './generators/index.js'
 
 // Dialect detection utilities
-export {
-  DialectDetector,
-  detectDialect
-} from './dialect-detector.js'
-export type {
-  RefractConfig,
-  KyselyDialectInfo
-} from './dialect-detector.js'
+export { DialectDetector, detectDialect } from './dialect-detector.js'
+export type { RefractConfig, KyselyDialectInfo } from './dialect-detector.js'
 
 // Field analysis and metadata
-export {
-  FieldAnalyzer,
-  ModelTransformationRegistry
-} from './field-analyzer.js'
+export { FieldAnalyzer, ModelTransformationRegistry } from './field-analyzer.js'
 
 // Auto-register all built-in generators
 import { generators } from './generators/index.js'
@@ -74,7 +58,7 @@ import { FieldAnalyzer } from './field-analyzer.js'
 import type { DatabaseDialect } from './types.js'
 
 // Register all generators on import
-Object.values(generators).forEach(generator => {
+Object.values(generators).forEach((generator) => {
   transformationRegistry.register(generator)
 })
 
@@ -84,7 +68,7 @@ export function createFieldTranslator(dialect: DatabaseDialect) {
   if (!generator) {
     throw new Error(`No transformation generator found for dialect: ${dialect}`)
   }
-  
+
   return new FieldAnalyzer(generator, dialect)
 }
 

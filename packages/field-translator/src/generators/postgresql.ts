@@ -1,9 +1,9 @@
 /**
  * PostgreSQL Field Transformation Code Generator
- * 
+ *
  * Generates build-time transformation code for PostgreSQL-specific type mappings
  * including native boolean support, JSONB handling, UUID support, and array types.
- * 
+ *
  * All transformations produce inline code with zero runtime overhead.
  */
 
@@ -12,7 +12,7 @@ import type {
   FieldTransformationGenerator,
   FieldTransformContext,
   GeneratedTransformation,
-  TransformationOperation
+  TransformationOperation,
 } from '../types.js'
 import { UnsupportedFieldTypeError } from '../types.js'
 
@@ -29,24 +29,24 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
     switch (field.fieldType) {
       case 'Boolean':
         return this.generateBooleanTransformation(operation, variableName)
-      
+
       case 'DateTime':
         return this.generateDateTimeTransformation(operation, variableName, field)
-      
+
       case 'Json':
         return this.generateJsonTransformation(operation, variableName)
-      
+
       case 'Int':
       case 'BigInt':
         return this.generateIntegerTransformation(operation, variableName, field)
-      
+
       case 'Float':
       case 'Decimal':
         return this.generateNumericTransformation(operation, variableName, field)
-      
+
       case 'String':
         return this.generateStringTransformation(operation, variableName, field)
-      
+
       default:
         throw new UnsupportedFieldTypeError(field, this.dialect)
     }
@@ -59,9 +59,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
 
   getDatabaseColumnType(field: FieldAST): string {
     // Check for autoincrement on integer types
-    const hasAutoIncrement = field.attributes?.some((attr: any) =>
-      attr.name === 'default' &&
-      attr.args?.[0]?.value === 'autoincrement()'
+    const hasAutoIncrement = field.attributes?.some(
+      (attr: any) => attr.name === 'default' && attr.args?.[0]?.value === 'autoincrement()',
     )
 
     switch (field.fieldType) {
@@ -90,7 +89,7 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
 
   private generateBooleanTransformation(
     operation: TransformationOperation,
-    variableName: string
+    variableName: string,
   ): GeneratedTransformation {
     // PostgreSQL handles booleans natively - no transformation needed
     return {
@@ -100,15 +99,15 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateDateTimeTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
 
@@ -121,24 +120,16 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
     // For create/update/where operations
     const transformations = {
-      create: isOptional 
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`,
-      
-      update: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`,
-      
-      where: isOptional
-        ? `${variableName} ? (${variableName} instanceof Date ? ${variableName} : new Date(${variableName})) : null`
-        : `${variableName} instanceof Date ? ${variableName} : new Date(${variableName})`
+      create: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
+      update: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
+      where: isOptional ? `${variableName} ? new Date(${variableName}) : null` : `new Date(${variableName})`,
     }
 
     return {
@@ -148,14 +139,14 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       performance: {
         complexity: 'moderate',
         inlinable: true,
-        impact: 'low'
-      }
+        impact: 'low',
+      },
     }
   }
 
   private generateJsonTransformation(
     operation: TransformationOperation,
-    variableName: string
+    variableName: string,
   ): GeneratedTransformation {
     if (operation === 'select') {
       // PostgreSQL JSONB is automatically parsed by the driver
@@ -166,8 +157,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -179,15 +170,15 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateIntegerTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isBigInt = field.fieldType === 'BigInt'
     const isOptional = field.isOptional
@@ -202,8 +193,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       } else {
         return {
@@ -213,8 +204,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
           performance: {
             complexity: 'simple',
             inlinable: true,
-            impact: 'negligible'
-          }
+            impact: 'negligible',
+          },
         }
       }
     }
@@ -224,7 +215,7 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -232,14 +223,14 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     } else {
       const transformation = isOptional
         ? `${variableName} !== null ? Number(${variableName}) : null`
         : `Number(${variableName})`
-      
+
       return {
         code: transformation,
         imports: [],
@@ -247,8 +238,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
   }
@@ -256,10 +247,10 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
   private generateNumericTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
-    
+
     if (operation === 'select') {
       // PostgreSQL driver handles numeric conversion
       return {
@@ -269,8 +260,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -286,15 +277,15 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 
   private generateStringTransformation(
     operation: TransformationOperation,
     variableName: string,
-    field: FieldAST
+    field: FieldAST,
   ): GeneratedTransformation {
     const isOptional = field.isOptional
 
@@ -307,8 +298,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
         performance: {
           complexity: 'simple',
           inlinable: true,
-          impact: 'negligible'
-        }
+          impact: 'negligible',
+        },
       }
     }
 
@@ -324,8 +315,8 @@ export class PostgreSQLTransformationGenerator implements FieldTransformationGen
       performance: {
         complexity: 'simple',
         inlinable: true,
-        impact: 'negligible'
-      }
+        impact: 'negligible',
+      },
     }
   }
 }

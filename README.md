@@ -1,24 +1,30 @@
 # Refract ORM
 
-Refract is a TypeScript-native ORM that preserves the declarative Prisma schema language while replacing the Rust engine with a lean, transparent implementation built entirely in TypeScript. By composing around Kysely for query execution, Refract delivers the familiar Prisma-style client API with the flexibility of direct access to `$kysely` when needed.
+Refract is a TypeScript-native ORM, built on the Prisma schema language and Kysely query builder.
 
 ## Vision
 
-Refract delivers a TypeScript-native ORM that retains the beloved Prisma developer experience while removing the complexity and vendor lock-in that have accrued around the original project. By reimagining the engine in TypeScript and standing on top of Kysely, Refract gives teams a transparent, extensible toolkit that runs anywhere JavaScript runs and keeps the Prisma schema language front and center.
+Refract wants to be your ORM du jour. We want to get there by offering the following:
 
-## Why Refract Exists
+1. A way to define your database schema in a clear and concise way.
+2. A way to generate a full-typed, high-level client SDK so you can work with your data quickly and easily.
+3. A way to seamlessly migrate from one database schema to another.
 
-- **Simplicity over binaries**: Refract's pure TypeScript approach removes platform-specific hurdles, shrinking the operational footprint without sacrificing capability.
-- **Focus on core workflows**: Refract strips the experience back to the essentials: schema, client, and migrations.
-- **Faster iteration**: Owning the engine in TypeScript unlocks rapid experimentation, easier debugging, and contributions from a broader community of web developers already fluent in the language.
-- **Leverage Kysely**: Kysely already solves the tough problems of query building and connection management. Refract embraces it as the execution engine, exposing `$kysely` for power users while keeping the Prisma-style API for day-to-day work.
+How we get there is with the following tools:
+
+1. A superset of the Prisma schema language that also allows you to define constraints, views, procedures, and more.
+2. A generated client that combines a Prisma-style API with the ability to use Kysely queries directly.
+3. A migration engine that generates reasonable up and down migrations for a given schema change.
+4. The ability to do any or all of the above a la carte via development plugins, typescript functions, and a CLI.
 
 ## Strategic Pillars
 
-- **Compatibility first**: Keep `.prisma` schemas and the higher-level Prisma client API so current apps can migrate with minimal code churn.
-- **TypeScript-native architecture**: Every core subsystem—schema parsing, client generation, migrations, and CLI—lives in TypeScript, enabling deep IDE insight and end-to-end type safety.
-- **Delightful developer experience**: Integrate generation with modern tooling (Vite via `unplugin-refract`), emphasize instant feedback, and make the "blessed path" obvious.
-- **Transparent extensibility**: Prioritize readable source, composable packages, and hooks for community-driven directives (`@refract.validate`, etc.) as the project matures.
+While right now Refract is a dinky one-man show, we have a clear vision of a mature, community-managed project. Here are some of the tenets we want to stand by:
+
+- Whenever possible, a project using Prisma could switch to Refract with minimal code churn.
+- Refract is a typescript project, from top to bottom.
+- Refract should get out of your way and integrate with modern tooling and workflows.
+- Refract should consider and prioritize community-driven contributions.
 
 ## What You Get
 
@@ -68,7 +74,7 @@ pnpm --filter @refract/client-refract demo
 1. Edit or create your `schema.prisma`.
 2. Use `pnpm --filter @refract/schema-parser test` to exercise parsing changes.
 3. Run `pnpm --filter @refract/client-refract build` (or `pnpm watch`) to regenerate the client runtime.
-4. Use the CLI (`pnpm refract …`) for init/generate/migrate flows once Phase 0 tasks are complete.
+4. Use the CLI (`pnpm refract ...`) for init/generate/migrate flows once Phase 0 tasks are complete.
 5. Launch the demo project (Vite + unplugin) to validate type generation and CRUD operations.
 
 ## Contributing

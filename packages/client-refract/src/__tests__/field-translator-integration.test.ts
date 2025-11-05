@@ -82,7 +82,7 @@ describe('FieldTranslator Integration in Client Generator', () => {
     const mysqlResult = mysqlTranslator.analyzeField(mockBooleanField)
 
     expect(sqliteResult.columnType).toBe('INTEGER')
-    expect(postgresResult.columnType).toBe('BOOLEAN')
+    expect(postgresResult.columnType).toBe('boolean')
     expect(mysqlResult.columnType).toBe('TINYINT(1)')
   })
 

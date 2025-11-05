@@ -58,7 +58,7 @@ async function main() {
 
       const result = await migrate.apply(client.$kysely, schemaPath)
       if (!result.success) {
-        throw new Error(`Migration failed: ${result.errors.map(e => e.message).join(', ')}`)
+        throw new Error(`Migration failed: ${result.errors.map((e) => e.message).join(', ')}`)
       }
       console.log('✅ Migrations applied\n')
     } catch (migrationError) {
@@ -69,12 +69,21 @@ async function main() {
     // Step 5: Use the high-level Prisma-like API
     console.log('📊 Creating sample data with high-level API...\n')
 
+    await client.user.update({
+      where: {
+        id: 1,
+      },
+      data: {
+        name: 'Bob Smith',
+      },
+    })
+
     // Create a user using the generated client
     const user = await client.user.create({
       data: {
         email: 'alice@example.com',
         name: 'Alice',
-      }
+      },
     })
     console.log('✅ Created user:', user)
 
@@ -83,7 +92,7 @@ async function main() {
       data: {
         bio: 'Software engineer and TypeScript enthusiast',
         userId: user.id,
-      }
+      },
     })
     console.log('✅ Created profile:', profile)
 
@@ -94,7 +103,7 @@ async function main() {
         content: 'Refract is a TypeScript-native ORM built on Kysely...',
         published: true,
         authorId: user.id,
-      }
+      },
     })
     console.log('✅ Created post:', post1)
 
@@ -104,7 +113,7 @@ async function main() {
         content: 'Learn how to leverage Kysely for complex queries...',
         published: false,
         authorId: user.id,
-      }
+      },
     })
     console.log('✅ Created post:', post2)
     console.log()
@@ -114,7 +123,7 @@ async function main() {
     try {
       const userWithProfile = await client.user.findUnique({
         where: { id: user.id },
-        include: { profile: true }
+        include: { profile: true },
       })
       console.log('User with profile:', JSON.stringify(userWithProfile, null, 2))
     } catch (error) {
@@ -127,7 +136,7 @@ async function main() {
     console.log('🔍 Finding published posts...')
     const publishedPosts = await client.post.findMany({
       where: { published: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
     console.log('Published posts:', publishedPosts)
     console.log()
@@ -136,7 +145,7 @@ async function main() {
     console.log('📝 Updating post...')
     const updatedPost = await client.post.update({
       where: { id: post2.id },
-      data: { published: true }
+      data: { published: true },
     })
     console.log('✅ Updated post:', updatedPost)
     console.log()
@@ -147,7 +156,7 @@ async function main() {
       data: {
         email: 'bob@example.com',
         name: 'Bob',
-      }
+      },
     })
     console.log('✅ Created user:', bob)
 
@@ -155,7 +164,7 @@ async function main() {
       data: {
         bio: 'Database enthusiast',
         userId: bob.id,
-      }
+      },
     })
     console.log('✅ Created profile:', bobProfile)
     console.log()
@@ -166,7 +175,7 @@ async function main() {
       // Update user and create post atomically
       await trx.user.update({
         where: { id: bob.id },
-        data: { name: 'Bob Smith' }
+        data: { name: 'Bob Smith' },
       })
 
       await trx.post.create({
@@ -175,7 +184,7 @@ async function main() {
           content: 'Hello from Bob!',
           published: true,
           authorId: bob.id,
-        }
+        },
       })
     })
     console.log('✅ Transaction completed (user updated & post created atomically)\n')
@@ -195,7 +204,6 @@ async function main() {
     console.log('🧹 Cleaning up...')
     await client.$disconnect()
     console.log('✅ Client disconnected')
-
   } finally {
     await container.stop()
     console.log('✅ Container stopped')
