@@ -310,7 +310,7 @@ function normalize_bool(x: string) {
   return x === null ? null : x === 'f' ? 'false' : 'true'
 }
 
-function normalize_array(element_normalizer: (string) => string): (string) => string[] {
+function normalize_array(element_normalizer: (x: string) => string): (str: string) => string[] {
   return (str) => parseArray(str, element_normalizer)
 }
 
