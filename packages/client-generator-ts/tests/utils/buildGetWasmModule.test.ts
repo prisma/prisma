@@ -1,4 +1,3 @@
-import { capitalize } from '@prisma/client-common'
 import { describe, expect, it } from 'vitest'
 
 import { supportedInternalRuntimes } from '../../src/runtime-targets'
@@ -11,29 +10,28 @@ import { assertTypeScriptIsValid } from '../assert-typescript-is-valid'
 
 const ACTIVE_CONNECTOR_TYPE = 'postgresql' satisfies Options['activeProvider']
 const RUNTIME_BASE = '.' satisfies Options['runtimeBase']
-const component = 'compiler' as const
 
 type MakeTypeScriptFilesInput = {
   output: string
 }
 
 function makeTypeScriptFiles({ output }: MakeTypeScriptFilesInput) {
-  const CONFIG_BANNER = `let config = { ${component}Wasm: undefined } as
+  const CONFIG_BANNER = `let config = { compilerWasm: undefined } as
     {
-      ${component}Wasm?: {
+      compilerWasm?: {
         getRuntime: () => Promise<unknown>
-        getQuery${capitalize(component)}WasmModule: () => Promise<WebAssembly.Module>
+        getQueryCompilerWasmModule: () => Promise<WebAssembly.Module>
       }
     }
     `
 
   return {
     './buildGetWasmModule.ts': `${CONFIG_BANNER}${output}`,
-    [`./query_${component}_bg.postgresql.mjs`]: 'export const runtime = ``',
-    [`./query_${component}_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
-    [`./query_${component}_bg.js`]: 'export const runtime = ``',
-    [`./query_${component}_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
-    [`./query_${component}_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
+    [`./query_compiler_bg.postgresql.mjs`]: 'export const runtime = ``',
+    [`./query_compiler_bg.postgresql.js`]: 'module.exports = { runtime: `` }',
+    [`./query_compiler_bg.js`]: 'export const runtime = ``',
+    [`./query_compiler_bg.postgresql.wasm-base64.js`]: 'module.exports = { wasm: `` }\n',
+    [`./query_compiler_bg.postgresql.wasm-base64.mjs`]: 'export const wasm = ``\n',
   } as const
 }
 
@@ -41,7 +39,7 @@ function makeTypeScriptFiles({ output }: MakeTypeScriptFilesInput) {
  * Possible input values for `buildGetWasmModule`.
  */
 
-const runtimeNames = ['library', 'client', 'wasm-compiler-edge'] as const satisfies Array<Options['runtimeName']>
+const runtimeNames = ['client', 'wasm-compiler-edge'] as const satisfies Array<Options['runtimeName']>
 const targets = supportedInternalRuntimes
 const moduleFormats = ['cjs', 'esm'] as const satisfies Array<Options['moduleFormat']>
 
@@ -58,7 +56,7 @@ function makeTestCombinations() {
       }
 
       for (const moduleFormat of moduleFormats) {
-        const testName = `${component}-${runtimeName}-${target}-${moduleFormat}` as const
+        const testName = `compiler-${runtimeName}-${target}-${moduleFormat}` as const
         combinations.push({
           testName,
           runtimeName,
