@@ -21,7 +21,6 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
-import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { getPreviewFeatures } from './core/init/getPreviewFeatures'
 import { GlobalOmitOptions, serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
@@ -70,9 +69,6 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-export type Datasource = { url?: string }
-export type Datasources = { [name in string]: Datasource }
-
 export type PrismaClientOptions = {
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
@@ -82,11 +78,6 @@ export type PrismaClientOptions = {
    * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
    */
   accelerateUrl?: string
-
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
 
   /**
    * @default "colorless"
@@ -129,7 +120,6 @@ export type PrismaClientOptions = {
       cwd?: string
       binaryPath?: string
       endpoint?: string
-      allowTriggerPanic?: boolean
     }
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
@@ -290,13 +280,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             this._clientVersion,
           )
         }
-
-        if (optionsArg.datasources) {
-          throw new PrismaClientInitializationError(
-            `Custom datasource configuration is not compatible with Prisma Driver Adapters. Please define the database connection string directly in the Driver Adapter configuration.`,
-            this._clientVersion,
-          )
-        }
       }
 
       try {
@@ -337,7 +320,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          allowTriggerPanic: engineConfig.allowTriggerPanic,
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
@@ -358,7 +340,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDatasourceOverrides(options),
           inlineDatasources: config.inlineDatasources,
           tracingHelper: this._tracingHelper,
           transactionOptions: {

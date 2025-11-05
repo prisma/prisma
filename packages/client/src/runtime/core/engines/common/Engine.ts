@@ -3,7 +3,6 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
 
-import { Datasources } from '../../../getPrismaClient'
 import type { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { QueryEngineResultData } from './types/QueryEngine'
@@ -112,13 +111,8 @@ export interface EngineConfig {
   cwd: string
   dirname: string
   enableDebugLogs?: boolean
-  allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   generator?: GeneratorConfig
-  /**
-   * @remarks this field is used internally by Policy, do not rename or remove
-   */
-  overrideDatasources: Datasources
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
