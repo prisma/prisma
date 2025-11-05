@@ -113,7 +113,6 @@ export interface EngineConfig {
   enableDebugLogs?: boolean
   prismaPath?: string
   generator?: GeneratorConfig
-  showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
   clientVersion: string

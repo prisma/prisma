@@ -323,7 +323,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
-          showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:
             options.log &&
