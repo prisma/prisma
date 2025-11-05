@@ -1,7 +1,6 @@
 import { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator'
 
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
-import { EngineWasmLoadingConfig } from './QueryEngine'
 import { RuntimeDataModel } from './runtimeDataModel'
 
 /**
@@ -55,6 +54,5 @@ export type GetPrismaClientConfig = {
   /**
    * Optional wasm loading configuration
    */
-  engineWasm?: EngineWasmLoadingConfig
   compilerWasm?: CompilerWasmLoadingConfig
 }

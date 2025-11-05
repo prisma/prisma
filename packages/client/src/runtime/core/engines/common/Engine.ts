@@ -1,4 +1,4 @@
-import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import { CompilerWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
@@ -153,7 +153,6 @@ export interface EngineConfig {
   /**
    * Web Assembly module loading configuration
    */
-  engineWasm?: EngineWasmLoadingConfig
   compilerWasm?: CompilerWasmLoadingConfig
 }
 

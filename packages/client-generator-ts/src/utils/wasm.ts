@@ -12,7 +12,6 @@ import type { RuntimeTargetInternal } from '../runtime-targets'
 import type { RuntimeName } from '../TSClient/TSClient'
 
 export type BuildWasmModuleOptions = {
-  component: 'engine' | 'compiler'
   runtimeName: RuntimeName
   runtimeBase: string
   target: RuntimeTargetInternal
@@ -22,17 +21,12 @@ export type BuildWasmModuleOptions = {
 
 const debug = Debug('prisma:client-generator-ts:wasm')
 
-function usesEdgeWasmRuntime(component: 'engine' | 'compiler', runtimeName: RuntimeName) {
-  return runtimeName === 'wasm-compiler-edge' && component === 'compiler'
+function usesEdgeWasmRuntime(runtimeName: RuntimeName) {
+  return runtimeName === 'wasm-compiler-edge'
 }
 
-export function buildGetWasmModule({
-  component,
-  runtimeName,
-  runtimeBase,
-  activeProvider,
-  moduleFormat,
-}: BuildWasmModuleOptions) {
+export function buildGetWasmModule({ runtimeName, runtimeBase, activeProvider, moduleFormat }: BuildWasmModuleOptions) {
+  const component = 'compiler'
   const capitalizedComponent = capitalize(component)
 
   const extension = match(moduleFormat)
@@ -41,11 +35,10 @@ export function buildGetWasmModule({
     .exhaustive()
 
   const buildNonEdgeLoader = match(runtimeName)
-    .with('library', () => component === 'engine' && !!process.env.PRISMA_CLIENT_FORCE_WASM)
     .with('client', () => component === 'compiler')
     .otherwise(() => false)
 
-  const buildEdgeLoader = usesEdgeWasmRuntime(component, runtimeName)
+  const buildEdgeLoader = usesEdgeWasmRuntime(runtimeName)
 
   let wasmPathBase: string
   let wasmBindingsPath: string
@@ -137,22 +130,21 @@ export function buildWasmFileMap({ activeProvider, runtimeName }: BuildWasmFileM
   const fileMap: FileMap = {}
   debug('buildWasmFileMap with', { runtimeName })
 
-  for (const component of ['engine', 'compiler'] as const) {
-    if (!usesEdgeWasmRuntime(component, runtimeName)) {
-      debug('Skipping component', component, 'for runtime', runtimeName)
-      continue
-    }
+  const component = 'compiler'
+  if (!usesEdgeWasmRuntime(runtimeName)) {
+    debug('Skipping component', component, 'for runtime', runtimeName)
+    return fileMap
+  }
 
-    const fileNameBase = `query_${component}_bg.${activeProvider}` as const
+  const fileNameBase = `query_${component}_bg.${activeProvider}` as const
 
-    const files = {
-      [`query_${component}_bg.wasm`]: `${fileNameBase}.wasm`,
-      [`query_${component}_bg.js`]: `${fileNameBase}.mjs`,
-    }
+  const files = {
+    [`query_${component}_bg.wasm`]: `${fileNameBase}.wasm`,
+    [`query_${component}_bg.js`]: `${fileNameBase}.mjs`,
+  }
 
-    for (const [targetFile, sourceFile] of Object.entries(files)) {
-      fileMap[targetFile] = readSourceFile(sourceFile)
-    }
+  for (const [targetFile, sourceFile] of Object.entries(files)) {
+    fileMap[targetFile] = readSourceFile(sourceFile)
   }
 
   return fileMap

@@ -311,7 +311,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          engineWasm: config.engineWasm,
           compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
           previewFeatures: this._previewFeatures,
