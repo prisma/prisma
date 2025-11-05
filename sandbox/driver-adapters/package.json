@@ -12,7 +12,7 @@
     "neon:ws": "DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.ws.ts\"",
     "neon:http": "DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.http.ts\"",
     "prisma:pg": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
-    "ppg": "DATABASE_URL=\"${JS_PPG_DATABASE_URL}\" \"tsx src/ppg.http.ts\"",
+    "ppg": "DATABASE_URL=\"${JS_PPG_DATABASE_URL}\" \"tsx src/ppg.ts\"",
     "pg": "DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"tsx ./src/pg.ts\"",
     "prisma:planetscale": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:db:push:mysql && pnpm prisma:db:execute:mysql\"",
     "planetscale": "DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"tsx ./src/planetscale.ts\""
