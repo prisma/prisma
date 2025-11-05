@@ -348,7 +348,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             isolationLevel: options.transactionOptions?.isolationLevel,
           },
           logEmitter,
-          isBundled: config.isBundled,
           adapter,
           accelerateUrl: options.accelerateUrl,
         }

@@ -157,13 +157,6 @@ export interface EngineConfig {
   tracingHelper: TracingHelper
 
   /**
-   * Information about whether we have not found a schema.prisma file in the
-   * default location, and that we fell back to finding the schema.prisma file
-   * in the current working directory. This usually means it has been bundled.
-   */
-  isBundled?: boolean
-
-  /**
    * Web Assembly module loading configuration
    */
   engineWasm?: EngineWasmLoadingConfig
