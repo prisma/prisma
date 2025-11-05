@@ -14,7 +14,6 @@ import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
-import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { commonCodeJS, commonCodeTS } from './common'
@@ -117,7 +116,6 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
 ${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
-${buildInjectableEdgeEnv(edge, datasources)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

@@ -7,7 +7,6 @@ import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
-import { buildInjectableEdgeEnv } from '../../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasources } from '../../utils/buildInlineDatasources'
 import { buildGetWasmModule } from '../../utils/wasm'
 import { GenerateContext } from '../GenerateContext'
@@ -81,7 +80,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
 const config: runtime.GetPrismaClientConfig = ${JSON.stringify(config, null, 2)}
 ${buildRuntimeDataModel(context.dmmf.datamodel, runtimeName)}
 ${buildGetWasmModule({ runtimeBase, runtimeName, target, activeProvider, moduleFormat })}
-${buildInjectableEdgeEnv(edge, datasources)}
 ${buildDebugInitialization(edge)}
 `
 }
