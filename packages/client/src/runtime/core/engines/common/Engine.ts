@@ -111,7 +111,6 @@ export interface EngineConfig {
   cwd: string
   dirname: string
   enableDebugLogs?: boolean
-  prismaPath?: string
   generator?: GeneratorConfig
   logQueries?: boolean
   logLevel?: 'info' | 'warn'

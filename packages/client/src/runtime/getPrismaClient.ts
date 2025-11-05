@@ -320,7 +320,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
