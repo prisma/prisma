@@ -5,16 +5,7 @@ import { buildArgumentsRenderingTree, renderArgsTree } from '../core/errorRender
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = [
-  'datasources',
-  'errorFormat',
-  'adapter',
-  'accelerateUrl',
-  'log',
-  'transactionOptions',
-  'omit',
-  '__internal',
-]
+const knownProperties = ['errorFormat', 'adapter', 'accelerateUrl', 'log', 'transactionOptions', 'omit', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -34,48 +25,6 @@ export type ClientConfig = Pick<GetPrismaClientConfig, 'datasourceNames' | 'gene
 const validators: {
   [K in keyof PrismaClientOptions]-?: (option: PrismaClientOptions[K], config: ClientConfig) => void
 } = {
-  datasources: (options, { datasourceNames }) => {
-    if (!options) {
-      return
-    }
-    if (typeof options !== 'object' || Array.isArray(options)) {
-      throw new PrismaClientConstructorValidationError(
-        `Invalid value ${JSON.stringify(options)} for "datasources" provided to PrismaClient constructor`,
-      )
-    }
-
-    for (const [key, value] of Object.entries(options)) {
-      if (!datasourceNames.includes(key)) {
-        const didYouMean =
-          getDidYouMean(key, datasourceNames) || ` Available datasources: ${datasourceNames.join(', ')}`
-        throw new PrismaClientConstructorValidationError(
-          `Unknown datasource ${key} provided to PrismaClient constructor.${didYouMean}`,
-        )
-      }
-      if (typeof value !== 'object' || Array.isArray(value)) {
-        throw new PrismaClientConstructorValidationError(
-          `Invalid value ${JSON.stringify(options)} for datasource "${key}" provided to PrismaClient constructor.
-It should have this form: { url: "CONNECTION_STRING" }`,
-        )
-      }
-      if (value && typeof value === 'object') {
-        for (const [key1, value1] of Object.entries(value)) {
-          if (key1 !== 'url') {
-            throw new PrismaClientConstructorValidationError(
-              `Invalid value ${JSON.stringify(options)} for datasource "${key}" provided to PrismaClient constructor.
-It should have this form: { url: "CONNECTION_STRING" }`,
-            )
-          }
-          if (typeof value1 !== 'string') {
-            throw new PrismaClientConstructorValidationError(
-              `Invalid value ${JSON.stringify(value1)} for datasource "${key}" provided to PrismaClient constructor.
-It should have this form: { url: "CONNECTION_STRING" }`,
-            )
-          }
-        }
-      }
-    }
-  },
   adapter: () => {},
   accelerateUrl: (accelerateUrl) => {
     if (accelerateUrl === undefined) {
