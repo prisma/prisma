@@ -108,7 +108,6 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 }
 
 export interface EngineConfig {
-  cwd: string
   dirname: string
   enableDebugLogs?: boolean
   generator?: GeneratorConfig

@@ -6,8 +6,6 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { ExtendedSpanOptions, logger, TracingHelper } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
-import fs from 'fs'
-import path from 'path'
 
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
@@ -286,16 +284,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           Debug.enable('prisma:client')
         }
 
-        let cwd = path.resolve(config.dirname, config.relativePath)
-
-        // TODO this logic should not be needed anymore #findSync
-        if (!fs.existsSync(cwd)) {
-          cwd = config.dirname
-        }
-
         debug('dirname', config.dirname)
         debug('relativePath', config.relativePath)
-        debug('cwd', cwd)
 
         if (options.errorFormat) {
           this._errorFormat = options.errorFormat
@@ -310,7 +300,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._runtimeDataModel = config.runtimeDataModel
 
         this._engineConfig = {
-          cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           generator: config.generator,
