@@ -55,7 +55,7 @@ const localD1DatabasePath = path.join('.wrangler', 'state', 'v3', 'd1', 'minifla
  * export default defineConfig({
  *   engine: 'classic',
  *   datasource: {
- *     url: `file://${listLocalDatabases().pop()}`,
+ *     url: `file:${listLocalDatabases().pop()}`,
  *   },
  * })
  * ```
