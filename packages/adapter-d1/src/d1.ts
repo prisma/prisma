@@ -64,5 +64,5 @@ export function listLocalDatabases(): string[] {
   const cwd = process.cwd()
   const d1DirPath = path.join(cwd, localD1DatabasePath)
   const files = fs.readdirSync(d1DirPath)
-  return files.filter((file) => file.endsWith('.sqlite')).map((file) => path.join(localD1DatabasePath, file))
+  return files.filter((file) => file.endsWith('.sqlite')).map((file) => path.join(d1DirPath, file))
 }
