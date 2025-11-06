@@ -60,7 +60,6 @@ const SchemaEngineConfigClassicShape = Shape.Struct({
   engine: Shape.Literal('classic'),
   datasource: Shape.Struct({
     url: Shape.String,
-    directUrl: Shape.optional(Shape.String),
     shadowDatabaseUrl: Shape.optional(Shape.String),
   }),
 })
@@ -104,7 +103,6 @@ type SchemaEngineConfigJsInternal = {
 
 export type SchemaEngineConfigClassicDatasource = {
   url: string
-  directUrl?: string
   shadowDatabaseUrl?: string
 }
 
