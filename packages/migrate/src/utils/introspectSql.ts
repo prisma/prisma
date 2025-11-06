@@ -55,12 +55,14 @@ export async function introspectSql(
   }
 
   const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })
+  // workaround against @typescript-eslint/no-non-null-asserted-optional-chain
+  const url = schemaContext.primaryDatasource?.url.value || '<introspect-sql-no-url>'
   const schemaEngine = migrate.engine
   const results: SqlQueryOutput[] = []
   const errors: IntrospectSqlError[] = []
   try {
     for (const query of queries) {
-      const queryResult = await introspectSingleQuery(schemaEngine, config.datasource.url, query)
+      const queryResult = await introspectSingleQuery(schemaEngine, url, query)
       if (queryResult.ok) {
         results.push(queryResult.result)
       } else {

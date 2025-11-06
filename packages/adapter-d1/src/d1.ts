@@ -53,7 +53,6 @@ const localD1DatabasePath = path.join('.wrangler', 'state', 'v3', 'd1', 'minifla
  * import { listLocalDatabases } from '@prisma/adapter-d1'
  *
  * export default defineConfig({
- *   engine: 'classic',
  *   datasource: {
  *     url: `file:${listLocalDatabases().pop()}`,
  *   },

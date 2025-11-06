@@ -55,7 +55,7 @@ export type Datasource = {
 }
 
 export type SchemaEngineConfigInternal = {
-  datasource: Datasource
+  datasource?: Datasource
 }
 
 const ExperimentalConfigShape = Shape.Struct({
@@ -227,7 +227,8 @@ if (false) {
 
 // Define the shape for the user-facing `PrismaConfig` type.
 const PrismaConfigShape = Shape.Struct({
-  datasource: DatasourceShape,
+  // @aqrln: datasource should be mandatory once we close https://linear.app/prisma-company/issue/TML-1545/remove-url-datasource-attribute-from-psl
+  datasource: Shape.optional(DatasourceShape),
   experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
@@ -247,7 +248,7 @@ export type PrismaConfig = {
   /**
    * The datasource URL configuration for the database connection.
    */
-  datasource: Simplify<Datasource>
+  datasource?: Simplify<Datasource>
   /**
    * Experimental feature gates. Each experimental feature must be explicitly enabled.
    */

@@ -114,6 +114,7 @@ export async function loadConfigFromFile({
     if (resolvedPath === null) {
       debug(`No config file found in the current working directory %s`, configRoot)
 
+      // Note: @aqrln should update this to throw an error once we close https://linear.app/prisma-company/issue/TML-1545/remove-url-datasource-attribute-from-psl
       return { resolvedPath: null, config: defaultConfig(), diagnostics }
     }
 

@@ -113,10 +113,8 @@ export async function processSchemaResult({
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 
   // Note: once @aqrln gets rid of `url` in `datasource`, he'll have to reconcile this code here.
-  const primaryDatasource = match(schemaEngineConfig)
-    .with(P.not(P.nullish), ({ datasource }) => {
-      const { url, directUrl, shadowDatabaseUrl } = datasource
-
+  const primaryDatasource = match(schemaEngineConfig?.datasource)
+    .with(P.not(P.nullish), ({ url, directUrl, shadowDatabaseUrl }) => {
       const primaryDatasource = {
         ...datasourceFromPsl,
         url: { fromEnvVar: null, value: url },

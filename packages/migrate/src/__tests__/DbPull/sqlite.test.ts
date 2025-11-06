@@ -164,7 +164,7 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
     `)
   })
 
-  describeMatrix(noDriverAdapters, 'using classic engine', () => {
+  describeMatrix(noDriverAdapters, 'using datasource', () => {
     test('basic introspection with config', async () => {
       ctx.fixture('introspection/sqlite')
       ctx.setDatasource({
@@ -237,10 +237,10 @@ describeMatrix(sqliteOnly, 'common/sqlite', () => {
            | 
 
 
-        Introspection failed as your current Prisma schema file is invalid
+          Introspection failed as your current Prisma schema file is invalid
 
-        Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-        Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+          Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+          Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
         "
       `)
 

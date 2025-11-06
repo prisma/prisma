@@ -131,7 +131,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
     // Note: I don't think this condition is ever true.
     if (!config.datasource?.url) {
       throw new Error(
-        `A datasource URL must be provided via prisma.config.ts.
+        `A datasource URL must be provided via the Prisma Config file.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     }

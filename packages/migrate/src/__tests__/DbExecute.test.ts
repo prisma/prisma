@@ -57,10 +57,13 @@ describe('db execute', () => {
       fs.writeFileSync('script.sql', '-- noop')
 
       const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        "A datasource URL must be provided via prisma.config.ts.
-        See \`prisma db execute -h\`"
-      `)
+
+      // Note: @aqrln should update this once we close https://linear.app/prisma-company/issue/TML-1545/remove-url-datasource-attribute-from-psl
+      await expect(result).rejects.toThrow('The provided database string is invalid.')
+      // await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      //   "A datasource URL must be provided via the Prisma Config file.
+      //   See \`prisma db execute -h\`"
+      // `)
     })
 
     it('should fail if --file does no exists', async () => {

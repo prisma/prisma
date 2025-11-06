@@ -25,6 +25,7 @@ export interface GeneratorConfig {
   sourceFilePath: string
 }
 
+// @aqrln: this data structure should no longer exist.
 export interface EnvValue {
   fromEnvVar: null | string
   value: null | string
