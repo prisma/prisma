@@ -27,20 +27,20 @@ on:
       targetVersion:
         description: 'Version to publish on latest tag (e.g. 5.0.0)'
         type: string
-        required: true
       skipEcosystemTestsChecks:
         description: 'Skip ecosystem tests checks'
         type: boolean
       skipPackages:
         description: 'Skip publishing some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
-        required: false
       onlyPackages:
         description: 'Only publish some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
-        required: false
       dryRun:
         description: 'Check to do a dry run (does not publish packages)'
+        type: boolean
+      forceIntegrationRelease:
+        description: 'Check to force an integration release for any given branch name'
         type: boolean
 
 env:
@@ -52,6 +52,7 @@ env:
   SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
   ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
   DRY_RUN: ${{ github.event.inputs.dryRun || '' }}
+  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || '' }}
   INCLUDE_FAILURE_NOTIFICATIONS: ${{ github.event.inputs.targetVersion && 'true' || '' }}
   FAILURE_TITLE_TEMPLATE: >-
     ${{
@@ -66,7 +67,7 @@ jobs:
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.event.inputs.targetVersion && 'release-dispatch' || 'release-push' }}
+      group: ${{ github.event.inputs.targetVersion && 'release-version' || 'release-push' }}
       cancel-in-progress: false
 
     permissions:
