@@ -9,7 +9,7 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
-describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'd1 local', () => {
+describeMatrix({ providers: { d1: true } }, 'd1 local', () => {
   async function runWranglerCLI(ctx: BaseContext, ...args: string[]) {
     return await execa('pnpm', ['wrangler', '--config', path.join(ctx.tmpDir, 'wrangler.toml'), ...args], {
       cwd: __dirname,

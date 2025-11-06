@@ -624,7 +624,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    name: Migrate ${{ matrix.driverAdapter }} [v${{ matrix.node }}]
+    name: Migrate [v${{ matrix.node }}]
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     if: |
@@ -635,8 +635,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         node: ['20.19.0', '22.12.0', '24']
-        # driverAdapter: ['', 'libsql'] # TODO: once we have all tests pass with driver adapters actually enable them on CI and add further adapters
-        driverAdapter: ['']
     steps:
       - uses: actions/checkout@v4
 
@@ -657,8 +655,6 @@ jobs:
 
       - run: pnpm run test
         working-directory: packages/migrate
-        env:
-          PRISMA_MIGRATE_TEST_ADAPTER: ${{ matrix.driverAdapter }}
 
   #
   # CLI-COMMANDS

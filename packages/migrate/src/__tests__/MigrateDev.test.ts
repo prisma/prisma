@@ -14,7 +14,6 @@ import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { runQueryPostgres, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import {
-  allDriverAdapters,
   cockroachdbOnly,
   describeMatrix,
   postgresOnly,
@@ -1370,7 +1369,7 @@ describeMatrix(cockroachdbOnly, 'cockroachdb', () => {
   })
 })
 
-describeMatrix({ providers: { mysql: true }, driverAdapters: allDriverAdapters }, 'mysql', () => {
+describeMatrix({ providers: { mysql: true } }, 'mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
