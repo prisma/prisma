@@ -123,9 +123,8 @@ export function buildWasmFileMap({ activeProvider, runtimeName }: BuildWasmFileM
   const fileMap: FileMap = {}
   debug('buildWasmFileMap with', { runtimeName })
 
-  const component = 'compiler'
   if (!usesEdgeWasmRuntime(runtimeName)) {
-    debug('Skipping component', component, 'for runtime', runtimeName)
+    debug('Skipping component compiler for runtime', runtimeName)
     return fileMap
   }
 
