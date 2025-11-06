@@ -131,7 +131,7 @@ jobs:
         id: tag-prisma-engines
         if: >-
           steps.publish.outputs.prismaVersion != '' &&
-          !(inputs.skip-tagging-on-dry-run && inputs.dry-run)
+          !inputs.dry-run
         with:
           token: ${{ secrets.BOT_TOKEN }}
           repository: prisma/prisma-engines
