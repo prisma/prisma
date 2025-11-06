@@ -13,7 +13,7 @@ describe('diagnostics related to prisma.config.ts should not influence structure
 
   test('prisma migrate diff --script', async () => {
     const { stdout, stderr, exitCode } =
-      await $`pnpm prisma migrate diff --from-empty --to-schema-datamodel ./prisma/schema.prisma --script`
+      await $`pnpm prisma migrate diff --from-empty --to-schema ./prisma/schema.prisma --script`
     expect(exitCode).toBe(0)
     expect(stdout).toMatchInlineSnapshot(`
       "-- CreateTable

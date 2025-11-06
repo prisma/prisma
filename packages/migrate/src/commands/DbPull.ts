@@ -12,18 +12,14 @@ import {
   inferDirectoryConfig,
   link,
   loadSchemaContext,
-  locateLocalCloudflareD1,
-  type MultipleSchemas,
+  MigrateTypes,
   printSchemaLoadedMessage,
   protocolToConnectorType,
   relativizePathInPSLError,
-  SchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
-import { MigrateTypes } from '@prisma/internals'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
-import { match } from 'ts-pattern'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
@@ -86,6 +82,13 @@ Set composite types introspection depth to 2 levels
 
 `)
 
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
+    }
+    return DbPull.help
+  }
+
   private urlToDatasource(url: string, defaultProvider?: ConnectorType): string {
     const provider = defaultProvider || protocolToConnectorType(`${url.split(':')[0]}:`)
     return printDatasources([
@@ -108,7 +111,6 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
-      '--local-d1': Boolean, // optional, only on cloudflare D1
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -143,87 +145,39 @@ Set composite types introspection depth to 2 levels
       printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource) })
     }
 
-    const fromD1 = Boolean(args['--local-d1'])
-
-    if (!schemaContext && !fromD1) {
+    if (!schemaContext) {
       throw new NoSchemaFoundError()
     }
 
-    const { firstDatasource, schema, validationWarning } = await match({ schemaContext, fromD1 })
-      .when(
-        (input): input is { schemaContext: SchemaContext; fromD1: boolean } => input.schemaContext !== null,
-        async (input) => {
-          const firstDatasource = input.schemaContext.primaryDatasource
-            ? input.schemaContext.primaryDatasource
-            : undefined
+    const firstDatasource = schemaContext.primaryDatasource
+    const schema = schemaContext.schemaFiles
 
-          if (input.fromD1) {
-            const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-            const pathToSQLiteFile = path.relative(input.schemaContext.schemaRootDir, d1Database)
+    await getConfig({
+      datamodel: schema,
+    })
 
-            const schema: MultipleSchemas = [
-              ['schema.prisma', this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')],
-            ]
-            const config = await getConfig({
-              datamodel: schema,
-            })
+    // Re-Introspection is not supported on MongoDB
+    const modelRegex = /\s*model\s*(\w+)\s*{/
+    const isReintrospection = schema.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
-            return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-          } else {
-            await getConfig({
-              datamodel: input.schemaContext.schemaFiles,
-            })
-          }
-
-          return { firstDatasource, schema: input.schemaContext.schemaFiles, validationWarning: undefined } as const
-        },
-      )
-      .when(
-        (input): input is { schemaContext: null; fromD1: true } => input.fromD1 === true,
-        async (_) => {
-          const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-          const pathToSQLiteFile = path.relative(process.cwd(), d1Database)
-
-          // TODO: `urlToDatasource(..)` doesn't generate a `generator client` block. Should it?
-          // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
-          const schemaContent = `generator client {
-  provider        = "prisma-client-js"
-}
-${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
-          const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
-          const config = await getConfig({
-            datamodel: schema,
-          })
-
-          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-        },
-      )
-      .run()
-
-    if (schemaContext) {
-      // Re-Introspection is not supported on MongoDB
-      const modelRegex = /\s*model\s*(\w+)\s*{/
-      const isReintrospection = schemaContext.schemaFiles.some(([_, schema]) => !!modelRegex.exec(schema as string))
-
-      if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-You can explicitly ignore and override your current local schema file with ${green(
-          getCommandWithExecutor('prisma db pull --force'),
-        )}
-Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-          'https://github.com/prisma/prisma/issues/9585',
-        )} for more info.`)
-      }
+    if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
+      throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+  You can explicitly ignore and override your current local schema file with ${green(
+    getCommandWithExecutor('prisma db pull --force'),
+  )}
+  Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+    'https://github.com/prisma/prisma/issues/9585',
+  )} for more info.`)
     }
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
-      schemaContext: schemaContext ?? undefined,
+      schemaContext,
       extensions: config['extensions'],
     })
 
     const engine = migrate.engine
-    const basedOn = schemaContext?.primaryDatasource
+    const basedOn = firstDatasource
       ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
       : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
@@ -257,40 +211,40 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         /* P4001: The introspected database was empty */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
-          'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
-        )} command.
+  ${bold('prisma db pull')} could not create any models in your ${bold(
+    'schema.prisma',
+  )} file and you will not be able to generate Prisma Client with the ${bold(
+    getCommandWithExecutor('prisma generate'),
+  )} command.
 
-${bold('To fix this, you have two options:')}
+  ${bold('To fix this, you have two options:')}
 
-- manually create a table in your database.
-- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
-          'schema.prisma',
-        )} points to a database that is not empty (it must contain at least one table).
+  - manually create a table in your database.
+  - make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
+    'schema.prisma',
+  )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
-`)
+  Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+  `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
         throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')}
 
-${bold('prisma db pull')} could not create any models in your ${bold(
-          'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${bold(
-          getCommandWithExecutor('prisma generate'),
-        )} command.
+  ${bold('prisma db pull')} could not create any models in your ${bold(
+    'schema.prisma',
+  )} file and you will not be able to generate Prisma Client with the ${bold(
+    getCommandWithExecutor('prisma generate'),
+  )} command.
 
-${bold('To fix this, you have two options:')}
+  ${bold('To fix this, you have two options:')}
 
-- manually create a database.
-- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
-          'schema.prisma',
-        )} points to an existing database.
+  - manually create a database.
+  - make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
+    'schema.prisma',
+  )} points to an existing database.
 
-Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
-`)
+  Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
+  `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
         process.stdout.write('\n') // empty line
@@ -298,14 +252,14 @@ Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again.
         const message = relativizePathInPSLError(e.message)
 
         throw new Error(`${red(message)}
-Introspection failed as your current Prisma schema file is invalid
+  Introspection failed as your current Prisma schema file is invalid
 
-Please fix your current schema manually (using either ${green(
-          getCommandWithExecutor('prisma validate'),
-        )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-Or run this command with the ${green(
-          '--force',
-        )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
+  Please fix your current schema manually (using either ${green(
+    getCommandWithExecutor('prisma validate'),
+  )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+  Or run this command with the ${green(
+    '--force',
+  )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
       process.stdout.write('\n') // empty line
@@ -342,14 +296,12 @@ Or run this command with the ${green(
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
-      const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
-
       const introspectedSchemaPath = schemaContext?.loadedFromPathForLogMessages || introspectionSchema.files[0].path
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}${renderValidationWarning}`)
+  ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
 
     return ''
@@ -361,12 +313,5 @@ ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Cl
     }
 
     return ''
-  }
-
-  public help(error?: string): string | HelpError {
-    if (error) {
-      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
-    }
-    return DbPull.help
   }
 }
