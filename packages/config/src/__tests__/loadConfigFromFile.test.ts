@@ -46,7 +46,6 @@ describe('loadConfigFromFile', () => {
     engine: 'classic'
     datasource: {
       url: string
-      directUrl?: string
       shadowDatabaseUrl?: string
     }
   } {
@@ -110,7 +109,6 @@ describe('loadConfigFromFile', () => {
         assertConfigWithEngineClassic(config)
         expect(config.datasource).toMatchObject({
           url: 'postgresql://DATABASE_URL',
-          directUrl: 'https://DIRECT_DATABASE_URL',
           shadowDatabaseUrl: 'postgresql://SHADOW_DATABASE_URL',
         })
       })
