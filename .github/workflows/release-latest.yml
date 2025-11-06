@@ -33,7 +33,6 @@ jobs:
       skip-packages: ${{ github.event.inputs.skipPackages }}
       only-packages: ${{ github.event.inputs.onlyPackages }}
       dry-run: ${{ github.event.inputs.dryRun == 'true' }}
-      skip-tagging-on-dry-run: true
       include-failure-notifications: true
       failure-title-template: 'prisma/prisma Release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag failed :x:'
     secrets: inherit
