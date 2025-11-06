@@ -6,8 +6,6 @@ import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import { ExtendedSpanOptions, logger, TracingHelper } from '@prisma/internals'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
-import fs from 'fs'
-import path from 'path'
 
 import { PrismaClientInitializationError, PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
@@ -116,11 +114,6 @@ export type PrismaClientOptions = {
    */
   __internal?: {
     debug?: boolean
-    engine?: {
-      cwd?: string
-      binaryPath?: string
-      endpoint?: string
-    }
     /** This can be used for testing purposes */
     configOverride?: (config: GetPrismaClientConfig) => GetPrismaClientConfig
   }
@@ -291,18 +284,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           Debug.enable('prisma:client')
         }
 
-        let cwd = path.resolve(config.dirname, config.relativePath)
-
-        // TODO this logic should not be needed anymore #findSync
-        if (!fs.existsSync(cwd)) {
-          cwd = config.dirname
-        }
-
         debug('dirname', config.dirname)
         debug('relativePath', config.relativePath)
-        debug('cwd', cwd)
-
-        const engineConfig = internal.engine || {}
 
         if (options.errorFormat) {
           this._errorFormat = options.errorFormat
@@ -317,13 +300,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._runtimeDataModel = config.runtimeDataModel
 
         this._engineConfig = {
-          cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          prismaPath: engineConfig.binaryPath ?? undefined,
-          engineEndpoint: engineConfig.endpoint,
           generator: config.generator,
-          showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:
             options.log &&
@@ -332,11 +311,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          flags: [],
-          engineWasm: config.engineWasm,
           compilerWasm: config.compilerWasm,
           clientVersion: config.clientVersion,
-          engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
@@ -348,7 +324,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             isolationLevel: options.transactionOptions?.isolationLevel,
           },
           logEmitter,
-          isBundled: config.isBundled,
           adapter,
           accelerateUrl: options.accelerateUrl,
         }
