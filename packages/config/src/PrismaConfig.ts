@@ -7,6 +7,9 @@ import type { Simplify } from './utils'
 
 const debug = Debug('prisma:config:PrismaConfig')
 
+/**
+ * @deprecated This is still "used" by `studio`, but it will change signature before Prisma 7.
+ */
 const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
   (input: any): input is () => Promise<SqlMigrationAwareDriverAdapterFactory> => {
     return typeof input === 'function'
@@ -19,10 +22,6 @@ const SqlMigrationAwareDriverAdapterFactoryShape = Shape.declare(
 )
 
 export type ExperimentalConfig = {
-  /**
-   * Enable experimental adapter support.
-   */
-  adapter?: boolean
   /**
    * Enable experimental Prisma Studio features.
    */
@@ -37,33 +36,29 @@ export type ExperimentalConfig = {
   extensions?: boolean
 }
 
-const SchemaEngineConfigShape = Shape.Struct({
-  datasource: Shape.Struct({
-    url: Shape.String,
-    directUrl: Shape.optional(Shape.String),
-    shadowDatabaseUrl: Shape.optional(Shape.String),
-  }),
+const DatasourceShape = Shape.Struct({
+  url: Shape.String,
+  /**
+   * @deprecated
+   */
+  directUrl: Shape.optional(Shape.String),
+  shadowDatabaseUrl: Shape.optional(Shape.String),
 })
 
-export type SchemaEngineConfigClassicDatasource = {
+export type Datasource = {
   url: string
+  /**
+   * @deprecated
+   */
   directUrl?: string
   shadowDatabaseUrl?: string
 }
 
-type SchemaEngineConfig = {
-  /**
-   * The database connection configuration, which overwrites the `datasource` block's `url`-like attributes in the Prisma schema file.
-   */
-  datasource: SchemaEngineConfigClassicDatasource
+export type SchemaEngineConfigInternal = {
+  datasource: Datasource
 }
 
-export type SchemaEngineConfigInternal = SchemaEngineConfig
-
-const SchemaEngineConfigInternal = SchemaEngineConfigShape
-
 const ExperimentalConfigShape = Shape.Struct({
-  adapter: Shape.optional(Shape.Boolean),
   studio: Shape.optional(Shape.Boolean),
   externalTables: Shape.optional(Shape.Boolean),
   extensions: Shape.optional(Shape.Boolean),
@@ -230,7 +225,9 @@ if (false) {
   __testPrismaConfigInternal satisfies typeof __testPrismaConfig
 }
 
-const PrismaConfigUnconditionalShape = Shape.Struct({
+// Define the shape for the user-facing `PrismaConfig` type.
+const PrismaConfigShape = Shape.Struct({
+  datasource: DatasourceShape,
   experimental: Shape.optional(ExperimentalConfigShape),
   schema: Shape.optional(Shape.String),
   studio: Shape.optional(PrismaStudioConfigShape),
@@ -242,10 +239,15 @@ const PrismaConfigUnconditionalShape = Shape.Struct({
   extensions: Shape.optional(Shape.Any),
 })
 
-// Define the shape for the user-facing `PrismaConfig` type.
-const PrismaConfigShape = Shape.extend(SchemaEngineConfigShape, PrismaConfigUnconditionalShape)
-
-type PrismaConfigUnconditional = {
+/**
+ * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
+ * Thanks to the branding, this type is opaque and cannot be constructed directly.
+ */
+export type PrismaConfig = {
+  /**
+   * The datasource URL configuration for the database connection.
+   */
+  datasource: Simplify<Datasource>
   /**
    * Experimental feature gates. Each experimental feature must be explicitly enabled.
    */
@@ -280,18 +282,12 @@ type PrismaConfigUnconditional = {
   typedSql?: Simplify<TypedSqlConfigShape>
 }
 
-/**
- * The configuration for the Prisma Development Kit, before it is passed to the `defineConfig` function.
- * Thanks to the branding, this type is opaque and cannot be constructed directly.
- */
-export type PrismaConfig = PrismaConfigUnconditional & SchemaEngineConfig
-
-declare const __testPrismaConfigValueA: (typeof PrismaConfigUnconditionalShape)['Type']
-declare const __testPrismaConfigValueB: PrismaConfigUnconditional
+declare const __testPrismaConfigValueA: (typeof PrismaConfigShape)['Type']
+declare const __testPrismaConfigValueB: PrismaConfig
 // eslint-disable-next-line no-constant-condition
 if (false) {
-  __testPrismaConfigValueA satisfies PrismaConfigUnconditional
-  __testPrismaConfigValueB satisfies (typeof PrismaConfigUnconditionalShape)['Type']
+  __testPrismaConfigValueA satisfies PrismaConfig
+  __testPrismaConfigValueB satisfies (typeof PrismaConfigShape)['Type']
 }
 
 /**
@@ -354,23 +350,13 @@ const PRISMA_CONFIG_INTERNAL_BRAND = Symbol.for('PrismaConfigInternal')
 
 // Define the shape for the `PrismaConfigInternal` type.
 // We don't want people to construct this type directly (structurally), so we turn it opaque via a branded type.
-const PrismaConfigInternalShape = Shape.extend(
-  PrismaConfigUnconditionalShape,
-  Shape.extend(
-    SchemaEngineConfigInternal,
-    Shape.Struct({
-      loadedFromFile: Shape.NullOr(Shape.String),
-    }),
-  ),
-)
+const PrismaConfigInternalShape = Shape.Struct({
+  ...PrismaConfigShape.fields,
+  loadedFromFile: Shape.NullOr(Shape.String),
+})
 
-type _PrismaConfigInternal = Omit<PrismaConfig, 'datasource' | 'adapter'> & {
+type _PrismaConfigInternal = PrismaConfig & {
   loadedFromFile: string | null
-} & {
-  datasource: {
-    url: string
-    shadowDatabaseUrl?: string
-  }
 }
 
 /**
@@ -420,7 +406,7 @@ function parsePrismaConfigInternalShape(input: unknown): Either.Either<PrismaCon
 }
 
 export function makePrismaConfigInternal(makeArgs: _PrismaConfigInternal): PrismaConfigInternal {
-  return brandPrismaConfigInternal(makeArgs)
+  return pipe(PrismaConfigInternalShape.make(makeArgs), brandPrismaConfigInternal)
 }
 
 export function parseDefaultExport(defaultExport: unknown) {

@@ -5,6 +5,9 @@ import { defineConfig } from 'src/index'
 const cwd = process.cwd()
 
 export default defineConfig({
+  datasource: {
+    url: 'postgresql://DATABASE_URL',
+  },
   schema: path.join(cwd, 'custom', 'schema.prisma'),
   views: {
     path: path.join(cwd, 'custom', 'views'),

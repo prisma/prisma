@@ -1,4 +1,8 @@
-import { defineConfig } from 'src/index'
+import { defineConfig, env } from 'src/index'
 import 'dotenv/config' // automatically loads the closest .env file into `process.env`
 
-export default defineConfig({})
+export default defineConfig({
+  datasource: {
+    url: env('TEST_CONNECTION_STRING'),
+  },
+})

@@ -1,1 +1,5 @@
-{}
+{
+  "datasource": {
+    "url": "postgresql://DATABASE_URL"
+  }
+}

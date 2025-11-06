@@ -5,6 +5,9 @@ export default {
   experimental: {
     studio: true,
   },
+  datasource: {
+    url: 'postgresql://DATABASE_URL',
+  },
   schema: 'schema.prisma',
   studio: {
     adapter: async () => {

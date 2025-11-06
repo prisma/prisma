@@ -21,4 +21,8 @@ for (const line of env.split('\n')) {
   process.env[key] = value
 }
 
-export default defineConfig({})
+export default defineConfig({
+  datasource: {
+    url: 'postgresql://DATABASE_URL',
+  },
+})

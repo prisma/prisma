@@ -1,5 +1,4 @@
 export default {
-  engine: 'classic',
   datasource: {
     url: 'postgresql://DATABASE_URL',
     directUrl: 'https://DIRECT_DATABASE_URL',
