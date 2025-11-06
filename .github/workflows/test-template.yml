@@ -151,7 +151,6 @@ jobs:
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
-  # Note: `prisma-client-js` sometimes emits different snapshots than `prisma-client-ts`, causing Jest to fail on diffs.
   # This test suite is disabled until the problem is fixed.
   client-generator-prisma-client-js:
     name: Client Generator Prisma Client JS [v${{ matrix.node }}] ${{ matrix.shard }}
