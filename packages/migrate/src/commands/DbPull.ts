@@ -3,7 +3,6 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   formatms,
@@ -13,18 +12,14 @@ import {
   inferDirectoryConfig,
   link,
   loadSchemaContext,
-  locateLocalCloudflareD1,
-  type MultipleSchemas,
+  MigrateTypes,
   printSchemaLoadedMessage,
   protocolToConnectorType,
   relativizePathInPSLError,
-  SchemaContext,
   toSchemasContainer,
 } from '@prisma/internals'
-import { MigrateTypes } from '@prisma/internals'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
-import { match } from 'ts-pattern'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
@@ -109,7 +104,6 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
-      '--local-d1': Boolean, // optional, only on cloudflare D1
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -137,13 +131,6 @@ Set composite types introspection depth to 2 levels
       schemaContext: schemaContext ?? undefined,
     })
 
-    checkUnsupportedSchemaEngineWasm({
-      cmd,
-      config,
-      args,
-      flags: ['--local-d1'],
-    })
-
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
     // Print to console if --print is not passed to only have the schema in stdout
@@ -153,87 +140,39 @@ Set composite types introspection depth to 2 levels
       printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
     }
 
-    const fromD1 = Boolean(args['--local-d1'])
-
-    if (!schemaContext && !fromD1) {
+    if (!schemaContext) {
       throw new NoSchemaFoundError()
     }
 
-    const { firstDatasource, schema, validationWarning } = await match({ schemaContext, fromD1 })
-      .when(
-        (input): input is { schemaContext: SchemaContext; fromD1: boolean } => input.schemaContext !== null,
-        async (input) => {
-          const firstDatasource = input.schemaContext.primaryDatasource
-            ? input.schemaContext.primaryDatasource
-            : undefined
+    const firstDatasource = schemaContext.primaryDatasource
+    const schema = schemaContext.schemaFiles
 
-          if (input.fromD1) {
-            const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-            const pathToSQLiteFile = path.relative(input.schemaContext.schemaRootDir, d1Database)
+    await getConfig({
+      datamodel: schema,
+    })
 
-            const schema: MultipleSchemas = [
-              ['schema.prisma', this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')],
-            ]
-            const config = await getConfig({
-              datamodel: schema,
-            })
+    // Re-Introspection is not supported on MongoDB
+    const modelRegex = /\s*model\s*(\w+)\s*{/
+    const isReintrospection = schema.some(([_, schema]) => !!modelRegex.exec(schema as string))
 
-            return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-          } else {
-            await getConfig({
-              datamodel: input.schemaContext.schemaFiles,
-            })
-          }
-
-          return { firstDatasource, schema: input.schemaContext.schemaFiles, validationWarning: undefined } as const
-        },
-      )
-      .when(
-        (input): input is { schemaContext: null; fromD1: true } => input.fromD1 === true,
-        async (_) => {
-          const d1Database = await locateLocalCloudflareD1({ arg: '--from-local-d1' })
-          const pathToSQLiteFile = path.relative(process.cwd(), d1Database)
-
-          // TODO: `urlToDatasource(..)` doesn't generate a `generator client` block. Should it?
-          // TODO: Should we also add the `Try Prisma Accelerate` comment like we do in `prisma init`?
-          const schemaContent = `generator client {
-  provider        = "prisma-client-js"
-}
-${this.urlToDatasource(`file:${pathToSQLiteFile}`, 'sqlite')}`
-          const schema: MultipleSchemas = [['schema.prisma', schemaContent]]
-          const config = await getConfig({
-            datamodel: schema,
-          })
-
-          return { firstDatasource: config.datasources[0], schema, validationWarning: undefined }
-        },
-      )
-      .run()
-
-    if (schemaContext) {
-      // Re-Introspection is not supported on MongoDB
-      const modelRegex = /\s*model\s*(\w+)\s*{/
-      const isReintrospection = schemaContext.schemaFiles.some(([_, schema]) => !!modelRegex.exec(schema as string))
-
-      if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+    if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
+      throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${green(
-          getCommandWithExecutor('prisma db pull --force'),
-        )}
+        getCommandWithExecutor('prisma db pull --force'),
+      )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-          'https://github.com/prisma/prisma/issues/9585',
-        )} for more info.`)
-      }
+        'https://github.com/prisma/prisma/issues/9585',
+      )} for more info.`)
     }
 
     const migrate = await Migrate.setup({
       schemaEngineConfig: config,
-      schemaContext: schemaContext ?? undefined,
+      schemaContext,
       extensions: config['extensions'],
     })
 
     const engine = migrate.engine
-    const basedOn = schemaContext?.primaryDatasource
+    const basedOn = firstDatasource
       ? ` based on datasource defined in ${underline(schemaContext.loadedFromPathForLogMessages)}`
       : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
@@ -352,14 +291,12 @@ Or run this command with the ${green(
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
-      const renderValidationWarning = validationWarning ? `\n${yellow(validationWarning)}` : ''
-
       const introspectedSchemaPath = schemaContext?.loadedFromPathForLogMessages || introspectionSchema.files[0].path
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), introspectedSchemaPath),
       )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
-${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}${renderValidationWarning}`)
+${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
 
     return ''

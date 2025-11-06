@@ -1,5 +1,4 @@
 export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
-export { checkUnsupportedSchemaEngineWasm } from './cli/checkUnsupportedSchemaEngineWasm'
 export { type DirectoryConfig, inferDirectoryConfig } from './cli/directoryConfig'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
@@ -59,7 +58,6 @@ export { default as byline } from './utils/byline'
 export { callOnceOnSuccess } from './utils/callOnce'
 export { canPrompt } from './utils/canPrompt'
 export { chmodPlusX } from './utils/chmodPlusX'
-export { locateLocalCloudflareD1 } from './utils/cloudflareD1'
 export { drawBox } from './utils/drawBox'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { formatms } from './utils/formatms'
