@@ -66,13 +66,7 @@ ${detailsHeader} ${message}`
 }
 
 export function getEffectiveUrl(ds: DataSource): EnvValue {
-  if (ds.directUrl !== undefined) return ds.directUrl
-
   return ds.url
-}
-
-export function getDirectUrl(ds: DataSource) {
-  return ds.directUrl
 }
 
 export function resolveUrl(envValue: EnvValue | undefined) {
