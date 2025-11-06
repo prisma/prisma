@@ -5,7 +5,7 @@ import {
   arg,
   Command,
   format,
-  getDirectUrl,
+  getEffectiveUrl,
   HelpError,
   isError,
   loadSchemaContext,
@@ -132,7 +132,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: resolveUrl(getDirectUrl(schemaContext.primaryDatasource)),
+        directUrl: resolveUrl(getEffectiveUrl(schemaContext.primaryDatasource)),
       },
       versions: {
         prisma: packageJson.version,
