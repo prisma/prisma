@@ -66,21 +66,15 @@ async function copyClientWasmRuntime() {
   const clientPath = path.join(__dirname, '..', '..', 'client')
   const clientRuntimePath = path.join(clientPath, 'runtime')
   const clientPrismaDepsPath = path.join(clientPath, 'node_modules', '@prisma')
-  const component = 'compiler'
 
   for (const provider of ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver']) {
-    const baseName = `query_${component}_bg.${provider}`
+    const baseName = `query_compiler_bg.${provider}`
 
     for (const file of [`${baseName}.js`, `${baseName}.mjs`]) {
       await fs.promises.copyFile(path.join(clientRuntimePath, file), `./build/${file}`)
     }
 
-    const wasmFilePath = path.join(
-      clientPrismaDepsPath,
-      `query-${component}-wasm`,
-      provider,
-      `query_${component}_bg.wasm`,
-    )
+    const wasmFilePath = path.join(clientPrismaDepsPath, `query-compiler-wasm`, provider, `query_compiler_bg.wasm`)
 
     await fs.promises.copyFile(wasmFilePath, `./build/${baseName}.wasm`)
   }

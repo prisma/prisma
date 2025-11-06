@@ -14,7 +14,6 @@ import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildQueryCompilerWasmModule } from '../utils/buildGetQueryCompilerWasmModule'
-import { buildQueryEngineWasmModule } from '../utils/buildGetQueryEngineWasmModule'
 import { buildInlineDatasources } from '../utils/buildInlineDatasources'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { commonCodeJS, commonCodeTS } from './common'
@@ -116,7 +115,6 @@ ${new Enum(
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel, runtimeNameJs)}
-${buildQueryEngineWasmModule(runtimeNameJs)}
 ${buildQueryCompilerWasmModule(wasm, runtimeNameJs)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
