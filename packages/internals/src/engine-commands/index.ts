@@ -1,6 +1,6 @@
 export { formatSchema } from './formatSchema'
 export type { ConfigMetaFormat } from './getConfig'
-export { getConfig, getDirectUrl, getEffectiveUrl } from './getConfig'
+export { getConfig, getEffectiveUrl } from './getConfig'
 export type { GetDMMFOptions } from './getDmmf'
 export { getDMMF } from './getDmmf'
 export { getEnginesInfo, resolveEngine } from './getEnginesInfo'

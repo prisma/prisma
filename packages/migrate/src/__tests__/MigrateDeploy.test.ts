@@ -182,7 +182,7 @@ describeMatrix(postgresOnly, 'postgres', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       "
       Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
-      Please use a direct connection to your database via the datasource \`directUrl\` setting.
+      Please use a direct connection to your database in \`prisma.config.ts\`.
 
       More information about this limitation: https://pris.ly/d/accelerate-limitations
       "
