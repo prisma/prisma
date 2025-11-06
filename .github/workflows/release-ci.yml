@@ -36,8 +36,8 @@ jobs:
     uses: ./.github/workflows/release.yml
     with:
       timeout-minutes: 75
-      dry-run: ${{ github.event.inputs.dryRun || false }}
-      force-integration-release: ${{ github.event.inputs.forceIntegrationRelease || false }}
+      dry-run: ${{ github.event.inputs.dryRun == 'true' }}
+      force-integration-release: ${{ github.event.inputs.forceIntegrationRelease == 'true' }}
       skip-tagging-on-dry-run: ${{ github.event_name == 'workflow_dispatch' }}
       include-failure-notifications: false
     secrets: inherit

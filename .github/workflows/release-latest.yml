@@ -29,10 +29,10 @@ jobs:
     with:
       timeout-minutes: 45
       target-version: ${{ github.event.inputs.targetVersion }}
-      skip-ecosystem-tests-checks: ${{ github.event.inputs.skipEcosystemTestsChecks }}
+      skip-ecosystem-tests-checks: ${{ github.event.inputs.skipEcosystemTestsChecks == 'true' }}
       skip-packages: ${{ github.event.inputs.skipPackages }}
       only-packages: ${{ github.event.inputs.onlyPackages }}
-      dry-run: ${{ github.event.inputs.dryRun }}
+      dry-run: ${{ github.event.inputs.dryRun == 'true' }}
       skip-tagging-on-dry-run: true
       include-failure-notifications: true
       failure-title-template: 'prisma/prisma Release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag failed :x:'
