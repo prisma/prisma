@@ -238,7 +238,7 @@ export async function setupTestSuiteDatabaseD1({
   // Use `migrate diff` to get the DDL statements
   const diffResult = await execa(
     '../cli/src/bin.ts',
-    ['migrate', 'diff', '--from-empty', '--to-schema-datamodel', schemaPath, '--script'],
+    ['migrate', 'diff', '--from-empty', '--to-schema', schemaPath, '--script'],
     {
       env: {
         DEBUG: process.env.DEBUG,
