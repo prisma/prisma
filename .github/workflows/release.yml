@@ -56,9 +56,7 @@ jobs:
       cancel-in-progress: false
 
     permissions:
-      # required for publishing to npm with --provenance
-      # see https://docs.npmjs.com/generating-provenance-statements
-      id-token: write
+      id-token: write # required for OIDC / Trusted Publishers
 
     outputs:
       prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
@@ -78,6 +76,9 @@ jobs:
         with:
           node-version: 20
           skip-tsc: false
+
+      - name: Update npm to support Trusted Publishers
+        run: npm install -g npm@^11.5
 
       - name: Publish all packages to npm
         id: publish
