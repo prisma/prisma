@@ -1,6 +1,6 @@
 import testMatrix from './_matrix'
 // @ts-ignore
-import type $ from './generated/prisma/client'
+import type * as $ from './generated/prisma/client'
 
 declare let prisma: $.PrismaClient
 
@@ -31,9 +31,6 @@ testMatrix.setupTestSuite(
       reason: `
         The isolation level check is specific to SQLite.
       `,
-    },
-    skip(when, { generatorType }) {
-      when(generatorType === 'prisma-client-ts', '@ts-expect-error is not used with prisma-client-ts. This is a bug')
     },
   },
 )
