@@ -78,8 +78,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', schemaContext })
 
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -94,18 +93,15 @@ ${bold('Examples')}
       extensions: config['extensions'],
     })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
-      try {
-        // Automatically create the database if it doesn't exist
-        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-        if (wasDbCreated) {
-          process.stdout.write('\n' + wasDbCreated + '\n')
-        }
-      } catch (e) {
-        process.stdout.write('\n') // empty line
-        throw e
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write('\n' + wasDbCreated + '\n')
       }
+    } catch (e) {
+      process.stdout.write('\n') // empty line
+      throw e
     }
 
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()

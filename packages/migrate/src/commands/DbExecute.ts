@@ -128,11 +128,8 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       script = await streamConsumer.text(process.stdin)
     }
 
-    if (config.engine === 'js') {
-      throw new Error('engine: "js" is not yet supported in `db execute`.')
-    }
-
-    if (config.engine !== 'classic' || !config.datasource?.url) {
+    // Note: I don't think this condition is ever true.
+    if (!config.datasource?.url) {
       throw new Error(
         `A datasource URL must be provided via prisma.config.ts.
 See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,

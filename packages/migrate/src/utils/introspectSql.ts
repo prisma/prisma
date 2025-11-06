@@ -54,10 +54,6 @@ export async function introspectSql(
     throw new Error(`Typed SQL is supported only for ${supportedProviders.join(', ')} providers`)
   }
 
-  if (config.engine !== 'classic') {
-    throw new Error('TypedSQL currently requires classic engine')
-  }
-
   const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })
   const schemaEngine = migrate.engine
   const results: SqlQueryOutput[] = []

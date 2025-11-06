@@ -3,7 +3,6 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   formatms,
@@ -137,20 +136,11 @@ Set composite types introspection depth to 2 levels
       schemaContext: schemaContext ?? undefined,
     })
 
-    checkUnsupportedSchemaEngineWasm({
-      cmd,
-      config,
-      args,
-      flags: ['--local-d1'],
-    })
-
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource), adapter })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource) })
     }
 
     const fromD1 = Boolean(args['--local-d1'])

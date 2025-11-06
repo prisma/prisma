@@ -5,7 +5,6 @@ import { defineConfig, env } from '@prisma/config'
 const basePath = process.cwd()
 
 export default defineConfig({
-  engine: 'classic',
   datasource: {
     url: env('TEST_MYSQL_URI_MIGRATE'),
     shadowDatabaseUrl: env('TEST_MYSQL_SHADOWDB_URI_MIGRATE'),

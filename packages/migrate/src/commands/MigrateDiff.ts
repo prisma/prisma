@@ -3,7 +3,6 @@ import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
-  checkUnsupportedSchemaEngineWasm,
   Command,
   format,
   HelpError,
@@ -188,21 +187,6 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({
       cmd,
       urls: [args['--to-url'], args['--from-url'], args['--shadow-database-url']],
-    })
-
-    checkUnsupportedSchemaEngineWasm({
-      cmd,
-      config,
-      args,
-      flags: [
-        '--from-url',
-        '--to-url',
-        '--from-schema-datasource',
-        '--to-schema-datasource',
-        '--shadow-database-url',
-        '--to-local-d1',
-        '--from-local-d1',
-      ],
     })
 
     if (args['--help']) {

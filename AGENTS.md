@@ -13,11 +13,6 @@
 
 - **CLI commands**: Most commands already accept `--config` for custom config paths. Upcoming work removes `--schema` / `--url` in favour of config-based resolution. When editing CLI help text, keep examples aligned with new config-first workflow.
 
-- **Driver adapters vs classic engine**:
-  - `engine: 'classic'` requires `config.datasource.url`.
-  - `engine: 'js'` (driver adapters) still experimental; commands need explicit support and should throw when not implemented.
-  - Helper `ctx.setDatasource()` in tests overrides config.datasource for connection-specific scenarios.
-
 - **Testing patterns**:
   - Tests rely on fixtures under `packages/**/src/__tests__/fixtures`; many now contain `prisma.config.ts`.
   - Default Jest/Vitest runner is invoked via `pnpm --filter @prisma/<pkg> test <pattern>`; it wraps `dotenv` and expects `.db.env`.

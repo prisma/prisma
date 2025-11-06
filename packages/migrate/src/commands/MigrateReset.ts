@@ -83,20 +83,16 @@ ${bold('Examples')}
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo })
 
     checkUnsupportedDataProxy({ cmd: 'migrate reset', schemaContext })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+    if (wasDbCreated) {
+      process.stdout.write('\n' + wasDbCreated + '\n')
     }
 
     process.stdout.write('\n')

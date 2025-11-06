@@ -74,28 +74,6 @@ describeMatrix({ providers: { d1: true }, driverAdapters: {} }, 'D1', () => {
 })
 
 describeMatrix(sqliteOnly, 'common/sqlite', () => {
-  describe('using Prisma Config', () => {
-    it('--local-d1 is not supported', async () => {
-      ctx.fixture('prisma-config-validation/sqlite-d1')
-      try {
-        await DbPull.new().parse(['--local-d1'], await ctx.config())
-      } catch (error) {
-        const e = error as Error & { code?: number }
-
-        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`
-          "
-          Passing the --local-d1 flag to the prisma db pull command is not supported when
-          defining an adapter in Prisma config file (e.g., \`prisma.config.ts\`).
-
-          More information about this limitation: https://pris.ly/d/schema-engine-limitations
-          "
-        `)
-      }
-    })
-  })
-
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()

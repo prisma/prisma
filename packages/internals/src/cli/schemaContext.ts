@@ -2,7 +2,7 @@ import { SchemaEngineConfigInternal } from '@prisma/config'
 import { DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 import path from 'path'
-import { match } from 'ts-pattern'
+import { match, P } from 'ts-pattern'
 
 import { getConfig } from '../engine-commands'
 import { getSchemaWithPath, getSchemaWithPathOptional, printSchemaLoadedMessage } from './getSchema'
@@ -62,10 +62,7 @@ type LoadSchemaContextOptions = {
 export async function loadSchemaContext(
   opts: LoadSchemaContextOptions & { allowNull: true },
 ): Promise<SchemaContext | null>
-export async function loadSchemaContext(
-  opts?: LoadSchemaContextOptions & { schemaEngineConfig: { engine: 'classic' } },
-): Promise<Omit<SchemaContext, 'primaryDatasource'> & { primaryDatasource: DataSource }>
-export async function loadSchemaContext(opts?: LoadSchemaContextOptions): Promise<SchemaContext>
+export async function loadSchemaContext(opts: LoadSchemaContextOptions): Promise<SchemaContext>
 export async function loadSchemaContext({
   schemaPathFromArg,
   schemaPathFromConfig,
@@ -115,8 +112,9 @@ export async function processSchemaResult({
 
   const datasourceFromPsl = configFromPsl.datasources.at(0)
 
+  // Note: once @aqrln gets rid of `url` in `datasource`, he'll have to reconcile this code here.
   const primaryDatasource = match(schemaEngineConfig)
-    .with({ engine: 'classic' }, ({ datasource }) => {
+    .with(P.not(P.nullish), ({ datasource }) => {
       const { url, directUrl, shadowDatabaseUrl } = datasource
 
       const primaryDatasource = {
@@ -124,7 +122,7 @@ export async function processSchemaResult({
         url: { fromEnvVar: null, value: url },
         directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
         shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
-        [Symbol.for('engine.classic')]: true,
+        [Symbol.for('config.datasource')]: true,
       } as DataSource
 
       return primaryDatasource

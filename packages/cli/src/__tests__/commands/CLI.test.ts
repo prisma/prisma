@@ -1,4 +1,4 @@
-import { defaultTestConfig, defineConfig } from '@prisma/config'
+import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 
 import { CLI } from '../../CLI'
@@ -50,31 +50,6 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {
-      // prisma.config.ts
-      const config = defineConfig({
-        experimental: {
-          adapter: true,
-        },
-        engine: 'js',
-        // @ts-ignore: we don't need to import an actual adapter
-        adapter: async () => {
-          return Promise.resolve({})
-        },
-      })
-
-      it('should not download query-engine when engineType = "client"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
-
-        await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], config)
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {},
-          }),
-        )
-      })
-    })
-
     describe('without config.migrate.adapter, should download schema-engine', () => {
       it('should not download query-engine when engineType = "client"', async () => {
         ctx.fixture('ensure-needed-binaries-exist')

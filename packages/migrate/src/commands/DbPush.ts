@@ -91,8 +91,7 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'db push', schemaContext })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
-    const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo, adapter })
+    printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
       externalEnums: config.enums?.external ?? [],
@@ -106,18 +105,15 @@ ${bold('Examples')}
       extensions: config['extensions'],
     })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
-    if (!adapter) {
-      try {
-        // Automatically create the database if it doesn't exist
-        const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-        if (wasDbCreated) {
-          process.stdout.write('\n' + wasDbCreated + '\n')
-        }
-      } catch (e) {
-        process.stdout.write('\n') // empty line
-        throw e
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
+      if (wasDbCreated) {
+        process.stdout.write('\n' + wasDbCreated + '\n')
       }
+    } catch (e) {
+      process.stdout.write('\n') // empty line
+      throw e
     }
 
     let wasDatabaseReset = false
@@ -235,8 +231,7 @@ ${bold(red('All data will be lost.'))}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      // Favor the adapter if any, fallback to the provider defined in the schema
-      const provider = adapter?.provider ?? schemaContext.primaryDatasource?.activeProvider
+      const provider = schemaContext.primaryDatasource?.activeProvider
 
       process.stdout.write(
         `\n${rocketEmoji}${
