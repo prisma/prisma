@@ -32,11 +32,6 @@ on:
         description: 'Force an integration release'
         type: boolean
         default: false
-      # Tagging conditions
-      skip-tagging-on-dry-run:
-        description: 'Skip tagging when dry run is enabled'
-        type: boolean
-        default: true
       # Notification settings
       include-failure-notifications:
         description: 'Include failure notification job'
@@ -124,7 +119,7 @@ jobs:
         id: tag-prisma
         if: >-
           steps.publish.outputs.prismaVersion != '' &&
-          !(inputs.skip-tagging-on-dry-run && inputs.dry-run)
+          !inputs.dry-run
         uses: ./.github/actions/create-git-tag
         with:
           token: ${{ secrets.BOT_TOKEN }}
