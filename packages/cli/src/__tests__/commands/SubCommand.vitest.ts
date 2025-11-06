@@ -44,6 +44,9 @@ test('@<version>', async () => {
             "--help",
           ],
           {
+            "datasource": {
+              "url": "<default_datasource_url>",
+            },
             "loadedFromFile": null,
           },
           {
@@ -76,6 +79,9 @@ test('@latest', async () => {
             "--help",
           ],
           {
+            "datasource": {
+              "url": "<default_datasource_url>",
+            },
             "loadedFromFile": null,
           },
           {
@@ -111,6 +117,9 @@ test('autoinstall', async () => {
             "--help",
           ],
           {
+            "datasource": {
+              "url": "<default_datasource_url>",
+            },
             "loadedFromFile": null,
           },
           {
