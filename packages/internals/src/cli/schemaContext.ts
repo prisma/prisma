@@ -117,14 +117,11 @@ export async function processSchemaResult({
 
   const primaryDatasource = match(schemaEngineConfig)
     .with({ engine: 'classic' }, ({ datasource }) => {
-      const { url, directUrl, shadowDatabaseUrl } = datasource
+      const { url } = datasource
 
-      const primaryDatasource = {
+      const primaryDatasource: DataSource = {
         ...datasourceFromPsl,
         url: { fromEnvVar: null, value: url },
-        directUrl: directUrl ? { fromEnvVar: null, value: directUrl } : undefined,
-        shadowDatabaseUrl: shadowDatabaseUrl ? { fromEnvVar: null, value: shadowDatabaseUrl } : undefined,
-        [Symbol.for('engine.classic')]: true,
       } as DataSource
 
       return primaryDatasource
