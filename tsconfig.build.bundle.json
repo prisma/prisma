@@ -1,6 +1,8 @@
 {
   "extends": "./tsconfig.build.regular.json",
   "compilerOptions": {
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "paths": {
       "@prisma/client": ["./packages/client/src"],
       "@prisma/client/runtime/library": ["./packages/client/src/runtime"],

@@ -1,13 +1,11 @@
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { copyFilePlugin } from '../../../helpers/compile/plugins/copyFilePlugin'
-import { copyPrismaClient } from './copy-prisma-client'
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -15,23 +13,15 @@ import { copyPrismaClient } from './copy-prisma-client'
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
-    // provide a copy of the client for studio to work
-    build.onStart(copyPrismaClient)
-
     build.onEnd(async () => {
-      // we copy the contents from @prisma/studio to build
-      await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
-        overwrite: true,
-      })
-
       // we copy the contents from checkpoint-client to build
       await fs.promises.copyFile(
-        path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
+        path.join(path.dirname(require.resolve('checkpoint-client')), 'child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await fs.promises.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+      await fs.promises.copyFile(path.join(path.dirname(require.resolve('open')), 'xdg-open'), './build/xdg-open')
 
       // as a convention, we install all Prisma's Wasm modules in the internals package
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')

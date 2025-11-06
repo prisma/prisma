@@ -1,0 +1,26 @@
+{
+  "private": true,
+  "name": "studio-test",
+  "description": "Test package for Prisma Studio CLI command",
+  "type": "module",
+  "scripts": {
+    "studio": "dotenvx run -- tsx ../../packages/cli/build/index.js studio --config ./prisma.config.ts",
+    "studio:debug": "DEBUG=prisma:* pnpm studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/adapter-pg": "../../packages/adapter-pg",
+    "@prisma/client": "../../packages/client",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/pg": "^8.11.10",
+    "@dotenvx/dotenvx": "^1.29.3",
+    "prisma": "../../packages/cli",
+    "tsx": "^4.20.6",
+    "typescript": "5.9.3"
+  }
+}
