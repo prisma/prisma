@@ -45,7 +45,6 @@ if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   }) ?? alternativePaths[0]
 
   config.dirname = path.join(process.cwd(), alternativePath)
-  config.isBundled = true
 }`
 }
 

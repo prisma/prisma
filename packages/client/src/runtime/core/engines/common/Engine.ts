@@ -1,4 +1,4 @@
-import { CompilerWasmLoadingConfig, EngineWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
+import { CompilerWasmLoadingConfig, GetPrismaClientConfig } from '@prisma/client-common'
 import type { SqlDriverAdapterFactory } from '@prisma/driver-adapter-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { TracingHelper } from '@prisma/internals'
@@ -108,19 +108,14 @@ export interface Engine<InteractiveTransactionPayload = unknown> {
 }
 
 export interface EngineConfig {
-  cwd: string
   dirname: string
   enableDebugLogs?: boolean
   prismaPath?: string
   generator?: GeneratorConfig
-  showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
-  flags?: string[]
   clientVersion: string
-  engineVersion: string
   previewFeatures?: string[]
-  engineEndpoint?: string
   activeProvider?: string
   logEmitter: LogEmitter
   transactionOptions: Transaction.Options
@@ -157,16 +152,8 @@ export interface EngineConfig {
   tracingHelper: TracingHelper
 
   /**
-   * Information about whether we have not found a schema.prisma file in the
-   * default location, and that we fell back to finding the schema.prisma file
-   * in the current working directory. This usually means it has been bundled.
-   */
-  isBundled?: boolean
-
-  /**
    * Web Assembly module loading configuration
    */
-  engineWasm?: EngineWasmLoadingConfig
   compilerWasm?: CompilerWasmLoadingConfig
 }
 
