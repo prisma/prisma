@@ -165,17 +165,14 @@ export async function tryToReadDataFromSchema(schemaPath?: string, schemaPathFro
 export const SENSITIVE_CLI_OPTIONS = [
   // 1. Connection strings
   '--url',
-  '--shadow-database-url',
-  '--from-url',
-  '--to-url',
-  // 2. Paths
+  // 1. Paths
   '--schema',
   '--config',
   '--file',
-  '--from-schema-datamodel',
-  '--to-schema-datamodel',
-  '--from-schema-datasource',
-  '--to-schema-datasource',
+  '--from-schema',
+  '--to-schema',
+  '--from-config-datasource',
+  '--to-config-datasource',
   '--from-migrations',
   '--to-migrations',
   '--hostname',
