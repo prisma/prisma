@@ -12,39 +12,6 @@ function debug(message, ...optionalParams) {
     console.log(message, ...optionalParams)
   }
 }
-/**
- * Adds `package.json` to the end of a path if it doesn't already exist'
- * @param {string} pth
- */
-function addPackageJSON(pth) {
-  if (pth.endsWith('package.json')) return pth
-  return path.join(pth, 'package.json')
-}
-
-/**
- * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
- * @param {string | null} startPath - Path to Start At
- * @param {number} limit - Find Up limit
- * @returns {string | null}
- */
-function findPackageRoot(startPath, limit = 10) {
-  if (!startPath || !fs.existsSync(startPath)) return null
-  let currentPath = startPath
-  // Limit traversal
-  for (let i = 0; i < limit; i++) {
-    const pkgPath = addPackageJSON(currentPath)
-    if (fs.existsSync(pkgPath)) {
-      try {
-        const pkg = require(pkgPath)
-        if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
-          return pkgPath.replace('package.json', '')
-        }
-      } catch {} // eslint-disable-line no-empty
-    }
-    currentPath = path.join(currentPath, '../')
-  }
-  return null
-}
 
 /**
  * The `postinstall` hook of client sets up the ground and env vars for the `prisma generate` command,
@@ -52,8 +19,7 @@ function findPackageRoot(startPath, limit = 10) {
  * - initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
  *   which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
  *   command is successfully executed.
- * - sets the path of the root of the project (TODO: to verify) to the `process.env.PRISMA_GENERATE_IN_POSTINSTALL`
- *   variable, or `'true'` if the project root cannot be found.
+ * - sets the path of the root of the project (TODO: to verify) to `'true'` if the project root cannot be found.
  * - runs `prisma generate`, passing through additional information about the command that triggered the generation,
  *   which is useful for debugging/telemetry. It tries to use the local `prisma` package if it is installed, otherwise it
  *   falls back to the global `prisma` package. If neither options are available, it warns the user to install `prisma` first.
@@ -72,24 +38,18 @@ async function main() {
   // Only execute if !localpath
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
-  // this is needed, so we can find the correct schemas in yarn workspace projects
-  const root = findPackageRoot(localPath)
-
-  process.env.PRISMA_GENERATE_IN_POSTINSTALL = root ? root : 'true'
-
   debug({
     localPath,
     installedGlobally,
     init_cwd: process.env.INIT_CWD,
-    PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL,
   })
   try {
     if (localPath) {
-      await run('node', [localPath, 'generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
+      await run('node', [localPath, 'generate', doubleQuote(getPostInstallTrigger())])
       return
     }
     if (installedGlobally) {
-      await run('prisma', ['generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
+      await run('prisma', ['generate', doubleQuote(getPostInstallTrigger())])
       return
     }
   } catch (e) {
@@ -115,7 +75,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('prisma')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (e) {}
 
   // TODO: consider removing this
   try {
@@ -123,7 +83,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('@prisma/cli')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (e) {}
 
   return null
 }
@@ -142,31 +102,29 @@ Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
   }
 }
 
-if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
-  main()
-    .catch((e) => {
-      if (e.stderr) {
-        if (e.stderr.includes(`Can't find schema.prisma`)) {
-          console.error(
-            `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
-        Please either create one manually or use ${c.bold('prisma init')}.
-        Once you created it, run ${c.bold('prisma generate')}.
-        To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
-          './prisma',
-        )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
-          )
-        } else {
-          console.error(e.stderr)
-        }
+main()
+  .catch((e) => {
+    if (e.stderr) {
+      if (e.stderr.includes(`Can't find schema.prisma`)) {
+        console.error(
+          `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
+      Please either create one manually or use ${c.bold('prisma init')}.
+      Once you created it, run ${c.bold('prisma generate')}.
+      To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
+        './prisma',
+      )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
+        )
       } else {
-        console.error(e)
+        console.error(e.stderr)
       }
-      process.exit(0)
-    })
-    .finally(() => {
-      debug(`postinstall trigger: ${getPostInstallTrigger()}`)
-    })
-}
+    } else {
+      console.error(e)
+    }
+    process.exit(0)
+  })
+  .finally(() => {
+    debug(`postinstall trigger: ${getPostInstallTrigger()}`)
+  })
 
 function run(cmd, params, cwd = process.cwd()) {
   const child = childProcess.spawn(cmd, params, {
@@ -395,10 +353,3 @@ const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTIN
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
 // prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
-
-// expose for testing
-
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR
-exports.getPostInstallTrigger = getPostInstallTrigger

@@ -143,7 +143,6 @@
     "test:functional:types": "dotenv -e ../../.db.env -- tsx helpers/functional-test/run-tests.ts --types-only",
     "test-notypes": "dotenv -e ../../.db.env -- jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
-    "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
     "new-test": "tsx ./helpers/new-test/new-test.ts"
   },

@@ -11,10 +11,8 @@ import {
   getGeneratorSuccessMessage,
   GetSchemaResult,
   getSchemaWithPath,
-  getSchemaWithPathOptional,
   HelpError,
   isError,
-  link,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
@@ -114,8 +112,6 @@ ${bold('Examples')}
       '--config': String,
       '--no-hints': Boolean,
       '--generator': [String],
-      // Only used for checkpoint information
-      '--postinstall': String,
       '--telemetry-information': String,
       '--require-models': Boolean,
       '--sql': Boolean,
@@ -134,7 +130,7 @@ ${bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, false)
+    const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
     const promotion = getRandomPromotion()
 
     if (!schemaResult) return ''
@@ -155,7 +151,6 @@ ${bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         generatorNames: args['--generator'],
-        postinstall: Boolean(args['--postinstall']),
         typedSql,
         allowNoModels,
         registry: defaultRegistry.toInternal(),
@@ -271,7 +266,7 @@ ${breakingChangesStr}${versionsWarning}`
       for await (const changedPath of watcher) {
         logUpdate(`Change in ${path.relative(process.cwd(), changedPath)}`)
 
-        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd, false)
+        const schemaResult = await getSchemaForGenerate(args['--schema'], config.schema, cwd)
         if (!schemaResult) return ''
 
         const schemaContext = await processSchemaResult({ schemaResult })
@@ -351,22 +346,6 @@ async function getSchemaForGenerate(
   schemaFromArgs: string | undefined,
   schemaFromConfig: string | undefined,
   cwd: string,
-  isPostinstall: boolean,
 ): Promise<GetSchemaResult | null> {
-  if (isPostinstall) {
-    const schema = await getSchemaWithPathOptional(schemaFromArgs, schemaFromConfig, { cwd })
-    if (schema) {
-      return schema
-    }
-    logger.warn(`We could not find your Prisma schema in the default locations (see: ${link(
-      'https://pris.ly/d/prisma-schema-location',
-    )}).
-If you have a Prisma schema file in a custom path, you will need to run either configure the \`schema\` property
-in your Prisma Config file, or add the \`--schema=./path/to/your/schema.prisma\` flag before running the \`prisma generate\`
-command again.
-If you do not have a Prisma schema file yet, you can ignore this message.`)
-    return null
-  }
-
   return getSchemaWithPath(schemaFromArgs, schemaFromConfig, { cwd })
 }

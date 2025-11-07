@@ -68,7 +68,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     engineVersion: options.engineVersion,
     datasourceNames: datasources.map((d) => d.name),
     activeProvider: options.activeProvider,
-    postinstall: options.postinstall,
     ciName: ciInfo.name ?? undefined,
     inlineDatasources: buildInlineDatasources(datasources),
     inlineSchema,
