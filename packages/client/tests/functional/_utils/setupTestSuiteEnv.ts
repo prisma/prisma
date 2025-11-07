@@ -160,7 +160,7 @@ export async function setupTestSuiteDatabase({
     if (suiteConfig.matrixOptions.driverAdapter === AdapterProviders.JS_D1) {
       await setupTestSuiteDatabaseD1({ schemaPath, cfWorkerBindings: cfWorkerBindings!, alterStatementCallback })
     } else {
-      const dbPushParams = ['--skip-generate']
+      const dbPushParams = [] as string[]
 
       // we reuse and clean the db when it is explicitly required
       if (process.env.TEST_REUSE_DATABASE === 'true') {
