@@ -42,7 +42,6 @@ ${bold('Options')}
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
         --force-reset   Force a reset of the database before push
-      --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${bold('Examples')}
 
@@ -64,7 +63,6 @@ ${bold('Examples')}
         '-h': '--help',
         '--accept-data-loss': Boolean,
         '--force-reset': Boolean,
-        '--skip-generate': Boolean,
         '--schema': String,
         '--config': String,
         '--telemetry-information': String,
@@ -243,11 +241,6 @@ ${bold(red('All data will be lost.'))}
           provider === 'mongodb' ? migrationSuccessMongoMessage : migrationSuccessStdMessage
         } ${migrationTimeMessage}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
     }
 
     return ``

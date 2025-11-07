@@ -5,10 +5,6 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
-beforeEach(() => {
-  process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-})
-
 describe('common', () => {
   it('wrong flag', async () => {
     const commandInstance = MigrateReset.new()
