@@ -2,7 +2,6 @@
 
 import { defaultTestConfig } from '@prisma/config'
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { serializeQueryEngineName } from '@prisma/internals'
 
 import { Validate } from '../../Validate'
 
@@ -309,7 +308,7 @@ describe('validate', () => {
       try {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
+        expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
@@ -339,7 +338,7 @@ describe('validate', () => {
       try {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'], defaultTestConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
+        expect(e.message).toMatchInlineSnapshot(`
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode

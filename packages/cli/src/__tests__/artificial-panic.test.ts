@@ -97,7 +97,7 @@ describe('artificial-panic get-config', () => {
   it('get-config', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(3)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
+    process.env.FORCE_PANIC_GET_CONFIG = '1'
 
     const command = new Validate()
     try {
@@ -123,7 +123,7 @@ describe('artificial-panic validate', () => {
   it('validate', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(3)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+    process.env.FORCE_PANIC_GET_DMMF = '1'
 
     const command = new Validate()
     try {
@@ -141,7 +141,7 @@ describe('artificial-panic validate', () => {
   it('format', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(3)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+    process.env.FORCE_PANIC_GET_DMMF = '1'
 
     const command = new Format()
     try {
@@ -167,7 +167,7 @@ describe('artificial-panic getDMMF', () => {
   it('getDMMF', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(3)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+    process.env.FORCE_PANIC_GET_DMMF = '1'
 
     try {
       await getDMMF({
