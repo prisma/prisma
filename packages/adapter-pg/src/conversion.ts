@@ -8,6 +8,13 @@ const { types } = pg
 const { builtins: ScalarColumnType, getTypeParser } = types
 
 /**
+ * Additional scalar column types not defined in `pg` types builtins.
+ */
+const AdditionalScalarColumnType = {
+  NAME: 19,
+}
+
+/**
  * PostgreSQL array column types (not defined in ScalarColumnType).
  *
  * See the semantics of each of this code in:
@@ -212,6 +219,7 @@ export function fieldToColumnType(fieldTypeId: number): ColumnType {
     case ScalarColumnType.INET:
     case ScalarColumnType.CIDR:
     case ScalarColumnType.XML:
+    case AdditionalScalarColumnType.NAME:
       return ColumnTypeEnum.Text
     case ScalarColumnType.BYTEA:
       return ColumnTypeEnum.Bytes
