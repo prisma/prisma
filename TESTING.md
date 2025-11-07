@@ -472,8 +472,6 @@ Once the integration version is published on npm:
 ## How to trigger artificial panics for our engines
 
 Sometimes it may be useful to trigger a panic in the Rust binaries or libraries used by Prisma under the hood.
-Most of the Rust artifacts are shipped as binaries, whereas `query-engine` is shipped both as a library (by default) and as a binary (on demand).
-To change the default Rust artifacts' type used under the hood, you can set the `PRISMA_CLI_QUERY_ENGINE_TYPE` environment variable to either `library` or `binary`.
 
 ### Setup
 
@@ -488,10 +486,10 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 
 - run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
 
-### Trigger panic in Query Engine - Get DMMF
+### Trigger panic in Get DMMF
 
-- run `FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate`
+- run `FORCE_PANIC_GET_DMMF=1 npx prisma validate`
 
-### Trigger panic in Query Engine - Get Config
+### Trigger panic in Get Config
 
-- run `FORCE_PANIC_QUERY_ENGINE_GET_CONFIG=1 npx prisma validate`
+- run `FORCE_PANIC_GET_CONFIG=1 npx prisma validate`

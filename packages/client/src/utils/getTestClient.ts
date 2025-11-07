@@ -65,7 +65,7 @@ type GenerateTestClientOptions = {
 }
 
 /**
- * Actually generates a test client with its own query-engine into ./@prisma/client
+ * Actually generates a test client into ./@prisma/client
  */
 export async function generateTestClient({ projectDir }: GenerateTestClientOptions = {}): Promise<any> {
   if (!projectDir) {

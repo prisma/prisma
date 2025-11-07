@@ -50,7 +50,7 @@ describe('CLI', () => {
   })
 
   describe('ensureNeededBinariesExist', () => {
-    describe('with `config.migrate.engine === "js"`, should not download schema-engine', () => {
+    it('should not download schema engine with `engine: "js"`', async () => {
       // prisma.config.ts
       const config = defineConfig({
         experimental: {
@@ -63,31 +63,27 @@ describe('CLI', () => {
         },
       })
 
-      it('should not download query-engine when engineType = "client"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
+      ctx.fixture('ensure-needed-binaries-exist')
 
-        await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], config)
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {},
-          }),
-        )
-      })
+      await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], config)
+      expect(download).toHaveBeenCalledWith(
+        expect.objectContaining({
+          binaries: {},
+        }),
+      )
     })
 
-    describe('without config.migrate.adapter, should download schema-engine', () => {
-      it('should not download query-engine when engineType = "client"', async () => {
-        ctx.fixture('ensure-needed-binaries-exist')
+    it('should download schema engine without `engine: "js"`', async () => {
+      ctx.fixture('ensure-needed-binaries-exist')
 
-        await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], defaultTestConfig())
-        expect(download).toHaveBeenCalledWith(
-          expect.objectContaining({
-            binaries: {
-              'schema-engine': expect.any(String),
-            },
-          }),
-        )
-      })
+      await cliInstance.parse(['validate', '--schema', './using-query-compiler.prisma'], defaultTestConfig())
+      expect(download).toHaveBeenCalledWith(
+        expect.objectContaining({
+          binaries: {
+            'schema-engine': expect.any(String),
+          },
+        }),
+      )
     })
   })
 

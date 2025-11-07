@@ -54,16 +54,6 @@ function removePlatforms(str) {
   return str.replace(binaryTargetRegex, 'TEST_PLATFORM')
 }
 
-// When updating snapshots this is sensitive to OS
-// macOS will update extension to .dylib.node, but CI uses .so.node for example
-// Note that on Windows the file name doesn't start with "lib".
-function normalizeNodeApiLibFilePath(str) {
-  return str.replace(
-    /((lib)?query_engine-TEST_PLATFORM\.)(.*)(\.node)/g,
-    'libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
-  )
-}
-
 function normalizeBinaryFilePath(str) {
   // write a regex expression that matches strings ending with ".exe" followed by any number of space characters with an empty string:
   return str.replace(/\.exe(\s+)?(\W.*)/g, '$1$2').replace(/\.exe$/g, '')
@@ -144,7 +134,6 @@ module.exports = {
       // From Client package
       normalizeGitHubLinks,
       removePlatforms,
-      normalizeNodeApiLibFilePath,
       normalizeBinaryFilePath,
       normalizeTsClientStackTrace,
       trimErrorPaths,
