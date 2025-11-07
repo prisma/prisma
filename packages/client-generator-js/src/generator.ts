@@ -6,7 +6,7 @@ import { parseEnvValue } from '@prisma/internals'
 
 import { version as clientVersion } from '../package.json'
 import { generateClient } from './generateClient'
-import { resolveOrInstallPrismaClient, resolvePrismaClient } from './resolvePrismaClient'
+import { resolvePrismaClient } from './resolvePrismaClient'
 
 type PrismaClientJsGeneratorOptions = {
   shouldResolvePrismaClient?: boolean
@@ -23,17 +23,11 @@ export class PrismaClientJsGenerator implements Generator {
   readonly name = 'prisma-client-js'
 
   #shouldResolvePrismaClient: boolean
-  #shouldInstallMissingPackages: boolean
   #runtimePath?: string
   #cachedPrismaClientPath: string | undefined
 
-  constructor({
-    shouldResolvePrismaClient = true,
-    shouldInstallMissingPackages = true,
-    runtimePath,
-  }: PrismaClientJsGeneratorOptions = {}) {
+  constructor({ shouldResolvePrismaClient = true, runtimePath }: PrismaClientJsGeneratorOptions = {}) {
     this.#shouldResolvePrismaClient = shouldResolvePrismaClient
-    this.#shouldInstallMissingPackages = shouldInstallMissingPackages
     this.#runtimePath = runtimePath
   }
 
@@ -100,7 +94,7 @@ export class PrismaClientJsGenerator implements Generator {
       return this.#cachedPrismaClientPath
     }
 
-    this.#cachedPrismaClientPath = await this.#resolveOrInstallPrismaClient(path.dirname(config.sourceFilePath))
+    this.#cachedPrismaClientPath = await resolvePrismaClient(path.dirname(config.sourceFilePath))
     return this.#cachedPrismaClientPath
   }
 
@@ -111,13 +105,5 @@ export class PrismaClientJsGenerator implements Generator {
 
     this.#runtimePath = path.join(await this.#getPrismaClientPath(config), 'runtime')
     return this.#runtimePath
-  }
-
-  async #resolveOrInstallPrismaClient(baseDir: string): Promise<string> {
-    if (this.#shouldInstallMissingPackages && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-      return await resolveOrInstallPrismaClient(baseDir, clientVersion)
-    } else {
-      return await resolvePrismaClient(baseDir)
-    }
   }
 }
