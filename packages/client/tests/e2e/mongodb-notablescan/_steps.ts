@@ -7,7 +7,7 @@ void executeSteps({
     await $`pnpm install`
     await $`pnpm prisma version`
     await $`pnpm prisma generate`
-    await $`pnpm prisma db push --force-reset --skip-generate`
+    await $`pnpm prisma db push --force-reset`
   },
   test: async () => {
     // Skipped until MongoDB support is added to Prisma 7

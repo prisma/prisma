@@ -6,6 +6,7 @@ import { testServerComponents } from '../_shared/test'
 void executeSteps({
   setup: async () => {
     await $`pnpm install`
+    await $`pnpm prisma generate`
     cd('packages/service')
     await $`pnpm exec prisma db push --force-reset`
   },

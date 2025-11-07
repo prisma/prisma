@@ -39,7 +39,6 @@ ${bold('Options')}
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
@@ -61,7 +60,6 @@ ${bold('Examples')}
       '-h': '--help',
       '--force': Boolean,
       '-f': '--force',
-      '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--schema': String,
       '--config': String,
@@ -157,11 +155,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
           'migration.sql': '',
         })}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
     }
 
     // Run if not skipped

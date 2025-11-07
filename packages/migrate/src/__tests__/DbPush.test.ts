@@ -9,10 +9,6 @@ import { createDefaultTestContext } from './__helpers__/context'
 
 const ctx = createDefaultTestContext()
 
-beforeEach(() => {
-  process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-})
-
 describe('push', () => {
   // A test that requires docker (e.g, because it relies on extensions being installed)
   const inDockerIt = process.env.TEST_NO_DOCKER ? it.skip : it
