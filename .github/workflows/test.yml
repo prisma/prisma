@@ -7,7 +7,7 @@ on:
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for `pull_request` (see below) and all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
@@ -23,7 +23,7 @@ on:
   pull_request:
     paths-ignore:
       # Any update here needs to be done for `branches` (see above) and all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
@@ -100,7 +100,7 @@ jobs:
           )
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: release-ci.yml
+          workflow: release.yml
           token: ${{ secrets.BOT_TOKEN }}
           inputs: '{ "forceIntegrationRelease": "true" }'
           ref: ${{ github.event.pull_request.head.ref }}
