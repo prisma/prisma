@@ -99,7 +99,7 @@ ${bold('Examples')}
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'migrate dev', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'migrate dev', config })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
