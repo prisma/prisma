@@ -1,5 +1,4 @@
-name: npm - release to dev/integration
-run-name: npm - release from ${{ github.ref_name }} to dev/integration
+name: npm - release
 
 on:
   push:
@@ -9,7 +8,7 @@ on:
       - '*.*.x'
     paths-ignore:
       # Any update here needs to be done for all files
-      # (test.yml, benchmark.yml, release-ci.yml, bundle-size.yml, ci-aux-files.yml)
+      # (test.yml, benchmark.yml, release.yml, bundle-size.yml, ci-aux-files.yml)
       - '*.md'
       - '*.bench.ts'
       - 'LICENSE'
@@ -22,37 +21,64 @@ on:
       - '.vscode/**'
       - 'graphs/**'
       - 'sandbox/**'
+
   workflow_dispatch:
     inputs:
+      targetVersion:
+        description: 'Version to publish on latest tag (e.g. 5.0.0)'
+        type: string
+      skipEcosystemTestsChecks:
+        description: 'Skip ecosystem tests checks'
+        type: boolean
+      skipPackages:
+        description: 'Skip publishing some packages? (e.g. `@prisma/debug,@prisma/internals`)'
+        type: string
+      onlyPackages:
+        description: 'Only publish some packages? (e.g. `@prisma/debug,@prisma/internals`)'
+        type: string
       dryRun:
         description: 'Check to do a dry run (does not publish packages)'
         type: boolean
       forceIntegrationRelease:
         description: 'Check to force an integration release for any given branch name'
         type: boolean
+
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: 'true'
+  # Environment variables based on trigger type and parameters
+  RELEASE_VERSION: ${{ github.event.inputs.targetVersion }}
+  SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks || '' }}
+  SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
+  ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
+  DRY_RUN: ${{ github.event.inputs.dryRun || '' }}
+  FORCE_INTEGRATION_RELEASE: ${{ inputs.forceIntegrationRelease || '' }}
+  INCLUDE_FAILURE_NOTIFICATIONS: ${{ github.event.inputs.targetVersion && 'true' || '' }}
+  FAILURE_TITLE_TEMPLATE: >-
+    ${{
+      github.event.inputs.targetVersion &&
+      format('prisma/prisma Release {0} from {1} on latest tag failed :x:', github.event.inputs.targetVersion, github.ref_name) ||
+      'prisma/prisma Release failed :x:'
+    }}
 
 jobs:
   release:
-    timeout-minutes: 75
+    timeout-minutes: ${{ github.event.inputs.targetVersion && 45 || 75 }}
     runs-on: ubuntu-latest
 
     concurrency:
-      group: ${{ github.workflow }}
+      group: ${{ github.event.inputs.targetVersion && 'release-version' || 'release-push' }}
       cancel-in-progress: false
 
     permissions:
-      # required for publishing to npm with --provenance
-      # see https://docs.npmjs.com/generating-provenance-statements
-      id-token: write
+      id-token: write # required for OIDC / Trusted Publishers
 
     outputs:
       prismaVersion: ${{ steps.publish.outputs.prismaVersion }}
+      enginesCommitHash: ${{ steps.publish.outputs.enginesCommitHash }}
 
     steps:
-      - name: Print input
+      - name: Print inputs
         env:
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
@@ -66,14 +92,20 @@ jobs:
           node-version: '20.19.0'
           skip-tsc: false
 
+      - name: Update npm to support Trusted Publishers
+        run: npm install -g npm@^11.5
+
       - name: Publish all packages to npm
         id: publish
-        run: pnpm run publish-all
+        run: |
+          if [ -n "$RELEASE_VERSION" ]; then
+            echo "RELEASE_VERSION: $RELEASE_VERSION"
+          fi
+          if [ "$SKIP_ECOSYSTEMTESTS_CHECK" = "true" ]; then
+            echo "SKIP_ECOSYSTEMTESTS_CHECK: $SKIP_ECOSYSTEMTESTS_CHECK"
+          fi
+          pnpm run publish-all
         env:
-          # Inputs
-          DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
-          FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease == 'true' && 'true' || '' }}
-          # Other
           GITHUB_CONTEXT: ${{ toJson(github) }}
           # https://docs.npmjs.com/generating-provenance-statements
           NPM_CONFIG_PROVENANCE: true
@@ -81,7 +113,6 @@ jobs:
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
 
       - name: Print output
@@ -92,7 +123,9 @@ jobs:
 
       - name: Create a tag on prisma repository
         id: tag-prisma
-        if: ${{ steps.publish.outputs.prismaVersion != '' && !(github.event_name == 'workflow_dispatch' && github.event.inputs.dryRun == 'true') }}
+        if: >-
+          steps.publish.outputs.prismaVersion != '' &&
+          env.DRY_RUN != 'true'
         uses: ./.github/actions/create-git-tag
         with:
           token: ${{ secrets.BOT_TOKEN }}
@@ -102,7 +135,9 @@ jobs:
       - name: Create a tag on prisma-engines repository
         uses: ./.github/actions/create-git-tag
         id: tag-prisma-engines
-        if: ${{ steps.publish.outputs.prismaVersion != '' && !(github.event_name == 'workflow_dispatch' && github.event.inputs.dryRun == 'true') }}
+        if: >-
+          steps.publish.outputs.prismaVersion != '' &&
+          env.DRY_RUN != 'true'
         with:
           token: ${{ secrets.BOT_TOKEN }}
           repository: prisma/prisma-engines
@@ -128,3 +163,21 @@ jobs:
           SLACK_COLOR: '#55ff55'
           SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
           SLACK_CHANNEL: feed-prisma-publish
+
+  failure:
+    needs:
+      - release
+    if: ${{ failure() && github.event.inputs.targetVersion }}
+    name: Communicate failure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current job url in SLACK_FOOTER env var
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> "$GITHUB_ENV"
+
+      - name: Slack Notification on Failure
+        uses: rtCamp/action-slack-notify@v2.3.2
+        env:
+          SLACK_TITLE: ${{ env.FAILURE_TITLE_TEMPLATE }}
+          SLACK_COLOR: '#FF0000'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
+          SLACK_CHANNEL: feed-prisma-publish-failures
