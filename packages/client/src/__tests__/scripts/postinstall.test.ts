@@ -6,8 +6,6 @@ import {
   UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR,
 } from '../../../scripts/postinstall'
 
-process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
-
 beforeEach(() => {
   process.env.npm_config_user_agent = 'npm/1.2.3'
   process.env.npm_config_argv = '{"original":["foo", "bar"]}'

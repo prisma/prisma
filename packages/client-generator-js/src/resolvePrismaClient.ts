@@ -163,7 +163,7 @@ async function isYarnUsed(baseDir: string): Promise<boolean> {
 async function runPackageCmd(cwd: string, cmd: Command, ...args: string[]): Promise<void> {
   await execaCommand(await getPackageCmd(cwd, cmd, ...args), {
     // we skip this because we are already in the generator
-    env: { PRISMA_SKIP_POSTINSTALL_GENERATE: 'true' },
+    env: {},
     stdio: 'inherit',
     cwd,
   })
