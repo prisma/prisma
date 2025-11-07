@@ -254,11 +254,10 @@ export class TransactionManager {
             )
           } else {
             const query = ROLLBACK_QUERY()
-            try {
-              await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query))
-            } finally {
-              await tx.transaction.rollback()
-            }
+            await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query)).then(
+              () => tx.transaction!.commit(),
+              (err) => tx.transaction!.rollback().finally(() => Promise.reject(err)),
+            )
           }
         }
       } finally {
