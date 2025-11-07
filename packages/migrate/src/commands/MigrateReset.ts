@@ -5,6 +5,7 @@ import {
   checkUnsupportedDataProxy,
   Command,
   format,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
@@ -87,14 +88,15 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate reset', config })
 
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write('\n' + wasDbCreated + '\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const successMessage = await ensureDatabaseExists(
+      schemaContext.primaryDatasourceDirectory,
+      getSchemaDatasourceProvider(schemaContext),
+      config,
+    )
+    if (successMessage) {
+      process.stdout.write('\n' + successMessage + '\n')
     }
 
     process.stdout.write('\n')
