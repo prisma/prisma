@@ -59,7 +59,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const dmmfPipeline = pipe(
     E.tryCatch(
       () => {
-        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+        if (process.env.FORCE_PANIC_GET_DMMF) {
           debug('Triggering a Rust panic...')
           prismaSchemaWasm.debug_panic()
         }
