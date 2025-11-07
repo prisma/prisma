@@ -210,7 +210,6 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/query-compiler-wasm": "6.19.0-33.next-fca7ed8aa5fe6347594ad793adb59b37f021379a",
-    "@prisma/query-engine-wasm": "6.19.0-33.next-fca7ed8aa5fe6347594ad793adb59b37f021379a",
     "@prisma/query-plan-executor": "workspace:*",
     "@prisma/ts-builders": "workspace:*",
     "@snaplet/copycat": "6.0.0",
