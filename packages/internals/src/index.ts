@@ -96,7 +96,6 @@ export {
 } from './utils/prismaPostgres'
 export { extractSchemaContent, type SchemaFileInput } from './utils/schemaFileInput'
 export { type MultipleSchemas } from './utils/schemaFileInput'
-export { serializeQueryEngineName } from './utils/serializeQueryEngineName'
 export { setClassName } from './utils/setClassName'
 export { toSchemasContainer, toSchemasWithConfigDir } from './utils/toSchemasContainer'
 export { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'

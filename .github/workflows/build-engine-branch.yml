@@ -67,13 +67,7 @@ jobs:
           path: |
             target/release/schema-engine
             target/release/schema-engine.exe
-            target/release/query-engine
-            target/release/query-engine.exe
-            target/release/libquery_engine.so
-            target/release/libquery_engine.dylib
-            target/release/query_engine.dll
             target/prisma-schema-wasm
-            query-engine/query-engine-wasm/pkg
             query-compiler/query-compiler-wasm/pkg
             schema-engine/schema-engine-wasm/pkg
           key: ${{ runner.os }}-engine-${{ steps.engine-hash.outputs.engineHash }}-${{ github.event.number }}
@@ -97,10 +91,7 @@ jobs:
         if: steps.artifacts-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          cargo build --release \
-            -p query-engine \
-            -p query-engine-node-api \
-            -p schema-engine-cli
+          cargo build --release -p schema-engine-cli
 
       - uses: cargo-bins/cargo-binstall@main
 
@@ -153,12 +144,6 @@ jobs:
         shell: bash
         run: |
           make PROFILE=release build-schema-wasm
-
-      - name: Build query-engine-wasm
-        if: steps.artifacts-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          make WASM_BUILD_PROFILE=release build-qe-wasm
 
       - name: Build query-compiler-wasm
         if: steps.artifacts-cache.outputs.cache-hit != 'true'

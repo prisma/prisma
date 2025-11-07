@@ -87,7 +87,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   const configEither = pipe(
     E.tryCatch(
       () => {
-        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+        if (process.env.FORCE_PANIC_GET_CONFIG) {
           debug('Triggering a Rust panic...')
           prismaSchemaWasm.debug_panic()
         }

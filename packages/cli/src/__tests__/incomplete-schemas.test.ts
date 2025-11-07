@@ -4,7 +4,6 @@ import { stripVTControlCharacters } from 'node:util'
 
 import { defaultTestConfig, loadConfigFromFile } from '@prisma/config'
 import { jestContext } from '@prisma/get-platform'
-import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
 import fs from 'fs'
 
@@ -67,7 +66,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Format.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -221,7 +220,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Format.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -250,7 +249,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Format.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -279,7 +278,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Format.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -362,7 +361,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -373,7 +372,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -387,7 +386,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
         const config = await loadFixtureConfig()
         await DbExecute.new().parse(['--file=./script.sql'], config)
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -398,7 +397,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
@@ -409,7 +408,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([], await loadFixtureConfig())
       } catch (e) {
-        expect(serializeQueryEngineName(stripVTControlCharacters(e.message))).toMatchInlineSnapshot(
+        expect(stripVTControlCharacters(e.message)).toMatchInlineSnapshot(
           `"Failed to load Prisma config: ConfigLoadError"`,
         )
       }
