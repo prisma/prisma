@@ -1,15 +1,5 @@
-import { defaultRegistry } from '@prisma/client-generator-registry'
 import { SchemaEngineConfigInternal } from '@prisma/config'
-import { enginesVersion } from '@prisma/engines-version'
-import {
-  getGenerators,
-  getGeneratorSuccessMessage,
-  MigrateTypes,
-  SchemaContext,
-  toSchemasContainer,
-} from '@prisma/internals'
-import { dim } from 'kleur/colors'
-import logUpdate from 'log-update'
+import { MigrateTypes, SchemaContext, toSchemasContainer } from '@prisma/internals'
 
 import { Extension } from './extensions'
 import type { SchemaEngine } from './SchemaEngine'
@@ -228,38 +218,5 @@ export class Migrate {
       warnings,
       unexecutable,
     }
-  }
-
-  public async tryToRunGenerate(): Promise<void> {
-    if (!this.schemaContext) throw new Error('this.schemaContext is undefined')
-
-    const message: string[] = []
-
-    process.stdout.write('\n') // empty line
-    logUpdate(`Running generate... ${dim('(Use --skip-generate to skip the generators)')}`)
-
-    const generators = await getGenerators({
-      schemaContext: this.schemaContext,
-      printDownloadProgress: true,
-      version: enginesVersion,
-      registry: defaultRegistry.toInternal(),
-    })
-
-    for (const generator of generators) {
-      logUpdate(`Running generate... - ${generator.getPrettyName()}`)
-
-      const before = Math.round(performance.now())
-      try {
-        await generator.generate()
-        const after = Math.round(performance.now())
-        message.push(getGeneratorSuccessMessage(generator, after - before))
-        generator.stop()
-      } catch (e: any) {
-        message.push(`${e.message}`)
-        generator.stop()
-      }
-    }
-
-    logUpdate(message.join('\n'))
   }
 }

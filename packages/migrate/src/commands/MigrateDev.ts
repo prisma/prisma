@@ -55,7 +55,6 @@ ${bold('Options')}
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
-  --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
 
 ${bold('Examples')}
@@ -81,7 +80,6 @@ ${bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
-      '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--telemetry-information': String,
     })
@@ -300,12 +298,6 @@ ${bold('Examples')}
 
 ${green('Your database is now in sync with your schema.')}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
-      process.stdout.write('\n') // empty line
     }
 
     // If database was created we want to run the seed if not skipped

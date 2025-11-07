@@ -3,7 +3,7 @@ import { DbPush } from '@prisma/migrate'
 
 /**
  * Creates/Resets the database and apply necessary SQL to be in sync with the provided Prisma schema
- * Run `db push --force-reset --skip-generate` using the provided schema and configured datasource
+ * Run `db push --force-reset` using the provided schema and configured datasource
  */
 export async function migrateDb({ schemaPath }: { schemaPath: string }) {
   const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
@@ -22,6 +22,6 @@ export async function migrateDb({ schemaPath }: { schemaPath: string }) {
     },
   }
 
-  await DbPush.new().parse(['--force-reset', '--skip-generate'], runtimeConfig)
+  await DbPush.new().parse(['--force-reset'], runtimeConfig)
   consoleInfoMock.mockRestore()
 }

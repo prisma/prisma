@@ -12,7 +12,7 @@ export async function setupMemoryTestDatabase(testDir: MemoryTestDir) {
   const config = await getMemoryTestConfig(testDir)
 
   return withNoOutput(async () => {
-    await DbPush.new().parse(['--force-reset', '--skip-generate'], config)
+    await DbPush.new().parse(['--force-reset'], config)
   })
 }
 
