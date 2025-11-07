@@ -3,13 +3,7 @@ import path from 'node:path'
 import { PrismaConfigInternal } from '@prisma/config'
 import { DataSource } from '@prisma/generator'
 import type { DatabaseCredentials } from '@prisma/internals'
-import {
-  canConnectToDatabase,
-  createDatabase,
-  getEffectiveUrl,
-  PRISMA_POSTGRES_PROVIDER,
-  uriToCredentials,
-} from '@prisma/internals'
+import { canConnectToDatabase, createDatabase, PRISMA_POSTGRES_PROVIDER, uriToCredentials } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
 import { ConnectorType } from './printDatasources'
@@ -38,14 +32,20 @@ export type DatasourceInfo = {
   configDir?: string
 }
 
-export function parseDatasourceInfo(datasource: DataSource | undefined): DatasourceInfo {
+export function parseDatasourceInfo(datasource: DataSource | undefined, config: PrismaConfigInternal): DatasourceInfo {
+  let url: string | undefined
+
+  if (config.engine === 'classic') {
+    url = config.datasource.url
+  }
+
   if (!datasource) {
     return {
       name: undefined,
       prettyProvider: undefined,
       dbName: undefined,
       dbLocation: undefined,
-      url: undefined,
+      url,
       schema: undefined,
       schemas: undefined,
       configDir: undefined,
@@ -53,7 +53,6 @@ export function parseDatasourceInfo(datasource: DataSource | undefined): Datasou
   }
 
   const prettyProvider = prettifyProvider(datasource.provider)
-  const url = getEffectiveUrl(datasource).value
 
   // url parsing for sql server is not implemented
   if (!url || datasource.provider === 'sqlserver') {

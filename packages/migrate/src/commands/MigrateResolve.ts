@@ -89,7 +89,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'migrate resolve', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolled-back']) {
