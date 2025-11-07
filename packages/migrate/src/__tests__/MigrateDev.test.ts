@@ -760,10 +760,6 @@ describeMatrix(sqliteOnly, 'SQLite', () => {
           └─ migration.sql
 
       Your database is now in sync with your schema.
-
-      Running seed command \`ts-node prisma/seed.ts\` ...
-
-      The seed command has been executed.
       "
     `)
   })
