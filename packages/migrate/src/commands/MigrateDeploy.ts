@@ -80,7 +80,7 @@ ${bold('Examples')}
     checkUnsupportedDataProxy({ cmd: 'migrate deploy', config })
 
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource), adapter })
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config), adapter })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
