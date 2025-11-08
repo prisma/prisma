@@ -1,4 +1,4 @@
-import { ActiveConnectorType, EnvValue, GeneratorConfig } from '@prisma/generator'
+import { ActiveConnectorType, GeneratorConfig } from '@prisma/generator'
 
 import { CompilerWasmLoadingConfig } from './QueryCompiler'
 import { RuntimeDataModel } from './runtimeDataModel'
@@ -26,14 +26,6 @@ export type GetPrismaClientConfig = {
    * @remarks only used for the purpose of data proxy
    */
   inlineSchema: string
-
-  /**
-   * The contents of the datasource url saved in a string.
-   * This can either be an env var name or connection string.
-   * It is needed by the client to connect to the Data Proxy.
-   * @remarks only used for the purpose of data proxy
-   */
-  inlineDatasources: { [name in string]: { url: EnvValue } }
 
   /**
    * A marker to indicate that the client was not generated via `prisma
