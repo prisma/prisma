@@ -27,7 +27,7 @@
 - **Environment loading**: Prisma 7 removes automatic `.env` loading.
 
 - **Codebase helpers to know**:
-  - `@prisma/internals` exports CLI utilities: `arg`, `checkUnsupportedDataProxy`, `loadSchemaContext` (less used now).
+  - `@prisma/internals` exports CLI utilities: `arg`, `loadSchemaContext` (less used now).
   - `packages/migrate/src/__tests__/__helpers__/context.ts` sets up Jest helpers including config contributors.
   - `packages/config` defines `PrismaConfigInternal`; inspect when validating config assumptions.
 

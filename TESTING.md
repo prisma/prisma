@@ -267,6 +267,8 @@ export default testMatrix.setupSchema(({ provider }) => {
 
 `setupSchema` callback receives all parameters from the matrix for a particular test suite as an argument.
 `idForProvider` is a helper function which returns a correct primary key definition for each of the supported providers.
+Datasource connection strings are configured via the Prisma config helpers (for example
+`ctx.setDatasource`) rather than inlining them into the schema snippet.
 
 #### Test suite
 
