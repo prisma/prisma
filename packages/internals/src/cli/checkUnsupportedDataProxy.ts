@@ -1,7 +1,7 @@
+import { PrismaConfigInternal } from '@prisma/config'
 import { green } from 'kleur/colors'
 
-import { getEffectiveUrl, link, SchemaContext } from '..'
-import { resolveUrl } from '../engine-commands/getConfig'
+import { link } from '..'
 
 /**
  * Get the message to display when a command is forbidden with a data proxy flag
@@ -21,26 +21,10 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
  * @param urls list of urls to check
  * @param schemaContexts list of schema contexts to check
  */
-export function checkUnsupportedDataProxy({
-  cmd,
-  schemaContext = undefined,
-  urls = [],
-}: {
-  cmd: string
-  schemaContext?: SchemaContext
-  urls?: (string | undefined)[]
-}) {
-  for (const url of urls) {
-    if (url && url.includes('prisma://')) {
+export function checkUnsupportedDataProxy({ cmd, config }: { cmd: string; config?: PrismaConfigInternal }) {
+  if (config?.engine === 'classic') {
+    if (config.datasource.url.startsWith('prisma://')) {
       throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
     }
-  }
-
-  if (!schemaContext?.primaryDatasource) return
-
-  const url = resolveUrl(getEffectiveUrl(schemaContext.primaryDatasource))
-
-  if (url?.startsWith('prisma://')) {
-    throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
   }
 }
