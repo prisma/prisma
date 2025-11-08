@@ -243,7 +243,10 @@ export class TransactionManager {
             const query = COMMIT_QUERY()
             await this.#withQuerySpanAndEvent(query, tx.transaction, () => tx.transaction!.executeRaw(query)).then(
               () => tx.transaction!.commit(),
-              (err) => tx.transaction!.rollback().catch(() => Promise.reject(err)),
+              (err) => {
+                const fail = () => Promise.reject(err)
+                return tx.transaction!.rollback().then(fail, fail)
+              },
             )
           }
         } else if (tx.transaction) {
