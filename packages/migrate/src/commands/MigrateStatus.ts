@@ -95,10 +95,7 @@ Check the status of your database migrations
       extensions: config['extensions'],
     })
 
-    // `ensureCanConnectToDatabase` is not compatible with WebAssembly.
-    if (!adapter) {
-      await ensureCanConnectToDatabase(schemaContext.primaryDatasource)
-    }
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
