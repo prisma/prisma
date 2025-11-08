@@ -90,64 +90,64 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       "-- Prisma schema --
-      Path: REDACTED_PATH
+        Path: REDACTED_PATH
 
-      -- Local cache directory for engines files --
-      Path: REDACTED_PATH
+        -- Local cache directory for engines files --
+        Path: REDACTED_PATH
 
-      -- Environment variables --
-      When not set, the line is dimmed and no value is displayed.
-      When set, the line is bold and the value is inside the \`\` backticks.
+        -- Environment variables --
+        When not set, the line is dimmed and no value is displayed.
+        When set, the line is bold and the value is inside the \`\` backticks.
 
-      For general debugging
-      - CI:
-      - DEBUG:
-      - NODE_ENV:
-      - RUST_LOG:
-      - RUST_BACKTRACE:
-      - NO_COLOR:
-      - TERM: \`dumb\`
-      - NODE_TLS_REJECT_UNAUTHORIZED:
-      - NO_PROXY:
-      - http_proxy:
-      - HTTP_PROXY:
-      - https_proxy:
-      - HTTPS_PROXY:
+        For general debugging
+        - CI:
+        - DEBUG:
+        - NODE_ENV:
+        - RUST_LOG:
+        - RUST_BACKTRACE:
+        - NO_COLOR:
+        - TERM: \`dumb\`
+        - NODE_TLS_REJECT_UNAUTHORIZED:
+        - NO_PROXY:
+        - http_proxy:
+        - HTTP_PROXY:
+        - https_proxy:
+        - HTTPS_PROXY:
 
-      For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+        For more information about Prisma environment variables:
+        See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
 
-      For hiding messages
-      - PRISMA_DISABLE_WARNINGS:
-      - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS:
-      - PRISMA_HIDE_UPDATE_MESSAGE:
+        For hiding messages
+        - PRISMA_DISABLE_WARNINGS:
+        - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS:
+        - PRISMA_HIDE_UPDATE_MESSAGE:
 
-      For downloading engines
-      - PRISMA_ENGINES_MIRROR:
-      - PRISMA_BINARIES_MIRROR (deprecated):
-      - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
-      - BINARY_DOWNLOAD_VERSION:
+        For downloading engines
+        - PRISMA_ENGINES_MIRROR:
+        - PRISMA_BINARIES_MIRROR (deprecated):
+        - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING:
+        - BINARY_DOWNLOAD_VERSION:
 
-      For custom engines
-      - PRISMA_SCHEMA_ENGINE_BINARY:
-      - PRISMA_MIGRATION_ENGINE_BINARY:
+        For custom engines
+        - PRISMA_SCHEMA_ENGINE_BINARY:
+        - PRISMA_MIGRATION_ENGINE_BINARY:
 
-      For Prisma Client
-      - PRISMA_SHOW_ALL_TRACES:
+        For Prisma Client
+        - PRISMA_SHOW_ALL_TRACES:
 
-      For Prisma Migrate
-      - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK:
-      - PRISMA_MIGRATE_SKIP_SEED:
+        For Prisma Migrate
+        - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK:
+        - PRISMA_MIGRATE_SKIP_SEED:
 
-      For Prisma Studio
-      - BROWSER:
+        For Prisma Studio
+        - BROWSER:
 
-      -- Terminal is interactive? --
-      false
+        -- Terminal is interactive? --
+        false
 
-      -- CI detected? --
-      false
-      "
+        -- CI detected? --
+        false
+        "
     `)
   })
 
@@ -165,64 +165,64 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       "-- Prisma schema --
-      Path: REDACTED_PATH
+        Path: REDACTED_PATH
 
-      -- Local cache directory for engines files --
-      Path: REDACTED_PATH
+        -- Local cache directory for engines files --
+        Path: REDACTED_PATH
 
-      -- Environment variables --
-      When not set, the line is dimmed and no value is displayed.
-      When set, the line is bold and the value is inside the \`\` backticks.
+        -- Environment variables --
+        When not set, the line is dimmed and no value is displayed.
+        When set, the line is bold and the value is inside the \`\` backticks.
 
-      For general debugging
-      - CI: \`\`
-      - DEBUG: \`\`
-      - NODE_ENV: \`\`
-      - RUST_LOG: \`\`
-      - RUST_BACKTRACE: \`\`
-      - NO_COLOR: \`\`
-      - TERM: \`dumb\`
-      - NODE_TLS_REJECT_UNAUTHORIZED: \`\`
-      - NO_PROXY: \`\`
-      - http_proxy: \`\`
-      - HTTP_PROXY: \`\`
-      - https_proxy: \`\`
-      - HTTPS_PROXY: \`\`
+        For general debugging
+        - CI: \`\`
+        - DEBUG: \`\`
+        - NODE_ENV: \`\`
+        - RUST_LOG: \`\`
+        - RUST_BACKTRACE: \`\`
+        - NO_COLOR: \`\`
+        - TERM: \`dumb\`
+        - NODE_TLS_REJECT_UNAUTHORIZED: \`\`
+        - NO_PROXY: \`\`
+        - http_proxy: \`\`
+        - HTTP_PROXY: \`\`
+        - https_proxy: \`\`
+        - HTTPS_PROXY: \`\`
 
-      For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+        For more information about Prisma environment variables:
+        See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
 
-      For hiding messages
-      - PRISMA_DISABLE_WARNINGS: \`\`
-      - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`\`
-      - PRISMA_HIDE_UPDATE_MESSAGE: \`\`
+        For hiding messages
+        - PRISMA_DISABLE_WARNINGS: \`\`
+        - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`\`
+        - PRISMA_HIDE_UPDATE_MESSAGE: \`\`
 
-      For downloading engines
-      - PRISMA_ENGINES_MIRROR: \`\`
-      - PRISMA_BINARIES_MIRROR (deprecated): \`\`
-      - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`\`
-      - BINARY_DOWNLOAD_VERSION: \`\`
+        For downloading engines
+        - PRISMA_ENGINES_MIRROR: \`\`
+        - PRISMA_BINARIES_MIRROR (deprecated): \`\`
+        - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`\`
+        - BINARY_DOWNLOAD_VERSION: \`\`
 
-      For custom engines
-      - PRISMA_SCHEMA_ENGINE_BINARY: \`\`
-      - PRISMA_MIGRATION_ENGINE_BINARY: \`\`
+        For custom engines
+        - PRISMA_SCHEMA_ENGINE_BINARY: \`\`
+        - PRISMA_MIGRATION_ENGINE_BINARY: \`\`
 
-      For Prisma Client
-      - PRISMA_SHOW_ALL_TRACES: \`\`
+        For Prisma Client
+        - PRISMA_SHOW_ALL_TRACES: \`\`
 
-      For Prisma Migrate
-      - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`\`
+        For Prisma Migrate
+        - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`\`
+        - PRISMA_MIGRATE_SKIP_SEED: \`\`
 
-      For Prisma Studio
-      - BROWSER: \`\`
+        For Prisma Studio
+        - BROWSER: \`\`
 
-      -- Terminal is interactive? --
-      false
+        -- Terminal is interactive? --
+        false
 
-      -- CI detected? --
-      false
-      "
+        -- CI detected? --
+        false
+        "
     `)
   })
 
@@ -237,64 +237,64 @@ describe('debug', () => {
 
     expect(cleanSnapshot(result as string)).toMatchInlineSnapshot(`
       "-- Prisma schema --
-      Path: REDACTED_PATH
+        Path: REDACTED_PATH
 
-      -- Local cache directory for engines files --
-      Path: REDACTED_PATH
+        -- Local cache directory for engines files --
+        Path: REDACTED_PATH
 
-      -- Environment variables --
-      When not set, the line is dimmed and no value is displayed.
-      When set, the line is bold and the value is inside the \`\` backticks.
+        -- Environment variables --
+        When not set, the line is dimmed and no value is displayed.
+        When set, the line is bold and the value is inside the \`\` backticks.
 
-      For general debugging
-      - CI: \`true\`
-      - DEBUG: \`something\`
-      - NODE_ENV: \`test\`
-      - RUST_LOG: \`trace\`
-      - RUST_BACKTRACE: \`full\`
-      - NO_COLOR: \`true\`
-      - TERM: \`dumb\`
-      - NODE_TLS_REJECT_UNAUTHORIZED: \`true\`
-      - NO_PROXY: \`*\`
-      - http_proxy: \`http://http_proxy.localhost\`
-      - HTTP_PROXY: \`http://HTTP_PROXY.localhost\`
-      - https_proxy: \`https://https_proxy.localhost\`
-      - HTTPS_PROXY: \`https://HTTPS_PROXY.localhost\`
+        For general debugging
+        - CI: \`true\`
+        - DEBUG: \`something\`
+        - NODE_ENV: \`test\`
+        - RUST_LOG: \`trace\`
+        - RUST_BACKTRACE: \`full\`
+        - NO_COLOR: \`true\`
+        - TERM: \`dumb\`
+        - NODE_TLS_REJECT_UNAUTHORIZED: \`true\`
+        - NO_PROXY: \`*\`
+        - http_proxy: \`http://http_proxy.localhost\`
+        - HTTP_PROXY: \`http://HTTP_PROXY.localhost\`
+        - https_proxy: \`https://https_proxy.localhost\`
+        - HTTPS_PROXY: \`https://HTTPS_PROXY.localhost\`
 
-      For more information about Prisma environment variables:
-      See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
+        For more information about Prisma environment variables:
+        See https://www.prisma.io/docs/reference/api-reference/environment-variables-reference
 
-      For hiding messages
-      - PRISMA_DISABLE_WARNINGS: \`true\`
-      - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`true\`
-      - PRISMA_HIDE_UPDATE_MESSAGE: \`true\`
+        For hiding messages
+        - PRISMA_DISABLE_WARNINGS: \`true\`
+        - PRISMA_HIDE_PREVIEW_FLAG_WARNINGS: \`true\`
+        - PRISMA_HIDE_UPDATE_MESSAGE: \`true\`
 
-      For downloading engines
-      - PRISMA_ENGINES_MIRROR: \`http://localhost\`
-      - PRISMA_BINARIES_MIRROR (deprecated): \`http://localhost\`
-      - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
-      - BINARY_DOWNLOAD_VERSION: \`true\`
+        For downloading engines
+        - PRISMA_ENGINES_MIRROR: \`http://localhost\`
+        - PRISMA_BINARIES_MIRROR (deprecated): \`http://localhost\`
+        - PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING: \`true\`
+        - BINARY_DOWNLOAD_VERSION: \`true\`
 
-      For custom engines
-      - PRISMA_SCHEMA_ENGINE_BINARY: \`some/path\`
-      - PRISMA_MIGRATION_ENGINE_BINARY: \`true\`
+        For custom engines
+        - PRISMA_SCHEMA_ENGINE_BINARY: \`some/path\`
+        - PRISMA_MIGRATION_ENGINE_BINARY: \`true\`
 
-      For Prisma Client
-      - PRISMA_SHOW_ALL_TRACES: \`true\`
+        For Prisma Client
+        - PRISMA_SHOW_ALL_TRACES: \`true\`
 
-      For Prisma Migrate
-      - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`true\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`true\`
+        For Prisma Migrate
+        - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`true\`
+        - PRISMA_MIGRATE_SKIP_SEED: \`true\`
 
-      For Prisma Studio
-      - BROWSER: \`something\`
+        For Prisma Studio
+        - BROWSER: \`something\`
 
-      -- Terminal is interactive? --
-      false
+        -- Terminal is interactive? --
+        false
 
-      -- CI detected? --
-      true
-      "
+        -- CI detected? --
+        true
+        "
     `)
   })
 
