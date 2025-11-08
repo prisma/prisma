@@ -285,7 +285,7 @@ describe('generator', () => {
         registry,
       })
     }).rejects.toThrowErrorMatchingInlineSnapshot(
-      `[Error: Could not load \`--schema\` from provided path \`tests/doesnotexist.prisma\`: file or directory not found]`,
+      `[Error: Could not load \`--schema\` from the provided path \`/project/doesnotexist.prisma\`: file or directory not found]`,
     )
   })
 

@@ -106,7 +106,7 @@ it('throws error if prisma.config.ts with single file is used but schema file ca
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from \`./__fixtures__/getSchema/no-schema/db/schema.prisma\` provided by "prisma.config.ts"\`: file or directory not found]`,
+    `[Error: Could not load the schema specified in the config file from the provided path \`./__fixtures__/getSchema/no-schema/db/schema.prisma\`: file or directory not found]`,
   )
 })
 
@@ -117,7 +117,7 @@ it('throws error if prisma.config.ts with folder is used but schema files cannot
   })
 
   expect(res).toMatchInlineSnapshot(
-    `[Error: Could not load schema from \`./__fixtures__/getSchema/no-schema/db\` provided by "prisma.config.ts"\`: file or directory not found]`,
+    `[Error: Could not load the schema specified in the config file from the provided path \`./__fixtures__/getSchema/no-schema/db\`: file or directory not found]`,
   )
 })
 

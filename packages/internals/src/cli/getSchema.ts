@@ -150,24 +150,20 @@ async function getSchemaWithPathInternal(
 ): Promise<DefaultLookupResult> {
   // 1. Try the user custom path, when provided.
   if (schemaPathFromArgs) {
-    const absPath = path.resolve(cwd, schemaPathFromArgs)
-    const customSchemaResult = await readSchemaFromFileOrDirectory(absPath)
-    if (!customSchemaResult.ok) {
-      const relPath = path.relative(cwd, absPath)
-      throw new Error(
-        `Could not load \`${argumentName}\` from provided path \`${relPath}\`: ${renderLookupError(
-          customSchemaResult.error,
-        )}`,
-      )
-    }
-
-    return customSchemaResult
+    return readSchemaFromRelativePath({
+      cwd,
+      schemaPath: schemaPathFromArgs,
+      describeInErrorMessage: () => `\`${argumentName}\``,
+    })
   }
 
   // 2. Try the `schema` from `PrismaConfig`
-  const prismaConfigResult = await readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig)
-  if (prismaConfigResult.ok) {
-    return prismaConfigResult
+  if (schemaPathFromConfig) {
+    return readSchemaFromRelativePath({
+      cwd,
+      schemaPath: schemaPathFromConfig,
+      describeInErrorMessage: () => 'the schema specified in the config file',
+    })
   }
 
   // 3. Look into the default, "canonical" locations in the cwd (e.g., `./schema.prisma` or `./prisma/schema.prisma`)
@@ -180,6 +176,27 @@ async function getSchemaWithPathInternal(
     ok: false as const,
     error: defaultResult.error,
   }
+}
+
+async function readSchemaFromRelativePath({
+  cwd,
+  schemaPath,
+  describeInErrorMessage,
+}: {
+  cwd: string
+  schemaPath: string
+  describeInErrorMessage: () => string
+}): Promise<DefaultLookupResult> {
+  const absPath = path.resolve(cwd, schemaPath)
+  const schemaResult = await readSchemaFromFileOrDirectory(absPath)
+
+  if (!schemaResult.ok) {
+    throw new Error(
+      `Could not load ${describeInErrorMessage()} from the provided path \`${schemaPath}\`: ${renderLookupError(schemaResult.error)}`,
+    )
+  }
+
+  return schemaResult
 }
 
 function renderLookupError(error: NonFatalLookupError) {
@@ -212,27 +229,6 @@ function renderDefaultLookupError(error: DefaultLookupError, cwd: string) {
   }
   parts.push('\nSee also https://pris.ly/d/prisma-schema-location')
   return parts.join('\n')
-}
-
-async function readSchemaFromPrismaConfigBasedLocation(schemaPathFromConfig: string | undefined) {
-  if (!schemaPathFromConfig) {
-    return {
-      ok: false,
-      error: { kind: 'PrismaConfigNotConfigured' },
-    } as const
-  }
-
-  const schemaResult = await readSchemaFromFileOrDirectory(schemaPathFromConfig)
-
-  if (!schemaResult.ok) {
-    throw new Error(
-      `Could not load schema from \`${schemaPathFromConfig}\` provided by "prisma.config.ts"\`: ${renderLookupError(
-        schemaResult.error,
-      )}`,
-    )
-  }
-
-  return schemaResult
 }
 
 async function getDefaultSchema(cwd: string, failures: DefaultLookupRuleFailure[] = []): Promise<DefaultLookupResult> {
