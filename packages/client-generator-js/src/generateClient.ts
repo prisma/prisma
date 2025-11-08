@@ -289,7 +289,6 @@ function getTypedSqlRuntimeBase(runtimeBase: string) {
   return `../${runtimeBase}`
 }
 
-// TODO: explore why we have a special case for excluding pnpm
 function getDefaultOutdir(outputDir: string): string {
   if (outputDir.endsWith(path.normalize('node_modules/@prisma/client'))) {
     return path.join(outputDir, '../../.prisma/client')
