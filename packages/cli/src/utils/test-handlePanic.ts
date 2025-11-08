@@ -15,7 +15,9 @@ async function main() {
     const schemaContext = await loadSchemaContext({ schemaPathFromArg: path.join(dirPath, 'schema.prisma') })
     const { viewsDirPath } = inferDirectoryConfig(schemaContext)
 
-    const migrate = await Migrate.setup({ schemaContext })
+    const config = require(path.join(dirPath, 'prisma.config.ts'))
+
+    const migrate = await Migrate.setup({ schemaContext, schemaEngineConfig: config })
     const engine = migrate.engine
 
     await engine.introspect({
