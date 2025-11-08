@@ -31,7 +31,6 @@ export type {
 export { arg, format, isError } from './cli/utils'
 export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
-export { resolveUrl } from './engine-commands/getConfig'
 export { relativizePathInPSLError } from './engine-commands/relativizePathInPSLError'
 export { Generator } from './Generator'
 export {

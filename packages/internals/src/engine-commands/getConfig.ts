@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator'
+import type { DataSource, GeneratorConfig } from '@prisma/generator'
 import { getBinaryTargetForCurrentPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
@@ -63,18 +63,6 @@ ${detailsHeader} ${message}`
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
     this.name = 'GetConfigError'
   }
-}
-
-export function getEffectiveUrl(ds: DataSource): EnvValue {
-  return ds.url
-}
-
-export function resolveUrl(envValue: EnvValue | undefined) {
-  const urlFromValue = envValue?.value
-  const urlEnvVarName = envValue?.fromEnvVar
-  const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
-
-  return urlFromValue ?? urlEnvVarValue
 }
 
 /**
