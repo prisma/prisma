@@ -6,10 +6,10 @@ import {
 } from '@prisma/driver-adapter-utils'
 import { afterEach, describe, expect, expectTypeOf, test, vi } from 'vitest'
 
-import { PrismaD1Http } from '.'
 import { PrismaD1 } from './d1'
 import { PrismaD1HttpAdapterFactory } from './d1-http'
 import { PrismaD1WorkerAdapterFactory } from './d1-worker'
+import { PrismaD1Http } from './index-node'
 
 describe('D1 adapter instance creation', () => {
   afterEach(() => {
