@@ -89,7 +89,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'db push', config })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
     printDatasource({ datasourceInfo, adapter })
     const schemaFilter: MigrateTypes.SchemaFilter = {

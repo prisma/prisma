@@ -89,7 +89,7 @@ ${bold('Examples')}
 
     checkUnsupportedDataProxy({ cmd: 'db drop', config })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line
