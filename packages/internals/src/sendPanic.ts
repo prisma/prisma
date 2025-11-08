@@ -10,7 +10,6 @@ import { createErrorReport, type CreateErrorReportInput, ErrorKind, makeErrorRep
 import type { MigrateTypes } from './migrateTypes'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
-import { mapScalarValues, maskSchema } from './utils/maskSchema'
 
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
@@ -48,16 +47,7 @@ export async function sendPanic({
     dbVersion = await getDatabaseVersionSafe(getDatabaseVersionParams)
   }
 
-  const migrateRequest = error.request
-    ? JSON.stringify(
-        mapScalarValues(error.request, (value) => {
-          if (typeof value === 'string') {
-            return maskSchema(value)
-          }
-          return value
-        }),
-      )
-    : undefined
+  const migrateRequest = error.request ? JSON.stringify(error.request) : undefined
 
   const params: CreateErrorReportInput = {
     area: error.area,
