@@ -39,7 +39,7 @@ function findPackageRoot(startPath, limit = 10) {
         if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {} // eslint-disable-line no-empty
+      } catch {}
     }
     currentPath = path.join(currentPath, '../')
   }
@@ -115,7 +115,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('prisma')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (e) {}
 
   // TODO: consider removing this
   try {
@@ -123,7 +123,7 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('@prisma/cli')
     }
-  } catch (e) {} // eslint-disable-line no-empty
+  } catch (e) {}
 
   return null
 }
@@ -216,7 +216,6 @@ async function createDefaultGeneratedThrowFiles() {
       index: defaultFileConfig,
       edge: defaultFileConfig,
       default: defaultFileConfig,
-      wasm: defaultFileConfig,
       'index-browser': {
         js: path.join(__dirname, 'default-index.js'),
         ts: undefined,
