@@ -61,7 +61,7 @@ This section provides a high-level overview of how Prisma ORM works and its most
 
 ### The Prisma schema
 
-Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/concepts/components/prisma-schema). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
+Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/concepts/components/prisma-schema). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language and configure _generators_.
 
 ```prisma
 // Data source
@@ -95,9 +95,62 @@ model User {
 
 In this schema, you configure three things:
 
-- **Data source**: Specifies your database connection (via an environment variable)
+- **Data source**: Specifies your database type and thus defines the features and data types you can use in the schema
 - **Generator**: Indicates that you want to generate Prisma Client
 - **Data model**: Defines your application models
+
+### `prisma.config.ts`
+
+Database connection details are defined via [`prisma.config.ts`](https://www.prisma.io/docs/orm/prisma-schema/prisma-config-reference).
+
+```ts
+import { defineConfig } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: 'postgres://...',
+  },
+})
+```
+
+If you store the database connection string in `process.env`, an `env` function can help you access it in a type safe way and throw an error if it is missing at run time:
+
+```ts
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+Prisma ORM does not load the `.env` files for you automatically. If you want to populate the environment variables from a `.env` file, consider using a package such as [`dotenv`](https://www.npmjs.com/package/dotenv) or [`@dotenvx/dotenvx`](https://www.npmjs.com/package/@dotenvx/dotenvx).
+
+The configuration file may look like this in that case:
+
+```ts
+import 'dotenv/config'
+import { defineConfig, env } from 'prisma/config'
+
+export default defineConfig({
+  datasource: {
+    url: env('DATABASE_URL'),
+  },
+})
+```
+
+To start a local PostgreSQL development server without using Docker and without any configuration, run `prisma dev`:
+
+```sh
+npx prisma dev
+```
+
+Alternatively, spin up an instant Prisma Postgres® database in the cloud:
+
+```sh
+npx create-db --interactive
+```
 
 ---
 
