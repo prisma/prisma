@@ -87,7 +87,7 @@ ${bold('Examples')}
       schemaEngineConfig: config,
     })
 
-    checkUnsupportedDataProxy({ cmd: 'db drop', schemaContext })
+    checkUnsupportedDataProxy({ cmd: 'db drop', config })
 
     const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource)
     printDatasource({ datasourceInfo })

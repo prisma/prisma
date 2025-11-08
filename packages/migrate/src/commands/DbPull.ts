@@ -126,10 +126,7 @@ Set composite types introspection depth to 2 levels
 
     const cmd = 'db pull'
 
-    checkUnsupportedDataProxy({
-      cmd,
-      schemaContext: schemaContext ?? undefined,
-    })
+    checkUnsupportedDataProxy({ cmd, config })
 
     const adapter = config.engine === 'js' ? await config.adapter() : undefined
 
