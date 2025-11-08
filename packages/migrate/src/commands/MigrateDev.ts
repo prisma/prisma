@@ -9,6 +9,7 @@ import {
   Command,
   format,
   getCommandWithExecutor,
+  getSchemaDatasourceProvider,
   HelpError,
   inferDirectoryConfig,
   isError,
@@ -111,15 +112,15 @@ ${bold('Examples')}
     // Validate schema (same as prisma validate)
     validate({ schemas: schemaContext.schemaFiles })
 
-    let wasDbCreated: string | undefined
-    // `ensureDatabaseExists` is not compatible with WebAssembly.
     // TODO: check why the output and error handling here is different than in `MigrateDeploy`.
-    if (!adapter) {
-      // Automatically create the database if it doesn't exist
-      wasDbCreated = await ensureDatabaseExists(schemaContext.primaryDatasource)
-      if (wasDbCreated) {
-        process.stdout.write(wasDbCreated + '\n\n')
-      }
+    // Automatically create the database if it doesn't exist
+    const successMessage = await ensureDatabaseExists(
+      schemaContext.primaryDatasourceDirectory,
+      getSchemaDatasourceProvider(schemaContext),
+      config,
+    )
+    if (successMessage) {
+      process.stdout.write(successMessage + '\n\n')
     }
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
@@ -301,7 +302,7 @@ ${green('Your database is now in sync with your schema.')}\n`,
     }
 
     // If database was created we want to run the seed if not skipped
-    if (wasDbCreated && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
+    if (successMessage && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       try {
         const seedCommand = config.migrations?.seed
 
