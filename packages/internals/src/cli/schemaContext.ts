@@ -1,5 +1,5 @@
 import { SchemaEngineConfigInternal } from '@prisma/config'
-import { DataSource, GeneratorConfig } from '@prisma/generator'
+import { ActiveConnectorType, DataSource, GeneratorConfig } from '@prisma/generator'
 import { GetSchemaResult, LoadedFile } from '@prisma/schema-files-loader'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -149,4 +149,11 @@ function getPrimaryDatasourceDirectory(primaryDatasource: DataSource | undefined
     return path.dirname(datasourcePath)
   }
   return null
+}
+
+export function getSchemaDatasourceProvider(schemaContext: SchemaContext): ActiveConnectorType {
+  if (schemaContext.primaryDatasource === undefined) {
+    throw new Error('Schema must contain a datasource block')
+  }
+  return schemaContext.primaryDatasource.activeProvider
 }
