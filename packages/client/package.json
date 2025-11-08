@@ -74,8 +74,8 @@
     "./edge": {
       "types": "./edge.d.ts",
       "require": "./edge.js",
-      "import": "./edge.mjs",
-      "default": "./edge.mjs"
+      "import": "./edge.js",
+      "default": "./edge.js"
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
