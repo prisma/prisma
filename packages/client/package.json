@@ -71,11 +71,11 @@
       "import": "./index.js",
       "default": "./index.js"
     },
-    "./wasm": {
-      "types": "./wasm.d.ts",
-      "require": "./wasm.js",
-      "import": "./wasm.mjs",
-      "default": "./wasm.mjs"
+    "./edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.mjs",
+      "default": "./edge.mjs"
     },
     "./runtime/client": {
       "types": "./runtime/client.d.ts",
@@ -150,8 +150,8 @@
     "runtime",
     "scripts",
     "generator-build",
-    "wasm.js",
-    "wasm.d.ts",
+    "edge.js",
+    "edge.d.ts",
     "index.js",
     "index.d.ts",
     "default.js",
