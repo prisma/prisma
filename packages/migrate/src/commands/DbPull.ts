@@ -144,6 +144,12 @@ Set composite types introspection depth to 2 levels
     const firstDatasource = schemaContext.primaryDatasource
     const schema = schemaContext.schemaFiles
 
+    throw new Error(`\
+     TEST:
+     schemaContext.primaryDatasourceDirectory: ${schemaContext.primaryDatasourceDirectory}
+     dirname of sourceFilePath: ${require('node:path').dirname(schemaContext.primaryDatasource?.sourceFilePath)}
+      `)
+
     await getConfig({
       datamodel: schema,
     })
