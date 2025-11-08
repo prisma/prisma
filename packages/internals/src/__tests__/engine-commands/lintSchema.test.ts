@@ -76,8 +76,8 @@ describe('lint invalid schema with a deprecated preview feature', () => {
   }
 
   const expectedError: LintError = {
-    start: 344,
-    end: 425,
+    start: 302,
+    end: 383,
     is_warning: false,
     text: `Error parsing attribute "@relation": The \`onUpdate\` referential action of a relation must not be set to \`SetNull\` when a referenced field is required.
 Either choose another referential action, or make the referenced fields optional.

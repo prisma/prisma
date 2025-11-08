@@ -8,10 +8,6 @@ exports[`getConfig datasource with env var 1`] = `
       "name": "db",
       "provider": "postgresql",
       "activeProvider": "postgresql",
-      "url": {
-        "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-        "value": null
-      },
       "schemas": [],
       "sourceFilePath": "schema.prisma"
     }
@@ -28,10 +24,6 @@ exports[`getConfig empty config 1`] = `
       "name": "db",
       "provider": "sqlite",
       "activeProvider": "sqlite",
-      "url": {
-        "fromEnvVar": null,
-        "value": "file:../hello.db"
-      },
       "schemas": [],
       "sourceFilePath": "schema.prisma"
     }
@@ -67,10 +59,6 @@ exports[`getConfig with generator and datasource 1`] = `
       "name": "db",
       "provider": "sqlite",
       "activeProvider": "sqlite",
-      "url": {
-        "fromEnvVar": null,
-        "value": "file:dev.db"
-      },
       "schemas": [],
       "sourceFilePath": "schema.prisma"
     }

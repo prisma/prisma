@@ -127,19 +127,9 @@ describeMatrix(postgresOnly, 'postgresql', () => {
       // not in the datasource block. The message needs to be updated when removing the
       // `url` property from the PSL.
       await expect(DbPull.new().parse(['--print'], await ctx.config())).rejects.toMatchInlineSnapshot(`
-        "P1012
+        "P1013
 
-        error: Error validating datasource \`my_db\`: the URL must start with the protocol \`file:\`.
-          -->  prisma/schema.prisma:3
-           | 
-         2 |   provider = "sqlite"
-           | 
-
-
-        Introspection failed as your current Prisma schema file is invalid
-
-        Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-        Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+        The provided database string is invalid. \`datasource.url\` in \`prisma.config.ts\` is invalid: must start with the protocol \`file:\`.
         "
       `)
 

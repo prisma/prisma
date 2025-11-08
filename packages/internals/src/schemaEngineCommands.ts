@@ -181,13 +181,17 @@ export async function execaCommand({
   schemaEnginePath = schemaEnginePath || (await resolveBinary(BinaryType.SchemaEngineBinary))
 
   try {
-    return await execa(schemaEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
-      cwd,
-      env: {
-        RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
-        RUST_LOG: process.env.RUST_LOG ?? 'info',
+    return await execa(
+      schemaEnginePath,
+      ['--datasource', JSON.stringify({ url: connectionString }), 'cli', engineCommandName],
+      {
+        cwd,
+        env: {
+          RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+          RUST_LOG: process.env.RUST_LOG ?? 'info',
+        },
       },
-    })
+    )
   } catch (_e) {
     const e = _e as ExecaError
 

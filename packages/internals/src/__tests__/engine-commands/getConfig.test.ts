@@ -120,10 +120,6 @@ describe('getConfig', () => {
             "name": "db",
             "provider": "sqlite",
             "activeProvider": "sqlite",
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:../hello.db"
-            },
             "schemas": [],
             "sourceFilePath": "schema.prisma"
           }

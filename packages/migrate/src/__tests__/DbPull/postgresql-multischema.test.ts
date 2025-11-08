@@ -66,6 +66,7 @@ describeMatrix(postgresOnly, 'postgresql-multischema', () => {
       error: If provided, the schemas array can not be empty.
         -->  with-schemas-in-datasource-0-value.prisma:3
          | 
+       2 |   provider = "postgres"
        3 |   schemas  = []
          | 
 

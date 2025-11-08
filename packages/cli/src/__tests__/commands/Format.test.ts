@@ -134,10 +134,10 @@ describe('format', () => {
           "Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error parsing attribute "@default": The function \`now()\` cannot be used on fields of type \`Int\`.
-            -->  prisma/schema/schema_with_config.prisma:11
+            -->  prisma/schema/schema_with_config.prisma:10
              | 
-          10 | model User {
-          11 |   id Int @id @default(now())
+           9 | model User {
+          10 |   id Int @id @default(now())
              | 
 
           Validation Error Count: 1
