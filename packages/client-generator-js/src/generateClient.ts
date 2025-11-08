@@ -132,9 +132,9 @@ export async function buildClient({
   // to go from more specific to more generic.
   const exportsMapBase = {
     node: './index.js',
-    'edge-light': './wasm.js',
-    workerd: './wasm.js',
-    worker: './wasm.js',
+    'edge-light': './edge.js',
+    workerd: './edge.js',
+    worker: './edge.js',
     browser: './index-browser.js',
     default: './index.js',
   }
@@ -234,8 +234,8 @@ export async function buildClient({
     wasm: true,
   })
 
-  fileMap['wasm.js'] = JS(wasmClient)
-  fileMap['wasm.d.ts'] = TS(wasmClient)
+  fileMap['edge.js'] = JS(wasmClient)
+  fileMap['edge.d.ts'] = TS(wasmClient)
 
   if (typedSql && typedSql.length > 0) {
     const edgeRuntimeName = 'wasm-compiler-edge'
