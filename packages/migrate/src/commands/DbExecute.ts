@@ -139,7 +139,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     }
 
-    checkUnsupportedDataProxy({ cmd, urls: [config.datasource.url] })
+    checkUnsupportedDataProxy({ cmd, config })
 
     const datasourceType: EngineArgs.DbExecuteDatasourceType = {
       tag: 'url',
