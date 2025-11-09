@@ -1,3 +1,0 @@
-[submodule "examples"]
-  path = examples
-  url = https://github.com/prisma/prisma-examples
