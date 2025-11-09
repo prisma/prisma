@@ -1,5 +1,7 @@
+import { createInterface } from 'node:readline/promises'
 import timers from 'node:timers/promises'
 
+import type { ProcessPromise } from 'zx'
 import { $ } from 'zx'
 
 import { executeSteps } from '../_utils/executeSteps'
@@ -15,16 +17,13 @@ void executeSteps({
       const wranglerProcess = $`pnpm wrangler dev --ip 127.0.0.1 --port 8787 src/index.ts`.nothrow()
 
       try {
-        // wait for the server to be fully ready
-        for await (const line of wranglerProcess.stdout) {
-          if (line.includes('Ready')) break
-        }
+        await waitForWranglerReady(wranglerProcess)
 
         await timers.setTimeout(1000)
 
         return await $`curl http://localhost:8787/ -s`
       } finally {
-        await wranglerProcess.kill()
+        await stopProcess(wranglerProcess)
       }
     }, 3)
 
@@ -41,3 +40,56 @@ void executeSteps({
     await $`echo "done"`
   },
 })
+
+async function waitForWranglerReady(processPromise: ProcessPromise) {
+  const stdout = processPromise.stdout
+
+  if (!stdout) {
+    throw new Error('Wrangler stdout is not available; cannot detect readiness')
+  }
+
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => {
+    controller.abort(new Error('Timed out waiting for wrangler to report readiness'))
+  }, 30_000)
+
+  const rl = createInterface({ input: stdout, crlfDelay: Infinity })
+
+  try {
+    controller.signal.throwIfAborted()
+
+    for await (const line of rl) {
+      controller.signal.throwIfAborted()
+
+      if (line.includes('Ready')) {
+        return
+      }
+    }
+
+    throw new Error('Wrangler stdout closed before reporting readiness')
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw (controller.signal.reason as Error) ?? new Error('Timed out waiting for wrangler to report readiness')
+    }
+
+    throw error
+  } finally {
+    clearTimeout(timeoutId)
+    rl.close()
+    stdout.resume()
+  }
+}
+
+async function stopProcess(processPromise: ProcessPromise) {
+  try {
+    await processPromise.kill('SIGINT')
+  } catch {
+    // ignore – process might have already exited
+  }
+
+  try {
+    await processPromise
+  } catch {
+    // swallow to keep cleanup best-effort
+  }
+}
