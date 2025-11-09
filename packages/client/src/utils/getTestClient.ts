@@ -47,7 +47,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     engineVersion: '0000000000000000000000000000000000000000',
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
-    inlineDatasources: { db: { url: config.datasources[0].url } },
     inlineSchema: datamodel[0][1], // TODO: merge schemas
   }
 
