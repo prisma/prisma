@@ -1,0 +1,17 @@
+{
+  "name": "prisma-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "dotenv -e .env.test -- jest",
+    "migrate": "prisma migrate dev --name init",
+    "dev": "dotenv -e .env -- node index.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.0"
+  }
+}
