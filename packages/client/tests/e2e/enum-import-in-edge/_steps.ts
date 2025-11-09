@@ -69,7 +69,7 @@ async function waitForWranglerReady(processPromise: ProcessPromise) {
     throw new Error('Wrangler stdout closed before reporting readiness')
   } catch (error) {
     if (controller.signal.aborted) {
-      throw (controller.signal.reason as Error) ?? new Error('Timed out waiting for wrangler to report readiness')
+      throw controller.signal.reason as Error
     }
 
     throw error
