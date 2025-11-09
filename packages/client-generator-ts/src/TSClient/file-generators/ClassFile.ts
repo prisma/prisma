@@ -7,7 +7,6 @@ import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
-import { buildInlineDatasources } from '../../utils/buildInlineDatasources'
 import { buildGetWasmModule } from '../../utils/wasm'
 import { GenerateContext } from '../GenerateContext'
 import { PrismaClientClass } from '../PrismaClient'
@@ -70,7 +69,6 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
     activeProvider: options.activeProvider,
     postinstall: options.postinstall,
     ciName: ciInfo.name ?? undefined,
-    inlineDatasources: buildInlineDatasources(datasources),
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
     dirname: '',
