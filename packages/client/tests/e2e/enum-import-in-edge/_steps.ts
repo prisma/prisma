@@ -23,7 +23,7 @@ void executeSteps({
 
         return await $`curl http://localhost:8787/ -s`
       } finally {
-        await stopProcess(wranglerProcess)
+        await stopProcess(wranglerProcess).catch(() => {})
       }
     }, 3)
 
@@ -81,15 +81,6 @@ async function waitForWranglerReady(processPromise: ProcessPromise) {
 }
 
 async function stopProcess(processPromise: ProcessPromise) {
-  try {
-    await processPromise.kill('SIGINT')
-  } catch {
-    // ignore – process might have already exited
-  }
-
-  try {
-    await processPromise
-  } catch {
-    // swallow to keep cleanup best-effort
-  }
+  await processPromise.kill('SIGINT')
+  await processPromise
 }
