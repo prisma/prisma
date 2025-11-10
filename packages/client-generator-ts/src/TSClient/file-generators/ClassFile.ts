@@ -1,9 +1,5 @@
-import path from 'node:path'
-
 import { GetPrismaClientConfig } from '@prisma/client-common'
-import { pathToPosix } from '@prisma/internals'
 import * as ts from '@prisma/ts-builders'
-import ciInfo from 'ci-info'
 
 import { buildDebugInitialization } from '../../utils/buildDebugInitialization'
 import { buildRuntimeDataModel } from '../../utils/buildDMMF'
@@ -38,8 +34,7 @@ ${clientConfig(context, options)}
 
 ${prismaClientClass.toTS()}
 
-export function getPrismaClientClass(dirname: string): PrismaClientConstructor {
-  config.dirname = dirname
+export function getPrismaClientClass(): PrismaClientConstructor {
   return runtime.getPrismaClient(config) as unknown as PrismaClientConstructor
 }
 `
@@ -49,28 +44,21 @@ function clientConfig(context: GenerateContext, options: TSClientOptions) {
   const {
     edge,
     generator,
-    outputDir,
     datamodel: inlineSchema,
     runtimeBase,
     runtimeName,
-    datasources,
     target,
     activeProvider,
     moduleFormat,
   } = options
 
-  const datasourceFilePath = datasources[0].sourceFilePath
   const config: GetPrismaClientConfig = {
-    generator,
-    relativePath: pathToPosix(path.relative(outputDir, path.dirname(datasourceFilePath))),
+    previewFeatures: generator.previewFeatures,
     clientVersion: options.clientVersion,
     engineVersion: options.engineVersion,
-    datasourceNames: datasources.map((d) => d.name),
     activeProvider: options.activeProvider,
-    ciName: ciInfo.name ?? undefined,
     inlineSchema,
     runtimeDataModel: { models: {}, enums: {}, types: {} },
-    dirname: '',
   }
 
   return `
