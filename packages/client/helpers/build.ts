@@ -10,7 +10,6 @@ import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffe
 const wasmQueryCompilerDir = path.dirname(require.resolve('@prisma/query-compiler-wasm/package.json'))
 const fillPluginDir = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginDir, 'fillers', 'function.ts')
-const weakrefPolyfillPath = path.join(fillPluginDir, 'fillers', 'weakref.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 const DRIVER_ADAPTER_SUPPORTED_PROVIDERS = ['postgresql', 'sqlite', 'mysql', 'sqlserver', 'cockroachdb'] as const
@@ -109,10 +108,6 @@ const commonRuntimesOverrides = {
   Function: {
     define: 'fn',
     globals: functionPolyfillPath,
-  },
-  // we shim WeakRef, it does not exist on CF
-  WeakRef: {
-    globals: weakrefPolyfillPath,
   },
 }
 
