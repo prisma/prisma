@@ -14,11 +14,10 @@ import {
   loadSchemaContext,
   MigrateTypes,
   printSchemaLoadedMessage,
-  protocolToConnectorType,
   relativizePathInPSLError,
   toSchemasContainer,
 } from '@prisma/internals'
-import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
+import { bold, dim, green, italic, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
@@ -28,12 +27,11 @@ import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { isSchemaEmpty } from '../utils/isSchemaEmpty'
 import { printDatasource } from '../utils/printDatasource'
-import type { ConnectorType } from '../utils/printDatasources'
-import { printDatasources } from '../utils/printDatasources'
 import { printIntrospectedSchema } from '../utils/printIntrospectedSchema'
 import { removeSchemaFiles } from '../utils/removeSchemaFiles'
 import { saveSchemaFiles } from '../utils/saveSchemaFiles'
 import { createSpinner } from '../utils/spinner'
+import { validateConfig } from '../utils/validateConfig'
 
 const debug = Debug('prisma:db:pull')
 
@@ -48,6 +46,8 @@ Pull the state from the database to the Prisma schema using introspection
 ${bold('Usage')}
 
   ${dim('$')} prisma db pull [flags/options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Flags')}
 
@@ -82,18 +82,6 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  private urlToDatasource(url: string, defaultProvider?: ConnectorType): string {
-    const provider = defaultProvider || protocolToConnectorType(`${url.split(':')[0]}:`)
-    return printDatasources([
-      {
-        config: {},
-        provider: provider,
-        name: 'db',
-        url,
-      },
-    ])
-  }
-
   public async parse(argv: string[], config: PrismaConfigInternal): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -119,20 +107,20 @@ Set composite types introspection depth to 2 levels
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
       printLoadMessage: false,
       allowNull: true,
     })
 
     const cmd = 'db pull'
+    const validatedConfig = validateConfig({ config, cmd })
 
-    checkUnsupportedDataProxy({ cmd, config })
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaContext && !args['--print']) {
       printSchemaLoadedMessage(schemaContext.loadedFromPathForLogMessages)
 
-      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource, config) })
+      printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext?.primaryDatasource, validatedConfig) })
     }
 
     if (!schemaContext) {

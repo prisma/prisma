@@ -30,6 +30,19 @@ const ctx = createDefaultTestContext()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
+  describe('prisma.config.ts', () => {
+    it('should require a datasource in the config', async () => {
+      ctx.fixture('no-config')
+
+      fs.writeFileSync('script.sql', '-- noop')
+
+      const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+        `"The datasource property is required in your Prisma config file when using prisma db execute."`,
+      )
+    })
+  })
+
   describe('generic', () => {
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
@@ -47,18 +60,6 @@ describe('db execute', () => {
       const result = DbExecute.new().parse(['--file=1', '--stdin'], await ctx.config())
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         "--stdin and --file cannot be used at the same time. Only 1 must be provided.
-        See \`prisma db execute -h\`"
-      `)
-    })
-
-    it('should require a datasource in the config', async () => {
-      ctx.fixture('empty')
-
-      fs.writeFileSync('script.sql', '-- noop')
-
-      const result = DbExecute.new().parse(['--file=./script.sql'], await ctx.config())
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        "A datasource URL must be provided via prisma.config.ts.
         See \`prisma db execute -h\`"
       `)
     })

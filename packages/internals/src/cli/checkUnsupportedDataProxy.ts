@@ -1,15 +1,16 @@
-import { PrismaConfigInternal } from '@prisma/config'
+import { PrismaConfig } from '@prisma/config'
 import { green } from 'kleur/colors'
 
 import { link } from '..'
+import type { RequireKey } from '../types'
 
 /**
  * Get the message to display when a command is forbidden with a data proxy flag
- * @param command the cli command (eg. db push)
+ * @param cmd the cli command (eg. db push)
  * @returns
  */
-export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${command}`)} yet.
+export const forbiddenCmdWithDataProxyFlagMessage = (cmd: string) => `
+Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${cmd}`)} yet.
 Please use a direct connection to your database in \`prisma.config.ts\`.
 
 More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
@@ -17,12 +18,17 @@ More information about this limitation: ${link('https://pris.ly/d/accelerate-lim
 
 /**
  * Check that the data proxy cannot be used through the given urls and schema contexts
- * @param command the cli command (eg. db push)
- * @param urls list of urls to check
- * @param schemaContexts list of schema contexts to check
+ * @param cmd the cli command (eg. db push)
+ * @param validatedConfig the validated Prisma Config value
  */
-export function checkUnsupportedDataProxy({ cmd, config }: { cmd: string; config?: PrismaConfigInternal }) {
-  if (config?.datasource?.url.startsWith('prisma://')) {
+export function checkUnsupportedDataProxy({
+  cmd,
+  validatedConfig,
+}: {
+  cmd: string
+  validatedConfig: RequireKey<PrismaConfig, 'datasource'>
+}) {
+  if (validatedConfig.datasource.url.startsWith('prisma://')) {
     throw new Error(forbiddenCmdWithDataProxyFlagMessage(cmd))
   }
 }

@@ -54,6 +54,17 @@ function clearPromptInjection(position: string): void {
   prompt._injected.splice(0, count)
 }
 
+describe('prisma.config.ts', () => {
+  it('should require a datasource in the config', async () => {
+    ctx.fixture('no-config')
+
+    const result = MigrateDev.new().parse([], await ctx.config())
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The datasource property is required in your Prisma config file when using prisma migrate dev."`,
+    )
+  })
+})
+
 describe('common', () => {
   it('invalid schema', async () => {
     expect.assertions(2)

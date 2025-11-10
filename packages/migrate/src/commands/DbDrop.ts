@@ -11,7 +11,7 @@ import {
   link,
   loadSchemaContext,
 } from '@prisma/internals'
-import { bold, dim, red, yellow } from 'kleur/colors'
+import { bold, dim, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
@@ -19,6 +19,7 @@ import { parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { printDatasource } from '../utils/printDatasource'
+import { validateConfig } from '../utils/validateConfig'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -37,6 +38,8 @@ ${dim('When using any of the subcommands below you need to explicitly opt-in via
 ${bold('Usage')}
 
   ${dim('$')} prisma db drop [options] --preview-feature
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -84,12 +87,14 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
 
-    checkUnsupportedDataProxy({ cmd: 'db drop', config })
+    const cmd = 'db drop'
+    const validatedConfig = validateConfig({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
 
     process.stdout.write('\n') // empty line

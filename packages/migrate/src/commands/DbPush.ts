@@ -14,7 +14,7 @@ import {
   loadSchemaContext,
   MigrateTypes,
 } from '@prisma/internals'
-import { bold, dim, green, red, yellow } from 'kleur/colors'
+import { bold, dim, green, italic, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -23,6 +23,7 @@ import { aiAgentConfirmationCheckpoint } from '../utils/ai-safety'
 import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
+import { validateConfig } from '../utils/validateConfig'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -35,6 +36,8 @@ ${process.platform === 'win32' ? '' : '🙌  '}Push the state from your Prisma s
 ${bold('Usage')}
 
   ${dim('$')} prisma db push [options]
+
+  The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
 ${bold('Options')}
 
@@ -82,14 +85,16 @@ ${bold('Examples')}
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
 
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
 
-    checkUnsupportedDataProxy({ cmd: 'db push', config })
+    const cmd = 'db push'
+    const validatedConfig = validateConfig({ config, cmd })
 
-    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, config)
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    const datasourceInfo = parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig)
     printDatasource({ datasourceInfo })
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -109,7 +114,7 @@ ${bold('Examples')}
       const successMessage = await ensureDatabaseExists(
         schemaContext.primaryDatasourceDirectory,
         getSchemaDatasourceProvider(schemaContext),
-        config,
+        validatedConfig,
       )
       if (successMessage) {
         process.stdout.write('\n' + successMessage + '\n')

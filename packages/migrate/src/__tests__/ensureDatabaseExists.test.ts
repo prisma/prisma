@@ -7,13 +7,13 @@ const ctx = createDefaultTestContext()
 describeMatrix(sqliteOnly, 'SQLite', () => {
   it('can create database - sqlite', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = ensureDatabaseExists(ctx.fs.path('prisma'), 'sqlite', await ctx.config())
+    const result = ensureDatabaseExists(ctx.fs.path('prisma'), 'sqlite', await ctx.validatedConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:../dev.db"`)
   })
 
   it('can create database - sqlite - folder', async () => {
     ctx.fixture('schema-folder-sqlite')
-    const result = ensureDatabaseExists(ctx.fs.path('prisma'), 'sqlite', await ctx.config())
+    const result = ensureDatabaseExists(ctx.fs.path('prisma'), 'sqlite', await ctx.validatedConfig())
     await expect(result).resolves.toMatchInlineSnapshot(`"SQLite database dev.db created at file:../dev.db"`)
   })
 })

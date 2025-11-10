@@ -13,12 +13,13 @@ import {
   loadSchemaContext,
   MigrateTypes,
 } from '@prisma/internals'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureCanConnectToDatabase, parseDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
+import { validateConfig } from '../utils/validateConfig'
 
 const debug = Debug('prisma:migrate:status')
 
@@ -33,6 +34,8 @@ Check the status of your database migrations
   ${bold('Usage')}
 
     ${dim('$')} prisma migrate status [options]
+
+    The datasource URL configuration is read from the Prisma config file (e.g., ${italic('prisma.config.ts')}).
 
   ${bold('Options')}
 
@@ -73,12 +76,15 @@ Check the status of your database migrations
     const schemaContext = await loadSchemaContext({
       schemaPathFromArg: args['--schema'],
       schemaPathFromConfig: config.schema,
-      schemaEngineConfig: config,
     })
     const { migrationsDirPath } = inferDirectoryConfig(schemaContext, config)
-    checkUnsupportedDataProxy({ cmd: 'migrate status', config })
 
-    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, config) })
+    const cmd = 'migrate status'
+    const validatedConfig = validateConfig({ config, cmd })
+
+    checkUnsupportedDataProxy({ cmd, validatedConfig })
+
+    printDatasource({ datasourceInfo: parseDatasourceInfo(schemaContext.primaryDatasource, validatedConfig) })
 
     const schemaFilter: MigrateTypes.SchemaFilter = {
       externalTables: config.tables?.external ?? [],
@@ -93,7 +99,7 @@ Check the status of your database migrations
       extensions: config['extensions'],
     })
 
-    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, config)
+    await ensureCanConnectToDatabase(schemaContext.primaryDatasourceDirectory, validatedConfig)
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

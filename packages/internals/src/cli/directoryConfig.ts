@@ -10,6 +10,9 @@ export type DirectoryConfig = {
   migrationsDirPath: string
 }
 
+/**
+ * TODO: `config` should very likely be mandatory here.
+ */
 export function inferDirectoryConfig(
   schemaContext?: SchemaContext | null,
   config?: PrismaConfigInternal,

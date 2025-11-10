@@ -1,8 +1,11 @@
 import { Datasource, defaultTestConfig, defineConfig, PrismaConfigInternal } from '@prisma/config'
 import type { BaseContext } from '@prisma/get-platform'
 
+import { validateConfig, type ValidatedPrismaConfig } from '../../utils/validateConfig'
+
 type ConfigContext = {
   config: () => Promise<PrismaConfigInternal>
+  validatedConfig: () => Promise<ValidatedPrismaConfig>
   datasource: () => Promise<Datasource | undefined>
   configFileName: () => string
 
@@ -32,6 +35,12 @@ export const configContextContributor =
           ...(await loadFixtureConfig(ctx)), // custom fixture config overwrites any defaults
           ...(overrideDatasource ? defineConfig({ datasource: overrideDatasource }) : {}),
         }
+      }
+
+      ctx.validatedConfig = async () => {
+        const config = await ctx.config()
+
+        return validateConfig({ config, cmd: 'test' })
       }
 
       ctx.datasource = async () => {

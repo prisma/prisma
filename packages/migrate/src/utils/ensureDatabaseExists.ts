@@ -1,8 +1,8 @@
 import path from 'node:path'
 
-import { PrismaConfigInternal } from '@prisma/config'
+import { PrismaConfig } from '@prisma/config'
 import { DataSource } from '@prisma/generator'
-import type { DatabaseCredentials } from '@prisma/internals'
+import type { DatabaseCredentials, RequireKey } from '@prisma/internals'
 import { canConnectToDatabase, createDatabase, PRISMA_POSTGRES_PROVIDER, uriToCredentials } from '@prisma/internals'
 import { bold } from 'kleur/colors'
 
@@ -32,8 +32,11 @@ export type DatasourceInfo = {
   configDir?: string
 }
 
-export function parseDatasourceInfo(datasource: DataSource | undefined, config: PrismaConfigInternal): DatasourceInfo {
-  const url = config.datasource?.url
+export function parseDatasourceInfo(
+  datasource: DataSource | undefined,
+  config: RequireKey<PrismaConfig, 'datasource'>,
+): DatasourceInfo {
+  const url = config.datasource.url
 
   if (!datasource) {
     return {
@@ -51,13 +54,13 @@ export function parseDatasourceInfo(datasource: DataSource | undefined, config: 
   const prettyProvider = prettifyProvider(datasource.provider)
 
   // url parsing for sql server is not implemented
-  if (!url || datasource.provider === 'sqlserver') {
+  if (datasource.provider === 'sqlserver') {
     return {
       name: datasource.name,
       prettyProvider,
       dbName: undefined,
       dbLocation: undefined,
-      url: url || undefined,
+      url,
       schema: undefined,
       schemas: datasource.schemas,
       configDir: path.dirname(datasource.sourceFilePath),
@@ -114,14 +117,9 @@ export function parseDatasourceInfo(datasource: DataSource | undefined, config: 
  */
 export async function ensureCanConnectToDatabase(
   pathResolutionRoot: string,
-  config: PrismaConfigInternal,
+  config: RequireKey<PrismaConfig, 'datasource'>,
 ): Promise<void> {
-  const url = config.datasource?.url
-
-  // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
-  if (!url) {
-    return undefined
-  }
+  const url = config.datasource.url
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)
 
@@ -138,14 +136,9 @@ type SuccessMessage = string
 export async function ensureDatabaseExists(
   pathResolutionRoot: string,
   provider: ConnectorType,
-  config: PrismaConfigInternal,
+  config: RequireKey<PrismaConfig, 'datasource'>,
 ): Promise<SuccessMessage | undefined> {
-  const url = config.datasource?.url
-
-  // TODO: can we valid the presence of `config.datasource.url` early and make this unreachable?
-  if (!url) {
-    return undefined
-  }
+  const url = config.datasource.url
 
   const canConnect = await canConnectToDatabase(url, pathResolutionRoot)
   if (canConnect === true) {

@@ -54,7 +54,7 @@ export { canConnectToDatabase, createDatabase, dropDatabase } from './schemaEngi
 export { SchemaEngineExitCode } from './schemaEngineCommands'
 export { sendPanic } from './sendPanic'
 export * from './tracing/types'
-export type { DatabaseCredentials } from './types'
+export type { DatabaseCredentials, RequireKey } from './types'
 export { assertAlways } from './utils/assertAlways'
 export { assertNever } from './utils/assertNever'
 export { binaryTargetRegex } from './utils/binaryTargetRegex'
