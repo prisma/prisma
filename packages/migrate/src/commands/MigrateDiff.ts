@@ -210,7 +210,7 @@ ${bold('Examples')}
     } else if (args['--from-config-datasource']) {
       const schemaContext = await loadSchemaContext({
         schemaPathFromConfig: config.schema,
-        schemaEngineConfig: config,
+
         printLoadMessage: false,
       })
       from = {
@@ -240,7 +240,7 @@ ${bold('Examples')}
     } else if (args['--to-config-datasource']) {
       const schemaContext = await loadSchemaContext({
         schemaPathFromConfig: config.schema,
-        schemaEngineConfig: config,
+
         printLoadMessage: false,
       })
       to = {
