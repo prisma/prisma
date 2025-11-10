@@ -21,7 +21,6 @@ import { ensureDatabaseExists, parseDatasourceInfo } from '../utils/ensureDataba
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { executeSeedCommand } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -40,7 +39,6 @@ ${bold('Options')}
        -h, --help   Display this help message
          --config   Custom path to your Prisma config file
          --schema   Custom path to your Prisma schema
-      --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
 ${bold('Examples')}
@@ -61,7 +59,6 @@ ${bold('Examples')}
       '-h': '--help',
       '--force': Boolean,
       '-f': '--force',
-      '--skip-seed': Boolean,
       '--schema': String,
       '--config': String,
       '--telemetry-information': String,
@@ -157,21 +154,6 @@ The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('m
           'migration.sql': '',
         })}\n`,
       )
-    }
-
-    // Run if not skipped
-    if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      const seedCommand = config.migrations?.seed
-
-      if (seedCommand) {
-        process.stdout.write('\n') // empty line
-        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
-        if (successfulSeeding) {
-          process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
-        } else {
-          process.exit(1)
-        }
-      }
     }
 
     return ``

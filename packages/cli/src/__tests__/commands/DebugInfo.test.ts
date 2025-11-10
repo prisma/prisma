@@ -59,7 +59,6 @@ const envVars = {
   PRISMA_MIGRATION_ENGINE_BINARY: 'true',
   PRISMA_SHOW_ALL_TRACES: 'true',
   PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: 'true',
-  PRISMA_MIGRATE_SKIP_SEED: 'true',
   BROWSER: 'something',
 }
 
@@ -137,7 +136,6 @@ describe('debug', () => {
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK:
-      - PRISMA_MIGRATE_SKIP_SEED:
 
       For Prisma Studio
       - BROWSER:
@@ -212,7 +210,6 @@ describe('debug', () => {
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`\`
 
       For Prisma Studio
       - BROWSER: \`\`
@@ -284,7 +281,6 @@ describe('debug', () => {
 
       For Prisma Migrate
       - PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK: \`true\`
-      - PRISMA_MIGRATE_SKIP_SEED: \`true\`
 
       For Prisma Studio
       - BROWSER: \`something\`

@@ -118,7 +118,6 @@ ${formatEnvValue('PRISMA_SHOW_ALL_TRACES')}
 
 For Prisma Migrate
 ${formatEnvValue('PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK')}
-${formatEnvValue('PRISMA_MIGRATE_SKIP_SEED')}
 
 For Prisma Studio
 ${formatEnvValue('BROWSER')}

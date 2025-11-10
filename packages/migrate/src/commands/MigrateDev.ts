@@ -30,7 +30,6 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { executeSeedCommand } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -56,7 +55,6 @@ ${bold('Options')}
        -n, --name   Name the migration
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
-      --skip-seed   Skip triggering seed
 
 ${bold('Examples')}
 
@@ -81,7 +79,6 @@ ${bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--config': String,
-      '--skip-seed': Boolean,
       '--telemetry-information': String,
     })
 
@@ -299,25 +296,6 @@ ${bold('Examples')}
 
 ${green('Your database is now in sync with your schema.')}\n`,
       )
-    }
-
-    // If database was created we want to run the seed if not skipped
-    if (successMessage && !process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      try {
-        const seedCommand = config.migrations?.seed
-
-        if (seedCommand) {
-          process.stdout.write('\n') // empty line
-          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommand })
-          if (successfulSeeding) {
-            process.stdout.write(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
-          } else {
-            process.exit(1)
-          }
-        }
-      } catch (e) {
-        console.error(e)
-      }
     }
 
     return ''
